@@ -1,0 +1,45 @@
+
+OK, I also agree that it would be very good if we have some notion of
+explicit parameter passing as I already replied to you.
+
+> |mod* LIST (X :: TRIV) {
+> |  protecting(TRIV+(X))
+>
+> the current interpreter cannot handle this properly since
+
+I think the system handles this PROPERLY with respect to the
+semantics of CafeOBJ. 
+
+> |mod* LIST (X :: TRIV) {
+>
+> would be interpreted as a new parameter declaration and
+>
+> |  protecting(TRIV+(X))
+>
+> as an instantiation of TRIV+! 
+
+System performs exactly as you described in the above and
+I think this is very proper. 
+
+      TRIV ---X---> TRIV+
+        |             |
+        |             |
+        V             V
+      X.LIST -----> TRIV+(X.LIST)
+        ^             |
+        |             |
+        |             V
+       TRIV ---X--> LIST
+
+The situation is depicted in the above diagram. 
+I believe that the module 
+   mod* LIST (Y :: TRIV) {
+     protecting(TRIV+(Y))
+      :
+   }
+is not essentialy different from the module declared as
+   mod* LIST (X :: TRIV) {
+     protecting(TRIV+(X))
+       :
+   }
+-- sawada@sra.co.jp

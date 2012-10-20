@@ -1,0 +1,478 @@
+Dear Razvan,
+
+I enclosed a modified version of your category example 
+at the bottom of this e-mail which runs on the interpreter
+version 1.4.2b2. I put this version at
+    ftp://syphon.jaist.ac.jp/Cafe/language/cafeobj-1.4.2b2.tar.gz
+Please try this version. This version is not essentialy different 
+from version 1.4.2b1, but includes an enhancement which eases to
+specify views making module expression be more simple.
+
+Here are summary of my modifications:
+(0) name of sort membership predicate
+    _:_ --> _:is_
+
+(1) FUNCTOR-COMPOSE
+    changed the sort of variable f from Arr.C to ?Arr.C
+    so that we can prove
+	('f fun) ; ('g fun) == ('f ; 'g) fun 
+(2) ID-FUNCTOR
+    corrected a bug of undefined variables in axioms.
+     eq A id = A ---> eq A:Obj id = A .
+     eq f id = f ---> eq f:Arr id = f .
+(3) ADJUNCTION
+    specified nessesarry views according to the definition of
+    adjunction. 
+    here is a header part of the declaration of modified ADJUNCTION
+    --------------------------------------------------------------
+    mod* ADJUNCTION
+     ( C   :: CATEGORY,
+       D   :: CATEGORY,
+       F   :: FUNCTOR(C,D)*{op _fun -> _F},
+       U   :: FUNCTOR(D,C)*{op _fun -> _U},
+       ETA :: NAT-TRANSF(C,
+			 C,
+			 ID-FUNCTOR(C){op _F -> _id},
+			 FUNCTOR-COMPOSE(C,
+					 D,
+					 C,
+					 F{op _F -> _F},
+					 U{sort Arr.E -> Arr.C,
+					   sort Obj.E -> Obj.C,
+					   op _G -> _U})
+			 {op _G -> _fun}
+			 )
+       *{op _nt -> _eta},
+       EPS :: NAT-TRANSF(D,
+			 D,
+			 FUNCTOR-COMPOSE(D,
+					 C,
+					 D,
+					 U{op _F -> _U},
+					 F{sort Arr.E -> Arr.D,
+					   sort Obj.E -> Obj.D,
+					   op _G -> _F})
+			 {op _F -> _fun},
+			 ID-FUNCTOR(D){op _G -> _id})
+       *{op _nt -> _eps} )
+      ----------------------------------------------------------------
+      As you may see, I specified explicit views which is neccessary,
+      unless system cannot infer proper mappings.
+      Older versions of the interpreter required much more annoying
+      views, for eaxmple, you had to specify like 
+         ETA :: NAT-TRANSF(C,
+                           C,
+			   ID-FUNCTOR(C){op _F -> _id},
+			   FUNCTOR-COMPOSE(C,
+					   D,
+					   C,
+					   F{sort Arr.C -> Arr.C,
+                                             sort Arr.D -> Arr.D,
+                                             sort Obj.C -> Obj.C,
+                                             sort Obj.D -> Obj.D,
+                                             op _F -> _F},
+					   U{sort Arr.D -> Arr.D,
+                                             sort Arr.E -> Arr.C,
+                                             sort Obj.D -> Obj.D,
+					     sort Obj.E -> Obj.C,
+					     op _G -> _U})
+			   {sort Arr.C -> Arr.C,
+                            sort Arr.D -> Arr.D,
+                            sort Obj.C -> Obj.C,
+                            sort Obj.D -> Obj.D,
+                            op _G -> _fun}
+			 ) ...
+       Now the system reuses preceding maps of a parameter for
+       resolving maps of unspecified objects. 
+
+Followings are session log with version 1.4.2b2. 
+I hope that the result matches to your intension.
+----------------------------------------------------------------------
+CafeOBJ> in cat-exs
+processing input : ./cat-exs.mod
+-- defining module BASIC-CAT........._
+[Warning]: axiom : f ; ?g :is Arr = (?g :is Arr) and dom ?g == cod
+         f
+    contains error operators, should be used with care!..
+[Warning]: axiom : dom (?f ; ?g) = dom ?f if ?f ; ?g :is Arr
+    contains error operators, should be used with care!..
+[Warning]: axiom : cod (?f ; ?g) = cod ?g if ?f ; ?g :is Arr
+    contains error operators, should be used with care!....
+[Warning]: axiom : 1(A) ; f = f if dom f == A
+    contains error operators, should be used with care!..
+[Warning]: axiom : f ; 1(A) = f if cod f == A
+    contains error operators, should be used with care!..* done.
+-- defining module* CATEGORY_.* done.
+-- defining module! CAT1_......._......
+[Warning]: axiom : 'f ; 'e = 'g ; 'e
+    contains error operators, should be used with care!..* done.
+-- reduce in CAT1 : 'f ; 1('B) ; 'e == 'g ; 'e ; 1('C)
+true : Bool
+(0.000 sec for parse, 8 rewrites(0.020 sec), 56 matches)
+-- reduce in CAT1 : 'f ; 'g
+'f ; 'g : ?Arr
+(0.000 sec for parse, 0 rewrites(0.000 sec), 12 matches)
+-- defining module! CAT2,,,,,,,*...._
+[Warning]: axiom : << s ; a ; t >> ; << s' ; a' ; t' >> = << s ; 
+        (a + (a' - a * a')) ; t' >> if t == s'
+    contains error operators, should be used with care!..* done.
+-- reduce in CAT2 : << 1 ; 2 ; 2 >> ; << 2 ; 3 ; 3 >>
+<< 1 ; -1 ; 3 >> : 3Tuple
+(0.010 sec for parse, 7 rewrites(0.000 sec), 13 matches)
+-- reduce in CAT2 : << 1 ; 2 ; 2 >> ; << 3 ; 3 ; 3 >>
+<< 1 ; 2 ; 2 >> ; << 3 ; 3 ; 3 >> : ?3Tuple
+(0.010 sec for parse, 1 rewrites(0.000 sec), 3 matches)
+-- reduce in CAT2 : << 1 ; 2 ; 2 >> ; << 2 ; 0 ; 2 >>
+<< 1 ; 2 ; 2 >> : 3Tuple
+(0.010 sec for parse, 6 rewrites(0.010 sec), 9 matches)
+-- defining view cat2  done.
+-- defining module* FUNCTOR_*_*._*_*....._...
+[Warning]: axiom : (f ; g) fun = (f fun) ; (g fun) if f ; g :is Arr
+    contains error operators, should be used with care!..* done.,,,,,,,
+-- opening module FUNCTOR(C <= CAT1, D <= cat2).. done._*
+-- reduce in % : ('f ; 'e) fun == ('g ; 'e) fun
+true : Bool
+(0.010 sec for parse, 26 rewrites(0.060 sec), 152 matches)
+-- defining module* FUNCTOR-COMPOSE_*_*._*_*._*_*.,,,,,,,,,,,,,,,*_*_*.,,,,,,,,,,,,,,,*_*_*....._.
+[Warning]: axiom : f fun = (f F) G if f :is Arr
+    contains error operators, should be used with care!..* done.
+-- opening module FUNCTOR-COMPOSE(C, D, E, F, G).. done._*
+-- reduce in %(C.FUNCTOR-COMPOSE, D.FUNCTOR-COMPOSE, E.FUNCTOR-COMPOSE, F.FUNCTOR-COMPOSE, G.FUNCTOR-COMPOSE) : 
+    1('A) fun == 1('A fun)
+true : Bool
+(0.010 sec for parse, 6 rewrites(0.000 sec), 11 matches)
+-- reduce in %(C.FUNCTOR-COMPOSE, D.FUNCTOR-COMPOSE, E.FUNCTOR-COMPOSE, F.FUNCTOR-COMPOSE, G.FUNCTOR-COMPOSE) : 
+    ('f fun) ; ('g fun) == ('f ; 'g) fun
+true : Bool
+(0.010 sec for parse, 25 rewrites(0.050 sec), 135 matches)
+-- defining module! ID-FUNCTOR_*_*.,,,,,,,,,,,,,,,*._..* done.
+-- defining module* NAT-TRANSF_*_*._*_*.,,,,,,,,,,,,,,,*_*_*.,,,,,,,,,,,,,,,*_*_*...._..
+[Warning]: axiom : (A nt) ; (f G) = (f F) ; (B nt) if A == dom f 
+        and B == cod f
+    contains error operators, should be used with care!..* done.
+-- defining module* ADJUNCTION_*_*._*_*.,,,,,,,,,,,,,,,*_*_*.,,,,,,,,,,,,,,,*_*_*.,,,,,,,*,,,,,,,,,,,,,,**,,,,,,,,,,,,,,,*_*_*.,,,,,,,,,,,,,,*,,,,,,,**,,,,,,,,,,,,,,,*_*_*..._
+[Warning]: axiom : ((c eta) F) ; ((c F) eps) = 1(c F)
+    contains error operators, should be used with care!..
+[Warning]: axiom : ((d U) eta) ; ((d eps) U) = 1(d U)
+    contains error operators, should be used with care!..* done.
+ADJUNCTION(C, D, F, U, ETA, EPS)> sh all sorts
+* visible sorts :
+  Obj.C
+  Arr.C
+  Obj.D
+  Arr.D
+ADJUNCTION(C, D, F, U, ETA, EPS)> sh all ops
+.............................(_ ; _).............................
+  * rank: ?Arr.C ?Arr.C -> ?Arr.C
+    - attributes:  { assoc r-assoc }
+    - axioms:
+      eq ((c eta) F) ; ((c F) eps) = 1(c F)
+      eq ((d U) eta) ; ((d eps) U) = 1(d U)
+      ceq 1(A:Obj.C) ; f:Arr.C = f:Arr.C if dom f:Arr.C == A:Obj.C
+      ceq f:Arr.C ; 1(A:Obj.C) = f:Arr.C if cod f:Arr.C == A:Obj.C
+      ceq 1(A:Obj.C) ; f:Arr.C = f:Arr.C if dom f:Arr.C == A:Obj.C
+      ceq f:Arr.C ; 1(A:Obj.C) = f:Arr.C if cod f:Arr.C == A:Obj.C
+..............................(Obj)..............................
+  * rank: -> SortId
+    - attributes:  { constr prec: 0 }
+  * rank: -> SortId
+    - attributes:  { constr prec: 0 }
+..............................(Arr)..............................
+  * rank: -> SortId
+    - attributes:  { constr prec: 0 }
+  * rank: -> SortId
+    - attributes:  { constr prec: 0 }
+...............................(1)...............................
+  * rank: Obj.C -> Arr.C
+    - attributes:  { prec: 0 }
+.............................(cod _).............................
+  * rank: Arr.C -> Obj.C
+    - attributes:  { prec: 15 }
+    - axioms:
+      eq cod (A:Obj.C eta) = A:Obj.C fun
+      eq cod (f:Arr.C id) = cod f:Arr.C id
+      eq cod (f:Arr.D U) = cod f:Arr.D U
+      eq cod 1(A:Obj.C) = A:Obj.C
+.............................(dom _).............................
+  * rank: Arr.C -> Obj.C
+    - attributes:  { prec: 15 }
+    - axioms:
+      eq dom (A:Obj.C eta) = A:Obj.C id
+      eq dom (f:Arr.C id) = dom f:Arr.C id
+      eq dom (f:Arr.D U) = dom f:Arr.D U
+      eq dom 1(A:Obj.C) = A:Obj.C
+.............................(_ ; _).............................
+  * rank: ?Arr.D ?Arr.D -> ?Arr.D
+    - attributes:  { assoc r-assoc }
+    - axioms:
+      ceq 1(A:Obj.D) ; f:Arr.D = f:Arr.D if dom f:Arr.D == A:Obj.D
+      ceq f:Arr.D ; 1(A:Obj.D) = f:Arr.D if cod f:Arr.D == A:Obj.D
+      ceq 1(A:Obj.D) ; f:Arr.D = f:Arr.D if dom f:Arr.D == A:Obj.D
+      ceq f:Arr.D ; 1(A:Obj.D) = f:Arr.D if cod f:Arr.D == A:Obj.D
+...............................(1)...............................
+  * rank: Obj.D -> Arr.D
+    - attributes:  { prec: 0 }
+.............................(cod _).............................
+  * rank: Arr.D -> Obj.D
+    - attributes:  { prec: 15 }
+    - axioms:
+      eq cod (A:Obj.D eps) = A:Obj.D id
+      eq cod (f:Arr.D id) = cod f:Arr.D id
+      eq cod (f:Arr.C F) = cod f:Arr.C F
+      eq cod 1(A:Obj.D) = A:Obj.D
+.............................(dom _).............................
+  * rank: Arr.D -> Obj.D
+    - attributes:  { prec: 15 }
+    - axioms:
+      eq dom (A:Obj.D eps) = A:Obj.D fun
+      eq dom (f:Arr.D id) = dom f:Arr.D id
+      eq dom (f:Arr.C F) = dom f:Arr.C F
+      eq dom 1(A:Obj.D) = A:Obj.D
+..............................(_ F)..............................
+  * rank: Arr.C -> Arr.D
+    - attributes:  { prec: 41 }
+    - axioms:
+      eq 1(A:Obj.C) F = 1(A:Obj.C F)
+..............................(_ F)..............................
+  * rank: Obj.C -> Obj.D
+    - attributes:  { prec: 41 }
+..............................(_ U)..............................
+  * rank: Arr.D -> Arr.C
+    - attributes:  { prec: 41 }
+    - axioms:
+      eq 1(A:Obj.D) U = 1(A:Obj.D U)
+..............................(_ U)..............................
+  * rank: Obj.D -> Obj.C
+    - attributes:  { prec: 41 }
+.............................(_ eta).............................
+  * rank: Obj.C -> Arr.C
+    - attributes:  { prec: 41 }
+.............................(_ fun).............................
+  * rank: Obj.C -> Obj.C
+    - attributes:  { strat: (0 1) prec: 41 }
+    - axioms:
+      eq A:Obj.C fun = (A:Obj.C F) U
+.............................(_ fun).............................
+  * rank: Arr.C -> Arr.C
+    - attributes:  { strat: (0 1) prec: 41 }
+    - axioms:
+      ceq f:?Arr.C fun = (f:?Arr.C F) U if f:?Arr.C :is Arr
+.............................(_ id).............................
+  * rank: Arr.C -> Arr.C
+    - attributes:  { prec: 41 }
+    - axioms:
+      eq f:Arr.C id = f:Arr.C
+      eq 1(A:Obj.C) id = 1(A:Obj.C id)
+.............................(_ id).............................
+  * rank: Obj.C -> Obj.C
+    - attributes:  { strat: (0 1) prec: 41 }
+    - axioms:
+      eq A:Obj.C id = A:Obj.C
+.............................(_ eps).............................
+  * rank: Obj.D -> Arr.D
+    - attributes:  { prec: 41 }
+.............................(_ id).............................
+  * rank: Arr.D -> Arr.D
+    - attributes:  { prec: 41 }
+    - axioms:
+      eq f:Arr.D id = f:Arr.D
+      eq 1(A:Obj.D) id = 1(A:Obj.D id)
+.............................(_ id).............................
+  * rank: Obj.D -> Obj.D
+    - attributes:  { strat: (0 1) prec: 41 }
+    - axioms:
+      eq A:Obj.D id = A:Obj.D
+.............................(_ fun).............................
+  * rank: Obj.D -> Obj.D
+    - attributes:  { strat: (0 1) prec: 41 }
+    - axioms:
+      eq A:Obj.D fun = (A:Obj.D U) F
+.............................(_ fun).............................
+  * rank: Arr.D -> Arr.D
+    - attributes:  { strat: (0 1) prec: 41 }
+    - axioms:
+      ceq f:?Arr.D fun = (f:?Arr.D F) F if f:?Arr.D :is Arr
+----------------------------------------------------------------------
+
+And here is the modified cat example:
+*** ******************************************************************
+-- basic code for categories
+mod BASIC-CAT {
+
+  [ Obj Arr ]
+
+  op dom_ : Arr -> Obj 
+  op cod_ : Arr -> Obj
+    
+  op 1 : Obj -> Arr
+  op _;_ : ?Arr ?Arr -> ?Arr {assoc}
+
+  var A  : Obj 
+  var f  : Arr
+  vars ?f ?g : ?Arr
+  
+  eq (f ; ?g) :is Arr = (?g :is Arr) and (dom ?g == cod f) .
+  ceq dom(?f ; ?g) = dom ?f  if (?f ; ?g) :is Arr .
+  ceq cod(?f ; ?g) = cod ?g  if (?f ; ?g) :is Arr .
+
+  eq dom 1(A) = A .  eq cod 1(A) = A .
+  ceq 1(A) ; f = f if dom f == A .
+  ceq f ; 1(A) = f if cod f == A .
+}
+
+-- the theory of categories
+mod* CATEGORY { using(BASIC-CAT) }
+
+-- a category
+mod! CAT1 { using(BASIC-CAT)
+  ops 'f 'g 'e : -> Arr 
+  ops 'A 'B 'C : -> Obj 
+  eq dom 'f = 'A . eq cod 'f = 'B .
+  eq dom 'g = 'A . eq cod 'g = 'B .
+  eq dom 'e = 'B . eq cod 'e = 'C .
+  eq 'f ; 'e = 'g ; 'e .
+}
+red 'f ; 1('B) ; 'e == 'g ; 'e ; 1('C) .
+red 'f ; 'g .
+
+mod! CAT2 {
+  protecting(3TUPLE(NAT,INT,NAT))
+
+  op _;_ : ?3Tuple ?3Tuple -> ?3Tuple
+
+  vars s s' t t' : Nat
+  vars a a' : Int
+    
+  cq << s ; a ; t >> ; << s' ; a' ; t' >> =  << s ; a + a' - (a * a') ; t' >>
+     if t == s' .
+}  
+red << 1 ; 2 ; 2 >> ; << 2 ; 3 ; 3 >> .
+red << 1 ; 2 ; 2 >> ; << 3 ; 3 ; 3 >> .
+red << 1 ; 2 ; 2 >> ; << 2 ; 0 ; 2 >> .
+
+view cat2 from CATEGORY to CAT2 {
+  sort Obj -> Nat,
+  sort Arr -> 3Tuple,
+  op 1(A:Obj) -> << A:Nat ; 0 ; A >>,
+  op dom_ -> 1*_,
+  op cod_ -> 3*_,
+}    
+
+mod* FUNCTOR (C :: CATEGORY, D :: CATEGORY) {
+
+  op _fun : Obj.C -> Obj.D
+  op _fun : Arr.C -> Arr.D
+
+  vars f g : Arr.C 
+  var A : Obj.C 
+  
+  eq dom(f fun) = (dom f) fun .
+  eq cod(f fun) = (cod f) fun .
+  eq 1(A) fun = 1(A fun) .
+  ceq (f ; g) fun = (f fun) ; (g fun) if (f ; g) :is Arr . 
+}
+
+open FUNCTOR(CAT1,cat2) .
+  ops n n' : -> Int .
+  eq 'A fun = 1 .
+  eq 'B fun = 2 .
+  eq 'C fun = 3 .
+  eq 'f fun = << 1 ; n  ; 2 >> .
+  eq 'g fun = << 1 ; n' ; 2 >> .
+  eq 'e fun = << 2 ; 1  ; 3 >> .
+red ('f ; 'e) fun == ('g ; 'e) fun .
+close
+
+set auto context on
+
+mod* FUNCTOR-COMPOSE (C :: CATEGORY, D :: CATEGORY, E :: CATEGORY,
+		      F :: FUNCTOR(C,D)*{op _fun -> _F},
+		      G :: FUNCTOR(D,E)*{op _fun -> _G})
+{
+  op _fun : Obj.C -> Obj.E
+  op _fun : Arr.C -> Arr.E 
+    
+  var A : Obj.C
+  var f : ?Arr.C
+
+  eq A fun = (A F) G .
+  ceq f fun = (f F) G if f :is Arr .
+}
+
+-- composition of functors is a functor
+open .
+  op 'A :  -> Obj.C .
+  ops 'f 'g :  -> Arr.C .
+  eq dom('g) = cod('f) .
+red 1('A) fun == 1('A fun) .
+red ('f fun) ; ('g fun) == ('f ; 'g) fun .
+close
+
+-- identity functor
+mod! ID-FUNCTOR (C :: CATEGORY) {
+  protecting(FUNCTOR(C,C)*{op _fun -> _id})
+
+  eq A:Obj id = A .
+  eq f:Arr id = f .
+}
+
+mod* NAT-TRANSF (C :: CATEGORY, D :: CATEGORY,
+		 F :: FUNCTOR(C,D)*{op _fun -> _F},
+		 G :: FUNCTOR(C,D)*{op _fun -> _G})
+{
+  op _nt : Obj.C -> Arr.D
+
+  vars A B : Obj.C
+  vars f g : Arr.C
+
+  eq dom(A nt) = A F .
+  eq cod(A nt) = A G .
+
+  cq (A nt) ; (f G) = (f F) ; (B nt)
+    if (A == dom f) and (B == cod f) .
+}
+
+mod* ADJUNCTION
+     ( C   :: CATEGORY,
+       D   :: CATEGORY,
+       F   :: FUNCTOR(C,D)*{op _fun -> _F},
+       U   :: FUNCTOR(D,C)*{op _fun -> _U},
+       ETA :: NAT-TRANSF(C,
+			 C,
+			 ID-FUNCTOR(C){op _F -> _id},
+			 FUNCTOR-COMPOSE(C,
+					 D,
+					 C,
+					 F{op _F -> _F},
+					 U{sort Arr.E -> Arr.C,
+					   sort Obj.E -> Obj.C,
+					   op _G -> _U})
+			 {op _G -> _fun}
+			 )
+       *{op _nt -> _eta},
+       EPS :: NAT-TRANSF(D,
+			 D,
+			 FUNCTOR-COMPOSE(D,
+					 C,
+					 D,
+					 U{op _F -> _U},
+					 F{sort Arr.E -> Arr.D,
+					   sort Obj.E -> Obj.D,
+					   op _G -> _F})
+			 {op _F -> _fun},
+			 ID-FUNCTOR(D){op _G -> _id})
+       *{op _nt -> _eps} )
+{
+  var c : Obj.C
+  var d : Obj.D
+ -- triangular laws:
+ eq (c eta F) ; (c F eps) = 1(c F) .
+ eq (d U eta) ; (d eps U) = 1(d U) .
+}    
+
+-- proof that the composition of two adjunctions is an adjunction
+*** *************************************************************
+
+Best Regards
+
+-- sawada@sra.co.jp

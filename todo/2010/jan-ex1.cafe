@@ -1,0 +1,59 @@
+**
+-- build-in module をusingで使うことは避けてもらう
+**
+
+-- ****** file 1 *********************************
+-- using(EQL) may create two (_ = _) operators
+-- which are arbitrarily effective!
+-- **> indicates the point to be considered
+--
+-- it should be noticed that
+-- using built-in module as using(EQL) is a bad style
+-- but the following example still lets us know
+-- some point to be considered
+
+mod Lus {
+ -- EQL is a meta module for making use of (_=_) predicate
+ us(EQL)
+
+ [Lconst < L]
+ ops lc1 lc2 : -> Lconst
+ vars Lc1 Lc2 : Lconst
+ eq (Lc1 = Lc2) = (Lc1 == Lc2) .
+}
+
+mod Rus {
+ -- EQL is a meta module for making use of (_=_) predicate
+ us(EQL)
+
+ [Rconst < R]
+ ops rc1 rc2 : -> Rconst
+ vars Rc1 Rc2 : Rconst
+ eq (Rc1 = Rc2) = (Rc1 == Rc2) .
+}
+
+mod L+Rus {us(Lus) us(Rus)}
+
+mod L+Rpr {pr(Lus) pr(Rus)}
+
+open L+Rus
+red lc1 = lc1 .
+red lc1 = lc2 .
+red rc1 = rc1 .
+red rc1 = rc2 .
+close
+
+open L+Rpr
+red lc1 = lc1 .
+red lc1 = lc2 .
+red rc1 = rc1 .
+red rc1 = rc2 .  **> expected to be false, but...
+
+-- the following indicates that
+-- there exist two indistinguishable op (_ = _)
+show op (_ = _)
+**> "show op _=_ " does not work
+**> the opId of _=_ is better to be used also
+**> in the "show op" command
+
+close

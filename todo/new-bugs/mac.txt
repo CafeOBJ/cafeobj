@@ -1,0 +1,86 @@
+Date: Fri, 22 May 1998 18:20:59 +0900
+To: sawada@sra.co.jp
+From: t-seino@jaist.ac.jp (Takahiro Seino)
+Subject: Compiling CafeOBJ on MCL 4.2/3.3
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Length: 2766
+
+清野＠二木研です。
+
+　MCL 4.2/3.3 で CafeOBJ が一通りの動作をするようになりました。
+　現在使用しているソースは cafeobj 1.4.1p7 です。
+
+　Unix とのファイルシステムの差異などから、ソースを変更した点を以下に
+列挙いたします。色々と至らない点があるかと思いますが、何かの参考にして
+いただけたら幸いです。
+
+make-cafeobj.lisp
+-----------------
+SITE SPECIFIC の直後、defsystem の参照方法を変更
+(eval-when (eval load)
+  #-CCL (load (concatenate 'string *chaos-root* "/defsystem"))
+  #+CCL (load (concatenate 'string *chaos-root* ":defsystem"))
+)
+
+関数 make-exec-image において
+#+CCL
+(defun make-exec-image (path)
+  -- 略 --
+  (save-application path :toplevel-function ...))
+
+※ saven-application → save-application に変更
+　 saven-application という関数は MCL 4.2/3.3 ではない模様です。
+
+関数 make-cafeobj において
+(make-exec-image (concatenate 'string *chaos-root*
+        #+GCL "/xbin/cafeobj.exe"
+        #+Allegro "/xbin/cafeobj.acl"
+        #+CMU "/xbin/cafeobj.core"
+        #+CCL ":xbin:cafeobj.exe"))             ;; ← これを追加
+
+cafeobj/command-top.lisp
+------------------------
+関数 set-cafeobj-standard-library-path において
+#-CCL (defun set-cafeobj-standard-library-path ()
+  -- 変更なし、略 --
+  )
+
+#+CCL (defun set-cafeobj-standard-library-path ()
+  (setq *system-prelude-dir*
+    (full-pathname (make-pathname :host "ccl" :directory "prelude")))
+  (setq *system-lib-dir*
+    (full-pathname (make-pathname :host "ccl" :directory "lib")))
+  (setq *system-ex-dir*
+    (full-pathname (make-pathname :host "ccl" :directory "exs")))
+  (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*))
+  )
+
+cafeobj/cafeobj-top.lisp
+------------------------
+関数 cafeobj-top-level において (上記に関連して)
+  -- 略 --
+  (in-package :chaos)
+  #+CCL (set-cafeobj-standard-library-path)             ;; ← これを追加
+
+※ Mac ではインストール後もアプリケーションがディレクトリを移動することが
+　あるため、CafeOBJ 起動時にライブラリのディレクトリを決めるという方針で
+　作ってみました。この場合、cafeobj.exe と同じディレクトリ下のライブラリ
+　を読みにいきます。
+
+　以上の変更で、standard prelude ファイルを読みに行きます。ただし、std.bin
+は正常には読めず、これを削除して std.mod を読み込ませるとうまくいきます。
+これについての原因は不明です。
+
+　これ以外にも、うまく動かない点が多々あるのですが、これらについては引き
+続き調査を行いたいと思います。
+
+　では、よろしくお願いいたします。
+
+
+
+
+Takahiro Seino, Jaist Hokuriku.
+e-mail: t-seino@jaist.ac.jp
+http://www.jaist.ac.jp/~t-seino/
+
+

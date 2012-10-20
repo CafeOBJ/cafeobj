@@ -1,0 +1,29 @@
+> I further slightly modified the path example. I also have a suggestion
+> for the implementation, which I think it is minor but quite nice and
+> definitely a further step towards MEL.
+>
+> What about after the reduction is finished and the normak form is
+> obtained, when printing the sort of the reusut, if the sort is ?S then
+> the system computes the predicate _: S and if results in true changes
+> the sort to S.
+
+I think this is a good idea, but there is a big problem. 
+I have already considered this issue when I tried the first implementation
+of sort membership. However I did not finish this, because it requires
+too much changes. Let me describe why in brief. 
+The problem is the ambiguities of sort of terms. 
+Assume that user declares some axioms of `_: S', if we consider `_: S'
+for determining the sort of a term, the process is not deterministic 
+in general. A simple term can have diffrent sorts which  are in a 
+connected component but has no partial order relation with each other.
+To solve this problem, we cannot assign single sort to a term, 
+instead we must assing a set of possible sort. Also, matching
+should be performed in `membership' not in `order sorted'. 
+
+Best Regards,
+
+-- sawada@sra.co.jp
+
+
+
+

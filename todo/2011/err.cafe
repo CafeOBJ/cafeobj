@@ -1,0 +1,8 @@
+mod M {
+  [ S1 < S2 ]
+  op err : -> S1
+  op err : -> S2
+  op foo : S2 -> S2
+  eq foo(X:S2) = X .
+  eq foo(Y:S2) = Y .
+}

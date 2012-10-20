@@ -1,0 +1,29 @@
+Interpreter
+(0.020 sec for parse, 297 rewrites(62.570 sec), 837 matches)
+
+({ * } ; PH) |
+({ * } ; PH) | 
+({ ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) } ; ST)) |
+({ ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) } ; ST)) |
+({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) |
+({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) |
+({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) |
+({ * } ; PH) |
+({ ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) } ; ST)) 
+: Process
+
+Brute
+
+({ * } ; PH) |
+({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) |
+({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | 
+({ * } ; PH) | 
+({ ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) } ; ST)) |
+({ ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) } ; ST)) | 
+({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | 
+({ * } ; PH) | 
+({ ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) } ; ST))
+ : Process
+
+(rtime 17 utime 10 stime 10 rewrite 369 match 492 gc 0 backtrack 1380
+ backtrack-fail 0)

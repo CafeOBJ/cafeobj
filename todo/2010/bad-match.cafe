@@ -1,0 +1,41 @@
+-- ===========================================================
+-- Boolean Algebra as Complemented Distributive Lattice
+mod! BOOLba {
+[BoolBa]
+ops true false : -> BoolBa
+op _and_ : BoolBa BoolBa -> BoolBa {assoc comm prec: 35}
+op _or_ : BoolBa BoolBa -> BoolBa {assoc comm prec: 35}
+op not_ : BoolBa -> BoolBa {prec: 30}
+-- vars P Q R : BoolBa
+-- idempotent law
+eq[idemOr]: P:BoolBa or P = P .
+eq[idemAnd]: P:BoolBa and P = P .
+-- distribution law
+eq[distOrAnd]: P:BoolBa or (Q:BoolBa and R:BoolBa) = (P or Q) and (P or R) .
+eq[distAndOr]: P:BoolBa and (Q:BoolBa or R:BoolBa) = (P and Q) or (P and R) .
+-- absorption law
+eq[absoAndOr]: P:BoolBa and (P or Q:BoolBa) = P .
+eq[absoOrAnd]: P:BoolBa or (P and Q:BoolBa) = P .
+-- contradiction
+eq[contr]: P:BoolBa and not P = false .
+-- excluded middle
+eq[exMid]: P:BoolBa or not P = true .
+}
+
+-- (1) bad match of [exMid]
+-- "vars P Q R : BoolBa" and
+-- " eq[exMid]: P or not P = true ." and
+-- "P:BoolBa" may
+-- interact in a bad manner!
+open BOOLba
+set trace on
+red not P:BoolBa or false .
+set trace off
+close
+
+-- (2) works properly
+open BOOLba
+set trace on
+red not Q:BoolBa or false .
+set trace off
+close

@@ -1,0 +1,16 @@
+- 属性の継承 -- 不明
+- stop pattern  -- ok
+
+- match [all] rules.
+- id completion
+- behavioural context check
+- record 継承, view, 誤った構文を受け付ける事に関してチェックすべき
+
+- including をやめる -- ok?
+- 同じ名前のオペレータ宣言 -- ok
+- オペレータのグループ化 -- ok
+- bcq がエラーになる -- ok
+- 引数の無いレコード生成のデフォルト値のパーズがエラーとなる件 -- ok
+- ストップパターンが実際にマッチした場所が知りたい -- tbd
+- マイナスのstrategyでエラー(Chaosに落ちる) -- ok
+- regulize -- ok

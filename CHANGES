@@ -1,0 +1,66 @@
+* CafeOBJ 1.4.3PigNose
+=======================
+  a resolution based proof eningine PigNose.
+
+* Changes in CafeOBJ 1.4.3
+===========================
+  various minor bug fixes
+
+* Changes in CafeOBJ 1.4.2b10
+=============================
+
+** new `check' command 
+   check { coherency | coherence | coh } [ <OpName> ]
+
+   checks if operator is behaviouraly coherent
+
+* Changes in CafeOBJ 1.4.2b9
+============================
+
+** switch `fast parse' is obsolete
+
+* Changes in CafeOBJ 1.4.2b4
+============================
+
+** switch `mel always' now properly works for `parse' command.
+
+** supports qulifying operator symbols by module name in terms.
+
+** faster version of term parser for ad-hoc overloading operators.
+   relating top-level switch: `fast parse', default on.
+
+** made nesting limit of evaluating condition part. this prevents
+   unexpected break in underlying Lisp system for many of the cases.
+   related switch: `cond limit', accepting `.'(no limit) and positive
+   integer. defaults value varies among underlying lisp.
+
+* Changes in CafeOBJ 1.4.2b2
+============================
+
+** Specifying views to parameters are easier for modules like:
+   
+      mod FOO (X :: TH1, Y :: TH2(X)) { ... }
+
+* Changes in CafeOBJ 1.4.2b1
+============================
+This version has some experimental new features and several bug
+fixes.
+
+** In addition to Gnu Common Lisp, CMU Common Lisp and Allegro Common Lisp
+   can be used as a platform (see README and INSTALL for detail).
+
+** Faster rewrite engine `brute' is now available, and can be invoked from 
+   CafeOBJ.
+
+** Behavioural axioms can be used in equational reduction, and an operator
+   attribute `coherent' is added for this purpose.
+
+** A behavioural reduction command is introduced.
+
+** Sort predicates (a partial MEL support) are introduced (experimental).
+
+Unfortunately, full implementation of `record' construct is not yet
+finished in this version.
+
+
+$Id: CHANGES,v 1.1.1.1 2003-06-19 08:25:55 sawada Exp $

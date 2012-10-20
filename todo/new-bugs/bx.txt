@@ -1,0 +1,130 @@
+
+1st one
+==========================================================================
+CafeOBJ> mod FOO { pr (2TUPLE) }
+-- defining module FOO._* done.
+CafeOBJ> sh FOO
+module FOO (C1.2TUPLE :: TRIV, C2.2TUPLE :: TRIV)
+{
+  imports {
+    protecting (2TUPLE)
+  }
+}
+
+CafeOBJ> sh FOO(NAT,QID)	<-- it's working well
+,,,,,,,,,*,,,,,,,*
+module FOO(C1 <= NAT, C2 <= QID)
+{
+  imports {
+    protecting (2TUPLE(C2 <= QID, C1 <= NAT))
+  }
+}
+
+CafeOBJ> mod FF {pr (FOO(NAT,QID)) }	<-- it's working well too
+-- defining module FF,,,,,,,,,*,,,,,,,*._* done.
+CafeOBJ> sh FF
+module FF
+{
+  imports {
+    protecting (FOO(C1 <= NAT, C2 <= QID))
+  }
+}
+
+
+==============================================
+2nd one
+==============================================
+CafeOBJ> mod FOO { pr (2TUPLE) }
+...
+CafeOBJ> make FOO(NAT, QID) .
+-- defining module FOO
+[Warning]: redefining module FOO ._* done.
+
+CafeOBJ> sh FOO
+module FOO		<-- something wrong; FOO is destroyed
+{
+  imports {
+    protecting (NAT)
+  }
+}
+
+----------------------------------------
+After writing this I noticed my mistake on syntax of "make" command.
+So, the proper make command should have been
+
+CafeOBJ> make FOOa (FOO(NAT, QID))
+
+I have checked this is working well.  So forget his.
+
+But, why not error message about
+
+CafeOBJ> make FOO(NAT, QID) 
+
+?? 
+
+Some thing like "note well formed module expression!"
+
+
+================================================================
+3rd one
+================================================================
+
+CafeOBJ> mod BAR {pr (2TUPLE) }
+-- defining module BAR._* done.
+CafeOBJ> sh BAR (NAT) .		<-- it is working well
+,,,,,,,,,*,,,,,,,*
+module BAR(C1 <= NAT) (C2.2TUPLE :: TRIV)
+{
+  imports {
+    protecting (2TUPLE(C1 <= NAT))
+  }
+}
+
+-- but
+
+
+CafeOBJ> mod MM (X :: TRIV,Y :: TRIV){pr(2TUPLE)}
+-- defining module MM_*_*._*_*.._* done.
+CafeOBJ> sh MM
+module MM (C1.2TUPLE :: TRIV, C2.2TUPLE :: TRIV, X :: TRIV, Y :: TRIV)
+{
+  imports {
+    protecting (2TUPLE)
+  }
+}
+
+CafeOBJ> sh MM(NAT)	<-- it's working well
+,,,,,,,,,*,,,,,,,*
+module MM(C1 <= NAT) (X.MM :: TRIV, Y.MM :: TRIV, C2.2TUPLE :: TRIV)
+{
+  imports {
+    protecting (2TUPLE(C1 <= NAT))
+  }
+}
+
+-- but
+
+CafeOBJ> mod MMa {pr (MM(NAT)) }
+-- defining module MMa,,,,,,,,,*,,,,,,,*._* done.
+CafeOBJ> sh MMa				
+module MMa (X.MM :: TRIV, Y.MM :: TRIV)	<-- something wrong; only two param
+{
+  imports {
+    protecting (MM(C1 <= NAT))
+  }
+}
+CafeOBJ> 
+
+==================================================================================
+This last problem is already mentioned by some e-mail from you. may be...
+
+
+
+
+
+
+
+
+
+
+

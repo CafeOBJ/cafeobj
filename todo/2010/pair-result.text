@@ -1,0 +1,185 @@
+NAT-PP-1> set debug parse on
+NAT-PP-1> parse 1,2 .
+
+[parser-get-term]: token-list=("1" "," "2")
+dictionary info token = "1"
+ : sort constraint = nil
+ : result info = (1)
+[get-term-for-op-var]: op-var = ((4384 1 (:bsort NzNat(v) : 1663c12) nil)), syntactic-type = builtin
+ sort constraint = _ Cosmos _
+[get-term-for-regular-token]: 
+ res = (((1 . 0) "," "2"))
+[continue-check]: const=_ Cosmos _
+-- target sort=NzNat
+-- sublist prime=(((1 . 0) "," "2"))
+[choose-operators-from-token]: token = ","
+ sort constraint = nil
+dictionary info token = ","
+ : sort constraint = nil
+ : result info = (_,_ : ?Pair.PAIR(X <= NAT, Y <= NAT) ?Pair.PAIR(X <= NAT
+                        , Y <= NAT) -> ?Pair.PAIR(X <= PAIR(X <= NAT, 
+                         Y <= NAT), Y <= PAIR(X <= NAT, Y <= NAT)) _,_ : ?Nat
+   ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT) _,_ : ?Nat ?Nat -> ?Pair.PAIR
+                                               (X <= NAT, Y <= NAT))
+[parser-choosing-operators]:
+-- selected ops : (_,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT) _,_ : ?Nat
+   ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT))
+continue : try method _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT
+                            )
+[parser-get-term]: token-list=("2")
+dictionary info token = "2"
+ : sort constraint = nil
+ : result info = (2)
+[get-term-for-op-var]: op-var = ((4384 2 (:bsort NzNat(v) : 1663c12) nil)), syntactic-type = builtin
+ sort constraint = ?Nat
+[get-term-for-regular-token]: 
+ res = (((2 . 0)))
+[continue-check]: const=?Nat
+-- target sort=NzNat
+-- sublist prime=(((2 . 0)))
+make term
+ : method = _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT)
+ : arg-acc-list = ((2 1))
+ : method prime = _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT)
+ : arg sort list = ((:bsort NzNat(v) : 1663c12) (:bsort NzNat(v) : 1663c12))
+ : lowest method = _,_ : Nat Nat -> Pair.PAIR(X <= NAT, Y <= NAT)
+ : chaos-term=(1 , 2)
+ : terletox=
+term =(1 , 2), prec=41, tokens=nil
+ : result = 
+term =(1 , 2), prec=41, tokens=nil
+[continue-check]: const=_ Cosmos _
+-- target sort=Pair.PAIR(X <= NAT, Y <= NAT)
+-- sublist prime=((((1 , 2) . 41)))
+continue : try method _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT
+                            )
+[parser-get-term]: token-list=("2")
+dictionary info token = "2"
+ : sort constraint = nil
+ : result info = (2)
+[get-term-for-op-var]: op-var = ((4384 2 (:bsort NzNat(v) : 1663c12) nil)), syntactic-type = builtin
+ sort constraint = ?Nat
+[get-term-for-regular-token]: 
+ res = (((2 . 0)))
+[continue-check]: const=?Nat
+-- target sort=NzNat
+-- sublist prime=(((2 . 0)))
+make term
+ : method = _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT)
+ : arg-acc-list = ((2 1))
+ : method prime = _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT)
+ : arg sort list = ((:bsort NzNat(v) : 1663c12) (:bsort NzNat(v) : 1663c12))
+ : lowest method = _,_ : Nat Nat -> Pair.PAIR(X <= NAT, Y <= NAT)
+ : chaos-term=(1 , 2)
+ : terletox=
+term =(1 , 2), prec=41, tokens=nil
+ : result = 
+term =(1 , 2), prec=41, tokens=nil
+[continue-check]: const=_ Cosmos _
+-- target sort=Pair.PAIR(X <= NAT, Y <= NAT)
+-- sublist prime=((((1 , 2) . 41)))
+simple-parse, preterm= ("1" "," "2"), parsed term = 
+term =1, prec=0, tokens=("," "2")
+term =(1 , 2), prec=41, tokens=nil
+term =(1 , 2), prec=41, tokens=nil
+[Warning]: Ambiguous term:
+    please try `chek regularity' command.
+[1] _,_ : Nat Nat -> Pair.PAIR(X <= NAT, Y <= NAT) ------------------(1 , 2)
+[2] _,_ : Nat Nat -> Pair.PAIR(X <= NAT, Y <= NAT) ------------------(1 , 2)
+[Error] no successfull parse
+  "Symptom: ambigous term"
+("Symptom: ambigous term"):SyntaxErr
+NAT-PP-1> parse (1,2):Pair .
+
+[parser-get-term]: token-list=("(" "1" "," "2" ")" ":Pair")
+[parser-get-term]: token-list=("1" "," "2" ")" ":Pair")
+dictionary info token = "1"
+ : sort constraint = nil
+ : result info = (1)
+[get-term-for-op-var]: op-var = ((4384 1 (:bsort NzNat(v) : 1663c12) nil)), syntactic-type = builtin
+ sort constraint = _ Cosmos _
+[get-term-for-regular-token]: 
+ res = (((1 . 0) "," "2" ")" ":Pair"))
+[continue-check]: const=_ Cosmos _
+-- target sort=NzNat
+-- sublist prime=(((1 . 0) "," "2" ")" ":Pair"))
+[choose-operators-from-token]: token = ","
+ sort constraint = nil
+dictionary info token = ","
+ : sort constraint = nil
+ : result info = (_,_ : ?Pair.PAIR(X <= NAT, Y <= NAT) ?Pair.PAIR(X <= NAT
+                        , Y <= NAT) -> ?Pair.PAIR(X <= PAIR(X <= NAT, 
+                         Y <= NAT), Y <= PAIR(X <= NAT, Y <= NAT)) _,_ : ?Nat
+   ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT) _,_ : ?Nat ?Nat -> ?Pair.PAIR
+                                               (X <= NAT, Y <= NAT))
+[parser-choosing-operators]:
+-- selected ops : (_,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT) _,_ : ?Nat
+   ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT))
+continue : try method _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT
+                            )
+[parser-get-term]: token-list=("2" ")" ":Pair")
+dictionary info token = "2"
+ : sort constraint = nil
+ : result info = (2)
+[get-term-for-op-var]: op-var = ((4384 2 (:bsort NzNat(v) : 1663c12) nil)), syntactic-type = builtin
+ sort constraint = ?Nat
+[get-term-for-regular-token]: 
+ res = (((2 . 0) ")" ":Pair"))
+[continue-check]: const=?Nat
+-- target sort=NzNat
+-- sublist prime=(((2 . 0) ")" ":Pair"))
+[choose-operators-from-token]: token = ")"
+ sort constraint = nil
+make term
+ : method = _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT)
+ : arg-acc-list = ((2 1) ")" ":Pair")
+ : method prime = _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT)
+ : arg sort list = ((:bsort NzNat(v) : 1663c12) (:bsort NzNat(v) : 1663c12))
+ : lowest method = _,_ : Nat Nat -> Pair.PAIR(X <= NAT, Y <= NAT)
+ : chaos-term=(1 , 2)
+ : terletox=
+term =(1 , 2), prec=41, tokens=(")" ":Pair")
+ : result = 
+term =(1 , 2), prec=41, tokens=(")" ":Pair")
+[continue-check]: const=_ Cosmos _
+-- target sort=Pair.PAIR(X <= NAT, Y <= NAT)
+-- sublist prime=((((1 , 2) . 41) ")" ":Pair"))
+[choose-operators-from-token]: token = ")"
+ sort constraint = nil
+continue : try method _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT
+                            )
+[parser-get-term]: token-list=("2" ")" ":Pair")
+dictionary info token = "2"
+ : sort constraint = nil
+ : result info = (2)
+[get-term-for-op-var]: op-var = ((4384 2 (:bsort NzNat(v) : 1663c12) nil)), syntactic-type = builtin
+ sort constraint = ?Nat
+[get-term-for-regular-token]: 
+ res = (((2 . 0) ")" ":Pair"))
+[continue-check]: const=?Nat
+-- target sort=NzNat
+-- sublist prime=(((2 . 0) ")" ":Pair"))
+[choose-operators-from-token]: token = ")"
+ sort constraint = nil
+make term
+ : method = _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT)
+ : arg-acc-list = ((2 1) ")" ":Pair")
+ : method prime = _,_ : ?Nat ?Nat -> ?Pair.PAIR(X <= NAT, Y <= NAT)
+ : arg sort list = ((:bsort NzNat(v) : 1663c12) (:bsort NzNat(v) : 1663c12))
+ : lowest method = _,_ : Nat Nat -> Pair.PAIR(X <= NAT, Y <= NAT)
+ : chaos-term=(1 , 2)
+ : terletox=
+term =(1 , 2), prec=41, tokens=(")" ":Pair")
+ : result = 
+term =(1 , 2), prec=41, tokens=(")" ":Pair")
+[continue-check]: const=_ Cosmos _
+-- target sort=Pair.PAIR(X <= NAT, Y <= NAT)
+-- sublist prime=((((1 , 2) . 41) ")" ":Pair"))
+[choose-operators-from-token]: token = ")"
+ sort constraint = nil[scan-qualification] qualifier=(Pair)
+[continue-check]: const=_ Cosmos _
+-- target sort=Pair.PAIR(X <= NAT, Y <= NAT)
+-- sublist prime=((((1 , 2) . 0)))
+simple-parse, preterm= ("(" "1" "," "2" ")" ":Pair"), parsed term = 
+term =(1 , 2), prec=0, tokens=nil
+(1 , 2):Pair.PAIR(X <= NAT, Y <= NAT)

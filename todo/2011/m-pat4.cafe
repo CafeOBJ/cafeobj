@@ -1,0 +1,25 @@
+-- ------------------------------------------------------------------
+mod! SEQ(X :: TRIV) {
+[Elt.X < Sequence]
+op empty : -> Sequence {constr}
+op _,_ : Sequence Sequence -> Sequence {constr assoc idr: empty}
+--
+vars E : Elt.X
+vars Sq Sq' : Sequence
+--
+ceq true = false if Sq,E,Sq' := empty .
+}
+-- ------------------------------------------------------------------
+-- first problem related to predicate :=
+-- ------------------------------------------------------------------
+mod* SPEC {
+pr(SEQ)
+ops sq sq'  : -> Sequence .
+op e : -> Elt .
+eq empty = sq,e,sq' .
+}
+
+-- red in SPEC : true = false .
+-- this one does no work;
+-- getting into infinite loop
+-- ------------------------------------------------------------------

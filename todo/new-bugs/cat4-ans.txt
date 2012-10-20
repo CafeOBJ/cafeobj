@@ -1,0 +1,79 @@
+Dear Razvan, 
+
+I walked through your new category example. In this e-mail, 
+I would like to take an one instance and give you my comments
+on it. Other things which you are thinking as the `problem in
+reduction' are similar problems.
+
+So I select the first problematic reduction of opened 
+NAT-TRANSF-COMPOSE. 
+  open NAT-TRANSF-COMPOSE
+  vars A B : Obj.C .       -- please do not forget the last period
+  var f : Arr.C .          -- ditto
+  eq dom f = A .
+  eq cod f = B .
+  red (A nt) ; (f H) == (f F) ; (B nt) . -- problem
+
+First of all, I am not uneasy with using variables in the above.
+It is not guaranteed at all the variables act just like constants
+in the reduction process. Please use constants as like
+   ops 'A 'B : -> Obj.C .
+   op 'f : -> Arr.C .
+In the following I assume these constants as such. 
+
+I think you cannot prove
+	('A nt) ; ('f H) = ('f F) ; ('B nt)
+directly by reducing the corresponding term:
+      	('A nt) ; ('f H) == ('f F) ; ('B nt)
+
+The first thing to be noticed is the axiom defined in 
+NAT-TRANSF:
+  cq (A nt) ; (f G) = (f F) ; (B nt)
+     if (A == dom f) and (B == cod f) .    -- (1)
+This axiom cannot be used as a rewrite rule, because the 
+variable B in the RHS does not appear in LHS (setting top-level
+switch `verbose' to `on' will produce some warning message when
+evaluate this axiom). 
+
+And the second thing is a general consideration on proving
+commutativity of the diagram. 
+What specified in opened NAT-TRANSF-COMPOSE are depicted
+in the following diagram. To say that the ourter rectable commutes,
+we need to be able to say that the both inner two squares are 
+commutative diagram, and then we can say that outer square is 
+commutiative by using some property of the commutative diagram. 
+                    
+                  nt
+         ----------------------->
+           nt1            nt2
+    F(A) -------> G(A) ---------> H(A)
+     |             |               |               
+     |             |               |
+ F(f)|         G(f)|           H(f)|
+     |             |               |
+     V             V               V
+    F(B) -------> G(B) ---------> H(B)
+
+Thus we must first prove the commutativity of inner left square:
+	('A nt1) ; ('f G) = ('f F) ; ('B nt1)
+This can be done by applying a axiom of NAT-TRANSF-COMPOSE corresponding 
+(1) of the above with supplying the substitution:
+	B -> 'B
+Unfortunately, by a bug of the implementation, you cannot refer
+the axiom in NAT-TRANSF-COMPOSE.
+That is, it is really transformed and imported  from NAT-TRANSF 
+to NAT-TRANSF-COMPOSE as
+  ceq (A nt1) ; (f:Arr.C G) = (f:Arr.C F) ; (B:Obj.C nt1) if A ==
+       dom f:Arr.C and B:Obj.C == cod f:Arr.C                -- (1')
+and you can see it by the command `sh all axioms' in the context of
+NAT-TRANSF-COMPOSE, but it is not shown by `sh all rules'. This means
+that you cannot refer the axiom in `apply' command. 
+
+I will fix this soon and will do some investigation following the 
+above senario. Please wait for a couple of days. I will upload the
+new beta release with other some fixes already done for b3+ to syphon, 
+may be on the next Monday.
+
+Best Regards,
+
+-- sawada@sra.co.jp

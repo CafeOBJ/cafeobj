@@ -1,0 +1,21 @@
+mod LIST {
+  [ Elt List ]
+  op nil : -> List { constr }
+  op cons : Elt List -> List { constr }
+  op err : -> ?Elt
+  op car : List -> ?Elt
+  op cdr : List -> List
+  eq car(nil) = err .
+  eq car(cons(E:Elt, L:List)) = E .
+  eq cdr(cons(E:Elt, L:List)) = L .
+}
+
+** 余分なオペレータ宣言
+** op err : -> Elt
+** op car : List -> Elt
+**
+mod L2 { pr(LIST) }
+
+** L3 については問題なし
+mod L3 { us(LIST) }
+

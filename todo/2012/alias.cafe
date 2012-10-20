@@ -1,0 +1,4 @@
+mod ALS {
+  inc as RN (NAT * {sort Nat -> Natural, op _+_ -> plus})
+  op f1 : Natural.RN Natural -> Natural.RN
+}

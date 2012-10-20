@@ -1,0 +1,25 @@
+mod PAIR (X :: TRIV, Y :: TRIV) {
+ [Pair]
+ op _,_ : Elt.X Elt.Y -> Pair {constr} .
+}
+make NAT-PP-1 (PAIR(PAIR(NAT,NAT),PAIR(NAT,NAT)))
+-- select NAT-PP-1
+-- parse (1, 2).
+-- parse (1, 2):Pair
+
+mod PAIR2 (X :: TRIV) {
+    pr(PAIR(PAIR(X,X), PAIR(X,X)))
+}
+
+make P1 (PAIR(NAT, INT))
+make P2 (PAIR(INT, NAT))
+make P3 (PAIR(P1, P2))
+select P3
+parse 1,-2 .
+parse -1, 2 .
+parse 1, 2 .
+**> case 1
+parse (1,2):Pair.P1 .
+**> case 2
+parse (1,2):Pair.P2 .
+

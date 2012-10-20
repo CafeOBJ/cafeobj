@@ -1,0 +1,6 @@
+module MM {
+  [ Ss < S ]
+  op _a_ : Ss Ss -> Ss {comm l-assoc}
+  op _a_ : S S -> S {assoc r-assoc}
+  ops 1 2 3 : -> Ss
+}

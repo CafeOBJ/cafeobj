@@ -1,0 +1,1236 @@
+%DININGROOM> red droom .
+-- reduce in % : fk | fk | fk | sph(1) | sph(2) | sph(3)
+[1]: fk | fk | fk | sph(1) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | fk | 
+   fk | sph(1) | sph(2) | sph(3)
+[2]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | fk | fk 
+   | sph(1) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | fk | sph(1) |
+    sph(2) | sph(3)
+[3]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup 
+   [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | fk | sph(1) | sph(2)
+    | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | sph(1) | sph(2) | sph(
+   3)
+[4]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup 
+   [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [ x ]) }
+    ; ({ ?(putdown [ x ]) } ; FK)) | sph(1) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ph(1) | st | sph(2) |
+    sph(3)
+[5]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup 
+   [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [ x ]) }
+    ; ({ ?(putdown [ x ]) } ; FK)) | ph(1) | st | sph(2) | sph(3)
+   
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ !(sitdown [ 1 ]) }
+    ; ({ (!(pickup [ 1 ]) , !(pickup [ 1 ])) } ; ({ (!(putdown [ 
+   1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH)))) | st 
+   | sph(2) | sph(3)
+[6]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup 
+   [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [ x ]) }
+    ; ({ ?(putdown [ x ]) } ; FK)) | ({ !(sitdown [ 1 ]) } ; ({ (
+   !(pickup [ 1 ]) , !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , 
+   !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH)))) | st | sph(
+   2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ !(sitdown [ 1 ]) }
+    ; ({ (!(pickup [ 1 ]) , !(pickup [ 1 ])) } ; ({ (!(putdown [ 
+   1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH)))) | ({
+    ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) } ; ST)) | sph(2) | sph(
+   3)
+[7(cond)]: not @ == @
+     --> not true
+[8(cond)]: not true
+     --> false
+[9(cond)]: not @ == @
+     --> not true
+[10(cond)]: not true
+     --> false
+[11(cond)]: not @ == @
+     --> not true
+[12(cond)]: not true
+     --> false
+[13]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ !(sitdown [ 1 ]) }
+    ; ({ (!(pickup [ 1 ]) , !(pickup [ 1 ])) } ; ({ (!(putdown [ 
+   1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH)))) | ({
+    ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) } ; ST)) | sph(2) | sph(
+   3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ * } ; ({ (!(pickup 
+   [ 1 ]) , !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+   [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH)))) | ({ * } ; (({ ?(getup 
+   [ y ]) } ; ST) [ y := 1 ])) | sph(2) | sph(3)
+[14]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ * } ; ({ (!(pickup 
+   [ 1 ]) , !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+   [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH)))) | ({ * } ; (({ ?(getup 
+   [ y ]) } ; ST) [ y := 1 ])) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; (({ ?(getup [ y ])
+    } ; ST) [ y := 1 ])) | sph(2) | sph(3)
+[15(cond)]: not (@ == @ or { ?(getup [ y ]) } ; ST == @)
+     --> not (true or { ?(getup [ y ]) } ; ST == @)
+[16(cond)]: not (true or { ?(getup [ y ]) } ; ST == @)
+     --> not (true or false)
+[17(cond)]: not (true or false)
+     --> not true
+[18(cond)]: not true
+     --> false
+[19(cond)]: not ({ ?(getup [ y ]) } ; ST == @ or @ == @)
+     --> not (false or @ == @)
+[20(cond)]: not (false or @ == @)
+     --> not (false or true)
+[21(cond)]: not (false or true)
+     --> not true
+[22(cond)]: not true
+     --> false
+[23]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; (({ ?(getup [ y ])
+    } ; ST) [ y := 1 ])) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ (?(getup [ y ])
+    [ y := 1 ]) } ; (ST [ y := 1 ]))) | sph(2) | sph(3)
+[24]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ (?(getup [ y ])
+    [ y := 1 ]) } ; (ST [ y := 1 ]))) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?((getup [ y ])
+    [ y := 1 ]) } ; (ST [ y := 1 ]))) | sph(2) | sph(3)
+[25]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?((getup [ y ])
+    [ y := 1 ]) } ; (ST [ y := 1 ]))) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?((getup [ y :=
+    1 ]) [ (y [ y := 1 ]) ]) } ; (ST [ y := 1 ]))) | sph(2) | sph(
+   3)
+[26(cond)]: getup == y
+     --> false
+[27(cond)]: not getup == y
+     --> not false
+[28(cond)]: not false
+     --> true
+[29]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?((getup [ y :=
+    1 ]) [ (y [ y := 1 ]) ]) } ; (ST [ y := 1 ]))) | sph(2) | sph(
+   3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?(getup [ (y [ 
+   y := 1 ]) ]) } ; (ST [ y := 1 ]))) | sph(2) | sph(3)
+[30(cond)]: y == y
+     --> true
+[31]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?(getup [ (y [ 
+   y := 1 ]) ]) } ; (ST [ y := 1 ]))) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?(getup [ 1 ]) 
+   } ; (ST [ y := 1 ]))) | sph(2) | sph(3)
+[32(cond)]: not (@ == @ or ST == @)
+     --> not (true or ST == @)
+[33(cond)]: not (true or ST == @)
+     --> not (true or false)
+[34(cond)]: not (true or false)
+     --> not true
+[35(cond)]: not true
+     --> false
+[36(cond)]: not (ST == @ or @ == @)
+     --> not (false or @ == @)
+[37(cond)]: not (false or @ == @)
+     --> not (false or true)
+[38(cond)]: not (false or true)
+     --> not true
+[39(cond)]: not true
+     --> false
+[40]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?(getup [ 1 ]) 
+   } ; (ST [ y := 1 ]))) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?(getup [ 1 ]) 
+   } ; ST)) | sph(2) | sph(3)
+[41]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?(getup [ 1 ]) 
+   } ; ST)) | sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    sph(2) | sph(3)
+[42]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    sph(2) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ph(2) | st | sph(3)
+[43]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ph(2) | st | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ !(sitdown [ 2 ]) } ; ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])
+   ) } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup 
+   [ 2 ]) } ; PH)))) | st | sph(3)
+[44]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ !(sitdown [ 2 ]) } ; ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])
+   ) } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup 
+   [ 2 ]) } ; PH)))) | st | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ !(sitdown [ 2 ]) } ; ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])
+   ) } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup 
+   [ 2 ]) } ; PH)))) | ({ ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) 
+   } ; ST)) | sph(3)
+[45(cond)]: not @ == @
+     --> not true
+[46(cond)]: not true
+     --> false
+[47(cond)]: not @ == @
+     --> not true
+[48(cond)]: not true
+     --> false
+[49(cond)]: not @ == @
+     --> not true
+[50(cond)]: not true
+     --> false
+[51]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ !(sitdown [ 2 ]) } ; ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])
+   ) } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup 
+   [ 2 ]) } ; PH)))) | ({ ?(sitdown [ y ]) } ; ({ ?(getup [ y ]) 
+   } ; ST)) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ * } ; ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown 
+   [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH)))) | 
+   ({ * } ; (({ ?(getup [ y ]) } ; ST) [ y := 2 ])) | sph(3)
+[52]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ * } ; ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown 
+   [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH)))) | 
+   ({ * } ; (({ ?(getup [ y ]) } ; ST) [ y := 2 ])) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; (({ ?(getup [ y ]) } ; ST) [ y := 2 ])) | sph(3)
+[53(cond)]: not (@ == @ or { ?(getup [ y ]) } ; ST == @)
+     --> not (true or { ?(getup [ y ]) } ; ST == @)
+[54(cond)]: not (true or { ?(getup [ y ]) } ; ST == @)
+     --> not (true or false)
+[55(cond)]: not (true or false)
+     --> not true
+[56(cond)]: not true
+     --> false
+[57(cond)]: not ({ ?(getup [ y ]) } ; ST == @ or @ == @)
+     --> not (false or @ == @)
+[58(cond)]: not (false or @ == @)
+     --> not (false or true)
+[59(cond)]: not (false or true)
+     --> not true
+[60(cond)]: not true
+     --> false
+[61]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; (({ ?(getup [ y ]) } ; ST) [ y := 2 ])) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ (?(getup [ y ]) [ y := 2 ]) } ; (ST [ y := 2 ]))) | sph(
+   3)
+[62]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ (?(getup [ y ]) [ y := 2 ]) } ; (ST [ y := 2 ]))) | sph(
+   3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?((getup [ y ]) [ y := 2 ]) } ; (ST [ y := 2 ]))) | sph(
+   3)
+[63]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?((getup [ y ]) [ y := 2 ]) } ; (ST [ y := 2 ]))) | sph(
+   3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?((getup [ y := 2 ]) [ (y [ y := 2 ]) ]) } ; (ST [ y :=
+    2 ]))) | sph(3)
+[64(cond)]: getup == y
+     --> false
+[65(cond)]: not getup == y
+     --> not false
+[66(cond)]: not false
+     --> true
+[67]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?((getup [ y := 2 ]) [ (y [ y := 2 ]) ]) } ; (ST [ y :=
+    2 ]))) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?(getup [ (y [ y := 2 ]) ]) } ; (ST [ y := 2 ]))) | sph(
+   3)
+[68(cond)]: y == y
+     --> true
+[69]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?(getup [ (y [ y := 2 ]) ]) } ; (ST [ y := 2 ]))) | sph(
+   3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?(getup [ 2 ]) } ; (ST [ y := 2 ]))) | sph(3)
+[70(cond)]: not (@ == @ or ST == @)
+     --> not (true or ST == @)
+[71(cond)]: not (true or ST == @)
+     --> not (true or false)
+[72(cond)]: not (true or false)
+     --> not true
+[73(cond)]: not true
+     --> false
+[74(cond)]: not (ST == @ or @ == @)
+     --> not (false or @ == @)
+[75(cond)]: not (false or @ == @)
+     --> not (false or true)
+[76(cond)]: not (false or true)
+     --> not true
+[77(cond)]: not true
+     --> false
+[78]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?(getup [ 2 ]) } ; (ST [ y := 2 ]))) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?(getup [ 2 ]) } ; ST)) | sph(3)
+[79]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * 
+   } ; ({ ?(getup [ 2 ]) } ; ST)) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | sph(3)
+[80]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | sph(3)
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ph(3) | st
+[81]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ph(3) | st
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ !(sitdown [ 3 ]) } ; ({ (!(pickup [ 
+   3 ]) , !(pickup [ 3 ])) } ; ({ (!(putdown [ 3 ]) , !(putdown [
+    3 ])) } ; ({ !(getup [ 3 ]) } ; PH)))) | st
+[82]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ !(sitdown [ 3 ]) } ; ({ (!(pickup [ 
+   3 ]) , !(pickup [ 3 ])) } ; ({ (!(putdown [ 3 ]) , !(putdown [
+    3 ])) } ; ({ !(getup [ 3 ]) } ; PH)))) | st
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ !(sitdown [ 3 ]) } ; ({ (!(pickup [ 
+   3 ]) , !(pickup [ 3 ])) } ; ({ (!(putdown [ 3 ]) , !(putdown [
+    3 ])) } ; ({ !(getup [ 3 ]) } ; PH)))) | ({ ?(sitdown [ y ]) 
+   } ; ({ ?(getup [ y ]) } ; ST))
+[83(cond)]: not @ == @
+     --> not true
+[84(cond)]: not true
+     --> false
+[85(cond)]: not @ == @
+     --> not true
+[86(cond)]: not true
+     --> false
+[87(cond)]: not @ == @
+     --> not true
+[88(cond)]: not true
+     --> false
+[89]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ !(sitdown [ 3 ]) } ; ({ (!(pickup [ 
+   3 ]) , !(pickup [ 3 ])) } ; ({ (!(putdown [ 3 ]) , !(putdown [
+    3 ])) } ; ({ !(getup [ 3 ]) } ; PH)))) | ({ ?(sitdown [ y ]) 
+   } ; ({ ?(getup [ y ]) } ; ST))
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ * } ; ({ (!(pickup [ 3 ]) , !(pickup 
+   [ 3 ])) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(
+   getup [ 3 ]) } ; PH)))) | ({ * } ; (({ ?(getup [ y ]) } ; ST) 
+   [ y := 3 ]))
+[90]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ * } ; ({ (!(pickup [ 3 ]) , !(pickup 
+   [ 3 ])) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(
+   getup [ 3 ]) } ; PH)))) | ({ * } ; (({ ?(getup [ y ]) } ; ST) 
+   [ y := 3 ]))
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; (({ ?(getup [ y ]) } ; ST) [ y := 3 
+   ]))
+[91(cond)]: not (@ == @ or { ?(getup [ y ]) } ; ST == @)
+     --> not (true or { ?(getup [ y ]) } ; ST == @)
+[92(cond)]: not (true or { ?(getup [ y ]) } ; ST == @)
+     --> not (true or false)
+[93(cond)]: not (true or false)
+     --> not true
+[94(cond)]: not true
+     --> false
+[95(cond)]: not ({ ?(getup [ y ]) } ; ST == @ or @ == @)
+     --> not (false or @ == @)
+[96(cond)]: not (false or @ == @)
+     --> not (false or true)
+[97(cond)]: not (false or true)
+     --> not true
+[98(cond)]: not true
+     --> false
+[99]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; (({ ?(getup [ y ]) } ; ST) [ y := 3 
+   ]))
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ (?(getup [ y ]) [ y := 3 ]) } ; (
+   ST [ y := 3 ])))
+[100]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ (?(getup [ y ]) [ y := 3 ]) } ; (
+   ST [ y := 3 ])))
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?((getup [ y ]) [ y := 3 ]) } ; (
+   ST [ y := 3 ])))
+[101]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?((getup [ y ]) [ y := 3 ]) } ; (
+   ST [ y := 3 ])))
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?((getup [ y := 3 ]) [ (y [ y := 
+   3 ]) ]) } ; (ST [ y := 3 ])))
+[102(cond)]: getup == y
+     --> false
+[103(cond)]: not getup == y
+     --> not false
+[104(cond)]: not false
+     --> true
+[105]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?((getup [ y := 3 ]) [ (y [ y := 
+   3 ]) ]) } ; (ST [ y := 3 ])))
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?(getup [ (y [ y := 3 ]) ]) } ; (
+   ST [ y := 3 ])))
+[106(cond)]: y == y
+     --> true
+[107]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?(getup [ (y [ y := 3 ]) ]) } ; (
+   ST [ y := 3 ])))
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?(getup [ 3 ]) } ; (ST [ y := 3 ]
+   )))
+[108(cond)]: not (@ == @ or ST == @)
+     --> not (true or ST == @)
+[109(cond)]: not (true or ST == @)
+     --> not (true or false)
+[110(cond)]: not (true or false)
+     --> not true
+[111(cond)]: not true
+     --> false
+[112(cond)]: not (ST == @ or @ == @)
+     --> not (false or @ == @)
+[113(cond)]: not (false or @ == @)
+     --> not (false or true)
+[114(cond)]: not (false or true)
+     --> not true
+[115(cond)]: not true
+     --> false
+[116]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?(getup [ 3 ]) } ; (ST [ y := 3 ]
+   )))
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?(getup [ 3 ]) } ; ST))
+[117]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ * } ; ({ ?(getup [ 3 ]) } ; ST))
+ ---> ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ ?(getup [ 3 ]) } ; ST)
+[118(cond)]: not ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } 
+      ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+       --> not false
+[119(cond)]: not false
+       --> true
+[120(cond)]: not ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)
+     ) | ({ (!(pickup [ 1 ]) , !(pickup [ 1 ])) } ; ({ (!(putdown 
+     [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) |
+      ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ 
+     ?(getup [ 3 ]) } ; ST) == @
+      --> not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+       [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; (({ ?(putdown 
+       [ x ]) } ; FK) [ x := 1 ])) | ({ ?(getup [ 1 ]) } ; ST) | 
+       ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+[121(cond)]: not (@ == @ or { ?(putdown [ x ]) } ; FK == @)
+       --> not (true or { ?(putdown [ x ]) } ; FK == @)
+[122(cond)]: not (true or { ?(putdown [ x ]) } ; FK == @)
+       --> not (true or false)
+[123(cond)]: not (true or false)
+       --> not true
+[124(cond)]: not true
+       --> false
+[125(cond)]: not ({ ?(putdown [ x ]) } ; FK == @ or @ == @)
+       --> not (false or @ == @)
+[126(cond)]: not (false or @ == @)
+       --> not (false or true)
+[127(cond)]: not (false or true)
+       --> not true
+[128(cond)]: not true
+       --> false
+[129(cond)]: not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(
+     putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; (
+     ({ ?(putdown [ x ]) } ; FK) [ x := 1 ])) | ({ ?(getup [ 1 ])
+      } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ;
+      ST) == @
+      --> not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+       [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ (?(putdown 
+       [ x ]) [ x := 1 ]) } ; (FK [ x := 1 ]))) | ({ ?(getup [ 1 
+       ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ])
+        } ; ST) == @
+[130(cond)]: not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(
+     putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({
+      (?(putdown [ x ]) [ x := 1 ]) } ; (FK [ x := 1 ]))) | ({ ?(
+     getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup 
+     [ 3 ]) } ; ST) == @
+      --> not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+       [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?((putdown 
+       [ x ]) [ x := 1 ]) } ; (FK [ x := 1 ]))) | ({ ?(getup [ 1 
+       ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ])
+        } ; ST) == @
+[131(cond)]: not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(
+     putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({
+      ?((putdown [ x ]) [ x := 1 ]) } ; (FK [ x := 1 ]))) | ({ ?(
+     getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup 
+     [ 3 ]) } ; ST) == @
+      --> not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+       [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?((putdown 
+       [ x := 1 ]) [ (x [ x := 1 ]) ]) } ; (FK [ x := 1 ]))) | ({
+        ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(
+       getup [ 3 ]) } ; ST) == @
+[132(cond)]: putdown == x
+       --> false
+[133(cond)]: not putdown == x
+       --> not false
+[134(cond)]: not false
+       --> true
+[135(cond)]: not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(
+     putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({
+      ?((putdown [ x := 1 ]) [ (x [ x := 1 ]) ]) } ; (FK [ x := 1 
+     ]))) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST)
+      | ({ ?(getup [ 3 ]) } ; ST) == @
+      --> not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+       [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?(putdown 
+       [ (x [ x := 1 ]) ]) } ; (FK [ x := 1 ]))) | ({ ?(getup [ 1 
+       ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ])
+        } ; ST) == @
+[136(cond)]: x == x
+       --> true
+[137(cond)]: not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(
+     putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({
+      ?(putdown [ (x [ x := 1 ]) ]) } ; (FK [ x := 1 ]))) | ({ ?(
+     getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup 
+     [ 3 ]) } ; ST) == @
+      --> not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+       [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?(putdown 
+       [ 1 ]) } ; (FK [ x := 1 ]))) | ({ ?(getup [ 1 ]) } ; ST) |
+        ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == 
+       @
+[138(cond)]: not (@ == @ or FK == @)
+       --> not (true or FK == @)
+[139(cond)]: not (true or FK == @)
+       --> not (true or false)
+[140(cond)]: not (true or false)
+       --> not true
+[141(cond)]: not true
+       --> false
+[142(cond)]: not (FK == @ or @ == @)
+       --> not (false or @ == @)
+[143(cond)]: not (false or @ == @)
+       --> not (false or true)
+[144(cond)]: not (false or true)
+       --> not true
+[145(cond)]: not true
+       --> false
+[146(cond)]: not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(
+     putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({
+      ?(putdown [ 1 ]) } ; (FK [ x := 1 ]))) | ({ ?(getup [ 1 ]) 
+     } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; 
+     ST) == @
+      --> not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+       [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({ ?(putdown 
+       [ 1 ]) } ; FK)) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [
+        2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+[147(cond)]: not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(
+     putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ * } ; ({
+      ?(putdown [ 1 ]) } ; FK)) | ({ ?(getup [ 1 ]) } ; ST) | ({ 
+     ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+      --> not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+       [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 
+       ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ])
+        } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+[148(cond)]: not ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(
+     putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown 
+     [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 
+     ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+      --> not false
+[149(cond)]: not false
+      --> true
+[150(cond)]: not ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)
+    ) | ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ 
+    (!(pickup [ 1 ]) , !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) 
+    , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup 
+    [ 1 ]) } ; ST) | ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({
+     (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) 
+    } ; PH))) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ;
+     ST) == @
+     --> not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown 
+      [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; (({ ?(putdown 
+      [ x ]) } ; FK) [ x := 2 ])) | ({ !(pickup [ 1 ]) } ; ({ (!(
+      putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } 
+      ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) }
+       ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; 
+      ST) == @
+[151(cond)]: not (@ == @ or { ?(putdown [ x ]) } ; FK == @)
+      --> not (true or { ?(putdown [ x ]) } ; FK == @)
+[152(cond)]: not (true or { ?(putdown [ x ]) } ; FK == @)
+      --> not (true or false)
+[153(cond)]: not (true or false)
+      --> not true
+[154(cond)]: not true
+      --> false
+[155(cond)]: not ({ ?(putdown [ x ]) } ; FK == @ or @ == @)
+      --> not (false or @ == @)
+[156(cond)]: not (false or @ == @)
+      --> not (false or true)
+[157(cond)]: not (false or true)
+      --> not true
+[158(cond)]: not true
+      --> false
+[159(cond)]: not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(
+    putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; (({
+     ?(putdown [ x ]) } ; FK) [ x := 2 ])) | ({ !(pickup [ 1 ]) }
+     ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 
+    1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 1 
+    ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } 
+    ; ST) == @
+     --> not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown 
+      [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({ (?(putdown 
+      [ x ]) [ x := 2 ]) } ; (FK [ x := 2 ]))) | ({ !(pickup [ 1 
+      ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+      [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup 
+      [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 
+      ]) } ; ST) == @
+[160(cond)]: not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(
+    putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({
+     (?(putdown [ x ]) [ x := 2 ]) } ; (FK [ x := 2 ]))) | ({ !(pickup 
+    [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(
+    getup [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup 
+    [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]
+    ) } ; ST) == @
+     --> not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown 
+      [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({ ?((putdown 
+      [ x ]) [ x := 2 ]) } ; (FK [ x := 2 ]))) | ({ !(pickup [ 1 
+      ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+      [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup 
+      [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 
+      ]) } ; ST) == @
+[161(cond)]: not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(
+    putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({
+     ?((putdown [ x ]) [ x := 2 ]) } ; (FK [ x := 2 ]))) | ({ !(pickup 
+    [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(
+    getup [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup 
+    [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]
+    ) } ; ST) == @
+     --> not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown 
+      [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({ ?((putdown 
+      [ x := 2 ]) [ (x [ x := 2 ]) ]) } ; (FK [ x := 2 ]))) | ({ 
+      !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])
+      ) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ;
+       FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST)
+       | ({ ?(getup [ 3 ]) } ; ST) == @
+[162(cond)]: putdown == x
+      --> false
+[163(cond)]: not putdown == x
+      --> not false
+[164(cond)]: not false
+      --> true
+[165(cond)]: not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(
+    putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({
+     ?((putdown [ x := 2 ]) [ (x [ x := 2 ]) ]) } ; (FK [ x := 2 
+    ]))) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+    [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ])
+     } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; 
+    ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+     --> not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown 
+      [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({ ?(putdown 
+      [ (x [ x := 2 ]) ]) } ; (FK [ x := 2 ]))) | ({ !(pickup [ 1 
+      ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+      [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup 
+      [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 
+      ]) } ; ST) == @
+[166(cond)]: x == x
+      --> true
+[167(cond)]: not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(
+    putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({
+     ?(putdown [ (x [ x := 2 ]) ]) } ; (FK [ x := 2 ]))) | ({ !(pickup 
+    [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(
+    getup [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup 
+    [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]
+    ) } ; ST) == @
+     --> not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown 
+      [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({ ?(putdown 
+      [ 2 ]) } ; (FK [ x := 2 ]))) | ({ !(pickup [ 1 ]) } ; ({ (!(
+      putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } 
+      ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) }
+       ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; 
+      ST) == @
+[168(cond)]: not (@ == @ or FK == @)
+      --> not (true or FK == @)
+[169(cond)]: not (true or FK == @)
+      --> not (true or false)
+[170(cond)]: not (true or false)
+      --> not true
+[171(cond)]: not true
+      --> false
+[172(cond)]: not (FK == @ or @ == @)
+      --> not (false or @ == @)
+[173(cond)]: not (false or @ == @)
+      --> not (false or true)
+[174(cond)]: not (false or true)
+      --> not true
+[175(cond)]: not true
+      --> false
+[176(cond)]: not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(
+    putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({
+     ?(putdown [ 2 ]) } ; (FK [ x := 2 ]))) | ({ !(pickup [ 1 ]) 
+    } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [
+     1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 
+    1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) 
+    } ; ST) == @
+     --> not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown 
+      [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({ ?(putdown 
+      [ 2 ]) } ; FK)) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 
+      ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({
+       ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ 
+      ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+[177(cond)]: not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(
+    putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ * } ; ({
+     ?(putdown [ 2 ]) } ; FK)) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown 
+    [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | 
+    ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ 
+    ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+     --> not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown 
+      [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(putdown [ 2 
+      ]) } ; FK) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , 
+      !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown 
+      [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 
+      ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+[178(cond)]: not ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(
+    putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(putdown 
+    [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) 
+    , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown 
+    [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]
+    ) } ; ST) | ({ ?(getup [ 3 ]) } ; ST) == @
+     --> not false
+[179(cond)]: not false
+     --> true
+[180]: ({ ?(pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(
+   pickup [ x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ ?(pickup [
+    x ]) } ; ({ ?(putdown [ x ]) } ; FK)) | ({ (!(pickup [ 1 ]) ,
+    !(pickup [ 1 ])) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]))
+    } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(getup [ 1 ]) } ; ST) |
+    ({ (!(pickup [ 2 ]) , !(pickup [ 2 ])) } ; ({ (!(putdown [ 2 
+   ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(
+   getup [ 2 ]) } ; ST) | ({ (!(pickup [ 3 ]) , !(pickup [ 3 ])) 
+   } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) } ; ({ !(getup [ 
+   3 ]) } ; PH))) | ({ ?(getup [ 3 ]) } ; ST)
+ ---> ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 
+   ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; (({ ?(putdown [
+    x ]) } ; FK) [ x := 3 ])) | ({ !(pickup [ 2 ]) } ; ({ (!(putdown 
+   [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({
+    ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown 
+   [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({
+    ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup 
+   [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST)
+[181(cond)]: not (@ == @ or { ?(putdown [ x ]) } ; FK == @)
+     --> not (true or { ?(putdown [ x ]) } ; FK == @)
+[182(cond)]: not (true or { ?(putdown [ x ]) } ; FK == @)
+     --> not (true or false)
+[183(cond)]: not (true or false)
+     --> not true
+[184(cond)]: not true
+     --> false
+[185(cond)]: not ({ ?(putdown [ x ]) } ; FK == @ or @ == @)
+     --> not (false or @ == @)
+[186(cond)]: not (false or @ == @)
+     --> not (false or true)
+[187(cond)]: not (false or true)
+     --> not true
+[188(cond)]: not true
+     --> false
+[189]: ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 
+   3 ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; (({ ?(putdown 
+   [ x ]) } ; FK) [ x := 3 ])) | ({ !(pickup [ 2 ]) } ; ({ (!(putdown 
+   [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({
+    ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown 
+   [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({
+    ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup 
+   [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST)
+ ---> ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 
+   ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ (?(putdown [
+    x ]) [ x := 3 ]) } ; (FK [ x := 3 ]))) | ({ !(pickup [ 2 ]) }
+    ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 
+   ]) } ; PH))) | ({ ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]
+   ) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+   [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 
+   1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) }
+    ; ST)
+[190]: ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 
+   3 ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ (?(putdown 
+   [ x ]) [ x := 3 ]) } ; (FK [ x := 3 ]))) | ({ !(pickup [ 2 ]) 
+   } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 
+   2 ]) } ; PH))) | ({ ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 1 
+   ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+   [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 
+   1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) }
+    ; ST)
+ ---> ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 
+   ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?((putdown [
+    x ]) [ x := 3 ]) } ; (FK [ x := 3 ]))) | ({ !(pickup [ 2 ]) }
+    ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 
+   ]) } ; PH))) | ({ ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]
+   ) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+   [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 
+   1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) }
+    ; ST)
+[191]: ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 
+   3 ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?((putdown 
+   [ x ]) [ x := 3 ]) } ; (FK [ x := 3 ]))) | ({ !(pickup [ 2 ]) 
+   } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 
+   2 ]) } ; PH))) | ({ ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 1 
+   ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+   [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 
+   1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) }
+    ; ST)
+ ---> ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 
+   ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?((putdown [
+    x := 3 ]) [ (x [ x := 3 ]) ]) } ; (FK [ x := 3 ]))) | ({ !(pickup 
+   [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup 
+   [ 2 ]) } ; PH))) | ({ ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [
+    1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+   [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 
+   1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) }
+    ; ST)
+[192(cond)]: putdown == x
+     --> false
+[193(cond)]: not putdown == x
+     --> not false
+[194(cond)]: not false
+     --> true
+[195]: ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 
+   3 ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?((putdown 
+   [ x := 3 ]) [ (x [ x := 3 ]) ]) } ; (FK [ x := 3 ]))) | ({ !(pickup 
+   [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup 
+   [ 2 ]) } ; PH))) | ({ ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [
+    1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+   [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 
+   1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) }
+    ; ST)
+ ---> ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 
+   ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?(putdown [ 
+   (x [ x := 3 ]) ]) } ; (FK [ x := 3 ]))) | ({ !(pickup [ 2 ]) }
+    ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 
+   ]) } ; PH))) | ({ ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]
+   ) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+   [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 
+   1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) }
+    ; ST)
+[196(cond)]: x == x
+     --> true
+[197]: ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 
+   3 ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?(putdown 
+   [ (x [ x := 3 ]) ]) } ; (FK [ x := 3 ]))) | ({ !(pickup [ 2 ])
+    } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [
+    2 ]) } ; PH))) | ({ ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 
+   1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup 
+   [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 
+   1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) }
+    ; ST)
+ ---> ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 
+   ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?(putdown [ 
+   3 ]) } ; (FK [ x := 3 ]))) | ({ !(pickup [ 2 ]) } ; ({ (!(putdown 
+   [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({
+    ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown 
+   [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({
+    ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup 
+   [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST)
+[198(cond)]: not (@ == @ or FK == @)
+     --> not (true or FK == @)
+[199(cond)]: not (true or FK == @)
+     --> not (true or false)
+[200(cond)]: not (true or false)
+     --> not true
+[201(cond)]: not true
+     --> false
+[202(cond)]: not (FK == @ or @ == @)
+     --> not (false or @ == @)
+[203(cond)]: not (false or @ == @)
+     --> not (false or true)
+[204(cond)]: not (false or true)
+     --> not true
+[205(cond)]: not true
+     --> false
+[206]: ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 
+   3 ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?(putdown 
+   [ 3 ]) } ; (FK [ x := 3 ]))) | ({ !(pickup [ 2 ]) } ; ({ (!(putdown 
+   [ 2 ]) , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({
+    ?(putdown [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown 
+   [ 1 ]) , !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({
+    ?(putdown [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup 
+   [ 2 ]) } ; ST) | ({ ?(getup [ 3 ]) } ; ST)
+ ---> ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 
+   ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?(putdown [ 
+   3 ]) } ; FK)) | ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , 
+   !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(putdown 
+   [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) ,
+    !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown 
+   [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ])
+    } ; ST) | ({ ?(getup [ 3 ]) } ; ST)
+[207]: ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 
+   3 ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ * } ; ({ ?(putdown 
+   [ 3 ]) } ; FK)) | ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) 
+   , !(putdown [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(putdown 
+   [ 2 ]) } ; FK) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) ,
+    !(putdown [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown 
+   [ 1 ]) } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ])
+    } ; ST) | ({ ?(getup [ 3 ]) } ; ST)
+ ---> ({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 
+   ])) } ; ({ !(getup [ 3 ]) } ; PH))) | ({ ?(putdown [ 3 ]) } ; 
+   FK) | ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown 
+   [ 2 ])) } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(putdown [ 2 ]) 
+   } ; FK) | ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown 
+   [ 1 ])) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) 
+   } ; FK) | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST)
+    | ({ ?(getup [ 3 ]) } ; ST)
+({ !(pickup [ 3 ]) } ; ({ (!(putdown [ 3 ]) , !(putdown [ 3 ])) }
+   ; ({ !(getup [ 3 ]) } ; PH))) | ({ ?(putdown [ 3 ]) } ; FK) | 
+  ({ !(pickup [ 2 ]) } ; ({ (!(putdown [ 2 ]) , !(putdown [ 2 ]))
+   } ; ({ !(getup [ 2 ]) } ; PH))) | ({ ?(putdown [ 2 ]) } ; FK) 
+  | ({ !(pickup [ 1 ]) } ; ({ (!(putdown [ 1 ]) , !(putdown [ 1 ]
+  )) } ; ({ !(getup [ 1 ]) } ; PH))) | ({ ?(putdown [ 1 ]) } ; FK)
+   | ({ ?(getup [ 1 ]) } ; ST) | ({ ?(getup [ 2 ]) } ; ST) | ({ ?(
+  getup [ 3 ]) } ; ST) : Process
+(0.000 sec for parse, 207 rewrites(19.280 sec), 632 match attempts)
+
+%DININGROOM> 

@@ -1,0 +1,414 @@
+\chapter{インストール/起動方法}
+\section{システム要件}
+\label{sec:system-req}
+
+\subsection{プラットフォーム}
+\label{sec:platform}
+
+2010年現在は次章で述べるようにバイナリ配布が主体となっており，
+特別な事情が無い限り利用者がCommon Lisp処理系を入手してインストールす
+る必要はなくなっている．
+以下のプラットフォームのものが提供されている:
+\begin{enumerate}
+\item i386 Linux
+\item i386 MacOSX
+\item win32
+\end{enumerate}
+
+上記以外のプラットフォームでの利用が必要な場合はソースコードを
+入手してインストールする必要がある．
+PigNoseは基本的にCommon Lisp処理系が稼働する環境であれば動作する.
+これは, SRA版CafeOBJインタプリタがCommon Lisp言語で記述されているこ
+とによるが, CafeOBJインタプリタはプラットフォームOSとのインタフェース
+部分に処理系依存のコードが含まれているため, どのようなCommon Lisp処
+理系でも動作するとは言えないのが現状である.
+過去2005年の時点では, 
+以下の処理系での動作が確認されていた(表~\ref{tab:platform}に掲
+げた稼働プラットフォームは完全なリストではない. 詳細については各々の処理
+系のドキュメントを参照されたい). 
+ただし現在はAllegro Common Lisp(ver.8.0 以降)上での開発に特化されて
+おり，それ以外の処理系で問題なくインストールできるか否かは検証できて
+いない．
+\begin{table}[htbp]
+  \begin{center}
+    \begin{tabular}{|l|l|}\hline
+      Common Lisp 処理系 & 稼働プラットフォーム\\\hline\hline
+      GCL(version 2.3以上) 
+      & i386 Linux, BSD \\
+      & Sun Sparc, Sun OS 5(gcc) \\\hline
+      Allegro Common Lisp (ver5.0以上) & Linux \\
+      & Windows95/98/2k? \\\hline
+      CMU CommonLisp & Sparc Slaris \\
+      & i386 Linux \\\hline
+      CLISP & i386 Linux \\\hline
+    \end{tabular}
+    \caption{{CafeOBJ インタプリタの稼働環境}}
+    \label{tab:platform}
+  \end{center}
+\end{table}
+上記およびそれ例外の Common Lisp 処理系についての情報は, \textbf{The
+  Association of Lisp Users} のホームページ\url{http://www.lisp.org}
+からのリンクをたどる事で, 容易に入手できる. 
+
+% 2010年現在のではバイナリ配布が主体となっており，
+% 入手方法については第~\ref{sec:distribution}章で述べる．
+
+% \subsection{システムリソース}
+% インストールおよび実行にあたっては, ベースとする Common Lisp 処理系に依
+% 存して使用するディスク領域や実メモリの必要量が異なる. 
+% 一般的に実メモリは1G Byte以上であることが望ましい. 配布物件はソースコー
+% ドベースであるが, これは UNIX TAR 形式のアーカイブファイルを gzip で固め
+% た形式であり, このサイズは700K バイト程度である. これを展開すると, 約
+% 3.8Mbyte のディスク領域を使用する. インストールに際しては, どの Common
+% Lisp 処理系を使用するかによって使われるディスク容量が大きく異なるが, 約
+% 20Mbyte 程度の空き領域が確保されていることが望ましい.  
+
+\section{インストール方法}
+
+\subsection{配布形式}
+\label{sec:distribution}
+CafeOBJインタプリタは過去にシステムはソースとバイナリ両形式で配布され
+ていたが，現在はバイナリ形式による配布が中心である\footnote{%
+ソースコードも配布されているが，バージョンが古いもののみである．
+今後はバイナリに同期して配布する予定である．}
+先に述べたとおり，バイナリ形式はi386Linux，i386 MacOSX, と
+Windows(win32)の3つのプラットフォームのみである.
+現在配布されているCafeOBJインタプリタ(ver.1.4.6以降)はPigNose拡張を含
+んでいるためそれを入手すれば良い．
+インタプリタはCafeOBJの公式ホームページ
+\begin{quote}
+  \url{http://www.ldl.jaist.ac.jp/cafeobj/}
+\end{quote}
+からダウンロード出来る．
+
+ソース形式は Unix のテープアーカイブ形式(TAR)ファイルを gzip によって固
+めたものである. これには CafeOBJ インタプリタ自体のソースも含まれてい
+る．上記のサイトから同様にダウンロード可能である. 
+
+% \begin{simplev}
+% ftp://ftp.sra.co.jp/pub/lang/CafeOBJ/cafeobj/*
+% \end{simplev}
+% ソース配付のファイルは
+% \begin{simplev}
+%  cafeobj-XXX.tar.gz
+% \end{simplev}
+% という名前であり, ここで, \verb+XXXX+ はバージョン番号である. 
+% 20001年6月現在の最新バージョン番号は \verb+1.4.5+ であり, したがって
+% 上記のファイル名は
+% \begin{verbatim}
+%     cafeobj-1.4.5.tar.gz
+% \end{verbatim}
+% である. 
+% バイナリ形式の場合は
+% \begin{simplev}
+%     cafeobj-XXX-i386linux.tar.gz  --- i386 Linux 用
+%     cafeobj-XXX-win.zip           --- windows 用
+% \end{simplev}
+% となる. Windows の場合は zip で固めたものとなる.
+ 
+
+\subsection{ソースからのインストール方法}
+以降ではソース配布のファイルを単に\textbf{ディストリビューショ
+  ン}と呼ぶ. これを展開するとインストールに必要なソースファイルやライ
+ブラリ等を格納したディレクトリが生成される．
+例えば Unix 上では次のようにして展開する： 
+\begin{vvtm}
+\begin{examplev}
+ % gunzip -c cafeobj-1.4.6.tar.gz | tar xvf -
+\end{examplev}
+\end{vvtm}
+この例の場合は\verb|cafeobj-1.4.6|という名前のディレクトリが
+生成されるはずである．
+以下展開して作成されたディレクトリの下でインストール作業を
+実行する事となる. 
+
+\subsubsection{Unix/Linux 上でのインストール方法}
+
+\paragraph{(A) Allegro Common Lispの場合}
+使用するCommon Lisp処理系が
+Allegro Common Lisp(ACL --- ver.8 以降)の場合にはソースコードからのイ
+ンストールが非常に楽である．次のように行う．
+\begin{enumerate}
+\item ソースを展開したディレクトリへ移動する．
+  \begin{vvtm}
+    \begin{examplev}
+      % cd cafeobj-1.4.6
+    \end{examplev}
+  \end{vvtm}
+\item Allegro Common Lisp を起動する．
+  \begin{vvtm}
+    \begin{examplev}
+      % alisp
+    \end{examplev}
+  \end{vvtm}
+\item ACLへ以下を入力する(\texttt{CL-USER(1):}はACLのプロンプトである)．
+  \begin{vvtm}
+    \begin{examplev}
+      CL-USER(1): :ld make-deliv.cl
+    \end{examplev}
+  \end{vvtm}
+  これによってソースコードからのシステムの構築が開始される．
+  これが終了したら\texttt{dist}というディレクトリの下にCafeOBJ
+  インタプリタが構築されているはずである．
+\item \texttt{dist} へ移動する．
+  \begin{vvtm}
+    \begin{examplev}
+      % cd dist
+    \end{examplev}
+  \end{vvtm}
+  そこにはcafeobj-1.4という名前のディレクトリがある．
+  ここ以下にインタプリタ本体及び実行時に必要となるライブラリなどが
+  格納されている．
+\item 必要に応じて \texttt{cafeobj-1.4} を適当なディレクトリに移動もし
+  くはコピーする．
+  \begin{vvtm}
+    \begin{examplev}
+      % tar cf - ./cafeobj-1.4 | tar xvf - -C /usr/local
+    \end{examplev}
+  \end{vvtm}
+  上の例ではインタプリタを\texttt{/usr/local}の下にtarコマンドを
+  使用してコピーした(いろいろな事情によりコピーを行う場合は
+  \texttt{cp} コマンドは避けたほうが良い)．
+
+  コピーや移動先に書き込む権限がない場合は，\texttt{sudo} コマンドを
+  用いるか，それを使う権限も無い場合は，権限を持っているユーザに依頼する．
+  インストール先は任意で良いので特に移動する必要は無い．
+
+\item インタプリタの実行コマンドは\texttt{cafeobj-1.4/bin/cafeobj}である．
+  これを\texttt{PATH}が通っているディレクトリにコピーもしくは移動，
+  あるいはこのファイルにシンボリックリンクを貼る．
+  \begin{vvtm}
+    \begin{examplev}
+      % cd /usr/local/bin
+      % ln -s /usr/local/cafeobj-1.4/bin/cafeobj .
+  \end{examplev}
+  \end{vvtm}
+  上の例では\texttt{/usr/local/bin}に，実行コマンへのシンボリック
+  リンクを張った．
+\item  \texttt{cafeobj-1.4}を\texttt{/usr/local/}へインストールした場合はこ
+  れで終了である．
+  それ以外の場所へインストールした場合はインタプリタ本体の場所を
+  設定する必要がある．これには次の2つの方法がある:
+  \begin{enumerate}
+  \item \texttt{cafeobj}コマンドを修正する方法．
+    \texttt{cafeobj}コマンドはshellスクリプトである．この中身は
+    次のようになっている．
+    \begin{vvtm}
+      \begin{simplev}
+        exec ${CAFEROOT:-"/usr/local/cafeobj-1.4"}/lisp/CafeOBJ -- $*
+      \end{simplev}
+    \end{vvtm}
+    この \texttt{"/usr/local/cafeobj-1.4"}の部分をインストール先の
+    ディレクトリ名に修正すればよい．例えばインストール先ディレクトリが
+    \texttt{"/opt"}であれば，上記を
+    \begin{vvtm}
+      \begin{simplev}
+        exec ${CAFEROOT:-"/opt/cafeobj-1.4"}/lisp/CafeOBJ -- $*
+      \end{simplev}
+    \end{vvtm}
+    のように修正すればよい．
+  \item 上の\texttt{cafeobj}コマンドの中身を見てわかる通り，
+    環境変数\texttt{CAFEROOT}が設定されていればそれをインストール先
+    ディレクトリ名として採用する．例えば使用しているshellが
+    bashの場合は
+    \begin{vvtm}
+      \begin{simplev}
+        export CAFEROOT=/opt/cafeobj-1.4
+      \end{simplev}
+    \end{vvtm}
+    のような記述を\texttt{.bashrc}などに記載しておけばよい．
+  \end{enumerate}
+  
+\end{enumerate}
+
+\paragraph{(B) その他のCommon Lisp処理系の場合}
+
+Allegro Common Lisp以外の処理系でソースコードからインストール
+する場合は以下の手続きに従う\footnote{%
+  現在ここで記載した通りにできるかどうかは検証されていない．
+  もしこのとおり実行してうまくいかない場合はご一報いただけると
+  幸いである．ついでに解決方法も知らせていただければなおありがたい．
+}．
+Unix (Linux) 上でのインストールは以下のように行う.
+\begin{enumerate}
+\item ディストリビューションを展開したディレクトリへ移動する.
+\begin{vvtm}
+\begin{examplev}
+  % cd cafeobj-1.4.6
+\end{examplev}
+\end{vvtm}
+\item 使用する Common Lisp 処理系や, インストール先のディレクトリの
+  設定を行う. これにはディストリビューションに含まれている
+  \texttt{configure} コマンドを次のようにして起動することによって行う:
+\begin{vvtm}
+\begin{simplev}
+  % ./configure [--with-lisp=<Lisp処理系指定>] \
+    [--prefix=<インストール先>]
+\end{simplev}
+\end{vvtm}
+
+  ここで, $<$Lisp処理系指定$>$ はベースとして使用する Common Lisp 処理系
+  の指定であり, 以下のものの中から指定する：
+
+  \begin{enumerate}
+    \item[(1)]\texttt{gcl} --- GCL
+    \item[(2)]\texttt{acl} --- Allegro Common Lisp (ver 5.01 以下)
+    \item[(3)]\texttt{acl6} --- Allegro Common Lisp (ver 6.x)
+    \item[(4)]\texttt{acl7} --- Allegro Common Lisp (ver 7.x) 
+    \item[(5)]\texttt{acl8} --- Allegro Common Lisp (ver 8.x)
+    \item[(4)]\texttt{cmu-sparc} -- CMU Common Lisp, Sparc Sun OS
+    \item[(5)]\texttt{cmu-pc} --- CMU Common Lisp, i386 マシン
+    \item[(6)]\texttt{clisp} --- CLISP
+  \end{enumerate}
+
+  特に指定を行わなければ gcl がデフォルトで選択される.
+
+  $<$インストール先$>$ は, システムをインストールするディレクトリの
+  パス名を指定するものである. 特に指定が無ければ,
+  デフォルトで \texttt{/usr/local} がインストール先となる. 
+  例えば, 下に示す例では Lisp 処理系として Allegro CL(ver8.x) を
+  指定し, インストール先は既定値(\texttt{/usr/local})として構成している.
+  \begin{vvtm}
+    \begin{examplev}
+      % ./configure --with-lisp=acl8
+    \end{examplev}
+  \end{vvtm}  
+\item make コマンドによって, システムの構築/インストールを行う.
+  \begin{vvtm}
+    \begin{examplev}
+      % make bigpink
+      % make install-bigpink
+    \end{examplev}
+  \end{vvtm}
+  最初の make コマンドの発効によって, システムのコンパイルが
+  行われ, 次の make コマンドの発効によって, システムが指定の
+  ディレクトリにインストールされる.
+\end{enumerate}
+
+\subsubsection{Windows 上でのインストール方法}
+
+使用するCommon Lisp処理系がAllegro Common Lisp(ver.8.x)の場合は
+上で記載したUnix上でのインストール方法と同様である．
+
+それ以外のCommon Lisp処理系についてはソースからインストールを
+行う上で一般的な枠組みが用意されていないのが現状である．
+
+% 現在の所, Windows95/98 上の CafeOBJ インタプリタは,
+% Allegro Common Lisp (ver 5.0 以上) -- ACL -- を仮定したインストール手順が
+% 用意されている. 自動的なインストールは行われないので全て手動で行う必要が
+% ある. 
+% 手順は以下の通りである：
+% \begin{enumerate}
+% \item ファイル ``win/win-site-specific.lisp'' を必要に応じて編集する：\\
+%   \verb:*cafeobj-install-dir*: という大域変数が定義されているので
+%     これを CafeOBJ インタプリタ本体をおくディレクトリに設定する.
+%     デフォルトは, \verb|c:\\cafeobj| である.
+% \item 上の \verb:*cafeobj-install-dir*: に設定されたディレクトリの下に
+%   以下のディレクトリを作成し, 指定のファイルをディストリビューションから
+%   コピーする.
+%   \begin{description}
+%   \item[bin] : CafeOBJ インタプリタの本体を置く場所である.
+%   \item[exs] : サンプルモジュールファイルを置く場所である.
+%     ここに, ディストリビューションの ディレクトリ exs の下にある
+%     全てのファイルをコピーする.
+%   \item[lib] : ディストリビューションのディレクトリ lib/lib の下にある
+%     fopl.mod をこの下にコピーする.
+%   \item[prelude] : ディストリビューションのディレクトリ lib/prelude の下
+%     にある全てのファイル, site-init.mod, std.bin, std.mod をこの下にコピー
+%     する. 
+%   \end{description}
+% \item ACL を起動する.
+% \item ACL インタプリタのトップレベルコマンド \texttt{:cd} を用いて
+%   ディストリビューションを展開したディレクトリに移動する：
+% \item ファイル ``make-cafeobj.lisp'' をロードする.
+% \item これによってディレクトリ xbin の下に cafeobj.dxl というファイルが
+%   作成される. これを上で作成したディレクトリ bin の下に移動する.
+% \end{enumerate}
+
+\subsection{バイナリ配付のインストール方法}
+バイナリ配付の場合, インストールされるインタプリタはスタンドアローン,
+つまり実行時に Common Lisp 処理系を必要としない. 
+\emph{TODO}
+\subsubsection{i386 Linux}
+
+\subsubsection{Windows}
+
+\subsection{何がインストールされるか}
+  インストール先が \emph{CAFEROOT} であったとすると, 次の
+  ようになる：
+  \begin{itemize}
+  \item \emph{CAFEROOT}/bin/cafeobj : 検証推論システムの組み込まれた
+    CafeOBJインタプリタの起動コマンド．
+  \item \emph{CAFEROOT}/cafeobj-1.4 : インタプリタのライブラリ等を格納するディ
+    レクトリ. 
+    このディレクトリの下は以下のようになる
+    \begin{itemize}
+    \item exs : CafeOBJ の例題モジュールファイルが格納される
+    \item lib : 検証推論システムのために必要なモジュールファイル
+      ``fopl.mod'' が格納される.
+    \item bin : インタプリタの本体が格納される.
+    \item prelude : CafeOBJ インタプリタの初期化ファイルの格納場所. 
+      以下のファイルが置かれる.
+      \begin{itemize}
+      \item std.bin : CafeOBJ インタプリタが動作する上で必要となる初期設
+        定ファイル. 
+      \item site-init.mod : 利用者用の初期化ファイル. 
+      \end{itemize}
+      これらはインタプリタが起動する毎に最初に読まれる.
+    \end{itemize}
+  \end{itemize}
+
+
+\section{起動方法}
+PigNose が組み込まれた CafeOBJ インタプリタの起動方法は, 通常の
+CafeOBJ インタプリタと全く同じである. 以下では Unix/Linux の場合, および
+Windowsのそれぞれの場合について簡単に説明する. 
+インタプリタとの対話方法の詳細, および CafeOBJ 自体については CafeOBJ イ
+ンタプリタのマニュアル \cite{cafeobj}を参照されたい. また CafeOBJ 言語に
+ついては \cite{CafeRep}を参照されたい.
+
+\paragraph{Unix/Linux 上の場合}
+
+コマンド ``cafeobj'' によってインタプリタが起動される.
+Emacs あるいは, XEmacs を使っている場合は, ディストリビューションに付属
+しているcafeobj-mode パッケージを用いてインタプリタと対話できる. 詳細は
+, ディストリビューションの elisp/cafeobj-mode.el を参照されたい.
+
+\paragraph{Windows 上の場合}
+
+ソース配付からインストールした場合は, インストール手続きによって
+作成された cafeobj.dxl をダブルクリックすることで, インタプリタが起動さ
+れる. 
+
+バイナリ配付の場合は, 独立したアプリケーションとして CafeOBJ.exe が
+インストールされるので, これを起動すればよい.
+
+\subsection{fopl.mod のロード}
+\label{sec:fopl-loading}
+
+検証推論システムが動作するためには, ``fopl.mod'' というファイルをインタ
+プリタにロードする必要がある. このファイルにはPigNoseの機能を使用する
+ために必要となる新規の組み込みモジュールFOPL-CLAUSEの定義や, その他の
+環境設定のためのCafeOBJスクリプトが記述されたファイルである.
+CafeOBJには自動ロード機構があり, 組み込みモジュールFOPL-CLAUSEが初め
+て参照された時に自動的に\texttt{fopl.mod}がロードされるように予め設定
+されている. このため通常は手で\texttt{fopl.mod}をロードする必要はない.  
+
+あらかじめロードしておきたい場合は, インタプリタを起動した後に, 
+\begin{vvtm}
+\begin{examplev}
+  CafeOBJ> require fopl
+\end{examplev}
+\end{vvtm}
+のようにして, require コマンドによってロードできる. 
+いちいちこれを入力する手間を省くため, システム初期化ファイル
+(site-init.mod)に上のコマンドをいれて置くと便利である.
+Unix(Linux)上で利用する場合は, ホームディレクトリの直下に \texttt{.cafeobj} と
+いう名前のファイルがあると，CafeOBJインタプリタは起動時にこれを初期
+化ファイルとして書かれている内容を実行する. 上記の site-init.mod を
+用いずにこのファイルに ``require fopl'' をいれて置いても良い.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

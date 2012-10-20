@@ -1,0 +1,20 @@
+mod! PAIR (X :: TRIV, Y :: TRIV) {
+ [Pair]
+ op _,_ : Elt.X Elt.Y -> Pair {constr} .
+}
+make P1 (PAIR(NAT, INT))
+open P1
+--
+var 3 : Pair.P1 .
+--> (1)
+parse 3 .
+--
+var 4 : Nat .
+--> (2)
+parse 4 .
+--> (3)
+parse (4):Nat .
+--> (4)
+parse (4):Int .
+--
+close

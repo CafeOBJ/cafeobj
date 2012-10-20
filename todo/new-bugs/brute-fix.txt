@@ -1,0 +1,101 @@
+Dear Razvan, 
+
+This is a patch for fixing a problem of the interpreter
+which sends incorrect sort as second argument of operator =()=>
+to brute.
+
+> [Error] error occured while reduction in comiled code...
+> error operator |_=\(_\)=>_| has invalid arity |?Nat*+Strg..trs#9.|.
+> error operator |_=\(_\)=>_| has invalid arity |?Nat*+Strg..trs#8.|.
+> warning attribute conflict for operator _+_ (15 != 3).
+> warning attribute conflict for operator |__?Nat*+Strg..trs#6.| (0 != 13).
+> warning attribute conflict for operator _*_ (0 != 15).
+
+You can safely ignore warnings following error messages. 
+
+-- sawada@sra.co.jp
+
+-- BEGIN -<brtinterf-patch.lisp>--------------------------------------
+(in-package :chaos)
+
+(defun make-trs-module-name (module)
+  (let ((name (module-name module)))
+    (if (modexp-is-simple-name name)
+	(make-module-print-name2 module)
+	(or (gethash module _trs_mod_name_hash_)
+	    (let ((trs-nam (make-trs-module-name-internal name)))
+	      (setf (gethash module _trs_mod_name_hash_)
+		    trs-nam)
+	      trs-nam)))))
+
+(defun tram-make-built-in-operators (trs)
+  (let* ((error-sorts (get-trs-error-sorts trs))
+	 (mod (trs$module trs))
+	 (so (module-sort-order mod))
+	 (rwl? (or (eq mod *rwl-module*)
+		   (module-includes-rwl mod)))
+	 (ops nil))
+    ;; !if
+    (push (copy-tree xif-op-template) ops)
+    ;; internal equality procs.
+    (dolist (sort error-sorts ops)
+      (let* ((if-then-op (copy-tree tram-if-then-else-op-template))
+	     (equal-op (copy-tree tram-equal-op-template))
+	     (nequal-op (copy-tree tram-nequal-op-template))
+	     (bequal-op (if (sort-is-hidden sort)
+			    (copy-tree tram-bequal-op-template)
+			    nil))
+	     (trans-op (if rwl?
+			   (copy-tree tram-rwl-trans-op-template)
+			   nil))
+	     (trans-aux-op (if rwl?
+			       (copy-tree tram-rwl-aux-trans-op-template)
+			       nil))
+	     (eq-aux-op (copy-tree eq-op-template))
+	     (neq-aux-op (copy-tree neq-op-template))
+	     (sort-name (map-chaos-sort-to-trs-or-panic sort trs)))
+	;; if-then-else-fi
+	(setf (second if-then-op)
+	      (list (tram-?bool-sort-name so) sort-name sort-name)
+	      (third if-then-op)
+	      sort-name)
+	(push if-then-op ops)
+	;; _==_
+	(setf (second equal-op) (list sort-name sort-name))
+	(push equal-op ops)
+	;; _=/=_
+	(setf (second nequal-op) (list sort-name sort-name))
+	(push nequal-op ops)
+	;; _=b=_
+	(when bequal-op
+	  (setf (second bequal-op) (list sort-name sort-name))
+	  (push bequal-op ops))
+
+	;; ==>
+	(when trans-op
+	  (setf (second trans-op) (list sort-name sort-name))
+	  (push trans-op ops))
+	;; =()=>
+	(when trans-aux-op
+	  (setf (second trans-aux-op)
+		(list sort-name
+                      ;; must look up from sort-map.
+                      ;; Mon May 25 21:47:46 JST 1998
+		      (map-chaos-sort-to-trs-or-panic (the-err-sort
+						       *rwl-nat-star-sort* so)
+						      trs
+						      t)
+		      sort-name))
+	  (push trans-aux-op ops))
+	
+	;; ==-aux
+	(setf (second eq-aux-op)
+	      (list sort-name sort-name))
+	(push eq-aux-op ops)
+	;; =/=-aux
+	(setf (second neq-aux-op)
+	      (list sort-name sort-name))
+	(push neq-aux-op ops)))
+    ))
+
+-- END -<brtinterf-patch.lisp>----------------------------------------

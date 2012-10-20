@@ -1,0 +1,50 @@
+Date: Thu, 9 Jul 1998 00:22:56 +0300
+From: Diaconescu Razvan <diacon@stoilow.imar.ro>
+Message-Id: <9807082122.AA08127@stoilow.imar.ro>
+To: nakagawa@sra.co.jp
+Subject:  theory of groups
+Cc: sawada@sra.co.jp
+Content-Type: text
+Content-Length: 1297
+
+Dear Nakagawa-san,
+
+I am reading your fascinating theory of groups example (passed to me
+by Sawada-san). I enjoy this very much, and I want to study it
+carefully. Therefore I will send you some comments, some of them very
+scattered. Since I send/receive email only each two days, you will
+receive messages written at various stages of my reading at once. I
+apologize for this.
+
+For the moment I have two small comments:
+
+1. I think the import SUBGROUP -> NORMAL is protecting:
+
+module* NORMAL {
+  protecting (SUBGROUP * { sort H -> N })
+
+As far as I see correctly, accordingly to the current CafeOBJ
+semantics, the denotation of NORMAL is exactly the set of pairs formed
+by a  group with a normal subgroup.
+
+2. It seems to me it would be more natural to make more use of
+parameters. For example,
+
+module* SUBGROUP (G :: GROUP) {
+  [ H < G ]
+  vars U V : G
+  eq [sub-0]: 0 :is H = true .
+  ceq [sub-+]: U + V :is H = true if (U :is H) and (V :is H) .
+  ceq [sub--]: - U :is H = true if U :is H .
+}
+
+For things like G-HOM and other such things it seems parameterization
+is really nice.
+
+Once I get b2 compiled by Iida-san I will try to do some modifications
+for myself and see how it goes. Also, if you do some updating I will
+be glad to have all the time the latest version.
+
+Best regards,
+Razvan
+

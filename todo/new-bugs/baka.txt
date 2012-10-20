@@ -1,0 +1,19 @@
+Dear Razvan,
+
+> I think found a bad bug related to CafeOBJ reductions.
+> Consider the following example:
+
+The system already warned you :-)
+
+  [Warning]: non-behavioural operation on hidden sorts appering in the behavioural axiom:
+           take put(E,B) = put(E,take B) if not empty?(B).
+
+Well, the system does some optimization (you may say it's incorrect)
+for checking beh context, it assumes that any beh axiom constructs 
+a proper beh cotext. This is needed for efficient beh context check.
+This is the reason why former interpreter pretened beh axioms containing
+non behavioural operators from using it as a rewrite rule.
+The current interpreter allows such axioms to be rewrite rules.
+This is the reason why you got the problematic result.
+
+-- sawada@sra.co.jp

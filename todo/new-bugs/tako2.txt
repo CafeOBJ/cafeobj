@@ -1,0 +1,51 @@
+Date: Sun, 19 Jul 1998 12:04:31 +0900
+From: Kokichi Futatsugi <kokichi@shin.sra.co.jp>
+Message-Id: <199807190304.MAA00826@shin>
+To: sawada@sra.co.jp
+In-reply-to: <199807190229.LAA00780@shin> (message from Kokichi Futatsugi on Sun, 19 Jul 1998 11:29:58 +0900)
+Subject: Re: class inheritance
+Cc: kokichi@jaist.ac.jp
+Reply-to: kokichi@jaist.ac.jp
+Content-Type: text
+Content-Length: 1464
+
+二木です
+
+さきのsystem usage reprot e-mailの対する訂正です．
+
+ |Date: Sun, 19 Jul 1998 11:29:58 +0900
+ |From: Kokichi Futatsugi <kokichi@shin.jaist.ac.jp>
+ |Cc: kokichi@jaist.ac.jp
+ |Reply-to: kokichi@jaist.ac.jp
+ |Content-Type: text
+ |Content-Length: 9158
+ |
+ |澤田さん
+ |
+ |二木です
+ |
+ |class inheritance(hidden sorts 間のsubsort ordering)に関して，少し動き
+ |がおかしいと思われるところがあります．検討下さい．
+
+...
+ |--  <=== the following way of defining CFLAG is better supported!!
+ |-- CFLAG can be better defined by inheriting the FLAG spec
+ |-- however, to write flag with counter spec by inheriting the simple
+ |-- flag object requires some modifications of the current interpreter
+ |
+ |-- flag object with counter inheriting the simple flag object
+ |mod* CFLAGinh {
+...
+
+ |  var C : CFlag
+ |  -- eq up? up C = true .       -- this should be inherited from Flag
+ |  -- eq up? dn C = false .      -- this should be inherited from Flag
+ |  -- eq up? rev C = not up? C . -- this should be inherited from Flag
+
+	bops (up_) (dn_) (rev_) : CFlag -> CFlag
+
+ですから，上のeqに現れるup dn revはFlag上のものと違います．
+したがって，上の3つのeqを inherit するというのは無理な話しですね．
+勘違いしていたようです．他にも勘違いがあるかも知れませんが，
+class inheritanceの典型例（難しい例外的なものは最初から捨てて）を
+supportするのが望ましいと思います．

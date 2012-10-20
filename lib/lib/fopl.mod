@@ -1,0 +1,404 @@
+** -*- Mode:CafeOBJ -*-
+** $Id: fopl.mod,v 1.4 2007-01-24 10:03:39 sawada Exp $
+** system: Chaos
+** module: PigNose
+** file: fopl.mod
+** -------------------------------------------------------------
+
+** Syntax of First Order Predicate Logic with Equality (FOPLE),
+** coded in CafeOBJ. This is used by CafeOBJ's resolution based
+** inference engine "PigNose".
+** 
+
+** ---------------------
+** "1. ABSTRACT SYNTAX"
+** ---------------------
+-- Abstract syntax is defined by the modules depicted below:
+" 
+        T&F -(TVAL)-> ABS-FOPL(TVAL)
+         |                |
+       (TVAL)       (BASE-SYNTAX)  
+         |                |
+         v                v
+    ABS-FOPL+EQ-1(TVAL, BASE-SYNTAX(TVAL))
+"
+** << BASIC THEORY MODULES >>
+-- T&F : defines truth value.
+-- ABS-FOPL : parameterized by T&V, and defines FOPL sentence.
+-- ABS-FOPL+EQ-1 : parameterized by T&V and ABS-FOPL with sharing
+--                 T&V(truth vlaue), defines FOPL having an equality.
+--
+** we don't want BOOL to be imported implicitly
+set include BOOL off
+
+** prefer very quiet mode
+set quiet on
+
+** TRUTH VALUE
+
+sys:module* T&F
+{
+  [ TruthValue ]
+  ops #t #f : -> TruthValue
+}
+
+** Abstract Syntax
+
+sys:module* ABS-FOPL (TVAL :: T&F)
+{
+  ** Sentence is for general sentence of FOPL. 
+  ** NOTE: "We do not treat open formula."
+  -- if we enconter an open formula, we take its unversal closure
+  -- for free variables.
+  -- we don't distinguish atoms or formulas, etc. at this level.
+  [ TruthValue < Sentence ]
+  
+  ** connectives
+  -- and
+  op and : Sentence Sentence -> Sentence
+  -- or
+  op or : Sentence Sentence -> Sentence
+  -- imply
+  op imply : Sentence Sentence -> Sentence
+  -- iff
+  op iff : Sentence Sentence -> Sentence
+  -- not
+  op not : Sentence -> Sentence
+
+  ** quantifiers
+  -- Var is for bound logical variables of quatified formulas.
+  [ Var ]
+  op forall : Var Sentence -> Sentence
+  op exists : Var Sentence -> Sentence
+
+}
+
+-- ;;; binding Lisp variable *allow-universal-sort* to t
+-- ;;; allows users to access invisible system's universal
+-- ;;; sorts.
+lispq
+(setq *allow-universal-sort* t)
+
+** ABS-FOPL+EQ-1, 
+-- theory module defining abstract syntax of FOPL with an equality.
+--
+"NOTE: We treate only equalities of CafeOBJ. 
+       Completely ignore `transition' relation of `Rwriting Logic.
+"
+sys:module* ABS-FOPL+EQ-1 (TVAL :: T&F)
+{
+  protecting (ABS-FOPL(TVAL))
+  ** equality
+  op eq : *Cosmos* *Cosmos* -> Sentence
+}
+
+** this is similar to the above, but have two different types of
+** equalities. not used for now. 
+-- module* ABS-FOPL+EQ-2 (TVAL :: T&F)
+-- {
+--   protecting (ABS-FOPL(TVAL))  
+--   ** equalities
+--   --  * eq  : to be interpreted initially.
+--   --  * beq : to be interpreted loosely (behaviouraly).
+--   -- we prepare two kinds of equality here, because underlying logic
+--   -- of CafeOBJ module has corresponding equalities defined by 
+--   -- `(c)eq' and '(c)beq'delaration form respectively.
+--   op eq : Cosmos Cosmos -> Sentence
+--   op beq : Cosmos Cosmos -> Sentence
+-- }
+
+** ----------------------------------------------------
+** "2. MEDIATING MODULES for PRODUCING CONCRETE SYNTAX"
+** ----------------------------------------------------
+
+sys:module! MFOPL(TVAL :: T&F, SYNTAX :: ABS-FOPL(TVAL)){}
+sys:module! MFOPL+EQ-1(TVAL :: T&F, SYNTAX :: ABS-FOPL+EQ-1(TVAL)){}
+
+** --------------------
+** "3. CONCRETE-SYNTAX"
+** --------------------
+
+"** NOTE **
+ The rest of the codes in this file are very implementation specific."
+-- Here are our general priciple of coding FOPL in our system:
+
+"  1. use built-in sort Bool for truth value of FOPL."
+--    (see the view `bool-as-truth-vlaue' below for the definition).
+--    then, ordinal Bool-valued operations are considerd as predicates.
+--    more precicely, they are treated as characteristic functions of
+--    corresponding predicates(if we derive p(t) = true, p(t) is a 
+--    theorem.) 
+--    NOTE: Some important execptions are described in "2" below.
+-- 
+--    We are now faced with two levels of logical reasoning: the
+--    clause level (in FOPL) and the term level (world of CafeOBJ).
+--    we will simulate inference rules of FOPL on the term level.
+--    but to work reasonably on both level simultaneously
+--    (to keep the system sound w.r.t FOPL), the followings are
+--    necessary: 
+--    (1) for every Bool valued operation p,
+--        any valid ground term `p(w)' must be either true or false, 
+--        i.e.,`p(w) = true' or `p(w) = false' is a theorem. 
+--        in other words, Bool must have exactly two elements denoting
+--        truth values (true and false.)
+--    (2) and of cource `true == false' must not be drivable. 
+--
+
+"  2. operators having Bool in its arity."
+--    1. raises a problem in treating operators having Bool in its
+--    arity. any terms with such operators as root cannot be a valid
+--    sentence in FOPL. there are two cases:
+--    (a) op P : ... Bool ... -> Bool
+--    (b) op Q : ... Bool ... -> S      -- S is not Bool
+-- 
+--    ¡ú Basically, if one want to use PigNose system, one cannot
+--       define such operators, otherwise the result is unknown.
+--       System (may) warn if it found such operations. 
+-- 
+--    ¡ú But, built-in module BOOL does define such operators,
+--       and how about equality operators?
+--    
+--       One of the reason we adopt sort Bool as truth value is
+--       the usage of BOOL module by CafeOBJ users. BOOL provides
+--       basic vehicle of logical calclus and people use it as such,
+--       e.g, if we can show (t == t') = true, we conclude t = t'.
+--       And Bool-valued terms are used as the condition part of axioms,
+--       this is rather ungly, but its too late for now. 
+--       
+--       ¡ü "Here is the way we took:"
+--          Lift up (partially) operations of  BOOL to FOPL level.
+--          * "and"       ---> &
+--          * "or"        ---> |
+--          * "not"       ---> ~
+--          * "implies"   ---> ->
+--          * "xor"       ---> (p | q) & (~p | ~q)
+-- 
+--          "We ignore all other operators".
+--          This means that users cannot use other operations.
+--          
+--          * We don't use above operations directly at FOPL level,
+--            instead system translate them to operators of FOPL
+--            in automatic manner.
+--          * Axioms of above operators are "not" used in inference.
+--
+--       ¡ü "if_then_else_fi"
+--          Users "cannot" use if_then_else_fi. We don't provide any
+--          support for this operator. Also the following operators
+--          has no support:
+--            * "and-also"
+--            * "or-else"
+--       
+--       For the equality operations see "3" below.
+--
+"  3. treatment of built-in equality operators:"
+--    We have two built-in equality operators == and =b= in CafeOBJ.
+--    in other words, we already internalize equalities of CafeOBJ
+--    in itself, i.e., if we derive `(t == t') = true' we can conclude
+--    t = t'(same as for =b=).
+--    We throw away these internalization at FOPL level and maps
+--    == (=b=) to equality of FOPL =. We do not distinguish == and =b=
+--    at FOPL level. 
+--    Like "and" etc. we translate == and =b= to = of FOPL, do not directly
+--    use them in FOPL. 
+--    System provides automatic translation of a formula (a term at CafeOBJ
+--    level) having `==', or `=b=' (and `and', `or' etc. also) to pure proper
+--   formula of FOPL.
+-- 
+"  4. other built-in CafeOBJ predicates:"
+--    All of the other built-in predicates will not supported:
+--    They are 
+--         "==>"
+--         "=(*)=>"
+--         ":is"
+--
+" 5. Axioms of CafeOBJ moudule"
+--   (A) Transitions are NOT supported. System does not provide any support.
+--       They are completely ignored. 
+-- 
+--   (B) LHS = RHS if COND 
+--       translated to
+--       "¢Ï[Vars] COND -> LHS = RHS"
+--       ("~(COND) | LHS = RHS" in clause form.)
+--
+
+**
+** built-in Bool as truth value of FOPL
+**
+view bool-as-truth-value from T&F to TRUTH-VALUE
+{
+  sort TruthValue -> Bool,
+  op #t -> true,
+  op #f -> false
+}
+
+** instance of concrete syntax of FOPL
+-- assumes that view bool-as-truth-value will be used together 
+-- with this for instantiating FOPL.
+sys:module! FOPL-BASIC
+{    
+  protecting (TRUTH-VALUE)
+  ** operators with coarity Bool are treated as predicates.
+  -- we do not distingish `atom' and `formula' here,
+  -- instead we simply declare `FoplSentence' for sentences of first
+  -- order predicate logic.
+  -- NOTE: FoplSentences are used as interface language only, 
+  --       they will be transfered to sets of clause for real
+  --       computations. 
+
+  [ Bool < FoplSentence,
+    VarDeclList ]
+  ** VarDeclList is for declaring bound logical variables of
+  -- quantifiers. we use CafeOBJ variables for logical variables
+  -- of FOPL to be defined. this causes no problem, because
+  -- all variables in ordinal terms are treated as universally
+  -- quantified logical variables in corresponding clauses.
+  ** wanted to be more neat and clean,..
+  op _,_ : *Cosmos* *Cosmos* -> VarDeclList { r-assoc }
+
+  ** quantifiers : note precedence is defined as very low.
+  -- forall
+  op \A[_]_ : *Cosmos* FoplSentence -> FoplSentence
+    {prec: 125 strategy:(0)}
+  -- exists
+  op \E[_]_ : *Cosmos* FoplSentence -> FoplSentence
+    {prec: 125 strategy:(0)}
+
+  ** connectives
+  -- and
+  op _&_ : FoplSentence FoplSentence -> FoplSentence
+    {prec: 101 r-assoc strategy:(0)}
+  -- or
+  op _|_ : FoplSentence FoplSentence -> FoplSentence
+    {prec: 107 r-assoc strategy: (0)}
+  -- implies
+  op _->_ : FoplSentence FoplSentence -> FoplSentence
+    {prec: 120 r-assoc strategy: (0)}
+  -- iff
+  op _<->_ : FoplSentence FoplSentence -> FoplSentence
+    {prec: 120 r-assoc strategy:(0)}
+  -- not : note very high precedence
+  op ~_ : FoplSentence -> FoplSentence
+    {prec: 0 strategy:(0)}
+}
+
+** instance of concrete syntax of FOPL with an equality
+**
+sys:module! FOPL-BASIC+EQ-1
+{
+  protecting (FOPL-BASIC)
+  op _=_ : *Cosmos* *Cosmos* -> FoplSentence
+    {prec: 51 strategy: (0)}
+}
+
+** instance of concrete syntax of FOPL with two equality
+-- module! FOPL-BASIC+EQ-2
+-- {
+--   protecting (FOPL-BASIC+EQ-1)
+--   op _*=*_ : Cosmos Cosmos -> FoplSentence
+--     {prec: 113 strategy: (0)}
+-- }
+
+** The concrete syntax we use.
+** FOPL-SENTENCE
+** 
+
+make FOPLE-SENTENCE
+(MFOPL+EQ-1(bool-as-truth-value,
+            FOPL-BASIC+EQ-1 { sort Sentence -> FoplSentence,
+			      sort Var -> *Cosmos*,
+			      op and -> _&_,
+			      op or -> _|_,
+			      op imply -> (_->_),
+			      op iff -> _<->_,
+			      op forall -> \A[_]_,
+			      op exists -> \E[_]_,
+			      op not -> ~_,
+			      op eq -> _=_}))
+
+**
+** We need some Lisp accessible values for PigNose engine.
+**
+** `install-fopl-sentece' treat this. 
+
+lispq (install-fopl-sentence "FOPLE-SENTENCE" :eq '("_" "=" "_"))
+
+** >>NOT USED<<
+-- internal representation of formula: 
+--
+-- module! FOPL-CLAUSE-FORM
+-- {
+--   protecting(FOPL-SENTENCE)
+--   [ FoplClause,
+--     FoplSentence < FoplSentenceSeq ]
+--   op _;_ : FoplSentenceSeq FoplSentenceSeq -> FoplSentenceSeq {r-assoc}
+--  -- ![_] performs formula to clause form translation. just for debug.
+--  op ![_] : FoplSentenceSeq -> FoplClause
+--  op [_] : FoplSentenceSeq -> FoplClause
+-- }
+
+-- lispq (install-fopl-clause-form)
+
+
+** Users must import this to use "PigNose".
+**
+** FOPL-CLAUSE
+sys:module! FOPL-CLAUSE
+ {
+   protecting (FOPLE-SENTENCE)
+  -- built-in equality demodulators.
+   pred EQ : *Cosmos* *Cosmos* {demod}
+   pred NE : *Cosmos* *Cosmos* {demod}
+  -- for answer literal.
+   pred $Ans : *Cosmos* 
+
+   eq[:BDEMOD]: EQ(X:*Cosmos*, Y:*Cosmos*)
+   = #!! (coerce-to-bool
+	    (term-equational-equal x y)) .
+   eq[:BDEMOD]: NE(X:*Cosmos*, Y:*Cosmos*)
+   = #!! (coerce-to-bool
+	    (not (term-equational-equal x y))) .
+
+ }
+
+** for internalize $Ans
+lispq
+(install-fopl-clause)
+
+** We don't need to touch universal sort any more.
+lispq
+(setq *allow-universal-sort* nil)
+
+** built in for invariance check.
+lispq
+(setq *pn-proof-module*
+  (eval-ast (%module-decl* "( invariance check )" :object :hard nil)))
+
+lispq
+(setq *pn-refinement-check-module*
+  (eval-ast (%module-decl* "( refinment check )" :object :hard nil)))
+
+lispq
+(setq .pn-ignore-ops.
+  (list *bool-and*
+	*bool-or*
+	*bool-not*
+	*sort-membership*
+	*bool-if*
+	*bool-imply*
+	*bool-iff*
+	*bool-xor*
+	*bool-equal*
+	*beh-equal*
+	*bool-nonequal*
+	*beh-eq-pred*
+	*bool-and-also*
+	*bool-or-else*))
+
+**
+set include BOOL on
+set quiet off
+**> providing fopl
+provide fopl
+provide FOPL-CLAUSE
+**
+eof

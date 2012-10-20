@@ -1,0 +1,32 @@
+**
+** MODULE BASE-BOOL
+**
+**
+evq (setq *include-bool-save* *include-bool*)
+require truth
+
+set include BOOL off
+
+sys:mod! BASE-BOOL
+     principal-sort Bool
+{
+  imports {
+    protecting (TRUTH)
+    protecting (EQL)
+  }
+  signature {
+    op _and_ : Bool Bool -> Bool { assoc comm prec: 55 r-assoc }
+    op _and-also_ : Bool Bool -> Bool { strat: (1 0 2) prec: 55 r-assoc }
+    op _or_ : Bool Bool -> Bool { assoc comm prec: 59 r-assoc }
+    op _or-else_ : Bool Bool -> Bool { strat: (1 0 2) prec: 59 r-assoc }
+    op _xor_ : Bool Bool -> Bool { assoc comm prec: 57 r-assoc }
+    op not_ : Bool -> Bool { strat: (0 1) prec: 53 }
+    op _implies_ : Bool Bool -> Bool { strat: (0 1 2) prec: 61 r-assoc }
+    op _iff_ : Bool Bool -> Bool { strat: (0 1 2) prec: 63 r-assoc }
+  }
+}
+
+evq (setq *include-bool* *include-bool-save*)
+provide base_bool
+--
+eof

@@ -1,0 +1,7 @@
+mod! M {
+   [S]
+   op c : ->   S
+   op f : S ->   S
+}
+
+open M * {op f ->   _@}

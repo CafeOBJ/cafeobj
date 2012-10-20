@@ -1,0 +1,54 @@
+[Error] error occured while module compilation ...error no valid parse for operator _==_.
+error no valid parse for operator _=/=_.
+error no valid parse for operator _==_.
+error no valid parse for operator _=/=_.
+error no valid parse for operator _==_.
+error no valid parse for operator _=/=_.
+error no valid parse for operator _==_.
+error no valid parse for operator _=/=_.
+error no valid parse for operator _==_.
+error no valid parse for operator _==_.
+error no valid parse for operator _==_.
+warning strategy conflict for operator |eating3?/1?Bool|.
+warning strategy conflict for operator |eating2?/1?Bool|.
+warning strategy conflict for operator |eating1?/1?Bool|.
+warning strategy conflict for operator |rest3/1?Table|.
+warning strategy conflict for operator |rest2/1?Table|.
+warning strategy conflict for operator |rest1/1?Table|.
+warning strategy conflict for operator |pick3l/1?Table|.
+warning strategy conflict for operator |pick3r/1?Table|.
+warning strategy conflict for operator |pick2l/1?Table|.
+warning strategy conflict for operator |pick2r/1?Table|.
+warning strategy conflict for operator |pick1l/1?Table|.
+warning strategy conflict for operator |pick1r/1?Table|.
+warning strategy conflict for operator |pick_?LeftHand|.
+warning strategy conflict for operator |release_?LeftHand|.
+warning strategy conflict for operator |_implies_|.
+warning attribute conflict for operator |_xor_| (0 != 15).
+warning strategy conflict for operator |_or-else_|.
+warning attribute conflict for operator |_or_| (0 != 15).
+warning strategy conflict for operator |_and-also_|.
+warning attribute conflict for operator |_and_| (0 != 15).
+warning strategy conflict for operator |pick_?RightHand|.
+warning strategy conflict for operator |release_?RightHand|.
+warning strategy conflict for operator |pick-right/1?Guest3|.
+warning strategy conflict for operator |pick-left/1?Guest3|.
+warning strategy conflict for operator |rest/1?Guest3|.
+warning strategy conflict for operator |eating?/1?Bool|.
+warning strategy conflict for operator |eating?/1?Bool|.
+warning strategy conflict for operator |eating?/1?Bool|.
+warning strategy conflict for operator |pick-right/1?Guest2|.
+warning strategy conflict for operator |pick-left/1?Guest2|.
+warning strategy conflict for operator |rest/1?Guest2|.
+warning strategy conflict for operator |pick-right/1?Guest1|.
+warning strategy conflict for operator |pick-left/1?Guest1|.
+warning strategy conflict for operator |rest/1?Guest1|.
+warning strategy conflict for operator |release_?ChopStick3|.
+warning strategy conflict for operator |use_?ChopStick3|.
+warning strategy conflict for operator |release_?ChopStick2|.
+warning strategy conflict for operator |use_?ChopStick2|.
+warning strategy conflict for operator |release_?ChopStick1|.
+warning strategy conflict for operator |use_?ChopStick1|.
+warning LHS won't match to any term (out-most op is |_xor_|).
+warning LHS won't match to any term (out-most op is |_or_|).
+warning LHS won't match to any term (out-most op is |_and_|).

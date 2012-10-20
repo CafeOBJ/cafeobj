@@ -1,0 +1,17 @@
+-*- mode: grep; default-directory: "/Users/sawada/prj/cafe/Chaos/chaos/primitives/" -*-
+Grep started at Mon Jan  9 14:22:17
+
+grep -nH -e with-output-chaos-warning *.lisp
+bflags.lisp:133:	    (with-output-chaos-warning ()
+bsort.lisp:1524:		 (with-output-chaos-warning ()
+context.lisp:129:	    (with-output-chaos-warning ()
+context.lisp:190:    (with-output-chaos-warning ()
+find.lisp:97:		 (with-output-chaos-warning ()
+find.lisp:106:		       (with-output-chaos-warning ()
+find.lisp:205:		       (with-output-chaos-warning ()
+find.lisp:452:	(with-output-chaos-warning ()
+find.lisp:460:	      (with-output-chaos-warning ()
+gen-eval.lisp:77:			    (with-output-chaos-warning ()
+term-utils.lisp:243:	      (with-output-chaos-warning ()
+
+Grep finished (matches found) at Mon Jan  9 14:22:18

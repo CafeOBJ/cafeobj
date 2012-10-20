@@ -1,0 +1,3 @@
+set libpath /usr/local/cafeobj-1.4/lib
+set libpath + /usr/local/cafeobj-1.4/prelude
+in std

@@ -1,0 +1,58 @@
+;CHAOS_BINS_____
+;;;-*- Mode:LISP: Package: CHAOS; Base:10: Syntax:Common-lisp -*-
+;;; $Id: tuple.bin,v 1.2 2007-01-24 10:03:39 sawada Exp $
+;;; 
+(in-package :chaos)
+(defun chaos-install-2tuple ()
+  (let ((*dribble-ast* nil)
+	(*ast-log* nil)
+	(*last-module* nil)
+	(*current-module* nil)
+	(*include-bool* nil)
+	(*include-rwl* nil)
+	(*regularize-signature* nil))
+    (declare (special *dribble-ast* *ast-log*
+		      *last-module* *current-module*
+		      *include-bool* *include-rwl*
+		      *regularize-signature*))
+
+    (eval-ast-if-need-no-error '(%module-decl "2TUPLE" :object :system
+				 ((%import :protecting "TRIV" "C1")
+				  (%import :protecting "TRIV" "C2")
+				  (%sort-decl (%sort-ref "2Tuple" nil)
+				   nil)
+				  (%op-decl ("<<" "_" ";" "_" ">>")
+				   ((%sort-ref "Elt" "C1")
+				    (%sort-ref "Elt" "C2"))
+				   (%sort-ref "2Tuple" nil)
+				   (%opattrs nil nil nil nil nil t nil)
+				   nil)
+				  (%op-decl ("1*" "_")
+				   ((%sort-ref "2Tuple" nil))
+				   (%sort-ref "Elt" "C1")
+				   (%opattrs nil nil nil nil nil nil nil t)
+				   nil)
+				  (%op-decl ("2*" "_")
+				   ((%sort-ref "2Tuple" nil))
+				   (%sort-ref "Elt" "C2")
+				   (%opattrs nil nil nil nil nil nil nil t)
+				   nil)
+				  (%var-decl ("e1")
+				   (%sort-ref "Elt" "C1"))
+				  (%var-decl ("e2")
+				   (%sort-ref "Elt" "C2"))
+				  (%axiom-decl :equation (":BDEMOD")
+				   ("1*" "<<" "e1" ";" "e2" ">>")
+				   ("e1") nil nil)
+				  (%axiom-decl :equation (":BDEMOD")
+				   ("2*" "<<" "e1" ";" "e2" ">>")
+				   ("e2") nil nil))))
+    (eval-ast-if-need-no-error '(%protect ("2TUPLE") :set))
+    (eval-ast-if-need-no-error '(%provide "2TUPLE"))
+    (eval-ast-if-need-no-error '(%provide "tuple"))
+    ))
+
+(eval-when (eval load)
+  (chaos-install-2tuple))
+
+;;; EOF

@@ -1,0 +1,30 @@
+(TeX-add-style-hook "part2"
+ (function
+  (lambda ()
+    (LaTeX-add-labels
+     "sec:refutation-engine"
+     "sec:bi-simular"
+     "sec:bi-sim-test-item"
+     "sec:bi-sim-res-all"
+     "tab:bi-sim-test"
+     "sec:bi-sim-op"
+     "sec:bi-sim-op-test-data"
+     "sec:bi-sim-ax"
+     "sec:engine"
+     "tab:fopl-res"
+     "sec:fopl-axiom"
+     "sec:fopl-input-data"
+     "sec:fopl-import"
+     "sec:import-fopl-data"
+     "sec:fopl-trans"
+     "sec:fopl-trans-data"
+     "tab:proof-res-all"
+     "sec:binary-res"
+     "sec:binary-res-data"
+     "sec:hyper-res"
+     "sec:hyper-res-data"
+     "sec:paramod"
+     "sec:paramod-data"
+     "sec:total-test"
+     "sec:total-data"))))
+

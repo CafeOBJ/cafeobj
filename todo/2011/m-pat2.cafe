@@ -1,0 +1,19 @@
+module! NAT-SEQ {
+  inc(NAT)
+  [ Nat < NatSeq ]
+  op nil : -> NatSeq
+  op __ : NatSeq NatSeq -> NatSeq { assoc id: nil }
+  op _occurs-inner_ : Nat NatSeq -> Bool
+  op hasTwo : NatSeq -> Bool
+  ceq N:Nat occurs-inner NS:NatSeq = true
+    if (NS0:NatSeq N:Nat NS1:NatSeq) := NS .
+  ceq hasTwo(NS:NatSeq) = N:Nat == 2
+    if NS0:NatSeq N:Nat NS1:NatSeq := NS .
+}
+
+set trace whole on
+red in NAT-SEQ : 0 occurs-inner 1 2 3 0 4 5 .
+set trace whole off
+--
+eof
+

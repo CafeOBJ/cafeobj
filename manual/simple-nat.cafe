@@ -1,0 +1,13 @@
+module SIMPLE-NAT {
+  signature {
+    [ Zero NzNat < Nat ]
+    op 0 : -> Zero
+    op s : Nat -> NzNat
+    op _+_ : Nat Nat -> Nat
+  }
+  axioms {
+    vars N N' : Nat
+    eq 0 + N = N .
+    eq s(N) + N' = s(N + N').
+  }
+}

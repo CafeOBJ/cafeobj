@@ -1,0 +1,24 @@
+I put a new interpter (version 1.4.1(p7)) on 
+	ftp://ftp.sra.co.jp/pub/lang/CafeOBJ/cafeobj-1.4.1p7.tar.gz
+
+This includes fixes as listed below:
+1. type mismatch is now detected at parse time for universally 
+   defined built-in operatos, such as _==_, if_then_else_fi, etc.
+   (this was reported by s_iida@jaist.ac.jp)
+2. context udating just after open a module is properly done.
+   (this was reported by Razvan as a `little bug on =*= ??',)
+3. a bug in ac matching newly introduced in 1.4.1p5, which 
+   incorrectly matches `a * a * b' to `a * b * b'. 
+   (this was reported by ishisone@sra.co.jp).
+4. sort assignment problem of ad-hoc overloading operators.
+   (reported by s_iida@jaist.ac.jp, this was already fixed in p6 but 
+    which has not been released).
+
+Very thanks to all who reported problems. I know that there
+remains problems which some of you think them as bugs, such as 
+the issue of carrying formal parameters among modules, but I think
+we need some further discussion on these problems. 
+
+-- sawada@sra.co.jp
+
+

@@ -1,0 +1,145 @@
+Dear everyone,
+
+This is a patch for fixing a problem of interface with compilers
+which causes `compile error' due to a (reasonable) restriction
+of brute (and tram, I guess) -- it does not allow overloaded constants.
+Normaly, this is eliminated by interpreter by decorating operator
+names with the name of the error sort of its coarity. But there can
+be a case of multiple sorts with the SAME NAME co-existing. Thus using
+simple sort identifier of error sort is not sufficient. 
+
+Please adopt this patch if you encounter this situation. 
+This patch has been tested on version 1.4.1p7 (the latest one), but
+it should also be applied successfully to older 1.4x versions.
+
+(1) As always, put the following code fragment 
+    (enclosed by --BEGIN-- ... --END-.)
+    to a file, name it "brute-interface-patch.lisp" here.
+
+----BEGIN-<brute-interface-patch.lisp>---------------------------------
+(in-package :chaos)
+(defun make-trs-op-name (method module &aux (trs (module-trs module)))
+  ;; NOTE* assumption: sort name map should have been generated.
+  ;;       this is used for modifying operator name with the error-sort
+  ;;       of its coarity.
+  (let ((name (cadr (assq method (trs$op-info-map trs))))
+	(opinfo-table (module-opinfo-table module))
+	(sort-name-map (trs$sort-name-map trs)))
+    (when name (return-from make-trs-op-name name))
+    ;;
+    (setq method (trs-get-real-method-if-dummy method trs))
+    ;;
+    (if (get-method-info method opinfo-table)
+	(let ((op (method-operator method opinfo-table)))
+	  (setq name (operator-print-name op)))
+	(let ((meth-name (method-name method)))
+	  (if (member "_" (car meth-name) :test #'equal)
+	      ;; mixfix
+	      (setq name (make-print-operator-id (car meth-name)))
+	      ;; 
+	      (setq name (format nil "~a/~d"
+				 (make-print-operator-id (car meth-name))
+				 (cdr meth-name))))))
+    ;;
+    (when (and *trs-modify-operator-name*
+	       (not (trs-check-if-builtin-op-family method opinfo-table)))
+      (setq name (concatenate 'string
+			      name
+                              ;; simple id is not sufficient, so lookup
+                              ;; sort-name table.
+			      (let ((err-sort (the-err-sort (method-coarity method)
+							    (module-sort-order module))))
+				(string (or (cdr (assq err-sort sort-name-map))
+                                            ;; don't mind, even if you reach here.
+					    (sort-id err-sort)))))))
+    ;;
+    (or (gethash name *trs-opname-hash*)
+	(setf (gethash name *trs-opname-hash*)
+	      (let ((res nil)
+		    (lim (length name))
+		    (cur-tok nil))
+		(declare (type fixnum lim))
+		(do ((pos 0 (1+ pos)))
+		    ((>= pos lim))
+		  (declare (type fixnum pos))
+		  (setq cur-tok (char name pos))
+		  (push (or (cdr (assoc cur-tok
+					trs-operator-special-token-map
+					:test #'equal))
+			    (string cur-tok))
+			res))
+		(intern (reduce #'(lambda (x y)
+				    (declare (type simple-string x y))
+				    (concatenate 'string x y))
+				(nreverse res))))))))
+
+(defun make-trs-op-maps (trs)
+  (let ((module (trs$module trs)))
+    (let ((res nil))
+      ;; construct op mapping tables and reverse maps.
+      ;; NOTE* only error operators are entried to reverse table
+      ;;       excepting constants and built-in operators.
+      ;;       (constants have no error-methods in general).
+      ;;       most of the cases, constants need not be in rev-table
+      ;;       but there are some cases to be handled properly, like
+      ;;        op c : -> Elt.M1*{ ... }
+      ;;        op c : -> Elt.M2*{ ... }
+      ;;       the reason is that we generate internal trs names for
+      ;;       modules with complex name, thus we could not recover
+      ;;       original operator easily (we want to use standard procs for
+      ;;       getting modules from their names).
+      ;;
+      (dolist (ops (module-all-operators module))
+	(let ((methods (opinfo-methods ops)))
+	  (dolist (m methods)
+	    (let ((info (make-trs-op-info m trs)))
+	      (when (or (method-is-error-method m)
+			(null (method-arity m)))
+		(let ((rev-ent (assq (car info)
+				     (trs$op-rev-table trs))))
+		  (if rev-ent
+		      (setf (cdr rev-ent) m)
+		      (push (cons (car info) m)
+			    (trs$op-rev-table trs)))))
+	      (when (and (trs-proper-method-p* m)
+	                 (not (method-is-error-method m)))
+		(push (cons m info) res))))))
+      ;; make reverse op maps for builtin operators
+      (when (assq *truth-module* (module-all-submodules module))
+	(dolist (op (list *bool-equal* *bool-nonequal*
+			  *beh-equal* *bool-if* *beh-eq-pred*))
+	  (push (cons (make-trs-op-name op module)
+		      op)
+		(trs$op-rev-table trs))))
+      ;; other optional built-ins.
+      (when (module-includes-rwl module)
+	(push (cons (make-trs-op-name *rwl-predicate* module)
+		    *rwl-predicate*)
+	      (trs$op-rev-table trs))
+	(push (cons (make-trs-op-name *rwl-predicate2* module)
+		    *rwl-predicate2*)
+	      (trs$op-rev-table trs)))
+      ;;
+      (setf (trs$op-info-map trs)
+	    (nreverse res)))))
+--------------END-<brute-interface-patch.lisp>-------------------------
+
+(2) invoke your CafeOBJ interpreter by command `cafeobj'.
+(3) put the followings command sequences in order.
+    (a) ev (compile-file "./brute-interface-patch.lisp")
+    (b) ev (load "./brute-interafce-patch.o")
+    NOTE* if you are using cafeobj built on CMU-CL, you should do
+    (b') ev (load "./brute-interface-patch.x86f")
+         if you are on PCs
+    (b'') ev (load "./brute-interface-patch.sfasl")
+         if you are on Sun Sparc.
+    (c) save-system /tmp/cafeobj.exe .
+    NOTE* if you are using CMU-CL based interpreter 
+    (c') save-system /tmp/cafeobj.core .
+(4) replace the body of interpter normally placed on 
+    /usr/local/cafeobj-1.4.1/bin/ if you follow the standard installation
+    defaults.
+
+Thanks
+
+-- sawada@sra.co.jp

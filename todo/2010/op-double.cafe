@@ -1,0 +1,12 @@
+mod M1 {
+  [S]
+  op F : S -> S 
+  eq F(x:S) = x .
+}
+
+mod M2 {
+  pr(M1)
+  op F : S -> S
+  op F : S S -> S
+  op s : -> S
+}

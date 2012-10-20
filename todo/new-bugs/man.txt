@@ -1,0 +1,30 @@
+From: Razvan Diaconescu <diacon@jaist.ac.jp>
+Date: Mon, 25 May 98 15:27:21 JST
+Message-Id: <9805250627.AA02872@is27e0s07.jaist.ac.jp>
+To: sawada@sras75.sra.co.jp
+Subject:  Re: another parameterization issue
+Cc: kokichi@jaist.ac.jp, s_iida@jaist.ac.jp, sawada@sra.co.jp
+Content-Type: text
+Content-Length: 989
+
+ |I fully agree, and sorry about that. I personaly want to rearrange the
+ |organization of the manual and of course make it be up to date.
+ |I've just started a personal work in which I will investigage very 
+ |carefully the current implementation with respect to CafeOBJ report
+ |and examples in the jewels. After this work, I will discuss about 
+ |the new release of our manual with Nakagawa.
+
+Thanks, I will be happy to assist with this too. I also have some
+ideas about the CafeOBJ manual, the most important is that it should
+really be browsable (like an online manual in the style of emacs info
+or some html structure, or maybe both if possible). It should also be
+very dry stuff (online manuals are very dry), so very different from a
+book style.
+
+With respect to the current implementation we can continue investigate
+it along other examples I have, and we can extend these examples even
+further in order to understand more about the current implementation.
+
+Best regards,
+Razvan
+

@@ -1,0 +1,51 @@
+Date: Mon, 1 Jun 1998 23:49:24 +0900
+From: Kokichi Futatsugi <kokichi@shin.jaist.ac.jp>
+Message-Id: <199806011449.XAA00501@shin.jaist.ac.jp>
+To: diacon@jaist.ac.jp
+CC: s_iida@jaist.ac.jp, sawada@sra.co.jp
+In-reply-to: <9805290521.AA04856@is27e0s07.jaist.ac.jp> (message from Razvan Diaconescu on Fri, 29 May 98 14:21:24 JST)
+Subject: Re: explicit parameter notation
+Cc: kokichi@jaist.ac.jp
+Reply-to: kokichi@jaist.ac.jp
+Content-Type: text
+Content-Length: 1019
+
+Razvan and Toshimi,
+
+R wrote:
+ |Although I agree with you and I am in favour of a more explicit
+ |notation such as
+ |
+ | |mod* LIST (X :: TRIV) {
+ | |  protecting(TRIV+(X))
+ |
+ |the current interpreter cannot handle this properly since
+ |
+ | |mod* LIST (X :: TRIV) {
+ |
+ |would be interpreted as a new parameter declaration and
+ |
+ | |  protecting(TRIV+(X))
+ |
+ |as an instantiation of TRIV+! So, there is a very severe obstacle in
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^             
+
+I have a difficulty to understand this.  
+If the parameter of TRIV+(X :: TRIV) is instanciated and it can not be 
+instanciated any more, it should be "bug".  How do you think? --> Toshimi
+
+Besides, if we can not write like:
+
+ | |mod* LIST (X :: TRIV) {
+ | |  protecting(TRIV+(X))
+
+It is difficult (or impossible) to use
+
+   TABLE(NAT, CHAR)
+
+style notation for specify instanciation of two (or more) parameters
+which are brough up from submodules.
+
+I think we should support
+	   TABLE(NAT, CHAR)
+like notation in writing module expressions.

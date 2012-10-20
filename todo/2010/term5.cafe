@@ -1,0 +1,15 @@
+** smpi.mod
+select TEST
+-- exec input の結果．
+parse (((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)) | (((((x :: na) ((pid :: 1) (np :: 3))) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end)) | ((((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) (send ( x , (np - i) ) ;)) (((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })) end)))) .
+
+let exec-input = $$term .
+
+-- red input ==>! L:List の state 349
+parse (((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)) | (((((x :: na) ((pid :: 1) (np :: 3))) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end)) | ((((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) (send ( x , (np - i) ) ;)) (((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })) end)))) .
+
+let red-input=>!L = $$term .
+
+--> red exec-input == red-input=>!L
+
+red exec-input == red-input=>!L .

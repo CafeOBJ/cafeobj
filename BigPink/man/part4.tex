@@ -1,0 +1,396 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\part{詳細化検証}
+\label{sec:spec-check-system}
+\parttoc
+%
+
+\section{仕様検証システムの機能}
+\label{sec:spec-check-function}
+
+の\textbf{CafeOBJ command interpreter}) に与えられた新規のコマンド
+(第 ~\ref{sec:spec-check-new-commands} を参照) によって起動される.
+
+システムが行うことは, 要求仕様 $M$ (図の \textbf{Module M}) 
+に対する部品仕様 $N$ (図の \textbf{Module N}) の検証である.
+この検証は以下の２段階で行われる：
+\begin{enumerate}
+\item $M$ から $N$ へのシグニチャマッチング
+
+  これは部品仕様 $N$ が要求仕様 $M$ で定められている機能を果たすための
+  構文要素を備えているかどうかを検査するものである.
+  図~\ref{fig:spec-check-arch}の\textbf{Signature Matching} が, この
+  検査を実行する.
+  可能な場合には $M$ のシグニチャから $N$ のシグニチャへの写像
+  (シグニチャ射 -- 図の \textbf{Signature Morphism})が生成される．
+  
+  シグニチャ射が一つも存在しない場合は，部品仕様 $N$ が要求仕様 $M$ の機能を
+  果たすことは不可能であるので，仕様検証はこの時点で失敗を報告し終了する．
+  なお，シグニチャ射は複数存在することがある．
+
+  振舞仕様におけるシグニチャは，オブジェクトにおけるメソッド及び属性に対
+  応すると考えてよい．シグニチャマッチングを行うには，どのメソッド／属性
+  がどのメソッド／属性に写像可能かを，ソート情報をもとに逐一調べていけば
+  よい．これは一般に簡単な問題ではないが，ソート名の同じ可視ソートは同
+  じデータ型を意味するものと仮定することで，単純な文字列マッチングの問題
+  に還元され，高速な実装が可能となる．
+
+\item $M$ から $N$ への詳細化検証
+
+  これは1で得られたシグニチャ射による構文変換によって，部品仕様 $N$ が要求
+  仕様 $M$ の機能を実際に果たすかどうかを検証するものである．$M$ の等式それぞ
+  れをシグニチャ射で変換し，それが $N$ においても成り立つかどうかを証明して
+  いく. 図~\ref{fig:spec-check-arch} の \textbf{Refinement Check} がこの
+  検証を実行する.
+
+  検証する $M$ の等式が，通常の等式あるいは公理であるか，または，振
+  舞等式であるかによって以下のように処理が異なる．
+
+  \begin{description}
+  \item[通常の等式または公理の場合]
+    変換された等式／公理の否定を $N$ の仕様に加え，それから反駁が得られるかど
+    うかを 反駁エンジン(図の\textbf{Refutation Engine}) を用いて検証する．
+    反駁が得られればこの等式に関する詳細化検証は成功する．
+
+  \item[振舞等式の場合]
+    変換された等式について，双対帰納法(coinduction)を実行する．双対帰納法
+    が成功すれば，この等式に関する詳細化検証は成功する．双対帰納法について
+    は第IV部のモデル検査システム(図の\textbf{Model Check System})を参照のこと．
+
+  \end{description}
+
+  \begin{quotation}
+    なお現在のところ，条件付き振舞等式の条件部は全て通常の等式
+    (隠蔽ソートの等式であっても)であるとして処理されている．
+    条件付き振舞等式については，その記述や検証の方法に関する理論的研究が必要であり，
+    仕様検証システムにおける実装についても，今後の課題として残されている．
+  \end{quotation}
+
+  $M$ の全ての等式について検証が成功すれば，$M$ から $N$ への詳細化検証は成功で
+  ある．ただし，一般に一階述語論理における定理証明は決定不能であるので，
+  詳細化検証が定められた計算資源(計算時間，メモリ使用量など)の上限を超え
+  た場合には，結果を不明として報告し終了する．ただしこの場合でも，どの等
+  式の検証が成功しなかったかなどの情報がユーザーに提示される．
+
+\end{enumerate}
+
+\section{仕様検証システムの新規コマンド}
+\label{sec:spec-check-new-commands}
+
+新規のコマンドは次の2つである：
+\begin{description}
+\item[シグニチャマッチングの指示]
+  2つのモジュールを指定して, それらの間でのシグニチャマッチングを行うことを
+  指示する. 構文は次の通り：
+\begin{verbatim}
+  sigmatch (<モジュール式-1>) to (<モジュール式-2>)
+\end{verbatim}
+  \verb:<:モジュール式-1\verb:>: で指定されるモジュールから,
+  \verb:<:モジュール式-2\verb:>: で指定されるモジュールへの,
+  可能なシグニチャ射を全て求め, 結果を利用者に提示する.
+  モジュール式の構文は, CafeOBJ 言語の仕様に従う.
+
+  CafeOBJ では, シグニチャ射のことを \textbf{view} と呼ぶが,
+  view には名前がつけられ, その名前で参照することが出来るようになっている.
+  sigmatch では, 構成出来た view(シグニチャ射)の各々に対して適当な名前をつけ,
+  利用者にはこの名前のリストを提示する. 
+  view を構成することが出来なかった場合には, 空のリストを表示する.
+
+\item[詳細化検証の指示]
+  sigmatch コマンドの結果で得られた view の名前を指定して, 詳細化の検証を
+  行う事を指示する. 構文は次の通りである.
+\begin{verbatim}
+  check refinement <view名>
+\end{verbatim}
+  検証の結果が成功であれば, ``ok'' と表示し, 結果が失敗あるいは不明の場合には
+  ``ng'' と表示するとともに, どの等式の検証が成功しなかったかを表示する.
+
+\end{description}
+
+\section{シグニチャマッチング}
+\label{spec:signature-matching-proc}
+
+\subsection{シグニチャマッチングの考え方}
+シグニチャマッチングは仕様間での構文的な対応性を検査するもの,
+具体的には仕様間でのシグニチャ射を求めるものである.
+
+我々のシステムにおいては CafeOBJ モジュールによって仕様を記述する.
+CafeOBJ モジュールによって記述される仕様は, $(S,\Sigma,E)$ の形を
+している. ここで $(S, \Sigma)$ がシグニチャであり, $S$ はソートの集合,
+$\Sigma$ は引数および結果が $S$ のソートに含まれるような
+オペレータの集合である. また, $E$ はモジュールで宣言された公理の
+集合であり, $\Sigma$ に含まれる演算が満足しなければならない性質を記述
+したものである. 
+
+シグニチャマッチングは, 二つのモジュール $M$ と $N$ を
+与えられて, $M$ から $N$ に対する可能なシグニチャ射を全て計算する.
+$M$ のシグニチャを $(S,\Sigma)$，$N$ のシグニチャを $(S',\Sigma')$ とする.
+シグニチャ射とは, $(S,\Sigma)$ から $(S',\Sigma')$ への写像 
+$V: (S,\Sigma) \rightarrow (S',\Sigma')$ であり,
+$V$ は二つの単射の関数
+$$
+\begin{array}{lll}
+ V: S &\rightarrow& S'\\
+ V: \Sigma &\rightarrow&\Sigma'\\
+\end{array}
+$$
+から構成される. ここで, $\Sigma$ に含まれる各オペレータ
+$f: s_1\ldots s_n \rightarrow s$ に関して,
+$V(f): V(s_1)\ldots V(s_n)\rightarrow V(s)$ が $\Sigma'$ の
+オペレータでなければならない. 一般にこれを満足する満足するような
+写像は複数あり得るので, 構成可能なシグニチャ射も一般に複数である.
+
+可能なシグニチャ射を全て求めるのは, 一般に簡単な問題ではないが，
+我々のシステムではソート名の同じ可視ソートは同じデータ型を意味するもの
+と仮定して問題を簡単化し，高速な計算を可能としている. 
+
+CafeOBJ ではソートの集合 $S$ は2種のソート $D$ と $H$ に区分される
+($S = D \cup H$). 
+$D$ に含まれるソートは可視ソート, $V$ にふくまれるものは隠蔽ソートと呼ばれる.
+可視ソートは通常の静的なデータ型を表現するものであり, 
+隠蔽ソートは内部状態を持つような動的なオブジェクトを表現するためのソートである. 
+同じ名前の可視ソートは同一のデータ型を意味するものとみなす，ということは
+対象とする部品やシステムの仕様において，データ型が固定されている
+(例えばライブラリのようなものを想定する)という意味である．
+
+\subsection{シグニチャマッチングの例}
+\label{sec:sigmatch-example}
+
+下のような二つのモジュール, STACK と QUEUE がシステムにロード
+されているものとする.
+\begin{verbatim}
+mod* STACK(X :: TRIV) {
+  *[ Stack ]*
+  op empty : -> Stack
+  bop top : Stack -> Elt
+  bop push : Elt Stack -> Stack
+  bop pop : Stack -> Stack
+  vars D : Elt   var S : Stack
+  eq pop(empty) = empty .
+  eq top(push(D,S)) = D .
+  beq pop(push(D,S)) = S .
+}
+
+mod* QUEUE(X :: TRIV) {
+  *[ Queue ]*
+  op empty : -> Queue 
+  bop front : Queue -> Elt
+  bop enq : Elt Queue -> Queue
+  bop deq : Queue -> Queue
+  vars D E : Elt   var Q : Queue
+  beq deq(enq(D,Q)) = enq(D,deq(Q)) .
+  eq front(enq(E,Q)) = front(Q) .
+}
+\end{verbatim}
+\noindent
+QUEUE はキュー構造(FIFO)を, STACK はスタック構造(LIFO)を
+それぞれ表現したモジュールである. 
+
+\noindent
+この状態で, \verb:sigmatch: を実行すると次のような結果となる：
+\begin{verbatim}
+CafeOBJ> sigmatch (QUEUE) to (STACK)
+(V#1)
+CafeOBJ> 
+\end{verbatim}
+
+\noindent
+この例の場合, 結果として1つの view \verb:V#1: が得られた.
+これが実際にはどのような内容なのかを見るには, CafeOBJ の \verb:view:
+コマンドを用いる：
+\begin{verbatim}
+CafeOBJ> sh view V#1
+view V#1 from QUEUE(X) to STACK(X) {sort Elt -> Elt
+    hsort Queue -> Stack
+    hsort ?Queue -> ?Stack
+    op (Queue : -> SortId) -> (Stack : -> SortId)
+    op (Elt : -> SortId) -> (Elt : -> SortId)
+    op (_=*=_ : Queue Queue -> Bool) -> (_=*=_ : _ HUniversal _
+                                                 _ HUniversal _
+                                                 -> Bool)
+    op (empty : -> Queue) -> (empty : -> Stack)
+    bop (front : Queue -> Elt) -> (top : Stack -> Elt)
+    bop (enq : Elt Queue -> Queue) -> (push : Elt Stack -> Stack)
+    bop (deq : Queue -> Queue) -> (pop : Stack -> Stack)
+ }
+\end{verbatim}
+上の結果から Queue に関するオペレータは, Stack に関するオペレータ
+に対して, 次のようにマッピングされていることが分かる.
+\begin{table}[htbp]
+  \begin{center}
+    \begin{tabular}{|l|l|}\hline
+      QUEUE & STACK \\\hline\hline
+      empty & empty \\
+      front & top \\
+      enq & push \\
+      deq & pop \\\hline
+    \end{tabular}
+    \caption{QUEUEからSTACKへのマッピング}
+    \label{tab:queue-to-stack}
+  \end{center}
+\end{table}
+
+\noindent
+この例の場合, これ以外のマッピングは不可能である.
+
+\section{詳細化検証の例}
+\label{sec:refinement-check-example}
+
+詳細化検証の方式については, 既に第\ref{sec:spec-check-function}章で
+説明した. 本章では詳細化検証の使用例を示す.
+
+\subsection{QUEUE と STACK}
+第\ref{sec:sigmatch-example} 章の例で
+\verb:sigmatch: コマンドによって生成された view \verb:V#1: に
+関して詳細化検証を行うと, 次のようになる：
+
+\begin{verbatim}
+CafeOBJ> check refinement V#1
+no
+  eq front(enq(E,Q)) = front(Q)
+  beq deq(enq(D,Q)) = enq(D,deq(Q))
+CafeOBJ> 
+\end{verbatim}
+
+\noindent
+結果は NG であり, QUEUE に関するどの公理が, STACK において
+満足されないかが印字されている. 
+これは直観的にも明らかである.
+例えばQUEUEの公理
+\begin{verbatim}
+  eq front(enq(E,Q)) = front(Q) .
+\end{verbatim}
+は, キューにある要素を追加しても, キューの先頭にある要素には
+変化の無い事を表現した公理である. 
+これを view \verb:V#1: によってSTACKモジュールにおいて
+解釈すると
+\begin{verbatim}
+  eq top(push(D,S)) = top(S) .
+\end{verbatim}
+という形になる. これはスタックに要素を追加しても,
+先頭要素には変化が無い, ということを言っているわけであり,
+したがってスタックの定義と矛盾する.
+具体的には STACK の公理
+\begin{verbatim}
+  eq top(push(D,S)) = D .
+\end{verbatim}
+と相容れない.
+
+\subsection{モノイドと自然数上の演算の例}
+
+次に非常に単純であるが, 幾分興味深い例を示す.
+まず, 以下のモジュールを仮定する：
+\begin{verbatim}
+mod! TIMES-NAT {
+  [ NzNat Zero < Nat ]
+
+  op 0 : -> Zero
+  op s_ : Nat -> NzNat
+  op _+_ : Nat Nat -> Nat
+  op _*_ : Nat Nat -> Nat
+
+  vars M N : Nat 
+    
+  eq N + s(M) = s(N + M) .
+  eq N + 0 = N . 
+  eq 0 + N = N .
+  eq 0 * N = 0 .
+  eq N * 0 = 0 .
+  eq N * s(M) = (N * M) + N .
+}
+
+mod* MON {
+  [ Elt ]
+
+  op null :  ->  Elt
+  op _;_ : Elt Elt -> Elt {assoc idr: null} 
+}
+\end{verbatim}
+
+\noindent
+TIME-NAT は, 自然数とその上の足し算(\verb:_+_:) とかけ算(\verb:_*_:)
+が定義されたモジュールである. 
+モジュール MON は一般的なモノイド(単位元と2項演算をもつ代数系)を
+定義したものである.
+
+これらのモジュールを使った最初の例として,
+次のような view を定義してみる：
+\begin{verbatim}
+  view plus from MON to TIMES-NAT {
+    sort Elt -> Nat, 
+    op _;_ -> _+_,  
+    op null -> 0 
+  }
+\end{verbatim}
+\noindent
+すぐに察せられるように, これはモノイドの単位元を自然数の 0,
+2項演算を足し算として解釈したものである. 
+この解釈が正しいかどうかを, 仕様詳細化検証により調べると次のような
+結果となる.
+\begin{verbatim}
+TIMES-NAT> check refinement plus
+yes
+\end{verbatim}
+\noindent
+結果はすぐに返り, 期待した通りである.
+
+次に, モノイドの単位元 \verb:null: を 1(\verb:s(0):) に,
+2項演算をかけ算(\verb:_*_:)にマップした view \verb:times: を
+以下のように定義する：
+\begin{verbatim}
+view times from MON to TIMES-NAT {
+  sort Elt -> Nat,
+  op _;_ -> _*_,
+  op null -> s(0)
+}
+\end{verbatim}
+\noindent
+この view に関して詳細化検査を行い, 結果が OK であれば,
+自然数上のかけ算は, 1 を単位元としたモノイドであると
+解釈することが出来る. 
+上のマッピングは直観的に正しいと思われるのだが, しかしシステムは
+かなり長い間実行を行い, その結果は次のようになる.
+\begin{verbatim}
+CafeOBJ> check refinement times
+no
+  eq [ident12] : null ; X-ID:Elt = X-ID:Elt
+\end{verbatim}
+
+\noindent
+これはすぐに解る通り, TIMES-NAT において, かけ算の
+の定義が不完全なためである. つまり \verb:_*_: が
+単位元の定義 $ae=ea=a$ ($e$ を単位元とする)を
+満足するように定義されていないためである. 
+これを修正するために, 公理
+\begin{verbatim}
+ eq s(0) * N = N .
+ eq N * s(0) = N .
+\end{verbatim}
+を TIMES-NAT に追加するとうまくゆく. 
+実際には 2 つめの公理 
+\begin{verbatim}
+ eq N * s(1) = N .
+\end{verbatim}
+は, 既に宣言されている公理
+\begin{verbatim}
+ eq N * s(M) = (N * M) + N .
+\end{verbatim}
+から演繹されるので冗長である. 
+実際, モジュール MON において, オペレータ \verb:_;_: の \verb:idr: 属性
+からシステムが生成する公理
+\begin{verbatim}
+ eq X-ID:Elt ; null = X-ID:Elt
+\end{verbatim}
+は, 先の \verb:check: コマンドの実行結果で, NG となった公理の一覧には
+表示されていない.
+
+TIMES-NAT を上のようにして修正した後, 改めて view \verb:times: を
+再定義し, check コマンドを実行すると, 今度は直ちに答えが返り
+OK という結果になるはずである(一般に, 詳細化検証で成功する場合は
+応答が早く, 検証が出来ない場合は相当程度の時間を要する.)
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

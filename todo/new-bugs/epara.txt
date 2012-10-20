@@ -1,0 +1,105 @@
+From: Razvan Diaconescu <diacon@jaist.ac.jp>
+Date: Fri, 29 May 98 14:21:24 JST
+Message-Id: <9805290521.AA04856@is27e0s07.jaist.ac.jp>
+To: kokichi@jaist.ac.jp
+Subject:  explicit parameter notation
+Cc: s_iida@jaist.ac.jp, sawada@sra.co.jp
+Content-Type: text
+Content-Length: 2524
+
+Dear Kokichi,
+
+ |This does not hit the main point of your message, but
+ |in the specification of:
+ |
+ | |mod! TRIV+ (X :: TRIV) {
+ | |  op err :  -> ?Elt 
+ | |}
+ | |
+ | |-- list object
+ | |mod* LIST  {
+ | |  protecting(TRIV+)
+...
+
+ |mod* LIST  {
+ |  protecting(TRIV+)
+ |...
+ |
+ |should be,
+ |
+ |mod* LIST (X :: TRIV) {
+ |  protecting(TRIV+(X))
+ |...
+ |
+ |Without doing this, we can not write down the experssions like,
+ |LIST(INT), LIST(BOOL) ...  
+
+There is no problem with doing such things since LIST is still of
+course parameterized by X. This is the output from the current
+interpreter:
+
+CafeOBJ> select LIST(INT) .
+,,,,,,,*,,,,,,,
+LIST(X <= INT)> show .
+*
+module LIST(X <= INT)
+{
+  imports {
+    protecting (TRIV+(X <= INT))
+
+...
+
+The current interpreter works very soundly about this, as discussed
+with Sawada-san in various previous messages. The corresponding
+diagram is
+        X
+TRIV -------> TRIV+  --------> LIST
+ |             |                |
+ |             |                |
+ |             |                |
+ V             V                V
+INT ------> TRIV+(INT) -----> LIST(INT)
+
+Accordingly to the CafeOBJ definition this means that LIST is
+automatically parameterized too.
+
+Although I agree with you and I am in favour of a more explicit
+notation such as
+
+ |mod* LIST (X :: TRIV) {
+ |  protecting(TRIV+(X))
+
+the current interpreter cannot handle this properly since
+
+ |mod* LIST (X :: TRIV) {
+
+would be interpreted as a new parameter declaration and
+
+ |  protecting(TRIV+(X))
+
+as an instantiation of TRIV+! So, there is a very severe obstacle in
+using such explicit notation and the corresponding convention to
+overcome such obstacle does not seem very easy to find. I think in
+designing such convention we sould be extremely careful in order not
+to destroy the soundness of the module system, which at the moment
+works very soundly. Therefore, we are inclined that until we come up
+with some solution to this problem to use the current style, which at
+least has the advantage of being semantically sound, although as we
+all admit not very transparent to users. But the system helps also a
+little bit with this by showing clearly what are the parameters at the
+prompt.  
+
+CafeOBJ> select LIST .
+LIST(X.TRIV+)> 
+
+ |ps: I want to disscuss with you on this kind of usages of Beh-spec in
+ |more detail next week. 
+
+I will be very happy to discuss these things with you. I am looking
+forward for this. BTW, how do you find the new refinement of the set
+object by the list object?
+
+Best regards,
+Razvan
+
+

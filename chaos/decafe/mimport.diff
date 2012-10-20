@@ -1,0 +1,213 @@
+*** mimport2.lisp	Wed Apr 20 09:31:50 2011
+--- mimport.lisp	Mon Apr 18 13:47:14 2011
+***************
+*** 263,268 ****
+--- 263,273 ----
+  		  (copy-tree (module-psort-declaration submodule))))))
+        (incorporate-module-copying module submodule nil theory-mod)))
+  
++ (defun make-sort-ref-if-need (sref)
++   (if (%is-sort-ref sref)
++       sref
++     (%make-sort-ref :name sref)))
++       
+  (defun incorporate-module-sharing (module submodule &optional theory-mod)
+    (let ((*import-local-vars* nil))
+      (with-in-module (module)
+***************
+*** 276,283 ****
+--- 281,290 ----
+  	(unless (sort-is-for-regularity? s submodule)
+  	  (add-sort-to-module s module)))
+        ;; import error-sorts
++       #||
+        (dolist (s (module-error-sorts submodule))
+  	(pushnew s (module-error-sorts module) :test #'eq))
++       ||#
+        ;; import sort relations
+        (let ((so (module-sort-order module)))
+  	(dolist (sl (module-sort-relations submodule))
+***************
+*** 300,321 ****
+  	(dolist (opinfo opinfos)
+  	  (transfer-operator module submodule opinfo nil theory-mod))
+  	)
+!       #||
+        ;; import error operators which might be reused.
+        (dolist (em (module-error-methods submodule))
+  	(pushnew em (module-error-methods module) :test #'eq))
+!       ||#
+        ;; user defined error ops -----
+        #||
+        (when (module-error-op-decl submodule)
+! 	(format t "~&** importing error operator decl.")
+! 	(setf (module-error-op-decl module)
+! 	  (nconc (module-error-op-decl module)
+! 		 (copy-tree (module-error-op-decl submodule)))))
+        ||#
+        (dolist (edecl (module-error-op-decl submodule))
+  	(eval-ast edecl))
+! 
+        ;; import macros
+        (dolist (macro (module-macros submodule))
+  	(add-macro-to-module module macro))
+--- 307,346 ----
+  	(dolist (opinfo opinfos)
+  	  (transfer-operator module submodule opinfo nil theory-mod))
+  	)
+!       ;; #||
+        ;; import error operators which might be reused.
+        (dolist (em (module-error-methods submodule))
+  	(pushnew em (module-error-methods module) :test #'eq))
+!       ;; ||#
+        ;; user defined error ops -----
+        #||
+        (when (module-error-op-decl submodule)
+! 	(when *on-import-debug*
+! 	  (format t "~&** importing error operator decl.")
+! 	  (dolist (edecl (module-error-op-decl submodule))
+! 	    (print edecl)))
+! 	(let ((eops (copy-tree (module-error-op-decl submodule))))
+! 	  (dolist (ed eops)
+! 	    (let ((e-coarity (let ((sref (make-sort-ref-if-need (%op-decl-coarity ed))))
+! 			       (setf (%sort-ref-qualifier sref) submodule)
+! 			       sref))
+! 		  (e-arity (mapcar #'(lambda (x)
+! 				       (let ((sref (make-sort-ref-if-need x)))
+! 					 (setf (%sort-ref-qualifier sref) submodule)
+! 					 sref))
+! 				   (%op-decl-arity ed)))
+! 		  )
+! 	      (setf (%op-decl-arity ed) e-arity)
+! 	      (setf (%op-decl-coarity ed) e-coarity)
+! 	      ))
+! 	  (setf (module-error-op-decl module)
+! 	    (nconc (module-error-op-decl module) eops))
+! 	  ))
+        ||#
++       #||
+        (dolist (edecl (module-error-op-decl submodule))
+  	(eval-ast edecl))
+!       ||#
+        ;; import macros
+        (dolist (macro (module-macros submodule))
+  	(add-macro-to-module module macro))
+***************
+*** 605,616 ****
+  	;;
+  	;; import error operator declarations
+  	;;
+! 	#||
+  	(when (module-error-op-decl submodule)
+  	  (setf (module-error-op-decl module)
+  		(nconc (module-error-op-decl module)
+  		       (copy-tree (module-error-op-decl submodule)))))
+  	||#
+  	(dolist (eop (module-error-op-decl submodule))
+  	  (when *on-import-debug*
+  	    (with-output-msg ()
+--- 630,666 ----
+  	;;
+  	;; import error operator declarations
+  	;;
+! 	
+  	(when (module-error-op-decl submodule)
+  	  (setf (module-error-op-decl module)
+  		(nconc (module-error-op-decl module)
+  		       (copy-tree (module-error-op-decl submodule)))))
++ 	
++ 	#||
++ 	(when (module-error-op-decl submodule)
++ 	  (when *on-import-debug*
++ 	    (format t "~&** importing error operator decl.")
++ 	    (dolist (edecl (module-error-op-decl submodule))
++ 	      (print edecl)))
++ 	  (let ((eops (copy-tree (module-error-op-decl submodule))))
++ 	    (dolist (ed eops)
++ 	      (let ((e-coarity (let ((sref (make-sort-ref-if-need (%op-decl-coarity ed))))
++ 				 (setf (%sort-ref-qualifier sref) submodule)
++ 				 sref))
++ 		    (e-arity (mapcar #'(lambda (x)
++ 					 (let ((sref (make-sort-ref-if-need x)))
++ 					   (setf (%sort-ref-qualifier sref) submodule)
++ 					   sref))
++ 				     (%op-decl-arity ed)))
++ 		    )
++ 		(setf (%op-decl-arity ed) e-arity)
++ 		(setf (%op-decl-coarity ed) e-coarity)
++ 		))
++ 	    (setf (module-error-op-decl module)
++ 	      (nconc (module-error-op-decl module) eops))
++ 	    ))
+  	||#
++ 	#||
+  	(dolist (eop (module-error-op-decl submodule))
+  	  (when *on-import-debug*
+  	    (with-output-msg ()
+***************
+*** 618,624 ****
+  	      (print-next) (princ "  ")
+  	      (print-chaos-object eop)))
+  	  (eval-ast eop))
+! 	
+  	;;
+  	;; import variable declarations of error sorts
+  	;;
+--- 668,674 ----
+  	      (print-next) (princ "  ")
+  	      (print-chaos-object eop)))
+  	  (eval-ast eop))
+! 	||#
+  	;;
+  	;; import variable declarations of error sorts
+  	;;
+***************
+*** 709,714 ****
+--- 759,765 ----
+  		      (return x))))
+  	    (return nil)))
+  	||#
++ 
+  	(dolist (method (opinfo-methods opinfo))
+  	  (when (and (not (method-is-error-method method))
+  		     (not (method-is-for-regularity? method from-module)))
+***************
+*** 722,727 ****
+--- 773,779 ----
+  			       so))
+  		      (return x))))
+  	    (return nil)))
++ 	
+  	;; create new operaotr info if could not find.
+  	(cond (new-opinfo
+  	       (setq new-op (opinfo-operator new-opinfo))
+***************
+*** 741,747 ****
+  	
+  	(dolist (method (reverse (opinfo-methods opinfo)))
+  	  ;;
+! 	  (when (or (method-is-user-defined-error-method method)
+  		    (and (not (method-is-error-method method))
+  			 (not (method-is-for-regularity? method from-module))))
+  	    (when *on-import-debug*
+--- 793,799 ----
+  	
+  	(dolist (method (reverse (opinfo-methods opinfo)))
+  	  ;;
+! 	  (when (or (method-is-user-defined-error-method method) ; !!!!
+  		    (and (not (method-is-error-method method))
+  			 (not (method-is-for-regularity? method from-module))))
+  	    (when *on-import-debug*
+***************
+*** 755,762 ****
+--- 807,816 ----
+  			(method-theory method from-opinfo))
+  		(finish-output *error-output*)))
+  	    ||#
++ 
+  	    (modexp-add-method-to-table new-opinfo method module)
+  	    (transfer-operator-attributes method module from-module theory-mod)
++ 
+  	    ;; import axioms
+  	    (let ((all-rules (module-all-rules module)))
+  	      (dolist (rule (rule-ring-to-list

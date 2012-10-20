@@ -1,0 +1,166 @@
+%$Id: pnguide.tex,v 1.3 2010-07-09 09:18:26 sawada Exp $
+%\documentclass[a4paper]{article}
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[hscale=0.76,vscale=0.76]{geometry}
+\setlength{\parindent}{0.0cm}
+\setlength{\parskip}{1.4ex}
+\usepackage{graphicx}
+\usepackage{proof}
+\usepackage{fancyvrb}
+%%% Japanese
+\usepackage{fontspec,xltxtra,xunicode}
+\usepackage{indentfirst}
+
+\setmainfont[Mapping=tex-text]{メイリオ}
+\setsansfont[Mapping=tex-text]{Hiragino Kaku Gothic ProN W3}
+\setmonofont[Mapping=tex-text]{Osaka-Mono}
+%\setjamonofont{Osaka-Mono}
+\XeTeXlinebreaklocale "ja"
+\XeTeXlinebreakskip=0em plus 0.1em minus 0.01em
+\XeTeXlinebreakpenalty=0
+\renewcommand{\baselinestretch}{1.4}
+\settowidth{\parindent}{あ}
+%%%%
+\usepackage{dcolumn,hhline,colortbl}
+\usepackage[table]{xcolor}
+%%%%% 色付表
+\newcolumntype{G}{%
+  >{\columncolor[gray]{0.9}}c}
+\newcolumntype{O}{%
+  >{\columncolor{orange}}c}
+\newcolumntype{M}{%
+  >{\columncolor{green}}c}
+\newcolumntype{Y}{%
+  >{\columncolor{yellow}}c}
+\newcolumntype{C}{%
+  >{\columncolor{cyan}}c}
+%%%% hyperref
+%\usepackage[dvipdfm,colorlinks=true,linkcolor=blue]{hyperref} 
+\usepackage[colorlinks=true,linkcolor=blue]{hyperref} 
+%%%% numbering
+%%% ToC down to susubsections
+\settocdepth{subsubsection}
+%%% Numbering down to sections
+\setsecnumdepth{subsection}
+%%% 名前定義を適当に
+\def\figurename{{図}}
+\def\tablename{表}
+\def\contentsname{目次}
+\def\listfigurename{図目次}
+\def\listtablename{表目次}
+\def\refname{参考文献}
+\def\bibname{参考文献}
+\def\indexname{索引}
+\def\appendixname{付録}
+%%%%%%%%%% Verbatim
+\DefineVerbatimEnvironment%
+{simplev}{Verbatim}
+{fontsize=\small}
+\DefineVerbatimEnvironment%
+{examplev}{Verbatim}
+{frame=leftline,fontsize=\small}
+%%%%%%%%%%
+\definecolor{shadecolor}{gray}{0.9}
+\newenvironment{vvtm}%
+{\parskip=0pt\lineskip=0pt\begin{center}\begin{minipage}{0.8\textwidth}\begin{snugshade}}%
+  {\end{snugshade}\end{minipage}\end{center}}
+%\includeonly{appendix}
+%%%%%%%%%%
+\begin{document}
+\headstyles{default}
+\tightlists
+\midsloppy
+\raggedbottom
+\chapterstyle{ell}
+%%%%%%%%
+\frontmatter
+\pagestyle{empty}
+% 表紙 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{\textbf{PigNose 使用手引}\\ver 1.0 \\ --\textit{Draft}--}
+\author{澤田 寿実\\
+  (株) SRA\\
+  sawada@sra.co.jp}
+\date{}
+\maketitle
+  \begin{center}
+    \includegraphics[scale=0.5]{pignose.pdf}
+  \end{center}
+\thispagestyle{empty}
+\newpage
+% 構成 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{はじめに}
+本書は, CafeOBJ 言語で書かれた仕様のための自動定理証明システム
+PigNose の利用手引である. 
+システムは SRA版 CafeOBJ インタプリタ\footnote{今の所, CafeOBJ 言語のイ
+  ンタプリタはこれしか存在しない. システムの入手先については第
+  ~\ref{sec:distribution}節を参照されたい.} 
+を拡張したものになっている. 
+従って, これを用いるには CafeOBJ インタプリタの使用法
+についても知っておく必要がある. 本書では, PigNose 特有のコマンドについて
+のみ説明するので, 必要に応じて CafeOBJ インタプリタのマニュアル\footnote{CafeOBJ インタプリタのマニュアルは
+   \url{ftp://ftp.sra.co.jp/pub/lang/CafeOBJ/Manual} からダウンロード
+   出来る}. 
+を参照されたい.
+また, ここでは CafeOBJ 言語についての説明も行わない. 本書では, CafeOBJ
+言語については既知のものと仮定している. CafeOBJ 言語についての解説は, 文
+献\cite{CafeRep}を参照して頂きたい. 
+% PigNose は resolution 原理を用いた反駁法によって定理証明を行うシステムで
+% あるが, これについての解説も行わない. 
+% 必要に応じて, 参考文献 \cite{chang-lee} 等を参照して頂きたい.  
+
+% \section*{本書の構成}
+
+本文は4部構成でPigNoseシステムの使用法が説明されている.
+第I部でシステムのインストール法を述べ, 第II部で反駁エンジン,
+第III部で詳細化検証, 第IV部で安全性モデル検査について説明する.
+
+\section*{バグレポート/提案}
+
+システムの不具合に関する報告や, 改善提案等に関する
+連絡は, 電子メイルで \texttt{sawada@sra.co.jp} まで頂きたい.
+
+\newpage
+% 目次 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \doparttoc
+\tableofcontents
+\newpage
+%\listoffigures
+%\newpage
+\pagenumbering{arabic}
+\mainmatter
+% 本文 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{part1}
+\include{part2}
+\include{part3}
+\include{part4}
+\include{part5}
+\include{appendix}
+
+\newpage
+
+% BIB %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{center}
+\begin{thebibliography}{99}\itemsep=0pt
+
+\bibitem{chang-lee} Chang, C. and Lee. R.C.,
+  \textsl{Symbolic Logic and Mechanical Theorem Proving},
+  Academic Press, 1973
+
+\bibitem{ha} Joseph Goguen and Grant Malcolm, ``A Hidden Agenda'', in
+  \emph{Theoretical Computer Science}, Vol.245 No.1, 2000, pp.55--101
+
+\bibitem{otter} William McCune, ``\textsc{Otter3.0} Reference Manual
+  and Guide'', Technical Report ANL-94/6, Argonne National Laboratory,
+  1994, available at \texttt{http://www-unix.mcs.anl.gov/AR/otter/}
+
+\bibitem{cafeobj} A.T.Nakagawa, T. Sawada, and K. Futatsugi,
+  ``\textsl{CafeOBJ Manual}'', avaiable at 
+  \texttt{ftp://ftp.sra.co.jp/lang/CafeOBJ/Manual/}
+
+\bibitem{CafeRep} R\u{a}zvan Diaconescu and Kokichi Futatsugi,
+  \textsf{CafeOBJ} \emph{Report}. World Scientific, 1998
+
+\end{thebibliography}
+\end{center}
+\end{document}
+

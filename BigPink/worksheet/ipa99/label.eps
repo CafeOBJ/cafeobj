@@ -1,0 +1,206 @@
+%!PS-Adobe-2.0 EPSF-3.0
+%%BoundingBox: 88 480 163 843
+%%Title: label
+%%CreationDate: Fri Feb 25 13:48:51 2000
+%%Creator: Tgif-2.16J-p12 by William Chia-Wei Cheng (william@cs.UCLA.edu)
+
+/tgifdict 3 dict def
+tgifdict begin
+
+%
+%%Title: eucfont.ps
+%%Creator: yohtaki@cis.ibaraki.ac.jp
+%%CreationDate: 1996-9-29
+%%EndComments
+%
+% <newfont> <asciifont> <kanjifont> CIDeucfont
+/CIDeucfont {
+dup findfont /WMode get 1 eq 4 1 roll % push direction info.
+12 dict begin
+  /CIDInit /ProcSet findresource begin
+  exch [ 3 1 roll ] beginrearrangedfont
+      3 -1 roll {   % pop direction info
+         /WMode 1 def	% vertical font
+         0 beginusematrix [ 0 1 -1 0 0 0.3 ] endusematrix
+      } if
+      1 usefont
+      1 beginbfrange
+         <00> <7F> <00>
+       endbfrange
+     endrearrangedfont
+  end
+end
+} def
+%%Title: OCFeucfont.ps
+%%Creator: shikida@cs.titech.ac.jp, ueno@cs.titech.ac.jp
+%%CreationDate: 1991-2-27
+%%EndComments
+% <font> OCFcopyfont <font>
+/OCFcopyfont {
+    dup maxlength 1 add dict begin
+    {
+	1 index /FID ne 2 index /UniqueID ne and
+	{def} {pop pop} ifelse
+    } forall
+    currentdict
+    end
+} bind def
+% <newfont> <asciifont> <kanjifont> OCFeucfont
+/OCFeucfont {
+    12 dict begin
+	dup type /nametype eq { findfont } if
+	dup /WMode known {
+	    dup /WMode get /WMode exch def
+	    WMode 1 eq {
+		[0.0 1.0 -1.0 0.0 0.0 0.30] makefont
+	    } if
+	} if
+	OCFcopyfont dup begin
+	    /Encoding Encoding
+	    FMapType dup 2 eq {
+		pop 128 128
+	    } { 5 eq {
+		256 256
+	    } {
+		/compositefont errordict /invalidfont get exec
+	    } ifelse
+	    } ifelse
+	    getinterval def
+	end
+	/kanjifont exch definefont
+	exch
+
+	dup type /nametype eq { findfont } if
+	exch
+
+	/FDepVector [ 4 2 roll ] def
+	/FontType 0 def
+	/FMapType 4 def
+	/FontMatrix matrix def
+	/Encoding [ 0 1 ] def
+	/FontBBox {0 0 0 0} def
+	dup /FontName exch def
+	currentdict
+    end
+    definefont pop
+} def
+
+% <newfont> <asciifont> <kanjifont> eucfont
+/eucfont {
+	dup findfont
+	/FMapType get 9 eq
+		{ CIDeucfont}
+		{ OCFeucfont} ifelse
+} def
+%
+% old eucfont.ps(OCFeucfont) and new eucfont.ps(CIDeucfont) were combined.
+%  1996-09, kawamata@sra.co.jp
+% Usage:
+%   Operands are only font names permitted. Don't put fontdict itself.
+% /Courier-Ryumin /Courier /Ryumin-Light-EUC-V eucfont
+
+end
+
+%%PageBoundingBox: 88 480 163 843
+tgifdict begin
+/tgifsavedpage save def
+
+1 setmiterlimit
+1 setlinewidth
+
+0 setgray
+
+72 0 mul 72 11.70 mul translate
+72 128 div 100 mul 100 div dup neg scale
+
+gsave
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H /Courier /GothicBBB-Medium-EUC-H eucfont
+/Courier-GothicBBB-Medium-EUC-H findfont [14 0 0 -14 0 0] makefont setfont
+   gsave
+      240 45 moveto (\263\253) show
+      240 61 moveto (\312\374) show
+      240 77 moveto (\267\277) show
+      240 93 moveto (\312\254) show
+      240 109 moveto (\273\266) show
+      240 125 moveto (\264\304) show
+      240 141 moveto (\266\255) show
+      240 157 moveto (\244\307) show
+      240 173 moveto (\244\316) show
+      240 189 moveto (\245\275) show
+      240 205 moveto (\245\325) show
+      240 221 moveto (\245\310) show
+      240 237 moveto (\245\246) show
+      240 253 moveto (\245\247) show
+      240 269 moveto (\245\242) show
+      240 285 moveto (\311\364) show
+      240 301 moveto (\311\312) show
+      240 317 moveto (\270\241) show
+      240 333 moveto (\276\332) show
+      240 349 moveto (\245\267) show
+      240 365 moveto (\245\271) show
+      240 381 moveto (\245\306) show
+      240 397 moveto (\245\340) show
+      240 413 moveto (\244\316) show
+      240 429 moveto (\270\246) show
+      240 445 moveto (\265\346) show
+      240 461 moveto (\263\253) show
+      240 477 moveto (\310\257) show
+   grestore
+
+% TEXT
+0 setgray
+/Courier-Bold-GothicBBB-Medium-EUC-H /Courier-Bold /GothicBBB-Medium-EUC-H eucfont
+/Courier-Bold-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      192 78 moveto (\270\241) show
+      192 95 moveto (\276\332) show
+      192 112 moveto (\277\344) show
+      192 129 moveto (\317\300) show
+      192 146 moveto (\245\267) show
+      192 163 moveto (\245\271) show
+      192 180 moveto (\245\306) show
+      192 197 moveto (\245\340) show
+      192 214 moveto (\264\360) show
+      192 231 moveto (\313\334) show
+      192 248 moveto (\241\246) show
+      192 265 moveto (\271\275) show
+      192 282 moveto (\300\256) show
+      192 299 moveto (\273\305) show
+      192 316 moveto (\315\315) show
+      192 333 moveto (\275\361) show
+   grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [10 0 0 -10 0 0] makefont setfont
+   gsave
+      176 569 moveto (\263\364\274\260) show
+      176 580 moveto (\262\361\274\322) show
+   grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [12 0 0 -12 0 0] makefont setfont
+   gsave
+      192 571 moveto ( \245\250\245\271\245\242\241\274\245\353\245\250\241\274) show
+   grestore
+
+% BOX
+0 setgray
+gsave
+   1.415 setmiterlimit
+   2 setlinewidth
+   newpath
+      160 0 moveto 288 0 lineto 288 640 lineto 160 640 lineto
+   closepath stroke
+   1 setlinewidth
+   1 setmiterlimit
+grestore
+
+grestore
+tgifsavedpage restore
+end
+%MatchingCreationDate: Fri Feb 25 13:48:51 2000

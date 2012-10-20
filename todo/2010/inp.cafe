@@ -1,0 +1,7 @@
+parse (someT(((< 'a , 0 >) |
+  valOfT(someT(((< 'b , 1 >) |
+  valOfT(someT(((< 'c , 2 >) |
+  valOfT(someT(((< 'd , 3 >) |
+  ((< 'e , 10 >) | empty))))))))))))) .
+
+

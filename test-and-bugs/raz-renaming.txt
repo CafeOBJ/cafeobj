@@ -1,0 +1,23 @@
+From: Razvan Diaconescu <diacon@jaist.ac.jp>
+Date: Fri, 3 Oct 97 08:48:08 GMT
+Message-Id: <9710030848.AA11046@is27e0s07.jaist.ac.jp>
+To: diacon@stoilow.imar.ro, ishisone@sra.co.jp, kokichi@jaist.ac.jp,
+        mitihiro@jaist.ac.jp, nakagawa@sra.co.jp, ogata@jaist.ac.jp,
+        s_iida@jaist.ac.jp, sawada@sra.co.jp
+Subject:  module renamings
+Content-Type: text
+Content-Length: 374
+
+Hi!
+
+This is a simple argument why module renamings should necessarily be
+bijective (remember the discussion on the manual at RJ'97).
+
+For example if they identify sorts they might fail to be specification
+morphisms.
+
+Each structuring construct (imports, parameters, sums, views,
+renamings) MUST be a specification morphism, otherwise there is a
+semantic breakdown.
+
+Razvan

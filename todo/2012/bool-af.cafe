@@ -1,0 +1,77 @@
+set include BOOL off
+
+sys:mod! BOOL
+      principal-sort Bool
+{
+  pr (BASE-BOOL)
+
+    -- vars P Q R : Bool . -- the last "." is not accepted KF101224
+    vars P Q R : Bool 
+
+    eq[notT]: not true = false .
+    eq[notF]: not false = true .
+    eq[not2]: not not P = P .
+
+    eq[andT]: P and true = P . 
+    eq[andF]: P and false = false . 
+    eq[and2]: P and P = P .
+
+    eq[orT]: P or true = true . 
+    eq[orT]: P or false = P . 
+    eq[or2]: P or P = P .
+
+--    eq[Taa]: (true aa Q) = Q .
+--    eq[Faa]: (false aa Q) = false .
+--    eq[aaT]: (P aa true) = P .
+--    eq[aaF]: (P aa false) = false .
+    --
+    eq[Taa']: (true and-also Q) = Q .
+    eq[Faa']: (false and-also Q) = false .
+    eq[aaT']: (P and-also true) = P .
+    eq[aaF']: (P and-also false) = false .
+
+--    eq[Toe]: (true oe Q) = true .
+--    eq[Foe]: (false oe Q) = Q .
+--    eq[oeT]: (P oe true) = true .
+--    eq[oeF]: (P oe false) = P .
+    --
+    eq[Toe']: (true or-else Q) = true .
+    eq[Foe']: (false or-else Q) = Q .
+    eq[oeT']: (P or-else true) = true .
+    eq[oeF']: (P or-else false) = P .
+
+--    eq[Timp]: (true imp Q) = Q .
+--    eq[Fimp]: (false imp Q) = true .
+--    eq[impT]: (P imp true) = true .
+--    eq[impF]: (P imp false) = not P .
+
+    eq[Timp']: (true implies Q) = Q .
+    eq[Fimp']: (false implies Q) = true .
+    eq[impT']: (P implies true) = true .
+    eq[impF']: (P implies false) = not P .
+
+--    eq[Tcno]: (true cno Q) = true .
+--    eq[Fcno]: (false cno Q) = not Q .
+--    eq[cnoT]: (P cno true) = P .
+--    eq[cnoF]: (P cno false) =  true .
+
+    eq[xorF]: P xor false = P . 
+    eq[xor2]: P xor P = false . 
+
+    eq[iffT]: P iff true = P . 
+    eq[iff2]: P iff P = true . 
+
+-- specific to AF
+eq[notIFF]: not P = P iff false .
+eq[orAF]: P or Q = P iff Q iff (P and Q) .
+-- eq[impAF]: P imp Q = (P and Q) iff P .
+eq[impAF']: P implies Q = (P and Q) iff P .
+-- eq[cnoAF]: P cno Q = (P and Q) iff Q .
+eq[xorNF]: P xor Q = not(P iff Q) .
+eq[distAF]: P and (Q iff R) = (P and Q) iff (P and R) iff P .
+
+}
+
+set include BOOL on
+
+eof

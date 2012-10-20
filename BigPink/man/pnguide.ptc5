@@ -1,0 +1,28 @@
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {A}反駁エンジンの動作の詳細}{\reset@font\ptcSfont 64}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {A.1}システムの初期化}{\reset@font\ptcSSfont 65}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {A.2}導出節生成エンジン群の起動}{\reset@font\ptcSSfont 65}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.2.1}max-weight パラメータの調整}{\reset@font\ptcSSSfont 66}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {A.3}節に対する前処理}{\reset@font\ptcSSfont 67}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.3.1}節に対する処理の検査内容}{\reset@font\ptcSSSfont 67}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.3.2}Unit Deletion}{\reset@font\ptcSSSfont 68}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.3.3}Tautology 検査}{\reset@font\ptcSSSfont 68}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.3.4}Subsumption テスト}{\reset@font\ptcSSSfont 69}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.3.5}Forward Subsumption テスト}{\reset@font\ptcSSSfont 69}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {A.4}導出節後処理}{\reset@font\ptcSSfont 69}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.4.1}Back Subsumption テスト}{\reset@font\ptcSSSfont 70}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.4.2}Back Unit Deletion}{\reset@font\ptcSSSfont 70}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {A.5}推論終了の判定}{\reset@font\ptcSSfont 70}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.5.1}Unit Conflict 検査}{\reset@font\ptcSSSfont 71}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {A.6}Factoring 処理}{\reset@font\ptcSSfont 71}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {A.6.1}Factor Simplification 処理}{\reset@font\ptcSSSfont 71}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {B}推論ルール概説}{\reset@font\ptcSfont 71}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {B.1}Binary Resolution}{\reset@font\ptcSSfont 72}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {B.2}Hyper Resolution}{\reset@font\ptcSSfont 72}}
+{\reset@font\ptcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Semantic Resolution の考え方}{\reset@font\ptcPfont 72}}
+{\reset@font\ptcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode PI-resolution の定義}{\reset@font\ptcPfont 74}}
+{\reset@font\ptcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Negative Hyper Resolution}{\reset@font\ptcPfont 75}}
+{\reset@font\ptcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Positive Hyper Resolution}{\reset@font\ptcPfont 75}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {B.3}Paramodulation}{\reset@font\ptcSSfont 76}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {B.4}Demodulation}{\reset@font\ptcSSfont 76}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {B.4.1}実行時のdemodulator判定}{\reset@font\ptcSSSfont 76}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {B.4.2}Back Demdulation の実行}{\reset@font\ptcSSSfont 77}}

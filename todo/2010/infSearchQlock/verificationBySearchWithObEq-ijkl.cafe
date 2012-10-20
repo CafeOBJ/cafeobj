@@ -1,0 +1,109 @@
+-- ==========================================================
+--> verificationBySearchWithObEqijkl.cafe
+-- ==========================================================
+
+set always memo on
+clean memo
+
+-- "set clean memo on" makes litte differences
+-- is it contradicts to the general rule? 110228
+-- set clean memo on
+
+-- difference between p26 and p28 is much big!! 110228
+
+in qlockTrans
+in qlockObEq
+in mex
+
+-- %%%%%%%%%%%%%
+-- 4 agents case
+-- %%%%%%%%%%%%%
+
+-- verification of non existence of counter examples
+-- for 2 agents case
+open (QLOCKijklTrans + QLOCKobEq + MEX)
+
+-- defining observational/behavioral equivalence
+pred _=ob=_ : Config Config {memo} .
+vars S1 S2 : Sys .
+eq (< S1 > =ob= < S2 >) = (S1 =ob= S2 with (i j k l)) .
+
+-- check that the number of 
+-- the classes of observational equivlant states is finite 
+red < init > =(*,*)=>* < S:Sys > 
+       withStateEq (C1:Config =ob= C2:Config) .
+
+-- proof of non-existence of counter examples
+red < init > =(*,*)=>* < S:Sys > 
+       suchThat (not mutualEx(S,i,j))
+       withStateEq (C1:Config =ob= C2:Config) .
+
+-- proof of non-existence of counter examples
+red < init > =(*,*)=>* < S:Sys > 
+       suchThat (not mutualEx(S,i,k))
+       withStateEq (C1:Config =ob= C2:Config) .
+
+-- proof of non-existence of counter examples
+red < init > =(*,*)=>* < S:Sys > 
+       suchThat (not mutualEx(S,i,l))
+       withStateEq (C1:Config =ob= C2:Config) .
+
+-- proof of non-existence of counter examples
+red < init > =(*,*)=>* < S:Sys > 
+       suchThat (not mutualEx(S,j,k))
+       withStateEq (C1:Config =ob= C2:Config) .
+
+-- proof of non-existence of counter examples
+red < init > =(*,*)=>* < S:Sys > 
+       suchThat (not mutualEx(S,j,l))
+       withStateEq (C1:Config =ob= C2:Config) .
+
+-- proof of non-existence of counter examples
+red < init > =(*,*)=>* < S:Sys > 
+       suchThat (not mutualEx(S,k,l))
+       withStateEq (C1:Config =ob= C2:Config) .
+
+
+
+
+close
+
+
+eof
+
+p28
+set clean memo on
+(0.000 sec for parse, 157329 rewrites(44.820 sec), 235561 matches, 229706 memo hits)
+(0.000 sec for parse, 104823 rewrites(16.140 sec), 183186 matches, 283631 memo hits)
+(0.000 sec for parse, 104825 rewrites(13.840 sec), 183188 matches, 283629 memo hits)
+(0.000 sec for parse, 104826 rewrites(13.860 sec), 183189 matches, 283628 memo hits)
+(0.000 sec for parse, 104821 rewrites(13.860 sec), 183184 matches, 283633 memo hits)
+(0.000 sec for parse, 104822 rewrites(13.860 sec), 183185 matches, 283632 memo hits)
+(0.000 sec for parse, 104830 rewrites(13.910 sec), 183193 matches, 283624 memo hits)
+set clean memo off
+(0.000 sec for parse, 157329 rewrites(44.820 sec), 235561 matches, 229706 memo hits)
+(0.000 sec for parse, 104823 rewrites(16.150 sec), 183186 matches, 283631 memo hits)
+(0.000 sec for parse, 104825 rewrites(13.850 sec), 183188 matches, 283629 memo hits)
+(0.000 sec for parse, 104826 rewrites(13.860 sec), 183189 matches, 283628 memo hits)
+(0.000 sec for parse, 104821 rewrites(13.880 sec), 183184 matches, 283633 memo hits)
+(0.000 sec for parse, 104822 rewrites(13.860 sec), 183185 matches, 283632 memo hits)
+(0.010 sec for parse, 104830 rewrites(13.910 sec), 183193 matches, 283624 memo hits)
+
+
+p26
+set clean memo on
+(0.000 sec for parse, 157329 rewrites(45.350 sec), 235561 matches, 229706 memo hits)
+(0.000 sec for parse, 1031 rewrites(0.440 sec), 910 matches, 16053 memo hits)
+(0.000 sec for parse, 1027 rewrites(1.940 sec), 904 matches, 16057 memo hits)
+(0.000 sec for parse, 1027 rewrites(0.440 sec), 904 matches, 16057 memo hits)
+(0.000 sec for parse, 1027 rewrites(1.770 sec), 904 matches, 16057 memo hits)
+(0.000 sec for parse, 1027 rewrites(0.440 sec), 904 matches, 16057 memo hits)
+(0.000 sec for parse, 1027 rewrites(1.840 sec), 904 matches, 16057 memo hits)
+set clean memo off
+(0.000 sec for parse, 157329 rewrites(45.350 sec), 235561 matches, 229706 memo hits)
+(0.000 sec for parse, 1031 rewrites(0.440 sec), 910 matches, 16053 memo hits)
+(0.000 sec for parse, 1027 rewrites(1.950 sec), 904 matches, 16057 memo hits)
+(0.000 sec for parse, 1027 rewrites(0.430 sec), 904 matches, 16057 memo hits)
+(0.000 sec for parse, 1027 rewrites(1.770 sec), 904 matches, 16057 memo hits)
+(0.010 sec for parse, 1027 rewrites(0.430 sec), 904 matches, 16057 memo hits)
+(0.000 sec for parse, 1027 rewrites(1.850 sec), 904 matches, 16057 memo hits)

@@ -1,0 +1,40 @@
+> 2. There is a problem related to the partiality which prevents the
+> correct execution of the verification that the composite of two
+> functors is still a functor
+>
+> red ('f fun) ; ('g fun) == ('f ; 'g) fun .
+>
+> -- How can we make this work properly?
+
+First, you meed to change the axiom
+  ceq f fun = (f F) G if f :is Arr . -- (2) 
+of FUNCTOR-COMPOSE, where f is declared as variables of sort Arr.C.
+Here, the sort of the variable f should be ?Arr.C.
+And please try to set the top level switch `mel reduce' to on
+(which I did not mentioned about this yet), and reduce 
+	red ('f fun) ; ('g fun) .
+and
+	red ('f ; 'g) fun .
+then see the each result. As you will see, interpreter version 1.4.2.a3
+was made to partially support this issue, but it is not complete yet.
+The switch `mel reduce', if it is on, makes the term rewriting engine
+to compute the lowest sort with considering axioms of sort membership
+during rewriting process. 
+
+You can get successfull result by using version 1.4.2b1 which I put to
+syphon in this morning. The version 1.4.2b1 does NOT have a switch 
+`mel reduce', instead the similar functionality is embedded in the 
+system with some restricted manner but works for this type of problem.
+This version is an another branch of the interpreter and has been 
+used in SRA sice the middle of the last month, which has been 
+incrementaly incorporating new features and fixes derived from 1.4.2aX.
+
+As an important notice, the syntax of sort membership predicate is
+different in version 1.4.2b1 from that defined in `CafeOBJ report'
+(and of 1.4.2aX). It is declared as _:is_, not _:_. We decided that
+SRA implementation use this syntax for upper compatibility reasons.
+
+-- sawada@sra.co.jp
+
+
+

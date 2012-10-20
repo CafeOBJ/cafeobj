@@ -1,0 +1,417 @@
+\indexentry{\texttt{select}|hyperpage}{2}
+\indexentry{current module|hyperpage}{2}
+\indexentry{\texttt{input}|hyperpage}{4}
+\indexentry{\texttt{in}|hyperpage}{4}
+\indexentry{\texttt{eof}|hyperpage}{4}
+\indexentry{\texttt{\~} (home directory)|hyperpage}{4}
+\indexentry{\texttt{.cafe} (suffix)|hyperpage}{4}
+\indexentry{\texttt{.mod} (suffix)|hyperpage}{4}
+\indexentry{\texttt{.bin} (suffix)|hyperpage}{4}
+\indexentry{\texttt{cd}|hyperpage}{4}
+\indexentry{\texttt{pwd}|hyperpage}{4}
+\indexentry{\texttt{ls}|hyperpage}{5}
+\indexentry{\texttt{save}|hyperpage}{5}
+\indexentry{\texttt{restore}|hyperpage}{5}
+\indexentry{\texttt{save-system}|hyperpage}{5}
+\indexentry{autoloading|hyperpage}{5}
+\indexentry{prelude|hyperpage}{5}
+\indexentry{standard preludes|hyperpage}{5}
+\indexentry{initialisation file|hyperpage}{6}
+\indexentry{\texttt{.cafeobj}|hyperpage}{6}
+\indexentry{option (for startup)|hyperpage}{6}
+\indexentry{standard prelude file|hyperpage}{6}
+\indexentry{standard library|hyperpage}{7}
+\indexentry{emacs|hyperpage}{8}
+\indexentry{\texttt{require}|hyperpage}{8}
+\indexentry{\texttt{provide}|hyperpage}{8}
+\indexentry{\texttt{show}|hyperpage}{8}
+\indexentry{\texttt{?} (help command)|hyperpage}{9}
+\indexentry{switch|hyperpage}{10}
+\indexentry{\texttt{on}|hyperpage}{10}
+\indexentry{\texttt{off}|hyperpage}{10}
+\indexentry{\texttt{set}|hyperpage}{10}
+\indexentry{\texttt{show}|hyperpage}{10}
+\indexentry{\texttt{set}|hyperpage}{10}
+\indexentry{\texttt{show}|hyperpage}{11}
+\indexentry{\texttt{describe}|hyperpage}{11}
+\indexentry{module|hyperpage}{13}
+\indexentry{\texttt{module}|hyperpage}{13}
+\indexentry{module name|hyperpage}{13}
+\indexentry{module element|hyperpage}{13}
+\indexentry{\texttt{unprotect}|hyperpage}{13}
+\indexentry{\texttt{protect}|hyperpage}{14}
+\indexentry{signature|hyperpage}{14}
+\indexentry{block (of declarations)|hyperpage}{14}
+\indexentry{\texttt{imports}|hyperpage}{14}
+\indexentry{\texttt{signature}|hyperpage}{14}
+\indexentry{\texttt{axioms}|hyperpage}{15}
+\indexentry{\texttt{sig}|hyperpage}{15}
+\indexentry{\texttt{axs}|hyperpage}{15}
+\indexentry{tight denotation|hyperpage}{16}
+\indexentry{loose denotation|hyperpage}{16}
+\indexentry{comment|hyperpage}{17}
+\indexentry{\texttt{**}|hyperpage}{17}
+\indexentry{\texttt{**>}|hyperpage}{17}
+\indexentry{\texttt{--}|hyperpage}{17}
+\indexentry{\texttt{-->}|hyperpage}{17}
+\indexentry{import declaration|hyperpage}{18}
+\indexentry{importation mode|hyperpage}{18}
+\indexentry{\texttt{protecting}|hyperpage}{19}
+\indexentry{\texttt{extending}|hyperpage}{19}
+\indexentry{\texttt{including}|hyperpage}{19}
+\indexentry{\texttt{using}|hyperpage}{19}
+\indexentry{\texttt{BOOL}|hyperpage}{19}
+\indexentry{\texttt{set}|hyperpage}{19}
+\indexentry{\texttt{include} (\texttt{BOOL})|hyperpage}{19}
+\indexentry{signature|hyperpage}{21}
+\indexentry{sort|hyperpage}{21}
+\indexentry{visible sort|hyperpage}{21}
+\indexentry{hidden sort|hyperpage}{21}
+\indexentry{\texttt{[},\texttt{]} (visible sort declarations)|hyperpage}{21}
+\indexentry{\texttt{*[},\texttt{]*} (hidden sort declarations)|hyperpage}{22}
+\indexentry{partial order (over sorts)|hyperpage}{22}
+\indexentry{subsort|hyperpage}{22}
+\indexentry{supersort|hyperpage}{22}
+\indexentry{\texttt{<}|hyperpage}{22}
+\indexentry{operator|hyperpage}{23}
+\indexentry{\texttt{op}|hyperpage}{24}
+\indexentry{standard operator declaration|hyperpage}{24}
+\indexentry{arity|hyperpage}{24}
+\indexentry{coarity|hyperpage}{24}
+\indexentry{rank|hyperpage}{24}
+\indexentry{constant|hyperpage}{24}
+\indexentry{mixfix operator declaration|hyperpage}{24}
+\indexentry{\texttt{ops}|hyperpage}{25}
+\indexentry{behavioural operator|hyperpage}{26}
+\indexentry{\texttt{bop}|hyperpage}{26}
+\indexentry{attribute|hyperpage}{26}
+\indexentry{method|hyperpage}{26}
+\indexentry{\texttt{bops}|hyperpage}{26}
+\indexentry{predicate|hyperpage}{26}
+\indexentry{\texttt{pred}|hyperpage}{27}
+\indexentry{\texttt{bpred}|hyperpage}{27}
+\indexentry{well-formed term|hyperpage}{27}
+\indexentry{least sort|hyperpage}{27}
+\indexentry{regular signature|hyperpage}{27}
+\indexentry{\texttt{regularize}|hyperpage}{27}
+\indexentry{\texttt{set}|hyperpage}{28}
+\indexentry{\texttt{signature}|hyperpage}{28}
+\indexentry{\texttt{signature}|hyperpage}{28}
+\indexentry{\texttt{parse}|hyperpage}{30}
+\indexentry{\texttt{.} (term stopper)|hyperpage}{30}
+\indexentry{current module|hyperpage}{30}
+\indexentry{term qualification|hyperpage}{32}
+\indexentry{qualified term|hyperpage}{32}
+\indexentry{record declaration|hyperpage}{33}
+\indexentry{slot|hyperpage}{33}
+\indexentry{\texttt{record}|hyperpage}{34}
+\indexentry{record inheritance|hyperpage}{35}
+\indexentry{\texttt{record}|hyperpage}{35}
+\indexentry{variable|hyperpage}{37}
+\indexentry{\texttt{var}|hyperpage}{37}
+\indexentry{\texttt{vars}|hyperpage}{37}
+\indexentry{strong typing|hyperpage}{38}
+\indexentry{unconditional equation|hyperpage}{39}
+\indexentry{\texttt{eq}|hyperpage}{39}
+\indexentry{\texttt{=} (in equations)|hyperpage}{39}
+\indexentry{coditional equation|hyperpage}{41}
+\indexentry{\texttt{ceq}|hyperpage}{41}
+\indexentry{\texttt{if}|hyperpage}{41}
+\indexentry{\texttt{cq}|hyperpage}{41}
+\indexentry{boolean term|hyperpage}{41}
+\indexentry{\texttt{BOOL}|hyperpage}{41}
+\indexentry{condition (of an equation)|hyperpage}{41}
+\indexentry{behavioural equation|hyperpage}{41}
+\indexentry{\texttt{beq}|hyperpage}{41}
+\indexentry{\texttt{bceq}|hyperpage}{41}
+\indexentry{\texttt{bcq}|hyperpage}{41}
+\indexentry{transition|hyperpage}{42}
+\indexentry{\texttt{trans}|hyperpage}{42}
+\indexentry{\texttt{ctrans}|hyperpage}{42}
+\indexentry{\texttt{btrans}|hyperpage}{42}
+\indexentry{\texttt{bctrans}|hyperpage}{42}
+\indexentry{\texttt{=>} (in transitions)|hyperpage}{42}
+\indexentry{\texttt{trns}|hyperpage}{42}
+\indexentry{\texttt{ctrns}|hyperpage}{42}
+\indexentry{\texttt{btrns}|hyperpage}{42}
+\indexentry{\texttt{bctrns}|hyperpage}{42}
+\indexentry{\texttt{==}|hyperpage}{43}
+\indexentry{term rewriting system|hyperpage}{44}
+\indexentry{\texttt{=/=}|hyperpage}{44}
+\indexentry{\texttt{==>}|hyperpage}{44}
+\indexentry{\texttt{set}|hyperpage}{44}
+\indexentry{\texttt{include}|hyperpage}{44}
+\indexentry{\texttt{RWL}|hyperpage}{44}
+\indexentry{\texttt{=*=}|hyperpage}{45}
+\indexentry{\texttt{=b=}|hyperpage}{46}
+\indexentry{current module|hyperpage}{52}
+\indexentry{\texttt{set}|hyperpage}{53}
+\indexentry{\texttt{var}|hyperpage}{53}
+\indexentry{\texttt{sorts}|hyperpage}{53}
+\indexentry{behaviourally equivalent|hyperpage}{60}
+\indexentry{behavioural context|hyperpage}{60}
+\indexentry{context (behavioural)|hyperpage}{60}
+\indexentry{observation|hyperpage}{60}
+\indexentry{TRS|hyperpage}{63}
+\indexentry{term rewriting system|hyperpage}{63}
+\indexentry{substitution|hyperpage}{63}
+\indexentry{instantiation of a term|hyperpage}{63}
+\indexentry{matching|hyperpage}{63}
+\indexentry{ground term|hyperpage}{63}
+\indexentry{evaluation|hyperpage}{63}
+\indexentry{reduction|hyperpage}{63}
+\indexentry{irreducible (term)|hyperpage}{63}
+\indexentry{normal (term)|hyperpage}{63}
+\indexentry{E-matching|hyperpage}{64}
+\indexentry{terminating|hyperpage}{65}
+\indexentry{confluent|hyperpage}{65}
+\indexentry{canonical (TRS)|hyperpage}{65}
+\indexentry{\texttt{reduce}|hyperpage}{65}
+\indexentry{\texttt{breduce}|hyperpage}{65}
+\indexentry{\texttt{execute}|hyperpage}{65}
+\indexentry{current module|hyperpage}{65}
+\indexentry{\texttt{set}|hyperpage}{66}
+\indexentry{\texttt{trace}|hyperpage}{66}
+\indexentry{\texttt{trace whole}|hyperpage}{66}
+\indexentry{\texttt{whole}|hyperpage}{66}
+\indexentry{trace (of evaluation)|hyperpage}{66}
+\indexentry{\texttt{show}|hyperpage}{67}
+\indexentry{\texttt{rules}|hyperpage}{67}
+\indexentry{\texttt{set}|hyperpage}{68}
+\indexentry{\texttt{stats}|hyperpage}{68}
+\indexentry{\texttt{trace whole}|hyperpage}{71}
+\indexentry{trace (of evaluation)|hyperpage}{71}
+\indexentry{\texttt{trace}|hyperpage}{71}
+\indexentry{conditional rewrite rule|hyperpage}{75}
+\indexentry{step mode|hyperpage}{76}
+\indexentry{\texttt{set}|hyperpage}{76}
+\indexentry{\texttt{step}|hyperpage}{76}
+\indexentry{\texttt{:?}|hyperpage}{76}
+\indexentry{\texttt{:h}|hyperpage}{77}
+\indexentry{\texttt{?}|hyperpage}{77}
+\indexentry{\texttt{h}|hyperpage}{77}
+\indexentry{\texttt{:help}|hyperpage}{77}
+\indexentry{\texttt{help}|hyperpage}{77}
+\indexentry{\texttt{:n}|hyperpage}{77}
+\indexentry{\texttt{n}|hyperpage}{77}
+\indexentry{\texttt{:next}|hyperpage}{77}
+\indexentry{\texttt{next}|hyperpage}{77}
+\indexentry{\texttt{:g}|hyperpage}{77}
+\indexentry{\texttt{g}|hyperpage}{77}
+\indexentry{\texttt{:go}|hyperpage}{77}
+\indexentry{\texttt{go}|hyperpage}{77}
+\indexentry{\texttt{:c}|hyperpage}{77}
+\indexentry{\texttt{c}|hyperpage}{77}
+\indexentry{\texttt{:continue}|hyperpage}{77}
+\indexentry{\texttt{continue}|hyperpage}{77}
+\indexentry{\texttt{:q}|hyperpage}{77}
+\indexentry{\texttt{q}|hyperpage}{77}
+\indexentry{\texttt{:a}|hyperpage}{77}
+\indexentry{\texttt{a}|hyperpage}{77}
+\indexentry{\texttt{:abort}|hyperpage}{77}
+\indexentry{\texttt{abort}|hyperpage}{77}
+\indexentry{\texttt{:r}|hyperpage}{77}
+\indexentry{\texttt{r}|hyperpage}{77}
+\indexentry{\texttt{:rule}|hyperpage}{77}
+\indexentry{\texttt{rule}|hyperpage}{77}
+\indexentry{\texttt{:s}|hyperpage}{77}
+\indexentry{\texttt{s}|hyperpage}{77}
+\indexentry{\texttt{:subst}|hyperpage}{77}
+\indexentry{\texttt{subst}|hyperpage}{77}
+\indexentry{\texttt{:l}|hyperpage}{77}
+\indexentry{\texttt{l}|hyperpage}{77}
+\indexentry{\texttt{:limit}|hyperpage}{77}
+\indexentry{\texttt{limit}|hyperpage}{77}
+\indexentry{\texttt{:p}|hyperpage}{77}
+\indexentry{\texttt{p}|hyperpage}{77}
+\indexentry{\texttt{:pattern}|hyperpage}{77}
+\indexentry{\texttt{pattern}|hyperpage}{77}
+\indexentry{\texttt{:rew}|hyperpage}{77}
+\indexentry{\texttt{rew}|hyperpage}{77}
+\indexentry{\texttt{:rewrite}|hyperpage}{77}
+\indexentry{\texttt{rewrite}|hyperpage}{77}
+\indexentry{\texttt{:stop}|hyperpage}{77}
+\indexentry{\texttt{stop}|hyperpage}{77}
+\indexentry{\texttt{:n}|hyperpage}{78}
+\indexentry{\texttt{show}|hyperpage}{78}
+\indexentry{\texttt{term}|hyperpage}{78}
+\indexentry{\texttt{:g}|hyperpage}{78}
+\indexentry{\texttt{:a}|hyperpage}{79}
+\indexentry{\texttt{:r}|hyperpage}{79}
+\indexentry{\texttt{:s}|hyperpage}{79}
+\indexentry{\texttt{:c}|hyperpage}{79}
+\indexentry{\texttt{:q}|hyperpage}{80}
+\indexentry{\texttt{stop}|hyperpage}{80}
+\indexentry{\texttt{set}|hyperpage}{80}
+\indexentry{\texttt{stop}|hyperpage}{80}
+\indexentry{\texttt{pattern}|hyperpage}{80}
+\indexentry{\texttt{:p}|hyperpage}{80}
+\indexentry{\texttt{show}|hyperpage}{81}
+\indexentry{\texttt{stop}|hyperpage}{81}
+\indexentry{\texttt{show}|hyperpage}{81}
+\indexentry{\texttt{stop}|hyperpage}{81}
+\indexentry{\texttt{rwt}|hyperpage}{82}
+\indexentry{\texttt{limit}|hyperpage}{82}
+\indexentry{\texttt{set}|hyperpage}{83}
+\indexentry{\texttt{rwt}|hyperpage}{83}
+\indexentry{\texttt{limit}|hyperpage}{83}
+\indexentry{\texttt{show}|hyperpage}{83}
+\indexentry{\texttt{limit}|hyperpage}{83}
+\indexentry{\texttt{tram}|hyperpage}{83}
+\indexentry{\texttt{reduce}|hyperpage}{83}
+\indexentry{\texttt{execute}|hyperpage}{83}
+\indexentry{\texttt{tram}|hyperpage}{84}
+\indexentry{\texttt{compile}|hyperpage}{84}
+\indexentry{\texttt{switch}|hyperpage}{85}
+\indexentry{context variable|hyperpage}{85}
+\indexentry{\texttt{let}|hyperpage}{85}
+\indexentry{\texttt{show}|hyperpage}{86}
+\indexentry{\texttt{let}|hyperpage}{86}
+\indexentry{\texttt{binding}|hyperpage}{86}
+\indexentry{\texttt{print}|hyperpage}{87}
+\indexentry{\texttt{depth}|hyperpage}{87}
+\indexentry{error sort|hyperpage}{89}
+\indexentry{stack|hyperpage}{90}
+\indexentry{partial operator|hyperpage}{90}
+\indexentry{operator attribute|hyperpage}{95}
+\indexentry{attribute (of operators)|hyperpage}{95}
+\indexentry{\texttt{op}|hyperpage}{95}
+\indexentry{equational theory attribute|hyperpage}{95}
+\indexentry{parsing attribute|hyperpage}{95}
+\indexentry{associativity|hyperpage}{95}
+\indexentry{\texttt{associative}|hyperpage}{95}
+\indexentry{\texttt{assoc}|hyperpage}{95}
+\indexentry{commutativity|hyperpage}{95}
+\indexentry{\texttt{commutative}|hyperpage}{95}
+\indexentry{\texttt{comm}|hyperpage}{95}
+\indexentry{idempotency|hyperpage}{95}
+\indexentry{\texttt{idempotent}|hyperpage}{95}
+\indexentry{\texttt{idem}|hyperpage}{95}
+\indexentry{identity|hyperpage}{96}
+\indexentry{\texttt{id:}|hyperpage}{96}
+\indexentry{\texttt{assoc}|hyperpage}{96}
+\indexentry{modulo (equatioanl theory)|hyperpage}{96}
+\indexentry{\texttt{comm}|hyperpage}{97}
+\indexentry{\texttt{id:}|hyperpage}{97}
+\indexentry{\texttt{idr:}|hyperpage}{98}
+\indexentry{\texttt{idem}|hyperpage}{98}
+\indexentry{precedence|hyperpage}{98}
+\indexentry{\texttt{prec:}|hyperpage}{98}
+\indexentry{\texttt{r-assoc}|hyperpage}{98}
+\indexentry{\texttt{l-assoc}|hyperpage}{98}
+\indexentry{left associativity|hyperpage}{98}
+\indexentry{right associativity|hyperpage}{98}
+\indexentry{\texttt{prec:}|hyperpage}{99}
+\indexentry{\texttt{l-assoc}|hyperpage}{100}
+\indexentry{\texttt{r-assoc}|hyperpage}{100}
+\indexentry{\texttt{assoc}|hyperpage}{100}
+\indexentry{\texttt{constr}|hyperpage}{100}
+\indexentry{constructor (attribute)|hyperpage}{100}
+\indexentry{E-strategy|hyperpage}{101}
+\indexentry{evaluation strategy|hyperpage}{101}
+\indexentry{\texttt{strat:}|hyperpage}{101}
+\indexentry{\texttt{memo}|hyperpage}{104}
+\indexentry{\texttt{clean memo}|hyperpage}{104}
+\indexentry{\texttt{memo}|hyperpage}{104}
+\indexentry{\texttt{idr:}|hyperpage}{113}
+\indexentry{context (module)|hyperpage}{115}
+\indexentry{current module|hyperpage}{115}
+\indexentry{\texttt{select}|hyperpage}{115}
+\indexentry{\texttt{set}|hyperpage}{115}
+\indexentry{\texttt{auto}|hyperpage}{115}
+\indexentry{\texttt{context}|hyperpage}{115}
+\indexentry{\texttt{context}|hyperpage}{116}
+\indexentry{\texttt{auto}|hyperpage}{117}
+\indexentry{\texttt{reconstruct}|hyperpage}{117}
+\indexentry{\texttt{prompt}|hyperpage}{117}
+\indexentry{\texttt{module}|hyperpage}{120}
+\indexentry{parameter|hyperpage}{120}
+\indexentry{homomorphism|hyperpage}{121}
+\indexentry{derived operator|hyperpage}{121}
+\indexentry{derived signature|hyperpage}{122}
+\indexentry{signature morphism|hyperpage}{122}
+\indexentry{specification morphism|hyperpage}{123}
+\indexentry{view|hyperpage}{123}
+\indexentry{\texttt{view}|hyperpage}{124}
+\indexentry{\texttt{from}|hyperpage}{124}
+\indexentry{\texttt{to}|hyperpage}{124}
+\indexentry{\texttt{sort}|hyperpage}{124}
+\indexentry{\texttt{op}|hyperpage}{124}
+\indexentry{\texttt{hsort}|hyperpage}{124}
+\indexentry{\texttt{bop}|hyperpage}{124}
+\indexentry{principal sort|hyperpage}{129}
+\indexentry{\texttt{principal-sort}|hyperpage}{129}
+\indexentry{\texttt{p-sort}|hyperpage}{129}
+\indexentry{importation (of views)|hyperpage}{130}
+\indexentry{instantiation|hyperpage}{130}
+\indexentry{\texttt{<=}|hyperpage}{130}
+\indexentry{\texttt{view}|hyperpage}{130}
+\indexentry{\texttt{to}|hyperpage}{130}
+\indexentry{module expression|hyperpage}{137}
+\indexentry{renaming|hyperpage}{137}
+\indexentry{\texttt{*} (for remaning)|hyperpage}{137}
+\indexentry{\texttt{sort}|hyperpage}{137}
+\indexentry{\texttt{op}|hyperpage}{137}
+\indexentry{\texttt{param}|hyperpage}{137}
+\indexentry{\texttt{hsort}|hyperpage}{137}
+\indexentry{\texttt{bop}|hyperpage}{137}
+\indexentry{module sum|hyperpage}{138}
+\indexentry{\texttt{+} (module sum)|hyperpage}{138}
+\indexentry{amalgamated sum|hyperpage}{138}
+\indexentry{shared sum|hyperpage}{138}
+\indexentry{\texttt{make}|hyperpage}{138}
+\indexentry{\texttt{open}|hyperpage}{141}
+\indexentry{\texttt{close}|hyperpage}{141}
+\indexentry{structural induction|hyperpage}{142}
+\indexentry{\texttt{start}|hyperpage}{146}
+\indexentry{\texttt{show}|hyperpage}{146}
+\indexentry{\texttt{term}|hyperpage}{146}
+\indexentry{\texttt{apply}|hyperpage}{146}
+\indexentry{\texttt{reduce}|hyperpage}{146}
+\indexentry{\texttt{exec}|hyperpage}{146}
+\indexentry{\texttt{print}|hyperpage}{146}
+\indexentry{\texttt{within}|hyperpage}{147}
+\indexentry{\texttt{at}|hyperpage}{147}
+\indexentry{\texttt{of}|hyperpage}{147}
+\indexentry{\texttt{top}|hyperpage}{147}
+\indexentry{\texttt{term}|hyperpage}{147}
+\indexentry{\texttt{subterm}|hyperpage}{147}
+\indexentry{\texttt{choose}|hyperpage}{149}
+\indexentry{\texttt{show}|hyperpage}{149}
+\indexentry{\texttt{subterm}|hyperpage}{149}
+\indexentry{\texttt{show}|hyperpage}{151}
+\indexentry{\texttt{context}|hyperpage}{151}
+\indexentry{\texttt{show}|hyperpage}{151}
+\indexentry{\texttt{rules}|hyperpage}{151}
+\indexentry{\texttt{all}|hyperpage}{152}
+\indexentry{\texttt{show}|hyperpage}{153}
+\indexentry{\texttt{rule}|hyperpage}{153}
+\indexentry{\texttt{context}|hyperpage}{154}
+\indexentry{\texttt{reduce}|hyperpage}{155}
+\indexentry{\texttt{conditions}|hyperpage}{155}
+\indexentry{\texttt{match}|hyperpage}{156}
+\indexentry{\texttt{top}|hyperpage}{157}
+\indexentry{\texttt{term}|hyperpage}{157}
+\indexentry{\texttt{it}|hyperpage}{157}
+\indexentry{\texttt{subterm}|hyperpage}{157}
+\indexentry{\texttt{all}|hyperpage}{157}
+\indexentry{\texttt{rules}|hyperpage}{157}
+\indexentry{\texttt{+rules}|hyperpage}{157}
+\indexentry{\texttt{-rules}|hyperpage}{157}
+\indexentry{\texttt{check}|hyperpage}{161}
+\indexentry{\texttt{regularity}|hyperpage}{161}
+\indexentry{\texttt{compatibility}|hyperpage}{161}
+\indexentry{\texttt{laziness}|hyperpage}{161}
+\indexentry{regular|hyperpage}{161}
+\indexentry{compatible|hyperpage}{162}
+\indexentry{laziness|hyperpage}{163}
+\indexentry{structural induction|hyperpage}{165}
+\indexentry{inductive property|hyperpage}{165}
+\indexentry{\texttt{exec}|hyperpage}{167}
+\indexentry{\texttt{trace}|hyperpage}{167}
+\indexentry{\texttt{exec}|hyperpage}{169}
+\indexentry{\texttt{limit}|hyperpage}{169}
+\indexentry{context indution|hyperpage}{171}
+\indexentry{coinduction|hyperpage}{171}
+\indexentry{built-in module|hyperpage}{175}
+\indexentry{kernel module|hyperpage}{175}

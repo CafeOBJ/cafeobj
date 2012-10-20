@@ -1,0 +1,88 @@
+Dear everyone,
+
+The first enhancement of our experimental implementation of MEL support 
+is finished, i.e., top level switches controlling behaviour of reduce
+/parse commands.
+
+To keep things be simpler (at least for by my side), I prepare
+a new alpha release (1.4.2 alpha2) and put it at
+	ftp://ftp.sra.co.jp/pub/lang/CafeOBJ/cafeobj-1.4.2a2.tar.gz
+It also be available from my home directory at
+	syphon.jaist.ac.jp:~sawada/cafeobj-1.4.2a2.tar.gz
+
+Please reconstruct your interpreter with this one.
+Iida-san, I am sorry for this kind of very frequent update, and very 
+thanks for taking care to keep the system to be updated. 
+
+This version also includes the following (visible) fixes:
+  (1) partial parameterization of imported paraterized modules
+      now works properly.
+  (2) several kinds of illegal module expressions are now properly
+      detected and handled as syntax errors.
+
+The current MEL support is very experimantal, thus I feel we all
+should understand the current situation, that is, what and how 
+these things are done. Let me summarize it:
+(1) First, we now have a sort membership predicate (_: S) for every
+    sort S of a module. This works as described in `CafeOBJ Report'.
+(2) _: S is implemented by built-in procedure with new built-in
+    sort SortId, for some detailed description please refer to my
+    previous e-mail on this subject.
+(3) A top level switch `mel sort':
+    if this switch is `on', we get a more MEL like look and feel 
+    about the result of evaluating/persing terms at top level, 
+    i.e., system computes and assigns sorts using sort membership
+    predicates to the resulting terms.
+    The default value of the switch is `off'.
+
+    As an important note, this sort computation if performed iff
+    the sort of a term is of error-sort. 
+
+(4) A top level switch `mel always':
+    This is a new switch for me to play with this new features
+    (the default value is `off').
+    If this switch is `on', system computes sorts with _: S
+    even if it is not assigned a error sort.
+    I felt that the predicate _: S can be useful for specifying
+    sort partitions which is very hard without _: S.
+    Here is a toy example, this devides the built-in sort
+    Character as 
+
+           ?Character       
+                |            
+            Character       
+         /             \     
+      Graphic     nonGraphic
+         |                   
+     Alphanum               
+      /      \               
+    Alpha  Digit            
+
+    module FINE-GRAIND-CHARACTER {
+      protecting (CHARACTER)
+      [ Alpha Digit < Alphanum < Graphic < Character,
+        nonGraphic < Character ]
+      op to-lower : Alpha -> Alpha
+      op to-upper : Alpha -> Alpha
+      var C : Character
+      ceq C : Alpha = true if alphanumericp(C) .
+      ceq C : Digit = true if digit-char-p(C) .
+      ceq C : Alphanum = true if (C : Alpha) or (C : Digit) .
+      ceq C : Graphic = true if graphic-char-p(C) .
+      ceq C : nonGraphic = true if not(C : Graphic) .
+      ceq to-lower(C) = downcase(C) if C : Alpha .
+      ceq to-upper(C) = upcase(C) if C : Alpha .
+    }
+
+    If `mel always' is `on' you get the following result:
+
+    FINE-GRAIND-CHARACTER> parse 'A' .
+    'A' : Alpha
+    FINE-GRAIND-CHARACTER> red to-lower('A') .
+    -- reduce in FINE-GRAIND-CHARACTER : to-lower('A')
+    'a' : Alpha
+    (0.000 sec for parse, 21 rewrites(0.010 sec), 52 matches)
+
+Best Wishes,
+
+-- sawada@sra.co.jp

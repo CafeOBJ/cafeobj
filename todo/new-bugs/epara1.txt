@@ -1,0 +1,45 @@
+From: Razvan Diaconescu <diacon@jaist.ac.jp>
+Date: Fri, 22 May 98 12:53:50 JST
+Message-Id: <9805220353.AA01950@is27e0s07.jaist.ac.jp>
+To: sawada@sras75.sra.co.jp
+Subject:  explicit parameters
+Cc: kokichi@jaist.ac.jp, s_iida@jaist.ac.jp, sawada@sra.co.jp
+Content-Type: text
+Content-Length: 1281
+
+Dear Toshimi,
+
+ |I can try an experimental implementation, but before starting,
+ |I want some more discussion about this issue.
+
+I agree that this needs more very serious thinking before starting to
+do something. My proposal is for a status-quo until we come up with a
+clear design idea which will be perfectly consistent. The actual
+approach is at least perfectly consistent with the semantics of the
+language, so we should be very careful if we replace/extend it.
+
+Personally, I become more and more accomodated with the current
+approach. After all, if the specifier is careful for readability he
+might introduce some comments reminding all current parameters of a
+module.
+
+Actually, do you think the describe command can be enhaced such that
+it will draw the cooresponding diagram of parameters and imports. I
+mean things like
+
+TRIV ---X---> A >------> B
+              ^          ^
+              |          |
+              |          | 
+              Y          X
+              |          |
+              |          |
+            STRING      MON
+
+and such kind of things. Maybe a separate command might be even a
+better idea. Or maybe Forsdonnet should do this? In my opinion such
+diagrams for the module system would be a tool of enormous help for
+system development.
+
+Razvan
+

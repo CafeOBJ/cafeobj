@@ -1,0 +1,21 @@
+open NAT .
+op _a_ : Nat Nat -> Nat {l-assoc} .
+sh op _a_
+describe op _a_
+parse 1 a 2 a 3 .
+op _a_ : Nat Nat -> Nat .
+sh op _a_
+describe op _a_
+parse 1 a 2 a 3 .
+close
+
+mod AT {
+[S]
+op _a_ : S S -> S {l-assoc} .
+op _a_ : S S -> S .
+ops 1 2 3 : -> S .
+}
+select AT
+sh op _a_
+describe op _a_
+parse 1 a 2 a 3 .

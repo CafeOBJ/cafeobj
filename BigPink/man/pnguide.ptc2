@@ -1,0 +1,59 @@
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4}反駁エンジンの機能}{\reset@font\ptcSfont 10}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {5}CafeOBJモジュールの解釈}{\reset@font\ptcSfont 11}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {5.1}FOPL文}{\reset@font\ptcSSfont 11}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {5.2}等式の解釈}{\reset@font\ptcSSfont 11}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {5.3}組み込み述語の解釈(変換)}{\reset@font\ptcSSfont 12}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {5.4}制約事項}{\reset@font\ptcSSfont 12}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {5.5}その他の CafeOBJ 組み込みモジュールの扱い}{\reset@font\ptcSSfont 13}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6}組み込みモジュール -- FOPL-CLAUSE}{\reset@font\ptcSfont 13}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {6.1}FOPL-CLAUSE の自動輸入}{\reset@font\ptcSSfont 13}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {7}FOPL の構文}{\reset@font\ptcSfont 14}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {7.1}論理結合子の構文}{\reset@font\ptcSSfont 14}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {7.2}述語・命題の宣言}{\reset@font\ptcSSfont 15}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {7.3}FOPL文の記述例}{\reset@font\ptcSSfont 15}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {8}FOPL 文による公理の宣言}{\reset@font\ptcSfont 16}}
+{\reset@font\ptcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode FOPL文による公理の記述例}{\reset@font\ptcPfont 17}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {9}反駁エンジンの新規コマンド群}{\reset@font\ptcSfont 17}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {10}PigNose の一般的なスクリプト構造}{\reset@font\ptcSfont 20}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {11}節の印字形式}{\reset@font\ptcSfont 22}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {11.1}節表示の一般形式}{\reset@font\ptcSSfont 23}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {11.2}Skolem 関数の表示形式}{\reset@font\ptcSSfont 23}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {11.3}変数}{\reset@font\ptcSSfont 23}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {11.4}節の印字例}{\reset@font\ptcSSfont 24}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {12}推論プロセスの概要}{\reset@font\ptcSfont 24}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {12.1}証明戦略 -- SOS}{\reset@font\ptcSSfont 24}}
+{\reset@font\ptcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode SOS 方式による導出の例}{\reset@font\ptcPfont 25}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {12.2}推論プロセスの主ループ}{\reset@font\ptcSSfont 26}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {13}フラグとパラメータの設定}{\reset@font\ptcSfont 28}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {13.1}フラグ/パラメータ値の保存/初期化}{\reset@font\ptcSSfont 28}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {14}フラグ}{\reset@font\ptcSfont 29}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {14.1}given clause 選択に関するフラグ}{\reset@font\ptcSSfont 29}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {14.2}その他の主ループ動作に関するフラグ}{\reset@font\ptcSSfont 30}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {14.3}推論ルールに関するフラグ}{\reset@font\ptcSSfont 30}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {14.3.1}Paramodulation に関するフラグ}{\reset@font\ptcSSSfont 31}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {14.4}導出節の処理に関するフラグ}{\reset@font\ptcSSfont 32}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {14.5}Demodulation と等式の向きつけに関するフラグ}{\reset@font\ptcSSfont 33}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {14.6}入力節の処理に関するフラグ}{\reset@font\ptcSSfont 34}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {14.7}印字に関するフラグ}{\reset@font\ptcSSfont 35}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {14.8}その他のフラグ}{\reset@font\ptcSSfont 36}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {15}パラメータ}{\reset@font\ptcSfont 36}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {15.1}探索制約設定パラメータ}{\reset@font\ptcSSfont 36}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {15.2}導出節に対する制約設定パラメータ}{\reset@font\ptcSSfont 37}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {15.3}その他のパラメータ}{\reset@font\ptcSSfont 37}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {16}自動モード}{\reset@font\ptcSfont 38}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {17}統計情報}{\reset@font\ptcSfont 39}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {18}証明木とその印字}{\reset@font\ptcSfont 41}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {18.1}導出履歴欄の見方}{\reset@font\ptcSSfont 41}}
+{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {19}項の順序付けと Demodulation}{\reset@font\ptcSfont 42}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {19.1}単純辞書式順 -- Ad Hoc}{\reset@font\ptcSSfont 43}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {19.1.1}項の順序 (Ad Hoc)}{\reset@font\ptcSSSfont 43}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {19.1.2}等式の方向付け (Ad Hoc)}{\reset@font\ptcSSSfont 43}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {19.1.3}Dynamic Demodulator の判定 (Ad Hoc)}{\reset@font\ptcSSSfont 44}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {19.1.4}Lex-依存の Demodulation (Ad Hoc)}{\reset@font\ptcSSSfont 44}}
+{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {19.2}LRPO}{\reset@font\ptcSSfont 45}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {19.2.1}項の順序付け ({\sc lrpo})}{\reset@font\ptcSSSfont 45}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {19.2.2}オペレータ記号の順序付け -- lex コマンド}{\reset@font\ptcSSSfont 45}}
+{\reset@font\ptcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode lex コマンドに関する注意}{\reset@font\ptcPfont 46}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {19.2.3}等式の方向つけ ({\sc lrpo})}{\reset@font\ptcSSSfont 46}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {19.2.4}Dynamic Demodulator の判定 ({\sc lrpo})}{\reset@font\ptcSSSfont 47}}
+{\reset@font\ptcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode \numberline {19.2.5}{\sc lrpo}-依存の Demodulation ({\sc lrpo})}{\reset@font\ptcSSSfont 47}}

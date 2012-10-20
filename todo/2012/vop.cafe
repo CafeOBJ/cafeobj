@@ -1,0 +1,31 @@
+mod! SEQ {
+[EltLt < Elt < Seq]
+op emp : -> Seq {constr}
+op _ _ : Seq Seq -> Seq {constr assoc id: emp}
+ops a b : -> EltLt .
+eq (EL1:EltLt = EL2:EltLt) = (EL1 == EL2) .
+ceq E1:Elt S1:Seq E2:Elt = b if (E1 = E2) .
+}
+
+select SEQ
+
+-- (1)
+red a b a .
+-- (2)
+red a a .
+
+-- (3)
+red c:Elt b c .
+-- (4)
+red c:Elt c .
+
+-- (5)
+red c:Elt = c .
+
+eof
+
+
+添付のcodeで(1),(2)などはceqが起動されますが，(3),(4)に対しては，on-the-
+flyのconstantに対するconditionの中の(c = c)がtrueにならないようで，ceqが
+起動されません．(5)のようにon-the-fly constantに対しても、top levelでは
+(c:Elt = c) はtrueになります

@@ -1,0 +1,129 @@
+---------------------------------------------------------
+* ../new-bugs/aho.txt         modexp, error sort?
+* ../new-bugs/alex2.mod       importing record
+* 
+=========================================================
+IDEA: SortID の使い道
+=========================================================
+
+2011/3/8
+** p30 で残っている問題点。**********************************
+** 過去の不具合点全てについて再確認を行った結果残っているあるいは ***
+     デグレを起こしたものの一覧。
+
+1. Module expression 周り
+  (1) p30-rename.cafe
+     new-bugs/aho.txt
+      rename に問題? 
+
+  (2) Modexp: レコードのrename
+      new-bugs/alex2.mod
+      record 定義のあるモジュールのインポートでrename.
+         サポートされないことをより明確にする必要がある。
+
+2. core-bug.mod <= 済
+   _=*=_ の証明中にスタックオーバーフロー 
+   <= ceq put(UB:Ubuf, E:Elt) = put* UB if empty?(put(UB,E)) 
+          というrecursive な等式があるため。
+
+3. Error ソート、Error オペレータ
+   eop_sub.mod
+
+   -- 次のような場合　--
+   (1) モジュールMでソートSが宣言されている
+   (2) ソートSのエラーソート(?S)をランクに含むオペレータOpが
+　　　　Mで宣言されている。
+   (3) 別のモジュールM'でMを輸入。
+　　(4) M' でソートS'を宣言し、MのソートSと [ S < S' ]という
+　　　　順序関係を導入。
+   <= p33 でFIXした．<== 他の件があるため、このアプローチではダメ。
+
+5. group.mod <= 済
+   おかしなエラーの出し方をしてトップレベルへ戻る…
+    <== 減少再現せず。But, (0).H というソート修飾があったので、それを(0):H に修正。
+	問題なさげで終了。
+
+6. nspkByTransToSWD071203.mod
+   find-mathing-rule から帰って来ない…--> 帰ってくるようになった
+   <= p31: ルールの探索の際にequational theoryを持たないオペレータ
+      についても、A、ACルールで公理を拡張して探索していたのが原因の模
+   様。一応解決とするが、他の search の例題が問題なく動作するかどうか
+   の確認が必要。
+
+7. Error ソート
+   para2.mod
+   FUNCTOR の定義で Arr が曖昧とのメッセージが出る。何故?
+   <== error sort "?Arr" を探しに行っているらしい。(find-sort-in のトレース).
+
+************************************************************************************
+2011/3/9 二木先生に以下のメール
+
+
+(1) ユーザ定義のエラーオペレータ宣言があるモジュールを
+　他のオペレータに輸入した際、エラーソートの下位ソートに
+　新たな上位ソートが輸入元で宣言された場合に、エラーオペレータが
+　二重に定義されてしまう。<-- 修正方針未決
+  例題: eop_sub.mod
+    修正はかなり困難。
+(2) search コマンドである項からの遷移規則を求める際に、
+  AあるいはACセオリを持つオペレータに対して、Aあるいは
+　ACで遷移規則を拡張したものを二重に遷移規則として候補に
+　挙げている。この結果全ての遷移規則を求める際に結果が
+　帰らないケースがある。<-- p31 で修正済み。
+(3) モジュール式のrenameで不具合。
+　再現性のある例題はあるが、現象についての把握が未だ。
+　例題: p30-rename.mod
+(4) _=*=_ のcongruency自動証明でスタックオーバフローになる場合がある。
+　再現性のある例題はあるが、現象について把握しきれていない。
+(5) 明示的な lazy 戦略でスタックオーバーフロー
+　<- p31 で修正済み。
+(6) 同一セオリの複数のパラメータを持つモジュールをinstatiateした際に、
+　ソート名をパラメータ名で修飾しているにも関わらず、曖昧性の
+　メッセージが出ることがある。
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-- cafeobj system renovation plan in 2011.7-2016.3
+1 すでにある機能の不具合除去，洗練
+
+1.1 improvements of user interactions (user interface)
+
+1.2 resolution of conflicts of sort/op/mod names
+1.2.1 
+
+1.3 reduction command
+1.3.1 memo function
+1.3.2 ac reduction
+
+1.4 search command
+
+1.5 module expression
+
+1.6 coherence of =*=のチェッカの洗練
+
+---------
+
+2 新しい機能の付加
+
+2.1 証明スコアの正当性チェッカ
+
+2.2 supports for complete case analysis
+2.2' supports for induction scheme construction
+
+2.3 meta-function for developing proof scores
+
+2.4 他のproof assistance and/or model checkerとの連携
+2.4.1 maudeとの連携機能
+2.4.2 SAT (satisfiability checker), SMT (SAT module theory)
+
+
+
+---------
+
+3 1と2に関係するマニュアル/文書の整備
+
+3.1 on-line manualの整備(more extensive)
+
+3.2 on-line library of examplesの体系化と整備
+
+3.3 users manualの整備
+

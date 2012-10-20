@@ -1,0 +1,133 @@
+Date: Thu, 4 Jun 1998 03:09:49 +0900
+From: Kokichi Futatsugi <kokichi@shin.jaist.ac.jp>
+Message-Id: <199806031809.DAA00768@shin.jaist.ac.jp>
+To: sawada@sras75.sra.co.jp
+CC: sawada@sra.co.jp
+In-reply-to: <199806031346.WAA20561@sras75.sra.co.jp> (message from Toshimi & on Wed, 03 Jun 1998 22:46:42 +0900)
+Subject: Re: param
+Cc: kokichi@jaist.ac.jp
+Reply-to: kokichi@jaist.ac.jp
+Content-Type: text
+Content-Length: 4205
+
+二木です
+
+ |しかし、どうも Razvan の言うことが納得出来ません。
+ |そもそも beh axiom に behavioural でもなく coherent でもない
+ |オペレータ(もちろん coarity が hidden sort のもの) が含まれて
+ |いるような場合は、それと照合出来るような項は behavioural (sub-)
+ |context を構成するような項とはなり得ません。従って、このような
+ |公理と照合できた際に、beh context の検査をすれば、場合必ず不正で
+ |あるとして、そのような公理が apply されることはないはずです。
+ |従って、現状では Razvan の意見を採り入れてこのような公理を書換え
+ |規則として認めるとしても、決してどのような項に対しても適用される
+ |ことはないはずです。もちろん breduce で書換えを行なう場合は別です
+ |けれど。私、何かとんでもない誤解をしてますか？
+
+誤解は，
+
+「そもそも beh axiom に behavioural でもなく coherent でもないオペレー
+タ(もちろん coarity が hidden sort のもの) が含まれているような場合は、
+それと照合出来るような項は behavioural (sub-) context を構成するような
+項とはなり得ません。」
+
+の部分です．
+
+behavioral contextなのかどうかを問題にするsub-context (部分文脈)は，
+beqを適用する項（redex)の頂点から上方に向かってのsub-contextで，redex
+とは重なりがありません．（cafeobj reportの83ページの図を見て下さい）
+
+したがって，”behavioural でもなく coherent でもないオペレータ(hidden
+sort を返すもの) が含まれているような項”がマッチングするredexの上に，
+behaviourally coherent sub-contextが存在することはいくらでもあります．
+
+Razvanの例を見てみましょう．
+
+======================================================================
+mod! TRIV+(X :: TRIV) {
+  op err :  -> ?Elt 
+}
+
+mod* BUF {
+  protecting(TRIV+)
+
+  *[ Buf ]*
+
+  op init :  -> Buf 
+  op put : Elt Buf -> Buf
+  bop get_ : Buf -> ?Elt
+  bop take_ : Buf -> Buf
+  op empty? : Buf -> Bool   {coherent}
+
+  var E : Elt
+  var B : Buf 
+        
+  eq empty?(init) = true .
+  cq empty?(take B) = true if empty?(B) .
+  eq empty?(put(E, B)) = false .
+
+  bceq take put(E, B) = put(E, take B) if not empty?(B) .
+  bceq take(put(E, B)) = B             if empty?(B) .
+
+  ceq get B = err if empty?(B) .
+  cq get put(E, B) = E if empty?(B) .
+  cq get put(E, B) = get B if not empty?(B) .
+}
+
+open .
+ops b b' : -> Buf .
+op e : -> Elt .
+beq b = b' .
+eq empty?(b') = false .
+red get(take(put(e, b))) .
+=============================================================
+
+問題となっている項，つまり最後の行の "get(take(put(e, b)))" で，
+
+"b"がredexだとすれば，それを取り囲む context:
+
+	get(take(put(e, □)))
+
+には，"put"がcoherentと宣言されていないので，behaviorally coherent
+sub-contextは存在しません．従って，
+
+	beq b = b' .
+
+を使ってこのredexを書き換えることは出来ません．
+
+ところが，take(put(e, b)) がredexだとすると，それを取り囲むcontext
+
+	get(□)
+
+はそれ自体がbehaviorally coherent contextですから，
+
+  bceq take put(E, B) = put(E, take B) if not empty?(B) .
+  bceq take(put(E, B)) = B             if empty?(B) .
+
+のいずれかを使ってredexである take(put(e, b)) の部分を書き換え良いこと
+になります．この場合は，empty?(b) が falseとなるはずですから，一番めの
+bceqが適用されて，結果は
+
+	get put(e,take b)
+
+となるはずです．
+
+この例から，現在のsystemはbehaviorally coherent context conditionを忠
+実に実現していないというのが，Razvanの観測です．
+
+
+ |> and other strange
+ |> things we already discussed.
+ |
+ |私今のところ一つしか認識していません。partial instantiation の
+ |件だけです。私がうっかり忘れている件がありましたらお知らせ下さい。
+
+もう一つ：
+
+> mod FOO { pr (2TUPLE) }
+> make FOO (NAT, BAR) .
+
+としたときに（2行目は構文間違いの命令ですが），”(NAT, BAR) ”をmodule
+expressionとしてparseしにいった時にerror messageを出すようにして欲しい
+という点です．現状は，システムからは何の反応もなく，module FOOが破壊さ
+れます．

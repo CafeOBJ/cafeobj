@@ -1,0 +1,893 @@
+SMPI> set trace on
+SMPI> in /tmp/p4
+processing input : /tmp/p4.mod
+-- execute in SMPI : ((((pid :: 2) (np :: 3)) (((if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)) | ((((pid :: 1) (np :: 3)) (((if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)) | (((pid :: 0) (np :: 3)) (((if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)))):List
+1>[1] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((pid :: 2) (np :: 3)), P:Pgm |-> ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end), 
+      BP:BPgm |-> (if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }) }
+1<[1] (((pid :: 2) (np :: 3)) (((if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end))
+     --> ((((pid :: 2) (np :: 3)) (if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) })) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end))
+1>[2] apply trial #1
+-- rule: ctrans (S:Store (if E:Exp { P1:Pgm }))
+   => (S P1) if ((S [ E ]) =/= 0)
+    { E:Exp |-> (not (pid = 0)), S:Store |-> ((pid :: 2) (np :: 3)), P1:Pgm
+       |-> ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }
+2>[2] rule: eq (S:Store [ (not E:Exp) ])
+   = (if ((S [ E ]) == 0) then 1 else 0 fi)
+    { S:Store |-> ((pid :: 2) (np :: 3)), E:Exp |-> (pid = 0) }
+2<[2] (((pid :: 2) (np :: 3)) [ (not (pid = 0)) ]) --> (if ((((pid :: 2) (np :: 3)) [ (pid = 0) ]) == 0) then 1 else 0 fi)
+2>[3] rule: eq (S:Store [ (E1:Exp = E2:Exp) ])
+   = (if ((S [ E1 ]) == (S [ E2 ])) then 1 else 0 fi)
+    { E1:Exp |-> pid, S:Store |-> ((pid :: 2) (np :: 3)), E2:Exp |-> 0 }
+2<[3] (((pid :: 2) (np :: 3)) [ (pid = 0) ]) --> (if ((((pid :: 2) (np :: 3)) [ pid ]) == (((pid :: 2) (np :: 3)) [ 0 ])) then 1 else 0 fi)
+2>[4] rule: eq (S:Store [ A:Var ]) = val(A,S)
+    { S:Store |-> ((pid :: 2) (np :: 3)), A:Var |-> pid }
+2<[4] (((pid :: 2) (np :: 3)) [ pid ]) --> val(pid,((pid :: 2) (np :: 3)))
+2>[5] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> (np :: 3), I:Int |-> 2 }
+2<[5] val(pid,((pid :: 2) (np :: 3))) --> 2
+2>[6] rule: eq (S:Store [ I:Int ]) = I
+    { S:Store |-> ((pid :: 2) (np :: 3)), I:Int |-> 0 }
+2<[6] (((pid :: 2) (np :: 3)) [ 0 ]) --> 0
+2>[7] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 2, CYU |-> 0 }
+2<[7] (2 == 0) --> false
+2>[8] rule: eq (if false then CXU else CYU fi)
+   = CYU
+    { CXU |-> 1, CYU |-> 0 }
+2<[8] (if false then 1 else 0 fi) --> 0
+2>[9] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[9] (0 == 0) --> true
+2>[10] rule: eq (if true then CXU else CYU fi)
+   = CXU
+    { CXU |-> 1, CYU |-> 0 }
+2<[10] (if true then 1 else 0 fi) --> 1
+2>[11] rule: eq (CXU =/= CYU) = #!! (coerce-to-bool (not (term-equational-equal cxu cyu)))
+    { CXU |-> 1, CYU |-> 0 }
+2<[11] (1 =/= 0) --> true
+1>[12] match success #1
+1<[12] (((pid :: 2) (np :: 3)) (if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }))
+     --> (((pid :: 2) (np :: 3)) ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))))
+1>[13] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((pid :: 2) (np :: 3)), P:Pgm |-> ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;)), 
+      BP:BPgm |-> (int x ;) }
+1<[13] (((pid :: 2) (np :: 3)) ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))))
+     --> ((((pid :: 2) (np :: 3)) (int x ;)) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;)))
+1>[14] apply trial #1
+-- rule: ctrans (S:Store (int A:Var ;))
+   => S if in?(A,S)
+    { S:Store |-> ((pid :: 2) (np :: 3)), A:Var |-> x }
+2>[14] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> x, S:Store |-> (pid :: 2), Y:Var |-> np, I:Int |-> 3 }
+2<[14] in?(x,((pid :: 2) (np :: 3))) --> ((x == np) or in?(x,(pid :: 2)))
+2>[15] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> np }
+2<[15] (x == np) --> false
+2>[16] rule: eq in?(X:Var,(Y:Var :: I:Int))
+   = (X == Y)
+    { Y:Var |-> pid, X:Var |-> x, I:Int |-> 2 }
+2<[16] in?(x,(pid :: 2)) --> (x == pid)
+2>[17] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> pid }
+2<[17] (x == pid) --> false
+2>[18] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[18] (false or false) --> false
+1>[19] rewrite rule exhausted (#1)
+1>[19] apply trial #1
+-- rule: ctrans (S:Store (int A:Var ;))
+   => ((A :: na) S) if (not in?(A,S))
+    { S:Store |-> ((pid :: 2) (np :: 3)), A:Var |-> x }
+2>[19] rule: eq (not A:Bool) = (A xor true)
+    { A:Bool |-> in?(x,((pid :: 2) (np :: 3))) }
+2<[19] (not in?(x,((pid :: 2) (np :: 3)))) --> (in?(x,((pid :: 2) (np :: 3))) xor true)
+2>[20] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> x, S:Store |-> (pid :: 2), Y:Var |-> np, I:Int |-> 3 }
+2<[20] in?(x,((pid :: 2) (np :: 3))) --> ((x == np) or in?(x,(pid :: 2)))
+2>[21] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> np }
+2<[21] (x == np) --> false
+2>[22] rule: eq in?(X:Var,(Y:Var :: I:Int))
+   = (X == Y)
+    { Y:Var |-> pid, X:Var |-> x, I:Int |-> 2 }
+2<[22] in?(x,(pid :: 2)) --> (x == pid)
+2>[23] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> pid }
+2<[23] (x == pid) --> false
+2>[24] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[24] (false or false) --> false
+2>[25] rule: eq (false xor A:Bool) = A
+    { A:Bool |-> true }
+2<[25] (false xor true) --> true
+1>[26] match success #1
+1<[26] (((pid :: 2) (np :: 3)) (int x ;)) --> ((x :: na) ((pid :: 2) (np :: 3)))
+1>[27] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((x :: na) ((pid :: 2) (np :: 3))), P:Pgm |-> (recv ( x , 0 ) ;), 
+      BP:BPgm |-> (send ( pid , 0 ) ;) }
+1<[27] (((x :: na) ((pid :: 2) (np :: 3))) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;)))
+     --> ((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (recv ( x , 0 ) ;))
+1>[28] rule: eq (((S:Store BP:BPgm) P1:Pgm) P2:Pgm)
+   = ((S BP) (P1 P2))
+    { P1:Pgm |-> (recv ( x , 0 ) ;), BP:BPgm |-> (send ( pid , 0 ) ;), 
+      S:Store |-> ((x :: na) ((pid :: 2) (np :: 3))), P2:Pgm |-> ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end) }
+1<[28] (((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end))
+     --> ((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) ((recv ( x , 0 ) ;) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end)))
+1>[29] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((pid :: 1) (np :: 3)), P:Pgm |-> ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end), 
+      BP:BPgm |-> (if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }) }
+1<[29] (((pid :: 1) (np :: 3)) (((if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end))
+     --> ((((pid :: 1) (np :: 3)) (if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) })) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end))
+1>[30] apply trial #1
+-- rule: ctrans (S:Store (if E:Exp { P1:Pgm }))
+   => (S P1) if ((S [ E ]) =/= 0)
+    { E:Exp |-> (not (pid = 0)), S:Store |-> ((pid :: 1) (np :: 3)), P1:Pgm
+       |-> ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }
+2>[30] rule: eq (S:Store [ (not E:Exp) ])
+   = (if ((S [ E ]) == 0) then 1 else 0 fi)
+    { S:Store |-> ((pid :: 1) (np :: 3)), E:Exp |-> (pid = 0) }
+2<[30] (((pid :: 1) (np :: 3)) [ (not (pid = 0)) ]) --> (if ((((pid :: 1) (np :: 3)) [ (pid = 0) ]) == 0) then 1 else 0 fi)
+2>[31] rule: eq (S:Store [ (E1:Exp = E2:Exp) ])
+   = (if ((S [ E1 ]) == (S [ E2 ])) then 1 else 0 fi)
+    { E1:Exp |-> pid, S:Store |-> ((pid :: 1) (np :: 3)), E2:Exp |-> 0 }
+2<[31] (((pid :: 1) (np :: 3)) [ (pid = 0) ]) --> (if ((((pid :: 1) (np :: 3)) [ pid ]) == (((pid :: 1) (np :: 3)) [ 0 ])) then 1 else 0 fi)
+2>[32] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((pid :: 1) (np :: 3)), A:Var |-> pid }
+2<[32] (((pid :: 1) (np :: 3)) [ pid ]) --> val(pid,((pid :: 1) (np :: 3)))
+2>[33] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> (np :: 3), I:Int |-> 1 }
+2<[33] val(pid,((pid :: 1) (np :: 3))) --> 1
+2>[34] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((pid :: 1) (np :: 3)), I:Int |-> 0 }
+2<[34] (((pid :: 1) (np :: 3)) [ 0 ]) --> 0
+2>[35] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 1, CYU |-> 0 }
+2<[35] (1 == 0) --> false
+2>[36] rule: eq (if false then CXU else CYU fi)
+   = CYU
+    { CXU |-> 1, CYU |-> 0 }
+2<[36] (if false then 1 else 0 fi) --> 0
+2>[37] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[37] (0 == 0) --> true
+2>[38] rule: eq (if true then CXU else CYU fi)
+   = CXU
+    { CXU |-> 1, CYU |-> 0 }
+2<[38] (if true then 1 else 0 fi) --> 1
+2>[39] rule: eq (CXU =/= CYU) = #!! (coerce-to-bool (not (term-equational-equal cxu cyu)))
+    { CXU |-> 1, CYU |-> 0 }
+2<[39] (1 =/= 0) --> true
+1>[40] match success #1
+1<[40] (((pid :: 1) (np :: 3)) (if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }))
+     --> (((pid :: 1) (np :: 3)) ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))))
+1>[41] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((pid :: 1) (np :: 3)), P:Pgm |-> ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;)), 
+      BP:BPgm |-> (int x ;) }
+1<[41] (((pid :: 1) (np :: 3)) ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))))
+     --> ((((pid :: 1) (np :: 3)) (int x ;)) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;)))
+1>[42] apply trial #1
+-- rule: ctrans (S:Store (int A:Var ;))
+   => S if in?(A,S)
+    { S:Store |-> ((pid :: 1) (np :: 3)), A:Var |-> x }
+2>[42] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> x, S:Store |-> (pid :: 1), Y:Var |-> np, I:Int |-> 3 }
+2<[42] in?(x,((pid :: 1) (np :: 3))) --> ((x == np) or in?(x,(pid :: 1)))
+2>[43] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> np }
+2<[43] (x == np) --> false
+2>[44] rule: eq in?(X:Var,(Y:Var :: I:Int))
+   = (X == Y)
+    { Y:Var |-> pid, X:Var |-> x, I:Int |-> 1 }
+2<[44] in?(x,(pid :: 1)) --> (x == pid)
+2>[45] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> pid }
+2<[45] (x == pid) --> false
+2>[46] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[46] (false or false) --> false
+1>[47] rewrite rule exhausted (#1)
+1>[47] apply trial #1
+-- rule: ctrans (S:Store (int A:Var ;))
+   => ((A :: na) S) if (not in?(A,S))
+    { S:Store |-> ((pid :: 1) (np :: 3)), A:Var |-> x }
+2>[47] rule: eq (not A:Bool) = (A xor true)
+    { A:Bool |-> in?(x,((pid :: 1) (np :: 3))) }
+2<[47] (not in?(x,((pid :: 1) (np :: 3)))) --> (in?(x,((pid :: 1) (np :: 3))) xor true)
+2>[48] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> x, S:Store |-> (pid :: 1), Y:Var |-> np, I:Int |-> 3 }
+2<[48] in?(x,((pid :: 1) (np :: 3))) --> ((x == np) or in?(x,(pid :: 1)))
+2>[49] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> np }
+2<[49] (x == np) --> false
+2>[50] rule: eq in?(X:Var,(Y:Var :: I:Int))
+   = (X == Y)
+    { Y:Var |-> pid, X:Var |-> x, I:Int |-> 1 }
+2<[50] in?(x,(pid :: 1)) --> (x == pid)
+2>[51] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> pid }
+2<[51] (x == pid) --> false
+2>[52] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[52] (false or false) --> false
+2>[53] rule: eq (false xor A:Bool) = A
+    { A:Bool |-> true }
+2<[53] (false xor true) --> true
+1>[54] match success #1
+1<[54] (((pid :: 1) (np :: 3)) (int x ;)) --> ((x :: na) ((pid :: 1) (np :: 3)))
+1>[55] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), P:Pgm |-> (recv ( x , 0 ) ;), 
+      BP:BPgm |-> (send ( pid , 0 ) ;) }
+1<[55] (((x :: na) ((pid :: 1) (np :: 3))) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;)))
+     --> ((((x :: na) ((pid :: 1) (np :: 3))) (send ( pid , 0 ) ;)) (recv ( x , 0 ) ;))
+1>[56] rule: eq (((S:Store BP:BPgm) P1:Pgm) P2:Pgm)
+   = ((S BP) (P1 P2))
+    { P1:Pgm |-> (recv ( x , 0 ) ;), BP:BPgm |-> (send ( pid , 0 ) ;), 
+      S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), P2:Pgm |-> ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end) }
+1<[56] (((((x :: na) ((pid :: 1) (np :: 3))) (send ( pid , 0 ) ;)) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end))
+     --> ((((x :: na) ((pid :: 1) (np :: 3))) (send ( pid , 0 ) ;)) ((recv ( x , 0 ) ;) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end)))
+1>[57] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((pid :: 0) (np :: 3)), P:Pgm |-> ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end), 
+      BP:BPgm |-> (if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }) }
+1<[57] (((pid :: 0) (np :: 3)) (((if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end))
+     --> ((((pid :: 0) (np :: 3)) (if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) })) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end))
+1>[58] apply trial #1
+-- rule: ctrans (S:Store (if E:Exp { P1:Pgm }))
+   => (S P1) if ((S [ E ]) =/= 0)
+    { E:Exp |-> (not (pid = 0)), S:Store |-> ((pid :: 0) (np :: 3)), P1:Pgm
+       |-> ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }
+2>[58] rule: eq (S:Store [ (not E:Exp) ])
+   = (if ((S [ E ]) == 0) then 1 else 0 fi)
+    { S:Store |-> ((pid :: 0) (np :: 3)), E:Exp |-> (pid = 0) }
+2<[58] (((pid :: 0) (np :: 3)) [ (not (pid = 0)) ]) --> (if ((((pid :: 0) (np :: 3)) [ (pid = 0) ]) == 0) then 1 else 0 fi)
+2>[59] rule: eq (S:Store [ (E1:Exp = E2:Exp) ])
+   = (if ((S [ E1 ]) == (S [ E2 ])) then 1 else 0 fi)
+    { E1:Exp |-> pid, S:Store |-> ((pid :: 0) (np :: 3)), E2:Exp |-> 0 }
+2<[59] (((pid :: 0) (np :: 3)) [ (pid = 0) ]) --> (if ((((pid :: 0) (np :: 3)) [ pid ]) == (((pid :: 0) (np :: 3)) [ 0 ])) then 1 else 0 fi)
+2>[60] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((pid :: 0) (np :: 3)), A:Var |-> pid }
+2<[60] (((pid :: 0) (np :: 3)) [ pid ]) --> val(pid,((pid :: 0) (np :: 3)))
+2>[61] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> (np :: 3), I:Int |-> 0 }
+2<[61] val(pid,((pid :: 0) (np :: 3))) --> 0
+2>[62] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((pid :: 0) (np :: 3)), I:Int |-> 0 }
+2<[62] (((pid :: 0) (np :: 3)) [ 0 ]) --> 0
+2>[63] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[63] (0 == 0) --> true
+2>[64] rule: eq (if true then CXU else CYU fi)
+   = CXU
+    { CXU |-> 1, CYU |-> 0 }
+2<[64] (if true then 1 else 0 fi) --> 1
+2>[65] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 1, CYU |-> 0 }
+2<[65] (1 == 0) --> false
+2>[66] rule: eq (if false then CXU else CYU fi)
+   = CYU
+    { CXU |-> 1, CYU |-> 0 }
+2<[66] (if false then 1 else 0 fi) --> 0
+2>[67] rule: eq (CXU =/= CYU) = #!! (coerce-to-bool (not (term-equational-equal cxu cyu)))
+    { CXU |-> 0, CYU |-> 0 }
+2<[67] (0 =/= 0) --> false
+1>[68] rewrite rule exhausted (#1)
+1>[68] apply trial #1
+-- rule: ctrans (S:Store (if E:Exp { P1:Pgm }))
+   => S if ((S [ E ]) == 0)
+    { E:Exp |-> (not (pid = 0)), S:Store |-> ((pid :: 0) (np :: 3)), P1:Pgm
+       |-> ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }
+2>[68] rule: eq (S:Store [ (not E:Exp) ])
+   = (if ((S [ E ]) == 0) then 1 else 0 fi)
+    { S:Store |-> ((pid :: 0) (np :: 3)), E:Exp |-> (pid = 0) }
+2<[68] (((pid :: 0) (np :: 3)) [ (not (pid = 0)) ]) --> (if ((((pid :: 0) (np :: 3)) [ (pid = 0) ]) == 0) then 1 else 0 fi)
+2>[69] rule: eq (S:Store [ (E1:Exp = E2:Exp) ])
+   = (if ((S [ E1 ]) == (S [ E2 ])) then 1 else 0 fi)
+    { E1:Exp |-> pid, S:Store |-> ((pid :: 0) (np :: 3)), E2:Exp |-> 0 }
+2<[69] (((pid :: 0) (np :: 3)) [ (pid = 0) ]) --> (if ((((pid :: 0) (np :: 3)) [ pid ]) == (((pid :: 0) (np :: 3)) [ 0 ])) then 1 else 0 fi)
+2>[70] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((pid :: 0) (np :: 3)), A:Var |-> pid }
+2<[70] (((pid :: 0) (np :: 3)) [ pid ]) --> val(pid,((pid :: 0) (np :: 3)))
+2>[71] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> (np :: 3), I:Int |-> 0 }
+2<[71] val(pid,((pid :: 0) (np :: 3))) --> 0
+2>[72] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((pid :: 0) (np :: 3)), I:Int |-> 0 }
+2<[72] (((pid :: 0) (np :: 3)) [ 0 ]) --> 0
+2>[73] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[73] (0 == 0) --> true
+2>[74] rule: eq (if true then CXU else CYU fi)
+   = CXU
+    { CXU |-> 1, CYU |-> 0 }
+2<[74] (if true then 1 else 0 fi) --> 1
+2>[75] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 1, CYU |-> 0 }
+2<[75] (1 == 0) --> false
+2>[76] rule: eq (if false then CXU else CYU fi)
+   = CYU
+    { CXU |-> 1, CYU |-> 0 }
+2<[76] (if false then 1 else 0 fi) --> 0
+2>[77] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[77] (0 == 0) --> true
+1>[78] match success #1
+1<[78] (((pid :: 0) (np :: 3)) (if (not (pid = 0)) { ((int x ;) ((send ( pid , 0 ) ;) (recv ( x , 0 ) ;))) }))
+     --> ((pid :: 0) (np :: 3))
+1>[79] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((pid :: 0) (np :: 3)), P:Pgm |-> end, BP:BPgm |-> (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) }
+1<[79] (((pid :: 0) (np :: 3)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end))
+     --> ((((pid :: 0) (np :: 3)) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)
+1>[80] apply trial #1
+-- rule: ctrans (S:Store (if E:Exp { P1:Pgm }))
+   => (S P1) if ((S [ E ]) =/= 0)
+    { E:Exp |-> (pid = 0), S:Store |-> ((pid :: 0) (np :: 3)), P1:Pgm |-> (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }
+2>[80] rule: eq (S:Store [ (E1:Exp = E2:Exp) ])
+   = (if ((S [ E1 ]) == (S [ E2 ])) then 1 else 0 fi)
+    { E1:Exp |-> pid, S:Store |-> ((pid :: 0) (np :: 3)), E2:Exp |-> 0 }
+2<[80] (((pid :: 0) (np :: 3)) [ (pid = 0) ]) --> (if ((((pid :: 0) (np :: 3)) [ pid ]) == (((pid :: 0) (np :: 3)) [ 0 ])) then 1 else 0 fi)
+2>[81] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((pid :: 0) (np :: 3)), A:Var |-> pid }
+2<[81] (((pid :: 0) (np :: 3)) [ pid ]) --> val(pid,((pid :: 0) (np :: 3)))
+2>[82] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> (np :: 3), I:Int |-> 0 }
+2<[82] val(pid,((pid :: 0) (np :: 3))) --> 0
+2>[83] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((pid :: 0) (np :: 3)), I:Int |-> 0 }
+2<[83] (((pid :: 0) (np :: 3)) [ 0 ]) --> 0
+2>[84] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[84] (0 == 0) --> true
+2>[85] rule: eq (if true then CXU else CYU fi)
+   = CXU
+    { CXU |-> 1, CYU |-> 0 }
+2<[85] (if true then 1 else 0 fi) --> 1
+2>[86] rule: eq (CXU =/= CYU) = #!! (coerce-to-bool (not (term-equational-equal cxu cyu)))
+    { CXU |-> 1, CYU |-> 0 }
+2<[86] (1 =/= 0) --> true
+1>[87] match success #1
+1<[87] (((pid :: 0) (np :: 3)) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }))
+     --> (((pid :: 0) (np :: 3)) (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))))
+1>[88] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((pid :: 0) (np :: 3)), P:Pgm |-> ((int i ;) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))), 
+      BP:BPgm |-> (int x ;) }
+1<[88] (((pid :: 0) (np :: 3)) (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))))
+     --> ((((pid :: 0) (np :: 3)) (int x ;)) ((int i ;) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))))
+1>[89] apply trial #1
+-- rule: ctrans (S:Store (int A:Var ;))
+   => S if in?(A,S)
+    { S:Store |-> ((pid :: 0) (np :: 3)), A:Var |-> x }
+2>[89] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> x, S:Store |-> (pid :: 0), Y:Var |-> np, I:Int |-> 3 }
+2<[89] in?(x,((pid :: 0) (np :: 3))) --> ((x == np) or in?(x,(pid :: 0)))
+2>[90] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> np }
+2<[90] (x == np) --> false
+2>[91] rule: eq in?(X:Var,(Y:Var :: I:Int))
+   = (X == Y)
+    { Y:Var |-> pid, X:Var |-> x, I:Int |-> 0 }
+2<[91] in?(x,(pid :: 0)) --> (x == pid)
+2>[92] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> pid }
+2<[92] (x == pid) --> false
+2>[93] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[93] (false or false) --> false
+1>[94] rewrite rule exhausted (#1)
+1>[94] apply trial #1
+-- rule: ctrans (S:Store (int A:Var ;))
+   => ((A :: na) S) if (not in?(A,S))
+    { S:Store |-> ((pid :: 0) (np :: 3)), A:Var |-> x }
+2>[94] rule: eq (not A:Bool) = (A xor true)
+    { A:Bool |-> in?(x,((pid :: 0) (np :: 3))) }
+2<[94] (not in?(x,((pid :: 0) (np :: 3)))) --> (in?(x,((pid :: 0) (np :: 3))) xor true)
+2>[95] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> x, S:Store |-> (pid :: 0), Y:Var |-> np, I:Int |-> 3 }
+2<[95] in?(x,((pid :: 0) (np :: 3))) --> ((x == np) or in?(x,(pid :: 0)))
+2>[96] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> np }
+2<[96] (x == np) --> false
+2>[97] rule: eq in?(X:Var,(Y:Var :: I:Int))
+   = (X == Y)
+    { Y:Var |-> pid, X:Var |-> x, I:Int |-> 0 }
+2<[97] in?(x,(pid :: 0)) --> (x == pid)
+2>[98] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> x, CYU |-> pid }
+2<[98] (x == pid) --> false
+2>[99] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[99] (false or false) --> false
+2>[100] rule: eq (false xor A:Bool)
+   = A
+    { A:Bool |-> true }
+2<[100] (false xor true) --> true
+1>[101] match success #1
+1<[101] (((pid :: 0) (np :: 3)) (int x ;)) --> ((x :: na) ((pid :: 0) (np :: 3)))
+1>[102] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((x :: na) ((pid :: 0) (np :: 3))), P:Pgm |-> ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })), 
+      BP:BPgm |-> (int i ;) }
+1<[102] (((x :: na) ((pid :: 0) (np :: 3))) ((int i ;) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))))
+     --> ((((x :: na) ((pid :: 0) (np :: 3))) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })))
+1>[103] apply trial #1
+-- rule: ctrans (S:Store (int A:Var ;))
+   => S if in?(A,S)
+    { S:Store |-> ((x :: na) ((pid :: 0) (np :: 3))), A:Var |-> i }
+2>[103] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> i, S:Store |-> ((x :: na) (pid :: 0)), Y:Var |-> np, I:Int
+       |-> 3 }
+2<[103] in?(i,((x :: na) ((pid :: 0) (np :: 3)))) --> ((i == np) or in?(i,((x :: na) (pid :: 0))))
+2>[104] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> np }
+2<[104] (i == np) --> false
+2>[105] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> i, S:Store |-> (x :: na), Y:Var |-> pid, I:Int |-> 0 }
+2<[105] in?(i,((x :: na) (pid :: 0))) --> ((i == pid) or in?(i,(x :: na)))
+2>[106] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> pid }
+2<[106] (i == pid) --> false
+2>[107] rule: eq in?(X:Var,(Y:Var :: I:Int))
+   = (X == Y)
+    { Y:Var |-> x, X:Var |-> i, I:Int |-> na }
+2<[107] in?(i,(x :: na)) --> (i == x)
+2>[108] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> x }
+2<[108] (i == x) --> false
+2>[109] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[109] (false or false) --> false
+2>[110] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[110] (false or false) --> false
+1>[111] rewrite rule exhausted (#1)
+1>[111] apply trial #1
+-- rule: ctrans (S:Store (int A:Var ;))
+   => ((A :: na) S) if (not in?(A,S))
+    { S:Store |-> ((x :: na) ((pid :: 0) (np :: 3))), A:Var |-> i }
+2>[111] rule: eq (not A:Bool) = (A xor true)
+    { A:Bool |-> in?(i,((x :: na) ((pid :: 0) (np :: 3)))) }
+2<[111] (not in?(i,((x :: na) ((pid :: 0) (np :: 3))))) --> (in?(i,((x :: na) ((pid :: 0) (np :: 3)))) xor true)
+2>[112] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> i, S:Store |-> ((x :: na) (pid :: 0)), Y:Var |-> np, I:Int
+       |-> 3 }
+2<[112] in?(i,((x :: na) ((pid :: 0) (np :: 3)))) --> ((i == np) or in?(i,((x :: na) (pid :: 0))))
+2>[113] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> np }
+2<[113] (i == np) --> false
+2>[114] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> i, S:Store |-> (x :: na), Y:Var |-> pid, I:Int |-> 0 }
+2<[114] in?(i,((x :: na) (pid :: 0))) --> ((i == pid) or in?(i,(x :: na)))
+2>[115] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> pid }
+2<[115] (i == pid) --> false
+2>[116] rule: eq in?(X:Var,(Y:Var :: I:Int))
+   = (X == Y)
+    { Y:Var |-> x, X:Var |-> i, I:Int |-> na }
+2<[116] in?(i,(x :: na)) --> (i == x)
+2>[117] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> x }
+2<[117] (i == x) --> false
+2>[118] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[118] (false or false) --> false
+2>[119] rule: eq (A:Bool or A) = A
+    { A:Bool |-> false }
+2<[119] (false or false) --> false
+2>[120] rule: eq (false xor A:Bool)
+   = A
+    { A:Bool |-> true }
+2<[120] (false xor true) --> true
+1>[121] match success #1
+1<[121] (((x :: na) ((pid :: 0) (np :: 3))) (int i ;)) --> ((i :: na) ((x :: na) ((pid :: 0) (np :: 3))))
+1>[122] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))), P:Pgm
+       |-> (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }), 
+      BP:BPgm |-> (i := 1 ;) }
+1<[122] (((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })))
+     --> ((((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))) (i := 1 ;)) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))
+1>[123] apply trial #1
+-- rule: ctrans (S:Store (A:Var := E:Exp ;))
+   => update(A,(S [ E ]),S) if in?(A,S)
+    { A:Var |-> i, S:Store |-> ((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))), 
+      E:Exp |-> 1 }
+2>[123] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> i, S:Store |-> ((i :: na) ((x :: na) (pid :: 0))), Y:Var
+       |-> np, I:Int |-> 3 }
+2<[123] in?(i,((i :: na) ((x :: na) ((pid :: 0) (np :: 3))))) --> ((i == np) or in?(i,((i :: na) ((x :: na) (pid :: 0)))))
+2>[124] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> np }
+2<[124] (i == np) --> false
+2>[125] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> i, S:Store |-> ((i :: na) (x :: na)), Y:Var |-> pid, I:Int
+       |-> 0 }
+2<[125] in?(i,((i :: na) ((x :: na) (pid :: 0)))) --> ((i == pid) or in?(i,((i :: na) (x :: na))))
+2>[126] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> pid }
+2<[126] (i == pid) --> false
+2>[127] rule: eq in?(X:Var,((Y:Var :: I:Int) S:Store))
+   = ((X == Y) or in?(X,S))
+    { X:Var |-> i, S:Store |-> (i :: na), Y:Var |-> x, I:Int |-> na }
+2<[127] in?(i,((i :: na) (x :: na))) --> ((i == x) or in?(i,(i :: na)))
+2>[128] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> x }
+2<[128] (i == x) --> false
+2>[129] rule: eq in?(X:Var,(Y:Var :: I:Int))
+   = (X == Y)
+    { Y:Var |-> i, X:Var |-> i, I:Int |-> na }
+2<[129] in?(i,(i :: na)) --> (i == i)
+2>[130] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> i, CYU |-> i }
+2<[130] (i == i) --> true
+2>[131] rule: eq (false or A:Bool) = A
+    { A:Bool |-> true }
+2<[131] (false or true) --> true
+2>[132] rule: eq (false or A:Bool) = A
+    { A:Bool |-> true }
+2<[132] (false or true) --> true
+2>[133] rule: eq (false or A:Bool) = A
+    { A:Bool |-> true }
+2<[133] (false or true) --> true
+1>[134] match success #1
+1<[134] (((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))) (i := 1 ;))
+     --> update(i,(((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))) [ 1 ]),((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))))
+1>[135] rule: eq update(X:Var,I:Int,((X :: J:Int) S:Store))
+   = ((X :: I) S)
+    { X:Var |-> i, I:Int |-> (((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))) [ 1 ]), 
+      S:Store |-> ((x :: na) ((pid :: 0) (np :: 3))), J:Int |-> na }
+1<[135] update(i,(((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))) [ 1 ]),((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))))
+     --> ((i :: (((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))) [ 1 ])) ((x :: na) ((pid :: 0) (np :: 3))))
+1>[136] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))), I:Int
+       |-> 1 }
+1<[136] (((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))) [ 1 ]) --> 1
+1>[137] apply trial #1
+-- rule: ctrans (S:Store (while E:Exp { P:Pgm }))
+   => (S (P (while E { P }))) if ((S [ E ]) =/= 0)
+    { E:Exp |-> (np > i), S:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), 
+      P:Pgm |-> ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }
+2>[137] rule: eq (S:Store [ (E1:Exp > E2:Exp) ])
+   = (if ((S [ E1 ]) > (S [ E2 ])) then 1 else 0 fi)
+    { E1:Exp |-> np, S:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), 
+      E2:Exp |-> i }
+2<[137] (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ (np > i) ])
+     --> (if ((((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ np ]) > (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ i ])) then 1 else 0 fi)
+2>[138] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), A:Var
+       |-> np }
+2<[138] (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ np ]) --> val(np,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))))
+2>[139] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> np, S:Store |-> ((i :: 1) ((x :: na) (pid :: 0))), I:Int
+       |-> 3 }
+2<[139] val(np,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3))))) --> 3
+2>[140] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), A:Var
+       |-> i }
+2<[140] (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ i ]) --> val(i,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))))
+2>[141] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> i, S:Store |-> ((x :: na) ((pid :: 0) (np :: 3))), I:Int
+       |-> 1 }
+2<[141] val(i,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3))))) --> 1
+2>[142] rule: eq [:BDEMOD] : (NN:NzNat > NM:NzNat)
+   = #! (> nn nm)
+    { NN:NzNat |-> 3, NM:NzNat |-> 1 }
+2<[142] (3 > 1) --> true
+2>[143] rule: eq (if true then CXU else CYU fi)
+   = CXU
+    { CXU |-> 1, CYU |-> 0 }
+2<[143] (if true then 1 else 0 fi) --> 1
+2>[144] rule: eq (CXU =/= CYU) = #!! (coerce-to-bool (not (term-equational-equal cxu cyu)))
+    { CXU |-> 1, CYU |-> 0 }
+2<[144] (1 =/= 0) --> true
+1>[145] match success #1
+1<[145] (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))
+     --> (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) (((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })))
+1>[146] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), P:Pgm
+       |-> ((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))), 
+      BP:BPgm |-> (recv ( x , any ) ;) }
+1<[146] (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) (((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })))
+     --> ((((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) (recv ( x , any ) ;)) ((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))))
+1>[147] rule: eq (((S:Store BP:BPgm) P1:Pgm) P2:Pgm)
+   = ((S BP) (P1 P2))
+    { P1:Pgm |-> ((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))), 
+      BP:BPgm |-> (recv ( x , any ) ;), S:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), 
+      P2:Pgm |-> end }
+1<[147] (((((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) (recv ( x , any ) ;)) ((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })))) end)
+     --> ((((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) (recv ( x , any ) ;)) (((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) end))
+1>[148] apply trial #1
+-- rule: ctrans (AC:List | (((S1:Store (send ( X1:Var , Dest:Exp ) ;)) P1:Pgm) | ((S2:Store (recv ( X2:Var , Source:Exp ) ;)) P2:Pgm)))
+   => (AC | ((S1 P1) | (update(X2,(S1 [ X1 ]),S2) P2))) if (((S1 [ Dest ]) == (S2 [ pid ])) and ((S1 [ pid ]) == (S2 [ Source ])))
+    { AC:List |-> ((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)), 
+      S1:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), X1:Var |-> pid, 
+      Dest:Exp |-> 0, P1:Pgm |-> (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end), 
+      S2:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), X2:Var
+       |-> x, Source:Exp |-> any, P2:Pgm |-> (((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) end) }
+2>[148] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), I:Int |-> 0 }
+2<[148] (((x :: na) ((pid :: 1) (np :: 3))) [ 0 ]) --> 0
+2>[149] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), A:Var
+       |-> pid }
+2<[149] (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ pid ]) --> val(pid,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))))
+2>[150] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((i :: 1) ((x :: na) (np :: 3))), I:Int
+       |-> 0 }
+2<[150] val(pid,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3))))) --> 0
+2>[151] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[151] (0 == 0) --> true
+2>[152] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), A:Var |-> pid }
+2<[152] (((x :: na) ((pid :: 1) (np :: 3))) [ pid ]) --> val(pid,((x :: na) ((pid :: 1) (np :: 3))))
+2>[153] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((x :: na) (np :: 3)), I:Int |-> 1 }
+2<[153] val(pid,((x :: na) ((pid :: 1) (np :: 3)))) --> 1
+2>[154] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 1, CYU |-> (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ any ]) }
+2<[154] (1 == (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ any ]))
+     --> false
+2>[155] rule: eq (false and A:Bool)
+   = false
+    { A:Bool |-> true }
+2<[155] (true and false) --> false
+1>[156] apply trial #1
+-- rule: ctrans (AC:List | (((S1:Store (send ( X1:Var , Dest:Exp ) ;)) P1:Pgm) | ((S2:Store (recv ( X2:Var , Source:Exp ) ;)) P2:Pgm)))
+   => (AC | ((S1 P1) | (update(X2,(S1 [ X1 ]),S2) P2))) if (((S1 [ Dest ]) == (S2 [ pid ])) and ((S1 [ pid ]) == (S2 [ Source ])))
+    { AC:List |-> ((((x :: na) ((pid :: 1) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)), 
+      S1:Store |-> ((x :: na) ((pid :: 2) (np :: 3))), X1:Var |-> pid, 
+      Dest:Exp |-> 0, P1:Pgm |-> (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end), 
+      S2:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), X2:Var
+       |-> x, Source:Exp |-> any, P2:Pgm |-> (((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) end) }
+2>[156] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((x :: na) ((pid :: 2) (np :: 3))), I:Int |-> 0 }
+2<[156] (((x :: na) ((pid :: 2) (np :: 3))) [ 0 ]) --> 0
+2>[157] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), A:Var
+       |-> pid }
+2<[157] (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ pid ]) --> val(pid,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))))
+2>[158] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((i :: 1) ((x :: na) (np :: 3))), I:Int
+       |-> 0 }
+2<[158] val(pid,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3))))) --> 0
+2>[159] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[159] (0 == 0) --> true
+2>[160] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((x :: na) ((pid :: 2) (np :: 3))), A:Var |-> pid }
+2<[160] (((x :: na) ((pid :: 2) (np :: 3))) [ pid ]) --> val(pid,((x :: na) ((pid :: 2) (np :: 3))))
+2>[161] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((x :: na) (np :: 3)), I:Int |-> 2 }
+2<[161] val(pid,((x :: na) ((pid :: 2) (np :: 3)))) --> 2
+2>[162] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 2, CYU |-> (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ any ]) }
+2<[162] (2 == (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ any ]))
+     --> false
+2>[163] rule: eq (false and A:Bool)
+   = false
+    { A:Bool |-> true }
+2<[163] (true and false) --> false
+1>[164] rewrite rule exhausted (#1)
+1>[164] apply trial #1
+-- rule: ctrans (AC:List | (((S1:Store (send ( X1:Var , Dest:Exp ) ;)) P1:Pgm) | ((S2:Store (recv ( X2:Var , any ) ;)) P2:Pgm)))
+   => (AC | ((S1 P1) | (update(X2,(S1 [ X1 ]),S2) P2))) if ((S1 [ Dest ]) == (S2 [ pid ]))
+    { AC:List |-> ((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)), 
+      S1:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), X1:Var |-> pid, 
+      Dest:Exp |-> 0, P1:Pgm |-> (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end), 
+      S2:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), X2:Var
+       |-> x, P2:Pgm |-> (((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) end) }
+2>[164] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), I:Int |-> 0 }
+2<[164] (((x :: na) ((pid :: 1) (np :: 3))) [ 0 ]) --> 0
+2>[165] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))), A:Var
+       |-> pid }
+2<[165] (((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) [ pid ]) --> val(pid,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))))
+2>[166] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((i :: 1) ((x :: na) (np :: 3))), I:Int
+       |-> 0 }
+2<[166] val(pid,((i :: 1) ((x :: na) ((pid :: 0) (np :: 3))))) --> 0
+2>[167] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[167] (0 == 0) --> true
+1>[168] match success #1
+1<[168] (((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)) | (((((x :: na) ((pid :: 1) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)) | ((((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) (recv ( x , any ) ;)) (((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) end))))
+     --> (((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)) | ((((x :: na) ((pid :: 1) (np :: 3))) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)) | (update(x,(((x :: na) ((pid :: 1) (np :: 3))) [ pid ]),((i :: 1) ((x :: na) ((pid :: 0) (np :: 3))))) (((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) end))))
+1>[169] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), P:Pgm |-> ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end), 
+      BP:BPgm |-> (recv ( x , 0 ) ;) }
+1<[169] (((x :: na) ((pid :: 1) (np :: 3))) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end))
+     --> ((((x :: na) ((pid :: 1) (np :: 3))) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end))
+1>[170] rule: eq update(X:Var,I:Int,((X :: J:Int) S:Store))
+   = ((X :: I) S)
+    { X:Var |-> x, I:Int |-> (((x :: na) ((pid :: 1) (np :: 3))) [ pid ]), 
+      S:Store |-> ((i :: 1) ((pid :: 0) (np :: 3))), J:Int |-> na }
+1<[170] update(x,(((x :: na) ((pid :: 1) (np :: 3))) [ pid ]),((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))))
+     --> ((x :: (((x :: na) ((pid :: 1) (np :: 3))) [ pid ])) ((i :: 1) ((pid :: 0) (np :: 3))))
+1>[171] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), A:Var |-> pid }
+1<[171] (((x :: na) ((pid :: 1) (np :: 3))) [ pid ]) --> val(pid,((x :: na) ((pid :: 1) (np :: 3))))
+1>[172] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((x :: na) (np :: 3)), I:Int |-> 1 }
+1<[172] val(pid,((x :: na) ((pid :: 1) (np :: 3)))) --> 1
+1>[173] rule: trans (S:Store (BP:BPgm P:Pgm))
+   => ((S BP) P)
+    { S:Store |-> ((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))), P:Pgm |-> ((i := (i + 1) ;) ((while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }) end)), 
+      BP:BPgm |-> (send ( x , (np - i) ) ;) }
+1<[173] (((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) (((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) end))
+     --> ((((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) (send ( x , (np - i) ) ;)) ((i := (i + 1) ;) ((while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }) end)))
+1>[174] apply trial #1
+-- rule: ctrans (AC:List | (((S1:Store (send ( X1:Var , Dest:Exp ) ;)) P1:Pgm) | ((S2:Store (recv ( X2:Var , Source:Exp ) ;)) P2:Pgm)))
+   => (AC | ((S1 P1) | (update(X2,(S1 [ X1 ]),S2) P2))) if (((S1 [ Dest ]) == (S2 [ pid ])) and ((S1 [ pid ]) == (S2 [ Source ])))
+    { AC:List |-> ((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)), 
+      S1:Store |-> ((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))), X1:Var
+       |-> x, Dest:Exp |-> (np - i), P1:Pgm |-> (((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })) end), 
+      S2:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), X2:Var |-> x, Source:Exp
+       |-> 0, P2:Pgm |-> ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end) }
+2>[174] rule: eq (S:Store [ (E1:Exp - E2:Exp) ])
+   = ((S [ E1 ]) - (S [ E2 ]))
+    { E1:Exp |-> np, S:Store |-> ((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))), 
+      E2:Exp |-> i }
+2<[174] (((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) [ (np - i) ])
+     --> ((((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) [ np ]) - (((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) [ i ]))
+2>[175] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))), A:Var |-> np }
+2<[175] (((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) [ np ]) --> val(np,((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))))
+2>[176] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> np, S:Store |-> ((x :: 1) ((i :: 1) (pid :: 0))), I:Int
+       |-> 3 }
+2<[176] val(np,((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3))))) --> 3
+2>[177] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))), A:Var |-> i }
+2<[177] (((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) [ i ]) --> val(i,((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))))
+2>[178] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> i, S:Store |-> ((x :: 1) ((pid :: 0) (np :: 3))), I:Int
+       |-> 1 }
+2<[178] val(i,((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3))))) --> 1
+2>[179] rule: eq [:BDEMOD] : (I:Int - J:Int)
+   = (I + (- J))
+    { I:Int |-> 3, J:Int |-> 1 }
+2<[179] (3 - 1) --> (3 + (- 1))
+2>[180] rule: eq [:BDEMOD] : (- I:Int)
+   = #! (- i)
+    { I:Int |-> 1 }
+2<[180] (- 1) --> -1
+2>[181] rule: eq [:BDEMOD] : (I:Int + J:Int)
+   = #! (+ i j)
+    { I:Int |-> -1, J:Int |-> 3 }
+2<[181] (3 + -1) --> 2
+2>[182] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), A:Var |-> pid }
+2<[182] (((x :: na) ((pid :: 1) (np :: 3))) [ pid ]) --> val(pid,((x :: na) ((pid :: 1) (np :: 3))))
+2>[183] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((x :: na) (np :: 3)), I:Int |-> 1 }
+2<[183] val(pid,((x :: na) ((pid :: 1) (np :: 3)))) --> 1
+2>[184] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 2, CYU |-> 1 }
+2<[184] (2 == 1) --> false
+2>[185] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))), A:Var |-> pid }
+2<[185] (((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) [ pid ]) --> val(pid,((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))))
+2>[186] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((x :: 1) ((i :: 1) (np :: 3))), I:Int
+       |-> 0 }
+2<[186] val(pid,((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3))))) --> 0
+2>[187] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), I:Int |-> 0 }
+2<[187] (((x :: na) ((pid :: 1) (np :: 3))) [ 0 ]) --> 0
+2>[188] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 0 }
+2<[188] (0 == 0) --> true
+2>[189] rule: eq (false and A:Bool)
+   = false
+    { A:Bool |-> true }
+2<[189] (false and true) --> false
+1>[190] apply trial #1
+-- rule: ctrans (AC:List | (((S1:Store (send ( X1:Var , Dest:Exp ) ;)) P1:Pgm) | ((S2:Store (recv ( X2:Var , Source:Exp ) ;)) P2:Pgm)))
+   => (AC | ((S1 P1) | (update(X2,(S1 [ X1 ]),S2) P2))) if (((S1 [ Dest ]) == (S2 [ pid ])) and ((S1 [ pid ]) == (S2 [ Source ])))
+    { AC:List |-> ((((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) (send ( x , (np - i) ) ;)) (((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })) end)), 
+      S1:Store |-> ((x :: na) ((pid :: 2) (np :: 3))), X1:Var |-> pid, 
+      Dest:Exp |-> 0, P1:Pgm |-> (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end), 
+      S2:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), X2:Var |-> x, Source:Exp
+       |-> 0, P2:Pgm |-> ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end) }
+2>[190] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((x :: na) ((pid :: 2) (np :: 3))), I:Int |-> 0 }
+2<[190] (((x :: na) ((pid :: 2) (np :: 3))) [ 0 ]) --> 0
+2>[191] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), A:Var |-> pid }
+2<[191] (((x :: na) ((pid :: 1) (np :: 3))) [ pid ]) --> val(pid,((x :: na) ((pid :: 1) (np :: 3))))
+2>[192] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((x :: na) (np :: 3)), I:Int |-> 1 }
+2<[192] val(pid,((x :: na) ((pid :: 1) (np :: 3)))) --> 1
+2>[193] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 0, CYU |-> 1 }
+2<[193] (0 == 1) --> false
+2>[194] rule: eq (S:Store [ A:Var ])
+   = val(A,S)
+    { S:Store |-> ((x :: na) ((pid :: 2) (np :: 3))), A:Var |-> pid }
+2<[194] (((x :: na) ((pid :: 2) (np :: 3))) [ pid ]) --> val(pid,((x :: na) ((pid :: 2) (np :: 3))))
+2>[195] rule: eq val(X:Var,((X :: I:Int) S:Store))
+   = I
+    { X:Var |-> pid, S:Store |-> ((x :: na) (np :: 3)), I:Int |-> 2 }
+2<[195] val(pid,((x :: na) ((pid :: 2) (np :: 3)))) --> 2
+2>[196] rule: eq (S:Store [ I:Int ])
+   = I
+    { S:Store |-> ((x :: na) ((pid :: 1) (np :: 3))), I:Int |-> 0 }
+2<[196] (((x :: na) ((pid :: 1) (np :: 3))) [ 0 ]) --> 0
+2>[197] rule: eq (CXU == CYU) = #!! (coerce-to-bool (term-equational-equal cxu cyu))
+    { CXU |-> 2, CYU |-> 0 }
+2<[197] (2 == 0) --> false
+2>[198] rule: eq (false and A:Bool)
+   = false
+    { A:Bool |-> false }
+2<[198] (false and false) --> false
+1>[199] rewrite rule exhausted (#1)
+(((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (((recv ( x , 0 ) ;) (if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) })) end)) | (((((x :: na) ((pid :: 1) (np :: 3))) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end)) | ((((x :: 1) ((i :: 1) ((pid :: 0) (np :: 3)))) (send ( x , (np - i) ) ;)) (((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })) end)))):List
+(0.000 sec for parse, 198 rewrites(0.290 sec), 755 matches)

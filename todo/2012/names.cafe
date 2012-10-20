@@ -1,0 +1,12 @@
+mod FOO {
+  [ Foo ]
+}
+
+mod BAR {
+  us (FOO)
+  [ Foo ]
+}
+
+mod P1 (C1 :: TRIV, C2 :: TRIV) {
+  [ Elt ]
+}

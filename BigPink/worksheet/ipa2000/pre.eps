@@ -1,0 +1,340 @@
+%!
+%%BoundingBox: -1 660 325 807
+%%Title: pre
+%%CreationDate: Tue Aug 15 21:23:04 2000
+%%Creator: Tgif-3.0J-p13 by William Chia-Wei Cheng (william@cs.UCLA.edu)
+
+/tgifdict 10 dict def
+tgifdict begin
+
+%%Title: eucfont.ps
+% old eucfont.ps(OCFeucfont) and new eucfont.ps(CIDeucfont) were combined.
+%  1996-09, kawamata@sra.co.jp
+% Sample Usage:
+%   Operands are only font names permitted. Don't put fontdict itself.
+% /Courier-Ryumin /Courier /Ryumin-Light-EUC-V eucfont
+
+%%Title: CIDeucfont.ps
+%%Creator: yohtaki@cis.ibaraki.ac.jp
+%%CreationDate: 1996-9-29
+%%EndComments
+%
+% <newfont> <asciifont> <kanjifont> CIDeucfont
+/CIDeucfont {
+dup findfont /WMode get 1 eq 4 1 roll % push direction info.
+12 dict begin
+  /CIDInit /ProcSet findresource begin
+  exch [ 3 1 roll ] beginrearrangedfont
+      3 -1 roll {   % pop direction info
+         /WMode 1 def	% vertical font
+         0 beginusematrix [ 0 1 -1 0 0 0.3 ] endusematrix
+      } if
+      1 usefont
+      1 beginbfrange
+         <00> <7F> <00>
+       endbfrange
+     endrearrangedfont
+  end
+end
+} def
+
+%%Title: OCFeucfont.ps
+%%Creator: shikida@cs.titech.ac.jp, ueno@cs.titech.ac.jp
+%%CreationDate: 1991-2-27
+%%EndComments
+% <font> OCFcopyfont <font>
+/OCFcopyfont {
+    dup maxlength 1 add dict begin
+    {
+	1 index /FID ne 2 index /UniqueID ne and
+	{def} {pop pop} ifelse
+    } forall
+    currentdict
+    end
+} bind def
+% <newfont> <asciifont> <kanjifont> OCFeucfont
+/OCFeucfont {
+      12 dict begin
+	dup type /nametype eq { findfont } if
+	dup /WMode known {
+	    dup /WMode get /WMode exch def
+	    WMode 1 eq {
+		[0.0 1.0 -1.0 0.0 0.0 0.30] makefont
+	    } if
+	} if
+	OCFcopyfont dup begin
+	    /Encoding Encoding
+	    FMapType dup 2 eq {
+		pop 128 128
+	    } { 5 eq {
+		256 256
+	    } {
+		/compositefont errordict /invalidfont get exec
+	    } ifelse
+	    } ifelse
+	    getinterval def
+	end
+	/kanjifont exch definefont
+	exch
+
+	dup type /nametype eq { findfont } if
+	exch
+
+	/FDepVector [ 4 2 roll ] def
+	/FontType 0 def
+	/FMapType 4 def
+	/FontMatrix matrix def
+	/Encoding [ 0 1 ] def
+	/FontBBox {0 0 0 0} def
+	dup /FontName exch def
+	currentdict
+    end
+    definefont pop
+} def
+
+% <newfont> <asciifont> <kanjifont> eucfont
+/eucfont {
+	dup findfont
+	/FMapType get 9 eq
+		{ CIDeucfont}
+		{ OCFeucfont} ifelse
+} def
+/tgifellipsedict 6 dict def
+tgifellipsedict /mtrx matrix put
+
+/tgifellipse
+ { tgifellipsedict begin
+      /yrad exch def
+      /xrad exch def
+      /y exch def
+      /x exch def
+      /savematrix mtrx currentmatrix def
+      x y translate
+      xrad yrad scale
+      0 0 1 0 360 arc
+      savematrix setmatrix
+   end
+ } def
+
+/tgifarrowtipdict 8 dict def
+tgifarrowtipdict /mtrx matrix put
+
+/tgifarrowtip
+ { tgifarrowtipdict begin
+      /dy exch def
+      /dx exch def
+      /h exch def
+      /w exch def
+      /y exch def
+      /x exch def
+      /savematrix mtrx currentmatrix def
+      x y translate
+      dy dx atan rotate
+      0 0 moveto
+      w neg h lineto
+      w neg h neg lineto
+      savematrix setmatrix
+   end
+ } def
+
+end
+
+%%PageBoundingBox: -1 660 325 807
+tgifdict begin
+/tgifsavedpage save def
+
+1 setmiterlimit
+1 setlinewidth
+
+0 setgray
+
+72 0 mul 72 11.70 mul translate
+72 128 div 100.000 mul 100 div dup neg scale
+
+gsave
+
+/tgiforigctm matrix currentmatrix def
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H /Courier /GothicBBB-Medium-EUC-H eucfont
+/Courier-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      416 190 moveto (balance\(_\)<0) show
+   grestore
+
+% OVAL
+0 setgray
+gsave
+   gsave
+      newpath 488 184 88 40 tgifellipse
+      stroke
+   grestore
+grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      64 126 moveto (balance\(deposit\(N,_\)\)<0) show
+   grestore
+
+% OVAL
+0 setgray
+gsave
+   gsave
+      newpath 184 136 136 72 tgifellipse
+      stroke
+   grestore
+grestore
+
+% POLY/OPEN-SPLINE
+0 setgray
+gsave
+   newpath
+      320 128 moveto
+      32 96 atan dup cos 8.000 mul 416 exch sub
+      exch sin 8.000 mul 160 exch sub lineto
+   tgiforigctm setmatrix
+   1 setlinewidth
+   stroke
+grestore
+gsave
+   tgiforigctm setmatrix
+   newpath
+      416 160 8.000 3.000 96 32 tgifarrowtip
+   1 setgray closepath fill
+   0 setgray
+   newpath
+      416 160 8.000 3.000 96 32 tgifarrowtip
+   closepath fill
+grestore
+
+% POLY/OPEN-SPLINE
+0 setgray
+gsave
+   newpath
+      320 256 moveto
+      -48 96 atan dup cos 8.000 mul 416 exch sub
+      exch sin 8.000 mul 208 exch sub lineto
+   tgiforigctm setmatrix
+   1 setlinewidth
+   stroke
+grestore
+gsave
+   tgiforigctm setmatrix
+   newpath
+      416 208 8.000 3.000 96 -48 tgifarrowtip
+   1 setgray closepath fill
+   0 setgray
+   newpath
+      416 208 8.000 3.000 96 -48 tgifarrowtip
+   closepath fill
+grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      64 270 moveto (balance\(withdraw\(N,_\)\)<0) show
+   grestore
+
+% OVAL
+0 setgray
+gsave
+   gsave
+      newpath 184 240 136 80 tgifellipse
+      stroke
+   grestore
+grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      64 110 moveto (\\E[N:Int]) show
+   grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      64 254 moveto (\\E[N:Int]) show
+   grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      368 270 moveto (withdraw\(_,_\)) show
+   grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      352 110 moveto (deposit\(_,_\)) show
+   grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      0 190 moveto (......) show
+   grestore
+
+% POLY/OPEN-SPLINE
+0 setgray
+gsave
+   newpath
+      0 64 moveto
+      32 64 atan dup cos 8.000 mul 64 exch sub
+      exch sin 8.000 mul 96 exch sub lineto
+   tgiforigctm setmatrix
+   1 setlinewidth
+   stroke
+grestore
+gsave
+   tgiforigctm setmatrix
+   newpath
+      64 96 8.000 3.000 64 32 tgifarrowtip
+   1 setgray closepath fill
+   0 setgray
+   newpath
+      64 96 8.000 3.000 64 32 tgifarrowtip
+   closepath fill
+grestore
+
+% POLY/OPEN-SPLINE
+0 setgray
+gsave
+   newpath
+      16 320 moveto
+      -32 64 atan dup cos 8.000 mul 80 exch sub
+      exch sin 8.000 mul 288 exch sub lineto
+   tgiforigctm setmatrix
+   1 setlinewidth
+   stroke
+grestore
+gsave
+   tgiforigctm setmatrix
+   newpath
+      80 288 8.000 3.000 64 -32 tgifarrowtip
+   1 setgray closepath fill
+   0 setgray
+   newpath
+      80 288 8.000 3.000 64 -32 tgifarrowtip
+   closepath fill
+grestore
+
+% TEXT
+0 setgray
+/Courier-GothicBBB-Medium-EUC-H findfont [17 0 0 -17 0 0] makefont setfont
+   gsave
+      464 142 moveto (~P\(X\)) show
+   grestore
+
+grestore
+tgifsavedpage restore
+end
+%MatchingCreationDate: Tue Aug 15 21:23:04 2000

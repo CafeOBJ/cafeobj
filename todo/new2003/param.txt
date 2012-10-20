@@ -1,0 +1,22 @@
+-- inheritance of pricipal sort: (May 24th or 25th):
+I little bit changed my mind, and did an experiment with the
+inheritance of principal sort.
+
+Please try the patch enclosed in this mail, and please examine the 
+behaviour of the system. If there are no problems, I will include 
+this in the next release.
+
+If you applied this patch, principal sort is inherited in the 
+following cases:
+(1) if a parameterized module M has a principal sort PS,
+    its instatiation has principal sort PS', where PS' is the
+    same as PS if it is not mapped.
+(2) if a module M has principal sort PS, its renamed module has
+    principal sort PS' (may be mapped to another sort).
+
+I generally dislike making exceptional cases, but aboves seems
+to be natural. 
+Here are some examples using your I-POSET and its friends.
+First, this is the result of evaluating STRG-MAPPING declaration,
+note there is no explict map from Elt to 2Tuple.
+

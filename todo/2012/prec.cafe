@@ -1,0 +1,7 @@
+module P1 {
+  [ S ]
+  op _&_ : S S -> S 
+  op _!_ : S S -> S { prec: 51 }
+  op s : -> S
+  op fun : S -> S 
+}

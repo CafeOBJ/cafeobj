@@ -1,0 +1,17 @@
+mod FOO {
+ [ Foo ]
+}
+
+mod FOO2 {
+  us(FOO)
+}
+
+mod FOO3 {
+  us(FOO)
+}
+
+mod FOO4 {
+  pr(FOO2)
+  pr(FOO3)
+}
+

@@ -1,0 +1,64 @@
+%$Id: pnguide.tex,v 1.1.1.1 2003-06-19 08:26:59 sawada Exp $
+\documentclass[a4paper,11pt]{jarticle}
+\usepackage[dvips]{graphicx}
+\usepackage{proof}
+\setlength{\textwidth}{5.5in}
+\setlength{\textheight}{9in}
+\setlength{\hoffset}{-.25in}
+\setlength{\voffset}{-1.0in}
+\setlength{\parskip}{.1in}
+%%%%%%%%%%
+\includeonly{part1,part2}
+%%%%%%%%%%
+\begin{document}
+% 表紙
+\pagenumbering{roman}
+\addtocounter{page}{1}
+\begin{titlepage}
+\hspace*{3.8in}
+\parbox{3in}{開放型分散環境での \\ ソフトウェア部品検証システムの \\研究開発}
+\vspace{1in}
+\begin{center}
+{\LARGE\bf 検証推論システム導入解説・取扱説明書}
+\end{center}
+\vspace{2in}
+\date{\today}
+\end{titlepage}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{本書の構成}
+本書は「開放型分散環境でのソフトウェア部品検証システムの研究開発」
+プロジェクトにおける，検証推論システムの使用手引書である.
+
+内容は3部構成となっており，第I部でシステムの概要を述べ,
+第II部でインストール方法, 最後に第III部で使用方法を述べる.
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 目次
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{part1}
+\include{part2}
+\include{part3-1}
+\include{part3-2}
+\include{part3-3}
+\include{appendix}
+
+\newpage
+%%% BIB
+\begin{thebibliography}{?-}
+
+\bibitem{chang-lee} Chang, C. and Lee. R.C.,
+  \textsl{Symbolic Logic and Mechanical Theorem Proving},
+  Academic Press, 1973
+
+\bibitem{otter} McCune, W.W.,
+  \textsl{Otter 3.0 Reference Manual and Guide},
+  \verb|http://www.info.mcs.anl.gov|
+
+\end{thebibliography}
+\end{document}
+

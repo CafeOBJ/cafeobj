@@ -1,0 +1,51 @@
+Dear Alex,
+
+I think this problem has been existed in the version 1.4.1b5 already.
+Anyway, please apply the following procedure to fix this problem.
+(1) change your working directry with which you are convenient to work.
+(2) write down the code fragment below to some file, let's say it
+    "gcl-array-bug.lisp". 
+
+---BEGIN<gcl-array-bug.lisp>----------------------------------------------
+(in-package :chaos)
+#+GCL
+(Clines "
+static
+object alloc_svec_fixnum (size)
+ object size;
+{
+  object vect ;
+  int i;
+  vect = alloc_object(t_vector);
+  vect->v.v_self = 0 ;
+  vect->v.v_elttype = aet_object;
+  vect->v.v_dim = Mfix(size);
+  vect->v.v_displaced = Cnil ;
+  vect->v.v_hasfillp = 0 ;
+  vect->v.v_fillp = vect->v.v_dim;
+  vect->v.v_adjustable = 0;
+  array_allocself(vect, 0, small_fixnum(0));
+  return vect;
+}
+"
+)
+
+#+GCL
+(defentry alloc-svec-fixnum (object) (object alloc_svec_fixnum))
+---End<gcl-array-bug.lisp>---------------------------------------
+
+(3) invoke cafeobj
+(4) do the following command sequeces
+    a. ev (compile-file "./gcl-array-problem.lisp")
+    b. ev (load "./gcl-arrray-problem.o")
+    c. save-system /tmp/cafeobj.exe
+(5) replace your older cafeobj.exe (placed on /usr/local/cafeobj-1.4.1/bin/
+    if you use default configuration) with the new one created by the (4-c).
+
+I successfully tested this proc. on my machine.
+I would like to announce this patch to cafeteria mailing list if you
+also get successful result. So, please let me know about it.
+
+With best wishes
+
+-- sawada@sra.co.jp

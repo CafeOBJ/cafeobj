@@ -1,0 +1,82 @@
+Dear Dorel,
+
+Very thanks for your mails. They gave me a power.
+
+| I have written a new version for ABP (Ohhh, yes, ABP again ...).
+
+Good old and very useful example. It still gives us something new.
+
+| My question is whether there exist
+| special rewriting engines which can be used for cases like this.
+
+There is. But, by a simple investigation of your problem, I found a
+more fatal problem in the term parser of our interpreter -- I will 
+touch this later in this mail, before that, I talk about the way to
+get more efficient reduction speed:
+
+1. there is an operator attribute `memo'
+2. this can be used for reducing the effort of evaluate the same terms
+   repetitively
+3. this tells the system to remember the result of evaluation where 
+   the operator appeared.
+
+More specifically, if you delcare `memo'
+   op f**k : S S S -> S { memo }
+and evaluate a term containing `f**k(t1,t2,t3)', the system take a note of
+(1) `f**k(t1,t2,t3)' itself, (2) `f**k(r1,r2,r3)', where 'ri's are the
+results of evaluating 'ti's, and (3) the result of evaluating (1). If the
+need arises to evaluate (1) again, the system get the result (3) immediately.
+This mechanism evalute terms not only speed up the computation, it also saves
+memory space, when you evalute terms that contain common subterms. 
+
+(Please note that the memo attribute can only be specified on fuctions 
+ meaningfuly, i.e. operators not defined by rules. The system does not check 
+ this condition, although.)
+
+The system does or does not remember the evaluation results after each
+evaluation. It is controlled by a switch, and `clean memo' command:
+
+  CafeOBJ> set clean memo on
+
+tell the system to be forgetful. The default is `off'.
+It is also possible to initialise memo storages by the following command.
+
+  CafeOBJ> clean memo
+
+The memo attributes may be ignored if you turn a switch off, `memo' as
+
+  CafeOBJ> set memo off
+
+The default value of `memo' is on.
+
+The following is a result of apply `memo' mechanism to your spec. 
+I declared `memo' attribute to `event', `sender_' and `receiver' of 
+module RABP. 
+
+  %RABP-PROOF> red sndng-list(sender  m(m(m(m(a))))) .
+  *
+  -- reduce in %RABP-PROOF : sndng-list (sender m(m(m(m(a)))))
+  IL : IList
+  (0.040 sec for parse, 433 rewrites(0.490 sec), 766 matches, 184 memo hits)
+  %RABP-PROOF> red sndng-list(sender  m(m(m(m(m(m(m(m(a))))))))) .
+  -- reduce in %RABP-PROOF : sndng-list (sender m(m(m(m(m(m(m(m(a))
+      )))))))
+  tail IL : IList
+  (4.080 sec for parse, 3251 rewrites(1.850 sec), 6297 matches, 863 memo hits)
+
+I ran this on my rather poor lap top(133MHz Pentium with 40Mbytes of memory)
+using CafeOBJ installed on ACL5.0(beta) Linux.
+
+You may aware that time for parsing seems too much for the appearing term.
+This is the very fatal problem of the current system I mentioned earlier 
+in this mail. For term, 
+  sndng-list(sender  m(m(m(m(m(m(m(m(m(m(m(m(m(m(m(m(a))))))))))))))))) .
+my computer does not give me any responce for more than 30 minutes. 
+I will work on this problem soon, and I strongly hope I can send you 
+a good letter in near future.
+
+Very Best Regards,
+Toshimi Sawada
+-- sawada@sra.co.jp
+   Software Enginnering Lab. SRA Inc.
+

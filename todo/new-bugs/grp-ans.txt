@@ -1,0 +1,28 @@
+Dear Razvan,
+
+Thanks for your report. First, I would like to show you a proof
+score which is properly performed in the current system. Then I
+will describe problems with the current implementation.
+
+  open G-HOM
+  start 0 h == 0 .
+  apply -G'.r-id at (1) . -- was apply -GROUP.r-id at (1) .
+  apply -G'.r-inv with X = (0 h) at (1 2) .
+                          -- was apply -GROUP.r-inv with X = (0 h) at (1 2) .
+  apply -.hom at [1 .. 2] of (1) .
+  apply reduce at term .
+  close
+
+I changed rule specs in first two apply commands as 
+	-GROUP.r-id	--> -G'.r-id
+        -GOURP.r-inv	--> -G'.r-inv
+This is because
+(1) The current implementation does not allow (fail) the direct
+    reference of axioms declared in imported modules which are
+    applied some operation on them, i.e., renaming, instantiation.
+    You might understand difficulties for these cases. For example,
+    consider a case of instantiation of the parameterized module M. 
+    If a supplied view maps an operator Op to Op', we cannot use an
+    axiom of M containing Op directly. We must change the axiom 
+    according to the map given by the view. 
+    

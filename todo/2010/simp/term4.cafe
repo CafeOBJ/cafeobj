@@ -1,0 +1,23 @@
+select TEST
+--> 'set find all rules on', this is an extension of current interpreter, not yet 
+--> released.
+set find all rules on
+--> result of 'exec input'
+parse ((((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end)) | ((((((x :: na) ((pid :: 1) (np :: 3))) (send ( pid , 0 ) ;)) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end)) | (((((i :: 1) ((x :: na) ((pid :: 0) (np :: 3)))) (recv ( x , any ) ;)) ((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })))) end))) .
+let exec-input-result = $$term .
+--> find +rules
+find +rules
+set trace whole on
+--> red exec-input-result .
+red exec-input-result .
+
+--> result of 'red input -->! L:list' with exec normalize off.
+parse ((((((x :: na) ((pid :: 2) (np :: 3))) (send ( pid , 0 ) ;)) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end)) | ((((((x :: na) ((pid :: 1) (np :: 3))) (send ( pid , 0 ) ;)) (recv ( x , 0 ) ;)) ((if (pid = 0) { (((int x ;) (int i ;)) ((i := 1 ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) }))) }) end)) | (((update(i,(((i :: na) ((x :: na) ((pid :: 0) (np :: 3)))) [ 1 ]),((i :: na) ((x :: na) ((pid :: 0) (np :: 3))))) (recv ( x , any ) ;)) ((send ( x , (np - i) ) ;) ((i := (i + 1) ;) (while (np > i) { ((recv ( x , any ) ;) ((send ( x , (np - i) ) ;) (i := (i + 1) ;))) })))) end))) .
+let red-input==>!-result-normalize-off = $$term .
+--> fild +rules 
+find +rules
+red red-input==>!-result-normalize-off .
+
+--> red exec-input-result == red-input==>!-result-normalize-off .
+red exec-input-result == red-input==>!-result-normalize-off .
+eof
