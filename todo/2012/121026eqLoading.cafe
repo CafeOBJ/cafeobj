@@ -1,0 +1,174 @@
+-- bits (2 elemnts) for alternation
+mod! BIT {
+ [BitLt < Bit]
+ ops b0 b1 : -> BitLt .
+ eq (B1:BitLt = B2:BitLt) = (B1 == B2) .
+ op not : Bit -> Bit .
+ eq not(b0) = b1 .
+ eq not(b1) = b0 .
+ eq (B:Bit = not(B)) = false .
+}
+
+-- natural numbers in Peano style
+mod! NNUM {
+ [NzNat NatLt < Nat]
+ op 0 : -> Nat .
+ op s_ : Nat -> NzNat .
+ op p_ : NzNat -> Nat .
+ eq (p (s N:Nat)) = N .
+ eq (0 = 0) = true .
+ eq (0 = s N:Nat) = false .
+ eq (s N1:Nat = s N2:Nat) = (N1 = N2) .
+ --
+ eq (N1:NatLt = N2:NatLt) = (N1 == N2) .
+ -- facts
+ eq (N:Nat = (s N)) = false .
+}
+
+-- pair of bit and natural number
+mod! BN-PAIR{
+ pr(BIT + NNUM)
+ [BNpair]
+ op bn : Bit Nat -> BNpair .
+ eq (bn(B1:Bit,N1:Nat) = bn(B2:Bit,N2:Nat))
+    = (B1 = B2) and (N1 = N2) .
+ op 1st : BNpair -> Bit .
+ eq 1st(bn(B:Bit,N:Nat)) = B .
+ op 2nd : BNpair -> Nat .
+ eq 2nd(bn(B:Bit,N:Nat)) = N .
+}
+
+mod* TRIV= {
+[Elt]
+pred _=_ : Elt Elt {comm}.
+eq (E:Elt = E) = true .
+}
+
+-- Sequence without {id: emp}
+mod* SEQ (X :: TRIV=) {
+pr(NNUM)
+[Elt < Seq]
+-- empty Sequence
+op emp : -> Seq . 
+op (_ _) : Seq Seq -> Seq {constr assoc}
+eq (emp S:Seq) = S .
+eq (S:Seq emp) = S .
+--
+eq (emp = E:Elt) = false .
+eq (emp = (E:Elt S:Seq)) = false .
+eq (emp = (S:Seq E:Elt)) = false .
+eq (E1:Elt = (E21:Elt E22:Elt)) = false .
+eq (E1:Elt = (E21:Elt E22:Elt S2:Seq)) = false .
+eq (E1:Elt = (S1:Seq E21:Elt E22:Elt)) = false .
+eq ((E11:Elt E12:Elt) = (E21:Elt E22:Elt))
+     = ((E11 = E21) and (E12 = E22)) .
+eq ((E11:Elt E12:Elt) = (E21:Elt E22:Elt S2:Seq))
+     = ((E11 = E21) and (E12 = E22) and (emp = S2)) .
+eq ((E11:Elt E12:Elt S1:Seq) = (E21:Elt E22:Elt S2:Seq))
+     = ((E11 = E21) and (E12 = E22) and (S1 = S2)) .
+--
+-- left hd and right tail
+op lhd : Seq -> Elt .
+eq lhd(E:Elt) = E .
+eq lhd(E:Elt S:Seq) = E .
+--
+op rtl : Seq -> Seq .
+eq rtl(E:Elt) = emp .
+eq rtl(E:Elt S:Seq) = S .
+--
+op rhd : Seq -> Elt .
+eq rhd(E:Elt) = E .
+eq rhd(S:Seq E:Elt) = E .
+--
+op ltl : Seq -> Seq .
+eq ltl(E:Elt) = emp .
+eq ltl(S:Seq E:Elt) = S .
+
+-- facts, or assertions about operations on emp
+eq (lhd(emp) = E:Elt) = false .
+eq (rhd(emp) = E:Elt) = false .
+ceq (S:Seq = emp) = false if (lhd(S) = E:Elt) .
+ceq (S:Seq = emp) = false if (rhd(S) = E:Elt) .
+eq ((E:Elt S1:Seq) = (E S2:Seq)) = (S1 = S2) .
+
+-- facts: assertions about ops on emp
+eq (lhd(emp) = E:Elt) = false .
+eq (rhd(emp) = E:Elt) = false .
+eq ((S:Seq = emp) and (lhd(S) = E:Elt)) = false .
+eq ((S:Seq = emp) and (rhd(S) = E:Elt)) = false .
+
+eq ((S1:Seq = S2:Seq) and (S1 = (E:Elt S3:Seq S2))) = false .
+eq ((S1:Seq = (E1:Elt S2:Seq)) and ((E2:Elt S1) = S2)) = false .
+
+}
+
+-- Sender-receiver channel: sequence of Bit-Nat pairs
+mod! SRCH {
+  pr(SEQ(BN-PAIR{sort Elt -> BNpair
+                 op (E1:Elt = E2:Elt) -> (E1:BNpair = E2:BNpair)})
+     *{sort Seq -> SRch,op emp -> empBN})
+}
+
+-- properties on SRCH
+mod SRCHprop {
+pr(SRCH)
+
+vars BN1 BN2 : BNpair .
+var SRC : SRch .
+
+-- zero difference of elements
+pred zeroD : SRch .
+eq zeroD(empBN) = true .
+eq zeroD(BN1) = true .
+eq zeroD(BN1 BN2) = (BN1 = BN2) .
+eq zeroD(BN1 SRC BN2) = ((BN1 = BN2) and zeroD(BN1 SRC)) .
+
+-- at most one difference of elements
+pred oneD : SRch .
+eq oneD(empBN) = true .
+eq oneD(BN1) = true .
+eq oneD(BN1 BN2) = 
+     if (BN1 = BN2) then true 
+     else ((not(1st(BN1) = 1st(BN2)))
+            and (2nd(BN1) = s(2nd(BN2)))) fi .
+eq oneD(BN1 SRC BN2) = 
+     if (BN1 = BN2) then zeroD(BN1 SRC) 
+     else (not(1st(BN1) = 1st(BN2))
+           and (2nd(BN1) = s(2nd(BN2)))
+           and oneD(BN1 SRC)) fi .
+
+vars B B1 B2 : Bit .
+vars N N1 N2 : Nat .
+
+-- (1)
+ceq[1]: (oneD(bn(B1,N1) SRC) and 
+     (1st(lhd(SRC bn(B2,N2))) = B1) and
+     (2nd(lhd(SRC bn(B2,N2))) = N1))
+     = (oneD(bn(B1,N1) SRC) and 
+        (1st(lhd(SRC bn(B2,N2))) = B1)) if (B2 = not(B1)) .
+
+-- (2)
+ceq[2]: (oneD(bn(B1,N1) SRC) and
+     (1st(lhd(SRC bn(B2,N2))) = B2) and
+     (2nd(lhd(SRC bn(B2,N2))) = N2))
+     = (oneD(bn(B1,N1) SRC) and
+        (1st(lhd(SRC bn(B2,N2))) = B2)) if (B2 = not(B1)) .
+
+"
+-- (3)
+ceq[3]: (oneD(bn(B1,N1) SRC) and
+     (2nd(lhd(SRC bn(B2,N2))) = N1) and
+     (1st(lhd(SRC bn(B2,N2))) = B1))
+     = (oneD(bn(B1,N1) SRC) and
+        (1st(lhd(SRC bn(B2,N2))) = B2)) if (B2 = not(B1)) .
+
+-- (4)
+ceq[4]: (oneD(bn(B1,N1) SRC) and
+     (2nd(lhd(SRC bn(B2,N2))) = N2) and
+     (1st(lhd(SRC bn(B2,N2))) = B2))
+     = (oneD(bn(B1,N1) SRC) and
+        (1st(lhd(SRC bn(B2,N2))) = B2)) if (B2 = not(B1)) .
+"
+
+}
+

@@ -667,6 +667,10 @@
                     (%check* :compatibility (cdr dat)))
                    (("coherency" "coherent" "coh" "coherence")
                     (%check* :coherency (cdr dat)))
+		   (("sensible" "sensibleness")
+		    (%check* :sensible (cdr dat)))
+		   (("rewriting" "rew")
+		    (%check* :rew-coherence (cdr dat)))
                    #+:BigPink
                    (("invariance" "inv")
                     (%check* :invariance (cdr dat)))
@@ -697,7 +701,12 @@
   (format t "~&  check {lazy | laziness} [<Operator>]")
   (format t "~&~8Tcheck strictness of <Operator>")
   (format t "~& check {coh | coherency | coherence} <Operator>")
-  (format t "~&~8Tcheck if operator is behaviouraly coherent"))
+  (format t "~&~8Tcheck if operator is behaviouraly coherent")
+  (format t "!& check {sensible | sensibleness} [<Modexp>]")
+  (format t "~&~8Tcheck if the signature of the module is sensible or not.")
+  (format t "~& check {rewriting | rew} coherence [<Modexp>]")
+  (format t "~&~8Tcheck if trans axioms and equations are coherent of not.")
+  )
 
 ;;; *******
 ;;; DRIBBLE

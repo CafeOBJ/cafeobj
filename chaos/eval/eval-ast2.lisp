@@ -1340,6 +1340,26 @@ File: eval-ast2.lisp
                        ))
                    ))
              (check-operator-coherency-whole mod)))))
+      ;;
+      ;; SENSIBILITY of the signature
+      ;;
+      (:sensible
+       (let ((module (eval-mod-ext args)))
+	 (unless *chaos-quiet*
+	   (with-output-simple-msg ()
+	     (format t ">> Start sensible check ...")
+	     (terpri)
+	     (force-output)))
+	 (check-sensible module t)))
+      (:rew-coherence
+       (let ((module (eval-mod-ext (cdr args))))
+	 (let ((r-arg (car args)))
+	   (unless (or (equal "coherency" r-arg)
+		       (equal "coh" r-arg))
+	     (with-output-chaos-error ('invalid-arg)
+	       (format t "check rewriting: Invalid argument ~s" r-arg)))
+	   (check-rew-coherency mod))))
+
       ;; PigNose extention
       #+:BigPink
       (:invariance

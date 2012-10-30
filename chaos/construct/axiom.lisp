@@ -535,8 +535,12 @@
     (cond ((term$is-variable? t1-body)
 	   (or (eq t1 t2)
 	       (and (term$is-variable? t2-body)
+		    #||
 		    ;; (eq (variable$name t1-body) (variable$name t2-body))
-		    (sort= (variable$sort t1-body) (variable$sort t2-body)))))
+		    (sort= (variable$sort t1-body) (variable$sort t2-body))
+		    ||#
+		    (variable= t1 t2)
+		    )))
 	  ((term$is-variable? t2-body) nil)
 	  ((term$is-application-form? t1-body)
 	   (and (term$is-application-form? t2-body)

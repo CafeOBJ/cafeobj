@@ -125,6 +125,7 @@
                      "tools/compat"
                      "tools/help"
 		     "tools/inspect"
+		     "tools/sensible"
                      ;; "psupport"
                      ))
      (:module-group :eval

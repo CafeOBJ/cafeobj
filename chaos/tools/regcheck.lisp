@@ -16,8 +16,8 @@
 ;;; ***
 ;;; SOP_________________________________________________________________________
 ;;; ***
-;;; SOP gathers methods of an operator. Methods are gategorized into two
-;;; groups: empties and non-empties, which is a set of empty methods
+;;; SOP gathers methods of an operator. Methods are categorized into two
+;;; groups: empties and non-empties, which are a set of empty methods
 ;;; (i.e., methods with some argument sorts are empty sorts) and non-empty
 ;;; methods respectively.
 ;;;
