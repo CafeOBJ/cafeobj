@@ -214,7 +214,7 @@
 ;;; RECOMPUTING SORT____________________________________________________________
 ;;; ****************
 
-;;; UPDATE-LOWEST-PARAE : TERM -> TERM'
+;;; UPDATE-LOWEST-PARSE : TERM -> TERM'
 ;;; update sort of the term, possibly head method may change.
 ;;;
 (defun set-if-then-else-sort (term &optional (so *current-sort-order*))
@@ -256,13 +256,11 @@
 	      (format t "Coarity: ")
 	      (print-sort-name mso *current-module*)
 	      (print-next)
-	      (term-print-with-sort term))
-	      )
+	      (term-print-with-sort term)))
 	    (setf (term-sort term) mso)
 	    (when *term-debug*
-	      (format t "~& --> ")
-	      (term-print-with-sort term))
-	    )))
+	      (format t "~&[ULP] --> ")
+	      (term-print-with-sort term)))))
       (if (term$is-builtin-constant? body)
 	  ;; built-in constant term
 	  (let ((so (module-sort-order
@@ -290,7 +288,6 @@
 	      term))
 
 	;; application form
-	
 	(let* ((head (term$head body))
 	       (mod (if *current-module*
 			*current-module*
@@ -300,14 +297,9 @@
 	       (t1 nil)
  	       (t2 nil)
 	       (sort-order (module-sort-order mod))
-	       ;; (sort nil)
-	       (new-head nil)
-	       )
+	       (new-head nil))
 	  (declare (type method head)
 		   (type module mod))
-	  ;;
-	  ;; "standard" morphism rules
-	  ;;
 	  ;; #||
 	  (when (method-is-error-method head)
 	    (when *term-debug*
@@ -318,24 +310,24 @@
 	    (dolist (sub (term-subterms term))
 	      (update-lowest-parse sub)))
 	  ;; ||#
-	  ;;
-	  ;; special case if
-	  ;;
+
+	  ;; ----------------------------
+	  ;; special case if_then_else_fi
+	  ;; ----------------------------
 	  (when (eq (term-head term) *bool-if*)
 	    (set-if-then-else-sort term)
-	    (return-from update-lowest-parse term)
-	    )
-	  ;; 
+	    (return-from update-lowest-parse term))
+
+	  ;; --------------------------
+	  ;; "standard" morphism rules
+	  ;; --------------------------
+
 	  (when *term-debug*
-	    (format t "~&*ULP: given term =====================~%  ")
+	    (format t "~&[ULP] given term =====================~%  ")
 	    (term-print-with-sort term)
-	    (format t "~&*ULP: current = ~S" (method-name head))
-	    (format t "~% arity =")
-	    (dolist (s (method-arity head))
-	      (princ " ")
-	      (print-sort-name s))
-	    (princ ", coarity = ")
-	    (print-sort-name (method-coarity head)))
+	    (format t "~&[ULP] current = ")
+	    (print-chaos-object head)
+	    (trace lowest-method))
 	  (setq new-head
 	    (lowest-method head
 			   (mapcar #'(lambda (x)
@@ -344,30 +336,18 @@
 				   (term$subterms body))
 			   mod))
 	  (when *term-debug*
-	    (format t "~&*ULP: new = ~S" (method-name new-head))
-	    (format t "~% arity =")
-	    (dolist (s (method-arity new-head))
-	      (princ " ")
-	      (print-sort-name s))
-	    (princ ", coarity = ")
-	    (print-sort-name (method-coarity new-head)))
+	    (format t "~&[ULP] new = ")
+	    (print-chaos-object new-head)
+	    (untrace))
+	  ;;
 	  (when (not (eq head new-head))
 	    (change-head-operator term new-head)
 	    (setf (term-sort term) (method-coarity new-head))
+	    (mark-term-as-not-reduced term)
 	    ;; (reset-reduced-flag term)	; ????
 	    (when *term-debug*
-	      (with-output-msg ()
-		(format t "ULP: term = ")
-		(term-print-with-sort term)
-		(format t "~&-- old op=~a:~a -> ~a"
-			head
-			(method-arity head)
-			(method-coarity head)))
-		(format t "~&-- new op=~a:~a -> ~a"
-			new-head
-			(method-arity (term-head term))
-			(method-coarity (term-head term)))))
-	  (setq head new-head)		; ????
+	      (format t "~&[ULP] head operator was changed =======")))
+	  ;;
 	  #||
 	  (if (eq (term-head term) *bool-if*)
 	      (progn
@@ -378,6 +358,7 @@
 	    )
 	  ||#
 	  ;;
+	  (setq head new-head)
 	  (when (method-is-associative head)
 	      ;; &&&& the following transformation tends to put
 	      ;; term into standard form even when sort doesn't decrease.
@@ -391,7 +372,7 @@
 				(term-sort (term$arg-1 son))
 				sort-order))
 		(when *term-debug*
-		  (format t "~&*ULP: treating ASSOCIATIVITY"))
+		  (format t "~&[ULP] treating ASSOCIATIVITY"))
 		;; we are in the following configuration
 		;;              fs'   ->    fs'
 		;;          fs'    s     s'     fs
@@ -399,10 +380,8 @@
 		;; so:
 		(setf (term$subterms body)
 		      (list (term$arg-1 son)
-			    (update-lowest-parse
-			     (make-applform (method-coarity head)
-					    head
-					    (list t1 t2))))))
+			    (update-lowest-parse (make-term-with-sort-check-bin head (list t1 t2))))))
+					; (make-applform (method-coarity head) head (list t1 t2))
 	      ;; would only like to do the following if the
 	      ;; sort really decreases
 	      (when (and (not (or (term$is-variable? (setq son (term-body
@@ -413,7 +392,7 @@
 				(term-sort (setq t2 (term$arg-1 son))))
 			 (sort< (term-sort t1) (term-sort (term$arg-2 son)) sort-order))
 		(when *term-debug*
-		  (format t "~&*ULP: ASSOCIATIVITY 2"))
+		  (format t "~&[ULP] ASSOCIATIVITY 2"))
 		;; we are in the following configuration
 		;;              fs'       ->       fs'
 		;;            s     fs'         fs     s'
@@ -421,10 +400,9 @@
 		;; so:
 		(setf (term-subterms term)
 		      (list (update-lowest-parse
-			     (make-applform (method-coarity head) head
-					    (list t1 t2)))
-			    (term$arg-2 son))))
-	      )
+					;(make-applform (method-coarity head) head (list t1 t2))
+			     (make-term-with-sort-check-bin head (list t1 t2)))
+			    (term$arg-2 son)))))
 
 	  ;;  necesary to have true lowest parse
 
@@ -434,10 +412,9 @@
 		   (alt-op (lowest-method head
 					  (list (term-sort t2) (term-sort t1)))))
 	      (when (not (eq alt-op head))
-		(term-replace term (make-applform
-				    (method-coarity alt-op)
-				    alt-op
-				    (list t2 t1))))))
+		(term-replace term ;(make-applform (method-coarity alt-op) alt-op (list t2 t1))
+			      (make-term-with-sort-check-bin alt-op (list t2 t1))))))
+	  (mark-term-as-lowest-parsed term)
 	  term)))))
 
 #||
@@ -829,7 +806,7 @@
 ;;; construct application form from given method & subterms.
 ;;; the lowest method is searched and if found, construct a term with found
 ;;; method, otherwise, given method is used.
-
+(defvar **sa-debug** nil)
 (defun make-term-with-sort-check (meth subterms
                                   &optional (module (or *current-module*
 							*last-module*)))
@@ -837,14 +814,25 @@
 	   (type list subterms)
 	   (type module module)
 	   (values term))
-  (if (do ((arl (method-arity meth) (cdr arl))
-           (sl subterms (cdr sl)))
-          ((null arl) t)
-        (unless (sort= (car arl) (term-sort (car sl))) (return nil)))
-      (make-applform (method-coarity meth) meth subterms)
-      (let ((m (lowest-method meth (mapcar #'(lambda (x) (term-sort x))
-                                           subterms) module)))
-        (make-applform (method-coarity m) m subterms))))
+  (let ((res nil))
+    (if (do ((arl (method-arity meth) (cdr arl))
+	     (sl subterms (cdr sl)))
+	    ((null arl) t)
+	  (unless (sort= (car arl) (term-sort (car sl))) (return nil)))
+	(setq res (make-applform (method-coarity meth) meth subterms))
+      (let ((m (lowest-method meth
+			      (mapcar #'(lambda (x) (term-sort x)) subterms) ;
+			      module)))
+	(setq res (make-applform (method-coarity m) m subterms))))
+    (when **sa-debug**
+      (format t "~&MTWSC: meth=")
+      (print-chaos-object meth)
+      (print "==> ")
+      (term-print res)
+      (format t ":")
+      (print-chaos-object (term-head res))
+      (force-output))
+    res))
 
 ;;; MAKE-TERM-WITH-SORT-CHECK-BIN : METHOD SUBTERMS -> TERM
 ;;; same as make-term-with-sort-check, but specialized to binary operators.
@@ -856,13 +844,24 @@
 	   (type (or null module) module)
 	   (values term))
   (let ((s1 (term-sort (car subterms)))
-        (s2 (term-sort (cadr subterms))))
+        (s2 (term-sort (cadr subterms)))
+	(res nil))
     (if (let ((ar (method-arity meth)))
 	  (and (sort= (car ar) s1)
 	       (sort= (cadr ar) s2)))
-        (make-applform (method-coarity meth) meth subterms)
-	(let ((m (lowest-method meth (list s1 s2) module)))
-	  (make-applform (method-coarity m) m subterms)))))
+        (setq res (make-applform (method-coarity meth) meth subterms))
+      (let ((lm (lowest-method meth (list s1 s2) module)))
+	(setq res (make-applform (method-coarity lm) lm subterms))))
+    (when **sa-debug**
+      (format t "~&MTWSC-BIN: meth=")
+      (print-chaos-object meth)
+      (print "==> ")
+      (term-print res)
+      (format t ":")
+      (print-chaos-object (term-head res))
+      (force-output))
+    res))
+
 
 ;;; ***************************************
 ;;; ACCESSORS & CONSTRUCTORS of APPLICATION
@@ -1513,5 +1512,25 @@
 					   (incf *var-num*)))
 			   (variable-sort var)))
   )
+
+;;; inspecting term --- for debugging -----------------------------------------
+;;;
+(defun inspect-term (term &optional (occur nil) (context *current-module*))
+  (flet ((print-occr ()
+	   (format t " ~A" (if (null occur) "top" (reverse occur)))))
+    (with-in-module (context)
+      (print-next)
+      (format t "[NF=~a,LP=~a] "  (term-is-reduced? term) (term-is-lowest-parsed? term))
+      (cond ((term-is-applform? term)
+	     (print-chaos-object (term-head term))
+	     (print-occr)
+	     (dotimes (x (length (term-subterms term)))
+	       (let ((*print-indent* (+ 2 *print-indent*)))
+		 (inspect-term (term-arg-n term x) (cons (1+ x) occur)))))
+	    ((term-is-builtin-constant? term)
+	     (term-print-with-sort term)
+	     (print-occr))
+	    (t (print-chaos-object term)
+	       (print-occr))))))
 
 ;;; EOF

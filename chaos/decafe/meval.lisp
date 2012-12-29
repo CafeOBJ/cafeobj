@@ -427,12 +427,11 @@
 	       (when (modexp-is-error target-module)
 		 (with-output-chaos-error ('no-such-module)
 		   (princ "no such module: ")
-		   (print-modexp (%rename-module modexp))
-		   ))
+		   (print-modexp (%rename-module modexp))))
 	       (let* ((mod target-module)
 		      (ren (if (%is-rmap (%rename-map modexp))
 			       (%rmap-map (%rename-map modexp))
-			       (%rename-map modexp)))
+			     (%rename-map modexp)))
 		      (mod-name modexp)	; dummy at this time, will changed by
 					; int-rename later.
 		      (newmod (!create-module mod-name))
@@ -470,8 +469,7 @@
 		       (with-output-chaos-error ('no-such-operator)
 			 (princ "operator not found in rename: ")
 			 (print-ast (car x))
-			 (princ " in module ") (print-modexp mod)
-			 ))
+			 (princ " in module ") (print-modexp mod)))
 		     (dolist (opinfo opinfos)
 		       (rename-op map mod newmod opinfo (cadr x) mod))))
 		 ;; 
@@ -481,11 +479,9 @@
 		       (with-output-chaos-error ('no-such-operator)
 			 (princ "behavioural operator not found in rename: ")
 			 (print-ast (car x))
-			 (princ " in module ") (print-modexp mod)
-			 ))
+			 (princ " in module ") (print-modexp mod)))
 		     (dolist (opinfo opinfos)
 		       (rename-op map mod newmod opinfo (cadr x) mod))))
-		 ;;
 		 ;; we must make maps of SortId constants iff the
 		 ;; coressponding sort is mapped.
 		 (dolist (s-map (modmorph-sort map))
@@ -494,8 +490,7 @@
 			  (old-name (list (string (sort-id source))))
 			  (new-name (list (string (sort-id target))))
 			  (s-opinfo nil)
-			  (s-method nil)
-			  )
+			  (s-method nil))
 		     (setq s-opinfo (find-operators-in-module
 				     old-name
 				     0
@@ -509,8 +504,7 @@
 		     (with-in-module (mod)
 		       (setq s-method (lowest-method* (car (opinfo-methods s-opinfo)))))
 		     (unless (*find-method-in-map (modmorph-op map) s-method)
-		       (rename-op map mod newmod s-opinfo new-name mod))
-		     ))
+		       (rename-op map mod newmod s-opinfo new-name mod))))
 
 		 ;; now we've constructed the maps,
 		 ;; we can make real module name here.
@@ -524,7 +518,6 @@
 		 (with-in-module (newmod)
 		   (apply-modmorph-internal map mod newmod))
 		 (setf (module-decl-form newmod) modexp)
-		 newmod
-		 )))))))
+		 newmod )))))))
 
 ;;; EOF

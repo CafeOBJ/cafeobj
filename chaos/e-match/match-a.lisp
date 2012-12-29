@@ -174,25 +174,19 @@
 	   (type #+GCL vector #-GCL simple-vector vect))
   (if (= first last)
       (svref vect first)
-      (let ((res (svref vect last)))
-	(if (and (< 1 (the fixnum (- last first)))
-		 (null (cdr (method-lower-methods method))))
-	    (do ((i (1- last) (1- i)))
-		((< i first) res)
-	      (declare (type fixnum i))
-	      #||
-	      (setq res (make-applform (method-coarity method)
-				       method (list (svref vect i) res)))
-	      ||#
-	      (setq res (make-term-with-sort-check method
-						   (list (svref vect i) res)))
-	      )
+    (let ((res (svref vect last)))
+      (if (and (< 1 (the fixnum (- last first)))
+	       (null (cdr (method-lower-methods method))))
 	  (do ((i (1- last) (1- i)))
 	      ((< i first) res)
 	    (declare (type fixnum i))
-	    (setq res (make-term-with-sort-check-bin method 
-						     (list (svref vect i) res)))
-	    )))))
+	    (setq res (make-term-with-sort-check method
+						 (list (svref vect i) res))))
+	(do ((i (1- last) (1- i)))
+	    ((< i first) res)
+	  (declare (type fixnum i))
+	  (setq res (make-term-with-sort-check-bin method 
+						   (list (svref vect i) res))))))))
 
 ;;; Returns the list of terms contained in the array of terms "t-arr"
 ;;; between the indices "from" and "to" both included.

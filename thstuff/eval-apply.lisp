@@ -93,6 +93,19 @@ File: eval-apply.lisp
         (push selectors $$selection-stack)
         (setq $$subterm subterm)))))
 
+;;; *************
+;;; INSPECT-TERM
+;;; *************
+(defun eval-inspect-term-command (&optional ast)
+  (unless $$subterm (setq $$subterm $$term))
+  (unless $$subterm
+    (with-output-chaos-warning ()
+      (format t "no target term is specified yet.")
+      (print-next)
+      (princ "please set the target term by `choose' command.")
+      (return-from eval-inspect-term-command nil)))
+  (inspect-term $$subterm))
+
 ;;; *****
 ;;; APPLY
 ;;; *****

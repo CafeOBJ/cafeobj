@@ -2,9 +2,9 @@
 ;;; $Id: rengine.lisp,v 1.10 2010-08-04 04:37:34 sawada Exp $
 (in-package :chaos)
 #|=============================================================================
-                                            System:CHAOS
-                                           Module:cafein
-                                         File:rengine.lisp
+				    System:CHAOS
+				   Module:cafein
+				 File:rengine.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 1) #-GCL (debug 0)))
@@ -15,83 +15,83 @@
  ;;; MEMOIZE
  ;;; -------
 
- (deftype term-hash-key () '(unsigned-byte 29))
+(deftype term-hash-key () '(unsigned-byte 29))
 
- (defconstant term-hash-mask #x1FFFFFFF)
+(defconstant term-hash-mask #x1FFFFFFF)
 
- (defconstant term-hash-size 9001)
+(defconstant term-hash-size 9001)
 
- (defmacro method-has-memo-safe (m)
-   `(and (method-p ,m) (method-has-memo ,m)))
+(defmacro method-has-memo-safe (m)
+  `(and (method-p ,m) (method-has-memo ,m)))
 
- #-GCL (declaim (inline term-hash-equal))
- #-(or GCL CMU)
- (defun term-hash-equal (x)
+#-GCL (declaim (inline term-hash-equal))
+#-(or GCL CMU)
+(defun term-hash-equal (x)
    (logand term-hash-mask (sxhash x)))
- #+CMU
- (defun term-hash-equal (x)
+#+CMU
+(defun term-hash-equal (x)
    (sxhash x))
  #+GCL
- (si:define-inline-function term-hash-equal (x) (sxhash x))
+(si:define-inline-function term-hash-equal (x) (sxhash x))
 
- #+GCL
- (Clines "static object term_hash_eq(x) 
+#+GCL
+(Clines "static object term_hash_eq(x) 
    object x;
    { return(make_fixnum(((((int)x) & 0x1fffffff)+3)>>3)); }
  ")
 
- #+GCL
- (defentry term-hash-eq (object) (object term_hash_eq))
+#+GCL
+(defentry term-hash-eq (object) (object term_hash_eq))
 
- #-GCL
- (declaim (inline term-hash-eq))
- #-GCL
- (defun term-hash-eq (object)
-   (ash (+ (the term-hash-key
-	     (logand term-hash-mask
-		     (the (unsigned-byte 32) (addr-of object))))
-	   3)
-	-3))
+#-GCL
+(declaim (inline term-hash-eq))
+#-GCL
+(defun term-hash-eq (object)
+  (ash (+ (the term-hash-key
+	    (logand term-hash-mask
+		    (the (unsigned-byte 32) (addr-of object))))
+	  3)
+       -3))
 
- #||
- (defun term-hash-comb (x y)
-   (declare (type term-hash-key x y))
-   (the term-hash-key
-     (logxor (the term-hash-key (ash x -5))
-	     y
-	     (the term-hash-key
-	       (logand term-hash-mask
-		       (the term-hash-key (ash (make-and x 31) 26)))))))
- ||#
- #-GCL
- (declaim (inline term-hash-comb))
+#||
+(defun term-hash-comb (x y)
+  (declare (type term-hash-key x y))
+  (the term-hash-key
+    (logxor (the term-hash-key (ash x -5))
+	    y
+	    (the term-hash-key
+	      (logand term-hash-mask
+		      (the term-hash-key (ash (make-and x 31) 26)))))))
+||#
 
- #-GCL
- (defun term-hash-comb (x y)
-   (declare (type term-hash-key x y))
-   (make-and term-hash-mask (+ x y)))
+#-GCL
+(declaim (inline term-hash-comb))
 
- #+GCL
- (si:define-inline-function term-hash-comb (x y)
-   (make-and term-hash-mask (+ x y)))
+#-GCL
+(defun term-hash-comb (x y)
+  (declare (type term-hash-key x y))
+  (make-and term-hash-mask (+ x y)))
 
- ;;; #+GCL
- ;;; (si:define-inline-function term-hash-comb (x y)
- ;;;   (make-xor (ash x -5) y (ash (make-and x 31) 26))
- ;;;  )
+#+GCL
+(si:define-inline-function term-hash-comb (x y)
+  (make-and term-hash-mask (+ x y)))
 
- ;;;
- ;;; term-hash
- ;;;
- ;;; (defvar *on-term-hash-debug* nil)
+;;; #+GCL
+;;; (si:define-inline-function term-hash-comb (x y)
+;;;   (make-xor (ash x -5) y (ash (make-and x 31) 26))
+;;;  )
 
- (defstruct term-hash
+;;;
+;;; term-hash
+;;;
+;;; (defvar *on-term-hash-debug* nil)
+
+(defstruct term-hash
    (size term-hash-size :type (unsigned-byte 14) :read-only t)
-   (table nil :type (or null simple-array))
-   )
+   (table nil :type (or null simple-array)) )
 
- (defun hash-term (term)
-   (cond ((term-is-applform? term)
+(defun hash-term (term)
+  (cond ((term-is-applform? term)
 	  (let ((res (sxhash (the symbol (method-id-symbol (term-head term))))))
 	    (dolist (subterm (term-subterms term))
 	      (setq res (term-hash-comb res (hash-term subterm))))
@@ -99,11 +99,9 @@
 	 ((term-is-builtin-constant? term)
 	  (term-hash-comb (sxhash (the symbol (sort-id (term-sort term))))
 			  (term-hash-equal (term-builtin-value term))))
-	 ((term-is-variable? term) (term-hash-eq term))
-	 ))
+	 ((term-is-variable? term) (term-hash-eq term))))
 
-
- (defun dump-term-hash (term-hash &optional (size term-hash-size))
+(defun dump-term-hash (term-hash &optional (size term-hash-size))
    (dotimes (x size)
      (let ((ent (svref term-hash x)))
        (when ent
@@ -118,66 +116,65 @@
 	       (print-next)
 	       (term-print (cdr e)))))))))
 
- #-GCL
- (declaim (inline get-hashed-term))
+#-GCL
+(declaim (inline get-hashed-term))
 
- (#-GCL defun #+GCL si:define-inline-function
-  get-hashed-term (term term-hash)
-  (let ((val (hash-term term)))
-    (declare (type term-hash-key val))
-    (let* ((ent (svref term-hash
-		       (mod val term-hash-size)))
-	   (val (cdr (assoc term ent :test #'term-is-similar?))))
-      (when val (incf (the (unsigned-byte 29) *term-memo-hash-hit*)))
-      val)))
+(#-GCL defun #+GCL si:define-inline-function
+ get-hashed-term (term term-hash)
+ (let ((val (hash-term term)))
+   (declare (type term-hash-key val))
+   (let* ((ent (svref term-hash
+		      (mod val term-hash-size)))
+	  (val (cdr (assoc term ent :test #'term-is-similar?))))
+     (when val (incf (the (unsigned-byte 29) *term-memo-hash-hit*)))
+     val)))
 
- #-GCL
- (declaim (inline set-hashed-term))
+#-GCL
+(declaim (inline set-hashed-term))
 
- (#-GCL defun #+GCL si:define-inline-function
-  set-hashed-term (term term-hash value)
-  (let ((val (hash-term term)))
+(#-GCL defun #+GCL si:define-inline-function
+ set-hashed-term (term term-hash value)
+ (let ((val (hash-term term)))
     (declare (type term-hash-key val))
     (let ((ind (mod val term-hash-size)))
       (let ((ent (svref term-hash ind)))
 	(let ((pr (assoc term ent :test #'term-is-similar?)))
 	  (if pr (rplacd pr value)
-	    (setf (svref term-hash ind) (cons (cons term value) ent)))
-	  )))))
+	    (setf (svref term-hash ind) (cons (cons term value) ent))) )))))
 
- ;;; *TERM-MEMO-TABLE*
+;;; *TERM-MEMO-TABLE*
 
- (defvar *term-memo-table* nil)
- (defvar *memoized-module* nil)
+(defvar *term-memo-table* nil)
+(defvar *memoized-module* nil)
 
- (defun create-term-memo-table ()
-   (unless *term-memo-table*
-     (setq *term-memo-table*
-	   (alloc-svec term-hash-size))))
+(defun create-term-memo-table ()
+  (unless *term-memo-table*
+    (setq *term-memo-table*
+      (alloc-svec term-hash-size))))
 
- (defun clear-term-memo-table (table)
-   (dotimes (x term-hash-size)
-     (setf (svref table x) nil))
-   table)
+(defun clear-term-memo-table (table)
+  (dotimes (x term-hash-size)
+    (setf (svref table x) nil))
+  table)
 
- ;;;		      BASIC COMMON ROUTINES FOR REWRITING
+;;;		      BASIC COMMON ROUTINES FOR REWRITING
 
- (defvar *cafein-current-rule* nil)
- (defvar *cafein-current-subst* nil)
- (defvar *matched-to-stop-pattern* nil)
+(defvar *cafein-current-rule* nil)
+(defvar *cafein-current-subst* nil)
+(defvar *matched-to-stop-pattern* nil)
 
- ;;; ----------
- ;;; TERM COLOR
- ;;; ----------
+;;; ----------
+;;; TERM COLOR
+;;; ----------
 
- (defun set-term-color-top (term)
+(defun set-term-color-top (term)
    (if (not *beh-rewrite*)
        (if (sort-is-hidden (term-sort term))
 	   (set-term-color term :red)
 	 (set-term-color term))
      (set-term-color term)))
 
- (defun set-term-color (term &optional red?)
+(defun set-term-color (term &optional red?)
    (labels ((set-color (term set-red)
 	      (if set-red
 		  (progn
@@ -210,121 +207,117 @@
 			(set-color sub nil)))
 		    (if i-am-red
 			(term-set-red term)
-		      (term-set-green term))
-		    )))
-	      ))
+		      (term-set-green term)))))
+	      ))			; end labels
      ;;
      (unless (or *beh-rewrite* *rewrite-semantic-reduce*)
        (return-from set-term-color term))
      ;;
      (set-color term red?)
-     term)
-   )
+     term))
 
+;;; **************************
+;;; LOW LEVEL REWRITE ROUTINES
+;;; **************************
 
- ;;; **************************
- ;;; LOW LEVEL REWRITE ROUTINES
- ;;; **************************
+;;; CHECK BEHAVIOURAL CONTEXT
 
- ;;; CHECK BEHAVIOURAL CONTEXT
-
- #||
- (defun check-beh-context (rule target-term)
+#||
+(defun check-beh-context (rule target-term)
    (declare (ignore rule))
    (or (not (term-is-red target-term))
        (and *beh-rewrite*
 	    (eq $$term target-term))))
 
- (defmacro beh-context-ok? (rule term)
+(defmacro beh-context-ok? (rule term)
    `(if (axiom-is-behavioural ,rule)
 	(check-beh-context ,rule ,term)
       t))
 
- ||#
+||#
 
- (defmacro beh-context-ok? (rule term)
+(defmacro beh-context-ok? (rule term)
    `(if (axiom-is-behavioural ,rule)
 	(or (not (term-is-red ,term))
 	    (and *beh-rewrite*
 		 (eq $$term ,term)))
       t))
 
- (declaim (inline apply-rules-with-same-top apply-rules-with-different-top))
+(declaim (inline apply-rules-with-same-top apply-rules-with-different-top))
 
- ;;; ----------------------------------------
- ;;; BASIC PROCS for REWRITE RULE APPLICATION
+;;; ----------------------------------------
+;;; BASIC PROCS for REWRITE RULE APPLICATION
 
+(defmacro term-replace-with-memo (old new)
+  (once-only (old new)
+     ` (if (and (not (term-is-builtin-constant? ,old))
+		(or *always-memo*
+		    (method-has-memo (term-head ,old))))
+	   (progn
+	     (set-hashed-term (simple-copy-term ,old) *term-memo-table* ,new)
+	     (term-replace ,old ,new))
+	 (term-replace ,old ,new))))
 
- (defmacro term-replace-with-memo (old new)
-   (once-only (old new)
-	      ` (if (and (not (term-is-builtin-constant? ,old))
-			 (or *always-memo*
-			     (method-has-memo (term-head ,old))))
-		    (progn
-		      (set-hashed-term (simple-copy-term ,old) *term-memo-table* ,new)
-		      (term-replace ,old ,new))
-		  (term-replace ,old ,new))))
-
- (declaim (inline term-replace-dd-simple))
- #-gcl
- (defun term-replace-dd-simple (old new)
+(declaim (inline term-replace-dd-simple))
+#-gcl
+(defun term-replace-dd-simple (old new)
    (declare (type term old new)
 	    (values term-body))
    (incf *rule-count*)
    (term-replace old new))
 
- #+gcl
- (si::define-inline-function term-replace-dd-simple (old new)
+#+gcl
+(si::define-inline-function term-replace-dd-simple (old new)
    (incf *rule-count*)
    (term-replace old new))
 
- (defun apply-one-rule-simple (rule term)
-   (declare (type axiom rule)
-	    (type term term)
-	    (values (or null t))
-	    )
-   #||
-   (when (rule-non-exec rule)
-     (return-from apply-one-rule-simple nil))
-   ||#
-   ;; ________
-   #||
-   (when (and *rewrite-debug* (err-sort-p (term-sort term)))
-     (format t "~&..ERR_TERM: ")
-     (term-print-with-sort term))
-   ||#
-   ;; ________
-   (let* ((condition nil)
-	  (next-match-method nil)
-	  (*self* term)
-	  (builtin-failure nil)
-	  ;; (*m-pattern-subst* nil)
-	  )
-     ;;
-     (when *m-pattern-subst*
-       (term-replace-dd-simple
-	term
-	(set-term-color
-	 (substitution-image-simplifying *m-pattern-subst*
-					 term
-					 (rule-need-copy rule)))))
-     ;;
-     (multiple-value-bind (global-state subst no-match E-equal)
-	 (funcall (rule-first-match-method rule) (rule-lhs rule) term)
-       (incf $$matches)
-       (when no-match (return-from apply-one-rule-simple nil))
+(defun apply-one-rule-simple (rule term)
+  (declare (type axiom rule)
+	   (type term term)
+	   (values (or null t))
+	   )
+  #||
+  (when (rule-non-exec rule)
+    (return-from apply-one-rule-simple nil))
+  ||#
+  ;; ________
+  #||
+  (when (and *rewrite-debug* (err-sort-p (term-sort term)))
+    (format t "~&..ERR_TERM: ")
+    (term-print-with-sort term))
+  ||#
+  ;; ________
+  (let* ((condition nil)
+	 (next-match-method nil)
+	 (*self* term)
+	 (builtin-failure nil)
+	 ;; (*m-pattern-subst* nil)
+	 )
+    ;;
+    (when *m-pattern-subst*
+      (term-replace-dd-simple
+       term
+       (set-term-color
+	(substitution-image-simplifying *m-pattern-subst*
+					term
+					(rule-need-copy rule)))))
+    ;;
+    (multiple-value-bind (global-state subst no-match E-equal)
+	(funcall (rule-first-match-method rule) (rule-lhs rule) term)
+      (incf $$matches)
+      (when no-match (return-from apply-one-rule-simple nil))
 
-       ;; check behavioural context.
-       (unless (beh-context-ok? rule term)
-	 (return-from apply-one-rule-simple nil))
+      ;; check behavioural context.
+      (unless (beh-context-ok? rule term)
+	(return-from apply-one-rule-simple nil))
 
-       ;; technical assignation related to substitution-image.
-       (when E-equal (setq subst nil))
+      ;; technical assignation related to substitution-image.
+      (when E-equal (setq subst nil))
 
-       ;; match success
-       ;; check the rule condition:
-       (setq condition (rule-condition rule))
-       (when (and (is-true? condition)
+      ;; match success
+      ;; check the rule condition:
+      (setq condition (rule-condition rule))
+      (when (and (is-true? condition)
 		  (null (rule-id-condition rule)))
 	 ;; no condition, i.e. condition = true
 	 (setq builtin-failure
@@ -367,10 +360,8 @@
 					       (rule-rhs rule)
 					       (rule-need-copy rule))))
 	     ;; good!
-	     (return-from apply-one-rule-simple t))
-	   )
-	 )
-       ;;
+	     (return-from apply-one-rule-simple t))))
+
        ;; this is the case for non-simple condition:
        ;; if the condition is not trivial, we enter in a loop
        ;; where one try to find a match such that the condition 
@@ -383,8 +374,7 @@
 	     (format t "~&Infinite loop? Evaluating rule condition, exceeds trial limit: ~d" $$trials)
 	     (format t "~%terminates rewriting: ")
 	     (term-print $$term))
-	   (chaos-error 'too-deep)
-	   )
+	   (chaos-error 'too-deep))
 	 ;;
 	 (catch 'rule-failure
 	   (when (and (or (null (rule-id-condition rule))
@@ -408,8 +398,7 @@
 			(when *m-pattern-subst*
 			  (setq subst (append *m-pattern-subst* subst)))
 			;;
-                        $$cond)
-                      ))
+                        $$cond)))
             ;; the condition is satisfied
             (progn
 	      (when *rewrite-debug*
@@ -422,30 +411,24 @@
                                                 (rule-rhs rule)
                                                 (rule-need-copy rule))))
               ;; successful return
-              (return-from apply-one-rule-simple t))
-            ))
-        ;;
+              (return-from apply-one-rule-simple t))))
         ;; else, try another ...
-        ;;
         (multiple-value-setq (global-state subst no-match)
           (progn
             (incf $$matches)
-            (funcall next-match-method global-state))
-          )
+            (funcall next-match-method global-state)))
         ;;
         (when (or no-match
                   (not (beh-context-ok? rule term)))
           (return nil))
         )                               ; end loop
       ;; failure
-      nil)
-    ))
+      nil)))
 
 (defun apply-one-rule-dbg (rule term)
   (declare (type axiom rule)
            (type term term)
-           (values (or null t))
-           )
+           (values (or null t)))
   ;; ________
   #||
   (when (err-sort-p (term-sort term))
@@ -509,8 +492,7 @@
                         (print-axiom-brief rule))
                       (let ((*print-indent* (+ 4 *print-indent*)))
                         (print-next)
-                        (print-substitution subst))
-                      ))
+                        (print-substitution subst))))
                   (term-replace-dd-dbg
                    term
                    ;; note that the computation of the substitution
@@ -562,9 +544,7 @@
                                                     (rule-rhs rule)
                                                     (rule-need-copy rule))))
                   ;; good!
-                  (return-from the-end t))
-                )
-              )
+                  (return-from the-end t))))
 
             ;; if the condition is not trivial, we enter in a loop
             ;; where one try to find a match such that the condition 
@@ -577,8 +557,7 @@
                   (format t "~&Infinite loop? Evaluating rule condition, exceeds trial limit ~d" $$trials)
                   (format t "~%terminates rewriting: ")
                   (term-print $$term))
-                (chaos-error 'too-deep)
-                )
+                (chaos-error 'too-deep))
               ;;
               (setq *cafein-current-subst* subst)
               (setq cur-trial $$trials)
@@ -614,9 +593,8 @@
 			      (when *m-pattern-subst*
 				(setq subst (append *m-pattern-subst* subst)))
 			      ;;
-                              $$cond)
-                            ))
-                  ;; the condition is satisfied
+                              $$cond)))
+		  ;; the condition is satisfied
                   (when (or $$trace-rewrite
                             (rule-trace-flag rule))
                     (print-trace-in)
@@ -627,15 +605,13 @@
                     (substitution-image-simplifying subst
                                                     (rule-rhs rule)
                                                     (rule-need-copy rule))))
-                  (return-from the-end t))
-                )
+                  (return-from the-end t)))
               
               ;; else, try another ...
               (multiple-value-setq (global-state subst no-match)
                 (progn
                   (incf $$matches)
-                  (funcall next-match-method global-state)
-                  ))
+                  (funcall next-match-method global-state)))
               (when no-match
                 (when (or $$trace-rewrite
                           (rule-trace-flag rule))
@@ -657,8 +633,7 @@
           (progn
             (setq *matched-to-stop-pattern* nil)
             (throw 'rewrite-abort $$term)))
-      nil)
-    ))
+      nil)))
 
 (defun term-replace-dd-dbg (old new)
   (declare (type term old new)
@@ -772,8 +747,7 @@
             (setq rr-mark rr-current)
             (loop (unless (apply-rule rule term) (return nil))))
           (setq rr-current (cdr rr-current))
-          (when (eq rr-current rr-mark) (return nil)))
-        ))))
+          (when (eq rr-current rr-mark) (return nil)))))))
 
 ;;;
 ;;;
@@ -787,32 +761,49 @@
    (dolist (rule rules nil)
      (when (apply-rule rule term) (return-from the-end t)))))
 
+
+#||
+(defun apply-rules (term strategy)
+  (let ((top nil))
+    ;; (unless (term-is-lowest-parsed? term) (update-lowest-parse term))
+    (update-lowest-parse term)
+    (setq top (term-method term))
+    ;; same top
+    (apply-rules-with-same-top term (method-rules-with-same-top top))
+    ;;
+    (if (not (eq top (term-head term)))
+	#|| was ...
+	(or (term-is-variable? term)
+	    (not (method= top (term-method term))))
+	||#
+	(normalize-term term)
+	(if (apply-rules-with-different-top term
+					    (method-rules-with-different-top top))
+	    (normalize-term term)
+	    (reduce-term term (cdr strategy))))))
+||#
+
 (defun apply-rules (term strategy)
   (declare (type term term)
            (type list strategy)
            (values (or null t)))
-  (labels ((apply-dt-rules (rules)
-             (block the-end
-               (dolist (rule rules)
-                 (when (apply-rule rule term)
-                   (return-from the-end t)))))
-           (apply-rules-internal ()
-             (let ((top (term-head term)))
-               (update-lowest-parse term)
-               ;; same top
-               ;; (apply-rules-with-same-top term (method-rules-with-same-top top))
-               ;;
-               (if (not (eq top (term-head term)))
-                   (progn
-                     (when *rewrite-debug*
-                       (with-output-msg ()
-                         (format t "ulp->meth changed!")))
-                     (normalize-term term))
-                 (if (apply-dt-rules    ; (method-rules-with-different-top top)
-                      (method-all-rules top))
-                     (normalize-term term)
-                   (reduce-term term (cdr strategy)))
-                 ))))
+  (labels ((apply-rules-internal ()
+	     (let ((top nil))
+	       (unless (term-is-lowest-parsed? term) (update-lowest-parse term))
+	       (setq top (term-head term))
+	       ;; apply same top rules
+	       (apply-rules-with-same-top term (method-rules-with-same-top top))
+	       ;; 
+	       (if (not (eq top (term-head term)))
+		   (progn
+		     (mark-term-as-not-lowest-parsed term)
+		     (normalize-term term))
+		 (if (apply-rules-with-different-top term
+						     (method-rules-with-different-top top))
+		     (progn
+		       (mark-term-as-not-lowest-parsed term)
+		       (normalize-term term))
+		   (reduce-term term (cdr strategy)))))))
     ;;
     (if *memo-rewrite*
         ;; check memo
@@ -823,8 +814,8 @@
                   (term-replace term normal-form)
                 (apply-rules-internal)))
           (apply-rules-internal))
-      (apply-rules-internal))
-    ))
+      ;; non memoise
+      (apply-rules-internal))))
 
 ;;; APPLY-A-EXTENSIONS : rule term method -> Bool
 ;;;-----------------------------------------------------------------------------
@@ -835,7 +826,7 @@
            (type term term)
            (type method top)
            (values (or null t)))
-  ;; (declare (optimize (speed 3) (safety 0)))
+  (declare (optimize (speed 3) (safety 0)))
   (let ((listext (!axiom-a-extensions rule))
         (a-ext nil)
         (is-applied nil))
@@ -927,10 +918,7 @@
         (t
          (with-output-panic-message ()
            (format t "illegual id condition : ~a" cond))
-         t
-         )
-        ))
-
+         t)))
 
 ;;; APPLY-RULE : rule term -> Bool
 ;;;-----------------------------------------------------------------------------
@@ -981,8 +969,7 @@
                 (setq is-applied
                   (or (apply-A-extensions rule term top)
                       is-applied))
-                )))))
-      )
+                ))))))			; end tagbody
     ;; return t iff the rule is applied.
     is-applied))
 
@@ -1014,8 +1001,8 @@
   ;;
   (when *rewrite-debug*
     (with-output-simple-msg ()
-      (format t "[reduce-term](r=~s: " (term-is-reduced? term))
-      (print-chaos-object term)
+      (format t "[reduce-term](NF=~a,LP=~a): " (term-is-reduced? term) (term-is-lowest-parsed? term))
+      (term-print-with-sort term)
       (format t "~%  strat = ~a" strategy)))
   ;;
   (let ((occ nil)
@@ -1025,15 +1012,7 @@
     (cond ((null strategy)
            ;; no strat, or exhausted.
            (unless (term-is-lowest-parsed? term)
-             #||
-             (format t "~&:LP ")
-             (term-print-with-sort term)
-             ||#
              (update-lowest-parse term)
-             #||
-             (format t "~&  => ")
-             (term-print-with-sort term)
-             ||#
              (unless (method= (term-method term) top)
                (when *rewrite-debug*
                  (with-output-msg ()
@@ -1042,8 +1021,7 @@
                (return-from reduce-term (normalize-term term))))
            (unless (or *rewrite-semantic-reduce*
                        *beh-rewrite*)
-             (mark-term-as-reduced term))
-           )
+             (mark-term-as-reduced term)))
           
           ;; whole
           ((= 0 (the fixnum (setf occ (car strategy))))
@@ -1064,18 +1042,40 @@
              (reduce-term term (cdr strategy))))
 
           ;; normal case, reduce specified subterm
-          (t (if (method-is-associative top)
+          (t (if nil			; (method-is-associative top)
                  (let ((list-subterms (list-assoc-subterms term top))
-                       (lowest-parsed t))
+		       (lp t))
+		   ;;;;;;;;
+		   (format t "~&>>[reduce-term]:TOP: ")
+		   (term-print-with-sort term)
+		   ;;;;;;;;
                    (dolist (x list-subterms)
+		     (format t "~&  :sub: ")
+		     (term-print-with-sort x)
                      (unless (normalize-term x)
-                       (setf lowest-parsed nil)))
-                   (unless lowest-parsed
-                     (mark-term-as-not-lowest-parsed term))
+		       (setq lp nil))
+		     ;;;;;;;
+		     (format t "~&  ==>:sub: ")
+		     (term-print-with-sort x)
+		     ;;;;;;;;
+		     )
+		   (unless nil		;lp
+		     ;;;;;;;;
+		     (setq *term-debug* t)
+		     ;;;;;;;;
+		     (update-lowest-parse term)
+		     ;;;;;;;;
+		     (setq *term-debug* nil)
+		     ;;;;;;;;
+		     (mark-term-as-not-reduced term))
+		   ;;;;;;;;
+		   (format t "~&<<[reduce-term]:TOP2: ")
+		   (term-print-with-sort term)
+		   ;;;;;;;;
                    (reduce-term term (list 0)))
                (progn
                  (unless (normalize-term (term-arg-n term (1- occ)))
-                   (mark-term-as-not-lowest-parsed term))
+		   (mark-term-as-not-lowest-parsed term))
                  (reduce-term term (cdr strategy))))))))
 
 ;;; THE TOP LEVEL -------------------------------------------------------------
@@ -1200,12 +1200,9 @@
       (reduce-term term strategy)
       (setq normal-form term)
       ;; store the normal form
-      (set-hashed-term term-nu *term-memo-table* normal-form)
-      )
-    normal-form
-    ))
+      (set-hashed-term term-nu *term-memo-table* normal-form))
+    normal-form))
 
-;;;
 (defmacro check-closed-world-assumption (?term)
   ` (when *closed-world*
       (when (and (sort= (term-sort ,?term) *bool-sort*)
@@ -1220,12 +1217,15 @@
 (defun normalize-term (term)
   (declare (type term term)
            (values (or null t)))
+  (unless (term-is-lowest-parsed? term)
+    (update-lowest-parse term))
   (when *rewrite-debug*
     (with-output-simple-msg ()
-      (format t "[normalize-term]:(r=~s,d=~s) "
+      (format t "[normalize-term]:(NF=~A,LP=~A,OD=~A) "
               (term-is-reduced? term)
+	      (term-is-lowest-parsed? term)
               (term-is-on-demand? term))
-      (print-chaos-object term)))
+      (term-print-with-sort term)))
   (let ((strategy nil))
     (cond ((term-is-reduced? term)
            (when (term-is-builtin-constant? term)

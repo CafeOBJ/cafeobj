@@ -94,6 +94,10 @@
        "check conflicting importing mode of submodules.")
       ("check" ("regularity") parity *check-regularity*
        "perform regularity check of signatures in automatic.")
+      ("check" ("coherency") parity *check-rwl-coherency*
+       "perform transitions and equations are coherent or not in automatic.")
+      ("check" ("sensible") parity *check-sensibleness*
+       "perform if sigunature is sensible in automatic.")
       ("check" ("compatibility") parity *check-compatibility*
        "perform compatibility check of TRS in automatic.")
       ("check" ("builtin") parity *builtin-overloading-check*

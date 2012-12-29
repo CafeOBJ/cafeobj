@@ -747,10 +747,13 @@
   ;; reset rewrite-strategy
   (setf (method-rewrite-strategy method opinfo-table) nil)
   ;;
-  (setf (method-rules-with-different-top method opinfo-table)
-	(adjoin-rule rule (method-rules-with-different-top method
-							   opinfo-table)))
-  )
+  (if (and (term-is-applform? (rule-rhs rule))
+	   (method= (rule-lhs rule) (term-method (rule-rhs rule))))
+      (rule-ring-adjoin-rule (method-rules-with-same-top method opinfo-table)
+			     rule) 
+    (setf (method-rules-with-different-top method opinfo-table)
+      (adjoin-rule rule (method-rules-with-different-top method
+							 opinfo-table)))))
 
 ;;; RULE-SUBSUMES : rule rule -> bool
 ;;;-----------------------------------------------------------------------------

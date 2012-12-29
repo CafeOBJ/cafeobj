@@ -422,6 +422,14 @@
 (defun cafeobj-eval-choose-proc (inp)
   (eval-ast (parse-choose-command inp)))
 
+;;; *************
+;;; INSPECT-TERM
+;;; *************
+
+(defun cafeobj-eval-inspect-term-proc (inp)
+  (declare (ignore inp))
+  (eval-ast (%inspect-term*)))
+
 ;;; *****
 ;;; MATCH
 ;;; *****

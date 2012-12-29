@@ -573,7 +573,7 @@
       (let ((lit (ith-literal cl 1)))
 	(when (and (eq-literal? lit)
 		   ;;
-		   (pn-flag eq-literals-both-ways)
+		   (pn-flag eq-units-both-ways)
 		   ;;
 		   )
 	  (setq c2 (copy-clause cl))

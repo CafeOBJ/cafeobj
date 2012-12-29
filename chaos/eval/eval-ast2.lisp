@@ -2,9 +2,9 @@
 ;;; $Id: eval-ast2.lisp,v 1.29 2010-08-04 04:37:34 sawada Exp $
 (in-package :chaos)
 #|==============================================================================
-System: CHAOS
-Module: eval
-File: eval-ast2.lisp
+				   System: CHAOS
+				    Module: eval
+				File: eval-ast2.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -300,40 +300,36 @@ File: eval-ast2.lisp
   (let ((mod (if modexp
                  (eval-modexp modexp)
                *last-module*)))
-    (if (or (null mod) (modexp-is-error mod))
-        (if (null mod)
-            (with-output-chaos-error ('no-context)
-              (princ "no module expression provided and no selected(current) module.")
-              )
-          (with-output-chaos-error ('no-such-module)
-            (princ "incorrect module expression, not such module: ")
-            (print-chaos-object modexp)
-            ))
-      (progn
-        (context-push-and-move *last-module* mod)
-        (with-in-module (mod)
-          (prepare-for-parsing *current-module*)
-          (let ((*parse-variables* nil))
-            (let ((res (simple-parse *current-module* preterm *cosmos*)))
-              ;; ******** MEL 
-              (when *mel-sort*
-                (!setup-reduction mod)
-                (setq res (apply-sort-memb res
-                                           mod)))
-              (reset-target-term res *last-module* mod)
-              ;; ********
-              (format t "~&")
-              (term-print-with-sort res *standard-output*)
-              (flush-all)
-              ;; (break "...")
-              #||
-              (when *chaos-verbose*
-                (print-term-tree res t))
-              ||#
-              )
-            
-            ))
-        (context-pop-and-recover)))))
+    (unless mod
+      (with-output-chaos-error ('no-context)
+	(princ "no module expression provided and no selected(current) module.")))
+    (when (modexp-is-error mod)
+      (with-output-chaos-error ('no-such-module)
+	(princ "incorrect module expression, not such module: ")
+	(print-chaos-object modexp)))
+    ;;
+    (context-push-and-move *last-module* mod)
+    (with-in-module (mod)
+      (prepare-for-parsing *current-module*)
+      (let ((*parse-variables* nil))
+	(let ((res (simple-parse *current-module* preterm *cosmos*)))
+	  ;; ******** MEL 
+	  (when *mel-sort*
+	    (!setup-reduction mod)
+	    (setq res (apply-sort-memb res
+				       mod)))
+	  (reset-target-term res *last-module* mod)
+	  ;; ********
+	  (format t "~&")
+	  (term-print-with-sort res *standard-output*)
+	  (flush-all)
+	  ;; (break "...")
+	  #||
+	  (when *chaos-verbose*
+	    (print-term-tree res t))
+	  ||#
+	  )))
+    (context-pop-and-recover)))
 
 ;;; *TODO*
 (defun red-loop (mod &optional prompt)
@@ -1358,7 +1354,7 @@ File: eval-ast2.lisp
 		       (equal "coh" r-arg))
 	     (with-output-chaos-error ('invalid-arg)
 	       (format t "check rewriting: Invalid argument ~s" r-arg)))
-	   (check-rew-coherency mod))))
+	   (check-rwl-coherency module))))
 
       ;; PigNose extention
       #+:BigPink

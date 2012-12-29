@@ -180,11 +180,15 @@
 	      (symbol-table-add (module-symbol-table module)
 				(module-name (car sub))
 				(car sub)))))
-	;;
+	;; regularity check
 	(regularize-signature-internal module)
+	;; implicit check regularity
+	(setf (module-is-regular module)
+	  (check-regularity module t))
+	;; 
 	(when (and *check-regularity*
 		   (not (module-is-theory module)))
-	  (if (check-regularity module t)
+	  (if (not (module-is-regular module))
 	      (with-output-chaos-warning ()
 		(princ "signature of module ")
 		(print-mod-name module *standard-output* t)
@@ -207,6 +211,15 @@
 	(setup-operators-in module)
 	;; do postponed variable declarations of error sorts
 	(declare-error-variables-in module)
+	;; sensible check
+	(when (and *check-sensibleness*
+		   (not (module-is-theory module)))
+	  (check-sensible module t))	; report on
+	;; coherency check
+	(when (and *check-rwl-coherency*
+		   (not (module-is-theory module)))
+	  (check-rwl-coherency module t))
+
 	;; for simple-parser.
 	;; (check-polimorphic-overloading-in module)
 	(propagate-attributes module)

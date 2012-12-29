@@ -189,13 +189,25 @@
 (declaim (special *check-compatibility*))
 (defvar *check-compatibility* nil)
 
+;;;***************
+;;; SENSIBLE CHECK_____________________________________________________________
+;;;***************
+(declaim (special *check-sensibleness*))
+(defvar *check-sensibleness* nil)
+
+;;;**********
+;;; COHERENCY__________________________________________________________________
+;;;**********
+(declaim (special *check-rwl-coherency*))
+(defvar *check-rwl-coherency* nil)
+
 ;;;**************************
-;;; BUILTIN OVERLOADING CHECK
+;;; BUILTIN OVERLOADING CHECK__________________________________________________
 ;;;**************************
 (declaim (special *builtin-overloading-check*))
 (defvar *builtin-overloading-check* t)
 
-;;; Flags for printer control.__________________________________________________
+;;; Flags for printer control._________________________________________________
 ;;;***************************
 
 (declaim (special *print-indent*))

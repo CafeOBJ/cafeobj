@@ -350,14 +350,20 @@ This is in addition to cafeobj-continued-statement-offset."
 
 (defconst cafeobj-comment-pat-1 "[ \t]*\\*\\*>?[ \t]+.*$")
 (defconst cafeobj-comment-pat-2 "[ \t]*-->?[ \t]+.*$")
+(defconst cafeobj-comment-pat-3 "[ \t]*\\*\\*?[ \t]+.*$")
+(defconst cafeobj-comment-pat-4 "[ \t]*--?[ \t]+.*$")
 
 (defun looking-at-cafeobj-comment-pat ()
   (or (looking-at cafeobj-comment-pat-1)
-      (looking-at cafeobj-comment-pat-2)))
+      (looking-at cafeobj-comment-pat-2)
+      (looking-at cafeobj-comment-pat-3)
+      (looking-at cafeobj-comment-pat-4)))
 
 (defconst cafeobj-keywords-1
     '("op"
       "ops"
+      "sort"
+      "hsort"
 ;      "["
 ;      "]"
 ;      "*["
@@ -378,6 +384,8 @@ This is in addition to cafeobj-continued-statement-offset."
       "bceq" 
       "trans"
       "trns"
+      "rl"
+      "crl"
       "ctrans"
       "ctrns" 
       "btrans"
@@ -400,7 +408,10 @@ This is in addition to cafeobj-continued-statement-offset."
       "ex"
       "using"
       "us"
-      "goal")
+      "including"
+      "inc"
+      "goal"
+      )
   "keywords appearing inside module declaration or view declaration."
   )
 
@@ -423,14 +434,27 @@ This is in addition to cafeobj-continued-statement-offset."
 	    (regexp-opt cafeobj-keywords-2)
 	    "\\)\\>")))
 
+
 (defconst cafeobj-keyword-pat-3
     "\\(^[ \t]*\\*?\\[ \\| \\]\\*?\\)")
+
+(defconst cafeobj-keyword-pat-4
+  (concat "[ \t]*" (regexp-opt '("sort"
+                                 "hsort"
+                                 "bop"
+                                 "op"
+                                 "if"
+                                 "then"
+                                 "else"
+                                 "fi"
+                                 "."))
+          "\\>"))
 
 (defun looking-at-cafeobj-keyword-pat ()
   (or (looking-at cafeobj-keyword-pat-1)
       (looking-at cafeobj-keyword-pat-2)
       (looking-at cafeobj-keyword-pat-3)
-      ))
+      (looking-at cafeobj-keyword-pat-4)))
 
 (defconst cafeobj-commands-1
     '("let"
@@ -476,6 +500,10 @@ This is in addition to cafeobj-continued-statement-offset."
       "flag"
       "param"
       "lex"
+      "name"
+      "names"
+      "inspect"
+      "inspect-term"
       )
   "CafeOBJ top-level commands")
 
@@ -557,7 +585,7 @@ This is in addition to cafeobj-continued-statement-offset."
        (cons cafeobj-top-key-pat 'cafeobj-keyword-face)
        ))
 
-(put 'cafeobj-mode 'font-lock-defaults '(cafeobj-font-lock-keywords))
+(put 'cafeobj-mode 'font-lock-defaults '(cafeobj-font-lock-keywords t))
 
 ;;; -------------
 ;;; MENU SUPPORTS_______________________________________________________________
@@ -717,6 +745,9 @@ The following keys are bound:
     	   (make-local-variable 'font-lock-defaults))
     	  (t (set (make-local-variable 'font-lock-keywords)
     		  cafeobj-font-lock-keywords)))
+    ;;
+    (make-local-variable 'font-lock-defaults)
+    (setq font-lock-defaults '(cafeobj-font-lock-keywords t))
     ;;
     (set (make-local-variable 'indent-line-function) 'cafeobj-indent-line)
     (set (make-local-variable 'comment-start) "-- ") ; obsolate? ... should be fixed.

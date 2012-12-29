@@ -1,11 +1,5 @@
 module  NON-REG1{
-  [ S0 S1 S2, S0 < S1 S2 ]
-  op _+_ : S1 S1 -> S1
-  op _+_ : S2 S2 -> S2 
-  attr _+_ { assoc prec: 15 }
-  op _*_ : S2 S2 -> S2
-  op _*_ : S1 S1 -> S1
-  attr _*_ { assoc prec: 14 }
+  [ S0 < S1 S2 ]
   op f : S1 S1 -> S1 
   op f : S2 S2 -> S2 
   op s0 : -> S0 

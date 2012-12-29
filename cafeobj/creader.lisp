@@ -601,9 +601,10 @@ File: creader.lisp
         (? :args)                       ; help/messege description
         (?? :args)                      ; detailed help
 	;; new commands as of 2012/Q1
-	;; (inspect :modexp |.|)
 	((:+ names name) :modexp |.|)
 	(look up (:if-present in :modexp |:|) (:seq-of :top-opname))
+	;; term inspector
+	((:+ inspect inspect-term) :args)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.

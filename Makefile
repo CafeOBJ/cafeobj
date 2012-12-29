@@ -13,7 +13,7 @@ mkinstalldirs = $(top_srcdir)/mkinstalldirs
 
 PACKAGE = cafeobj
 VERSION = 1.4
-VMINOR = .9rc6
+VMINOR = .9rc8
 VMEMO = PigNose0.99
 PATCHLEVEL = 
 

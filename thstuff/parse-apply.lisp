@@ -267,6 +267,13 @@
                                         ; selectors. 
   :eval eval-choose-command)
 
+;;; ************
+;;; INSPECT-TERM
+;;; ************
+(defterm inspect-term (%script)
+  :visible ()
+  :eval eval-inspect-term-command)
+
 ;;; get-selectors : selector-token-seq -> { symbol | list(token)}
 ;;;
 ;;; <Selectors>    ::= subterm | term | top | <Selector> { of <Selector>}*
@@ -303,8 +310,7 @@
             target                      ; or :it pre-term
             pattern                     ; or :rule, +rule, -rule, pre-term
             )
-  :eval eval-match-command
-  )
+  :eval eval-match-command)
 
 (defun parse-match-command (toks)
   (let (type

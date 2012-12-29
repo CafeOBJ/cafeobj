@@ -1626,107 +1626,95 @@
     res))
 
 
+;;;
 ;;; LOWEST-METHOD
+;;;
+
 (defvar *op-debug* nil)
 
-(defun lowest-method (method lower-bound &optional (module *current-module*))
+;;; choose-most-general-op: ops -> or null method
+;;; NOTE: assumes *current-sort-order* and *current-opinfo-table* are bound to
+;;;       properly.
+;;;
+(defun choose-most-general-op (list-meth)
+  (unless (cdr list-meth)
+    (return-from choose-most-general-op (car list-meth)))
+  (let ((res (car list-meth))
+	(comp? nil))
+    (dolist (m (cdr list-meth))
+      (when (method<= res m)
+	(setq res m)
+	(setq comp? t)))
+    (if comp?
+	res
+      nil)))
+
+;;; choose-lowest-op : ops => or null method
+;;; NOTE: assumes *current-sort-order* and *current-opinfo-table* are bound to
+;;;       properly.
+;;;
+(defun choose-lowest-op (list-meth)
+  (unless (cdr list-meth)
+    (return-from choose-lowest-op (car list-meth)))
+  (let ((res (car list-meth)))
+    (dolist (m (cdr list-meth) res)
+      (if (method<= m res)
+	  (setq res m)
+	;; return immediately iff two methods are not comparable
+	(unless (method<= res m)
+	  (return-from choose-lowest-op nil))))))
+
+(defun lowest-method (method lower-bound
+		      &optional (module *current-module*))
   (declare (type method method)
 	   (type list lower-bound)
 	   (type module module)
 	   (values method))
   (let ((*current-sort-order* (module-sort-order module))
-	(*current-opinfo-table* (module-opinfo-table module)))
+	(*current-opinfo-table* (module-opinfo-table module))
+	(cand nil))
     (declare (type hash-table *current-sort-order* *current-opinfo-table*))
-    (let ((over-methods (method-overloaded-methods method
-						   (module-opinfo-table module))))
-      (declare (type list over-methods))
-      (when *op-debug*
-	(format t "~&* lowest-method : given arity =")
-	(dolist (s (method-arity method))
-	  (princ " ")
-	  (print-sort-name s))
-	(princ ", coarity = ")
-	(print-sort-name (method-coarity method))
-	(format t "~&* lowest-method : lower-bound =")
-	(dolist (s lower-bound)
-	  (terpri)
-	  (princ "   ")
-	  (print-sort-name s))
-	(format t "~%* lowest-method : over-methods =")
-	(dolist (m over-methods)
-	  (terpri)
-	  (princ "    ")
-	  (print-chaos-object m)))
-      (when over-methods
-	(dolist (meth over-methods)
-	  (declare (type method meth))
-	  (when (sort-list<= lower-bound (method-arity meth))
-	    (when *op-debug*
-	      (format t "~%lowest-method res=")
-	      (print-chaos-object meth)
-	      )
-	    (return-from lowest-method meth))))
-      (when *op-debug*
-	(format t "~%lowest-method res=")
-	(print-chaos-object method)
-	)
-      method)))
+    (dolist (meth (method-overloaded-methods method *current-opinfo-table*))
+      (declare (type method meth))
+      (when (sort-list<= lower-bound (method-arity meth))
+	(push meth cand) ))
+    (return-from lowest-method
+      (or (choose-lowest-op cand) method))))
 
 (defun lowest-method! (method lower-bound &optional (module *current-module*))
   (declare (type method method)
 	   (type list lower-bound)
 	   (type module module)
 	   (values (or null method)))
-  (flet ((select-one-method (method-list)
-	   ;; select arbitrary one if every has the same rank
-	   (let* ((cand (car method-list))
-		  (coar (method-coarity cand))
-		  (arity (method-arity cand)))
-	     (dolist (m (cdr method-list) cand)
-	       (unless (sort= coar (method-coarity m))
-		 (return-from select-one-method nil))
-	       (unless (sort-list= arity (method-arity m))
-		 (return-from select-one-method nil))))))
-    (let ((*current-sort-order* (module-sort-order module))
-	  (*current-opinfo-table* (module-opinfo-table module))
-	  (res nil))
-      (declare (type hash-table *current-sort-order* *current-opinfo-table*))
-      (let ((over-methods (method-overloaded-methods
-			   method
-			   (module-opinfo-table module))))
-
-	(declare (type list over-methods))
-	(when *on-debug*
-	  (format t "~%* lowest-method! : over-methods =")
-	  (dolist (m over-methods)
-	    (terpri)
-	    (princ "    ")
-	    (print-chaos-object m)))
-	;;
-	(if over-methods
-	    (progn
-	      (dolist (meth over-methods)
-		(declare (type method meth))
-		(when (and (sort-list<= lower-bound (method-arity meth))
-			   (not (member
-				 meth
-				 res
-				 :test #'(lambda (x y)
-					   (method-is-instance-of y
-								  x
-								  *current-sort-order*)))
-				))
-		  (push meth res)))
-	      (when *on-debug*
-		(format t "~%lowest-method! res=")
-		(print-chaos-object res)
-		)
-	      (if (cdr res)
-		  ;; was method
-		  (or (select-one-method res)
-		      method)
-		  (car res)))
-	    (return-from lowest-method! method))))))
+  (let ((*current-sort-order* (module-sort-order module))
+	(*current-opinfo-table* (module-opinfo-table module))
+	(res nil))
+    (declare (type hash-table *current-sort-order* *current-opinfo-table*))
+    (let ((over-methods (method-overloaded-methods method *current-opinfo-table*)))
+      (declare (type list over-methods))
+      (when *on-debug*
+	(format t "~%* lowest-method! : over-methods =")
+	(dolist (m over-methods)
+	  (terpri)
+	  (princ "    ")
+	  (print-chaos-object m)))
+      ;;
+      (if over-methods
+	  (progn
+	    (dolist (meth over-methods)
+	      (declare (type method meth))
+	      (when (and (sort-list<= lower-bound (method-arity meth))
+			 (not (member
+			       meth
+			       res
+			       :test #'(lambda (x y)
+					 (method-is-instance-of y
+								x
+								*current-sort-order*)))))
+		(push meth res)))
+	    (or (choose-lowest-op res)
+		method))
+	(return-from lowest-method! method)))))
 
 (defun lowest-method* (method &optional lower-bound (module *current-module*))
   (declare (type method method)
@@ -1735,14 +1723,11 @@
 	   (values (or null method)))
   (let* ((*current-sort-order* (module-sort-order module))
 	 (*current-opinfo-table* (module-opinfo-table module))
-	 (over-methods (method-overloaded-methods method
-						  (module-opinfo-table module))))
+	 (over-methods (method-overloaded-methods method *current-opinfo-table*)))
     (declare (type hash-table *current-sort-order* *current-opinfo-table*)
 	     (type list over-methods))
     (if over-methods
-	(let ((*current-sort-order* (module-sort-order module))
-	      (*current-opinfo-table* (module-opinfo-table module))
-	      (cur-coarity (method-coarity method))
+	(let ((cur-coarity (method-coarity method))
 	      (cur-arity (method-arity method)))
 	  (declare (type sort* cur-coarity)
 		   (type list cur-arity))
@@ -1753,9 +1738,9 @@
 	      (declare (type sort* new-coarity)
 		       (type list new-arity))
 	      (when (and (sort<= new-coarity cur-coarity)
-			 (if lower-bound
-			     (sort-list<= lower-bound new-arity)
-			   t)
+			 (or (and lower-bound
+				  (sort-list<= lower-bound new-arity))
+			     t)
 			 (sort-list<= new-arity cur-arity))
 		(return-from lowest-method* meth))))
 	  method)
@@ -1832,8 +1817,7 @@
 	  (declare (type sort* new-coarity))
 	  (when (and (not (member new-coarity res :test #'eq))
 		     (sort<= (method-coarity meth) coarity))
-	    (push (method-coarity meth) res)
-	    )))
+	    (push (method-coarity meth) res))))
       res )))
 
 ;;; *MISC*

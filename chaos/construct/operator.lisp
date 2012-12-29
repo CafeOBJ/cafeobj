@@ -1513,6 +1513,7 @@
 	(string (sort-name err-sort))
       sort-name))
   ||#
+  module
   sort-name
   )
 
@@ -1612,7 +1613,9 @@
 
       ;; dont need error method for constants. <-- why?
       (unless (method-arity proto-method)
-	(return-from setup-error-operator nil))
+	(when (or (module-is-theory module)
+		  (module-is-regular module))
+	  (return-from setup-error-operator nil)))
       ;;
       (setq method-name (method-name proto-method))
       (setq err-coarity (the-err-sort (method-coarity proto-method)
@@ -1992,14 +1995,12 @@
   (with-in-module (module)
     (let ((method-info-table (module-opinfo-table module)))
       (dolist (opinfo (module-all-operators module))
-	(let ((op (opinfo-operator opinfo))
-	      (methods (opinfo-methods opinfo)))
 	  ;; compute syntactic properties for each methods.
 	  (compute-method-syntactic-properties opinfo method-info-table)
 	  ;; set syntactic properties for error methods.
 	  (compute-error-method-syntactic-properties opinfo
 						     method-info-table)
-	  )))))
+	  ))))
 
 (defun make-standard-token-seq (op-name-token number-of-args)
   (declare (type fixnum number-of-args)
@@ -2272,7 +2273,8 @@
 		 ;; *NOTE* complete-method-strategy is not neccessary here.
 		 ;; *also* the-default-strategy returns nil when num-args = 0 .
 		 (setf (method-rewrite-strategy meth)
-		       (butlast (the-default-strategy (operator-num-args op)))))
+		   ; (butlast (the-default-strategy (operator-num-args op)))
+		   (the-default-strategy (operator-num-args op))))
 		
 		;; the method has some rewrite rules associated with it.
 		((or

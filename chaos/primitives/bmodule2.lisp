@@ -808,6 +808,10 @@
 (defmacro module-is-initial (_mod_)
   ` (memq (module-kind ,_mod_) '(:object :module)))
 
+;;; REGULARITY
+(defmacro module-is-regular (_mod)
+  `(getf (object-misc-info ,_mod) ':modle-is-regular))
+
 ;;; ALL-SUBMODULES-LIST -- cached data
 ;;; OBSOLETE
 ;;; (defun module-all-submodules-list (mod)
