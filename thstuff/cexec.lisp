@@ -423,7 +423,7 @@
             ;;::
             (unless rule (break "HANA !!!"))
             (push rule patterns)
-        ;;; #|| ------- apply-rule always applies extensions
+	    ;; #|| ------- apply-rule always applies extensions
             (when head
               (when (method-is-associative head)
                 (if (method-is-commutative head)
@@ -439,7 +439,7 @@
                       ;; (unless r (break "HANA 2"))
                       (when r
                         (push r patterns)))))))
-        ;;; ------------ ||#
+	    ;; ------------ ||#
             ;;
             (dolist (pat patterns)
               (block next
@@ -566,16 +566,6 @@
             (chaos-error 'panic)))
         ))
     cur))
-
-;;; mark the term (incl. all subterms) as not reduced
-;;;
-(defun mark-term-as-not-reduced-full (term)
-  (when (term-is-builtin-constant? term)
-    (return-from mark-term-as-not-reduced-full nil))
-  (mark-term-as-not-reduced term)
-  (when (term-is-application-form? term)
-    (dolist (sub (term-subterms term))
-      (mark-term-as-not-reduced-full sub))))
 
 ;;; *********
 ;;; TERM HASH
@@ -867,7 +857,8 @@
                         (xterm (if (and *cexec-trace* *chaos-verbose*)
                                    (simple-copy-term target-whole)
                                  nil)))
-                    (mark-term-as-not-reduced-full target-whole)
+		    (mark-term-as-not-lowest-parsed target-whole)
+                    (reset-reduced-flag target-whole)
                     (rewrite* target-whole)
                     (when *cexec-debug*
                       (format t "~&==> ")
@@ -1087,6 +1078,7 @@
         
         ;;
         ;; initializations
+
         ;;
         ;; search context
         ;;

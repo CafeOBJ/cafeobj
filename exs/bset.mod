@@ -153,10 +153,11 @@ mod* LIST' {
   eq E in L = (E == car(L)) or-else (car(L) =/= err  and-also  E in cdr(L)) .
 }
 
-select LIST'(NAT) 
+open LIST'(NAT) .
 red 1 in cons(2,cons(3,cons(4,nil))) .
 red 1 in cdr(cons(1,cons(2,cons(3,cons(4,nil))))) .
 red 1 in cdr(cons(1,cons(2,cons(3,cons(4,cons(1,nil)))))) .
+close
 
 -- proof that LIST refines BASICSETS
 open LIST' .
