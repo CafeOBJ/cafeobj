@@ -48,7 +48,7 @@ module! STMT {
   signature {
     [ Stmt ]
     op _;_ : Stmt Stmt -> Stmt {assoc}
-    op _:=_ : Id IntExp -> Stmt 
+    op _::=_ : Id IntExp -> Stmt 
     op while_do_od : BoolExp Stmt -> Stmt 
     op [[_]]_ : Stmt Env -> Env 
   }
@@ -57,7 +57,7 @@ module! STMT {
     var E : IntExp      var B : BoolExp 
     var I : Id 
     -- -----------------------------------------
-    eq [[ I := E ]] V = put(I,[[ E ]] V, V) .
+    eq [[ I ::= E ]] V = put(I,[[ E ]] V, V) .
     eq [[ S ; S' ]] V = [[ S' ]] [[ S ]] V .
     eq [[ while B do S od ]] V 
        = if [[ B ]] V then
@@ -83,7 +83,7 @@ module! FUN {
   signature {
     [ Fun ]
     op fun _ _ is vars _ body: _ : Id IdList InitList Stmt -> Fun 
-    op [[_:=_]]_ : IdList IntList Env -> Env 
+    op [[_::=_]]_ : IdList IntList Env -> Env 
     op [[_]]_ : InitList Env -> Env 
     op [[_]][_]_ : Fun Env IntList -> Env 
     op [[_]]_ : Fun IntList -> Int 
@@ -96,15 +96,15 @@ module! FUN {
     var S : Stmt      var V : Env 
     -- -------------------------------------
     eq [[ nil-init ]] V = V .
-    eq [[(I initially E); INs ]] V = [[ INs ]] [[ I := E ]] V .
-    eq [[ I Is := N Ns ]] V = [[ (I := N) ]] ([[ Is := Ns ]] V) .
-    eq [[(nil):IdList := (nil):IntList ]] V = V .
+    eq [[(I initially E); INs ]] V = [[ INs ]] [[ I ::= E ]] V .
+    eq [[ I Is ::= N Ns ]] V = [[ (I ::= N) ]] ([[ Is ::= Ns ]] V) .
+    eq [[(nil):IdList ::= (nil):IntList ]] V = V .
     eq [[ fun F(Is) is vars nil-init body: S ]][ V ](Ns) = [[ S ]] V .
     eq [[ fun F(Is) is vars INs body: S ]][ V ](Ns) =
-          [[ S ]] [[ INs ]] [[ Is := Ns ]] V .
+          [[ S ]] [[ INs ]] [[ Is ::= Ns ]] V .
     eq [[ fun F(Is) is vars INs body: S ]](Ns) =
           [[ fun F(Is) is vars INs body: S ]][ nilArr ](Ns) [ F ] .
-    cq [[ Is := Ns ]] V = wrong#args if | Is | =/= | Ns | .  ** err-qn
+    cq [[ Is ::= Ns ]] V = wrong#args if | Is | =/= | Ns | .  ** err-qn
   }
 }
 
@@ -112,29 +112,29 @@ set tram path brute
 select FUN
 **> pow(n m) finds the nth power of m for positive n or 0
 reduce [[ fun 'pow('n 'm) is vars 'pow initially 1 body:
-          while 0 < 'n do ('pow := 'pow * 'm);('n := 'n - 1) od ]](4 2) .
+          while 0 < 'n do ('pow ::= 'pow * 'm);('n ::= 'n - 1) od ]](4 2) .
 -- tram reduce [[ fun 'pow('n 'm) is vars 'pow initially 1 body:
---          while 0 < 'n do ('pow := 'pow * 'm);('n := 'n - 1) od ]](4 2) .
+--          while 0 < 'n do ('pow ::= 'pow * 'm);('n ::= 'n - 1) od ]](4 2) .
 reduce [[ fun 'pow('n 'm) is vars 'pow initially 1 body:
-	    while 0 < 'n do ('pow := 'pow * 'm);('n := 'n - 1) od ]](4 2) .
+	    while 0 < 'n do ('pow ::= 'pow * 'm);('n ::= 'n - 1) od ]](4 2) .
 **> should be: 16
 
 **> factorial of n
 reduce [[ fun 'fac('n) is vars ('fac initially 1);('i initially 0) body:
-          while 'i < 'n do ('i := 'i + 1); ('fac := 'i * 'fac) od ]](5) .
+          while 'i < 'n do ('i ::= 'i + 1); ('fac ::= 'i * 'fac) od ]](5) .
 -- tram reduce [[ fun 'fac('n) is vars ('fac initially 1);('i initially 0) body:
---          while 'i < 'n do ('i := 'i + 1); ('fac := 'i * 'fac) od ]](5) .
+--          while 'i < 'n do ('i ::= 'i + 1); ('fac ::= 'i * 'fac) od ]](5) .
 **> should be: 120
 
 **> max finds the maximum of a list of three numbers
 reduce [[ fun 'max('a 'b 'c) is vars ('n initially 2);('max initially 'a) body:
           while 0 < 'n do
-          ('n := 'n - 1); ('x := 'b); ('b := 'c);
-          ('max := if 'x < 'max then 'max else 'x endif) od ]](3 123 32) .
+          ('n ::= 'n - 1); ('x ::= 'b); ('b ::= 'c);
+          ('max ::= if 'x < 'max then 'max else 'x endif) od ]](3 123 32) .
 -- tram reduce [[ fun 'max('a 'b 'c) is vars ('n initially 2);('max initially 'a) body:
 --          while 0 < 'n do
---          ('n := 'n - 1); ('x := 'b); ('b := 'c);
---          ('max := if 'x < 'max then 'max else 'x endif) od ]](3 123 32) .
+--          ('n ::= 'n - 1); ('x ::= 'b); ('b ::= 'c);
+--          ('max ::= if 'x < 'max then 'max else 'x endif) od ]](3 123 32) .
 **> should be: 123
 --
 eof

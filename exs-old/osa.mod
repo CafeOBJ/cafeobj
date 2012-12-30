@@ -91,7 +91,7 @@ module! BSTACK {
   eq pop push(N,S) = S .
 }
 
-open BSTACK
+open BSTACK .
 eq length push(N,S) = 1 + length S .
 
 red length(empty) .

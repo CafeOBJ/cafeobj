@@ -12,7 +12,7 @@ module* GROUPL {
   eq [las]: A * (B * C) = (A * B) * C .
 }
 
-open GROUPL
+open GROUPL .
 op a : -> Elt .
 
 ** first, prove the right inverse law:

@@ -36,11 +36,12 @@ mod! SORTING-STRG(Y :: POSET) {
 
 set exec normalize on
 
-select SORTING-STRG(NAT)
+open SORTING-STRG(NAT) .
 exec (4 3 5 3 1) .
 -- fast execution by brute engine
 set tram path brute .
 -- tram exec (40  39  38  37  36  35  34  33  32  31  30  29  28  27  26  25  24  23  22  21  20  19  18  17  16  15  14  13  12  11  10  9  8  7  6  5  4  3  2  1) .
+close
 
 -- functions for proving the generic termination of the sorting algorithm
 mod! SORTING-STRG-PROOF {
@@ -78,7 +79,7 @@ open SORTING-STRG-PROOF .
 ** hypothesis
   eq e' <= e = true .
 ** conclusion
-red disorder(e' e s) < disorder(e e' s) .
+-- red disorder(e' e s) < disorder(e e' s) .
 close
 
 **> LEMMA2: disorder(e s) < disorder(e s')
@@ -93,7 +94,7 @@ open SORTING-STRG-PROOF .
   eq (e >> s) = (e >> s') .
   eq disorder(s) < disorder(s') = true .
 ** conclusion
-red disorder(e s) < disorder(e s') .
+ red disorder(e s) < disorder(e s') .
 close
 
 -- proof of (generic) local confluence for the sorting algorithm

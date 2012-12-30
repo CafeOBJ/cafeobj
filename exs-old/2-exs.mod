@@ -22,14 +22,21 @@ select EX1
 reduce  xx(3) .  
 **> should be 256
 reduce  xx(4) .  
-select 2(F <= view to FNS { op f -> dbl_ })
+**> does not work select 2(F <= view to FNS { op f -> dbl_ })
+-- select 2(F <= view to FNS { op f -> dbl_ })
+open 2(F <= view to FNS { op f -> dbl_ }) .
 **> should be 12
 reduce xx(3) . 
-select 2((2(FNS { op f -> sq_ })*{ op xx -> f }){ sort S -> Int, op f -> f })
+close
+
+-- select 2((2(FNS { op f -> sq_ })*{ op xx -> f }){ sort S -> Int, op f -> f })
+open 2((2(FNS { op f -> sq_ })*{ op xx -> f }){ sort S -> Int, op f -> f }) .
 **> should be 65536
 reduce xx(2) . 
 **> should be 43046721
 reduce xx(3) . 
+
+close
 --
 eof
 --

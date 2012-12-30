@@ -40,13 +40,14 @@ view NATD from POSET to NAT {
   op L1 < L2 -> L1 divides L2 and L1 =/= L2 
 }
 
-select BUBBLES[NAT]
+open BUBBLES[NAT] .
 reduce sorting(18 5 6 3) .  **> should be: 3 5 6 18
 reduce sorting(8 5 4 2) .   **> should be: 2 4 5 8
-select BUBBLES[NATD]
+close
+open BUBBLES[NATD] .
 reduce  sorting(18 5 6 3) . **> mightnt contain: 3 6 18
 reduce sorting(8 5 4 2) .   **> mightnt contain: 2 4 8
-
+close
 --
 eof
 **

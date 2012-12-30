@@ -217,201 +217,202 @@
     (format t "~&dictionary info token = ~s" token))
   (let ((res nil)
 	(mod-token nil))
-    (cond ((consp token)
-	   ;; special builtin tokens
-	   (setq res (list (info-for-special-builtins token))))
-	  ;; normal token
-	  (t (setq res (dictionary-get-token-info (dictionary-table dictionary)
+    (block collect
+      (cond ((consp token)
+	     ;; special builtin tokens
+	     (setq res (list (info-for-special-builtins token))))
+	    ;; normal token
+	    (t (setq res (dictionary-get-token-info (dictionary-table dictionary)
 						  token))
-	     ;; blocked let variable?
-	     ;;  *TODO*
+	       ;; blocked let variable?
+	       ;;  *TODO*
 	     
-	     ;; bound variable?
-	     (catch 'term-context-error
-	       (let ((val (get-bound-value token)))
-		 (when val
-		   (if (is-special-let-variable? token)
-		       (push val res)
+	       ;; bound variable?
+	       (catch 'term-context-error
+		 (let ((val (get-bound-value token)))
+		   (when val
+		     (if (is-special-let-variable? token)
+			 (push val res)
 		       (push (simple-copy-term-sharing-variables
 			      val dictionary)
 			     res)))))
-	     
-	     ;; try other possiblities.
-	     ;; variable ?
-	     (let ((res2 (assoc (intern token) *parse-variables*)))
-	       (cond
-		 (res2
-		  ;; there's a registered variable with name 'token', accumlate
-		  ;; it. now that vars are left in modules want
-		  ;; *parser-variables* to replace.
-		  (when *on-parse-debug*
-		    (format t "~&found var : ~s" (car res2)))
-		  (setq res (cons (cdr res2) (dictionary-delete-vars res)))
-		  )
-		 (t
-		  ;; check sort qualified variable reference
-		  ;; = on-the-fly (dynamic) variable declaration. 
-		  ;;
-		  (let ((q-pos (position #\: (the simple-string token)
-					 :from-end t)))
-		    (declare (type (or null fixnum) q-pos))
-		    (cond ((and q-pos
-				(not (zerop (the fixnum q-pos)))
-				(not (= (the fixnum q-pos)
-					(the fixnum
-					  (1- (length
-					       (the simple-string token)))))))
-			   (let ((sort nil)
-				 (var-name nil)
-				 (var nil))
-			     ;; assumes the token is qualified vriable
-			     ;; declaration. 
-			     (setq var-name (subseq (the simple-string token)
-						    0
-						    (the fixnum q-pos)))
-			     ;;; (setf var-name (intern var-name))
-			     (setf sort (find-sort-in *current-module*
-						      (subseq
-						       (the simple-string token)
-						       (1+ (the fixnum q-pos)))))
-			     (unless sort
-			       (with-output-chaos-error ('no-such-sort)
-				 (format t "unknown sort ~a for variable form ~a."
-					 (subseq token (1+ q-pos))
-					 token)
-				 ))
-			     (let ((bi (check-var-name-overloading-with-builtin
-					var-name sort *current-module*)))
-			       (when bi
-				 (with-output-chaos-warning ()
-				   (format t "declaring variable ~s on the fly,"
-					   var-name)
-				   (print-next)
-				   (princ "the name is conflicting with built-in constant of sort ")
-				   (print-sort-name bi *current-module*)
-				   (princ ".")
-				   (terpri)
-				   )))
-			     ;;
-			     (let ((gv (dictionary-get-token-info
-					(dictionary-table dictionary)
-					var-name)))
-			       (when gv
-				 (dolist (op-v gv)
-				   (when (eq (object-syntactic-type op-v)
-					     'variable)
-				     (with-output-chaos-error ('already-used-name)
-				       (format t "~&on the fly variable name ~A is already used for static variable declaration..." var-name))))))
-			     ;; OK
-			     (setq var-name (intern var-name))
-			     ;; success parsing it as a variable declaration.
-			     ;; checks if there alredy a variable with the same
-			     ;; name. 
-			     (when *on-parse-debug*
-			       (format t "~&on-the-fly var decl: ~A" var-name)
-			       (format t "... ~A" *parse-variables*))
-			     (let ((old-var (assoc var-name *parse-variables*)))
-			       (if old-var
-				   (unless (sort= (variable-sort (cdr old-var))
-						  sort) 
-				     (with-output-chaos-error ()
-				       (format t "on the fly variable ~A has been declared as sort ~A, but now being redefined as sort ~A.~%"
-					       (string var-name)
-					       (string (sort-id
-							(variable-sort (cdr
-									old-var))))
-					       (string (sort-id sort))))
-				     ;;(setf (cdr old-var)
-				     ;; (make-variable-term sort var-name))
-				     )
-				   (progn
-				     ;; check name, if it start with `, we make
-				     ;; pseudo variable
-				     (if (eql #\` (char (the simple-string
-							  (string var-name))
-							0))
-					 (setf var (make-pvariable-term sort
-									var-name))
-				       (setf var (make-variable-term sort
-								     var-name)))
-				     (push (cons var-name var) *parse-variables*)))
-			       (if old-var
-				   (progn
-				     (push (cdr old-var) res)
-				     #||
-				     (when (err-sort-p (variable-sort
-							(cdr old-var)))
-				       (pushew (cdr old-var)
-					       (module-error-variables
-						*current-module*)))
-				     ||#
-				     )
-				   (progn
-				     (push var res)
-				     #||
-				     (when (err-sort-p (variable-sort var))
-				       (pushnew var (module-error-variables
-						     *current-module*)))
-				     ||#
-				     )))))
+	       ;;----
+	       ;; (when res (return-from collect nil))
+	       ;;----
 
-			  ;; must not be a variable declaration.
-			  ;; try yet other possibilities.
-			  (t (let ((pos nil))
-			       ;; builtin constant tokens?
-			       (dolist (bi (dictionary-builtins dictionary))
-				 (let ((token-pred (bsort-token-predicate bi)))
-				   (when (and token-pred
-					      (funcall token-pred token))
-				     (push bi pos))))
-			       (if pos
-				   ;; may be builtin constant.
-				   (if (cdr pos)
-				       (let ((so (module-sort-order
-						  *current-module*))) 
-					 (dolist (bi pos)
-					   (unless (some #'(lambda (x)
-							     (sort< x bi so))
-							 pos)
-					     (push
-					      (dictionary-make-builtin-constant
-					       token bi) 
-					      res))))
-				       (push (dictionary-make-builtin-constant
-					      token 
-					      (car pos))
-					     res))
+	       ;; try other possiblities.
+	       ;; variable ?
+	       (let ((res2 (assoc (intern token) *parse-variables*)))
+		 (cond (res2
+			;; there's a registered variable with name 'token', accumlate
+			;; it. now that vars are left in modules want
+			;; *parser-variables* to replace.
+			(when *on-parse-debug*
+			  (format t "~&found var : ~s" (car res2)))
+			(setq res (cons (cdr res2) (dictionary-delete-vars res))))
+		       (t
+			;; check sort qualified variable reference
+			;; = on-the-fly (dynamic) variable declaration. 
+			;;
+			(let ((q-pos (position #\: (the simple-string token)
+					       :from-end t)))
+			  (declare (type (or null fixnum) q-pos))
+			  (cond ((and q-pos
+				      (not (zerop (the fixnum q-pos)))
+				      (not (= (the fixnum q-pos)
+					      (the fixnum
+						(1- (length
+						     (the simple-string token)))))))
+				 (let ((sort nil)
+				       (var-name nil)
+				       (var nil))
+				   ;; assumes the token is qualified vriable
+				   ;; declaration. 
+				   (setq var-name (subseq (the simple-string token)
+							  0
+							  (the fixnum q-pos)))
+				   ;; (setf var-name (intern var-name))
+				   (setf sort (find-sort-in *current-module*
+							    (subseq
+							     (the simple-string token)
+							     (1+ (the fixnum q-pos)))))
+				   (unless sort
+				     (when res (return-from collect nil))
+				     (with-output-chaos-error ('no-such-sort)
+				       (format t "unknown sort ~a for variable form ~a."
+					       (subseq token (1+ q-pos))
+					       token)))
+				   (let ((bi (check-var-name-overloading-with-builtin
+					      var-name sort *current-module*)))
+				     (when bi
+				       (with-output-chaos-warning ()
+					 (format t "declaring variable ~s on the fly,"
+						 var-name)
+					 (print-next)
+					 (princ "the name is conflicting with built-in constant of sort ")
+					 (print-sort-name bi *current-module*)
+					 (princ ".")
+					 (terpri))))
+				   ;;
+				   (let ((gv (dictionary-get-token-info
+					      (dictionary-table dictionary)
+					      var-name)))
+				     (when gv
+				       (dolist (op-v gv)
+					 (when (eq (object-syntactic-type op-v)
+						   'variable)
+					   (with-output-chaos-error ('already-used-name)
+					     (format t "~&on the fly variable name ~A is already used for static variable declaration..." var-name))))))
+				   ;; OK
+				   (setq var-name (intern var-name))
+				   ;; success parsing it as a variable declaration.
+				   ;; checks if there alredy a variable with the same
+				   ;; name. 
+				   (when *on-parse-debug*
+				     (format t "~&on-the-fly var decl: ~A" var-name)
+				     (format t "... ~A" *parse-variables*))
+				   (let ((old-var (assoc var-name *parse-variables*)))
+				     (if old-var
+					 (unless (sort= (variable-sort (cdr old-var))
+							sort) 
+					   (with-output-chaos-error ()
+					     (format t "on the fly variable ~A has been declared as sort ~A, but now being redefined as sort ~A.~%"
+						     (string var-name)
+						     (string (sort-id
+							      (variable-sort (cdr
+									      old-var))))
+						     (string (sort-id sort))))
+					   ;;(setf (cdr old-var)
+					   ;; (make-variable-term sort var-name))
+					   )
+				       (progn
+					 ;; check name, if it start with `, we make
+					 ;; pseudo variable
+					 (if (eql #\` (char (the simple-string
+							      (string var-name))
+							    0))
+					     (setf var (make-pvariable-term sort
+									    var-name))
+					   (setf var (make-variable-term sort
+									 var-name)))
+					 (push (cons var-name var) *parse-variables*)))
+				     (if old-var
+					 (progn
+					   (push (cdr old-var) res)
+					   #||
+					   (when (err-sort-p (variable-sort
+							      (cdr old-var)))
+					     (pushew (cdr old-var)
+						     (module-error-variables
+						      *current-module*)))
+					   ||#
+					   )
+				       (progn
+					 (push var res)
+					 #||
+					 (when (err-sort-p (variable-sort var))
+					   (pushnew var (module-error-variables
+							 *current-module*)))
+					 ||#
+					 )))))
 
-				   ;; no possibility for vairable nor builtin
-				   ;; constant.
-				   (let ((ast (gethash token *builtin-ast-dict*)))
-				     (if ast
-					 ;; abstract syntax tree.
-					 (setf res ast))
-				     (unless res
-				       (multiple-value-setq (res mod-token)
-					 (get-qualified-op-pattern token)))
-				     ;;
-				     (when (and (null res)
-						(memq *identifier-sort*
-						      (module-all-sorts
-						       *current-module*)))
-				       (let ((ident (intern token)))
-					 (unless (member ident '(|.| |,|
-								 |(| |)|
-								 |{| |}|
-								 |[| |]|))
-					   (push (make-bconst-term
-						  *identifier-sort* ident)
-						 res))))))))
-			  )))))
-	     ;; #||
-	     ;;; final possibility
-	     (unless res
-	       (multiple-value-setq (res mod-token)
-		 (get-qualified-op-pattern token)))
-	     ;; ||#
-	     ))
+				;; must not be a variable declaration.
+				;; try yet other possibilities.
+				(t (let ((pos nil))
+				     ;; builtin constant tokens?
+				     (dolist (bi (dictionary-builtins dictionary))
+				       (let ((token-pred (bsort-token-predicate bi)))
+					 (when (and token-pred
+						    (funcall token-pred token))
+					   (push bi pos))))
+				     (if pos
+					 ;; may be builtin constant.
+					 (if (cdr pos)
+					     (let ((so (module-sort-order
+							*current-module*))) 
+					       (dolist (bi pos)
+						 (unless (some #'(lambda (x)
+								   (sort< x bi so))
+							       pos)
+						   (push
+						    (dictionary-make-builtin-constant
+						     token bi) 
+						    res))))
+					   (push (dictionary-make-builtin-constant
+						  token 
+						  (car pos))
+						 res))
+
+				       ;; no possibilities of vairable nor builtin
+				       ;; constant.
+				       (let ((ast (gethash token *builtin-ast-dict*)))
+					 (if ast
+					     ;; abstract syntax tree.
+					     (setf res ast))
+					 (unless res
+					   (multiple-value-setq (res mod-token)
+					     (get-qualified-op-pattern token)))
+					 ;;
+					 (when (and (null res)
+						    (memq *identifier-sort*
+							  (module-all-sorts
+							   *current-module*)))
+					   (let ((ident (intern token)))
+					     (unless (member ident '(|.| |,|
+								     |(| |)|
+								     |{| |}|
+								     |[| |]|))
+					       (push (make-bconst-term
+						      *identifier-sort* ident)
+						     res))))))))
+				)))))
+	       ;; #||
+	       ;; final possibility
+	       (unless res
+		 (multiple-value-setq (res mod-token)
+		   (get-qualified-op-pattern token)))
+	       ;; ||#
+	       )))
     ;;
     (when sort-constraint
       (let ((real-res nil))
@@ -1527,8 +1528,7 @@
 	(print-in-progress "!"))
       (or res arg-acc-list-prime))
     ||#
-    arg-acc-list-prime
-    ))
+    arg-acc-list-prime))
 
 ;;;  op parser-collect-one-argument :
 ;;;       LIST[ ( ChaosTermList . TokenList ) ]  -- not empty !
@@ -1545,7 +1545,7 @@
 	   (type fixnum level-constraint)
 	   (type sort* sort-constraint))
   (let ((arg-acc-list-prime nil))
-    (dolist (arg-acc arg-acc-list arg-acc-list-prime)
+    (dolist (arg-acc arg-acc-list (delete-duplicates arg-acc-list-prime :test #'equal))
       (let ((token-list (cdr arg-acc)) )
         (if (null token-list)
 	    nil				;this iteration is finished

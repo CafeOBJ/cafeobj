@@ -45,7 +45,7 @@ module! TINY-IPL-SYNTAX
   op inc : expr -> expr { prec: 8 }
   -- statements ----------------------------------------
   -- assignment
-  op (_:=_) : var expr -> assignment { prec: 20 }
+  op (_::=_) : var expr -> assignment { prec: 20 }
   -- conditional
   op if : expr program program -> conditional { prec: 20 }
   -- loop
@@ -77,7 +77,7 @@ module! TINY-IPL {
   -- expression
   op evale : expr env -> nat
 
-  eq [assignment]: evalp((X:var := E:expr), C:env) 
+  eq [assignment]: evalp((X:var ::= E:expr), C:env) 
      = update(C,X,evale(E,C)) .
   eq [if]: evalp((if(E:expr, P:program, P':program)), C:env)
      = if evale(E,C) == 0 then evalp(P',C)
@@ -108,7 +108,7 @@ module! TINY-IPL {
 
 
 red in TINY-IPL :
-evalp((v(0) := 0, while le(v(0), s(s(s(s(s(0)))))) { v(0) := inc(v(0)) }), empty) .
+evalp((v(0) ::= 0, while le(v(0), s(s(s(s(s(0)))))) { v(0) ::= inc(v(0)) }), empty) .
 
 --
 eof

@@ -6,7 +6,7 @@ AC_INIT(./chaosx.system)
 AC_PREREQ(2.4)dnl Required Autoconf version.
 PACKAGE=cafeobj
 VERSION=1.4
-VMINOR=.9rc8
+VMINOR=.9rc9
 VMEMO=PigNose0.99
 PATCHLEVEL=
 AC_SUBST(PACKAGE)

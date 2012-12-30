@@ -2,7 +2,7 @@
 ** was combinators.obj(in OBJ3 distribution) translated to CafeOBJ.
 --
 module! COMBINATORS {
-  protecting (CHAOS)  -- to import Identifier, should be used with care.
+  -- protecting (CHAOS)  -- to import Identifier, should be used with care.
   signature {
     [ Identifier < T ]
     op __ : T T -> T {l-assoc strat: (1 2 0)}
@@ -16,15 +16,18 @@ module! COMBINATORS {
   }
 }
 
-select COMBINATORS
+open COMBINATORS .
+ops m n p : -> Identifier .
 red S K K m == I m .
 red S K S m == I m .
 red S I I I m == I m .
 
-red K m n == S(S(K S)(S(K K)K))(K(S K K))m n .
-red S m n p == S(S(K S)(S(K(S(K S)))(S(K(S(K K)))S)))(K(K(S K K)))m n p .
+red K m n == S(S(K S)(S(K K)K))(K(S K K)) m n .
+--
+red S m n p == S(S(K S)(S(K(S(K S)))(S(K(S(K K)))S)))(K(K(S K K))) m n p .
 red S(K K) m n p == S(S(K S)(S(K K)(S(K S)K)))(K K) m n p .
-
+--
+close
 --
 eof
 **

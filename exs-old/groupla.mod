@@ -12,7 +12,7 @@ module* GROUPLA {
   eq [linv]: A -1 * A = e .
 }
 
-open GROUPLA
+open GROUPLA .
 op a : -> Elt .
 
 ** first, prove the right inverse law:
