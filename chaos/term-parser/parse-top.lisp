@@ -218,27 +218,27 @@
 (defun pre-choose-final (module final)
   (declare (type module module)
 	   (type list final))
-  (let ((mslist (mapcar #'(lambda (x) (term-head x)) final))
-	(least-op nil)
-	(gen-op nil)
-	(res nil))
-    (let ((*current-sort-order* (module-sort-order module))
-	  (*current-opinfo-table* (module-opinfo-table module)))
-      ;; first find the lowest one
-      (setq least-op (choose-lowest-op mslist))
-      (when least-op
-	(push (find-if #'(lambda (x) (method= least-op (term-head x)))
-		       final)
-	      res)
-	(return-from pre-choose-final res))
-      ;; then select most general one
-      (setq gen-op (choose-most-general-op mslist))
-      (when gen-op
-	(push (find-if #'(lambda (x) (method= gen-op (term-head x))) final)
-	      res)
-	(return-from pre-choose-final res))
-      ;; could not find
-      (pre-choose-final-sub module final))))
+  (when (every #'term-is-application-form? final)
+    (let ((mslist (mapcar #'(lambda (x) (term-head x)) final))
+	  (least-op nil)
+	  (gen-op nil)
+	  (res nil))
+      (with-in-module (module)
+	;; first find the lowest one
+	(setq least-op (choose-lowest-op mslist))
+	(when least-op
+	  (push (find-if #'(lambda (x) (method= least-op (term-head x)))
+			 final)
+		res)
+	  (return-from pre-choose-final res))
+	;; then select most general one
+	(setq gen-op (choose-most-general-op mslist))
+	(when gen-op
+	  (push (find-if #'(lambda (x) (method= gen-op (term-head x))) final)
+		res)
+	  (return-from pre-choose-final res)))))
+  ;; could not find
+  (pre-choose-final-sub module final))
 
 ;;; NOT USED NOW.
 (defun parser-diagnose (module preterm sort)
