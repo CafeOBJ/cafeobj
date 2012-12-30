@@ -22,7 +22,7 @@ module INJ {
 --> set reduce conditions off
 set reduce conditions off
 **> open INJ
-open INJ 
+open INJ .
 --> show .
 show .
 --> op b : -> B .

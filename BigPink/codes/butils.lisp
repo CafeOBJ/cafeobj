@@ -282,7 +282,7 @@ File:butils.lisp
   ;; (setf (pn-flag randomize-sos) t)
   (setf (pn-flag randomize-sos) nil)
   ;;
-  (setf (pn-flag unify-heavy) t)
+  ;; (setf (pn-flag unify-heavy) t) **********
   ;;
   ;; reset parameters
   ;;
@@ -1369,7 +1369,8 @@ File:butils.lisp
                (print-next)
                (princ "strategy will be knuth-bendix with positive clauses in sos.")))
            ||#
-           (auto-change-flag kb3 t)
+	   ;; (auto-change-flag kb3 t) **************************
+	   (auto-change-flag kb2 t)
            (when (every #'positive-clause? *usable*)
              (when (pn-flag print-message)
                (with-output-msg ()
@@ -1420,7 +1421,8 @@ File:butils.lisp
                (print-next)
                (princ "clauses in usable")))
            ||#
-           (auto-change-flag kb3 t)
+	   ;; (auto-change-flag kb3 t)
+	   (auto-change-flag kb2 t)
            (auto-change-flag hyper-res t)
            (auto-change-flag unit-deletion t)
            (auto-change-flag factor t)

@@ -164,7 +164,7 @@ param(max-seconds,3)
 -- flag(randomize-sos,off)
 flag(input-sos-first,on)
 
-open PROOF
+open PROOF .
 
 -- db reset
 

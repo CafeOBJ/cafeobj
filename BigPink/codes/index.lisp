@@ -573,9 +573,9 @@
       (let ((lit (ith-literal cl 1)))
 	(when (and (eq-literal? lit)
 		   ;;
-		   (pn-flag eq-units-both-ways)
+		   ;; (pn-flag eq-units-both-ways)
 		   ;;
-		   )
+		   t)
 	  (setq c2 (copy-clause cl))
 	  (setf (clause-parents c2)
 	    (list (list :copy-rule (clause-id cl)
