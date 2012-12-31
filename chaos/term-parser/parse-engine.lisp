@@ -1936,6 +1936,7 @@
 		  sort-list-prime (cdr sort-list-prime)) ;for next iteration
 	    (if (or (sort= reference-sort *universal-sort*)
 		    (sort= reference-sort *huniversal-sort*)
+		    (sort= reference-sort *cosmos*)
 		    (err-sort-p reference-sort)
 		    (sort<= sort reference-sort sort-order))
 		;;then do nothing; go to next iteration:
@@ -1943,7 +1944,7 @@
 	      ;; else abort looping; return false:
 	      (progn
 		(when *on-parse-debug*
-		  (format t "~&incorrenct argument sort ~a" (sort-id sort)))
+		  (format t "~&incorrect argument sort ~a" (sort-id sort)))
 		(return nil)))))
       nil)))
 

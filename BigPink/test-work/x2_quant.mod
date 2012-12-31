@@ -10,7 +10,7 @@ module X2 (E :: TRIV)
   op _*_ : Elt Elt -> Elt
 
   vars x y z : Elt
-  ax \A[x,y,z] (x * y) * z = x * (y * z) .
+  ax \A[x,y]\A[z] (x * y) * z = x * (y * z) .
 
   ax \E[e:Elt] (\A[x] e * x = x) &
                (\A[x]\E[y] y * x = e) &
