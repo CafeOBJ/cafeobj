@@ -89,9 +89,9 @@ CLEANFILES = $(OBJECTS) $(srcdir)/.\#* $(srcdir)/*/.\#* $(srcdir)/*/*/.\#* $(src
 DISTCLEANFILES = $(srcdir)/.\#* $(srcdir)/*/.\#* $(srcdir)/*/*/.\#* $(srcdir)/*$(BIN) $(srcdir)/xbin/cafeobj $(srcdir)/xbin/$(EXEC) *~ */*~ */*/*~ */*/*/*~
 
 # Set default target
-all: Makefile defsystem$(BIN) version.lisp xcafeobj 
-
-bigpink: Makefile defsystem$(BIN) version.lisp xbigpink
+# all: Makefile defsystem$(BIN) version.lisp xcafeobj 
+# bigpink: Makefile defsystem$(BIN) version.lisp xbigpink
+all: Makefile defsystem$(BIN) version.lisp xbigpink
 
 version.lisp: version.in
 	cat $(top_srcdir)/version.in | \
@@ -166,10 +166,6 @@ dist-dir:
 	$(mkinstalldirs) $(DISTDIRTOP)/$(DISTLIBDIR)
 	for d in $(DISTLIBSUBDIRS) ; do \
 	  $(mkinstalldirs) $(DISTDIRTOP)/$$d ; \
-	done
-	for d in $(DISTLIBSUBDIRS) ; do \
-	  ln -s `pwd`/$$d/*.mod $(DISTDIRTOP)/$$d; \
-          ln -s `pwd`/$$d/*.bin $(DISTDIRTOP)/$$d; \
 	done
 
 # For an explanation of the following Makefile rules, see node
