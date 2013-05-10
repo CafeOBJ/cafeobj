@@ -209,16 +209,15 @@
 	      ;; if there are some remaining terms serviving these
 	      ;; hard checks, they can be the result.
 	      pres
-	      ;; OK, we failed in a test. let ask users which we should 
-	      ;; take as a result.
-	      res))
+	    ;; OK, we failed in a test. let ask users which we should 
+	    ;; take as a result.
+	    res))
       res)))
-||#
 
 (defun pre-choose-final (module final)
   (declare (type module module)
 	   (type list final))
-  (when (every #'term-is-application-form? final)
+  (when (every #'(lambda(x) (term-is-application-form? x)) final)
     (let ((mslist (mapcar #'(lambda (x) (term-head x)) final))
 	  (least-op nil)
 	  (gen-op nil)

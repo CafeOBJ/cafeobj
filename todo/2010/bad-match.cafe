@@ -27,14 +27,14 @@ eq[exMid]: P:BoolBa or not P = true .
 -- " eq[exMid]: P or not P = true ." and
 -- "P:BoolBa" may
 -- interact in a bad manner!
-open BOOLba
+open BOOLba .
 set trace on
 red not P:BoolBa or false .
 set trace off
 close
 
 -- (2) works properly
-open BOOLba
+open BOOLba .
 set trace on
 red not Q:BoolBa or false .
 set trace off

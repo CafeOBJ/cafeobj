@@ -20,7 +20,7 @@
 {\end{minipage}\end{Sbox}\fbox{\TheSbox}}
 %%%%%
 \usepackage{graphicx}
-%%%%%%%%%%%%%%%%%% plainmarkruled pagestyle
+%%%%% plainmarkruled pagestyle
 \makepagestyle{plainmarkruled}
   \makeheadrule{plainmarkruled}{\textwidth}{\normalrulethickness}
   \makeevenhead{plainmarkruled}{\scshape\leftmark}{}{}
@@ -29,7 +29,7 @@
   \makeoddfoot{plainmarkruled}{}{}{\thepage}
 \makepsmarks{plainmarkruled}{\@ruledmarks}
 
-%%%%%%%%%%%%%%%%%% index pagestyle
+%%%%% index pagestyle
 \makepagestyle{index}
   \makeheadrule{index}{\textwidth}{\normalrulethickness}
   \makeevenhead{index}{\rightmark}{}{\leftmark}
@@ -39,7 +39,7 @@
 
 \makeindex
 
-%%%%%%%%%%%%%%%%%%%%%%% glossary
+%%%%% glossary
 \makeglossary
 \changeglossactual{?}
 \changeglossnum{\@currentlabel} 
@@ -57,101 +57,8 @@
   \fi}
 \renewcommand*{\glossarymark}{\markboth{\glossaryname}{\glossaryname}}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%% endnotes
-% \makepagenote
-% \notepageref%      use page numbers
-% \newcommand*{\notemark}{\markboth{\notesname}{\notesname}}
-% \renewcommand*{\notedivision}{\chapter{\notesname}\notemark}
-% \renewcommand*{\notenumintext}[1]{}%  no number marks in main text
-% \renewcommand*{\notenuminnotes}[1]{}% no number marks in listing
-% \renewcommand*{\idtextinnotes}[1]{\vspace{-0.5\onelineskip}
-%                                   \par [#1]\space}
-% \renewcommand*{\notemark}{\markboth{{\scshape \notesname}}{{\scshape \notesname}}}
-% \renewcommand*{\pagenotesubhead}[3]{%
-%   \section{#1 #2 #3}}
-%%\renewcommand*{\notemark}{\markboth{\notesname}{\notesname}}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Short and long ToC
-
-% \newcommand*{\setupshorttoc}{%
-%   \renewcommand*{\contentsname}{Short contents}
-%   \let\oldchangetocdepth\changetocdepth
-%   \let\oldprecistoctext\precistoctext
-%   \renewcommand{\precistoctext}[1]{}
-%   \let\oldcftchapterfillnum\cftchapterfillnum
-%   \renewcommand*{\changetocdepth}[1]{}
-%   \setcounter{tocdepth}{0}% chapters
-%   \renewcommand*{\cftchapterfont}{\hfill\sffamily}
-%   \renewcommand*{\cftchapterpagefont}{\normalfont}
-%   \renewcommand*{\cftchapterleader}{ \textperiodcentered\space}
-%   \renewcommand*{\cftchapterafterpnum}{\cftparfillskip}
-% %%  \setpnumwidth{0em}
-% %%  \setpnumwidth{1.5em}
-%   \renewcommand*{\cftchapterfillnum}[1]{%
-%     {\cftchapterleader}\nobreak
-%     \hbox to 1.5em{\cftchapterpagefont ##1\hfil}\cftchapterafterpnum\par}
-%   \setrmarg{0.3\textwidth}
-%   \setlength{\unitlength}{\@tocrmarg}
-%   \addtolength{\unitlength}{1.5em}
-%   \let\oldcftpartformatpnum\cftpartformatpnum
-%   \renewcommand*{\cftpartformatpnum}[1]{%
-%     \hbox to\unitlength{{\cftpartpagefont ##1}}}
-%   \let\oldcftbookformatpnum\cftbookformatpnum
-%   \renewcommand*{\cftbookformatpnum}[1]{%
-%     \hbox to\unitlength{{\cftbookpagefont ##1}}}}
-
-% \newcommand*{\setupparasubsecs}{%
-%   \let\oldnumberline\numberline
-%   \renewcommand*{\cftsubsectionfont}{\itshape}
-%   \renewcommand*{\cftsubsectionpagefont}{\itshape}
-%   \renewcommand{\l@subsection}[2]{
-%     \ifnum\c@tocdepth > 1\relax
-%       \def\numberline####1{\textit{####1}~}%
-%       \leftskip=\cftsubsectionindent
-%       \rightskip=\@tocrmarg
-% %%      \advance\rightskip 0pt plus \hsize % uncomment this for raggedright
-% %%      \advance\rightskip 0pt plus 2em    % uncomment this for semi-ragged
-%       \parfillskip=\fill
-%       \ifhmode ,\ \else\noindent\fi
-%       \ignorespaces 
-%       {\cftsubsectionfont ##1}~{\cftsubsectionpagefont##2}%
-%        \let\numberline\oldnumberline\ignorespaces
-%     \fi}}
-
-% \AtEndDocument{\addtocontents{toc}{\par}}%%% OK
-
-% \newcommand*{\setupmaintoc}{%
-%   \renewcommand{\contentsname}{Contents}
-%   \let\changetocdepth\oldchangetocdepth
-%   \let\precistoctext\oldprecistoctext
-%   \let\cftchapterfillnum\oldcftchapterfillnum
-%   \addtodef{\cftchapterbreak}{\par}{}
-%   \renewcommand*{\cftchapterfont}{\normalfont\sffamily}
-%   \renewcommand*{\cftchapterleader}{\sffamily\cftdotfill{\cftchapterdotsep}}
-%   \renewcommand*{\cftchapterafterpnum}{}
-%   \renewcommand{\cftchapterbreak}{\par\addpenalty{-\@highpenalty}}
-%   \setpnumwidth{2.55em}
-%   \setrmarg{3.55em}
-%   \setcounter{tocdepth}{2}
-%   \let\cftpartformatpnum\oldcftpartformatpnum
-%   \addtodef{\cftpartbreak}{\par}{}
-%   \let\cftbookformatpnum\oldcftbookformatpnum
-%   \addtodef{\cftbookbreak}{\par}{}
-% }
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% \newcommand*{\theclass}{memoir}
-
-% %%% Print and Index macros
-% \newcommand*{\noidxnum}[1]{}
-
-% %% index @ in macrocode
-% \newcommand*{\idxatincode}{\index{@?\texttt{@}!in macro code}}
-% \newcommand*{\seeatincode}{see \Sref{sec:alltexcommands}}
-
-% % index marking
+%%%% index marking
 \newcommand{\idxmark}[1]{#1\markboth{#1}{#1}}
 % %%%% index sup/sub and sub \indexsupsubmain{main}{sub}
 \newcommand*{\indexsupsubmain}[2]{\index{#1!#2}\index{#2}}
@@ -231,146 +138,6 @@
 \renewcommand*{\Icrep}[1]{\pcrep{#1}\ixcrep{#1}}%   % print & index counter rep
 \newcommand*{\pixcrep}[1]{\pcrep{#1}\ixcrep{#1}} % print & index counter rep
 
-% print (and index) TeX keywords                                
-%\newcommand*{\pkey}[1]{\texttt{#1}}       % TeX keywords
-% \newcommand*{\pixkey}[1]{\pkey{#1}\index{#1 key?\pkey{#1} (keyword)}%
-% \index{keyword!#1?\pkey{#1}}}
-
-% \newcommand*{\patexp}{@-expression}        %  print @-expression
-% \newcommand*{\ixatexp}{%
-%              \index{@-expression?\patexp}} % index @-expression
-% \newcommand*{\pixatexp}{\patexp\ixatexp}   % print & index @-expression
-
-% \newcommand*{\Pprog}[1]{\textsf{#1}}       % print program name
-% \newcommand*{\Iprog}[1]{\index{#1 prog?\Pprog{#1} (program)}%
-%                         \index{program!#1?\Pprog{#1}}} % index program name
-% \newcommand*{\Iprogsub}[2]{\index{#1 prog?\Pprog{#1} (program)!#2}}
-% \newcommand*{\Lprog}[1]{\Pprog{#1}\Iprog{#1}}      % print & index program name
-% \DeclareRobustCommand{\Pmakeindex}{\Pprog{MakeIndex}}
-% \DeclareRobustCommand{\Imakeindex}{\Iprog{MakeIndex}}
-% \DeclareRobustCommand{\Lmakeindex}{\Lprog{MakeIndex}}
-% \DeclareRobustCommand{\Pbibtex}{\Pprog{BibTeX}}
-% \DeclareRobustCommand{\Ibibtex}{\Iprog{BibTeX}}
-% \DeclareRobustCommand{\Lbibtex}{\Lprog{BibTeX}}
-
-% % print and index an \if... \piif{if...}
-% \newcommand*{\piif}[1]{\cs{#1}\index{#1?\cs{#1}}}
-
-% % index command \!
-% \newcommand*{\iexcl}{\index{"!?\cs{!}}}    
-% % print and index \!
-% \newcommand*{\pixabang}{\cmdprint{\!}\index{"!?\string\cs{}\texttt{"!}}}
-% % print and index \\!
-% \newcommand*{\pixslashbang}{\cmdprint{\\!}\index{"\"\"!?\string\cmdprint{\\}\texttt{"!}}}
-
-% \DeclareRobustCommand{\senv}[1]{\texttt{\bs begin\{#1\}}} % print \begin{env}
-% \DeclareRobustCommand{\eenv}[1]{\texttt{\bs end\{#1\}}}   % print \end{env}
-
-% \newcommand*{\listofx}{`List of\ldots'}
-
-% \newcommand*{\Note}{\textbf{NOTE:}}
-
-% \newcommand*{\ptrue}{\texttt{true}}   % print TRUE
-% \newcommand*{\pfalse}{\texttt{false}} % print FALSE
-% \DeclareRobustCommand{\btitle}[1]{\textit{#1}} % print a book/article/etc title
-
-
-% %%% numbers
-% \let\Mfrac\slashfrac
-% \newcommand*{\ratio}[2]{{\ensuremath #1 \raise0.2ex\hbox{:} #2}}% or perhaps 0.15ex
-% \providecommand*{\abyb}[2]{\ensuremath{#1 \times #2}}       %   e.g., 3 x 4
-% \providecommand*{\abybm}[3]{\ensuremath{#1 \times #2}\:#3}  % e.g., 3 x 4 cm
-% \providecommand*{\atob}[2]{\ensuremath{#1\!:\!#2}}          % e.g., 3:4
-
-
-% \DeclareRobustCommand*{\lb}{\texttt{\char`\{}}          % prints {
-% \DeclareRobustCommand*{\rb}{\texttt{\char`\}}}          % prints }
-
-% %% A couple of shorthands
-% \newcommand*{\tmri}{\mathrm{i}}
-% \newcommand*{\tmrx}{\mathrm{x}}
-
-% \newcommand*{\foredge}{fore-edge}
-% \newlength{\pwlayi}\setlength{\pwlayi}{0.45\textwidth} % 
-% \newlength{\pwlayii}\setlength{\pwlayii}{0.45\pwlayi}
-
-% \DeclareRobustCommand{\Vprint}[1]{\texttt{\string#1}}
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% stuff for demoing fonts
-% \DeclareFontFamily{T1}{bodoni}{}
-% \DeclareFontShape{T1}{bodoni}{m}{n}{ <-> bodonirg9a }{}
-% %% \usethisfont[encoding]{size}{baselineskip}{family}{series}{shape}
-% \newcommand*{\usethisfont}[6][T1]{%
-%   \fontencoding{#1}\fontsize{#2}{#3}\fontfamily{#4}\fontseries{#5}%
-%   \fontshape{#6}\selectfont}
-% \newcommand*{\termfont}[3]{%
-%   \usethisfont{25}{30}{#1}{#2}{#3}}
-% \newcommand*{\UCalphabet}{A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \&}
-% \newcommand*{\LCalphabet}{a b c d e f g h i j k l m n o p q r s t u v w x y z
-%                           1 2 3 4 5 6 7 8 9 0 ! ? fi fl}
-% \newcommand*{\fox}{It was a dark and stormy night. 
-%                    While all the good men were coming to the aid of the
-%                    party, the quick brown dog had jumped over the fast red fox 
-%                    to its great surprise. The cattle had wound slowly
-%                    o'er the lea and I was in the dark.}
-% \newcommand*{\Kafka}{`But aren't Kafka's Schlo{\ss} and {\AE}sop's
-% {\OE}uvres often na{\"\i}ve vis-\`a-vis the d{\ae}monic ph{\oe}nix's
-% official r\^ole in fluffy souffl\'es?' }
-% \newcommand*{\namesAZ}{ {\AA}ngel\aa\ Beatrice Claire
-%   Diana \'Erica Fran\c{c}oise Ginette H\'el\`ene Iris
-%   Jackie K\=aren {\L}au\.ra Mar{\'\i}a N\H{a}ta{\l}{\u\i}e {\O}ctave
-%   Pauline Qu\^eneau Roxanne Sabine 
-% %%  T\~a{\'\j}a 
-%   T\~aja 
-%   Ur\v{s}ula  Vivian Wendy Xanthippe Yv{\o}nne Z\"azilie }
-
-
-
-% %% sans label for labelled list
-% \newcommand*{\sflabel}[1]{\hspace\labelsep \normalfont\sffamily #1}
-% %% italic label for labelled list
-% \newcommand*{\itlabel}[1]{\hspace\labelsep \normalfont\itshape #1}
-
-
-% %%%%%% stuff for new LaTeX code environment
-
-% % \zeroseps sets list before/after skips to minimum values
-% \newcommand*{\@zeroseps}{\setlength{\topsep}{\z@}
-%                         \setlength{\partopsep}{\z@}
-%                         \setlength{\parskip}{\z@}}
-% \newlength{\gparindent} \setlength{\gparindent}{\parindent}
-% \setlength{\gparindent}{0.5\parindent}
-% % now we can do the new environment. This has no extra before/after spacing.
-% \newenvironment{lcode}{\@zeroseps
-%   \renewcommand{\verbatim@startline}{\verbatim@line{\hskip\gparindent}}
-%   \small\setlength{\baselineskip}{\onelineskip}\verbatim}%
-%   {\endverbatim
-%    \vspace{-\baselineskip}%
-%    \noindent}
-
-% %%%%% for demoing chapterstyles
-% \newcommand*{\chaptext}[1]{The above is a demonstration of the \textit{#1} 
-% chapterstyle. It is one of several styles that come as part of the
-% \Pclass{memoir} class.}
-
-% %%%\renewcommand*{\theHchapter}{\thesheetsequence.\arabic{chapter}}
-
-% \newcount\savechapcnt
-% \newcount\demochapcnt
-% \newcount\saveseccnt
-% \newcount\savesubseccnt
-% \demochapcnt=0
-% %%\newcommand*{\theHc@demochapcnt}{\thefigure.\arabic{\c@demochapcnt}}
-% \newcount\savefigcnt
-% \newcount\saveftncnt
-
-
-% %%% comma separated in-line items 
-% \let\litemize\itemize \let\endlitemize\enditemize
-% \renewenvironment{litemize}{\renewcommand{\item}{\unskip, }}{}
-% \newenvironment{lineitems}{\litemize\renewcommand{\item}{\unskip, }}%
-%                           {\endlitemize\unskip }
-
 %%%%%% for FontSite fonts
 \newcommand*{\FSfont}[1]{%
   \fontfamily{#1}\selectfont}
@@ -447,9 +214,6 @@
   \begin{boxminipage}[c][\tpheight]{\tpwidth}
   \centering\begin{vplace}\begin{minipage}[c][\txtheight]{\txtwidth}}%
 {\end{minipage}\end{vplace}\end{boxminipage}}
-
-%%%%%%%%%%%%%%%%%%
-
 
 %%%%%%%%% section head designs
 \newcommand*{\defaultsecheads}{

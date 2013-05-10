@@ -94,10 +94,10 @@ set always memo on
 exec B .
 --> this needs much time to perform ... please be patient
 clean memo
-eof
+-- eof
 red B ==> 'c 2 'd .
 **
-eof
+-- eof
 
 -- -------------------------------
 --> the problem is NOT confluent: both of the following are normal forms

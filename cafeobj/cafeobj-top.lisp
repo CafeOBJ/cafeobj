@@ -212,9 +212,12 @@
           ))
       (setq *chaos-vergine* nil)))
   ;; message DB
+  #+:Allegro
   (setup-message-db)
   ;; help DB
-  (setup-help-db))
+  #+:Allegro
+  (setup-help-db)
+  )
 
 ;;; **********************
 ;;; THE TOP LEVEL FUNCTION

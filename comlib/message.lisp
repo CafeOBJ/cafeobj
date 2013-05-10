@@ -38,6 +38,7 @@
 (defun register-message (type msg)
   (setf (gethash (car msg) *Message-DB*) (cons type (cdr msg))))
 
+#+:Allegro
 (defun read-message-db (path)
   (clrhash *Message-DB*)
   (flet ((regme (type msgs)
@@ -56,6 +57,7 @@
                (otherwise
                 (error "Internal error, invalid message type ~s" type)))))))
 
+#+:Allegro
 (defun setup-message-db ()
   (let ((fname (chaos-probe-file "messagesDB" *chaos-libpath* '(".msg"))))
     (unless fname

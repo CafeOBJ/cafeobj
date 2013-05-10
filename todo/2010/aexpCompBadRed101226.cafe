@@ -211,7 +211,7 @@ mod THEOREM-COMPILER {
 --  may be because of a conflict of the declarations of
 --   _=_ in EQL and _=_ declared in PNAT 
 --  and LHS of the equation declared does not match
-open THEOREM-COMPILER
+open THEOREM-COMPILER .
 -- assumptions
   eq ((if 0 = interpret(e) then 0
        else (if interpret(e) < sq(pivot(0,interpret(e)))
@@ -226,7 +226,7 @@ open THEOREM-COMPILER
   red th1(/ e,n) .
 close
 -- BUT the following works!
-open THEOREM-COMPILER
+open THEOREM-COMPILER .
 -- assumptions
   eq ((if 0 = interpret(e) then 0
        else (if interpret(e) < sq(pivot(0,interpret(e)))

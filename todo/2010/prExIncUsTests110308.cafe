@@ -18,7 +18,7 @@ mod M3 {
   op f : S.M1 S.M2 -> S5
 }
 
-open M3
+open M3 .
   red a.M1 .
   red a.M2 .
   red f(a.M1,a.M2) .
@@ -31,7 +31,7 @@ mod M4 {
   op f : S.M1 S.M2 -> S6
 }
 
-open M4
+open M4 .
   red a.M1 .
   red a.M2 .
   red f(a.M1,a.M2) .
@@ -44,7 +44,7 @@ mod M5 {
   op f : S.M1 S.M2 -> S3
 }
 
-open M5
+open M5 .
   red a.M1 .
   red a.M2 .
   red f(a.M1,a.M2) .
@@ -57,12 +57,12 @@ mod M6 {
   op f : S.M1 S.M2 -> S4
 }
 
-open M6
+open M6 .
 --> the three commented red commands
 --> make the system down to CHAOS level
--- red a.M1 .
--- red a.M2 .
--- red f(a.M1,a.M2) .
+red a.M1 .
+red a.M2 .
+red f(a.M1,a.M2) .
 close
 
 sh M6

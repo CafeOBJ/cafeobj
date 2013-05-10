@@ -169,14 +169,23 @@ mod! TEST{
   } 
 ) .
 }
-select TEST .
+
+set clean memo on
+open TEST .
 
 --> (1) exec test 
 
--- exec input .
+exec input .
 
 --> (2) red _==>!_ test 
 --> This search should find the normal form of the above execution (1).
 
--- red input ==>! L:List .
+red input ==>! L:List .
+
+close
+set clean memo off
+
+--
+eof
+
 

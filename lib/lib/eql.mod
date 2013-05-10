@@ -34,7 +34,7 @@ lispq
   (prepare-for-parsing *eql-module*)
   (with-in-module (*eql-module*)
     (let* ((eq-op (find-operator '("_" "=" "_") 2 *eql-module*))
-	   (eq-meth (lowest-method (car (opinfo-methods eq-op)))))
+	   (eq-meth (lowest-method* (car (opinfo-methods eq-op)))))
       (setq *eql-op* eq-meth))))
 
 lispq

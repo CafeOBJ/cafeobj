@@ -685,7 +685,7 @@ ceq ((N1 = N2) and (N1 = N3)) = false
 
 -- (ss ; drSr ; duSr ; rr ; rs ; drRs ; duRs ; sr)
 
-eof
+-- eof
 
 --  (0.000 sec for parse, 2717438 rewrites(205.180 sec), 64516479 matches) with cafeobj149rc6 130101
 --  (1.250 sec for parse, 2854107 rewrites(401.330 sec), 79646800 matches) with cafeobj149rc9 130101

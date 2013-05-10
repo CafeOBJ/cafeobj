@@ -34,7 +34,7 @@ show eqs
 show op (_ + _)
 describe op (_ + _)
 
-open NAT
+open NAT .
 show
 show ops
 show sorts
@@ -124,7 +124,7 @@ make PNAT=LIST
 -- module in the module LIST(TRIV=>PNAT=) to NatList
 
 --> testing PNAT=LIST
-open PNAT=LIST
+open PNAT=LIST .
 parse (s 0 | nil) .
 ops a b : -> Nat .
 red (0 | s 0 | nil) = (0 | s 0 | nil) .
@@ -269,7 +269,7 @@ view TRIV=>NAT== from TRIV= to NAT {
 make NAT==LIST (LIST(TRIV=>NAT==))
 
 --> testing the NAT==LIST
-open NAT==LIST
+open NAT==LIST .
 ops a b : -> Nat .
 red (0 | 1 | nil) = (0 | 1 | nil) .
 red (0 | 1 | nil) = (0 | 2 | nil) .
@@ -311,7 +311,7 @@ make NAT<=>LIST
               (E1:Nat >= E2:Nat))}))
 
 --> testing the NAT<=>LIST
-open NAT<=>LIST
+open NAT<=>LIST .
 ops a b : -> Nat .
 red (0 | 1 | nil) = (0 | 1 | nil) .
 red (0 | 1 | nil) = (0 | 2 | nil) .
@@ -516,7 +516,7 @@ mod! LISTord (X :: TRIV=) {
 }
 
 -- testing LISTord
-open LISTord
+open LISTord .
 parse hd nil .
 parse tl nil .
 ops a b : -> Elt .
@@ -550,14 +550,14 @@ mod! LIST@(X :: TRIV=) {
 }
 
 --> testing
-open (LIST@(PNAT))
+open (LIST@(PNAT)) .
 ops a b : -> Nat .
 red (0 | s 0 | nil) @ (0 | s 0 | nil) .
 red (a | b | nil) @ (a | b | nil) .
 close
 
 --> using trace command
-open LIST@
+open LIST@ .
 ops a b c : -> Elt .
 
 set trace on
@@ -592,12 +592,12 @@ mod! PRED-LIST@(X :: TRIV=) {
 -->           (i.e. @ri(L:Nat) = true)
 -- Proof: By induction on L1.
 -- I Base case
-open PRED-LIST@
+open PRED-LIST@ .
 -- check
  red @ri(nil) .
 close
 -- II Induction case
-open PRED-LIST@
+open PRED-LIST@ .
 -- arbitrary values
  op e : -> Elt.X .
  op l1 : -> List .
@@ -614,14 +614,14 @@ close
 -- (i.e.  @assoc(L1:List,L2:List,L3:List) = true)
 -- Proof: By induction on L1.
 -- I Base case
-open PRED-LIST@
+open PRED-LIST@ .
 -- arbitrary values
  ops l2 l3 : -> List .
 -- check
  red @assoc(nil,l2,l3) .
 close
 -- II Induction case
-open PRED-LIST@
+open PRED-LIST@ .
 -- arbitrary values
  op e : -> Elt.X .
  op l1 : -> List .

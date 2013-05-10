@@ -15,7 +15,7 @@ clean memo
 
 -- verification of non existence of counter examples
 -- for 2 agents case
-open (QLOCKijTrans + QLOCKobEq + MEX)
+open (QLOCKijTrans + QLOCKobEq + MEX) .
 
 -- defining observational/behavioral equivalence
 pred _=ob=_ : Config Config {memo} .
@@ -69,7 +69,7 @@ close
 
 -- verification of non existence of counter examples
 -- for 3 agents case
-open (QLOCKijkTrans + QLOCKobEq + MEX)
+open (QLOCKijkTrans + QLOCKobEq + MEX) .
 
 -- defining observational/behavioral equivalence
 pred _=ob=_ : Config Config {memo} .

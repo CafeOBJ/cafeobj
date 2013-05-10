@@ -180,7 +180,6 @@ mod PROOF {
 }
 
 -- tram red in PROOF : RESULT .
-red in PROOF : RESULT .
 --
 eof
 --

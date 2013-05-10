@@ -62,12 +62,11 @@ DISTFILESTOP = \
 
 DISTDIRTOP = $(PACKAGE)-$(VERSION)$(VMINOR)
 
-DISTSUBDIRS = cafeobj clII comlib thstuff chaos win mac \
+DISTSUBDIRS = cafeobj clII comlib thstuff chaos \
 	chaos/boot chaos/cafein chaos/construct chaos/decafe chaos/e-match \
 	chaos/eval chaos/primitives chaos/term-parser chaos/tools \
 	chaos/tram chaos/psup \
 	elisp \
-	dist \
 	RefCard BigPink/codes BigPink/test
 
 DISTBINSUBDIRS = bin/cafeobj bin/clII bin/comlib bin/obj3 bin/thstuff bin/chaos \

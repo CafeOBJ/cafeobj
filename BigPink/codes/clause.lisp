@@ -409,9 +409,12 @@ File:formula.lisp
        (setq *usable* (list clause)))
      (incf (pn-stat usable-size)))
     (otherwise
+     #||
      (with-output-panic-message-n (:p-gl-0010 (list 'append-clause list))
        ;; (format t "append-clause: not yet ~s" list)
-       )))
+       )
+     ||#
+     ))
   (setf (clause-container clause) list)
   )
 
@@ -432,10 +435,12 @@ File:formula.lisp
                      (incf (pn-stat demodulators-size)))
       ||#
       )
+    #||
     (unless real-list
       (with-output-panic-message-n (:p-pn-0040)
         ;; (princ "prepend-clause: nil")
         ))
+    ||#
     (setf (cdr real-list) (cons (car real-list) (cdr real-list)))
     (setf (car real-list) clause)
     (setf (clause-container clause) list)))

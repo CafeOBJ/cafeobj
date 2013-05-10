@@ -25,7 +25,7 @@ mod! PNAT+*dist {
   eq s(X) * Y = Y + (X * Y) .
 
   -- _*_ distributes on _+_
-  eq X:Nat * (Y:Nat + Z:Nat) = (X * Y) + (X * Z) .
+  eq x:Nat * (y:Nat + z:Nat) = (x * y) + (x * z) .
 
 }
 
@@ -59,7 +59,7 @@ mod! FACT2 {
 -- open (FACT + FACT2 + EQL) 
 -- but
 -- the following two lines causes error; this is fixed at 148p23
-open (FACT + FACT2) 
+open (FACT + FACT2) .
 inc(EQL)
 
 --> induction base M = 0

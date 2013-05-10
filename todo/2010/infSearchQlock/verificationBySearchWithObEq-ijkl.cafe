@@ -3,7 +3,7 @@
 -- ==========================================================
 
 set always memo on
-clean memo
+set clean memo on
 
 -- "set clean memo on" makes litte differences
 -- is it contradicts to the general rule? 110228
@@ -21,7 +21,7 @@ in mex
 
 -- verification of non existence of counter examples
 -- for 2 agents case
-open (QLOCKijklTrans + QLOCKobEq + MEX)
+open (QLOCKijklTrans + QLOCKobEq + MEX) .
 
 -- defining observational/behavioral equivalence
 pred _=ob=_ : Config Config {memo} .

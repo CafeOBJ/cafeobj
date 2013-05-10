@@ -222,7 +222,7 @@
 
 	;; for simple-parser.
 	;; (check-polimorphic-overloading-in module)
-	(propagate-attributes module)
+	;; (propagate-attributes module)
 	(set-operator-syntactic-properties module)
 	(update-parse-information module)
 	;;

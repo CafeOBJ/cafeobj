@@ -252,7 +252,7 @@ Based on the implementation of OBJ3 system.
 	       ;; the different top level
 	       ;; possibly maches only when zero case...
 	       ;;
-	       #||
+	       ;; #||
 	       (if (or (test-theory .Z. (theory-info-code th-info))
 		       (test-theory .Z. (theory-info-code
 					 (method-theory-info-for-matching!
@@ -261,8 +261,8 @@ Based on the implementation of OBJ3 system.
 			  nil)
 		 ;; will never match
 		 t)
-	       ||#
-	       t
+	       ;;||#
+	       ;;t
 	       )
 	     ))))
 
@@ -341,7 +341,7 @@ Based on the implementation of OBJ3 system.
 	   ;; the different top level
 	   ;; possibly maches only when zero case or on-demand. 
 	   ;;
-	   #|| too danderous: many cases of rewriting rush into infinite loop.
+	   ;; #|| too danderous: many cases of rewriting rush into infinite loop.
 	   (if (term-is-on-demand? t2)
 	       (progn
 		 (mark-term-as-not-on-demand t2)
@@ -366,8 +366,8 @@ Based on the implementation of OBJ3 system.
 			nil)
 	       ;; will never match
 	       t))
-	   ||#
-	   ;; #||
+	   ;; ||#
+	   #||
 	   (if (term-is-on-demand? t2)
 	       (progn
 		 (mark-term-as-not-on-demand t2)
@@ -377,7 +377,7 @@ Based on the implementation of OBJ3 system.
 		   (!match-decompose t1 t2 res)))
 	     ;; never ...
 	     t)
-	   ;; ||#
+	   ||#
 	   )))
     ))
 

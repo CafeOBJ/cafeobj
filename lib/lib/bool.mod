@@ -24,7 +24,7 @@ lispq
   (unless *bootstrapping-bool*
     (setf *bootstrapping-bool* t)
     (unless (modexp-is-error (eval-modexp "BOOL"))
-      (with-outout-chaos-error ('more-than-one-bool)
+      (with-output-chaos-error ('more-than-one-bool)
 	(format t "You cann not define BOOL module more than once in a session.")))
     (if (and *user-bool* (not (equal "" *user-bool*)))
 	(cafeobj-input *user-bool*)

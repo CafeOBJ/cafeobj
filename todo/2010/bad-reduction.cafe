@@ -81,7 +81,7 @@ mod TEST {
         singleton('a,0)))) .
 }
 
-open TEST
+open TEST .
  --
  red update('c,10,t) .
  red insert('c,10,t) .
@@ -98,7 +98,7 @@ open TEST
   valOfT(someT(((< 'd , 3 >) |
   ((< 'e , 10 >) | empty))))))))))))):?TOption"
 
-eof
+-- eof
 **
 close
 

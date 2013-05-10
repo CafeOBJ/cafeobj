@@ -151,11 +151,11 @@ sys:module! MFOPL+EQ-1(TVAL :: T&F, SYNTAX :: ABS-FOPL+EQ-1(TVAL)){}
 --    (a) op P : ... Bool ... -> Bool
 --    (b) op Q : ... Bool ... -> S      -- S is not Bool
 -- 
---    ¡ú Basically, if one want to use PigNose system, one cannot
+--     Basically, if one want to use PigNose system, one cannot
 --       define such operators, otherwise the result is unknown.
 --       System (may) warn if it found such operations. 
 -- 
---    ¡ú But, built-in module BOOL does define such operators,
+--     But, built-in module BOOL does define such operators,
 --       and how about equality operators?
 --    
 --       One of the reason we adopt sort Bool as truth value is
@@ -165,7 +165,7 @@ sys:module! MFOPL+EQ-1(TVAL :: T&F, SYNTAX :: ABS-FOPL+EQ-1(TVAL)){}
 --       And Bool-valued terms are used as the condition part of axioms,
 --       this is rather ungly, but its too late for now. 
 --       
---       ¡ü "Here is the way we took:"
+--        "Here is the way we took:"
 --          Lift up (partially) operations of  BOOL to FOPL level.
 --          * "and"       ---> &
 --          * "or"        ---> |
@@ -181,7 +181,7 @@ sys:module! MFOPL+EQ-1(TVAL :: T&F, SYNTAX :: ABS-FOPL+EQ-1(TVAL)){}
 --            in automatic manner.
 --          * Axioms of above operators are "not" used in inference.
 --
---       ¡ü "if_then_else_fi"
+--        "if_then_else_fi"
 --          Users "cannot" use if_then_else_fi. We don't provide any
 --          support for this operator. Also the following operators
 --          has no support:

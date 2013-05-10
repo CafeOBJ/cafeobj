@@ -90,13 +90,16 @@ File:butils.lisp
          (let ((var (find-if #'(lambda (x) (variable-eq term x)) variables)))
            (if var
                var
+	     #||
              (if variables
                  (with-output-panic-message-n (:p-pn-0010 (list (variable-name term)))
                    ;; (format t "copying term, could not find var ~a"
                    ;;        (variable-name term))
                    (break "type in :q for returning to top-level.")
                    )
-               term))))
+               term)
+	     ||#
+	     term )))
         ((term-is-application-form? term)
          (@create-application-form-term
           (term-head term)
@@ -989,10 +992,12 @@ File:butils.lisp
 ;;;
 (defun pn-automatic-settings-1 ()
   ;;
+  #||
   (unless *current-psys*
     (with-output-panic-message-n (:p-pn-0020)
       ;; (format t "system error, no context in PigNose environment.")
       ))
+  ||#
   (move-axioms-to-usable *current-psys*)
   (setf *usable* (psystem-usable *current-psys*))
   (setf *sos* nil)
@@ -1171,10 +1176,12 @@ File:butils.lisp
 
 (defun pn-automatic-settings-2 ()
   ;;
+  #||
   (unless *current-psys*
     (with-output-panic-message-n (:p-pn-0020)
       ;;(format t "system error, no context in PigNose env.")
       ))
+  ||#
   (move-axioms-to-usable *current-psys*)
   (setf *usable* (psystem-usable *current-psys*))
   (setf *sos* nil)
@@ -1307,10 +1314,12 @@ File:butils.lisp
 
 (defun pn-automatic-settings-3 ()
   ;;
+  #||
   (unless *current-psys*
     (with-output-panic-message-n (:p-pn-0020)
       ;; (format t "system error, no context in PigNose env.")
       ))
+  ||#
   (move-axioms-to-usable *current-psys*)
   (setf *usable* (psystem-usable *current-psys*))
   (setf *sos* nil)

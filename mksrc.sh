@@ -1,5 +1,5 @@
 #!/bin/sh
-VERSION=1.4.8rc4
+VERSION=1.4.9rc9
 DISTDIR=dist/cafeobj-$VERSION
 DISTFILE=cafeobj-$VERSION.tgz
 

@@ -1686,6 +1686,63 @@
 	   (type list lower-bound)
 	   (type module module)
 	   (values (or null method)))
+  (flet ((select-one-method (method-list)
+	   ;; select arbitrary one if every has the same rank
+	   (let* ((cand (car method-list))
+		  (coar (method-coarity cand))
+		  (arity (method-arity cand)))
+	     (dolist (m (cdr method-list) cand)
+	       (unless (sort= coar (method-coarity m))
+		 (return-from select-one-method nil))
+	       (unless (sort-list= arity (method-arity m))
+		 (return-from select-one-method nil))))))
+    (let ((*current-sort-order* (module-sort-order module))
+	  (*current-opinfo-table* (module-opinfo-table module))
+	  (res nil))
+      (declare (type hash-table *current-sort-order* *current-opinfo-table*))
+      (let ((over-methods (method-overloaded-methods
+			   method
+			   (module-opinfo-table module))))
+
+	(declare (type list over-methods))
+	(when *on-debug*
+	  (format t "~%* lowest-method! : over-methods =")
+	  (dolist (m over-methods)
+	    (terpri)
+	    (princ "    ")
+	    (print-chaos-object m)))
+	;;
+	(if over-methods
+	    (progn
+	      (dolist (meth over-methods)
+		(declare (type method meth))
+		(when (and (sort-list<= lower-bound (method-arity meth))
+			   (not (member
+				 meth
+				 res
+				 :test #'(lambda (x y)
+					   (method-is-instance-of y
+								  x
+								  *current-sort-order*)))
+				))
+		  (push meth res)))
+	      (when *on-debug*
+		(format t "~%lowest-method! res=")
+		(print-chaos-object res)
+		)
+	      (if (cdr res)
+		  ;; was method
+		  (or (select-one-method res)
+		      method)
+		  (car res)))
+	  (return-from lowest-method! method))))))
+
+#||
+(defun lowest-method! (method lower-bound &optional (module *current-module*))
+  (declare (type method method)
+	   (type list lower-bound)
+	   (type module module)
+	   (values (or null method)))
   (let ((*current-sort-order* (module-sort-order module))
 	(*current-opinfo-table* (module-opinfo-table module))
 	(res nil))
@@ -1715,6 +1772,7 @@
 	    (or (choose-lowest-op res)
 		method))
 	(return-from lowest-method! method)))))
+||#
 
 (defun lowest-method* (method &optional lower-bound (module *current-module*))
   (declare (type method method)

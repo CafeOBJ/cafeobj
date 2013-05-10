@@ -1549,22 +1549,22 @@
       (let ((token-list (cdr arg-acc)) )
         (if (null token-list)
 	    nil				;this iteration is finished
-	    (let* ((arg-list (car arg-acc))
-		   (terletox-list (parse-term token-list
-					      module
-					      level-constraint
-					      sort-constraint)))
-	      ;; notice that parser is not called with
-	      ;;  token-list empty
-	      (dolist (terletox terletox-list)
-		;; if terletox-list empty, no effect
-                (let* ((arg-prime (caar terletox))
-		       (token-list-prime (cdr terletox))
-		       (arg-list-prime (cons arg-prime arg-list))
-		       ;; notice that we accumulate arguments in reverse order
-		       (arg-acc-prime (cons arg-list-prime token-list-prime)))
-                  (setq arg-acc-list-prime
-                        (cons arg-acc-prime arg-acc-list-prime)))))))))) 
+	  (let* ((arg-list (car arg-acc))
+		 (terletox-list (parse-term token-list
+					    module
+					    level-constraint
+					    sort-constraint)))
+	    ;; notice that parser is not called with
+	    ;;  token-list empty
+	    (dolist (terletox terletox-list)
+	      ;; if terletox-list empty, no effect
+	      (let* ((arg-prime (caar terletox))
+		     (token-list-prime (cdr terletox))
+		     (arg-list-prime (cons arg-prime arg-list))
+		     ;; notice that we accumulate arguments in reverse order
+		     (arg-acc-prime (cons arg-list-prime token-list-prime)))
+		(setq arg-acc-list-prime
+		  (cons arg-acc-prime arg-acc-list-prime))))))))))
 
 ;;;  op parser-scan-token :
 ;;;       LIST[ ( ChaosTermList . TokenList ) ]  -- not empty !

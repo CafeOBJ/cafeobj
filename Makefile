@@ -15,7 +15,7 @@ PACKAGE = cafeobj
 VERSION = 1.4
 VMINOR = .9
 VMEMO = PigNose0.99
-PATCHLEVEL = 
+PATCHLEVEL = 1
 
 # Where to install the executables.
 bindir = ${exec_prefix}/bin
@@ -44,10 +44,10 @@ INSTALL_PROGRAM = ${INSTALL}
 GCL = no
 CMU = no
 ACL = no
-LISP = no
-BIN = .fasl
-EXEC_SRC = cafeobj.acl.in
-EXEC = cafeobj.acl
+LISP = /opt/local/bin/clisp
+BIN = .fas
+EXEC_SRC = cafeobj.clisp.in
+EXEC = cafeobj.mem
 
 #### End of system configuration section. ####
 
@@ -62,12 +62,11 @@ DISTFILESTOP = \
 
 DISTDIRTOP = $(PACKAGE)-$(VERSION)$(VMINOR)
 
-DISTSUBDIRS = cafeobj clII comlib thstuff chaos win mac \
+DISTSUBDIRS = cafeobj clII comlib thstuff chaos \
 	chaos/boot chaos/cafein chaos/construct chaos/decafe chaos/e-match \
 	chaos/eval chaos/primitives chaos/term-parser chaos/tools \
 	chaos/tram chaos/psup \
 	elisp \
-	dist \
 	RefCard BigPink/codes BigPink/test
 
 DISTBINSUBDIRS = bin/cafeobj bin/clII bin/comlib bin/obj3 bin/thstuff bin/chaos \

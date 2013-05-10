@@ -57,7 +57,7 @@ mod* QUEUE (D :: TRIV=) {
 -- get
   op get : QueueErr -> QueueErr
   eq get((Q,X)) = Q .
-  eq (get(empty) = Q:Queue) = false .
+  eq (get(empty) = Q) = false .
 
 -- top
   op top : QueueErr -> EltErr.D

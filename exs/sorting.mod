@@ -94,8 +94,10 @@ open SORTING-STRG-PROOF .
   eq (e >> s) = (e >> s') .
   eq disorder(s) < disorder(s') = true .
 ** conclusion
- red disorder(e s) < disorder(e s') .
+--> the reduction causes stack overflow!
+--> red disorder(e s) < disorder(e s') .
 close
+eof
 
 -- proof of (generic) local confluence for the sorting algorithm
 ** case 1 for local confluence 
