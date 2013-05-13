@@ -537,7 +537,7 @@
       (auto-db-reset *current-module*)
       (setq psys (module-proof-system *current-module*))
       (unless psys
-	(with-output-panic-message ('no-psys)
+	(with-output-panic-message ()
 	  (princ "could not construct proof system!"))))
     ;;
     (case arg

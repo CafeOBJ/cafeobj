@@ -233,7 +233,7 @@
 
 ;;; READ-LINES (stream)
 ;;;
-(defconstant newline-string (string #\newline))
+(defparameter newline-string (string #\newline))
 (defparameter line-continue-char #\;)
 
 (defparameter .read-line-eof. "")
@@ -302,11 +302,11 @@
 (defvar .default-escape-char. #\\)
 
 ;;; 
-#-CMU (defconstant control-d #\^D)
-#+CMU (defconstant control-d #\)
-(defconstant control-d-string "")
-(defconstant input-escape #\esc)
-(defconstant input-escape-string "")
+#-CMU (defparameter control-d #\^D)
+#+CMU (defparameter control-d #\)
+(defparameter control-d-string "")
+(defparameter input-escape #\esc)
+(defparameter input-escape-string "")
 
 (defmacro at-eof () `(eq *lex-eof* .reader-ch.))
 

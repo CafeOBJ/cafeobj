@@ -422,7 +422,7 @@
 	  (format t "'~a'" obj))
       (case obj
 	(#\newline (princ "'\\n'"))
-	(#\linefeed (princ "'\\l'"))
+	;; #-:CLISP (#\linefeed (princ "'\\l'"))
 	(#\tab (princ "'\\t'"))
 	(#\space (princ "'\\s'"))
 	(#\page (princ "'\\p'"))
@@ -450,7 +450,7 @@
   (let ((module (eval-modexp "CHAOS:EXPR")))
     (labels ((sort-missing (sort-name)
 	       (with-output-panic-message ()
-		 (princ "missing sort ~s" sort-name))))
+		 (format t "missing sort ~s" sort-name))))
       (macrolet ((set-sort (sym s-name)
 		   `(or (setq ,sym (find-sort-in module ,s-name))
 			(sort-missing ,s-name))))

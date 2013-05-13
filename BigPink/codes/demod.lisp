@@ -177,8 +177,8 @@
 	 (type (or null axiom) *current-cafeobj-rule*))
 (defvar *current-cafeobj-rule* nil)
 
-(declaim (special *demod-is-back-demod*)
-	 (type boolean *demod-is-back-demod*))
+(declaim (special *demod-is-back-demod*))
+
 (defvar *demod-is-back-demod* nil)
 
 (defun demod-replace-term (t1 t2)
@@ -224,8 +224,7 @@
 (defun apply-one-demodulator* (demod term &aux (rule (demod-axiom demod)))
   (declare (type demod demod)
 	   (type axiom rule)
-	   (type term term)
-	   (values boolean))
+	   (type term term))
   (declare (inline demod-replace-term))
 
   ;; non-harmfull but nonsence.
@@ -237,14 +236,11 @@
 	 (contr nil)
 	 (ok t))
     (declare (type term *self*)
-	     (type (or null term) contr)
-	     (type boolean *do-unify*)
-	     (type boolean ok))
+	     (type (or null term) contr))
     ;;
     (multiple-value-bind (subst no-match E-equal)
 	(pn-match (rule-lhs rule) term nil t)
       (declare (type list subst)
-	       (type boolean no-match)
 	       (ignore e-equal))
       (incf $$matches)
       (when no-match (return-from apply-one-demodulator* nil))
@@ -274,12 +270,10 @@
 (defun apply-demodulator (demod term &aux (rule (demod-axiom demod)))
   (declare (type demod demod)
 	   (type axiom rule)
-	   (type term term)
-	   (values boolean))
+	   (type term term))
   (let ((is-applied nil)
 	(.current-demod-clause. (demod-clause demod)))
-    (declare (type boolean is-applied)
-	     (type (or symbol clause) .current-demod-clause.))
+    (declare (type (or symbol clause) .current-demod-clause.))
     ;; avoid self application, current implementation cannot handle
     ;; this situation...
     (when (eq .current-demod-clause.
@@ -322,15 +316,13 @@
 (defun demod-apply-A-extensions (rule term top)
   (declare (type axiom rule)
 	   (type term term)
-	   (type method top)
-	   (values boolean))
+	   (type method top))
   ;; (declare (optimize (speed 3) (safety 0)))
   (let ((listext (!axiom-a-extensions rule))
 	(a-ext nil)
 	(is-applied nil))
     (declare (type list litext)
-	     (type (or null axiom) a-ext)
-	     (type boolean is-applied))
+	     (type (or null axiom) a-ext))
     (when (null listext)
       ;; then need to pre-compute the extensions and store then
       (setq listext (compute-A-extensions rule top)))
@@ -371,8 +363,7 @@
 ;;;
 (defun apply-demodulators (term strategy)
   (declare (type term term)
-	   (type list strategy)
-	   (values boolean))
+	   (type list strategy))
   (labels ((apply-dt-rules (demods)
 	     (declare (type list demods))
 	     (block the-end
@@ -400,8 +391,7 @@
 ;;;
 (defun demod-reduce-term (term strategy)
   (declare (type term term)
-	   (type list strategy)
-	   (values boolean))
+	   (type list strategy))
   (let ((occ nil)
 	(top (term-head term))
 	;; (*cexec-target* nil)
@@ -437,8 +427,7 @@
 	  (t (if (method-is-associative top)
 		 (let ((list-subterms (list-assoc-subterms term top))
 		       (lowest-parsed t))
-		   (declare (type list list-subterms)
-			    (type boolean lowest-parsed))
+		   (declare (type list list-subterms))
 		   (dolist (x list-subterms)
 		     (unless (demod-normalize-term x)
 		       (setf lowest-parsed nil)))
@@ -489,8 +478,7 @@
   (let ((strat nil)
 	(num-args (cdr (method-name meth))))
     (declare (type fixnum num-args)
-	     (type list strat)
-	     (values list))
+	     (type list strat))
     (if (<= num-args 10)
 	(aref .demod-strat. num-args)
       (progn
@@ -500,8 +488,7 @@
 	(nreverse strat)))))
 
 (defun demod-normalize-term (term)
-  (declare (type term term)
-	   (values boolean))
+  (declare (type term term))
   (let ((strategy nil))
     (declare (type list strategy))
     (cond ((term-is-reduced? term)
@@ -611,12 +598,10 @@
 (defun back-demodulate (demod-list clause input list-marker)
   (declare (type list demod-list)
 	   (type clause clause)
-	   (type boolean input)
 	   (type symbol list-marker))
   (let ((demod (cdr (assq clause demod-list)))
 	(*demod-is-back-demod* t))
-    (declare (type (or null demod) demod)
-	     (type boolean *demod-is-back-demod*))
+    (declare (type (or null demod) demod))
     (when demod
       (let ((cls (get-clashable-clauses-from-atom
 		  *full-lit-table*
@@ -653,12 +638,10 @@
 (defun back-demodulate (demod-list clause input list-marker)
   (declare (type list demod-list)
 	   (type clause clause)
-	   (type boolean input)
 	   (type symbol list-marker))
   (let ((demod (cdr (assq clause demod-list)))
 	(*demod-is-back-demod* t))
-    (declare (type (or null demod) demod)
-	     (type boolean *demod-is-back-demod*))
+    (declare (type (or null demod) demod))
     (when demod
       (let ((cls (get-clashable-clauses-from-atom
 		  *full-lit-table*
@@ -739,15 +722,13 @@
   (declare (type clause clause))
   (let ((literals nil)
 	(delete? nil))
-    (declare (type list literals)
-	     (type boolean delete?))
+    (declare (type list literals))
     (dolist (lit (clause-literals clause))
       (declare (type literal lit))
       (let ((atom (literal-atom lit))
 	    (true? nil)
 	    (false? nil))
-	(declare (type term atom)
-		 (type boolean true? false?))
+	(declare (type term atom))
 	(setq true? (pn-is-true? atom))
 	(setq false? (pn-is-false? lit))
 	;;
@@ -787,8 +768,7 @@
 					 :order :builtin
 					 :clause :builtin)))
 		  (push demod (gethash (term-head (rule-lhs rule))
-				       *demodulators*))
-		  )))))))))
+				       *demodulators*)))))))))))
 
 ;;; SETUP-DEMODULATORS
 

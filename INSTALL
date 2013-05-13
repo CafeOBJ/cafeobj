@@ -1,6 +1,6 @@
 	    ---------------------------------------------
 	    CafeOBJ Interpreter Installation Instructions
-	           version 1.4 (with/without PigNose).
+              version 1.4.9 (with PigNose)
 	    ---------------------------------------------
 
 ============
@@ -9,16 +9,12 @@ Prerequisite
    CafeOBJ interpreter is built on Common Lisp, thus you need
 some Common Lisp system to install CafeOBJ. CafeOBJ can be 
 built on the following platforms:
-  *(1) GCL(GNU Common Lisp) version 2.2 (or later)
+  (1) SBCL version 1.1.7 (or later)
   (2) CMU-CL version 1.8f (or later)
-  (3) Allegro CL version 5.0 or later
-  (4) CLISP (visit ftp://ftp2.cons.org/pub/lisp/clisp, and
-             get the recent one).
+  (3) Allegro CL version 8.0 (or later)
+  (4) CLISP version 2.4.9 (or later)
 
-Please see README for availability of these platforms.
 At least one of these needs to be installed in the users's PATH.
-
-NOTE* it seems that GCL does no run on current Linux.
 
 =================
 About `configure'
@@ -42,10 +38,6 @@ contains result you do'nt want to keep, you may remove or edit it.
 called `autoconf'. You only need `configure.in' if you want to change
 it or regenerate `configure' using a newer version of `autoconf'.
 
-*** Note: don't install CafeOBJ 1.3.0 on top of 1.3.beta,or any other
-older versions.  Use a fresh, new, clean directory.
-If you ignore this advice, subtle bugs can arise!
-
 ============
 INSTALLATION
 ============
@@ -60,48 +52,35 @@ are put.  We shall call the directory as $src-dir.
 
 "platform" specifies the Common Lisp plat form you use, and this
 should be one of the followings:
-	cmu-pc
-	cmu-sparc
-	acl
-	acl6
-        clisp
-	gcl
+	cmu-pc              -- CMUCL running on x86
+	cmu-sparc           -- CMUCL running on sparc, obsolete 
+	sbcl                -- SBCL
+	acl                 -- Allegro CL
+        clisp               -- CLISP
+
 -with-lisp="platform" can be ommited, in this case it defaulted
-to `gcl'.
+to `acl'.
 
 `cmu-pc' is for CMU-CL running on PCs, i.e., Intel x386 or Pentium 
 processor family. `cmu-sparc' is for CMU-CL running on Sun sparc
-architecture. `acl' is for Allegro Common Lisp, and gcl is
-for GNU Common Lisp. With being supplied a "platform", system 
+architecture. `acl' is for Allegro Common Lisp, and clisp is
+for CLISP. With being supplied a "platform", system 
 tries to find the path to the corresponding command. For this,
 the following command names are assumed for each platform:
 	(1) CMU-CL : a command `lisp'
- 	(2) GCL : a command `gcl'
-	(3) ACL : a command `cl'
+	(2) SBCL : a command `sbcl'
+	(3) ACL : a command `acl'
         (4) CLISP : a command `clisp'
 
 You must have one of these command in your PATH environment.
 
-*NOTE for ACL users*
----------------------
-	With standard installation of ACL version 5.0, the command
-	name of the lisp interpter will be set to `lisp', not `cl'.
-	So, you need to make the command `cl' be available by some
-	means such as making symbolic link from `lisp' to `cl'.
-	You can do this as like
-		$ cd /usr/local/acl5
-		$ ln -s lisp cl
-		$ ln -s lisp.dxl cl.dxl
-		$ cd /usr/local/bin
-		$ ln -s /usr/localacl5/cl .
-
- You can specify an alternate destination to override the default with
- the --prefix option:
+You can specify an alternate destination to override the default with
+the --prefix option:
 
      	$ ./configure --prefix=/usr/local/cafe
 
    The default value is 
-		--prefix=/usr/local/cafeobj
+		--prefix=/usr/local/cafeobj-1.4
 
    We shall refer this value as $prefix.
 
@@ -121,25 +100,13 @@ You must have one of these command in your PATH environment.
  (version number), make output, and anything else you think will be
  helpful. 
 
- If want a interpreter with PigNose (a resolution based proof engine), do
-        $ make bigpink
-
- If you made standard cafeobj previously, and changed your mind to make 
- an interpreter with PigNose, prease do
-        $ make clearn
-  first, and then do `make bigpink'. 
-
 3) Install the binaries, examples, preludes...
 
-	$ make install
+	$ (sudo) make install
 
    This will install CafeOBJ interpreter (cafeobj).
-   And for installing cafeobj with PigNose, you need to do
-
-        $ make install-bigpink
-
-   Depending on your installation's configuration, you may need to be
-   root to do this. 
+   If you not have the permission to write target path,
+   you may supply 'sudo' before 'make' for obtaining the authority.
 
    Some sub-directory under $prefix will be made iff do not exist, and
    necessary files are put under them:
@@ -154,7 +121,7 @@ You must have one of these command in your PATH environment.
        /usr/local/bin/cafeobj -- symbolic link to $prefix/bin/cafeobj
                                  If you need to change the place, please
                                  edit Makefile.
-       $prefix/prelude/site-init.mod
+       $prefix/prelude/std.bin -- system intialization internal code.
 
 4) Clean up:
 
@@ -163,6 +130,4 @@ You must have one of these command in your PATH environment.
    This removes the program binaries and object files from the object code
    from $src-dir.
 
---
-$Id: INSTALL,v 1.1.1.1 2003-06-19 08:26:01 sawada Exp $
 -- EOF

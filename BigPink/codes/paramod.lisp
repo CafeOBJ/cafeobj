@@ -32,8 +32,7 @@
 #||
 (defun apply-subst-2 (sigma atom target-term beta)
   (declare (type list sigma)
-	   (type term atom target-term beta)
-	   (values term boolean))
+	   (type term atom target-term beta))
   (if (term-eq atom target-term)
       (apply-subst sigma beta)
     (cond ((term-is-variable? atom)
@@ -49,13 +48,11 @@
 	  ((term-is-application-form? atom)
 	   (let ((l-result nil)
 		 (modif-sort nil))
-	     (declare (type list l-result)
-		      (type boolean modif-sort))
+	     (declare (type list l-result))
 	     (dolist (s-t (term-subterms atom))
 	       (multiple-value-bind (image-s-t same-sort)
 		   (apply-subst-2 sigma s-t target-term beta)
-		 (declare (type term image-s-t)
-			  (type boolean same-sort))
+		 (declare (type term image-s-t))
 		 (unless same-sort
 		   ;; (update-lowest-parse s-t)
 		   (setq modif-sort t))
@@ -81,8 +78,7 @@
 
 (defun apply-subst-2 (sigma atom target-term beta target-pos &optional arg-pos)
   (declare (type list sigma)
-	   (type term atom target-term beta)
-	   (values term boolean))
+	   (type term atom target-term beta))
   (cond ((equal target-pos arg-pos)
 	 (apply-subst sigma beta))
 	((term-is-variable? atom)
@@ -512,7 +508,6 @@
 		   (type literal from-lit)
 		   (type list in-subst)
 		   (type (or null clause) paramod)
-		   ;; (type boolean same)
 		   (ignore same)
 		   (type (or null fixnum) obso-cl-id))
 	  #||
@@ -540,8 +535,7 @@
 	  (multiple-value-bind (new-subst no-match e-equal)
 	      (unify lhs target-term nil)
 	    (declare (ignore e-equal)
-		     (type list new-subst)
-		     (type boolean no-match))
+		     (type list new-subst))
 	    (when no-match
 	      (when obso-cl-id
 		(delete-clause! obso-cl-id *current-psys*))

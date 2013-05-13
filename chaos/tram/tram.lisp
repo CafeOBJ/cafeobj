@@ -177,7 +177,7 @@
 
 ;;; send simple string then wait the answer.
 ;;; used for `compile', `reduce'.
-(defconstant tram-eof-value '(()()))
+(defparameter tram-eof-value :tram-eof)
 
 (defmacro tram-send-and-wait (tram send-form)
   ` (progn
@@ -740,7 +740,7 @@
 	(*print-pretty* nil)
 	;; (*print-escape* t)
 	)
-    (declare (special *print-circle* *print-case* *print-pretty*))
+    ;; (declare (special *print-circle* *print-case* *print-pretty*))
     ;;
     (setq *tram-last-module* nil)
     ;;

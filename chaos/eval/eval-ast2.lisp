@@ -72,8 +72,7 @@
                      form
                    (with-output-chaos-error ('invalid-lisp-form)
                      (format t "no such Lisp function or macro \"~a\"."
-                             (car form))
-                     ))
+                             (car form))))
                form))
             (t (if (symbolp form)
                    (if (boundp form)
@@ -455,11 +454,10 @@
         (parse-integer (car value) :junk-allowed t)
       (if (= len (length (car value)))
           (set-rewrite-count-limit num)
-	    (with-output-chaos-error ('invalid-value)
-	      (format t "invalid rewrite count limit ~a" (car value))
-	      (print-next)
-	      (princ "must be a positive integer.")
-	      )))))
+	(with-output-chaos-error ('invalid-value)
+	  (format t "invalid rewrite count limit ~a" (car value))
+	  (print-next)
+	  (princ "must be a positive integer."))))))
 
 (defun set-cond-trial-limit (value)
   (if (or (null value)
@@ -470,11 +468,10 @@
       (if (and (= len (length (car value)))
                (> num 0))
           (setq *condition-trial-limit* num)
-	    (with-output-chaos-error ('invalid-value)
-	      (format t "invalid condition trial limit ~a" (car value))
-	      (print-next)
-	      (princ "must be a positive integer.")
-	      )))))
+	(with-output-chaos-error ('invalid-value)
+	  (format t "invalid condition trial limit ~a" (car value))
+	  (print-next)
+	  (princ "must be a positive integer.") )))))
 
 ;;; ********************
 ;;; REWRITE STOP PATTERN
@@ -647,7 +644,7 @@
     (save-system :file file)))
 
 (defvar *seen-saved* nil)
-(defconstant .fill-space. " ")
+(defparameter .fill-space. " ")
 
 (defun save-system (&key (file "/tmp/chaos-system")
                          (compile nil))
@@ -966,14 +963,11 @@
 ;;; **
 (defun eval-ls (ast)
   (let ((dir (%ls-dir ast)))
-    #+(or GCL EXCL CMU LUCID CLISP OPENMCL)
     (if (equal dir '("."))
         (chaos-ls "../")
       (if dir
           (chaos-ls dir)
-	    (chaos-ls ".")))
-    #-(or GCl EXCL CMU LUCID CLISP OPENMCL)
-    (princ-simple-princ-open (chaos-ls (concatenate 'string dir "/")))
+	(chaos-ls ".")))
     (force-output)))
 
 ;;; ***
@@ -989,24 +983,35 @@
 ;;; *****
 (defun eval-shell (ast)
   (let ((command (%shell-command ast)))
-    #+(OR GCL LUCID EXCL CLISP)
-    (when command
-      (setq command (reduce #'(lambda (x y) (concatenate 'string x " " y))
-                            command))
-      #+GCL (system command)
-      #+EXCL (excl:shell command)
-      #+CLISP (ext::shell command)
-      )
-    #+CMU
-    (when command
-      (let ((com (car command))
-            (args (cdr command)))
-        (ext:run-program com args :output t)))
-    #+:openmcl
-    (when command
-      (let ((com (car command))
-            (args (cdr command)))
-        (ccl:run-program com args :output t)))
+    (run-shell command)))
+
+(defun run-shell (command)
+  #+(OR GCL LUCID EXCL CLISP)
+  (when command
+    (setq command (reduce #'(lambda (x y) (concatenate 'string x " " y))
+			  command))
+    #+GCL (system command)
+    #+EXCL (excl:shell command)
+    #+CLISP (ext::shell command)
+    )
+  #+CMU
+  (when command
+    (let ((com (car command))
+	  (args (cdr command)))
+      (ext:run-program com args :output t)))
+  #+:openmcl
+  (when command
+    (let ((com (car command))
+	  (args (cdr command)))
+      (ccl:run-program com args :output t)))
+  #+:SBCL
+  (when command
+    (sb-ext:process-exit-code
+     (apply 'sb-ext:run-program
+            #+win32 "sh" #-win32 "/bin/sh"
+            (list  "-c" command)
+            :input nil :output *terminal-io*
+            #+win32 '(:search t) #-win32 nil))
     ))
 
 ;;; **
@@ -1121,9 +1126,7 @@
                                    ;; obsolate.
                                    ;; (("switch" "switches" "modes") (show-modes t))
                                    (otherwise (with-output-chaos-error ()
-                                                (format t "no such `show' option ~a"
-                                                        (cadr dat))))
-                                   ))
+                                                (format t "no such `show' option ~a" (cadr dat))))))
                 ("modules" (print-modules (cdr dat)))
                 ("views" (print-views (cdr dat)))
                 ("rule" (apply-print-rule (cadr dat)))
@@ -1144,7 +1147,7 @@
                                                      ("graph" (show-rwl-sch-graph))
                                                      (otherwise
                                                       (with-output-chaos-error ()
-                                                        (format t "no such `show exec' option"
+                                                        (format t "no such `show exec' option ~a"
                                                                 (cadr dat))))))
                 ("path" (let ((opt (cadr dat)))
                           (if (member opt '("labels" "label") :test #'equal)
@@ -1642,6 +1645,8 @@
       (with-output-chaos-error ('no-such-module))
       (princ "incorrect module expression or unknown module: ")
       (print-modexp modexp))
+    ;;!!!
+    name
     ;;
     ;; (!what-is name mod)
     ))

@@ -42,37 +42,38 @@ INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 GCL = no
-CMU = no
+CMU = /usr/local/cmucl-20d-x86-darwin/bin/lisp
 ACL = no
-LISP = /opt/local/bin/clisp
-BIN = .fas
-EXEC_SRC = cafeobj.clisp.in
-EXEC = cafeobj.mem
+ABCL = /opt/local/bin/sbcl
+LISP = /opt/local/bin/sbcl
+BIN = .fasl
+EXEC_SRC = cafeobj.sbcl.in
+EXEC = cafeobj.sbcl
 
 #### End of system configuration section. ####
 
 PROGS = cafeobj
 
-DISTFILESTOP = \
-	README README.First INSTALL configure configure.in Makefile.in \
-	CHANGES TODO \
-	mkinstalldirs install-sh make-cafeobj.lisp defsystem.lisp \
-	version.in chaosx.system chaos-package.lisp \
-	version.lisp
+# DISTFILESTOP = \
+# 	README INSTALL configure configure.in Makefile.in \
+# 	CHANGES \
+# 	mkinstalldirs install-sh make-cafeobj.lisp defsystem.lisp \
+# 	version.in chaosx.system chaos-package.lisp \
+# 	version.lisp
 
-DISTDIRTOP = $(PACKAGE)-$(VERSION)$(VMINOR)
+# DISTDIRTOP = $(PACKAGE)-$(VERSION)$(VMINOR)
 
-DISTSUBDIRS = cafeobj clII comlib thstuff chaos \
-	chaos/boot chaos/cafein chaos/construct chaos/decafe chaos/e-match \
-	chaos/eval chaos/primitives chaos/term-parser chaos/tools \
-	chaos/tram chaos/psup \
-	elisp \
-	RefCard BigPink/codes BigPink/test
+# DISTSUBDIRS = cafeobj clII comlib thstuff chaos \
+# 	chaos/boot chaos/cafein chaos/construct chaos/decafe chaos/e-match \
+# 	chaos/eval chaos/primitives chaos/term-parser chaos/tools \
+# 	chaos/tram chaos/psup \
+# 	elisp \
+# 	RefCard BigPink/codes BigPink/test
 
-DISTBINSUBDIRS = bin/cafeobj bin/clII bin/comlib bin/obj3 bin/thstuff bin/chaos \
-	bin/chaos/boot bin/chaos/cafein bin/chaos/construct bin/chaos/decafe bin/chaos/e-match \
-	bin/chaos/eval bin/chaos/primitives bin/chaos/term-parser bin/chaos/tools \
-	bin/chaos/tram bin/chaos/psup bin/BigPink/codes
+# DISTBINSUBDIRS = bin/cafeobj bin/clII bin/comlib bin/obj3 bin/thstuff bin/chaos \
+# 	bin/chaos/boot bin/chaos/cafein bin/chaos/construct bin/chaos/decafe bin/chaos/e-match \
+# 	bin/chaos/eval bin/chaos/primitives bin/chaos/term-parser bin/chaos/tools \
+# 	bin/chaos/tram bin/chaos/psup bin/BigPink/codes
 
 DISTLIBDIRS = lib
 
@@ -82,16 +83,15 @@ DISTEXDIRS = exs
 
 DISTXBINDIRS = xbin
 
-OBJECTS = $(objdir)/*$(BIN) $(objdir)/*/*$(BIN) $(objdir)/*/*$(BIN) $(objdir)/*/*/*$(BIN)
+# OBJECTS = $(objdir)/*$(BIN) $(objdir)/*/*$(BIN) $(objdir)/*/*$(BIN) $(objdir)/*/*/*$(BIN)
 
-CLEANFILES = $(OBJECTS) $(srcdir)/.\#* $(srcdir)/*/.\#* $(srcdir)/*/*/.\#* $(srcdir)/*$(BIN) $(srcdir)/xbin/$(EXEC) $(srcdir)/xbin/cafeobj foo *~ */*~ */*/*~ */*/*/*~
+# CLEANFILES = $(OBJECTS) $(srcdir)/.\#* $(srcdir)/*/.\#* $(srcdir)/*/*/.\#* $(srcdir)/*$(BIN) $(srcdir)/xbin/$(EXEC) $(srcdir)/xbin/cafeobj foo *~ */*~ */*/*~ */*/*/*~
 
 DISTCLEANFILES = $(srcdir)/.\#* $(srcdir)/*/.\#* $(srcdir)/*/*/.\#* $(srcdir)/*$(BIN) $(srcdir)/xbin/cafeobj $(srcdir)/xbin/$(EXEC) *~ */*~ */*/*~ */*/*/*~
 
 # Set default target
-# all: Makefile defsystem$(BIN) version.lisp xcafeobj 
-# bigpink: Makefile defsystem$(BIN) version.lisp xbigpink
-all: Makefile defsystem$(BIN) version.lisp xbigpink
+# all: Makefile defsystem$(BIN) version.lisp xbigpink
+all: Makefile version.lisp xcafeobj
 
 version.lisp: version.in
 	cat $(top_srcdir)/version.in | \
@@ -114,16 +114,6 @@ ycafeobj:
 	-e 's:CAFEOBJPATH:$(cafeobjbindir)/$(EXEC):g' \
 	-e 's:CAFEROOT:$(libdir):g' >$(top_srcdir)/xbin/cafeobj 
 	chmod +x $(top_srcdir)/xbin/cafeobj
-
-xbigpink: ycafeobj
-	cat $(top_srcdir)/make-cafeobj.lisp | \
-	sed -e 's:XCHAOS_ROOT_DIR:\"$(chaos_root)\":g' \
-	-e 's:XINSTALL_DIR:\"$(libdir)\":g' \
-	-e 's:BIGPINK:t:g' > foo
-	$(LISP) < foo
-
-defsystem$(BIN): defsystem.lisp
-	echo '(compile-file "$(srcdir)/defsystem.lisp")' | $(LISP)
 
 .PHONY:	dist
 GZIP=gzip --best
@@ -245,20 +235,6 @@ maintainer-clean:  maintainer-clean-generic distclean
 .PHONY: default distclean-generic clean-generic \
 maintainer-clean-generic clean distclean maintainer-clean
 
-cvs-dist: maintainer-check
-	@if sed 1q $(srcdir)/NEWS | grep -e "$(VERSION)" > /dev/null; then :; else \
-	  echo "NEWS not updated; not releasing" 1>&2; \
-	  exit 1;				\
-	fi
-	cvs -q tag `echo "Release-$(VERSION)" | sed 's/\./-/g'`
-	$(MAKE) dist
-
-cvs-diff:
-	thisver=`echo "Release-$(VERSION)" | sed 's/\./-/g'`; \
-	prevno=`echo "$(VERSION)" - 0.01 | bc | sed 's/^\./0./'`; \
-	prevver=Release-`echo $$prevno | sed 's/\./-/g'`; \
-	cvs -f rdiff -c -r $$prevver -r $$thisver $(PACKAGE) \
-	    > $(PACKAGE)-$$prevno-$(VERSION).diff
 .SUFFIXES:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

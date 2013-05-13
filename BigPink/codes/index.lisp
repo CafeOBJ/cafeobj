@@ -157,8 +157,7 @@
 
 (defun pn-const-possible-pat (atom module &optional full)
   (declare (type term atom)
-	   (type module module)
-	   (type boolean full))
+	   (type module module))
   (if (term-is-variable? atom)
       (sub-or-equal-sorts (term-sort atom) (module-sort-order module))
     (let ((ops (if full
@@ -197,8 +196,7 @@
 
 (defun add-literal-to-table (table lit &optional full)
   (declare (type hash-table table)
-	   (type literal lit)
-	   (type boolean full))
+	   (type literal lit))
   (let ((keys (pn-const-possible-pat (literal-atom lit) *current-module* full)))
     (declare (type list keys))
     (dolist (key keys)
@@ -208,8 +206,7 @@
 
 (defun delete-literal-from-table (table lit &optional full)
   (declare (type hash-table table)
-	   (type literal lit)
-	   (type boolean full))
+	   (type literal lit))
   (let ((keys (pn-const-possible-pat (literal-atom lit) *current-module* full)))
     (dolist (key keys)
       (let ((new-data)
@@ -943,8 +940,7 @@
 ;;; ============
 
 (defun get-all-demodulators (hash &optional sort)
-  (declare (type hash-table hash)
-	   (type boolean sort))
+  (declare (type hash-table hash))
   (flet ((!clause-id (cl)
 	   (if (clause-p cl)
 	       (clause-id cl)
@@ -964,7 +960,6 @@
 (defun un-index-demodulator (clause)
   (declare (type clause clause))
   (let ((xdeleted nil))
-    (declare (type boolean xdeleted))
     (maphash #'(lambda (key demods)
 		 (let ((new-ent nil)
 		       (deleted nil))
@@ -1021,7 +1016,6 @@
 (defun get-clashable-clauses-from-literal (db literal &optional (opt nil))
   (declare (type hash-table db)
 	   (type literal literal)
-	   (type boolean opt)
 	   (ignore opt)
 	   (values list))
   (let ((res nil)
@@ -1054,7 +1048,6 @@
 (defun get-clashable-clauses-from-atom (db atom &optional (opt nil))
   (declare (type hash-table db)
 	   (type term atom)
-	   (type boolean opt)
 	   (values list))
   (let ((res nil)
 	(key (if (and opt (eq (term-head atom) *fopl-eq*))

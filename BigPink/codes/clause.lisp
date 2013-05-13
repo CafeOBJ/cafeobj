@@ -21,8 +21,7 @@ File:formula.lisp
 ;;; the root of the term is not equality.
 ;;;
 (defun is-equality (term)
-  (declare (type term)
-           (values boolean))
+  (declare (type term))
   (and (term-is-application-form? term)
        (let ((head (term-head term)))
          (declare (type method head))
@@ -82,8 +81,7 @@ File:formula.lisp
 ;;; LITERAL-EQUAL : Lteral1 Literal2 -> Bool
 ;;; 
 (defun literal-equal (l1 l2)
-  (declare (type literal l1 l2)
-           (values boolean))
+  (declare (type literal l1 l2))
   (and (eq (literal-sign l1) (literal-sign l2))
        (term-is-similar? (literal-atom l1)
                          (literal-atom l2))))
@@ -576,8 +574,7 @@ File:formula.lisp
 ;;; literals assumed to be ordered by compare-literal.
 ;;;
 (defun ordered-sub-clause (c d)
-  (declare (type clause c d)
-           (values boolean))
+  (declare (type clause c d))
   (let ((lt1s (clause-literals c))
         (lt2s (clause-literals d)))
     (declare (type list lt1s lt2s))
@@ -600,7 +597,6 @@ File:formula.lisp
 ;;; CLAUSE-EQUAL C1 C2 : -> Bool
 ;;;
 (defun clause-equal (c1 c2)
-  (declare (values boolean))
   (and (clause-p c1) (clause-p c2)
        (let ((ll1 (clause-literals c1))
              (ll2 (clause-literals c2)))
@@ -625,7 +621,6 @@ File:formula.lisp
                                    (term-is-identical (literal-atom lit)
                                                       (literal-atom x))))
                           (clause-literals d))))
-      (declare (type boolean find?))
       (unless find?
         (return-from sub-clause nil))))
   t)
@@ -665,8 +660,7 @@ File:formula.lisp
 
 #||
 (defun clause-is-builtin-demod (cl)
-  (declare (type clause cl)
-           (values boolean))
+  (declare (type clause cl))
   (or (let ((axiom (clause-axiom cl)))
         (and axiom
              (let ((labels (axiom-labels axiom)))
@@ -686,24 +680,21 @@ File:formula.lisp
 ||#
 
 (defun clause-is-builtin-demod (cl)
-  (declare (type clause cl)
-           (values boolean))
+  (declare (type clause cl))
   (let ((axiom (clause-axiom cl)))
     (and axiom
          (or (let ((labels (axiom-labels axiom)))
                (member ":BDEMOD" labels :test #'equal))
              (and .use-bi-axiom-as-demod.
                   (let ((rhs (rule-rhs axiom)))
-                    (term-is-lisp-form? rhs))
-                  )))))
+                    (term-is-lisp-form? rhs)))))))
 
 ;;; CLAUSE-AXIOM-DECLARED-AS-DEMODULATOR
 ;;; returns t iff the corresponding axiom of the clause
 ;;; is declared as demodulator.
 ;;; 
 (defun clause-axiom-declared-as-demodulator (cl)
-  (declare (type clause cl)
-           (values boolean))
+  (declare (type clause cl))
   (let ((ax (clause-axiom cl)))
     (and ax
          (let ((lab (axiom-labels ax)))
@@ -751,8 +742,7 @@ File:formula.lisp
 ;;; - returns t if any deletions occur.
 ;;;
 (defun unit-deletion (clause)
-  (declare (type clause clause)
-           (values boolean))
+  (declare (type clause clause))
   (let ((lits-to-be-deleted nil)
         (units nil))
     (declare (type list lits-to-be-deleted units))
@@ -767,8 +757,7 @@ File:formula.lisp
         (let (;; (lit-entry (get-literal-entry-from-atom is-db atom))
               (lit-entry (is-fetch atom is-db))
               (found? nil))
-          (declare (type list lit-entry)
-                   (type boolean found?))
+          (declare (type list lit-entry))
           #||
           (when (and (negative-literal? lit)
                      *universal-symmetry*)
@@ -784,8 +773,7 @@ File:formula.lisp
                   (multiple-value-bind (subst no-match e-match)
                                         ; (pn-match (literal-entry-atom data) atom)
                       (pn-match (literal-atom lit2) atom)
-                    (declare (ignore subst e-match)
-                             (type boolean no-match))
+                    (declare (ignore subst e-match))
                     (unless no-match
                       ;; subsumes....
                       (setq found? t)
@@ -821,9 +809,7 @@ File:formula.lisp
 ;;; assumes given clause is a unit clause.
 ;;;
 (defun back-unit-deletion (clause input?)
-  (declare (type clause clause)
-           (type boolean input?)
-           (values boolean))
+  (declare (type clause clause))
   (let* ((c-lit (ith-literal clause 1))
          (c-atom (literal-atom c-lit))
          (db (if (positive-literal? c-lit)
@@ -846,8 +832,7 @@ File:formula.lisp
                           (literal-atom lit)
                           nil)
               (declare (ignore e-match)
-                       (type list subst)
-                       (type boolean no-match))
+                       (type list subst))
               (unless no-match
                 (let ((resolvent (build-bin-res c-lit
                                                 lit
@@ -886,7 +871,6 @@ File:formula.lisp
 (defun cl-tautology? (c)
   (declare (type clause c))
   (let ((taut nil))
-    (declare (type boolean taut))
     (do* ((literals (clause-literals c) (cdr literals))
           (l1 (car literals) (car literals))
           (rest (cdr literals) (cdr literals)))
@@ -942,10 +926,8 @@ File:formula.lisp
 ;;; return nil if more than *CLAUSEMAX-VARIABLES* distinct variables.
 ;;;
 (defun rename-clause-variables (clause)
-  (declare (type clause clause)
-           (values boolean))
+  (declare (type clause clause))
   (let ((ok t))
-    (declare (type boolean ok))
     (let ((*cl-vars-so-far* nil))
       (declare (special *cl-vars-so-far*)
                (type list *cl-vars-so-far*))
@@ -975,9 +957,8 @@ File:formula.lisp
     (otherwise nil)))
 
 (defun find-lightest-clause (l &optional delete)
-  (declare (type symbol l)
-           (type boolean delete)
-           (values (or null clause)))
+  (declare (type symbol l))
+  (values (or null clause))
   (let ((list (list-name2-list l)))
     (declare (type list list))
     (if list
@@ -986,10 +967,10 @@ File:formula.lisp
                (rl (list felt))
                (res nil))
           (declare (type fixnum wm)
-                   (type clause res))
+                   (type (or null clause) res))
           (dolist (c (cdr list))
             (let ((cwt (clause-pick-weight c)))
-              (declare (type clause c)
+              (declare (type (or null clause) c)
                        (type fixnum cwt))
               (if (< cwt wm)
                   (setq wm cwt
@@ -1021,8 +1002,6 @@ File:formula.lisp
 ;;; FIND-GIVEN-CLAUSE 
 ;;;
 (defun find-given-clause (&optional delete)
-  (declare (type boolean delete)
-           (values (or null clause)))
   (let ((given-clause nil))
     (declare (type (or null clause) given-clause))
     (cond ((pn-flag sos-queue)
@@ -1085,16 +1064,14 @@ File:formula.lisp
         (subst nil)
         (no-match nil)
         (e-match nil))
-    (declare (type list c-literals d-literals new-subst subst)
-             (type boolean no-match e-match))
+    (declare (type list c-literals d-literals new-subst subst))
     (unless c-literals (return-from subsume? nil))
     (dolist (lit c-literals)
       (declare (type literal lit))
       (unless (answer-literal? lit)
         (let ((c-atom (literal-atom lit))
               (sign (literal-sign lit)))
-          (declare (type term c-atom)
-                   (type boolean sign))
+          (declare (type term c-atom))
           (unless (find-if
                    #'(lambda (x)
                        (cond ((eq sign (literal-sign x))
@@ -1212,15 +1189,13 @@ File:formula.lisp
   (let ((factor? (pn-flag factor))
         (d-size 0)
         (c nil))                        ; result
-    (declare (type boolean factor?)
-             (type fixnum d-size)
+    (declare (type fixnum d-size)
              (type (or null clause) c))
     ;; if factor, don't let long clauses subsume short.
     (when factor?
       (setq d-size (num-literals d)))
     ;;
     (let ((subsumed nil))
-      (declare (type boolean subsumed))
       (dolist (lit (clause-literals d))
         (declare (type literal lit))
         (when subsumed (return nil))
@@ -1270,14 +1245,12 @@ File:formula.lisp
     (return-from forward-subsume (for-sub-prop d)))
   (let ((factor? (pn-flag factor))
         (d-size 0))
-    (declare (type boolean factor?)
-             (type fixnum d-size))
+    (declare (type fixnum d-size))
     ;; if factor, don't let long clauses subsume short.
     (when factor?
       (setq d-size (num-literals d)))
     ;;
     (let ((subsumed nil))
-      (declare (type boolean subsumed))
       (setq subsumed 
         (block exit
           (dolist (lit (clause-literals d))
@@ -1332,8 +1305,7 @@ File:formula.lisp
         (db nil)
         (first-lit nil)
         (subsumed-clauses nil))
-    (declare (type boolean factor?)
-             (type fixnum clause-size)
+    (declare (type fixnum clause-size)
              (type (or null hash-table) db)
              (type (or null literal) first-lit)
              (type list subsumed-clauses))
@@ -1353,8 +1325,7 @@ File:formula.lisp
     ;;
     (let ((list-clause (get-clashable-clauses-from-literal db first-lit t))
           (subsumed nil))
-      (declare (type list list-clause)
-               (type boolean subsumed))
+      (declare (type list list-clause))
       (dolist (d list-clause)
         (declare (type clause d))
         (when (and (not (eq clause d))
@@ -1419,7 +1390,6 @@ File:formula.lisp
                 (multiple-value-bind (new-subst no-match e-eq)
                     (unify atom atom2 sub)
                   (declare (ignore e-eq)
-                           (type boolean no-match)
                            (type list new-subst))
                   (unless no-match
                     #||

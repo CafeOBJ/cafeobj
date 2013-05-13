@@ -65,8 +65,7 @@
     (declare (type (or null view-struct) view)
 	     (type (or null module) source target-mod)
 	     (type (or null modmorph) morph)
-	     (type list ng-axs)
-	     (type boolean *chaos-quiet*))
+	     (type list ng-axs))
     (unless view
       (with-output-chaos-error ('no-such-view)
 	(format t "no such view \"~a\"" view-expr)))

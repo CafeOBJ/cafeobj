@@ -8,7 +8,7 @@
 ** we want to be very explicit here
 lispq
 (progn 
-  (setq $temp2 *include-bool*)
+  (setq *include-bool-save* *include-bool*)
   (setq *include-bool* nil))
 
 sys:mod! QIDL
@@ -30,7 +30,7 @@ sys:mod! QIDL
 
 **
 lispq
-(setq *include-bool* $temp2)
+(setq *include-bool* *include-bool-save*)
 **
 provide QIDL
 provide quidl

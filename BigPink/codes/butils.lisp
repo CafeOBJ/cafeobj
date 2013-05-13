@@ -21,8 +21,7 @@ File:butils.lisp
 ;;;
 (defun term-is-identical (t1 t2)
   (declare (type term t1)
-           (type (or term null) t2)
-           (values boolean))
+           (type (or term null) t2))
   (if (term-type-eq t1 t2)
       (or (term-eq t1 t2)
           (if t2
@@ -53,8 +52,7 @@ File:butils.lisp
 ;;; TERM-OCCURS-IN : TERM1 TERM2 -> Bool
 ;;;
 (defun term-occurs-in (t1 t2)
-  (declare (type term t1 t2)
-           (values boolean))
+  (declare (type term t1 t2))
   (or (term-is-identical t1 t2)
       (and (term-is-application-form? t2)
            (dolist (sub (term-subterms t2) nil)
@@ -67,8 +65,7 @@ File:butils.lisp
 ;;;
 (defun operator-occurs-in (meth term)
   (declare (type method meth)
-           (type term term)
-           (values boolean))
+           (type term term))
   (cond ((or (term-is-variable? term)
              (term-is-builtin-constant? term)
              (term-is-lisp-form? term))
@@ -181,7 +178,6 @@ File:butils.lisp
 
 (defun term-unique-vars (term &optional (dest nil))
   (declare (type term term)
-           (type boolean dest)
            (values term list))
   (let ((subst (make-term-var-rename-map term)))
     (if subst
@@ -204,8 +200,7 @@ File:butils.lisp
 ;;; t iff term or any of its subterms have the identical-nested-skolems property.
 ;;;
 (defun id-nested-skolems (term)
-  (declare (type term term)
-           (values boolean))
+  (declare (type term term))
   (unless (term-is-application-form? term)
     (return-from id-nested-skolems nil))
   ;;
@@ -223,8 +218,7 @@ File:butils.lisp
 ;;; identical-nested-skolems property.  
 ;;;
 (defun ident-nested-skolems (clause)
-  (declare (type clause clause)
-           (values boolean))
+  (declare (type clause clause))
   (dolist (lit (clause-literals clause))
     (declare (type literal lit))
     (when (id-nested-skolems (literal-atom lit))
@@ -498,8 +492,7 @@ File:butils.lisp
 ;;; AUTO-CHANGE-FLAG
 ;;;
 (defun auto-change-flag (index value)
-  (declare (type fixnum index)
-           (type boolean value))
+  (declare (type fixnum index))
   (unless (eq (pn-flag index) value)
     (when (pn-flag print-message)
       (with-output-simple-msg ()
@@ -668,7 +661,7 @@ File:butils.lisp
 ;;; MOVE-CLAUSES
 ;;;
 (defun move-from-usable-to-sos (pred)
-  (declare (type (function (clause) boolean) pred))
+  ;; (declare (type (function (clause) boolean) pred))
   (let ((new-sos nil)
         (new-usable nil))
     (dolist (c *usable*)
@@ -797,27 +790,25 @@ File:butils.lisp
         (kept (pn-stat cl-kept))
         (seconds (pn-internal-run-time))
         (stat :keep-searching))
+    #||
     (declare (type fixnum given gen kept)
              (type single-float seconds)
              (type symbol stat)
              (values symbol))
+    ||#
     (let ((max-given? (pn-parameter max-given))
           (max-gen? (pn-parameter max-gen))
           (max-seconds? (pn-parameter max-seconds))
           (max-kept? (pn-parameter max-kept)))
       (declare (type fixnum max-given? max-gen? max-seconds? max-kept?))
-      (if (and (not (= max-given? -1))
-               (>= given max-given?))
-          (setq stat :max-given-exit)
-        (if (and (not (= max-seconds? -1))
-                 (>= seconds (float max-seconds?)))
-            (setq stat :max-seconds-exit)
-          (if (and (not (= max-gen? -1))
-                   (>= gen max-gen?))
-              (setq stat :max-gen-exit)
-            (if (and (not (= max-kept? -1))
-                     (>= kept max-kept?))
-                (setq stat :max-kept-exit)))))
+      (cond ((and (not (= max-given? -1)) (>= given max-given?))
+	     (setq stat :max-given-exit))
+	    ((and (not (= max-seconds? -1)) (>= seconds (float max-seconds?)))
+	     (setq stat :max-seconds-exit))
+	    ((and (not (= max-gen? -1)) (>= gen max-gen?))
+              (setq stat :max-gen-exit))
+            ((and (not (= max-kept? -1)) (>= kept max-kept?))
+	     (setq stat :max-kept-exit)))
       stat)))
 
 ;;; CHECK-FOR-PROOF : Clause -> Clause
@@ -908,16 +899,13 @@ File:butils.lisp
 ;;; returns some basic properties of clause set.
 ;;;
 (defun clause-set-property (&optional check-sos-also)
-  (declare (type boolean check-sos-also)
-           (values symbol symbol symbol symbol fixnum))
   ;; find out some basic properties.
   (let ((propositional? t)
         (horn? t)
         (equality? t)
         (symmetry? t)
         (max-lits? 0))
-    (declare (type boolean propositional? horn? equality? symmetry?)
-             (type fixnum max-lits?))
+    (declare (type fixnum max-lits?))
     ;; propositional
     (setq propositional?
       (and *usable*
@@ -967,8 +955,7 @@ File:butils.lisp
                                 equality?
                                 symmetry?
                                 max-lits?)
-  (declare (type boolean propositional? horn? equality? symmetry?)
-           (type fixnum max-lits?))
+  (declare (type fixnum max-lits?))
   ;;
   (when (pn-flag print-message)
     (with-output-simple-msg ()

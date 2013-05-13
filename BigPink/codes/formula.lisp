@@ -381,7 +381,6 @@
 ;;;
 (defun negate-sentence (sentence &optional copy variables)
   (declare (type term sentence)
-	   (type boolean copy)
 	   (type list variables))
   (let ((type (fopl-sentence-type sentence)))
     (declare (type symbol type))
@@ -1003,8 +1002,7 @@
       (declare (type list subs))
       (let ((org-sub-len (length subs))
 	    (confliction nil))
-	(declare (type fixnum org-sub-len)
-		 (type boolean confliction))
+	(declare (type fixnum org-sub-len))
 	(case type
 	  (:and (when (find-if #'(lambda (x)
 				   (is-false? x))
@@ -1030,7 +1028,6 @@
 	(unless confliction
 	  (dolist (s subs)
 	    (let ((sign (eq (fopl-sentence-type s) :not)))
-	      (declare (type boolean sign))
 	      (when (setq confliction
 		      (find-if #'(lambda (x)
 				   (and (not (eq s x))
@@ -1194,7 +1191,6 @@
     (declare (type symbol c-type d-type))
     (let ((res nil)
 	  (*debug-subsume-prop-nest* (1+ *debug-subsume-prop-nest*)))
-      (declare (type boolean res))
       (when *debug-subsume-prop*
 	(format t "~&~d>[subsume prop]: " *debug-subsume-prop-nest*)
 	(format t "~&c = ")(term-print c)
@@ -1235,8 +1231,7 @@
 ;;; FORMULA-IS-IDENTICAL : Sentence Sentence -> Bool
 ;;;
 (defun formula-is-identical (s1 s2)
-  (declare (type term s1 s2)
-	   (values boolean))
+  (declare (type term s1 s2))
   (term-equational-equal s1 s2))
 
 ;;; TERM->CLAUSE : Sentence -> Clause

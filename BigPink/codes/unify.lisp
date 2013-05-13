@@ -107,8 +107,7 @@
     ;;
     (labels ((occurs-check (var x bindings)
 	       (declare (type term var x)
-			(list bindings)
-			(values boolean))
+			(list bindings))
 	       (cond ((term-is-variable? x)
 		      (or (term-eq var x)
 			  (let ((cval (variable-image bindings x)))
@@ -127,8 +126,7 @@
 			(values (or symbol list)))
 	       (let ((cval (variable-image bindings var))
 		     (x-is-var nil))
-		 (declare (type (or null term) cval)
-			  (type boolean x-is-var))
+		 (declare (type (or null term) cval))
 		 (when cval
 		   (return-from var-unify
 		     (pn-decompose-terms-unify cval x bindings)))
@@ -247,15 +245,13 @@
 ;;;
 (defun unify (t1 t2 &optional subst)
   (declare (type term t1 t2)
-	   (list subst)
-	   (values list boolean boolean))
+	   (list subst))
   (if (pn-flag unify-heavy)
       (let ((*do-unify* t))
 	(multiple-value-bind (gst new-subst no-match e-eq)
 	    (first-match t1 t2 subst)
 	  (declare (ignore gst)
-		   (type list new-subst)
-		   (type boolean no-match e-eq))
+		   (type list new-subst))
 	  (when no-match
 	    (return-from unify (values nil t nil)))
 	  (when e-eq
@@ -302,16 +298,14 @@
 (declaim (inline prop-unify))
 
 (defun prop-unify (gpat t2)
-  (declare (type term gpat t2)
-	   (values null boolean boolean))
+  (declare (type term gpat t2))
   (if (term-is-identical gpat t2)
       (values nil nil t)
     (values nil t nil)))
 
 (defun first-unify (t1 t2 &optional subst)
   (declare (type term t1 t2)
-	   (type list subst)
-	   (values list list boolean boolean))
+	   (type list subst))
   (let ((*do-unify* t))
     (multiple-value-bind (gst new-subst no-match e-eq)
 	(first-match t1 t2 subst)
@@ -333,9 +327,7 @@
 ;;; =======
 (defun pn-match (t1 t2 &optional subst one-way-match)
   (declare (type term t1 t2)
-	   (type list subst)
-	   (type boolean one-way-match)
-	   (values list boolean boolean))
+	   (type list subst))
   #||
   (when *match-debug*
     (with-output-msg ()
@@ -354,8 +346,7 @@
 	(multiple-value-bind (gst new-subst no-match e-eq)
 	    (first-match t1 t2 subst)
 	  (declare (ignore gst)
-		   (type list new-subst)
-		   (type boolean no-match e-eq))
+		   (type list new-subst))
 	  (when no-match
 	    (return-from pn-match (values nil t nil)))
 	  (when e-eq

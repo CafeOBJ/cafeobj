@@ -207,6 +207,9 @@
 						    (:file "set")
 						    (:file "op-check")
 						    (:file "compat")
+						    (:file "help")
+						    (:file "inspect")
+						    (:file "sensible")
 						    ;; (:file "psupport")
 						    ))
 			      (:module eval

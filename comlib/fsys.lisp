@@ -2,14 +2,18 @@
 ;;; $Id: fsys.lisp,v 1.16 2010-08-04 04:37:34 sawada Exp $
 (in-package :CHAOS)
 #|==============================================================================
-System: Chaos
-Module: comlib
-File: fsys.lisp
+                               System: Chaos
+                               Module: comlib
+                              File: fsys.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
+
+#+:SBCL
+(eval-when (compile load eval)
+  (require 'sb-posix))
 
 ;;; *****************
 ;;; FILE SYSTEM UTILS___________________________________________________________
@@ -66,11 +70,21 @@ File: fsys.lisp
 ;;;
 
 (defun is-directory? (path)
-  (declare (type (or pathname simple-string) path)
-           (values (or null t)))
+  (declare (type (or pathname simple-string) path))
   (let ((dpath (expand-file-name path)))
     #+(or GCL CMU :openmcl)
     (probe-file (concatenate 'string dpath "/"))
+    #+:SBCL
+    (let ((directory-delimiter
+	   #+UNIX "/"
+	   #+WINDOWS "\\")
+	  (p (probe-file path)))
+      (if p
+	  (and (string-equal (subseq (namestring p)
+				     (1- (length (namestring p))))
+			     directory-delimiter)
+	       p)
+	nil))
     #+:Allegro
     (if (excl:file-directory-p dpath)
         ;; (concatenate 'string dpath "/")
@@ -78,9 +92,9 @@ File: fsys.lisp
       nil)
     #+(and :CCL (not :openmcl)) (if (directoryp dpath) dpath nil)
     #+:CLISP
-    (let ((path (concatenate 'string (expand-file-name path) "/")))
-      (if (directory path) ;; (ext:probe-directory path)
-          path
+    (let ((p (concatenate 'string dpath "/")))
+      (if (directory p) ;; (ext:probe-directory path)
+          p
         nil))))
 
 (defun is-simple-file-name? (path)
@@ -94,7 +108,7 @@ File: fsys.lisp
                   (equal '(:relative) dir))
               t
             nil))
-	  (error "is-simple-file-name? : given non string arg ~s" path))))
+      (error "is-simple-file-name? : given non string arg ~s" path))))
 
 (defun supply-suffixes (path suffixes)
   (declare (type (or simple-string pathname) path)
@@ -109,8 +123,7 @@ File: fsys.lisp
 (defun chaos-probe-file (file load-path suffixes)
   (declare (type (or simple-string pathname) file)
            (type (or simple-string list) load-path)
-           (type list suffixes)
-           (values (or null t)))
+           (type list suffixes))
   (when (pathnamep file)
     (return-from chaos-probe-file (probe-file file)))
   ;;
@@ -138,8 +151,9 @@ File: fsys.lisp
                  (let ((libdir (is-directory? lpath)))
                    (when libdir
                      (let ((f (make-pathname
-                               :directory #+:CLISP (pathname libdir)
-                               #-:CLISP (namestring libdir)
+                               :directory
+			       #+:CLISP (pathname libdir)
+			       #-:CLISP (pathname-directory (pathname libdir))
                                :name (namestring file))))
                        (if (probe-file f)
                            (progn (setq res f) (return))
@@ -157,10 +171,10 @@ File: fsys.lisp
                    (return-from chaos-probe-file fx))))))))
 
 (defun bare-chaos-pwd ()
-  (declare (values pathname))
   #+GCL (probe-file ".")
   #+EXCL (excl::current-directory)
   #+CMU (ext:default-directory)
+  #+:SBCL (car (directory "./"))
   #+:CCL (mac-default-directory)
   #+:CLISP (car (lisp:directory "./")))
 
@@ -212,7 +226,7 @@ File: fsys.lisp
                       (file-namestring x))
                   (directory dir))))
 
-#+(or GCL LUCID (and EXCL (not :microsoft)) CLISP :openmcl)
+#+(or GCL LUCID (and EXCL (not :microsoft)) CLISP :openmcl SBCL)
 (defun chaos-ls (&optional dir)
   (let ((comm '("ls"))
         (args (if (and dir (atom dir))
@@ -222,6 +236,11 @@ File: fsys.lisp
                        (append comm args)))
     #+GCL (system comm)
     #+EXCL (excl:shell comm)
+    #+SBCL (apply #'sb-ext:run-program
+		  #+win32 "sh" #-win32 "/bin/sh"
+		  (list  "-c" comm)
+		  :input nil :output *terminal-io*
+		  #+win32 '(:search t) #-win32 nil)
     #+LUCID (lucid::%execute-system-command comm)
     #+CLISP (ext::shell comm)))
 
@@ -286,8 +305,7 @@ File: fsys.lisp
       (let ((xd nil))
         (pop *chaos-directory-stack*)
         (setq xd (car *chaos-directory-stack*))
-        (chaos-cd xd)
-        )
+        (chaos-cd xd))
     (with-output-chaos-warning ()
       (format t "directory stack is empty!"))))
 
@@ -309,6 +327,12 @@ File: fsys.lisp
     #+:openmcl (if (setq directory-path (is-directory? path))
                    (progn (ccl::%chdir (namestring directory-path)))
                  (setq ng t))
+    #+SBCL
+    (if (setq directory-path (is-directory? path))
+	(progn
+	  (setq *default-pathname-defaults* directory-path)
+	  (sb-posix:chdir directory-path))
+      (setq ng t))
     #+(and :CCL (not :openmcl))
     (if (setq directory-path (is-directory? path))
         (set-mac-default-directory directory-path)

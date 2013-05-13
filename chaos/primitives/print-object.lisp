@@ -74,7 +74,7 @@
 	(tc (%bsort-decl-term-creator ast))
 	(tpr (%bsort-decl-term-printer ast))
 	(td (%bsort-decl-term-predicate ast)))
-  (format stream "(%bsort-decl ~s ~s ~s ~s ~s)" (%bsort-decl-name ast)
+  (format stream "(%bsort-decl ~s ~s ~s ~s ~s ~s)" (%bsort-decl-name ast)
 	  tp tc tpr td
 	  (%bsort-decl-hidden ast))
   #||
@@ -520,7 +520,7 @@
       (setq target (cadr elt))
       (when (consp source) (setq source (car source)))
       (when (consp target) (setq target (car target)))
-      (format stream "param ~a -> ~a" ))))
+      (format stream "param ~a -> ~a~%" source target))))
     
 ;;; vars in mapping
 
@@ -848,25 +848,32 @@
 
 ;;; SORT **************
 
-(defun print-sort-internal (sort &optional (stream *standard-output*))
+(defun print-sort-internal (sort &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (print-sort-name sort (or *current-module* *last-module*) stream))
 
-(defun print-record-internal (sort &optional (stream *standard-output*))
+(defun print-record-internal (sort &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (print-sort-name sort (or *current-module* *last-module*) stream))
 
-(defun print-class-internal (sort &optional (stream *standard-output*))
+(defun print-class-internal (sort &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (print-sort-name sort (or *current-module* *last-module*) stream))
 
-(defun print-bsort-internal (sort &optional (stream *standard-output*))
+(defun print-bsort-internal (sort &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (print-sort-name sort (or *current-module* *last-module*) stream))
 
-(defun print-and-sort-internal (sort &optional (stream *standard-output*))
+(defun print-and-sort-internal (sort &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (print-sort-name sort (or *current-module* *last-module*) stream))
 
-(defun print-or-sort-internal (sort &optional (stream *standard-output*))
+(defun print-or-sort-internal (sort &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (print-sort-name sort (or *current-module* *last-module*) stream))
 
-(defun print-err-sort-internal (sort &optional (stream *standard-output*))
+(defun print-err-sort-internal (sort &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (print-sort-name sort (or *current-module* *last-module*) stream))
 
 ;;; MODULE ************
@@ -874,16 +881,19 @@
 ;;; (defun print-module-internal (module &optional (stream *standard-output*))
 ;;;  (print-mod-name module stream t t))
 
-(defun print-module-internal (module &optional (stream *standard-output*))
+(defun print-module-internal (module &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (print-mod-name module stream t nil))
 
 ;;; AXIOM *************
 
-(defun print-axiom-internal (ax &optional (stream *standard-output*))
+(defun print-axiom-internal (ax &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (print-axiom-brief ax stream))
 
 ;;; REWRITE RULE *****
-(defun print-rule-internal (rule &optional (stream *standard-output*))
+(defun print-rule-internal (rule &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (let ((cnd (not (term-is-similar? *BOOL-true* (rule-condition rule))))
 	(.printed-vars-so-far. nil))
     (when (rule-labels rule)
@@ -917,7 +927,8 @@
   
 ;;; METHOD ************
 
-(defun print-method-internal (meth &optional (stream *standard-output*))
+(defun print-method-internal (meth &optional (stream *standard-output*) ignore)
+  (declare (ignore ignore))
   (let ((mod (or *current-module* *last-module*))
 	(.file-col. .file-col.))
     (format stream "~{~A~} :" (method-symbol meth))
@@ -1182,9 +1193,10 @@
   (with-output-to-string (str)
     (let ((*standard-output* str))
       (if with-mod-qualifier
-	  (format t "~a" (string (sort-id sort)) 
-		  (print-simple-mod-name (sort-module sort)))
-	  (format t "~a" (string (sort-id sort))))
+	  (progn
+	    (format t "~a" (string (sort-id sort)))
+	    (print-simple-mod-name (sort-module sort)))
+	(format t "~a" (string (sort-id sort))))
       str)))
 
 ;;; PRINT-SORT-LIST

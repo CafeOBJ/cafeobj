@@ -18,7 +18,7 @@
 
 #||
 ;;; t if our logic has two diffrent types of equality.
-(declaim (type boolean *fopl-two-equalities*))
+;; (declaim (type boolean *fopl-two-equalities*))
 (defvar *fopl-two-equalities* nil)
 
 ;;; primitive built-in modules for supporting inference in FOPL
@@ -84,12 +84,9 @@
 (defvar *pn-refinement-check-module* nil)
 					; built-in for refinement check
 
-(declaim (special *pn-no-db-reset*)
-	 (type boolean *pn-no-db-reset*))
 (defvar *pn-no-db-reset* nil)
 
 ;;; GOLOBAL DB USED BY ENGINES DURING INFERENCE PROCESS *****************
-(declaim (type boolean .debug-pn-memory.))
 (defvar .debug-pn-memory. nil)
 (declaim (type fixnum .pn-clause-deleted.))
 (defvar .pn-clause-deleted. 0)
@@ -392,12 +389,12 @@
 (defparameter *pn-max-flags* 100)
 
 (defstruct (pignose-flag (:type list))
-  (value nil :type boolean)
+  (value nil)
   (name "" :type simple-string)
   (hook #'identity :type function))
 
 (declaim (type (simple-array * (100)) *pn-control-flags*))
-(defvar *pn-control-flags* nil)
+(defvar *pn-control-flags*)
 (eval-when (eval load)
   (setq *pn-control-flags*
     (make-array *pn-max-flags*)))

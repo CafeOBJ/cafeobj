@@ -151,11 +151,11 @@ sys:module! MFOPL+EQ-1(TVAL :: T&F, SYNTAX :: ABS-FOPL+EQ-1(TVAL)){}
 --    (a) op P : ... Bool ... -> Bool
 --    (b) op Q : ... Bool ... -> S      -- S is not Bool
 -- 
---     Basically, if one want to use PigNose system, one cannot
+--    Basically, if one want to use PigNose system, one cannot
 --       define such operators, otherwise the result is unknown.
 --       System (may) warn if it found such operations. 
 -- 
---     But, built-in module BOOL does define such operators,
+--    But, built-in module BOOL does define such operators,
 --       and how about equality operators?
 --    
 --       One of the reason we adopt sort Bool as truth value is
@@ -217,7 +217,7 @@ sys:module! MFOPL+EQ-1(TVAL :: T&F, SYNTAX :: ABS-FOPL+EQ-1(TVAL)){}
 -- 
 --   (B) LHS = RHS if COND 
 --       translated to
---       "¢Ï[Vars] COND -> LHS = RHS"
+--       "[Vars] COND -> LHS = RHS"
 --       ("~(COND) | LHS = RHS" in clause form.)
 --
 

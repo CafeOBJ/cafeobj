@@ -28,7 +28,7 @@
   ;; (declare (values t))
   (unless (or *cafeobj-batch* *cafeobj-no-banner*)
     (let ((*print-pretty* nil))
-      (declare (special *print-pretty*))
+      ;;(declare (special *print-pretty*))
       (fresh-line)
       (terpri)
       (print-centering g_line_1)
@@ -223,6 +223,10 @@
 ;;; THE TOP LEVEL FUNCTION
 ;;; **********************
 
+(defmacro abort-on-error (&body forms)
+  `(handler-bind ((error #'abort))
+     ,@forms))
+
 (defun cafeobj-top-level ()
   ;; dirty kludge!!
   (setq *print-pretty* nil)
@@ -237,12 +241,14 @@
   #+(or CCL allegro)
   (set-cafeobj-standard-library-path)
   ;;
-  (let ((res (catch *top-level-tag* (cafeobj) 'ok-exit)))
-    (if (eq res 'ok-exit)
-        (bye-bye-bye)
-      (progn
-        (princ "** ERROR")
-        (terpri)))))
+  (with-simple-restart (abort "Sorry... we must abort.")
+    (let ((res (catch *top-level-tag* (cafeobj) 'ok-exit)))
+      (if (eq res 'ok-exit)
+	  (bye-bye-bye)
+	(progn
+	  (princ "** ERROR")
+	  (terpri)))))
+  )
 
 #+EXCL
 (eval-when (eval load)

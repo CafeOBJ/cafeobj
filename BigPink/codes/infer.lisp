@@ -168,8 +168,7 @@
 (declaim (inline given-clause-ok))
 
 (defun given-clause-ok (clause-id)
-  (declare (type fixnum clause-id)
-	   (values boolean))
+  (declare (type fixnum clause-id))
   (let ((clause (get-clause clause-id (psystem-clause-hash *current-psys*))))
     (and clause
 	 (clause-container clause))))
@@ -300,7 +299,6 @@
 ;;;
 (defun post-process (clause input list)
   (declare (type clause clause)
-	   (type boolean input)
 	   (type symbol list))
   (when (and (pn-flag eq-units-both-ways)
 	     (unit-clause? clause))
@@ -399,7 +397,6 @@
 ;;;
 (defun post-proc-all (clauses input clause-list-marker)
   (declare (type list clauses)
-	   (type boolean input)
 	   (type symbol clause-list-marker))
   (when (pn-flag debug-infer)
     (with-output-msg ()
@@ -428,10 +425,7 @@
 ;;;
 (defun pre-process (clause input list &optional dont-delete)
   (declare (type clause clause)
-	   (type boolean list dont-delete)
-	   (type symbol list)
-	   (values boolean)
-	   )
+	   (type symbol list))
   (when (pn-flag debug-infer)
     (with-output-msg ()
       (format t "start[pre-process]")
@@ -599,7 +593,6 @@
 ;;;
 (defun proc-gen (clause &optional (input nil))
   (declare (type clause clause)
-	   (type boolean input)
 	   (values (or null clause)))
   ;; RENAME VARIABLES
 
@@ -930,7 +923,6 @@
 	 ))
   ;; weight clauses
   (let ((input-sos-first? (pn-flag input-sos-first)))
-    (declare (type boolean input-sos-first?))
     (dolist (cl *sos*)
       (setf (clause-pick-weight cl)
 	(if input-sos-first?

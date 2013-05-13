@@ -7,7 +7,7 @@
 * NOTE : DO NOT MODIFY THIS FILE ULESS YOU REALLY KNOW WHAT YOU ARE DOING!.
 ||#
 (in-package :CHAOS)
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
 ;;; system standard prelude.
 (setq *include-bool* t)
 (setf *last-module* nil
@@ -18,8 +18,6 @@
 ;;; atuoloader
 (setq *autoload-alist*
   '(("TRUTH" . "truth")
-    ("BASE-BOOL" . "base_bool")
-    ("SYS-BOOL" . "sys_bool")
     ("BOOL" . "bool")
     ("IDENTICAL" . "identical")
     ("RWL" . "rwl")

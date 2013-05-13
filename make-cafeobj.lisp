@@ -5,7 +5,7 @@
 ;;; Template for making CafeOBJ interpreter.
 ;;;*****************************************************************************
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (unless (find-package :common-lisp)
     (rename-package :lisp :common-lisp
 		    (union '("CL" "LISP")
@@ -18,7 +18,7 @@
 
 #+LUCID (in-package "user")
 #+Excl (in-package :user)
-#+(or :ccl CMU) (in-package :common-lisp-user)
+#+(or :ccl CMU :SBCL) (in-package :common-lisp-user)
 #+GCL (in-package :user)
 #+GCL (setf compiler::*compile-ordinaries* t)
 (unless (find-package :chaos)
@@ -73,21 +73,20 @@
   (when chaos::*make-bigpink*
     (push :bigpink *features*)))
 
-#-:mk-defsystem
-(eval-when (eval load)
-  #+microsoft
-  (load (concatenate 'string *chaos-root* "\\defsystem"))
-  #-(or (and CCL (not :openmcl)) microsoft)
-  (load (concatenate 'string *chaos-root* "/defsystem"))
-  ;; patch by t-seino@jaist.ac.jp
-  ;; patch by sawada@sra.co.jp
-  #+(and CCL (not :openmcl))
-  (load (concatenate 'string *chaos-root* ":defsystem"))
-  ;; patch by t-seino@jaist.ac.jp (2000/02/09)
-  ;; patch by sawada@sra.co.jp
-  #+(and CCL (not :openmcl)) 
-  (load (concatenate 'string *chaos-root* ":system"))
-)
+#-:ASDF
+(eval-when (:execute :load-toplevel)
+   #+microsoft
+   (load (concatenate 'string *chaos-root* "\\asdf.lisp"))
+   #-(or (and CCL (not :openmcl)) microsoft)
+   (load (concatenate 'string *chaos-root* "/asdf.lisp"))
+   ;; patch by t-seino@jaist.ac.jp
+   ;; patch by sawada@sra.co.jp
+   #+(and CCL (not :openmcl))
+   (load (concatenate 'string *chaos-root* ":asdf.lisp"))
+   ;; patch by t-seino@jaist.ac.jp (2000/02/09)
+   ;; patch by sawada@sra.co.jp
+   #+(and CCL (not :openmcl)) 
+   (load (concatenate 'string *chaos-root* ":system")))
 
 #+GCL
 (defun make-exec-image (path)
@@ -110,6 +109,20 @@
 		 :print-herald nil
 		 )
   )
+
+#+SBCL
+(defun make-exec-image (path)
+  (setq chaos::-cafeobj-load-time- (chaos::get-time-string))
+  (chaos::set-cafeobj-standard-library-path)
+  (setq *chaos-vergine* t)
+  (sb-ext:save-lisp-and-die path
+			    :toplevel 'chaos::cafeobj-top-level
+			    :purify t
+			    :executable t
+			    :save-runtime-options t
+			    )
+  )
+  
 
 #+LUCID
 (defun make-exec-image (path)
@@ -173,17 +186,17 @@
 					   *chaos-root*))
   (when chaos-root
     (setf *chaos-root* chaos-root))
-  (setq chaos::*compile-builtin-axiom* t)
-  (mk::operate-on-system :chaosx :compile)
-  ;; (in-package :chaos)
+  ;; (mk::operate-on-system :chaosx :compile)
   (setq chaos::*compile-builtin-axiom* nil)
-  ;;
+  (load "sysdef.asd")
+  (asdf:oos 'asdf:load-op 'chaosx)
   (make-exec-image
    (concatenate 'string *chaos-root*
 		#+GCL "/xbin/cafeobj.exe"
 		#+microsoft "/xbin/cafeobj.dxl"
 		#+(and unix Allegro) "/xbin/cafeobj.acl"
 		#+CMU "/xbin/cafeobj.core"
+		#+SBCL "/xbin/cafeobj.sbcl"
 		#+CLISP "/xbin/cafeobj.mem"
 		#+:openmcl "/xbin/cafeobj.img"
 		;; patch by t-seino@jaist.ac.jp
@@ -192,7 +205,7 @@
 		))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (make-cafeobj *chaos-root*)
   )
 

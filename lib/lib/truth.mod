@@ -53,7 +53,7 @@ set sys universal-sort on
 ** we don't want to include BOOL of course
 lispq
 (progn 
-  (setq $temp2 *include-bool*)
+  (setq *include-bool-save* *include-bool*)
   (setq *include-bool* nil))
 
 ** TRUTH
@@ -100,7 +100,7 @@ lispq
 **
 set sys universal-sort off
 lispq
-(setq *include-bool* $temp2)
+(setq *include-bool* *include-bool-save*)
 **
 provide truth
 provide TRUTH

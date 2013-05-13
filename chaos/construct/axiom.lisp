@@ -72,19 +72,19 @@
     f)
   #+:CCL
   (eval `(function ,f))
-  #+(or CLISP CMU)
+  #+(or CLISP CMU SBCL)
   (if *compile-builtin-axiom*
       (compile nil f)
     (eval `(function ,f)))
   )
 
 (defun make-fun* (f)
-  #+(or CMU EXCL GCL CLISP)
+  #+(or CMU EXCL GCL CLISP SBCL)
   (if *compile-builtin-axiom*
       (compile nil f)
-    #+(or CMU CLISP)
+    #+(or CMU CLISP SBCL)
     (eval `(function ,f))
-    #-(or CMU CLISP)
+    #-(or CMU CLISP SBCL)
     f)
   #+:CCL
   (eval `(function ,f))

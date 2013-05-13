@@ -534,8 +534,7 @@
 		       (values (make-applform (method-coarity method)
 					      method l-result)
 			       t))))))
-	  (t (break "not implemented yet"))
-	  )))
+	  (t (break "not implemented yet")) )))
 
 ;;; CANONICALIZE-SUBSTITUTION
 ;;;

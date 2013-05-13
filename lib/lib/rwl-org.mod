@@ -48,7 +48,7 @@ set sys universal-sort on
 ** we want to be very explicit here
 lispq
 (progn 
-  (setq $temp2 *include-bool*)
+  (setq *include-bool-save* *include-bool*)
   (setq *include-bool* nil))
 
 sys:mod! RWL
@@ -308,7 +308,7 @@ lispq
 **
 set sys universal-sort off
 lispq
-(setq *include-bool* $temp2)
+(setq *include-bool* *include-bool-save*)
 **
 provide RWL
 provide rwl

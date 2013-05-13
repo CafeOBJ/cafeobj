@@ -18,6 +18,7 @@ AC_ARG_PROGRAM
 AC_PROG_INSTALL
 AC_PATH_PROG(gcl_path,gcl, no)
 AC_PATH_PROG(cmu_path,lisp, no)
+AC_PATH_PROG(sbcl_path,sbcl,no)
 AC_PATH_PROG(acl_path,cl, no)
 AC_PATH_PROG(clisp_path,clisp, no)
 AC_PATH_PROG(acl6_path,alisp,no)
@@ -41,6 +42,12 @@ xcmu-sparc)
 	bin_suffix=".sparcf";
 	exec_command="cafeobj.cmu.in";
 	exec_bin="cafeobj.core"
+	;;
+xsbcl)
+	lisp=$sbcl_path ;
+	bin_suffix=".fasl";
+	exec_command="cafeobj.sbcl.in";
+	exec_bin="cafeobj.sbcl"
 	;;
 xacl)
 	lisp=$acl_path ;
@@ -84,7 +91,6 @@ xgcl|x)
 	exec_command="cafeobj.gcl.in"
 	exec_bin="cafeobj.exe"
 	;;
-
 *)
 	echo "unknown lisp platform";
 	exit 1

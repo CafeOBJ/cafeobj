@@ -97,6 +97,7 @@ File: eval-apply.lisp
 ;;; INSPECT-TERM
 ;;; *************
 (defun eval-inspect-term-command (&optional ast)
+  (declare (ignore ast))
   (unless $$subterm (setq $$subterm $$term))
   (unless $$subterm
     (with-output-chaos-warning ()

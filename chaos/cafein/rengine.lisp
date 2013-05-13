@@ -53,28 +53,28 @@
 	  3)
        -3))
 
+#-GCL
+(declaim (inline term-hash-comb))
+
 #||
 (defun term-hash-comb (x y)
-  (declare (type term-hash-key x y))
+  ;; (declare (type term-hash-key x y))
   (the term-hash-key
     (logxor (the term-hash-key (ash x -5))
 	    y
 	    (the term-hash-key
 	      (logand term-hash-mask
-		      (the term-hash-key (ash (make-and x 31) 26)))))))
+		      (the term-hash-key (ash (logand x 31) 26)))))))
 ||#
 
 #-GCL
-(declaim (inline term-hash-comb))
-
-#-GCL
 (defun term-hash-comb (x y)
-  (declare (type term-hash-key x y))
-  (make-and term-hash-mask (+ x y)))
+  ;; (declare (type term-hash-key x y))
+  (the term-hash-key (logand term-hash-mask (logand term-hash-mask (+ x y)))))
 
-#+GCL
-(si:define-inline-function term-hash-comb (x y)
-  (make-and term-hash-mask (+ x y)))
+;#+GCL
+;(si:define-inline-function term-hash-comb (x y)
+;  (make-and term-hash-mask (+ x y)))
 
 ;;; #+GCL
 ;;; (si:define-inline-function term-hash-comb (x y)
@@ -122,11 +122,10 @@
 (#-GCL defun #+GCL si:define-inline-function
  get-hashed-term (term term-hash)
  (let ((val (hash-term term)))
-   (declare (type term-hash-key val))
    (let* ((ent (svref term-hash
 		      (mod val term-hash-size)))
 	  (val (cdr (assoc term ent :test #'term-is-similar?))))
-     (when val (incf (the (unsigned-byte 29) *term-memo-hash-hit*)))
+     (when val (incf *term-memo-hash-hit*))
      val)))
 
 #-GCL
@@ -135,7 +134,6 @@
 (#-GCL defun #+GCL si:define-inline-function
  set-hashed-term (term term-hash value)
  (let ((val (hash-term term)))
-    (declare (type term-hash-key val))
     (let ((ind (mod val term-hash-size)))
       (let ((ent (svref term-hash ind)))
 	(let ((pr (assoc term ent :test #'term-is-similar?)))

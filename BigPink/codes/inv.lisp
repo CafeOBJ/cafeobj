@@ -167,7 +167,7 @@
 	      (with-output-to-string (stream)
 		(if make-condition
 		    (format stream "~%~a: " make-condition)
-		  (format stream "~%~goal: "))
+		  (format stream "~%goal: "))
 		(term-print check-pat stream)))
 	  (progn
 	    (if make-condition

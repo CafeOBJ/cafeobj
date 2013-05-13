@@ -245,8 +245,7 @@
 	 
 (defun cl-occurs-in-clash (clash-clause clash)
   (declare (type clause clash-clause)
-	   (type clash)
-	   (values boolean))
+	   (type clash))
   (let ((clh clash))
     (declare (type (or null clash) clh))
     (loop
@@ -260,11 +259,9 @@
 
 (defun clash-one (clash clause-pred given-subst inf-id &optional giv-sat)
   (declare (type clash clash)
-	   (type (function (clause) boolean) clause-pred)
 	   (type list given-subst)
 	   (type symbol inf-id)
-	   (type (or null clause) giv-sat)
-	   (values boolean))
+	   (type (or null clause) giv-sat))
   #||
   (when (pn-flag debug-hyper-res)
     (with-output-msg ()
@@ -362,8 +359,7 @@
 			 ;; subst
 			 nil)
 		(declare (ignore e-equal)
-			 (type list new-subst)
-			 (type boolean no-match))
+			 (type list new-subst))
 		;;
 		(when no-match
 		  (when junk-cl-id
@@ -427,7 +423,6 @@
 	   (type (or null clause) nuc)
 	   (type list giv-lits)
 	   (type (or null clause) giv-sat)
-	   (type (function (clause) boolean) sat-proc)
 	   (type symbol inf-id)
 	   (type (or null fixnum) nuc-pos)
 	   (values list))
@@ -437,7 +432,6 @@
 	(c-end nil))
     (declare (type (or null clash) clashes)
 	     (type list list-resolvent)
-	     (type boolean backup)
 	     (type (or null clash) c-end)
 	     )
     ;;
@@ -630,8 +624,7 @@
 			       (literal-atom nuc-lit)
 			       nil)
 		      (declare (ignore e-equal)
-			       (type list new-subst)
-			       (type boolean no-match))
+			       (type list new-subst))
 		      ;;
 		      (when no-match (return-from next)) ; try next 
 
@@ -787,8 +780,7 @@
 			       (literal-atom nuc-lit)
 			       nil)
 		      (declare (ignore e-equal)
-			       (type list new-subst)
-			       (type boolean no-match))
+			       (type list new-subst))
 		      ;;
 		      (when no-match (return-from next)) ; try next 
 
@@ -1026,8 +1018,7 @@
 ;;;
 (defun build-bin-res (l1 l2 subst &optional prop)
   (declare (type literal l1 l2)
-	   (type list subst)
-	   (type boolean prop))
+	   (type list subst))
   (let ((new-literals nil)
 	(new-clause (new-clause *current-psys*)))
     (declare (type list new-literals)
@@ -1061,7 +1052,6 @@
 ;;;
 (defun binary-resolution (clause &optional prop-res?)
   (declare (type clause clause)
-	   (type boolean prop-res?)
 	   (values list))
   (when (pn-flag debug-binary-res)
     (with-output-msg ()
@@ -1101,8 +1091,7 @@
 				 (prop-unify atom clash-atom)
 			       (unify atom clash-atom in-subst))
 			   (declare (ignore e-equal)
-				    (type list new-subst)
-				    (type boolean no-match))
+				    (type list new-subst))
 			   (unless no-match
 			     (when (pn-flag debug-binary-res)
 			       (with-output-simple-msg ()
@@ -1137,8 +1126,7 @@
 				 (1+ (clause-heat-level clause))))
 			     ||#
 			     (let ((pre-res nil))
-			       (setq pre-res (the boolean
-					       (pre-process resolvent nil :sos)))
+			       (setq pre-res (pre-process resolvent nil :sos))
 			       (when pre-res
 				 (push resolvent resolvent-list)))
 			     ))))
@@ -1175,10 +1163,8 @@
 	(subst nil)
 	(no-match nil)
 	(e-eq nil))
-    (declare (type boolean factored)
-	     (type (or null clause) a-factor)
+    (declare (type (or null clause) a-factor)
 	     (type list subst)
-	     (type boolean no-match)
 	     (ignore e-eq))
     (setq factored
       (block found
@@ -1265,8 +1251,7 @@
 	  (multiple-value-bind (subst no-match e-eq)
 	      (unify (literal-atom lit1) (literal-atom lit2))
 	    (declare (ignore e-eq)
-		     (type list subst)
-		     (type boolean no-match))
+		     (type list subst))
 	    (unless no-match
 	      (let ((a-factor (make-clause-shallow-copy clause
 							(list lit2)))

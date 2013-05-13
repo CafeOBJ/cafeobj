@@ -163,6 +163,8 @@ object alloc_svec_fixnum (size)
   #+CMU nil
   #+:CCL nil
   #+:Allegro (sys:getenv x)
+  #+:CLISP (ext:getenv x)
+  #+:SBCL (sb-ext:posix-getenv x)
   )
 
 ;;; *****
@@ -321,24 +323,29 @@ object alloc_svec_fixnum (size)
 #+GCL
 (defentry addr-of (object) (object addr_of))
 
+(defvar .32bit. #xffffffff)
+
 #-GCL
 (declaim (inline addr-of))
 
 #+LUCID
-(defun addr-of (x) (sys:%pointer x))
+(defun addr-of (x) (logand .32bit. (sys:%pointer x)))
 
 #+CMU
 (defun addr-of (x)
-  (kernel:get-lisp-obj-address x))
+  (logand .32.bit. (kernel:get-lisp-obj-address x)))
 
 #+Excl
-(defun addr-of (x) (excl::pointer-to-positive-fixnum x))
+(defun addr-of (x) (logand .32bit. (excl::pointer-to-positive-fixnum x)))
 
 #+CCL
-(defun addr-of (x) (ccl::%address-of x))
+(defun addr-of (x) (logand .32bit. (ccl::%address-of x)))
 
 #+CLISP
-(defun addr-of (x) (sys::address-of x))
+(defun addr-of (x) (logand .32bit. (sys::address-of x)))
+
+#+SBCL
+(defun addr-of (x) (logand .32bit. (sb-kernel:get-lisp-obj-address x)))
 
 (defun print-addr (x)
   (format t "0x~8,'0x" (addr-of x)))

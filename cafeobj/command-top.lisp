@@ -296,7 +296,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 (defun cafeobj-what-is (inp)
   (flet ((check-pat (pat)
            (if (not (some #'(lambda (str)
-                              (member str .?-invalid-chars. : test #'string=))
+                              (member str .?-invalid-chars. :test #'string=))
                           pat))
                t
              (progn (format *error-output*

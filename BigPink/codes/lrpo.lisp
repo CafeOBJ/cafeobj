@@ -17,8 +17,7 @@
 ;;; -- t1 and t2 must be of same operator
 ;;;
 (defun lrpo-lex (t1 t2)
-  (declare (type term t1 t2)
-	   (values boolean))
+  (declare (type term t1 t2))
   (let ((subs1 (term-subterms t1))
 	(subs2 (term-subterms t2)))
     (loop (unless subs1 (return))
@@ -58,8 +57,7 @@
   (declare (type term t1 t2))
   (let ((done nil)
 	(diff nil))
-    (declare (type boolean done)
-	     (type list diff))
+    (declare (type list diff))
     (dolist (sub (term-subterms t1))
       (unless (member sub done :test #'term-is-identical)
 	(push sub done)
@@ -80,8 +78,7 @@
     (let ((diff1 (term-multiset-diff t1 t2))
 	  (diff2 (term-multiset-diff t2 t1))
 	  (ok t))
-      (declare (type list diff1 diff2)
-	       (type boolean ok))
+      (declare (type list diff1 diff2))
       (if diff2
 	  (progn
 	    (dolist (r2 diff2 )
@@ -139,8 +136,7 @@
 (declaim (inline lrpo-greater))
 
 (defun lrpo-greater (t1 t2)
-  (declare (type term t1 t2)
-	   (values boolean))
+  (declare (type term t1 t2))
   (lrpo t1 t2))
 
 (defun order-equalities-lrpo (clause &optional input?)

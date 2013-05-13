@@ -152,7 +152,7 @@
 (defvar $$matches 0)
 (defvar *on-reduction* t)
 (defvar *reduce-builtin-eager* nil)
-(declaim (type fixnum *condition-trial-limit*))
+;; (declaim (type fixnum *condition-trial-limit*))
 (defparameter .condition-trial-limit-default.
   #+GCL 240
   #-GCL 5500)
@@ -213,8 +213,7 @@
 (declaim (special *print-indent*))
 (declaim (type (integer 0 128)
 	       *print-line-limit* *chaos-print-level*
-	       *print-indent* *print-indent-increment*
-	       *print-length*))
+	       *print-indent* *print-indent-increment*))
 ;; (defvar *chaos-verbose* nil)
 (defvar *module-all-rules-every* nil)
 (defvar *fancy-print* t)
@@ -506,6 +505,7 @@
 
 ;;; *INCLUDE-BOOL* 
 (defvar *include-bool* t)
+(defvar *include-bool-save*)
 ;;; *INCLUDE-RWTL"
 (defvar *include-rwl* t)
 ;;; *INCLUDE-FOPL*

@@ -146,7 +146,7 @@
       )
     (let ((ast nil)
 	  (*readtable* (copy-readtable)))
-      (declare (special *readtable*))
+      ;; (declare (special *readtable*))
       (set-macro-character #\! #'chaos-eval-reader)
       (block top-loop
 	(loop

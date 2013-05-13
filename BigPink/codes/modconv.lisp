@@ -40,8 +40,7 @@
     (setq *elim-tf-in-axioms* t)))
 
 (defun pn-method-is-of-same-operator (m1 m2)
-  (declare (type method m1 m2)
-	    (values boolean))
+  (declare (type method m1 m2))
   (eq (method-operator m1)
       (method-operator m2)))
 
@@ -115,8 +114,7 @@
 		  t
 		*elim-tf-in-axioms*)))
 	 (declare (type (or null term)
-			frm-lhs frm-rhs frm-cond frm)
-		  (type boolean *elim-tf-in-axioms*))
+			frm-lhs frm-rhs frm-cond frm))
 	 ;;
 	 (when *elim-tf-in-axioms*
 	   (when (term-is-similar? *bool-true* frm-lhs)
@@ -246,8 +244,7 @@
 ;;; t iff module imports (semi)built-in FOPL module.
 ;;;
 (defun module-includes-formula (mod)
-  (declare (type module mod)
-	   (values boolean))
+  (declare (type module mod))
   (assq *fopl-sentence-module* (module-all-submodules mod)))
 
 ;;; MAKE-PN-APPL (mod method)
@@ -277,7 +274,6 @@
 ;;;
 (defun module-cover-sets (mod &optional (no-built-in t))
   (declare (type module mod)
-	   (type boolean no-built-in)
 	   (values list))
   (let ((res nil))
     (dolist (sort (module-all-sorts mod))
@@ -413,7 +409,7 @@
 		      (:exists (setq lhs (term-arg-1 (term-arg-2 lhs)))
 			       (setq lhs-meth (term-head lhs)))
 		      (otherwise
-		       (with-output-panic-message ('never)
+		       (with-output-panic-message ()
 			 (format t "pn-no-junk: illegal type ~s" type)))
 		      )
 		    (when lhs-meth
@@ -519,8 +515,7 @@
       (princ "module does not import FOPL-CLAUSE module.")))
   ;;
   (flet ((clause-is-valid-for-resolution (clause)
-	   (declare (type clause clause)
-		    (values boolean))
+	   (declare (type clause clause))
 	   (if (unit-clause? clause)
 	       (let ((lit (car (clause-literals clause))))
 		 (declare (type literal lit))

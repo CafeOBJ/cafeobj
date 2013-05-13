@@ -47,8 +47,7 @@
 
 (defun op-lex< (op1 op2 &optional (order .op-lex-relation-table.))
   (declare (type method op1 op2)
-	   (type hash-table .op-lex-relation-table.)
-	   (values boolean))
+	   (type hash-table .op-lex-relation-table.))
   (memq op2 (superops op1 order)))
 
 (defun dump-op-lex-relation-table ()
@@ -279,8 +278,7 @@ o	(pushnew-relation (get-op-relation lops order) res))
 ;;;
 ;;;
 (defun order-lex-op (m1 m2)
-  (declare (type method m1 m2)
-	   (values boolean))
+  (declare (type method m1 m2))
   (labels ((compare-lex (name1 name2)
 	     (declare (type list name1 name2))
 	     (let ((n1 (reduce #'(lambda (x y)
@@ -547,7 +545,6 @@ o	(pushnew-relation (get-op-relation lops order) res))
 ;;; if the atom is flipped, set scratch bit
 ;;;
 (defun order-literal (lit input?)
-  (declare (type boolean input?))
   (let* ((eq (literal-atom lit))
 	 (alpha (term-arg-1 eq))
 	 (beta (term-arg-2 eq)))
@@ -555,7 +552,6 @@ o	(pushnew-relation (get-op-relation lops order) res))
     (and (not (term-is-identical alpha beta))
 	 (let ((alpha-bigger nil)
 	       (beta-bigger nil))
-	   (declare (type boolean alpha-bigger beta-bigger))
 	   #||
 	   (if (and (pn-flag symbol-elim)
 		    (sym-elim alpha beta))
@@ -598,7 +594,6 @@ o	(pushnew-relation (get-op-relation lops order) res))
 
 (defun order-equalities (clause &optional input)
   (declare (type clause clause)
-	   (type boolean input)
 	   (inline order-literal))
   (dolist (lit (clause-literals clause))
     (when (eq-literal? lit)
@@ -624,8 +619,7 @@ o	(pushnew-relation (get-op-relation lops order) res))
 ;;; t iff vars(t1) is a subset of vars(t2).
 ;;;
 (defun var-subset (t1 t2)
-  (declare (type term t1 t2)
-	   (values boolean))
+  (declare (type term t1 t2))
   (let ((v1 (term-variables t1))
 	(v2 (term-variables t2)))
     (declare (type list v1 v2))
@@ -634,8 +628,7 @@ o	(pushnew-relation (get-op-relation lops order) res))
 ;;; TERM-IDENT-X-VARS : Term1 Term2 -> Bool
 ;;;
 (defun term-ident-x-vars (t1 t2)
-  (declare (type term t1 t2)
-	   (values boolean))
+  (declare (type term t1 t2))
   (or (term-eq t1 t2)
       (and (term-type-eq t1 t2)
 	   (cond ((term-is-variable? t1) t)

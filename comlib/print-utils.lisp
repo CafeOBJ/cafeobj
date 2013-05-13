@@ -54,7 +54,13 @@
 (defun filecol (x)
   (stream-line-column x))
 
-#-(or GCL KCL LUCID CMU EXCL :openmcl)
+#+:SBCL
+(defun filecol (x)
+  (let ((val (sb-kernel::charpos x)))
+    (if val val
+      0)))
+
+#-(or GCL KCL LUCID CMU EXCL :openmcl SBCL)
 (defun filecol (x) (declare (ignore x)) 0) ; use this if you cannot define as
 
 ;; (declaim (function file-column (stream) fixnum))

@@ -17,10 +17,10 @@
 ;;;                     *********************
 
 #-(or draft-ansi-cl-2 ansi-cl :clisp)
-(deftype boolean () '(or null (not null)))
+;; (deftype boolean () '(or null (not null)))
 
 #+:cmu
-(deftype boolean () '(or null (not null)))
+;; (deftype boolean () '(or null (not null)))
 
 ;;; =====
 ;;; QUEUE
@@ -149,8 +149,7 @@
 (declaim (inline propositional-literal?))
 
 (defun propositional-literal? (lit)
-  (declare (type literal lit)
-	   (values boolean))
+  (declare (type literal lit))
   (null (term-variables (literal-atom lit))))
 
 ;;; LITERAL PRINTER
@@ -219,7 +218,7 @@
 ;;; 
 ;;; some gobal flags
 ;;; t if our logic has two diffrent types of equality.
-(declaim (type boolean *fopl-two-equalities*))
+;; (declaim (type boolean *fopl-two-equalities*))
 (defvar *fopl-two-equalities* nil)
 
 ;;; primitive built-in modules for supporting inference in FOPL
@@ -251,8 +250,7 @@
 
 (declaim (inline term-is-atom?))
 (defun term-is-atom? (term)
-  (declare (type term term)
-	   (values boolean))
+  (declare (type term term))
   (sort<= (term-sort term) *fopl-sentence-sort* *current-sort-order*))
 
 ;;; ======
@@ -320,7 +318,7 @@
 	(*print-xmode* :fancy)
 	(*standard-output* stream)
 	(fcol-1 0))
-    (declare (special *print-pretty*))
+    ;;(declare (special *print-pretty*))
     (when (symbolp cl)
       (format stream "~a" cl)
       (return-from print-clause nil))
@@ -566,8 +564,7 @@
 (declaim (inline ground-clause?))
 	 
 (defun ground-clause? (clause)
-  (declare (type clause clause)
-	   (values boolean))
+  (declare (type clause clause))
   (null (clause-variables clause)))
 
 ;;; NUM-LITERALS : Clause -> Nat
@@ -625,8 +622,7 @@
 (declaim (inline positive-clause?))
 
 (defun positive-clause? (clause)
-  (declare (type clause clause)
-	   (values boolean))
+  (declare (type clause clause))
   (every #'(lambda (lit)
 	     (declare (type literal lit))
 	     (or (positive-literal? lit)
@@ -638,8 +634,7 @@
 (declaim (inline negative-clause?))
 
 (defun negative-clause? (clause)
-  (declare (type clause clause)
-	   (values boolean))
+  (declare (type clause clause))
   (every #'(lambda (lit)
 	     (declare (type literal lit))
 	     (or (negative-literal? lit)
@@ -651,8 +646,7 @@
 (declaim (inline propositional-clause?))
 
 (defun propositional-clause? (clause)
-  (declare (type clause clause)
-	   (values boolean))
+  (declare (type clause clause))
   (every #'(lambda (lit)
 	     (declare (type literal lit))
 	     (let ((atom (literal-atom lit)))
@@ -667,8 +661,7 @@
 (declaim (inline horn-clause?))
 
 (defun horn-clause? (clause)
-  (declare (type clause clause)
-	   (values boolean))
+  (declare (type clause clause))
   (let ((i 0))
     (declare (type fixnum i))
     (dolist (lit (clause-literals clause))
@@ -684,8 +677,7 @@
 (declaim (inline equality-clause?))
 
 (defun equality-clause? (clause)
-  (declare (type clause clause)
-	   (values boolean))
+  (declare (type clause clause))
   (dolist (lit (clause-literals clause))
     (declare (type literal lit))
     (if (or (positive-eq-literal? lit)
@@ -698,8 +690,7 @@
 ;;; i.e.,  X = Y  -> Y = X 
 ;;;       ~(X = Y) | Y = X
 (defun symmetry-clause? (clause)
-  (declare (type clause clause)
-	   (values boolean))
+  (declare (type clause clause))
   (let ((lits (clause-literals clause)))
     (unless (= 2 (num-literals clause))
       (return-from symmetry-clause? nil))
@@ -725,8 +716,7 @@
 ;;; resolve with x = x.
 ;;;
 (defun xx-resolvable (clause)
-  (declare (type clause clause)
-	   (values boolean))
+  (declare (type clause clause))
   (dolist (lit (clause-literals clause))
     (declare (type literal lit))
     (when (negative-eq-literal? lit)
@@ -852,7 +842,7 @@
 	    (:print-function print-demodulator))
   (axiom nil :type (or null axiom))
   (order :normal :type symbol)
-  (clause nil :type (or null clause))
+  (clause nil)
   )
 
 (defmacro demod-lhs (_demod)

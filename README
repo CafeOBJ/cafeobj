@@ -1,60 +1,28 @@
 
 
 			 CafeOBJ Interpreter
-			    Version 1.4
+			    Version 1.4.9
 
 The files in this dierectory and its subdirectories constitute the
 complete source code for CafeOBJ interpreter. 
 
 ----------------------------------------------------------------------
+REQUIREMENT for compiling the system from source files.
 
-REQUIREMENT:
+CafeOBJ interpreter uses Common Lisp as a underlying implementation
+language, and can be built on one of the following platforms:
 
-1. Common Lisp System
+(1) Allegro CL version 8.0 or later
+(2) SBCL version 1.1.7 or later
+(3) CMUCL version 19 or later [*]
+(4) CLISP 2.4.9 or later
 
-Sice CafeOBJ interpter is built on Common Lisp, you need some 
-Common Lisp platform. Now CafeOBJ can be built on the following
-Lisp systems:
-	(a) GCL version 2.2 or later
-	(b) CMU-CL version 1.8f or later
-	(c) ACL (Allegro Common Lisp) version 5.0 or later
-	(d) CLISP
+[*] CMUCL does not compile the system as of this writing (2013/5/13),
+    soon will be fixed.
 
-All of these Lisp systems are freely available (except ACL, for which
-only Linux version is freely distributed).
-
-GCL is now included in standard GNU package, but it can separately be
-obtained from the following frp site:
-	ftp://ftp.ma.utexas.edu:pub/pub/gcl
-	ftp://ftp.cli.com/pub/gcl
-
-*NOTE for GCL*
-==============
-	It seems that on recent Linux systems (kernel version 2.2X)
-	gcl cannot be compiled. I recomend you to use CLISP intead.
-
-For CMU-CL, you can get it from
-	ftp://ftp2.cons.org/pub/lisp/cmucl/
-
-For ACL, please consult to
+All of these Lisp systems are freely available except ACL.
+Franz provides free version of ACL please consult to
 	http://www.franz.com/
-(We only test with freely available ACL 5.0 beta for Linux.)
-
-And for CLISP, you can obtaint it from
-	ftp://ftp.cons.org/pub/lisp/clisp
-they provides binary packages for most of the platforms, please
-check them and get a apropreate binary package as far as possible.
-
-2. Resources
-
-To install the system, it requries 14Mbytes(if you use GCL as
-the platform of CafeOBJ) or much more of file spaces, which of
-course varies among platforms depending to the size of compiled
-files. For example, if you use CMU-CL, the executable interpreter
- would be more than 22Mbytes (on PC Linux). 
-
-And it is strongly recommended to have more than 48Mbytes of real
-memory.
 
 ----------------------------------------------------------------------
 
@@ -86,9 +54,16 @@ instructions.
 Here's a brief summary:
 
 	$ cd cafeobj-1.xxx
-	$ ./configure
+	$ ./configure -with-lisp={YOUR-LISP}
 	$ make
-	$ make install
+	$ sudo make install
+
+where, 
+YOUR-LISP ::= acl       ; Allegro CL
+           |  cmu-pc    ; CMUCL on X86
+           |  cmu-sparc ; CMUCL on Sparc, obsolete not supported
+           |  sbcl      ; SBCL
+           |  clisp     ; CLISP
 
 ----------------------------------------------------------------------
 
@@ -99,6 +74,4 @@ in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 even the implied warranty of MERCHANTABILITY of FITNESS FOR A PARTICULAR
 PURPOSE.
 
-----------------------------------------------------------------------
-$Id: README,v 1.1.1.1 2003-06-19 08:26:04 sawada Exp $
 -- EOF
