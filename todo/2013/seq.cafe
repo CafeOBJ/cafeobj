@@ -1,0 +1,59 @@
+-- ==================================
+-- Sequence (i.e. associative list) with {id: emp}
+mod! SEQ (X :: TRIV) {
+[Elt < Seq]
+-- empty Sequence
+op emp : -> Seq {constr} .
+-- associative constructor of Seq
+op (_ _) : Seq Seq -> Seq {constr assoc id: emp} .
+}
+
+mod* DR (X :: TRIV) {
+pr(SEQ(X))
+-- drop
+trans[drop]: (S1:Seq E:Elt S2:Seq) => (S1 S2) .
+}
+
+mod* DU (X :: TRIV) {
+pr(SEQ(X))
+-- duplicate
+trans[dupl]: (S1:Seq E:Elt S2:Seq) => (S1 E E S2) .
+}
+
+open DR .
+op e : -> Elt .
+ops s1 s2 : -> Seq .
+eof
+
+-- (1)
+red s1 e s2 =(*,1)=>+ S:Seq .
+
+-- (2)
+red e s2 =(*,1)=>+ S:Seq .
+-- (3)
+red s1 e =(*,1)=>+ S:Seq .
+
+-- (4) does not works as expected;
+-- expecting to return true with
+-- { S:Seq |-> emp }
+red e =(*,1)=>+ S:Seq .
+
+close
+
+open DU .
+op e : -> Elt .
+ops s1 s2 : -> Seq .
+-- (1)
+red s1 e s2 =(*,1)=>+ S:Seq .
+-- (2)
+
+red e s2 =(*,1)=>+ S:Seq .
+-- (3)
+red s1 e =(*,1)=>+ S:Seq .
+
+-- (4) does not works as expected;
+-- expecting to return true with
+-- { S:Seq |-> (e e) }
+red e =(*,1)=>+ S:Seq .
+close
+-- ==================================

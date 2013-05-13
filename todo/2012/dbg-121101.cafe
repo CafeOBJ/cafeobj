@@ -1,0 +1,25 @@
+-- set debug rewrite on 
+-- set debug term on
+red (if true?((mi (getVsq ({ ((bv1 , nv1) , ((src1 (bn(bv2,nv2) src2)) , (bv3 , (ns , (rsc , drSr))))) })))) then (check1by1 (rst2 (({ ((bv1 , nv1) , ((src1 (bn(bv2,nv2) src2)) , (bv3 , (ns , (rsc , drSr))))) }) !! ({ ((bv1 , (nv1 , ((empBN ; ; (bn(bv2,nv2) ; ; ((src1 bn(bv2,nv2)) ; ; ((bn(bv2,nv2) src2) ; ; (src1 (bn(bv2,nv2) src2)))))) , (bv3 , (ns , rsc))))) , (rst1 (drSr ; ; duSr))) })))) else (mi (getVsq (fst2 (({ ((bv1 , nv1) , ((src1 (bn(bv2,nv2) src2)) , (bv3 , (ns , (rsc , drSr))))) }) !! ({ ((bv1 , (nv1 , ((empBN ; ; (bn(bv2,nv2) ; ; ((src1 bn(bv2,nv2)) ; ; ((bn(bv2,nv2) src2) ; ; (src1 (bn(bv2,nv2) src2)))))) , (bv3 , (ns , rsc))))) , (rst1 (drSr ; ; duSr))) }))))) fi) .
+-- set debug rewrite off
+-- set debug term off
+
+-- parse ((bv1 , nv1) , ((rst1 ((bn(bv2,nv2) src2) ; ; (src1 (bn(bv2,nv2) src2)))) , (bv3 , (ns , (rsc , duSr))))) .
+-- evq (setq term1 $$term)
+-- evq (with-in-module (*current-module*)
+--       (setq subs (list-assoc-subterms term1 (term-head term1)))
+--       (let ((y 0))
+--          (dolist (x subs)
+--          (format t "~&~D: " (incf y))
+--         (term-print-with-sort x))))
+
+-- set verbose on
+-- show tree
+-- inspect-term 
+-- red ((bv1 , nv1) , ((rst1 ((bn(bv2,nv2) src2) ; ; (src1 (bn(bv2,nv2) src2)))) , (bv3 , (ns , (rsc , duSr))))) .
+
+-- red ((rst1 ((bn(bv2,nv2) src2) ; ; (src1 (bn(bv2,nv2) src2)))) , (bv3 , (ns , (rsc , duSr)))) .
+-- show tree
+-- inspect-term
+
+
