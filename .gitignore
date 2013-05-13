@@ -17,3 +17,5 @@
 \#*
 .DS_Store
 /autom4te
+xbin/cafeobj.sbcl
+xbin/cafeobj

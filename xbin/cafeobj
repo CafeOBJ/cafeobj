@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/local/cafeobj-1.4/bin/cafeobj.sbcl -- -prefix /usr/local/cafeobj-1.4 $*
