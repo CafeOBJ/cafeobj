@@ -12,7 +12,7 @@
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 #+:SBCL
-(eval-when (compile load eval)
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (require 'sb-posix))
 
 ;;; *****************
@@ -78,7 +78,7 @@
     (let ((directory-delimiter
 	   #+UNIX "/"
 	   #+WINDOWS "\\")
-	  (p (probe-file path)))
+	  (p (probe-file dpath)))
       (if p
 	  (and (string-equal (subseq (namestring p)
 				     (1- (length (namestring p))))
@@ -153,7 +153,8 @@
                      (let ((f (make-pathname
                                :directory
 			       #+:CLISP (pathname libdir)
-			       #-:CLISP (pathname-directory (pathname libdir))
+ 			       #+:Allegro (namestring libdir)
+			       #-(or :Allegro :CLISP) (pathname-directory (pathname libdir))
                                :name (namestring file))))
                        (if (probe-file f)
                            (progn (setq res f) (return))

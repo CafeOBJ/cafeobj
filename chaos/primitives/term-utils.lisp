@@ -91,7 +91,7 @@
 	 (and (not (sort= *bottom-sort* sort))
 	      (sort<= sort *syntax-err-sort* *chaos-sort-order*)))))
 
-(eval-when (eval load)			; synonym
+(eval-when (:execute :load-toplevel)			; synonym
   (setf (symbol-function 'term-ill-defined)
 	(symbol-function 'term-is-an-error)))
 

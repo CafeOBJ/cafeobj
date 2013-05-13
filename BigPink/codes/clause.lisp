@@ -958,7 +958,6 @@ File:formula.lisp
 
 (defun find-lightest-clause (l &optional delete)
   (declare (type symbol l))
-  (values (or null clause))
   (let ((list (list-name2-list l)))
     (declare (type list list))
     (if list

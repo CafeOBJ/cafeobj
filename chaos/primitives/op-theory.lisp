@@ -170,7 +170,7 @@
 ;;(declaim (special .E. .Z. .I. .C. .A. .AC. .AI. .AZ. .CZ. .CI. .IZ. .ACI.
 ;;		  .ACZ. .CIZ. .AIZ. .ACIZ.))
 
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
   (defconstant .E. 0)
   (defconstant .Z. 1)
   (defconstant .I. 2)
@@ -253,7 +253,7 @@
 			      unify-equal-fun
 			      unify-init-fun
 			      unify-next-fun)
-  ` (eval-when (eval load)
+  ` (eval-when (:execute :load-toplevel)
       (setf (aref *theory-info-array* ,name)
 	    (setf ,info-name
 		  (new-theory-info ',name
@@ -413,7 +413,7 @@
 
 ;;; *THEORY-THE-EMPTY-THEORY*
 (defvar *the-empty-theory*)
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf *the-empty-theory*
 	(theory-make the-e-property nil)))
 

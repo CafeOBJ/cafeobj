@@ -307,7 +307,7 @@ File:butils.lisp
   )
 
 ;;; initialize
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (init-pn-options))
 
 ;;; FIND-PN-FLAG-INDEX : Name -> Index

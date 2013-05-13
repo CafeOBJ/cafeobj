@@ -63,7 +63,7 @@
   (derived-from nil :type (or null sort-struct))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'sort-sort-struct) (symbol-function 'sort-struct-p))
   (setf (get 'sort-struct :eval) nil)
   (setf (get 'sort-struct :print) 'print-sort-internal))
@@ -92,7 +92,7 @@
 		  (:print-function print-sort-object))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-sort) (symbol-function 'sort-p))
   (setf (get 'sort :type-predicate) (symbol-function 'sort-p))
   (setf (get 'sort :eval) nil)
@@ -249,7 +249,7 @@
   (copy	nil :type (or null t))		; t iff the sort is a copy.
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'crsort :print) 'print-sort-internal)
   (setf (symbol-function 'is-crsort) (symbol-function 'crsort-p))
   (setf (get 'crsort :type-predicate) (symbol-function 'crsort-p))
@@ -279,7 +279,7 @@
 		       (:print-function print-class-sort-object))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'class-sort :type-predicate) (symbol-function 'class-sort-p))
   (setf (symbol-function 'is-class-sort) (symbol-function 'class-sort-p))
   (setf (get 'class-sort :print) 'print-sort-internal))
@@ -303,7 +303,7 @@
 			(:copier nil))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'record-sort :type-predicate)
 	(symbol-function 'record-sort-p))
   (setf (get 'record-sort :print) 'print-sort-internal)
@@ -441,7 +441,7 @@
 		  (:print-function print-bsort-object))
   (info nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-bsort) (symbol-function 'bsort-p))
   (setf (get 'bsort :type-predicate) (symbol-function 'bsort-p))
   (setf (get 'bsort :print) 'print-bsort-internal))
@@ -494,7 +494,7 @@
 
 #||
 (defvar *builtin-sort-table*)
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *builtin-sort-table* (make-hash-table :test #'eq)))
 
 (defmacro get-builtin-sort-named (sort-name_)
@@ -549,7 +549,7 @@
 		     (:print-function print-and-sort-object))
   (components nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'and-sort :type-predicate)
 	(symbol-function 'and-sort-p))
   (setf (symbol-function 'is-and-sort)
@@ -618,7 +618,7 @@
 		    (:print-function print-or-sort-object))
   (components nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'or-sort :type-predicate) (symbol-function 'or-sort-p))
   (setf (get 'or-sort :print) 'print-or-sort-internal)
   (setf (symbol-function 'is-or-sort)
@@ -680,7 +680,7 @@
   (components nil :type list)
   (lowers nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'err-sort :type-predicate) (symbol-function 'err-sort-p))
   (setf (get 'err-sort :print) 'print-err-sort-internal)
   (setf (symbol-function 'is-err-sort) (symbol-function 'err-sort-p)))

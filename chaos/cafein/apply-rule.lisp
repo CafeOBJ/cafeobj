@@ -178,7 +178,7 @@
 	(return-from the-end nil)))))
 
 ;;; INIT
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'apply-one-rule)
 	(symbol-function 'apply-one-rule-simple)))
 

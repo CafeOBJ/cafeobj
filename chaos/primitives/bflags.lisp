@@ -15,7 +15,7 @@
 ;;;
 ;;; generic chaos flag/parameter utils
 ;;;
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
 (defstruct (chaos-flag (:type list)
 	    (:conc-name "CFLG-"))
   (value nil :type t)

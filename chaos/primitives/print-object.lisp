@@ -1660,7 +1660,7 @@
 	  ))
       )))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'print-rule-brief)
 	(symbol-function 'print-axiom-brief))) ; synonim
 

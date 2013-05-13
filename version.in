@@ -6,7 +6,7 @@
 (defvar cafeobj-version-memo)
 (defvar patch-level "")
 
-(eval-when (eval load compile)
+(eval-when (:execute :load-toplevel :compile-toplevel)
   (setq cafeobj-version-major "VERSION")
   (setq cafeobj-version-memo (format nil "~a" "VMEMO"))
   (setq patch-level (format nil "~a" "PATCHLEVEL"))

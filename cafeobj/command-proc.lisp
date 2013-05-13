@@ -44,7 +44,7 @@
 
 ;;; SPECIFIC COMMAND PROCESSORS ************************************************
 
-(eval-when (eval load compile)
+(eval-when (:execute :load-toplevel :compile-toplevel)
   (defmacro with-no-chaos-counter-parts ((name) &body body)
     ` (block body
         (when (and *dribble-ast* *dribble-stream*)

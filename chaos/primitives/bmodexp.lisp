@@ -240,7 +240,7 @@
 (defvar *modexp-view-table* nil)
 
 #||
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *modexp-view-table* (make-hash-table :test #'eq)))
 
 (defun find-view-in-env (view)

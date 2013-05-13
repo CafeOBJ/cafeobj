@@ -36,7 +36,7 @@
 (defmacro create-match-empty-state (_***flag _***sys) `(cons ,_***flag ,_***sys))
 
 (defvar .match-empty-state. nil)
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq .match-empty-state. (create-match-empty-state 0 nil)))
 
 (defun the-match-empty-state () .match-empty-state.)

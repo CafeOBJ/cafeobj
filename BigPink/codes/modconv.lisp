@@ -45,7 +45,7 @@
       (method-operator m2)))
 
 #||
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq .pn-ignore-ops.
     (list *bool-and*			; _and_
 	  *bool-or*			; _or_

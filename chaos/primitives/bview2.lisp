@@ -47,7 +47,7 @@
   (sort-maps nil :type list)
   (op-maps nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-view-struct) (symbol-function 'view-struct-p))
   (setf (get 'view-struct :type-predicate) (symbol-function 'view-struct-p))
   (setf (get 'view-struct :print) 'print-view-internal))

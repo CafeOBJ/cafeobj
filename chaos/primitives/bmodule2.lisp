@@ -58,7 +58,7 @@
   (alias nil :type list)
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'module :type-predicate) (symbol-function 'module-p))
   (setf (get 'module :eval) nil)
   (setf (get 'module :print) 'print-module-internal)

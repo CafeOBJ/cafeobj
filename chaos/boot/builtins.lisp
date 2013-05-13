@@ -9,7 +9,7 @@ File:builtins.lisp
 
 ;;; INTIALIZE DB 
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (clear-global-db)
   (clear-trs-db)
   (unless *term-memo-table*
@@ -1823,7 +1823,7 @@ File:builtins.lisp
 ;;;
 ;;; BOOT BUILTIN MODULES
 ;;;
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (boot-chaos)
   (install-chaos-hard-wired-modules)
   (install-chaos-soft-wired-modules)

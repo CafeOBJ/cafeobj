@@ -852,7 +852,7 @@
 (defmacro demod-condition (_demod)
   `(axiom-condition (demod-axiom ,_demod)))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'demod :type-predicate) (symbol-function 'demod-p))
   (setf (get 'demod :print) 'print-demod-internal)
   (setf (symbol-function 'is-demod) (symbol-function 'demod-p))

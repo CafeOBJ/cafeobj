@@ -99,7 +99,7 @@
 ;;; <theory>     ::= ( <theory-elt>* )
 ;;;
 (defvar .theory-code-table. )
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel :compile-toplevel)
   (setf .theory-code-table.
 	'((:assoc . #..A.)
 	  (:comm . #..C.)

@@ -129,7 +129,7 @@
   (hidden nil :type (or null t))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-operator) (symbol-function 'operator-p))
   (setf (get 'operator :type-predicate) (symbol-function 'operator-p))
   (setf (get 'operator :print) 'print-operator-internal))
@@ -217,7 +217,7 @@
 ;;; Constructor of Operator body.-----------------------------------------------
 (defvar *opname-table* nil)
 #||
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf *opname-table* (make-hash-table :test #'equal)))
 ||#
 
@@ -231,7 +231,7 @@
 
 #||
 (defvar .operator-recycler.)
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq .operator-recycler. (make-hash-table :test #'equal)))
 
 (defun allocate-operator (name num-args module)
@@ -482,7 +482,7 @@
   (id-symbol nil :type symbol)
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-method) (symbol-function 'method-p))
   (setf (get 'method :type-predicate) (symbol-function 'method-p))
   (setf (get 'method :print) 'print-method-internal))
@@ -704,7 +704,7 @@
   (coherent nil :type (or null t))	; t iff behaviouraly coherent
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-!method-info) (symbol-function '!method-info-p))
   (setf (get '!method-info :type-predicate) (symbol-function '!method-info-p))
   (setf (get '!method-info :print) nil))

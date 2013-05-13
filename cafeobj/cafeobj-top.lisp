@@ -21,7 +21,7 @@
 
 (defvar g_line_1 (format nil "-- CafeOBJ system Version ~a --" cafeobj-version))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq -cafeobj-load-time- (chaos::get-time-string)))
 
 (defun cafeobj-greeting ()
@@ -251,7 +251,7 @@
   )
 
 #+EXCL
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (top-level:alias "q" (&rest args)
     (apply #'top-level:do-command "pop" args)))
 
