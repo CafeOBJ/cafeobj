@@ -36,3 +36,5 @@ xbin/cafeobj.sbcl
 xbin/cafeobj
 Makefile
 proof
+manual/xml/manual.pdf
+
