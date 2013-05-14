@@ -34,3 +34,5 @@ chaos/term-parser/new
 /autom4te
 xbin/cafeobj.sbcl
 xbin/cafeobj
+Makefile
+proof
