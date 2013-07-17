@@ -1,0 +1,32 @@
+module CHAOS:OBJECT {
+  imports {
+    protecting(CHAOS:META)
+    protecting(TRUTH-VALUE)
+    protecting(STRING)
+    protecting(INT-VALUE)
+  }
+  signature {
+    [ *Void* < Int String *Sort* *Operator* *Term* *Axiom* *ChaosList* *ChaosExpr*
+      *Signagure* *Trs* *ChaosPair* *AxiomSet* *Module* *Substitution* *Imports*
+	< *ChaosObject* ]
+    [ String < *ModExpr* ]
+    op '[ _ ]    : *Cosmos* -> *Term* { strat: (0) }
+    op term      : *Term* -> *Cosmos*
+    op nil       : -> *Cosmos*
+    op (_,_)     : *Cosmos* *Cosmos* -> *Cosmos* {assoc id: nil}
+    op ([:obj_]) : *Cosmos* -> *ChaosObject*
+    op ([::_])   : *Cosmos* -> *ChaosList*
+    op :!    : String *Cosmos* -> *Cosmos*
+    op :!!   : String *Cosmos* -> *Cosmos*
+  }
+  axioms {
+    eq :!!(S:String, X:*Cosmos*) = #!! (do-apply!! S X) .
+    eq :!(S:String, X:*Cosmos*) = #! (do-apply! S X) .
+    eq [:obj X:*Cosmos*] = :!!("CREATE-SYSTEM-OBJECT-TERM", (X)) .
+    eq [:: X:*Cosmos*] = :!!("CREATE-CHAOS-LIST", X) .
+   }
+}
+
+**
+eof
+ 
