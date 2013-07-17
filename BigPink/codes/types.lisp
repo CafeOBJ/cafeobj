@@ -19,7 +19,7 @@
 #-(or draft-ansi-cl-2 ansi-cl :clisp)
 ;; (deftype boolean () '(or null (not null)))
 
-#+:cmu
+;; #+:cmu
 ;; (deftype boolean () '(or null (not null)))
 
 ;;; =====

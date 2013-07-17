@@ -259,6 +259,47 @@
               ))
           (context-pop-and-recover))))))
 
+(defun perform-meta-reduction (pre-term &optional modexp mode)
+  (let ((*rewrite-exec-mode* (or (eq mode :exec)
+                                 (eq mode :exec+)))
+        (*rewrite-semantic-reduce* nil))
+    (let ((mod (if modexp 
+                   (eval-modexp modexp)
+                 *last-module*)))
+      (if (or (null mod) (modexp-is-error mod))
+          (if (null mod)
+              (with-output-chaos-error ('no-context)
+                (princ "no module expression provided and no selected(current) module."))
+            (with-output-chaos-error ('no-such-module)
+              (princ "incorrect module expression, no such module ")
+              (print-chaos-object modexp)))
+        (progn
+          (context-push-and-move *last-module* mod)
+          (with-in-module (mod)
+	    ;;
+	    (change-context *last-module* mod)
+	    ;;
+            (!setup-reduction mod)
+            (setq $$mod *current-module*)
+            (setq *rewrite-semantic-reduce*
+              (and (eq mode :red)
+                   (module-has-behavioural-axioms mod)))
+	    (let* ((*parse-variables* nil)
+		   (term (simple-parse *current-module* pre-term sort))
+		   (res nil))
+              (when (or (null (term-sort term))
+                        (sort<= (term-sort term) *syntax-err-sort* *chaos-sort-order*))
+                (return-from perform-meta-reduction nil))
+	      (setq res term)
+	      (catch 'rewrite-abort
+		(let ((*do-empty-match* nil)) ; t
+		  (if (and *rewrite-exec-mode*
+			   *cexec-normalize*)
+		      (rewrite-exec res *current-module* mode)
+		    (rewrite res *current-module* mode))))
+	      (context-pop-and-recover)
+	      res)))))))
+
 ;;; **************
 ;;; TEST REDUCTION
 ;;; **************
@@ -833,7 +874,7 @@
     ;;
     (when msg?
       (with-output-simple-msg ()
-        (format t "~&   re-boot kernel...")))
+        (format t "~&   rebooting system kernel...")))
     (boot-chaos)
     (when msg?
       (with-output-simple-msg ()
@@ -841,7 +882,7 @@
     (install-chaos-hard-wired-modules)
     (when msg?
       (with-output-simple-msg ()
-        (format t "~&   re-installing built-in modules...")))
+        (format t "~&   re-installing builtin modules...")))
     (install-chaos-soft-wired-modules)
     (init-tram-bi-modules)
     (init-builtin-universal)

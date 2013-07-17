@@ -1,5 +1,5 @@
 ;;; defsystem
-:ld sysdef
+;;:ld sysdef
 ;; (mk:compile-system :chaosx) --or --
 (excl:compile-system :chaosx :recompile t)
 (in-package :chaos)

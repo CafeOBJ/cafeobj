@@ -958,7 +958,6 @@ File:formula.lisp
 
 (defun find-lightest-clause (l &optional delete)
   (declare (type symbol l))
-  (values (or null clause))
   (let ((list (list-name2-list l)))
     (declare (type list list))
     (if list
@@ -966,12 +965,10 @@ File:formula.lisp
                (wm (clause-pick-weight felt))
                (rl (list felt))
                (res nil))
-          (declare (type fixnum wm)
-                   (type (or null clause) res))
+          (declare (type fixnum wm))
           (dolist (c (cdr list))
             (let ((cwt (clause-pick-weight c)))
-              (declare (type (or null clause) c)
-                       (type fixnum cwt))
+              (declare (type fixnum cwt))
               (if (< cwt wm)
                   (setq wm cwt
                         rl (list c))

@@ -135,10 +135,11 @@
                      "eval/eval-ast2"
                      "eval/chaos-top"))
      (:module-group :boot
-                    (:definitions
-                        "boot/preproc"
-                        "boot/prelude"
-                      "boot/builtins"))
+                    (:serial
+		     "boot/preproc"
+		     "boot/prelude"
+		     "boot/builtins"
+		     "boot/meta"))
      (:module-group :tram
                     (:serial "tram/tram"))
      (:module-group :psup

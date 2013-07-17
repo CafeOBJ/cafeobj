@@ -67,6 +67,21 @@
 	  (push m res))))
     (nreverse res)))
 
+;;; methods via signature
+(defun signature-methods (sig &optional (no-error-methods t))
+  (unless *current-module*
+    (with-output-chaos-error ('no-context-module)
+      (format t "No context module is specified.")))
+  (with-in-module (*current-module*)
+    (let ((ops (signature$operators sig))
+	  (res nil))
+      (dolist (opinfo ops)
+	(dolist (m (opinfo-methods opinfo))
+	  (when (or (not no-error-mehods)
+		    (not (method-is-error-method m)))
+	    (push m res))))
+      (nreverse res))))
+
 ;;; ***********************************
 ;;; PREPARETION for PARSING & REWRITING_________________________________________
 ;;; ***********************************

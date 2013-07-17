@@ -86,8 +86,8 @@
        "automatic change current context(module).")
       ;; ("auto" ("reconstruct") parity *auto-reconstruct*
       ;;  "perform automatic reconstruction of modules if inconsistent.")
-      ;; ("allow" ("term") parity *allow-general-term-input*
-      ;; "allow input term directly at top level.")
+      ("accept" ("term") parity *allow-general-term-input*
+       "allow input term directly at top level.")
       (("regularize" "reg") ("signature") parity *regularize-signature*
        "regularize module signature automatic.")
       ("check" ("import") parity *check-import-mode*

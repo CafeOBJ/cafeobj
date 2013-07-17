@@ -594,6 +594,9 @@
 	   (type list arity)
 	   (type (or list string) op-name)
 	   (type sort* coarity))
+  (unless module
+    (with-output-chaos-error ('no-context)
+      (format t "No context module is specified.")))
   (let ((len (length arity)))
     (declare (type fixnum len))
     (dolist (opinfo (find-operators-in-module op-name len module) nil)

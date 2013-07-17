@@ -45,14 +45,14 @@ File: eval-apply.lisp
                        (reset-target-term target *last-module* mod)))
                     (t 
                      (let ((*parse-variables* nil))
-                       (let ((res (simple-parse *current-module* pre-term
+                       (let ((res (simple-parse *current-module*
+						pre-term
                                                 *cosmos*)))
                          (when (term-is-an-error res)
                            (return-from do-eval-start-th nil))
                          (when (eq *last-module* mod)
                            (setq $$action-stack nil))
-                         (reset-target-term res *last-module* mod)
-                         )))))
+                         (reset-target-term res *last-module* mod))))))
           ;; try use $$term
           (progn
             (when (or (null $$term) (eq 'void $$term))

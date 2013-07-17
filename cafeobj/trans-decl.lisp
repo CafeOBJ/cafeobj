@@ -866,6 +866,9 @@
               (t (format t "~&Processing module elements : unknown form: ~a, ignored." e)
                  nil)))
 
+(defun parse-module-element-1 (e &rest ignore)
+  (car (parse-module-element e ignore)))
+
 ;;; ********************
 ;;; VIEW DECLARTION FORM _______________________________________________________
 ;;; ********************

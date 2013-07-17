@@ -57,6 +57,12 @@
            (princ ")")))
         (t (princ ast))))
 
+(defun is-ast (obj)
+  (and (consp obj)
+       (let ((cat (car obj)))
+	 (and (symbolp cat)
+	      (getf (symbol-plist cat) :category)))))
+
 ;;;
 ;;;
 ;;;
@@ -108,8 +114,7 @@
                  (princ (string val)))
                 ((characterp val)
                  (print-character val))
-                (t (princ val)))
-          )))
+                (t (princ val))))))
     bstr))
 
 (defun term-to-sexpr (term &optional (print-var-sort t)
@@ -127,9 +132,15 @@
         ((term-is-psuedo-constant? term)
          (if as-tree
              (return-from term-to-sexpr
-               `(":pvar" ,(variable-print-string term print-var-sort vars-so-far)))
+               `(":literal" ,(variable-print-string term print-var-sort vars-so-far)))
            (return-from term-to-sexpr
              (variable-print-string term print-var-sort vars-so-far))))
+	((term-is-system-object? term)
+	 (if as-tree
+	     (return-from term-to-sexpr
+	       `(":sysobj" ,(format nil "~s" (term-system-object term))))
+	   (return-from term-to-sexpr
+	     (format nil "(~s)" (term-system-object term)))))
         ((term-is-builtin-constant? term)
          (if as-tree
              (return-from term-to-sexpr
@@ -173,18 +184,17 @@
                                      sexpr-so-far)
                                (setq subs (cdr subs)))
                               (t 
-                               (push i sexpr-so-far)
-                               )))
-                      (return-from term-to-sexpr (nreverse sexpr-so-far))
-                      ))
-                 )))))
+                               (push i sexpr-so-far))))
+                      (return-from term-to-sexpr (nreverse sexpr-so-far)))))))))
   
 (defun term-print1 (term &optional (stream *standard-output*) (print-var-sort t)
                                    (vars-so-far (cons nil nil)))
-  (declare (type (or null term) term)
-           (type stream stream)
+  (declare (type stream stream)
            (type (or null t) print-var-sort)
            (values t))
+  (unless (termp term)
+    (format stream " ~s " term)
+    (return-from term-print1))
   (let ((*standard-output* stream)
         (body (term-body term))
         (*current-term-depth* (1+ *current-term-depth*))
@@ -209,6 +219,18 @@
                         print-var-sort
                         vars-so-far)))
              (princ vstr stream)))
+	  ((term$is-system-object? body)
+	   (let ((obj (term-system-object term)))
+	     (when (chaos-list-p obj)
+	       (setq obj (chaos-list-list obj)))
+	     (if (or (atom obj) (is-ast obj))
+		 (prin1 obj stream)
+	       (progn
+		 (princ "[:: " stream)
+		 ;; (unless (listp obj) (break "!!"))
+		 (dolist (x obj)
+		   (term-print1 x stream print-var-sort vars-so-far))
+		 (princ "]" stream)))))
           ((term$is-builtin-constant? body)
            (princ (bconst-print-string term) stream))
           ((term$is-lisp-form? body)
@@ -233,12 +255,10 @@
                         (let ((flg nil))
                           (dolist (i subs)
                             (if flg
-                                (progn (princ ",")
-                                       )
+                                (progn (princ ","))
                                 (setq flg t))
                             (term-print1 i stream print-var-sort vars-so-far)))
-                        (princ ")")
-                        )))
+                        (princ ")"))))
                    ;; mix fix 
                    (t (let ((subs (term$subterms body))
                             (prv nil))
@@ -260,8 +280,7 @@
                                    )))
                         (princ ")" stream))))))
           (t (format stream "~s" body)) ; what is this?
-          )
-    ))
+          )))
 
 (defun term-print2 (term prec
                     &optional (stream *standard-output*)
@@ -272,6 +291,9 @@
            (type stream stream)
            (type (or null t) print-var-sort)
            (values t))
+  (unless (termp term)
+    (format stream " ~s " term)
+    (return-from term-print2))
   (let ((*standard-output* stream)
         (*current-term-depth* (1+ *current-term-depth*))
         ;; (*print-indent* *print-indent*)
@@ -299,6 +321,17 @@
                                               print-var-sort
                                               vars-so-far)))
              (princ vstr stream)))
+	  ((term-is-system-object? term)
+	   (let ((obj (term-system-object term)))
+	     (when (chaos-list-p obj)
+	       (setq obj (chaos-list-list obj)))
+	     (if (or (atom obj) (is-ast obj))
+		 (prin1 obj stream)
+	       (progn
+		 (princ "[:: " stream)
+		 (dolist (x obj)
+		   (term-print2 x prec stream print-var-sort vars-so-far))
+		 (princ "]" stream)))))
           ((term-is-builtin-constant? term)
            (let ((bstr (bconst-print-string term)))
              (princ bstr stream)))
@@ -385,7 +418,7 @@
                         (when prec-test (princ ")" stream))
                         ))
                    )))
-          (t (format stream "~s" (term-body term))))
+          (t (format stream "(~s)" (term-body term))))
     ))
 
 (defun term-print (term &optional (stream *standard-output*)

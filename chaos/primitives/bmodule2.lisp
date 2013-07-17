@@ -58,7 +58,7 @@
   (alias nil :type list)
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'module :type-predicate) (symbol-function 'module-p))
   (setf (get 'module :eval) nil)
   (setf (get 'module :print) 'print-module-internal)
@@ -1138,11 +1138,10 @@
 	   (values t))
   (if (or (module-is-inconsistent obj)
 	  (null (module-name obj)))
-      (format stream "#!<module ~a : ~x>"
-	      (module-name obj)
-	      (addr-of obj))
-      (format stream "#<module ~a : ~x>" (make-module-print-name2 obj)
-	      (addr-of obj))))
+      (format stream "[:module \"~a\"]"
+	      (module-name obj))
+    (format stream "[:module \"~a\"]" (make-module-print-name2 obj))))
+
 
 ;;; *********************************
 ;;; Constructing RUN TIME ENVIRONMENT -----------------------------------------
@@ -1373,12 +1372,12 @@
   ;; signature
   (if (the (or null signature-struct) (module-signature mod))
       (initialize-signature (module-signature mod))
-      (setf (module-signature mod) (make-signature-struct)))
+      (setf (module-signature mod) (make-signature-struct :module mod)))
   ;; axiom set
   (setf (module-theorems mod) nil)
   (if (the (or null axiom-set) (module-axiom-set mod))
       (initialize-axiom-set (module-axiom-set mod))
-      (setf (module-axiom-set mod) (make-axiom-set)))
+      (setf (module-axiom-set mod) (make-axiom-set :module mod)))
   ;; parse infos
   (if (the (or null parse-dictionary) (module-parse-dictionary mod))
       (initialize-parse-dictionary (module-parse-dictionary mod))

@@ -40,6 +40,7 @@
     ("OBJECT" . "reobject")
     ("STATE-CONFIGURATION" . "reobject")
     ("ACZ-CONFIGURATION" . "reobject")
+    ("META" . "meta")
     ))
 #|| --- no more depends : important intitializations are
         moved to the introduction of TRUTH-VALUE.

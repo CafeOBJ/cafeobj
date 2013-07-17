@@ -146,6 +146,7 @@
 				       :components ((:file "preproc")
 						    (:file "prelude")
 						    (:file "builtins")
+						    (:file "meta")
 						    ))
 			      (:module tram
 				       :components ((:file "tram")))

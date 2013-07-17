@@ -145,7 +145,7 @@
        (alpha-char-p (char token 1))
        ))
 (defun create-qId (token) (intern (subseq token 1)))
-(defun print-qId (x) (format t "'~a" x))
+(defun print-qId (x) (format t "'~a" (string x)))
 (defun is-qId (x)
   (and (symbolp x)
        (is-Id-token (symbol-name x))))
@@ -443,59 +443,59 @@
 	  (princ "Could not find module STRING-VALUE.")
 	  (break)))))
 
-;;;-----------------------------------------------------------------------------
-;;; module CHAOS:EXPR
-;;;-----------------------------------------------------------------------------
-(defun install-chaos-expr ()
-  (let ((module (eval-modexp "CHAOS:EXPR")))
-    (labels ((sort-missing (sort-name)
-	       (with-output-panic-message ()
-		 (format t "missing sort ~s" sort-name))))
-      (macrolet ((set-sort (sym s-name)
-		   `(or (setq ,sym (find-sort-in module ,s-name))
-			(sort-missing ,s-name))))
-      (if (and module (not (modexp-is-error module)))
-	  (progn
-	    (final-setup module)
-	    (set-sort *chaos-value-sort* "ChaosExpr")
-	    (set-sort *sort-sort* "ChaosSort")
-	    (set-sort *general-sort* "Sort")
-	    (set-sort *and-sort* "AndSort")
-	    (set-sort *or-sort* "OrSort")
-	    (set-sort *err-sort* "ErrSort")
-	    (set-sort *operator-sort* "Operator")
-	    (set-sort *axiom-sort* "Axiom")
-	    (set-sort *module-sort* "Module")
-	    (set-sort *term-sort* "Term")
-	    (set-sort *variable-sort* "Variable")
-	    (set-sort *appl-form-sort* "ApplForm")
-	    (set-sort *pvariable-sort* "PVariable")
-	    (set-sort *lisp-term-sort* "LispTerm")
-	    (set-sort *slisp-term-sort* "SlispTerm")
-	    (set-sort *glisp-term-sort* "GlispTerm")
-	    (set-sort *bconst-term-sort* "BconstTerm")
-	    (set-sort *optheory-sort* "OpTheory")
-	    (set-sort *modexpr-sort* "ModExpr")
-	    (set-sort *chaos-list-sort* "ChaosList")
-	    (set-sort *chaos-void-sort* "ChaosVoid")
-	    #||
-	    (declare-subsort-in-module
-	     `((,*general-sort* ,*and-sort* ,*or-sort* ,*err-sort*
-				:< ,*sort-sort*)
-	       (,*sort-sort* ,*operator-sort* ,*axiom-sort* ,*module-sort*
-			     ,*term-sort* ,*modexpr-sort* ,*string-sort*
-			     ,*qid-sort* ,*chaos-list-sort*
-			     :< ,*chaos-value-sort*)
-	       (,*chaos-void-sort* :< ,*general-sort* ,*and-sort* ,*or-sort* ,*err-sort*
-				   ,*operator-sort* ,*axiom-sort*
-				   ,*module-sort* ,*term-sort* ,*modexpr-sort*
-				   ,*chaos-list-sort*))
-	     module)
-	    ||#
-	    )
-	(with-output-panic-message()
-	  (princ "Could not find module ChaosExpr.")
-	  (break)))))))
+; ;;;-----------------------------------------------------------------------------
+; ;;; module CHAOS:EXPR
+; ;;;-----------------------------------------------------------------------------
+; (defun install-chaos-expr ()
+;   (let ((module (eval-modexp "CHAOS:EXPR")))
+;     (labels ((sort-missing (sort-name)
+; 	       (with-output-panic-message ()
+; 		 (format t "missing sort ~s" sort-name))))
+;       (macrolet ((set-sort (sym s-name)
+; 		   `(or (setq ,sym (find-sort-in module ,s-name))
+; 			(sort-missing ,s-name))))
+;       (if (and module (not (modexp-is-error module)))
+; 	  (progn
+; 	    (final-setup module)
+; 	    (set-sort *chaos-value-sort* "ChaosObject")
+; 	    (set-sort *sort-sort* "ChaosSort")
+; 	    (set-sort *general-sort* "Sort")
+; 	    (set-sort *and-sort* "AndSort")
+; 	    (set-sort *or-sort* "OrSort")
+; 	    (set-sort *err-sort* "ErrSort")
+; 	    (set-sort *operator-sort* "Operator")
+; 	    (set-sort *axiom-sort* "Axiom")
+; 	    (set-sort *module-sort* "Module")
+; 	    (set-sort *term-sort* "Term")
+; 	    (set-sort *variable-sort* "Variable")
+; 	    (set-sort *appl-form-sort* "ApplForm")
+; 	    (set-sort *pvariable-sort* "PVariable")
+; 	    (set-sort *lisp-term-sort* "LispTerm")
+; 	    (set-sort *slisp-term-sort* "SlispTerm")
+; 	    (set-sort *glisp-term-sort* "GlispTerm")
+; 	    (set-sort *bconst-term-sort* "BconstTerm")
+; 	    (set-sort *optheory-sort* "OpTheory")
+; 	    (set-sort *modexpr-sort* "ModExpr")
+; 	    (set-sort *chaos-list-sort* "ChaosList")
+; 	    (set-sort *chaos-void-sort* "ChaosVoid")
+; 	    #||
+; 	    (declare-subsort-in-module
+; 	     `((,*general-sort* ,*and-sort* ,*or-sort* ,*err-sort*
+; 				:< ,*sort-sort*)
+; 	       (,*sort-sort* ,*operator-sort* ,*axiom-sort* ,*module-sort*
+; 			     ,*term-sort* ,*modexpr-sort* ,*string-sort*
+; 			     ,*qid-sort* ,*chaos-list-sort*
+; 			     :< ,*chaos-value-sort*)
+; 	       (,*chaos-void-sort* :< ,*general-sort* ,*and-sort* ,*or-sort* ,*err-sort*
+; 				   ,*operator-sort* ,*axiom-sort*
+; 				   ,*module-sort* ,*term-sort* ,*modexpr-sort*
+; 				   ,*chaos-list-sort*))
+; 	     module)
+; 	    ||#
+; 	    )
+; 	(with-output-panic-message()
+; 	  (princ "Could not find module ChaosExpr.")
+; 	  (break)))))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; Record Structure/Object

@@ -272,13 +272,14 @@
 ;;; BUILTIN SORTS
 ;;;=============================================================================
 ;; NAMES of Builtin sort.
-(defconstant $name-sort '|_ Sort _|)
+(defconstant $name-sort '|*Sort*|)
 (defconstant $name-gen-sort '|_ GeneralSort _|)
-(defconstant $name-bi-sort '|_ BuiltinSort _|)
-(defconstant $name-identifier '|Identifier|)
+(defconstant $name-bi-sort '|*BuiltinSort*|)
+(defconstant $name-identifier '|*Identifier*|)
 (defconstant $name-cosmos '|*Cosmos*|)
 (defconstant $name-universal '|*Universal*|)
 (defconstant $name-huniversal '|*HUniversal*|)
+(defconstant $name-term '|*Term*|)
 (defconstant $name-bottom '|_ Bottom _|)
 (defconstant $name-hbottom '|_ HBottom _|)
 (defconstant $name-record '|_ Record _|)
@@ -286,12 +287,25 @@
 (defconstant $name-and-sort '|_ ^-Sort _|)
 (defconstant $name-or-sort '|_ \|-Sort _|)
 (defconstant $name-err-sort '|_ ?-Sort _|)
-(defconstant $name-operator '|_ Operator _|)
-(defconstant $name-module '|_ Module _|)
-(defconstant $name-axiom '|_ Axiom _|)
+(defconstant $name-operator '|*Operator*|)
+(defconstant $name-module '|*Module*|)
+(defconstant $name-signature '|*Signature*|)
+(defconstant $name-axiomset '|*AxiomSet*|)
+(defconstant $name-trs '|*Trs*|)
+(defconstant $name-axiom '|*Axiom*|)
+(defconstant $name-chaos-object '|*ChaosObject*|)
+(defconstant $name-chaos-expr '|*ChaosExpr*|)
+(defconstant $name-term-type '|*TermType*|)
+(defconstant $name-chaos-list '|*ChaosList*|)
+(defconstant $name-void '|*Void*|)
+(defconstant $name-import '|*Imports*|)
+(defconstant $name-subst '|*Substitution*|)
 
 ;;; builtin sorts
 (defvar *cosmos* 'void)			; the whole 
+(defvar *chaos-object* 'void)
+(defvar *chaos-expr-sort* 'void)
+(defvar *term-sort* 'void)
 (defvar *universal-sort* 'void)		; visible universe
 (defvar *huniversal-sort* 'void)	; hidden universe
 (defvar *bottom-sort* 'void)		; visible bottom sort
@@ -312,7 +326,10 @@
 (defvar *class-sort* 'void)
 (defvar *operator-sort* 'void)
 (defvar *module-sort* 'void)
-(defvar *term-sort* 'void)
+(defvar *import-sort* 'void)
+(defvar *signature-sort* 'void)
+(defvar *axiomset-sort* 'void)
+(defvar *trs-sort* 'void)
 (defvar *variable-sort* 'void)
 (defvar *appl-form-sort* 'void)
 (defvar *pvariable-sort* 'void)
@@ -342,6 +359,7 @@
 (defvar *message-sort* 'void)
 (defvar *configuration-sort* 'void)
 (defvar *acz-configuration-sort* 'void)
+(defvar *subst-sort* 'void)
 (defvar *sort_builtin* 'void)
 
 (defvar sup-universal-sort-name nil)
@@ -361,7 +379,9 @@
 
 ;;; *CHAOS-MODULE*
 ;;; bounds built in module CHAOS.
+(defvar *chaos-meta* nil)
 (defvar *chaos-module* nil)
+(defvar *chaos-object-module* nil)
 
 ;;; *CHAOS-SORT-ORDER* holds the transitive closure of sort relations between
 ;;; builtin sorts. This is a value of slot 'sort-order' of builtin module
@@ -393,6 +413,7 @@
 (defvar *type-err-method* nil)
 (defvar *op-err-op* nil)
 (defvar *op-err-method* nil)
+(defvar *op-term* nil)
 
 ;;; TRUTH, BOOL & IDENTICAL Module
 ;;;-----------------------------------------------------------------------------
@@ -530,7 +551,7 @@
 
 ;;; if true, top level command interpreter accept terms in current context
 ;;; and evaluate (reduce) it.
-(defvar *allow-general-term-input* nil)
+(defvar *allow-general-term-input* t)
 
 ;;; LIBRARY PATH
 (defvar *chaos-libpath* nil)

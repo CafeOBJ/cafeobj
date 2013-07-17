@@ -489,7 +489,7 @@
 
 (defun print-method-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "#<meth ~a : ~x>" (method-name obj) (addr-of obj)))
+  (format stream "[:operator ~a]" (method-name obj)))
 
 ;;; Primitive constructor ------------------------------------------------------
 

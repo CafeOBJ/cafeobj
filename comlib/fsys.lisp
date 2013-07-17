@@ -153,7 +153,8 @@
                      (let ((f (make-pathname
                                :directory
 			       #+:CLISP (pathname libdir)
-			       #-:CLISP (pathname-directory (pathname libdir))
+			       #+:Allegro (namestring libdir)
+			       #-(or :CLISP :Allegro) (pathname-directory (pathname libdir))
                                :name (namestring file))))
                        (if (probe-file f)
                            (progn (setq res f) (return))

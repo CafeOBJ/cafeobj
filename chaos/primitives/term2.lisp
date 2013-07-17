@@ -123,10 +123,10 @@
 (defconstant lisp-code-type (logior simple-lisp-code-type general-lisp-code-type))
 (defconstant psuedo-constant-type #x010)
 (defconstant pure-builtin-constant-type #x020)
-(defconstant builtin-constant-type (logior psuedo-constant-type
-					   pure-builtin-constant-type))
 (defconstant system-object-type #x040)
-
+(defconstant builtin-constant-type (logior psuedo-constant-type
+					   pure-builtin-constant-type
+					   system-object-type))
 (defconstant pre-encode-bit #x100)
 (defconstant pre-variable-type (logior pre-encode-bit variable-type))
 (defconstant pre-application-form-type (logior pre-encode-bit
@@ -155,15 +155,6 @@
 (defconstant lowest-parsed-flag #x2000)
 (defconstant on-demand-flag #x4000)
 (defconstant red-flag #x8000)
-
-;;;
-;;; TYPE-EQ for terms
-;;;
-(defconstant term-type-mask #x0ff)
-
-(defmacro term-type-eq (?t1 ?t2)
-  ` (= (the fixnum (make-and (term-code ,?t1) ,term-type-mask))
-       (the fixnum (make-and (term-code ,?t2) ,term-type-mask))))
 
 ;;; ******************
 ;;; ACCESS BY POSITION ---------------------------------------------------------
@@ -196,6 +187,26 @@
 (defmacro term$code (*term-body) `(the fixnum (body-1st ,*term-body)))
 ;;; from term
 (defmacro term-code (*term) `(the fixnum (term-1st ,*term)))
+
+;;;
+;;; TYPE-EQ for terms
+;;;
+(defconstant term-type-mask #x0ff)
+
+(defmacro term-type-eq (?t1 ?t2)
+  ` (= (the fixnum (make-and (term-code ,?t1) ,term-type-mask))
+       (the fixnum (make-and (term-code ,?t2) ,term-type-mask))))
+
+(defun term-type (t1)
+  (let ((code (term-code t1)))
+    (cond ((test-and code variable-type) :variable)
+	  ((test-and code application-form-type) :applform)
+	  ((test-and code simple-lisp-code-type) :lisp)
+	  ((test-and code general-lisp-code-type) :glisp)
+	  ((test-and code system-object-type) :sysobject)
+	  ((test-and code builtin-constant-type) :builtin)
+	  ((test-and code psuedo-constant-type) :literal)
+	  (t nil))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; SORT/SORT-CODE : the 3rd part
@@ -317,8 +328,8 @@
 (defmacro term-arg-3 (_term) `(caddr (term-subterms ,_term)))
 (defmacro term-arg-4 (_term) `(cadddr (term-subterms ,_term)))
 (defmacro term-arg-n (_term n)
-  ` (the term (nth (the fixnum ,n)
-		   (term-subterms ,_term))))
+  ` (nth (the fixnum ,n)
+	 (term-subterms ,_term)))
 
 ;;; *****************
 ;;; term type testers___________________________________________________________

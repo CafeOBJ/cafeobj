@@ -31,7 +31,7 @@
   (term nil)                            ; a term
   (trans-rules nil)                     ; applicable rules to this state
   (rule nil)                            ; the rule which derived this state
-  (subst nil)                           ; substitution
+  (subst nil)                           ; list of substitution !!
   (is-final nil)                        ; t iff the state is a final state
   (loop nil)                            ; t iff the same state occurs more than once
   )
@@ -42,7 +42,8 @@
     (format t "#<rwl-state(~D):" (rwl-state-state state))
     (term-print (rwl-state-term state))
     (princ ", ")
-    (print-substitution (rwl-state-subst state))
+    (dolist (sub (rwl-state-subst state))
+      (print-substitution sub))
     (when (rwl-state-is-final state)
       (princ " ,final"))
     (princ ">")))
@@ -58,8 +59,9 @@
       (when *cexec-trace*
         (format t "~& matched with the substitution "))
       (let ((*print-indent* (+ 4 *print-indent*)))
-        (print-next)
-        (print-substitution (rwl-state-subst state)))
+	(dolist (subst (rwl-state-subst state))
+	  (print-next)
+	  (print-substitution subst)))
       (flush-all))))
 
 
@@ -528,24 +530,21 @@
           (@matcher (rwl-sch-context-pattern sch-context)
                     (rwl-state-term state)
                     :match)
-        (declare (ignore gs eeq))
+        (declare (ignore eeq))
         (when no-match
           (return-from rwl-sch-check-conditions nil))
         (when (condition-check-ok sub)
-          (setf (rwl-state-subst state) sub) ; set substitution
-          (return-from rwl-sch-check-conditions t))
-        #||
+          ;; (setf (rwl-state-subst state) sub) ; set substitution
+	  (push sub (rwl-state-subst state)))
+	;;
         ;; try other patterns untill there's no hope
         (loop
           (multiple-value-setq (gs sub no-match)
             (next-match gs))
-          (when no-match (return-from rwl-sch-check-conditions nil))
+          (when no-match (return))
           (when (condition-check-ok sub)
-            (setf (rwl-state-subst state) sub)
-            (return-from rwl-sch-check-conditions t))) ; end loop
-        ||#
-        nil)
-      )))
+            (push sub (rwl-state-subst state)))))
+      (not (null (rwl-state-subst state))))))
 
 ;;; ******************
 ;;; SOME UTILs on TERM
@@ -563,8 +562,7 @@
             (format t "~% target was ")
             (term-print term)
             (break "wow!")
-            (chaos-error 'panic)))
-        ))
+            (chaos-error 'panic)))))
     cur))
 
 ;;; *********
@@ -960,8 +958,9 @@
               (unless *rwl-search-no-state-report*
                 (format t "~&~%** Found [state ~D] " (rwl-state-state state))
                 (term-print-with-sort (rwl-state-term state))
-                (format t "~%   ")
-                (print-substitution (rwl-state-subst state))
+		(dolist (sub (rwl-state-subst state))
+		  (format t "~%   ")
+		  (print-substitution sub))
                 (format t "~&"))
               (setf (sch-node-is-solution node) t) ; mark the node as solution
               (incf (rwl-sch-context-sol-found sch-context))
@@ -974,8 +973,7 @@
                 (unless *rwl-search-no-state-report*
                   (format t "~&-- found required number of solutions ~D."
                           (rwl-sch-context-max-sol sch-context)))
-                (return-from rwl-step-forward-1 (values :max-solutions nil)))
-              ))
+                (return-from rwl-step-forward-1 (values :max-solutions nil)))))
           )
         )                               ; continue
       )                                 ; end loop

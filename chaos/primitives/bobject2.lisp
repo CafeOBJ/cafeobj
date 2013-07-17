@@ -426,8 +426,8 @@
 ;;; slot.
 
 (defstruct (signature-struct (:conc-name "SIGNATURE$")
-			     ;; #+gcl (:static t)
-			     )
+	    (:print-function print-signature))
+  (module nil)				; module 
   (sorts nil :type list)		; list of own sorts.
   (sort-relations nil :type list)	; list of subsort relations.
   (operators nil :type list)		; list of operators declared in the
@@ -437,6 +437,11 @@
   (principal-sort nil :type atom)	; principal sort of the module.
   )
 
+(defun print-signature (obj stream &rest ignore)
+  (declare (ignore ignore))
+  (let ((mod (signature$module obj)))
+    (format stream "'[:signature \"~a\"]" (make-module-print-name2 mod))))
+
 ;;; *********
 ;;; AXIOM-SET___________________________________________________________________
 ;;; *********
@@ -444,14 +449,19 @@
 ;;; stored in module's `axioms' slot.
 
 (defstruct (axiom-set (:conc-name "AXIOM-SET$")
-		      ;; #+gcl (:static t)
-		      )
+	    (:print-function print-axiom-set))
+  (module nil)				; contaning module
   (variables nil :type list)		; assoc list of explicitly declared
 					; variables.  
 					;  ((variable-name . variable) ...)
   (equations nil :type list)		; list of equtions declared in the module.
   (rules nil :type list)		; list of rules declared in the module.
   )
+
+(defun print-axiom-set (obj stream &rest ignore)
+  (declare (ignore ignore))
+  (let ((mod (axiom-set$module obj)))
+    (format stream "'[:axiom-set \"~a\"]" (make-module-print-name2 mod))))
 
 ;;; ***
 ;;; TRS________________________________________________________________________
@@ -467,8 +477,7 @@
 ;;; The structure TRS is a representative of flattened module.
 
 (defstruct (TRS (:conc-name trs$)
-		;; #+gcl (:static t)
-		)
+	        (:print-function print-trs))
   (module nil :type (or null module))	; the reverse pointer
   ;; SIGNATURE INFO
   (opinfo-table	(make-hash-table :test #'eq)
@@ -500,6 +509,11 @@
   ;; a status TRAM interface generated?
   (tram	nil :type symbol)		; nil,:eq, or :all
   )
+
+(defun print-trs (obj stream &rest ignore)
+  (declare (ignore ignore))
+  (let ((mod (trs$module obj)))
+    (format stream "'[:trs \"~a\"]" (make-module-print-name2 mod))))
 
 ;;; *******
 ;;; CONTEXT_____________________________________________________________________

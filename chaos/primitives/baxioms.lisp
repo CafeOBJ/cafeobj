@@ -74,10 +74,10 @@
   (declare (ignore ignore))
   (if *current-module*
       (progn
-	(format stream "#<(~x)" (addr-of obj))
+	(format stream "[:rule " (addr-of obj))
 	(print-axiom-brief obj stream)
-	(format stream ">"))
-    (format stream "#<rule (~a): ~x>" (rewrite-rule-type obj) (addr-of obj))))
+	(format stream "]"))
+    (format stream "[:rule (~a)]" (rewrite-rule-type obj))))
 
 ;;;
 (defmacro rule-type (_rule) `(rewrite-rule-type ,_rule))
@@ -209,11 +209,11 @@
   (declare (ignore ignore))
   (if *current-module*
       (progn
-	(format stream "#<(~x)" (addr-of obj))
+	(format stream "[:axiom ")
 	(print-axiom-brief obj stream)
-	(format stream ">")
+	(format stream "]")
 	(force-output stream))
-    (format stream "#<axiom (~a) : ~x>" (axiom-type obj) (addr-of obj))))
+    (format stream "[:axiom (~a)]" (axiom-type obj))))
 
 ;;; Type predicate -------------------------------------------------------------
 

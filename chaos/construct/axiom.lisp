@@ -168,9 +168,7 @@
 ;;; ************************
 
 (defun invoke-general-lisp-fun (fun vars substitution)
-  (declare ;; (type function fun)
-	   (type list vars substitution)
-	   (values t t))
+  (declare (type list vars substitution))
   (macrolet ((subst-image-by-name (v-name)
 	       ` (dolist (b substitution '((error image)))
 		   (when (equal ,v-name (variable-name (car b)))

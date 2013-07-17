@@ -53,7 +53,8 @@
     (if sort
 	(cond ((or (eq sort *universal-sort*)
 		   (eq sort *huniversal-sort*)
-		   (eq sort *cosmos*))
+		   ;;(eq sort *cosmos*)
+		   )
 	       (let ((*chaos-quiet* t))
  		 (declare (special *chaos-quiet*))
 		 (with-output-chaos-error ('invalid-sort-decl)

@@ -63,7 +63,7 @@
   (derived-from nil :type (or null sort-struct))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'sort-sort-struct) (symbol-function 'sort-struct-p))
   (setf (get 'sort-struct :eval) nil)
   (setf (get 'sort-struct :print) 'print-sort-internal))
@@ -92,7 +92,7 @@
 		  (:print-function print-sort-object))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-sort) (symbol-function 'sort-p))
   (setf (get 'sort :type-predicate) (symbol-function 'sort-p))
   (setf (get 'sort :eval) nil)
@@ -141,14 +141,17 @@
       :h
       :v))
 
+#||
 (defun print-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "(:sort ~s (~a)~x)"
+  (format stream "[:sort \"~s\" (~a)]"
 	  (string (sort-id obj))
-	  (sort-visible-type obj)
-	  (addr-of obj)
-	  ))
+	  (sort-visible-type obj)))
+||#
 
+(defun print-sort-object (obj stream &rest ignore)
+  (declare (ignore ignore))
+  (format stream "[:sort ~s]" (string (sort-id obj))))
 
 ;;; (defmacro sort-p (_object) `(sort-struct-p ,_object))
 
@@ -249,21 +252,25 @@
   (copy	nil :type (or null t))		; t iff the sort is a copy.
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'crsort :print) 'print-sort-internal)
   (setf (symbol-function 'is-crsort) (symbol-function 'crsort-p))
   (setf (get 'crsort :type-predicate) (symbol-function 'crsort-p))
   )
 
+#||
 (defun print-cr-sort-object (obj stream &rest ignore)
   (declare (ignore ignore)
 	   (type crsort obj)
 	   (type stream stream)
 	   (values t))
-  (format stream "#<~a ~a: ~x>"
+  (format stream "[:~a ~a]"
 	  (object-type obj)
 	  (string (sort-id obj))
 	  (addr-of obj)))
+||#
+(defun print-cr-sort-object (obj stream &rest ignore)
+  (print-sort-object obj stream))
 
 ;;; Class sort _________________
 ;;;           
@@ -279,14 +286,19 @@
 		       (:print-function print-class-sort-object))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'class-sort :type-predicate) (symbol-function 'class-sort-p))
   (setf (symbol-function 'is-class-sort) (symbol-function 'class-sort-p))
   (setf (get 'class-sort :print) 'print-sort-internal))
 
+#||
 (defun print-class-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "#<class sort ~a : ~x>" (sort-id obj) (addr-of obj)))
+  (format stream "[:class-sort ~a]" (sort-id obj)))
+||#
+
+(defun print-class-sort-object (obj stream &rest ignore)
+  (print-sort-object obj stream ignore))
 
 ;;; Record sort ________________
 
@@ -303,16 +315,20 @@
 			(:copier nil))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'record-sort :type-predicate)
 	(symbol-function 'record-sort-p))
   (setf (get 'record-sort :print) 'print-sort-internal)
   (setf (symbol-function 'is-record-sort)
 	(symbol-function 'record-sort-p)))
 
+#||
 (defun print-record-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "#<record sort ~a : ~x>" (sort-id obj) (addr-of obj)))
+  (format stream "[:record-sort ~a]" (sort-id obj)))
+||#
+(defun print-record-sort-object (obj stream &rest ignore)
+  (print-sort-object obj stream ignore))
 
 ;;; Primitive structure accessors ----------------------------------------------
 
@@ -441,17 +457,20 @@
 		  (:print-function print-bsort-object))
   (info nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-bsort) (symbol-function 'bsort-p))
   (setf (get 'bsort :type-predicate) (symbol-function 'bsort-p))
   (setf (get 'bsort :print) 'print-bsort-internal))
 
+#||
 (defun print-bsort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "(:bsort ~a(~a) : ~x)"
+  (format stream "[:bsort ~a(~a)]"
 	  (string (sort-id obj))
-	  (sort-visible-type-print obj)
-	  (addr-of obj) ))
+	  (sort-visible-type-print obj)))
+||#
+(defun print-bsort-object (obj stream &rest ignore)
+  (print-sort-object obj stream ignore))
 
 ;;; (defmacro bsort-hidden (_s) `(%bsort-hidden ,_s))
 ;;; (defmacro bsort-info (_s) `(%bsort-info ,_s))
@@ -494,7 +513,7 @@
 
 #||
 (defvar *builtin-sort-table*)
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *builtin-sort-table* (make-hash-table :test #'eq)))
 
 (defmacro get-builtin-sort-named (sort-name_)
@@ -549,7 +568,7 @@
 		     (:print-function print-and-sort-object))
   (components nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'and-sort :type-predicate)
 	(symbol-function 'and-sort-p))
   (setf (symbol-function 'is-and-sort)
@@ -557,14 +576,15 @@
   (setf (get 'and-sort :print)
 	'print-and-sort-internal))
 
+#||
 (defun print-and-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "(:and-sort ~s (~a))"
+  (format stream "[:and-sort ~s (~a)]"
 	  (string (sort-id obj))
-	  (sort-visible-type obj)
-	  ;; (sort-visible-type-print obj)
-	  ;; (addr-of obj)
-	  ))
+	  (sort-visible-type obj)))
+||#
+(defun print-and-sort-object (obj stream &rest ignore)
+  (print-sort-object obj stream ignore))
 
 ;;; Primitive accessors --------------------------------------------------------
 
@@ -618,20 +638,21 @@
 		    (:print-function print-or-sort-object))
   (components nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'or-sort :type-predicate) (symbol-function 'or-sort-p))
   (setf (get 'or-sort :print) 'print-or-sort-internal)
   (setf (symbol-function 'is-or-sort)
 	(symbol-function 'or-sort-p)))
 
+#||
 (defun print-or-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "(:or-sort ~s (~a))"
+  (format stream "[:or-sort ~s (~a)]"
 	  (string (sort-id obj))
-	  (sort-visible-type obj)
-	  ;; (sort-visible-type-print obj)
-	  ;; (addr-of obj)
-	  ))
+	  (sort-visible-type obj)))
+||#
+(defun print-or-sort-object (obj stream &rest ignore)
+  (print-sort-object obj stream ignore))
 
 ;;; Primitve accessors ---------------------------------------------------------
 
@@ -680,19 +701,19 @@
   (components nil :type list)
   (lowers nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'err-sort :type-predicate) (symbol-function 'err-sort-p))
   (setf (get 'err-sort :print) 'print-err-sort-internal)
   (setf (symbol-function 'is-err-sort) (symbol-function 'err-sort-p)))
 
+#||
 (defun print-err-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "(:err-sort ~s (~a))"
-	  (string (sort-id obj))
-	  ;; (sort-visible-type-print obj)
-	  ;; (addr-of obj)
-	  (sort-visible-type obj)
-	  ))
+  (format stream "[:err-sort ~s (~a))"
+	  (string (sort-id obj))(sort-visible-type obj)))
+||#
+(defun print-err-sort-object (obj stream &rest ignore)
+  (print-sort-object obj stream ignore))
 
 ;;; Primitve accessors ---------------------------------------------------------
 
@@ -1015,8 +1036,8 @@
 	   (values (or null t)))
   (loop (when (null lst1)(return (null lst2)))
 	(when (null lst2)(return (null lst1)))
-	(unless (or (sort= *cosmos* (car lst1))
-		    (sort<= (car lst1) (car lst2) so))
+    (unless (or (sort= *cosmos* (car lst1))
+		(sort<= (car lst1) (car lst2) so))
 	  (return nil))
 	(setq lst1 (cdr lst1))
 	(setq lst2 (cdr lst2))))

@@ -25,6 +25,8 @@ sys:mod! EQL {
   pred _=_ : *Cosmos* *Cosmos* { comm prec: 51 }
   eq (CUX:*Cosmos* = CUX) = true .
   ceq [:nonexec]: CUX:*Cosmos* = CUY:*Cosmos* if (CUX = CUY) .
+**  ceq (CUX:*Cosmos* = CUY:*Cosmos*) = #!! (coerce-to-bool (!term-eq CUX CUY))
+**      if (term-type(CUX) == :literal) .
   eq (true = false) = false .
 }
 

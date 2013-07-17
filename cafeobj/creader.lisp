@@ -22,6 +22,12 @@ File: creader.lisp
 (defun cafeobj-parse ()
   (reader 'Top-form *cafeobj-schemas*))
 
+(defun cafeobj-parse-from-string (str)
+  (with-input-from-string (stream str)
+    (let ((*standard-input* stream))
+      (cafeobj-parse))))
+
+
 ;;; SCHEMA
 ;;;  schema for top-level of CafeOBJ ===========================================
 
@@ -29,7 +35,7 @@ File: creader.lisp
 ;;; CafeOBJ Schemas
 ;;;-----------------------------------------------------------------------------
 
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
 
 ;;;-----------------------------------------------------------------------------
 ;;; SORT/SUBSORT DECLARATION
@@ -291,7 +297,7 @@ File: creader.lisp
 ;;; THE SCHEME OF WHOLE ALLOWABLE INPUTS
 ;;;-----------------------------------------------------------------------------
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *cafeobj-schemas*
     '(
       (Top-form
