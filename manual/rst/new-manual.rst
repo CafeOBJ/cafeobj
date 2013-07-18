@@ -32,6 +32,8 @@
 
 .. include:: introduction.rst
 
+.. include:: testing.rst
+
 .. include:: description.rst
 
 .. include:: syn-sem.rst
