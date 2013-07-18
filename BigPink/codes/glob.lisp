@@ -227,7 +227,7 @@
 (defconstant MAX-LITERALS 20)
 
 ;;; initialize 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (dotimes (x *pn-max-parameters*)
     (setf (aref *pn-parameters* x)
       (make-pn-param)))
@@ -395,7 +395,7 @@
 
 (declaim (type (simple-array * (100)) *pn-control-flags*))
 (defvar *pn-control-flags*)
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *pn-control-flags*
     (make-array *pn-max-flags*)))
 
@@ -529,7 +529,7 @@
 ;;
 (defconstant kb3 87)
 ;;;
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (dotimes (x *pn-max-flags*)
     (setf (aref *pn-control-flags* x)
       (make-pignose-flag)))
@@ -1067,7 +1067,7 @@
 (defconstant BACK-UNIT-DEL-TIME  23)
 (defconstant print-clause-time   24)
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (dotimes (x *pn-max-clocks*)
     (setf (aref *pn-clocks* x)
       (make-pn-clock))))

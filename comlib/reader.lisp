@@ -633,10 +633,10 @@
 ;;; (declaim (function read-term-from-string (string) list))
 (declaim (inline read-term-from-string))
 
-; (eval-when (eval compile load)
+; (eval-when (:execute :compile-toplevel :load-toplevel)
 ;   (defparameter .term-delimiting-chars.
 ;       '("[" "]" "{" "}" ";" "@" "%" "~" )))
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
   (defparameter .term-delimiting-chars. '("[" "]" "{" "}")))
 
 (defun !set-term-delim-chars ()

@@ -54,7 +54,7 @@
 (defun set-context-module (obj &optional (mod *current-module*))
   (setf (object-context-mod obj) mod))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-object)(symbol-function 'object-p))
   (setf (get 'object ':type-predicate) (symbol-function 'is-object))
   (setf (get 'object :eval) nil)
@@ -201,7 +201,7 @@
   (decl-form nil :type list)
   (symbol-table (make-symbol-table) :type symbol-table))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-top-object)(symbol-function 'top-object-p))
   (setf (get 'top-object ':type-predicate) (symbol-function 'is-top-object))
   (setf (get 'top-object :eval) nil)
@@ -573,7 +573,7 @@
   (alias nil :type list)
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'module :type-predicate) (symbol-function 'module-p))
   (setf (get 'module :eval) nil)
   (setf (get 'module :print) 'print-module-internal)
@@ -599,7 +599,7 @@
   (sort-maps nil :type list)
   (op-maps nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-view-struct) (symbol-function 'view-struct-p))
   (setf (get 'view-struct :type-predicate) (symbol-function 'view-struct-p))
   (setf (get 'view-struct :print) 'print-view-internal))

@@ -23,10 +23,10 @@
 ;;; 		  *** CHAOS BUILTIN LEXICAL CATEGORIES ***
 ;;;=============================================================================
 
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
   (defvar *builtin-cats* (make-hash-table :test #'eq :size 50))
   (defmacro define-builtin-token (token-name id-value)
-     ` (eval-when (eval compile load)
+     ` (eval-when (:execute :compile-toplevel :load-toplevel)
          (defparameter ,token-name ,id-value)
          (setf (gethash ,id-value *builtin-cats*) t)))
 
@@ -52,7 +52,7 @@
 (defparameter .String-token. '|String|)
 ;; (defparameter .Char-token. '|Character|)
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (declare-bi-token '%SLisp)
   (declare-bi-token '%GLisp)
   (declare-bi-token '|String|)
@@ -83,7 +83,7 @@
 #-GCL (declaim (type simple-vector *reader-read-table*))
 #+GCL (declaim (type vector *reader-read-table*))
 (defvar *reader-read-table*)
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf *reader-read-table* (make-array (list .reader-char-code-limit.)
 					:initial-element nil)))
 
@@ -186,7 +186,7 @@
 (defvar *last-token* *reader-void*)
 
 ;;; The eof value.
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
   (defparameter *lex-eof* (cons nil nil))
   )
 

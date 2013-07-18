@@ -1088,7 +1088,7 @@
 	(t (break "target-of-view-arg: unknown view argument"))
 	))
 
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
   (declaim (type fixnum *anon-view-name*))
   (defvar *x-anon-view-name* 0)
   (defun make-anon-view-name ()

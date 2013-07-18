@@ -388,7 +388,7 @@
 	  (force-output))
 	(reader 'step-commands *step-commands*)))))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *step-commands*
 	'((step-commands
 	   (:one-of

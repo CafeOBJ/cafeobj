@@ -1,0 +1,24 @@
+Where to put documentation in the lisp code
+===========================================
+
+Introduction to the concepts:
+-----------------------------
+
+Sorts: chaos/primitives/bsort.lisp
+
+Operators:  chaos/primitives/boperator.lisp
+
+Module: chaos/primitives/bmodule2.lisp
+
+Axioms/Rules: chaos/primitives/baxioms.lisp
+
+Views(?): chaos/primitives/bview2.lisp
+
+Syntax and semantics
+--------------------
+
+references to the operators
+
+most in cafeobj/creader.lisp
+
+

@@ -1421,7 +1421,7 @@
           (force-output))
         (reader 'step-commands *step-commands*)))))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *step-commands*
 	'((step-commands
 	   (:one-of
@@ -1778,7 +1778,7 @@
 ;;; ****
 ;;; INIT
 ;;; ****
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (symbol-function 'apply-one-rule)
 	#'apply-one-rule-simple))
 

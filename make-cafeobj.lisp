@@ -33,11 +33,11 @@
 (defvar *chaos-root*)
 
 #-(or microsoft (and ccl (not :openmcl)))
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *chaos-root* XCHAOS_ROOT_DIR))
 
 #+clisp
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *chaos-root* (namestring (car (directory (concatenate 'string
 						   *chaos-root* "/"))))))
 
@@ -47,7 +47,7 @@
 ;; patched by t-seino@jaist.ac.jp (2000/02/09)
 ;; patch by swada@sra.co.jp (2002/12/3)
 #+(and ccl (not :openmcl))
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
  (setq *chaos-root* (string-right-trim ":"
         (mac-directory-namestring *loading-file-source-file*))))
 #+(and ccl (not :openmcl))
@@ -56,11 +56,11 @@
 
 (defvar chaos::*cafeobj-install-dir*)
 #-(or microsoft (and ccl (not :openmcl)))
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq chaos::*cafeobj-install-dir* XINSTALL_DIR)
   )
 #+(or microsoft (and ccl (not :openmcl)))
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   ;; (setq chaos::*cafeobj-install-dir* *chaos-root*)
   (setq *chaos-bin-path-name* (concatenate 'string *chaos-root* "/bin")))
 
@@ -68,7 +68,7 @@
 
 ;;; END SITE SPECIFIC --------------------------------------------------------
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq chaos::*make-bigpink* :BIGPINK)
   (when chaos::*make-bigpink*
     (push :bigpink *features*)))

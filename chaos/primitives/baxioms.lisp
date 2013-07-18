@@ -63,7 +63,7 @@
   (non-exec nil :type (or null t))
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'rewrite-rule :type-predicate)
 	(symbol-function 'rewrite-rule-p))
   (setf (symbol-function 'is-rewrite-rule)
@@ -126,7 +126,7 @@
 						    extensions)))
   (extensions nil :type list))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'ex-rewrite-rule :type-predicate)
 	(symbol-function 'ex-rewrite-rule-p))
   (setf (symbol-function 'is-ex-rewrite-rule)
@@ -193,7 +193,7 @@
   (kind	nil :type symbol)		; internaly categorized kind name of an
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setf (get 'axiom :type-predicate) (symbol-function 'axiom-p))
   (setf (get 'axiom :print) 'print-axiom-internal)
   (setf (symbol-function 'is-axiom) (symbol-function 'axiom-p))

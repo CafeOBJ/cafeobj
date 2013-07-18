@@ -247,7 +247,7 @@
 (defmacro deallocate-acz-state (acz-state)
   `(push ,acz-state .acz-state-pool.))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (dotimes (x 20) (push (make-match-ACZ-state) .acz-state-pool.)))
 ||#
 

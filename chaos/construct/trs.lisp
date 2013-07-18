@@ -139,7 +139,7 @@
 (defun clear-trs-mod-name-hash ()
   (clrhash _trs_mod_name_hash_))
 
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
   (declaim (type fixnum _trs_module_name_))
   (defvar _trs_module_names_ 0)
 

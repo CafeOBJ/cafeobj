@@ -122,7 +122,7 @@
 ;;;
 (defvar _trs_mod_name_hash_ (make-hash-table :test #'equal))
 
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
   (defvar _trs_module_names_ 0)
 
   (defun make-trs-module-name-internal (name)

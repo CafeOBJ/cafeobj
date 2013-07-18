@@ -13,7 +13,7 @@
 
 ;;; CafeIn COMMANDS
 (defvar *cafein-commands* nil)
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (setq *cafein-commands*
 	'((top-commands
 	   (:one-of

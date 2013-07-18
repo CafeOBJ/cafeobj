@@ -1229,7 +1229,7 @@
 
 (defun ac-args-nss (x) (AC-unparse-AC-state (car x)) (terpri))
 
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel)
   (setf (get 'AC-next-state-sub 'print-args) 'ac-args-nss))
 
 

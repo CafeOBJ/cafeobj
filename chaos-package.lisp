@@ -5,7 +5,7 @@
 #+Excl (in-package :user)
 #+:ccl (in-package :common-lisp-user)
 #+gcl (in-package :user)
-#+Excl (eval-when (eval compile load) (require 'loop))
+#+Excl (eval-when (:execute :compile-toplevel :load-toplevel) (require 'loop))
 
 #+:GCL (use-package :defpackage :common-lisp-user)
 
