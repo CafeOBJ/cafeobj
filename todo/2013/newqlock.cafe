@@ -1,0 +1,330 @@
+-- 
+-- specification and proof score for QLOCK
+-- with states modeled as sets of observers
+--
+
+-- labels for indicating location of each process
+mod! LABEL {
+-- literal labels and labels
+  [LabelLt < Label]
+-- rs: remainder section
+-- ws: waiting section
+-- cs: critical section
+  ops rs ws cs : -> LabelLt {constr} .
+  eq (L1:LabelLt = L2:LabelLt) = (L1 == L2) .
+}
+
+-- process identifiers
+mod* PID {
+-- literal process identifiers 
+-- and process identifiers
+  [PidLt < Pid]
+-- PidLt denotes pid literal 
+  eq (P1:PidLt = P2:PidLt) = (P1 == P2) .
+}
+
+-- queue (First In First Out storage)
+-- for storing process identifiers
+mod! QUEUE (X :: TRIV) {
+  [ErrElt Elt < Elt&Err]
+  op errElt : -> ErrElt .
+  eq (errElt:ErrElt = E:Elt) = false .
+  [ErrQu Qu < Qu&Err]
+  op errQu : -> ErrQu .
+  eq (errQu:ErrQu = Q:Qu) = false .
+
+  [Elt&Err < Qu&Err]
+-- empty queue
+  op empQ : -> Qu . 
+-- assoicative queue constructor with id: empQ
+  op (_&_) : Qu&Err Qu&Err -> Qu&Err {constr assoc id: empQ} .
+-- equality _=_ over Qu&Err
+  eq (empQ = (E:Elt&Err & Q:Qu&Err)) = false .
+  ceq ((E1:Elt&Err & Q1:Qu&Err) = (E2:Elt&Err & Q2:Qu&Err)) 
+  = ((E1 = E2) and (Q1 = Q2))
+  if not((Q1 = empQ) and (Q2 = empQ)) .
+
+-- head
+  op hd : Qu&Err -> Elt&Err .
+  eq hd(E:Elt&Err & Q:Qu&Err) = E .
+  eq hd(empQ) = errElt .
+  eq hd(errQu) = errElt .
+-- tail
+  op tl : Qu&Err -> Qu&Err .
+  eq tl(E:Elt&Err & Q:Qu&Err) = Q .
+  eq tl(empQ) = errQu .
+  eq tl(errQu) = errQu .
+}
+
+-- observers
+mod! OBS {
+  pr(LABEL)
+  pr(QUEUE(PID{sort Elt -> Pid})
+     *{sort Elt&Err -> Pid&Err,
+       op errElt -> errPid})
+-- there are two kinds of obserbers
+  [Obs]
+  op (qu:_ ) : Qu&Err -> Obs {constr} .
+  op (pc[_]:_) : Pid&Err Label -> Obs {constr} .
+}
+
+-- generic set 
+mod! SET(X :: TRIV) {
+  [Elt.X < Set]
+  op empty : -> Set {constr} .
+  op _ _ : Set Set -> Set {constr assoc comm id: empty} .
+  -- idempotent
+  eq E:Elt E = E .
+}
+
+-- a state is defined as a set of observers
+mod! STATE {pr(SET(OBS{sort Elt -> Obs})
+               *{sort Set -> State})}
+
+-- QLOCK (mutual exclusion protocol with queue of pids) 
+-- defined as trans-OTS (observational transition system)
+mod! QLOCK {
+  pr(RWL)
+  pr(STATE)
+  var Q : Qu&Err .
+  var L : Label .
+  vars P1 P2 : Pid&Err .
+  var S : State .
+-- wt : want
+  trans[wt]: ((qu: Q)(pc[P1]: rs) S) => ((qu: (Q & P1))(pc[P1]: ws) S) .
+-- ty : try
+  trans[ty]: ((qu: (P1 & Q))(pc[P1]: ws) S) => ((qu: (P1 & Q))(pc[P1]: cs) S) .
+-- exit: exit
+  trans[ex]: ((qu: (P2 & Q))(pc[P1]: cs) S) => ((qu: Q)(pc[P1]: rs) S) .
+}
+
+-- properties on QLOCK
+mod! QLOCKprop {
+  pr(NAT)  
+  pr(QLOCK) 
+  --
+  vars L1 L2 : Label .
+  vars P1 P2 : Pid&Err .
+  var S1 : State .
+  var Q1 : Qu&Err .
+-- the number of a label in a state
+  op #ls : State Label -> Nat .
+  eq #ls(empty,L1) = 0 .
+  eq #ls(((qu: Q1) S1),L1) = #ls(S1,L1) .
+  eq #ls(((pc[P1]: L1) S1),L2) = 
+  if (L1 = L2) then 1 + #ls(S1,L2) else #ls(S1,L2) fi .
+-- the number of a pid in a state
+  op #ps : State Pid&Err -> Nat .
+  eq #ps(empty,P1) = 0 .
+  eq #ps((qu: Q1) S1,P1) = #ps(S1,P1) .
+  eq #ps(((pc[P1]: L1) S1),P2) = 
+  if (P1 = P2) then 1 + #ps(S1,P2) else #ps(S1,P2) fi .
+-- the number of a pid in the queue
+  op #pq : Qu&Err Pid&Err -> Nat .
+  eq #pq(empQ,P1) = 0 .
+  eq #pq(errQu,P1) = 0 .
+  eq #pq(P1 & Q1,P2) =
+  if (P1 = P2) then 1 + #pq(Q1,P2) else #pq(Q1,P2) fi .
+  eq #pq(Q1 & P1,P2) =
+  if (P1 = P2) then 1 + #pq(Q1,P2) else #pq(Q1,P2) fi .
+
+-- sequences of predicate names
+  [Pname < PnameSeq]
+  op (_ _) : PnameSeq PnameSeq -> PnameSeq {assoc} .
+-- conjunction of predicates in PnameSeq
+  op cj : PnameSeq State -> Bool .
+  eq cj(PN:Pname PNS:PnameSeq,S:State) = cj(PN,S) and cj(PNS,S) .
+
+-- names for faragments of the invariant (AGp) predicate
+  ops m p1 p2 p3 p4 p5 : -> Pname .
+-- mutual exclusion property: only one process is with the label cs
+  eq[m]: cj(m,S1) = ((#ls(S1,cs) = 0) or (#ls(S1,cs) = 1)) .
+-- other predicates/fragments
+  eq[p1]: cj(p1,((qu: Q1)(pc[P1]: L1) S1)) =
+    (#ps(S1,P1) = 0) and
+      ((#pq(Q1,P1) = 0) or (#pq(Q1,P1) = 1)) .
+  eq[p2]: cj(p2,((qu: Q1)(pc[P1]: L1) S1)) =
+    ((Q1 = empQ) implies 
+       (#ls(((pc[P1]: L1) S1),cs) = 0)) .
+  eq[p3]: cj(p3,((qu: Q1)(pc[P1]: L1) S1)) =
+    ((L1 = cs) implies 
+       ((P1 = hd(Q1)) 
+	and (#pq(tl(Q1),P1) = 0)
+	and (#ls(S1,cs) = 0))) .
+  eq[p4]: cj(p4,((qu: Q1)(pc[P1]: L1) S1)) =
+    ((L1 = ws) implies 
+       ((#pq(Q1,P1) = 1) and
+	  ((P1 = hd(Q1)) implies (#ls(S1,cs) = 0)))) .
+  eq[p5]: cj(p5,((qu: Q1)(pc[P1]: L1) S1)) =
+    ((L1 = rs) implies (#pq(Q1,P1) = 0)) .
+}
+
+-- predicate to be checked
+mod* PREDtbC {
+  -- values and their sequences
+  [*Term* < *TermSq*]
+  op _,_ : *TermSq* *TermSq* -> *TermSq* {assoc} .
+-- predicate to be checed
+  pred v : ValSq .
+}
+
+--> for generating cases
+mod! GENcases (X :: PREDtbC) {
+-- sequences of values for expansion
+  [Val < VlSq]
+  op _;_ : VlSq VlSq -> VlSq {assoc} .
+-- sequence of ValSeq or VlSeq
+  [ValSq VlSq < SqSq]
+  op _,_ : SqSq SqSq -> SqSq {assoc} .
+-- SqSq enclosures and their tree
+  [SqSqEn < SqSqTr]
+  op [_] : SqSq -> SqSqEn .
+  op _||_ : SqSqTr SqSqTr -> SqSqTr .
+
+  var V : Val .
+  var VS : VlSq .
+  vars SS1 SS2 : SqSq .
+  eq [((V;VS),SS2)] = [(V,SS2)] || [(VS,SS2)] .
+  eq [(SS1,(V;VS),SS2)] = [(SS1,V,SS2)] || [(SS1,VS,SS2)] .
+  eq [(SS1,(V;VS))] = [(SS1,V)] || [(SS1,VS)] .
+
+-- indicators and their trees
+  [Ind < IndTr]
+-- indicator term
+  op i : Bool ValSq -> Ind {constr} .
+-- make indicator
+  op mi_ : ValSq -> Ind .
+-- (v : ValSq -> Bool) comes from (X :: PREDtbC)
+  eq mi(VSQ:ValSq) = i(v(VSQ),VSQ) .
+
+  op $ : -> Ind .
+  op _|_ : IndTr IndTr -> IndTr .
+-- make make indicators:
+-- translating a tree of SqSq into a tree of indicators
+  op mmi_ : SqSqTr -> IndTr .
+  eq mmi(SST1:SqSqTr || SST2:SqSqTr) = (mmi SST1) | (mmi SST2) .
+-- if all _;_ in SqSq disappear
+-- then translate mmi to mi
+  eq mmi[VSQ:ValSq] = mi(VSQ) .
+-- making all indicators with "true" disappear 
+  eq i(true,VSQ:ValSq) | IT:IndTr = IT .
+  eq IT:IndTr | i(true,VSQ:ValSq) = IT .
+}
+
+-- a predicate for checking whether 
+-- the predicate cj(m p1 p2 p3 p4 p5,S:State) is an invariant
+mod QLOCKmex {
+  pr(METALEVEL)
+  pr(QLOCKprop)
+
+  [Qu&Err Pid&Err Label State < Val < ValSq]
+  op _,_ : ValSq ValSq -> ValSq {assoc} .
+
+  vars Q1 QQ2 : Qu&Err . 
+  vars P1 P2 PP3 : Pid&Err . 
+  vars L1 L2 LL3 : Label .
+  var S1 : State .
+
+-- prePreds : predicates for pre-condition
+-- postPreds : predicates for post-condition
+  ops prePreds postPreds : -> PnameSeq .
+-- predicate to be checked
+  op v : ValSq -> Bool .
+  eq v(Q1,P1,L1,P2,L2,S1,QQ2,PP3,LL3) =
+    (('[(qu: Q1) (pc[P1]: L1) ((pc[P2]: L2) S1)]
+      =>
+	'[(qu: QQ2) (pc[PP3]: LL3) ((pc[P2]: L2) S1)])
+     implies
+       not('[(qu: Q1) (pc[P1]: L1) ((pc[P2]: L2) S1)]
+	   =>
+	     '[ (qu: QQ2) (pc[PP3]: LL3) ((pc[P2]: L2) S1) ]
+	   :st
+	     '[ (not(((cj(prePreds,((qu: Q1) (pc[P1]: L1) ((pc[P2]: L2) S1)))
+		       and 
+			 cj(prePreds,((qu: Q1) (pc[P2]: L2) ((pc[P1]: L1) S1))))
+		      implies 
+			(cj(postPreds,((qu: QQ2) (pc[PP3]: LL3) ((pc[P2]: L2) S1)))
+			 and
+			   cj(postPreds,((qu: QQ2) (pc[P2]: L2) ((pc[PP3]: LL3) S1)))))
+		     == true )) ]
+	   )) .
+}
+
+-- facts to be used
+mod FACTtbu {
+  pr(NAT)
+-- necessary facts about _=_ on Nat
+  var N : Nat .
+  eq (1 = 0) = false .
+  eq ((1 + N) = 0) = false .
+  eq ((2 + N) = 0) = false .
+  eq ((2 + N) = 1) = false .
+  eq (1 + N = 1) = (N = 0) .
+  eq ((N = 0) and (N = 1)) = false .
+}
+
+mod CKallCases {
+  us(GENcases(QLOCKmex))
+  pr(FACTtbu)
+  ops r1 r2 r3 : -> PidLt .
+  op q : -> Qu .
+  op s : -> State .
+  var QQ2 : Qu&Err .
+  var PP3 : Pid&Err .
+  var LL3 : Label .
+  op ck : Qu&Err Pid&Err Label -> IndTr .
+  eq ck(QQ2,PP3,LL3) = 
+    ($ | mmi[(empQ;(r1 & q)),
+             (r1;r2),
+             (rs;ws;cs),
+             (r1;r2;r3),
+             (rs;ws;cs),
+             (s),
+             (QQ2),(PP3),(LL3)]) .
+}
+
+eof
+
+open CKallCases .
+eq prePreds = m p4 .
+eq postPreds = m .
+red ck(QQ2,PP3,LL3) .
+close
+
+open CKallCases .
+eq prePreds = p1 p5 .
+eq postPreds = p1 .
+red ck(QQ2,PP3,LL3) .
+close
+
+open CKallCases .
+eq prePreds = m p1 p2 .
+eq postPreds = p2 .
+red ck(QQ2,PP3,LL3) .
+close
+
+open CKallCases .
+eq prePreds = p3 p4 p5 .
+eq postPreds = p3 .
+red ck(QQ2,PP3,LL3) .
+close
+
+open CKallCases .
+eq prePreds = m p2 p4 p5 .
+eq postPreds = p4 .
+red ck(QQ2,PP3,LL3) .
+close
+
+open CKallCases .
+eq prePreds = p3 p4 p5 .
+eq postPreds = p5 .
+red ck(QQ2,PP3,LL3) .
+close
+
+-- eof
+
+open CKallCases .
+eq prePreds = m p1 p2 p3 p4 p5 .
+eq postPreds = m p1 p2 p3 p4 p5 .
+red ck(QQ2,PP3,LL3) .
+close

@@ -1,0 +1,104 @@
+** --------------------
+** 方式1 OTS:
+** --------------------
+
+** QLOCK
+--
+
+** LABEL
+module! LABEL {
+  [Label]
+  ops rm wt cs : -> Label
+  eq (rm = wt) = false .
+  eq (rm = cs) = false .
+  eq (wt = cs) = false .
+}
+
+** PID
+module* PID {
+  [Pid]
+  op none : -> Pid
+  var Id : Pid
+  eq (Id = none) = false .
+}
+
+** TRIVErr
+module* TRIVErr {
+  [Elt]
+  op none : -> ?Elt
+}
+
+** QUEUE
+module! QUEUE(D :: TRIVErr) {
+  [Queue]
+  op empty : -> Queue {constr}
+  op _,_ : Elt Queue -> Queue {constr}
+  op put : Queue Elt -> Queue
+  op get : Queue -> Queue
+  op top : Queue -> Elt
+  var Q : Queue
+  vars X Y : Elt
+  eq put(empty, X) = X,empty .
+  eq put((Y,Q), X) = Y,put(Q,X) .
+  eq get(empty) = empty .
+  eq get((X,Q)) = Q .
+  eq top(empty) = none .
+  eq top((X,Q)) = X .
+}
+
+**
+view TRIVErr2PID from TRIVErr to PID {
+  sort Elt -> Pid ,
+  op none -> none
+}
+
+** QLOCK
+module* QLOCK {
+  protecting(LABEL + PID + QUEUE(D <= TRIVErr2PID))
+  *[Sys]*
+  [Sys]
+  op init : -> Sys
+  bop pc  : Sys Pid -> Label
+  bop queue : Sys -> Queue
+  bop want : Sys Pid -> Sys
+  bop try : Sys Pid -> Sys
+  bop exit : Sys Pid -> Sys
+  op c-want : Sys Pid -> Bool 
+  op c-try : Sys Pid -> Bool
+  op c-exit : Sys Pid -> Bool
+  **
+  var S : Sys
+  vars I J : Pid
+  eq pc(init,I) = rm .
+  eq queue(init) = empty .
+  ** want
+  eq c-want(S,I) = (pc(S,I) = rm) .
+  ceq pc(want(S,I),J) = (if I = J then wt else pc(S,J) fi) if c-want(S,I) .
+  ceq queue(want(S,I)) = put(queue(S), I) if c-want(S,I) .
+  ceq want(S,I) = S if not c-want(S,I) .
+  ** try
+  eq c-try(S,I) = (pc(S,I) = wt and top(queue(S)) = I) .
+  ceq pc(try(S,I), J) = (if I = J then cs else pc(S,J) fi) if c-try(S,I) .
+  eq queue(try(S,I)) = queue(S) .
+  ceq try(S,I) = S if not c-try(S,I) .
+  ** exit
+  eq c-exit(S,I) = (pc(S,I) = cs) .
+  ceq pc(exit(S,I),J) = (if I = J then rm else pc(S,J) fi) if c-exit(S,I) .
+  ceq queue(exit(S,I)) = get(queue(S)) if c-exit(S,I) .
+  ceq exit(S,I) = S if not c-exit(S,I) .
+}
+
+** Verify
+module INV1 {
+  pr(QLOCK)
+  op inv1 : Sys Pid Pid -> Bool
+  var S : Sys
+  vars I J : Pid
+  eq inv1(S,I,J) = ((pc(S,I) = cs) and (pc(S,J) = cs)) implies (I = J) .
+}
+
+open INV1 .
+  ops i j : -> Pid .
+-- |=
+  red inv1(init,i,j) .
+close
