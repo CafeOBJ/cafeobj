@@ -2,7 +2,7 @@
 #
 # extract-doc.pl (name to be determined)
 #
-# convert embedded documentation to rst
+# extract embedded documentation (or whatever)
 # see pod for documentation
 # 
 
@@ -18,10 +18,10 @@ use File::Path;
 
 my $opt_help = 0;
 my $opt_docprefix = ";d;";
-my $opt_outputdir = "rst";
-my $opt_outputext = ".rst";
+my $opt_outputdir = "md";
+my $opt_outputext = ".md";
 my $opt_stripext = 1;
-my $opt_overwrite = 1;
+my $opt_overwrite = 0;
 
 # we collect the documentation in docd
 my %docd;
@@ -146,7 +146,7 @@ Default: B<;d;>
 
 Generated files are put into the directory I<dir>.
 
-Default: B<rst>.
+Default: B<md>.
 
 =item B<--no-stripext>
 
@@ -185,10 +185,10 @@ input file currently read. I.e., if the file
 
 is converted the default output file is named
 
- 	foo.rst
+ 	foo.md
 
 The documentation conversion strips the last extension
-(only 1) and adds rst. In case there is already a file
+(only 1) and adds B<md>. In case there is already a file
 named like that, the translation process stops.
  
 If the first character after the ";d;" of a documentation
