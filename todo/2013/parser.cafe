@@ -1,0 +1,134 @@
+-- Dear all,
+
+-- I describe the following issues with concrete examples:
+
+-- 1. what class of context-free grammars can be treated by CafeOBJ?
+-- 2. in which way conditional equations are parsed?
+
+-- I use CafeOBJ system Version 1.4.8(PigNose0.99,p33) and then you
+-- may not observe the same phenomena for the latest version.
+
+-- 1. what class of context-free grammars can be treated by CafeOBJ?
+
+-- Let us consider the following grammar in BNF:
+
+-- S ::= aABe
+-- A ::= bA | c
+-- B ::= d
+
+-- I think that this grammar belongs to LL(1) and each of three
+-- languages a c d e, a (b c) d e, and a b c d e can be
+-- produced (accepted) by the grammar.
+
+-- The grammar is described in CafeOBJ as follows:
+
+mod! G {
+  [S A B]
+  op a _ _ e : A B -> S {constr}
+  op b _ : A -> A {constr}
+  op c : -> A {constr}
+  op d : -> B {constr}
+}
+
+-- a c d e can be parsed:
+
+open G .
+  parse a c d e .
+  red a c d e .
+close
+
+-- a (b c) d e can also be parsed.
+
+open G .
+  parse a (b c) d e .
+  red a (b c) d e .
+close
+
+-- But, a b c d e cannot be parsed.
+
+open G .
+  parse a b c d e .
+  red a b c d e .
+close
+
+mod! G' {
+  [S A B]
+  op a _ _ : A B -> S {constr}
+  op b _ : A -> A {constr}
+  op c : -> A {constr}
+  op d : -> B {constr}
+}
+
+-- A similar phenomenon can be observed for the grammar that is also
+-- LL(1):
+
+-- S ::= aABd
+-- A ::= bB
+-- B ::= c
+
+-- a (b c) c d can be parsed, but a b c c d cannot.
+
+-- 2. in which way conditional equations are parsed?
+
+-- The following module M1 and the open-close fragment can be
+-- treated by CafeOBJ:
+
+mod! M1 {
+  [S]
+  op if : -> S {constr}
+}
+
+open M1 .
+  parse if .
+  red if .
+close
+
+-- But, the following module M2 cannot be accepted by CafeOBJ:
+
+mod! M2 {
+  [S]
+  op if : -> S {constr}
+  op f : Bool -> S
+  ceq f(B:Bool) = if if B .
+}
+
+-- This seems because the first occurrence of if is treated as "if"
+-- that is followed by the condition of the conditional equation
+-- and "if B" is treated as the condition.
+
+-- If the first occurrence of if is enclosed with parentheses, CafeOBJ
+-- can treat the module:
+
+mod! M3 {
+  [S]
+  op if : -> S {constr}
+  op f : Bool -> S
+  ceq f(B:Bool) = (if) if B .
+}
+
+open M3 .
+  red f(true) .
+close
+
+-- The phenemenon can be found for the module M4:
+
+mod! M4 {
+  [S]
+  op a if b : -> S {constr}
+  op f : Bool -> S
+  ceq f(B:Bool) = a if b if B .
+}
+
+-- The convention I use is to enclose the right-hand side with
+-- parenthese if the right-hand side has "if". The typical case is
+-- that the right-hand side is in the form "if ... then ... else
+-- ... fi". The module M5 can be treated by CafeOBJ:
+
+mod! M5 {
+  [S]
+  op a if b : -> S {constr}
+  op f : Bool -> S
+  ceq f(B:Bool) = (a if b) if B .
+}
+-- Best regards,
+-- Kazuhiro Ogata

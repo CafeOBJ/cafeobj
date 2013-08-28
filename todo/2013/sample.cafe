@@ -1,0 +1,279 @@
+-- library
+
+module NIL
+{
+  signature {
+    [ Nil ]
+    op nil : -> Nil
+  }
+}
+
+module COLLECTION
+(
+  X :: TRIV
+)
+{
+  imports {
+    pr(NIL)
+  }
+  signature {
+    [ Nil Elt < Collection ]
+    op _,_ : Collection Collection -> Collection { assoc comm idem id: nil }
+    -- op _,_ : Collection Collection -> Collection { assoc comm idem idr: nil }
+    -- op _,_ : Collection Collection -> Collection { assoc comm idr: nil }
+    op _@_ : Elt Collection -> Bool
+    op _\_ : Collection Elt -> Collection
+  }
+  axioms {
+    vars X Y : Elt
+    vars C S T : Collection
+    eq (C,X = nil)
+       = false .
+    eq X @ nil
+       = false .
+    cq X @ (Y,C)
+       = true
+       if  (X = Y) .
+    cq X @ (Y,C)
+       = X @ C
+       if  not(X = Y) .
+    eq nil \ X
+       = nil .
+    eq (C,X) \ X
+       = C .
+    cq (C,Y) \ X
+       = C \ X
+       if  (not X = Y) .
+  }
+}
+
+-- calculus
+
+module PROP
+{
+  signature {
+    [ Bool < Prop ]
+    op _and_ : Prop Prop -> Prop { assoc comm }
+    op _or_ : Prop Prop -> Prop { assoc comm }
+    op not_ : Prop -> Prop
+    op _implies_ : Prop Prop -> Prop
+    op _iff_ : Prop Prop -> Prop
+  }
+  axioms {
+    vars P Q R : Prop
+    eq false and P
+       = false .
+    eq true and P
+       = P .
+    eq P and P
+       = P .
+    eq true or P
+       = true .
+    eq false or P
+       = P .
+    eq P or P
+       = P .
+    eq not true
+       = false .
+    eq not false
+       = true .
+    eq not not P
+       = P .
+    eq P implies true
+       = true .
+    eq false implies P
+       = true .
+    eq P implies P
+       = true .
+    eq P iff Q
+       = (P implies Q) and (Q implies P) .
+  }
+}
+
+make PROPS
+(
+  COLLECTION(
+    PROP { sort Elt -> Prop }
+  ) * {
+    sort Collection -> Props
+  }
+)
+
+module SEQUENT
+{
+  imports {
+    pr(PROPS)
+  }
+  signature {
+    [ Sequent ]
+    op _|-_ : Props Props -> Sequent
+  }
+  axioms {
+    vars P : Prop
+    vars L R : Props
+    eq true,L |- R
+       = L |- R .
+    eq L |- R,false
+       = L |- R .
+    eq false,L |- R
+       = false |- R .
+    eq L |- R,true
+       = L |- true .
+  }
+}
+
+make SEQUENTS
+(
+  COLLECTION(
+    SEQUENT { sort Elt -> Sequent }
+  ) * {
+    sort Collection -> Sequents
+  }
+)
+
+module JUDGEMENT
+{
+  imports {
+    pr(SEQUENTS)
+  }
+  signature {
+    op hold : Sequents -> Bool
+  }
+  axioms {
+    vars P Q : Prop
+    vars L R : Props
+    vars S T : Sequents
+    eq hold(nil |- nil)
+       = false .
+    eq hold(L |- true)
+       = true .
+    eq hold(false |- R)
+       = true .
+    eq hold(P,L |- R,P)
+       = true .
+    cq hold(L |- R,P)
+       = true
+       if  hold(L |- R) = true .
+    cq hold(L,P |- R)
+       = true
+       if  hold(L |- R) = true .
+    eq hold(nil)
+       = true .
+    eq hold(S,T)
+       = hold(S) and hold(T) .
+  }
+}
+
+module INFERENCE
+{
+  imports {
+    ex(JUDGEMENT)
+    pr(RWL)
+  }
+  signature {
+    [ Inference ]
+    op antecedent : Inference -> Sequents
+    op consequent : Inference -> Sequents
+    op derivable : Inference -> Bool
+  }
+  axioms {
+    vars I : Inference
+    cq derivable(I)
+       = true
+       if  antecedent(I) ==> consequent(I) .
+    cq hold(consequent(I))
+       = true
+       if  derivable(I)
+       and hold(antecedent(I)) .
+  }
+}
+
+module LK
+{
+  imports {
+    pr(SEQUENTS)
+  }
+  axioms {
+    vars P Q : Prop
+    vars L R : Props
+    vars S T : Props
+    rl (L,P |- R),(S |- P,T)
+       => L,S |- R,T .
+    rl L,P |- R
+       => L |- (not P),R .
+    rl (L |- P,R),(S |- Q,T)
+       => L,S |- (P and Q),R,T .
+    rl L |- P,Q,R
+       => L |- (P or Q),R .
+    rl L |- (P or Q),R
+       => L |- P,Q,R .
+    rl L,P |- Q,R
+       => L |- (P implies Q),R .
+    rl L |- P,R
+       => L,(not P) |- R .
+    rl L,P,Q |- R
+       => L,(P and Q) |- R .
+    rl L,(P and Q) |- R
+       => L,P,Q |- R .
+    rl (L,P |- R),(S,Q |- T)
+       => L,S,(P or Q) |- R,T .
+    rl (L |- P,R),(S,Q |- T)
+       => L,S,(P implies Q) |- R,T .
+  }
+}
+
+-- relations
+
+module RELATION
+(
+  X :: TRIV
+)
+{
+  imports {
+    pr(PROP)
+  }
+  signature {
+    [ Relation ]
+    op ___ : Elt Relation Elt -> Prop
+  }
+}
+
+module TRANSITIVE
+(
+  X :: TRIV,
+  R :: RELATION(X)
+)
+{
+  imports {
+    pr(JUDGEMENT)
+  }
+  signature {
+    [ Transitive < Relation ]
+  }
+  axioms {
+    vars X Y Z : Elt
+    vars R : Transitive
+    eq hold((X R Y),(Y R Z) |- X R Z)
+       = true .
+  }
+}
+
+-- reduction
+open INFERENCE + LK + TRANSITIVE .
+
+ops x y z : -> Elt .
+ops r : -> Transitive .
+eq hold(nil |- x r y) = true .
+eq hold(nil |- y r z) = true .
+ops i : -> Inference .
+ops s1 s2 s3 : -> Sequent .
+eq s1 = (nil |- x r y) .
+eq s2 = (nil |- y r z) .
+eq s3 = ((x r y),(y r z) |- x r z) .
+eq antecedent(i) = s1,s2,s3 .
+trans (nil |- x r z) => consequent(i) .
+
+-- reduction 1.
+-- red hold(nil |- x r z) ==>* true .
+-- reduction 2.
+-- red hold(nil |- x r z) =(1,*)=>* true .
