@@ -523,7 +523,9 @@
 
       ;; 0 transition?
       (when (and (not (rwl-sch-context-zero-trans-allowed sch-context))
-                 (= 0 (rwl-sch-context-cur-depth sch-context)))
+                 ;; (= 0 (rwl-sch-context-cur-depth sch-context))
+		 (= 0 (rwl-sch-context-trans-so-far sch-context)))
+	(format t "~%Wow!")
         (return-from rwl-sch-check-conditions nil))
       ;; check with target pattern.
       (multiple-value-bind (gs sub no-match eeq)

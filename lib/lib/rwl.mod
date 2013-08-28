@@ -166,14 +166,10 @@ sys:mod! RWL
     var MAX-R : NzNat*
     var MAX-D : NzNat*
     var PRED : *Cosmos*
-    ** 
-    eq (CXU ==> CXU) = true .
-    ** ceq (CXU ==> CYU) = true if CXU =(*,*)=>* CYU .
-    ** now older builtin ==> is just a equivalent with =(1,*)=>*
-    ** but there is an equation 'X ==> X = true' so we implement
-    ** this by ==>1.
-    eq (CXU ==> CYU) = CXU ==>1 CYU .
-    **
+
+    ** histrical builtin ==> is equivalent with =(1,*)=>*
+    eq (CXU ==> CYU) = CXU =(1,*)=>* CYU .
+
     ** older version of `search', for backward compatibiliy
     **
     eq (CXU =( N:NzNat* )=> CYU)

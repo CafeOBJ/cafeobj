@@ -203,11 +203,11 @@ install-lib:
 	$(mkinstalldirs) $(preludedir)
 	$(mkinstalldirs) $(xlibdir)
 	@echo Installing preludes and libraries in $(cafeobjlibdir)
-	@for prelude in $(top_srcdir)/lib/prelude/*.mod $(top_srcdir)/lib/prelude/*.bin ; do \
+	@for prelude in $(top_srcdir)/lib/prelude/*.bin ; do \
 	  $(INSTALL_DATA) $$prelude $(preludedir) ; \
 	done
 	@cd $(top_srcdir)/lib/lib ; \
-	for f in *.mod *.bin ; do \
+	for f in *.mod *.bin *.cafe *.msg *.desc; do \
 	  $(INSTALL_DATA) $$f $(xlibdir)/$$f ; \
 	done
 #	@cd $(top_srcdir)/lib/prelude ; \

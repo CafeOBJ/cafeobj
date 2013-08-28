@@ -212,11 +212,11 @@
           ))
       (setq *chaos-vergine* nil)))
   ;; message DB
-  #+:Allegro
-  (setup-message-db)
+  ;; #+:Allegro
+  ;; (setup-message-db)
   ;; help DB
-  #+:Allegro
-  (setup-help-db)
+  ;; #+:Allegro
+  ;; (setup-help-db)
   )
 
 ;;; **********************

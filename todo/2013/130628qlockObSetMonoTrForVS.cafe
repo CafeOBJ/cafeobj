@@ -401,7 +401,9 @@ open QLOCKprop .
 op s : -> State .
 eq cj(wfs,s) = false .
 red init(s) implies inv(s) .
+
 close
+
 
 --> [1] cj(wfs,s) = true .
 -- define v for initial condition
