@@ -1,0 +1,12 @@
+\ifdef{HTML}
+\include{html.gpp}
+\endif
+\ifdef{EPUB}
+\include{html.gpp}
+\endif
+\ifdef{LATEX}
+\include{latex.gpp}
+\endif
+\ifdef{PDF}
+\include{latex.gpp}
+\endif

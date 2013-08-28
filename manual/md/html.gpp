@@ -1,0 +1,4 @@
+\define{\_u{x}}{<u>\x</u>}
+\define{\_color{x}{y}}{<span style="color:'\x'">\y</span>}
+\define{\_abbr{x}{y}}{<abbr title="\x">\y</abbr>}
+\define{\_cafeobj}{CafeOBJ}
