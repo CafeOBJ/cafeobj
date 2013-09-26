@@ -1,6 +1,10 @@
-**
-** CHAOS:OBJECT: Everything in METALEVEL
-**
+** ==========================================
+** Experimental Metalevel features of CafeOBJ
+** ==========================================
+
+-- =====================================
+-- CHAOS:OBJECT: Everything in METALEVEL
+-- =====================================
 
 module CHAOS:OBJECT {
   imports {
@@ -10,11 +14,11 @@ module CHAOS:OBJECT {
     protecting(INT-VALUE)
   }
   signature {
-    [ *Void* < Int String *Sort* *Operator* *Term* *Axiom* *ChaosList* *ChaosExpr*
-      *Signagure* *Trs* *Label* *ChaosPair* *AxiomSet* *Module* *Substitution* *Imports*
+    [ Int *Sort* *Operator* *Term* *Axiom* *ChaosList* *ChaosExpr*
+      *Signagure* *Trs* *ChaosPair* *AxiomSet* *Module* *Substitution* *Imports*
       < *ChaosObject* ]
-    [ String < *ModExpr* ]
-    [ String < *Label* ]
+    [ String < *ModExpr* < *ChaosObject* ]
+    [ String < *Label* < *ChaosObject* ]
     op :nil         : -> *Cosmos*
     op (_,_)        : *Cosmos* *Cosmos* -> *Cosmos* {assoc id: :nil}
     op ([:obj_])    : *Cosmos* -> *ChaosObject*
@@ -161,20 +165,24 @@ module CHAOS:OPERATOR {
   }
 }
   
-
 module CHAOS:TERM {
   imports {
     protecting(CHAOS:OPERATOR)
-    protecting(RWL)
+    -- protecting(RWL)
   }
   signature {
+    [ Nat < *NatLst* < *Occurence* < *ChaosObject* ]
+    **> '[_]
     op '[ _ ] : *Cosmos* -> *Term* { strat: (0) }
-    op term : *Term* -> *Cosmos* {strat: (0)}
+    **> term
+    op term : *Term* -> *Cosmos* { strat: (0) }
+    **> subst-image
     op subst-image : *Term* *Substitution* -> *Term*
     op match_with_ : *Term* *Term* -> *ChaosList*
     op axioms : *Term* -> *ChaosList*
-    op [] : -> *Occurence* { constr }
-    op [_,_] : Nat *Occurence* -> *Occurence* {assoc :id [] constr}
+    op nil : -> *NatLst* { constr }
+    op _,_ : *NatLst* *NatLst* -> *NatLst* { assoc id: nil constr }
+    op [_] : *NatLst* -> *Occurence* { constr }
     pred is-variable : *Term*
     pred is-application-form : *Term*
     pred is-builtin-constant : *Term*
@@ -190,7 +198,7 @@ module CHAOS:TERM {
     op subterm : *Term* *Occurence* -> *Term*
     op parse : String -> *Term*
     op reduce : *Term* -> *Cosmos*
-    -- op reduce : String -> *Cosmos*
+    op reduce : String -> *Cosmos*
     op (reduce in_:_) : *Module* String -> *Cosmos* {strat: (1 0)}
     op (parse in_:_) : *Module* String -> *Cosmos*
     op (:BOOL) : *Term* -> Bool
@@ -222,18 +230,20 @@ module CHAOS:TERM {
     eq parse(S:String) = #!! (create-system-object-term (simple-parse-from-string(term-builtin-value S))) .
     eq subterm(T1:*Term*, Oc:*Occurence*) = #!! (meta-occur-at T1 Oc) .
     eq reduce(T1:*Term*) = term(T1) .
-    eq reduce(T1:String) = #!! (perform-meta-reduction (term-builtin-value T1) *current-module* :red) .
+--    eq reduce(T1:String) = #!! (perform-meta-reduction (term-builtin-value T1) *current-module* :red) .
     eq (reduce in M:*Module* : T1:String) = #!! (perform-meta-reduction (term-builtin-value T1) (term-system-object M) :red) .
   }
 }
 
+**
+** AXIOM: Todo
+**
 module CHAOS:AXIOM {
   imports {
     protecting(CHAOS:TERM)
   }
   signature {
-    [ String < *Occurence* ]
-    [ String < *AxiomSpec* ]
+    [ String < *AxiomSpec* < *ChaosObject* ]
     op [:axiom_] : *Label* -> *Axiom*
     op [:axiom__] : *Label* *Module* -> *Axiom*
   }
@@ -272,6 +282,7 @@ evq
 	   (term-meth (lowest-method* (car (opinfo-methods term-op)))))
        (setq *op-term* term-meth))))
 
+provide meta
 eof
 --
 
