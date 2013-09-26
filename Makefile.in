@@ -3,6 +3,7 @@ SHELL = /bin/sh
 
 #### Start of system configuration section. ####
 srcdir = @srcdir@
+datarootdir = @datarootdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
 prefix = @prefix@
@@ -180,35 +181,35 @@ check: all
 installcheck:
 
 install-exec: 
-	$(mkinstalldirs) $(cafeobjbindir)
-	$(mkinstalldirs) $(bindir)
-	@echo Installing cafeobj in $(cafeobjbindir)
-	$(INSTALL_PROGRAM) $(top_srcdir)/xbin/$(EXEC) $(cafeobjbindir) 
-	rm -f $(bindir)/cafeobj 
-	$(INSTALL_PROGRAM) $(top_srcdir)/xbin/cafeobj $(bindir)/ ; \
+	$(mkinstalldirs) $(DESTDIR)$(cafeobjbindir)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@echo Installing cafeobj in $(DESTDIR)$(cafeobjbindir)
+	$(INSTALL_PROGRAM) $(top_srcdir)/xbin/$(EXEC) $(DESTDIR)$(cafeobjbindir) 
+	rm -f $(DESTDIR)$(bindir)/cafeobj 
+	$(INSTALL_PROGRAM) $(top_srcdir)/xbin/cafeobj $(DESTDIR)$(bindir)/ ; \
 
 
 # install-data: install-exs install-lib
 install-data: install-exs install-lib
 	@:
 install-exs:
-	$(mkinstalldirs) $(exsdir)
+	$(mkinstalldirs) $(DESTDIR)$(exsdir)
 	@echo Installing example modules in $(exsdir)
 	@for ex in $(top_srcdir)/exs/*.mod ; do \
-	  $(INSTALL_DATA) $$ex $(exsdir) ; \
+	  $(INSTALL_DATA) $$ex $(DESTDIR)$(exsdir) ; \
 	done
 
 install-lib:
-	$(mkinstalldirs) $(cafeobjlibdir)
-	$(mkinstalldirs) $(preludedir)
-	$(mkinstalldirs) $(xlibdir)
-	@echo Installing preludes and libraries in $(cafeobjlibdir)
+	$(mkinstalldirs) $(DESTDIR)$(cafeobjlibdir)
+	$(mkinstalldirs) $(DESTDIR)$(preludedir)
+	$(mkinstalldirs) $(DESTDIR)$(xlibdir)
+	@echo Installing preludes and libraries in $(DESTDIR)$(cafeobjlibdir)
 	@for prelude in $(top_srcdir)/lib/prelude/*.bin ; do \
-	  $(INSTALL_DATA) $$prelude $(preludedir) ; \
+	  $(INSTALL_DATA) $$prelude $(DESTDIR)$(preludedir) ; \
 	done
 	@cd $(top_srcdir)/lib/lib ; \
 	for f in *.mod *.bin *.cafe *.msg *.desc; do \
-	  $(INSTALL_DATA) $$f $(xlibdir)/$$f ; \
+	  $(INSTALL_DATA) $$f $(DESTDIR)$(xlibdir)/$$f ; \
 	done
 #	@cd $(top_srcdir)/lib/prelude ; \
 
