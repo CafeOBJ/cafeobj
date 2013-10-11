@@ -20,6 +20,12 @@ PDOPTS=-f markdown --bibliography=manual.bib --biblatex	\
 # For now we do *not* specify an escape marker, last argument to -U
 GPPOPTS=-U "\\" "" "{" "}{" "}" "{" "}" "\#" ""
 
+reference-manual.odt: reference-manual.md odt.gpp makefile
+	gpp $(GPPOPTS) -DODT=1 reference-manual.md | pandoc ${PDOPTS} -t odt -s -o reference-manual.odt
+	
+reference-manual.epub: reference-manual.md epub.gpp makefile
+	gpp $(GPPOPTS) -DEPUB=1 reference-manual.md | pandoc ${PDOPTS} -t epub -s -o reference-manual.epub
+	
 reference-manual.tex: reference-manual.md latex.gpp makefile
 	gpp $(GPPOPTS) -DLATEX=1 reference-manual.md | pandoc ${PDOPTS} -t latex -s -o reference-manual.tex
 
@@ -33,6 +39,8 @@ reference-manual.bbl: reference-manual.tex manual.bib
 reference-manual.pdf: reference-manual.tex reference-manual.bbl
 	$(ENGINE) reference-manual.tex
 	$(ENGINE) reference-manual.tex
+
+all: reference-manual.pdf reference-manual.html
 
 clean:
 	rm -f reference-manual.{aux,bbl,bcf,blg,log,out,run.xml,toc}

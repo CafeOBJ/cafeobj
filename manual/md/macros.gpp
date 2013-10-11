@@ -10,3 +10,10 @@
 \ifdef{PDF}
 \include{latex.gpp}
 \endif
+\ifdef{EPUB}
+\include{epub.gpp}
+\endif
+\ifdef{ODT}
+\include{odt.gpp}
+\endif
+
