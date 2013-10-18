@@ -3,9 +3,10 @@ SHELL=/bin/bash
 
 ENGINE=xelatex
 
+#	-V documentclass=book				\
+
 PDOPTS=-f markdown --bibliography=manual.bib --biblatex	\
 	--table-of-contents				\
-	-V documentclass=book				\
 	-V papersize=a4paper				\
 	-V mainfont='Lucida Bright OT'			\
 	-V sansfont='Lucida Sans OT'			\
@@ -13,6 +14,8 @@ PDOPTS=-f markdown --bibliography=manual.bib --biblatex	\
 	--latex-engine=$(ENGINE)
 
 
+MDFILES=reference-manual.md introduction.md overview.md \
+	reference.md
 
 #
 # we cannot use -T for gpp, as the @ would function as escape marker which
@@ -20,10 +23,16 @@ PDOPTS=-f markdown --bibliography=manual.bib --biblatex	\
 # For now we do *not* specify an escape marker, last argument to -U
 GPPOPTS=-U "\\" "" "{" "}{" "}" "{" "}" "\#" ""
 
-reference-manual.tex: reference-manual.md latex.gpp makefile
+reference-manual.odt: $(MDFILES) odt.gpp makefile
+	gpp $(GPPOPTS) -DODT=1 reference-manual.md | pandoc ${PDOPTS} -t odt -s -o reference-manual.odt
+
+reference-manual.epub: $(MDFILES) epub.gpp makefile
+	gpp $(GPPOPTS) -DEPUB=1 reference-manual.md | pandoc ${PDOPTS} -t epub -s -o reference-manual.epub
+
+reference-manual.tex: $(MDFILES) latex.gpp makefile
 	gpp $(GPPOPTS) -DLATEX=1 reference-manual.md | pandoc ${PDOPTS} -t latex -s -o reference-manual.tex
 
-reference-manual.html: reference-manual.md html.gpp makefile
+reference-manual.html: $(MDFILES) html.gpp makefile
 	gpp $(GPPOPTS) -DHTML=1 reference-manual.md | pandoc ${PDOPTS} -t html -s -o reference-manual.html
 
 reference-manual.bbl: reference-manual.tex manual.bib
@@ -33,6 +42,8 @@ reference-manual.bbl: reference-manual.tex manual.bib
 reference-manual.pdf: reference-manual.tex reference-manual.bbl
 	$(ENGINE) reference-manual.tex
 	$(ENGINE) reference-manual.tex
+
+all: reference-manual.pdf reference-manual.html
 
 clean:
 	rm -f reference-manual.{aux,bbl,bcf,blg,log,out,run.xml,toc}
