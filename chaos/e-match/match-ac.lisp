@@ -423,6 +423,7 @@
 	)))
 ||#
 
+;; #||
 (defun delete-one-term
        (x y)
   (if (null y)
@@ -439,6 +440,7 @@
 	      (setq last rest  rest (cdr rest))))
 	  ))
   )
+;; ||#
 
 (defvar *ac-failure-eq* nil)
 
@@ -493,8 +495,7 @@
 				   (svref ops (cdr (svref lhs-v i)))
 				   rhs-subterms)
 				  (first rhs-subterms)))
-	       new-eqns))
-	    )))
+	       new-eqns)))))
     ;;
     ;; note term-code is now the right thing. 
     ;; (AC-collapse-arrays-internal lhs-f 0)
@@ -538,9 +539,7 @@
 			(when *match-debug*
 			  (setq *ac-failure-eq* (cons t1 t2)))
 			(setq new-eqns nil)
-			(return nil))
-		      ))))))
-      )
+			(return nil)) )))))))
     ;;
     (if new-eqns
 	(progn
@@ -566,8 +565,7 @@
       (unless (eq (car x) (car y))
 	(return nil))
     (setq x (cdr x))
-    (setq y (cdr y))
-    ))
+    (setq y (cdr y))))
 
 ;;; SIMPLIFIED & SPECIAL PURPOSE FUNCTIONS for MULTI-SET
 ;;; used match-ac, match-acz.
@@ -589,9 +587,8 @@
 		    (when (term-equational-equal x (car pr))
 		      (return pr))))) 
 	(if ms-x 
-	    (setf (cdr ms-x) (1+ (the fixnum (cdr ms-x))))
-	    (push (cons x 1) ms-list))
-	))
+            (incf (the fixnum (cdr ms-x))) ; (setf (cdr ms-x) (1+ (the fixnum (cdr ms-x))))
+	  (push (cons x 1) ms-list))))
     ms-list))
 
 ;;; Assume that t1 is NOT a variable
@@ -603,16 +600,15 @@
   (declare (type list list))
   (if (and l2msla1 (test_same_term_list list l2msla1))
       (copy-alist l2mslv1)
-  (if (and l2msla2 (test_same_term_list list l2msla2))
-      (progn
-	(rotatef l2msla1 l2msla2)
-	(rotatef l2mslv1 l2mslv2)
-	(copy-alist l2mslv1))
-  (let ((res (list2multi-set-list-direct list)))
-    (setq l2msla2 l2msla1  l2mslv2 l2mslv1)
-    (setq l2msla1 list l2mslv1 res)
-    (copy-alist res)
-    ))))
+    (if (and l2msla2 (test_same_term_list list l2msla2))
+	(progn
+	  (rotatef l2msla1 l2msla2)
+	  (rotatef l2mslv1 l2mslv2)
+	  (copy-alist l2mslv1))
+      (let ((res (list2multi-set-list-direct list)))
+	(setq l2msla2 l2msla1  l2mslv2 l2mslv1)
+	(setq l2msla1 list l2mslv1 res)
+	(copy-alist res)))))
 
 ;;; NOTE  this is a version for AC-internal use only.
 ;;; it simply takes care of the "from which equation" info.
@@ -625,20 +621,44 @@
   (declare (type list list))
   (let ((ms-list nil))
     (declare (type list ms-list))
-    (dolist (x list)
+    #||
+    (when *match-debug*
+      (mapc #'(lambda (x) (format t "~&,,,~s" x)) list))
+    ||#
+    (dolist (x list) ;;(copy-tree list)
       (declare (type list x))
       (let ((ms-elt (assoc-if #'(lambda (y) 
 				  (declare (type list y))
+				  #||
+				  (when *match-debug*
+				    (format t "~&..x|~d| " (cdr x))
+				    (term-print (car x))
+				    (format t "~&..y|~d| " (cdr y))
+				    (term-print (car y))
+				    (trace term-equational-equal))
+				  ||# 
 				  (and (= (the fixnum (cdr x))
 					  (the fixnum (cdr y)))
 				       (term-equational-equal (car y) (car x))))
 			      ms-list)))
 	(if ms-elt
-	    (setf (cdr ms-elt)
-		  (1+ (the fixnum (cdr ms-elt)))) ;;;***
-	    (push (cons x 1) ms-list))))
+	    (progn
+	      #||
+	      (when *match-debug*
+		(format t "~&..inc: ~s" ms-elt))
+	      ||#
+	      (incf (the fixnum (cdr ms-elt))))
+	  (progn
+	    #||
+	    (when *match-debug*
+	      (format t "~&..add: ~s" x))
+	    ||#
+	    (push (cons x 1) ms-list)))))
+    #||
+    (when *match-debug*
+      (untrace term-equational-equal))
+    ||#
     ms-list))
-
 
 ;;; check for multi-set equality
 ;;; uses term-equational-equal - which can be pretty expensive
@@ -801,6 +821,7 @@
 		       (not (term-is-builtin-constant? rhs-1))
 		       (method-is-ac-restriction-of rhs-op lhs-op))
 	    ;; is the first condition really need?
+	    ;; (format t "~&failure case #1")
 	    (return-from FAIL (values nil t)))
 	  ;;
 	  (let ((lhs-subs (list-AC-subterms lhs-1 lhs-op))
@@ -813,9 +834,12 @@
 	    (declare (type list lhs-subs rhs-subs lhs-vars lhs-constants
 			   lhs-funs rhs-constants rhs-funs))
 	    ;; quick failure cases
+	    ;; #||
 	    (when (> (the fixnum (length lhs-subs))
 		     (the fixnum (length rhs-subs)))
+	      ;; (format t "~&failure case #2")
 	      (return-from FAIL (values nil t))) ; no possible match
+	    ;; ||#  
 	    ;;
 	    (unless sys-operators
 	      (setq sys-operators (alloc-svec (the fixnum (length sys)))))
@@ -862,6 +886,7 @@
 				     (when *match-debug*
 				       (format t "~&- :never-match : lhs-vars ")
 				       (print-chaos-object lhs-vars))
+				     ;; (format t "~&failure case #3")
 				     (return-from FAIL (values nil t))))
 			       (setq lhs-constants new)))))
 		    (t (let ((new (delete-one-term term lhs-funs)))
@@ -875,6 +900,7 @@
 				     (when *match-debug*
 				       (format t "~&- :never-match : lhs-vars ")
 				       (print-chaos-object lhs-vars))
+				     ;; (format t "~&failure case #4")
 				     (return-from FAIL (values nil t))))
 				 (setq lhs-funs new)))))))
 	    ;; now there are no duplicates (things appearing on both sides)
@@ -891,6 +917,7 @@
 			     (> rhs-c-count 0)) ; and constants remain on rhs
 			(> lhs-f-count rhs-f-count)) ; too many funs to match
 		;; (break "1")
+		;; (format t "~&failure case #5")
 		(return-from FAIL (values nil t))) ; FAIL most miserably
 	      ;;
 	      (setq all-lhs-funs (nconc lhs-funs all-lhs-funs))
@@ -952,6 +979,10 @@
 			     rhs-c-sol rhs-f-sol rhs-c-compat rhs-f-compat)
 		       (type fixnum rhs-c-max rhs-f-max rhs-full-bits
 			     dummy-bit lhs-r-mask))
+	      ;;
+	      (when *match-debug*
+		(format t "~&..lhs-f-ms=~s, lhs-f-r=~s lhs-v-ms=~s, lhs-v-r=~s, l-m=~d l-gcd=~d" lhs-f-ms lhs-f-r lhs-v-ms lhs-v-r l-m l-gcd)
+		(format t "~&..all-rhs-funs=~s, rhs-c-ms=~s, rhs-c-r=~s, rhs-f-ms=~s, rhs-f-r=~s, r-m=~d, r-gcd=~d" all-rhs-funs rhs-c-ms rhs-c-r rhs-f-ms rhs-f-r r-m r-gcd))
 	      ;; one more easy failure check
 	      (when (or (> l-m r-m)	; a lhs item is repeated more than any rhs
 			(not (integerp (/ r-gcd l-gcd))))
@@ -1037,8 +1068,7 @@
 		      (do ()
 			  ((> dummy-bit rhs-c-max) 
 			   (progn
-			     ;; (deallocate-ac-state state)
-			     ;; (break "3")
+			     ;; (format t "~&failure case #7")
 			     (return-from FAIL (values nil t))))
 			(unless (zerop (make-and dummy-bit my-compat))
 			  (setf (svref rhs-c-sol i) dummy-bit)
@@ -1054,7 +1084,7 @@
 		      (do ()
 			  ((> dummy-bit rhs-f-max)
 			   (progn ;; (deallocate-ac-state state)
-			     ;; (break "4")
+			     ;; (format t "~&failure case #8")
 			     (return-from FAIL (values nil t))))
 			(unless (zerop (make-and dummy-bit my-compat))
 			  (setf (svref rhs-f-sol i) dummy-bit)
@@ -1095,8 +1125,7 @@
 		    (ac-state-RHS-c-count state) rhs-c-count
 		    (ac-state-RHS-f-count state) rhs-f-count
 		    (ac-state-no-more state) nil
-		    (ac-state-ac-state-p state) 'ac-state
-		    )
+		    (ac-state-ac-state-p state) 'ac-state )
 	      ;;
 	      (when *match-debug* (format t "~&*** done initialization"))
 	      (values state nil))))))))
@@ -1178,7 +1207,6 @@
 		   (setf (svref rhs-f-sol n) 1) ; reset this row to one
 		   (setq n (1+ n))))))))
 
-
 #+CMU (declaim (ext:end-block))
 
 ;; not all that useful printout of parts of AC state.
@@ -1224,8 +1252,7 @@
     (format t "~&-- lhs-f-mask=~A~%"
 	    (AC-state-LHS-f-mask AC-st))
     (format t "~&-- lhs-r-mask=~A~%"
-	    (AC-state-LHS-r-mask AC-st))
-    ))
+	    (AC-state-LHS-r-mask AC-st))))
 
 (defun ac-args-nss (x) (AC-unparse-AC-state (car x)) (terpri))
 
