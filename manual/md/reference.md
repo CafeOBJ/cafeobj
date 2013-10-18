@@ -38,6 +38,28 @@ Related: [`signature`](#signature) [`imports`](#imports)
 	 [`var`](#var) [`eq`](#eq) [`trans`](#trans)
 
 
+### `bceq [ <label-exp> ] <term> = <term> if <boolterm> .` ### {#bceq}
+
+Alias: `bcq`
+
+Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
+
+Related: [`eq`](#eq) [`ceq`](#ceq) [`beq`](#beq)
+
+### `beq [ <label-exp> ] <term> = <term> .` ### {#beq}
+
+Defines a behaviour equation. For details see [`eq`](#eq).
+
+Related: [`eq`](#eq) [`ceq`](#ceq) [`bceq`](#bceq)
+
+
+### `bctrans [ <label-exp> ] <term> => <term> if <boolterm> .` ### {#bctrans}
+
+Defines a behaviour conditional transition. 
+For details see [`ctrans`](#ctrans).
+
+Related [`trans`](#trans) [`ctrans`](#ctrans) [`btrans`](#btrans)
+
 ### `bop <op-spec> : <sorts> -> <sort>` ### {#bop}
 
 Defines a behavioural operator by its domain, codomain, and the term 
@@ -55,12 +77,42 @@ behavioural predicate.
 
 Related: [`op`](#op) [`bop`](#op) [`pred`](#bpred)
 
+
+### `breduce [ in <mod-exp> : ] <term> .` ### {#breduce}
+
+Alias: `bred`
+
+Reduce the given term in the given module, if `<mod-exp>` is given, 
+otherwise in the current module. 
+
+For `breduce` equations, possibly conditional, possibly behavioural, are taken
+into account for reduction.
+
+Related: [`execute`](#execute) [`reduce`](#reduce)
+
+
+### `btrans [ <label-exp> ] <term> => <term> .` ### {#btrans}
+
+Defines a behaviour transition. For details see [`trans`](#trans).
+
+Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
+
+
 ### `cd <dirname>` ### {#cd}
 
 Change the current working directory, like the Unix counterpart.
 The argument is necessary. No kind of expansion or substitution is done.
 
 Related: [`pwd`](#pwd) [`ls`](#ls)
+
+### `ceq [ <label-exp> ] <term> = <term> if <boolterm> .` ### {#ceq}
+
+Defines a conditional equation. Spaces around the `if` are obligatory.
+`<boolterm>` needs to be a Boolean term. For other requirements
+see [`eq`](#eq).
+
+Related: [`eq`](#eq) [`beq`](#beq) [`bceq`](#bceq)
+
 
 ### comments ### {#comments}
 
@@ -71,6 +123,15 @@ The difference in the variants with `>` is that the comment is
 displayed when run through the interpreter.
 
 Related: [`**`](#starstar) [`--`](#dashdash)
+
+
+### `ctrans [ <label-exp> ] <term> => <term> .` ### {#ctrans}
+
+Defines a conditional transition. For details see [`trans`](#trans)
+and [`ceq`](#ceq).
+
+Related [`trans`](#trans) [`btrans`](#ctrans) [`bctrans`](#bctrans)
+
 
 ### `describe <something>` ### {#describe}
 
@@ -84,6 +145,46 @@ Related: [`show`](#show)
 Terminates reading of the current file. Allows for keeping
 untested code or documentations below the `eof` mark. Has
 to be on a line by itself without leading spaces.
+
+
+### `eq [ <label-exp> ] <term> = <term> .` ### {#eq}
+
+Declares an axiom, or equation.
+
+Spaces around the `=` are necessary to separate the left from
+the right hand side. The terms given must belong to the
+same connected component in the graph defined by the sort ordering.
+
+In simple words, the objects determined by the terms must be
+interpretable as of the same sort.
+
+One can give an equation a name by providing an optional 
+`<label-exp>` which is:
+
+` [ <label-name> ] : `
+
+Warning: The square brackets here are *not* specifying optional
+components, but syntactical elements. Thus, a named equation
+can look like:
+
+`eq[foobar] : foo = bar .`
+
+Related: [`ceq`](#ceq) [`beq`](#beq) [`bceq`](#bceq)
+
+
+
+### `execute [ in <mod-exp> : ] <term> .` ### {#execute}
+
+Alias: `exec`
+
+Reduce the given term in the given module, if `<mod-exp>` is given, 
+otherwise in the current module. 
+
+For `execute` equations and transitions, possibly conditional, are taken
+into account for reduction.
+
+Related: [`breduce`](#breduce) [`reduce`](#reduce)
+
 
 ### `extending ( <modexp> )` ### {#extending}
 
@@ -193,6 +294,10 @@ mod! TWICE(X :: C) {
 }
 ~~~~~
 
+### on-the-fly variable declaration ### {#onthefly}
+
+See [`var`](#var)
+
 ### `op <op-spec> : <sorts> -> <sort>` ### {#op}
 
 Defines an operator by its domain, codomain, and the term construct.
@@ -293,15 +398,20 @@ Example: `1:NzNat` `2:Nat`
 
 Related: [`parse`](#parse)
 
-### `require <feature> [ <pathname> ]` ### {#require}
 
-requires a feature, which usually
-denotes a set of module definitions. Given this command, the
-system searches for a file named the feature, and read the file
-if found. If a pathname is given, the system searches for a file
-named the pathname instead.
+### `reduce [ in <mod-exp> : ] <term> .` ### {#reduce}
 
-Related: [`provide`](#provide)
+Alias: `red`
+
+Reduce the given term in the given module, if `<mod-exp>` is given, 
+otherwise in the current module. 
+
+For `reduce` only equations and conditional equations are taken into
+account for reduction.
+
+Related: [`execute`](#execute) [`breduce`](#breduce)
+
+
 
 ### `regularize <mod-name>` ### {#regularize}
 
@@ -315,6 +425,17 @@ Modules can be automatically regularized by the interpreter if the
 `set regularize signature on`
 
 TODO -- should we give more details here -- unclear to me.
+
+### `require <feature> [ <pathname> ]` ### {#require}
+
+requires a feature, which usually
+denotes a set of module definitions. Given this command, the
+system searches for a file named the feature, and read the file
+if found. If a pathname is given, the system searches for a file
+named the pathname instead.
+
+Related: [`provide`](#provide)
+
 
 ### `restore <pathname>` ### {#restore}
 
@@ -463,6 +584,18 @@ find  all rules         off
 
 Related: [`set`](#set) [`show`](#show)
 
+
+### `trans [ <label-exp> ] <term> => <term> .` ### {#trans}
+
+Defines a transition, which is like an equation but without
+symmetry. 
+
+See [`eq`](#eq) for specification of requirements on `<label-exp>`
+and the terms.
+
+TODO: should we write more here
+
+
 ### `unprotect <module-name>` ### {#unprotect}
 
 Remove overwrite protection from a module that has been protected
@@ -484,3 +617,51 @@ Related: [`extending`](#extending) [`including`](#including)
 	 [`protecting`](#protecting)
 
 
+### `var <var-name> : <sort-name>` ### {#var}
+
+Declares a variable `<var-name>` to be of sort `<sort-name>`.
+The scope of the variable is the current module.
+Redeclarations of variable names are not allowed.
+Several variable of the same sort can be declared at the same time
+using the `vars` construct:
+
+`vars <var-name> ... : <sort-name>`
+
+Variable can also be declared *on-the-fly* (or *inline*). If an 
+equation contains a qualified variable (see [qualified term](#qualified)),
+i.e., `<name>:<sort-name>`, then from this point on *within* the current
+equation only `<name>` is declared as a variable of sort `<sort-name>`.
+
+It is allowed to redeclare a previously defined variable name via
+an on-the-fly declaration, but as mentioned above, not via an 
+explicit redeclaration.
+
+Using a predeclared variable name within an equation first as is,
+that is as the predeclared variable, and later on in the same 
+equation with an on-the-fly declaration is forbidden. That is, under
+the assumption that `A` has been declared beforehand, the following
+equation is *not* valid:
+
+`eq foo(A, A:S) = A .`
+
+Related: [`op`](#op) [qualified term](#qualified)
+
+
+
+
+
+
+
+
+
+
+
+
+MISSING UNCLEAR
+---------------
+
+chapter 4.4
+
+TO BE REMOVED DISCUSSION
+------------------------
+stop command, can be done with set stop pattern ...
