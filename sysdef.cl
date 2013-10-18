@@ -11,7 +11,7 @@
 (excl:defsystem :comlib
     (:default-pathname 
         #+:mswindows 
-        "c:/cygwin/home/sawada/prj/cafe/Chaos/comlib/"
+        "c:/Users/sawada/prj/CafeOBJ/comlib/"
       #-:mswindows
       "comlib/"
       :default-package "CHAOS")
@@ -35,7 +35,7 @@
 (excl:defsystem :chaos
     (:default-pathname 
         #+:mswindows 
-        "c:/cygwin/home/sawada/prj/cafe/Chaos/chaos/"
+        "c:/Users/sawada/prj/CafeOBJ/chaos/"
       #-:mswindows
       "chaos/"
       :default-package "CHAOS")
@@ -149,8 +149,8 @@
 
 (excl:defsystem :chaosx
     (:default-pathname 
-        #+:mswindows "c:/cygwin/home/sawada/prj/cafe/Chaos/"
-      #-:mswindows "./"
+        #+:mswindows "c:/Users/sawada/prj/CafeOBJ/"
+      #-:Mswindows "./"
       :default-package "CHAOS")
   (:definitions
       "chaos-package"

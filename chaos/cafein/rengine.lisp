@@ -749,37 +749,13 @@
 
 ;;;
 ;;;
-(#+:gcl si::define-inline-function
- #-:gcl defun
- apply-rules-with-different-top (term rules)
+(defun apply-rules-with-different-top (term rules)
  (declare (type term term)
           (type list rules)
           (values (or null t)))
  (block the-end
    (dolist (rule rules nil)
      (when (apply-rule rule term) (return-from the-end t)))))
-
-
-#||
-(defun apply-rules (term strategy)
-  (let ((top nil))
-    ;; (unless (term-is-lowest-parsed? term) (update-lowest-parse term))
-    (update-lowest-parse term)
-    (setq top (term-method term))
-    ;; same top
-    (apply-rules-with-same-top term (method-rules-with-same-top top))
-    ;;
-    (if (not (eq top (term-head term)))
-	#|| was ...
-	(or (term-is-variable? term)
-	    (not (method= top (term-method term))))
-	||#
-	(normalize-term term)
-	(if (apply-rules-with-different-top term
-					    (method-rules-with-different-top top))
-	    (normalize-term term)
-	    (reduce-term term (cdr strategy))))))
-||#
 
 (defun apply-rules (term strategy)
   (declare (type term term)
@@ -992,6 +968,7 @@
 ;;; REWRITE : TERM -> TERM' ----------------------------------------------------
 ;;;-----------------------------------------------------------------------------
 
+#||
 (defun reduce-term (term strategy)
   (declare (type term term)
            (type list strategy)
@@ -1023,14 +1000,12 @@
           
           ;; whole
           ((= 0 (the fixnum (setf occ (car strategy))))
-           #||
-           (when (eq top *rwl-predicate*)
-             (setq *cexec-target* term))
-           ||#
            (unless (term-is-reduced? term)
+	     #||
              (when *parse-normalize*
                (term-replace term
                              (right-associative-normal-form term)))
+	     ||#
              (apply-rules term strategy)))
 
           ;; explicit lazy
@@ -1040,41 +1015,66 @@
              (reduce-term term (cdr strategy))))
 
           ;; normal case, reduce specified subterm
-          (t (if nil			; (method-is-associative top)
+          (t (if (method-is-associative top)
                  (let ((list-subterms (list-assoc-subterms term top))
 		       (lp t))
-		   ;;;;;;;;
-		   (format t "~&>>[reduce-term]:TOP: ")
-		   (term-print-with-sort term)
-		   ;;;;;;;;
                    (dolist (x list-subterms)
-		     (format t "~&  :sub: ")
-		     (term-print-with-sort x)
                      (unless (normalize-term x)
 		       (setq lp nil))
-		     ;;;;;;;
-		     (format t "~&  ==>:sub: ")
-		     (term-print-with-sort x)
-		     ;;;;;;;;
 		     )
-		   (unless nil		;lp
-		     ;;;;;;;;
-		     (setq *term-debug* t)
-		     ;;;;;;;;
+		   (unless lp		; nil
 		     (update-lowest-parse term)
-		     ;;;;;;;;
-		     (setq *term-debug* nil)
-		     ;;;;;;;;
-		     (mark-term-as-not-reduced term))
-		   ;;;;;;;;
-		   (format t "~&<<[reduce-term]:TOP2: ")
-		   (term-print-with-sort term)
-		   ;;;;;;;;
-                   (reduce-term term (list 0)))
+		     )
+                   (reduce-term term '(0)))
                (progn
                  (unless (normalize-term (term-arg-n term (1- occ)))
 		   (mark-term-as-not-lowest-parsed term))
                  (reduce-term term (cdr strategy))))))))
+||#
+
+(defun reduce-term (term strategy)
+  (declare (type term term)
+           (type list strategy)
+           (values (or null t)))
+  ;;
+  (when *rewrite-debug*
+    (with-output-simple-msg ()
+      (format t "[reduce-term](NF=~a,LP=~a): " (term-is-reduced? term) (term-is-lowest-parsed? term))
+      (term-print-with-sort term)
+      (format t "~%  strat = ~a" strategy)))
+  ;;
+  (let ((occ nil)
+        (top (term-head term)))
+    (cond ((null strategy)
+           ;; no strat, or exhausted.
+           (unless (term-is-lowest-parsed? term)
+             (update-lowest-parse term)
+             (unless (method= (term-method term) top)
+               (when *rewrite-debug*
+                 (with-output-msg ()
+                   (format t "- resetting reduced flag ...")))
+               (reset-reduced-flag term)
+               (return-from reduce-term (normalize-term term))))
+           (unless (or *rewrite-semantic-reduce*
+                       *beh-rewrite*)
+             (mark-term-as-reduced term)))
+          
+          ;; whole
+          ((= 0 (the fixnum (setf occ (car strategy))))
+           ;; (unless (term-is-reduced? term)
+             (apply-rules term strategy))
+	   ;; )
+
+          ;; explicit lazy
+          ((< (the fixnum occ) 0)
+           (let ((d-arg (term-arg-n term (1- (abs occ)))))
+             (unless (term-is-reduced? d-arg) (mark-term-as-on-demand d-arg))
+             (reduce-term term (cdr strategy))))
+
+          ;; normal case, reduce specified subterm
+          (t (unless (normalize-term (term-arg-n term (1- occ)))
+	       (mark-term-as-not-lowest-parsed term))
+	     (reduce-term term (cdr strategy))))))
 
 ;;; THE TOP LEVEL -------------------------------------------------------------
 ;;; term may be modified.

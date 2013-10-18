@@ -76,7 +76,7 @@
 (defun msubterms (term)
   (and (termp term)
        (term-is-applform? term)
-       (make-chaos-list (term-subterms term))))
+       (make-chaos-list :list (term-subterms term))))
 
 ;;; mterm-sort
 (defun mterm-sort (term)
@@ -164,13 +164,13 @@
 		    module
 		  :invalid-modexp))))
     (if (or (eq rmod :invalid) (eq rmod :invalid-modexp))
-	(with-output-chaos-error '(invalid-module)
+	(with-output-chaos-error ('invalid-module)
 	  (format t "Invalid module specification ~S" module))
       rmod)))
 
 (defun meta-get-term (pterm &optional (module *current-module*))
   (unless (termp pterm)
-    (with-output-chaos-error '(ivalid-term)
+    (with-output-chaos-error ('ivalid-term)
       (format t "Invalid representation of meta term ~S" pterm)))
   (with-in-module (module)
     (let ((rterm pterm))
@@ -182,7 +182,7 @@
 				       (term-builtin-value pterm)
 				       *consmos*))
 	     (when (term-is-an-error rterm)
-	       (with-output-chaos-error '(invalid-term)
+	       (with-output-chaos-error ('invalid-term)
 		 (format t "Could not parse: ~S" (term-builtin-value pterm)))))
 	     (t rterm))
       rterm)))
@@ -202,10 +202,10 @@
 	   (every #'integerp pterm))
       pterm
     (let ((rterm (meta-get-term pterm module)))
-      (unless (chaos-list-p pterm)
+      (unless (chaos-list-p rterm)
 	(with-output-chaos-error ('invalid-integers)
 	  (format t "Invalid integer list ~S" pterm)))
-      (meta-get-list-integers (chaos-list-list pterm)))))
+      (meta-get-list-integers (chaos-list-list rterm)))))
 
 (defvar *meta-match-depth* 0)
 
@@ -232,7 +232,8 @@
 				       nil
 				     'next-match)
 				 'next-unify))
-	      (result nil))
+	      ;; (result nil)
+	      )
 	  (when (and *use-choose-match*
 		     (eq type :match))
 	    (let ((meth (choose-match-method real-target *bool-true* nil)))
@@ -293,6 +294,16 @@
     (if res
 	(make-meta-term res)
       (make-meta-term nil))))
+
+;;; TODO
+(defun subterm-op (&rest ignore)
+  ignore)
+
+(defun perform-meta-match* (&rest ignore)
+  ignore)
+
+(defun check-rwl-coherency (&rest ignore)
+  ignore)
 
 ;;; EOF
 

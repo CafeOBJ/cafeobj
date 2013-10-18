@@ -11,6 +11,8 @@ mod! M {
 
 -- を(cafeobj149に)laodして，
 
+eof
+
 open M .
   red (a b c) =(*,*)=>* (E:Elt S:St) .
 

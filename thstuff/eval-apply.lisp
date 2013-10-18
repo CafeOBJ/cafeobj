@@ -186,6 +186,7 @@ File: eval-apply.lisp
                            (@apply-all actrule subterm-sort subterm)))
                      (@apply-rule actrule subterm-sort subterm)))
                  (when *-applied-*
+		   (update-lowest-parse $$term)
                    (when (nth 2 rule-spec) ; reverse order
                      (setq $$term (@copy-term $$term)))
                    (reset-target-term $$term *last-module* *last-module*))

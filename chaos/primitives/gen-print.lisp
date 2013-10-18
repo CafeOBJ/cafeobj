@@ -573,12 +573,15 @@
                                       ((symbolp value)
                                        (string value))
                                       (t (format nil "(~s)" value))))
-                              (if (term-is-variable? term)
-                                  (string (variable-print-name term))
-                                  (if (term-is-lisp-form? term)
-                                      (lisp-form-original-form term)
-                                      (format nil "~{~a~}"
-                                              (method-symbol (term-head term)))))))
+			    (if (term-is-variable? term)
+				(string (variable-print-name term))
+			      (if (term-is-lisp-form? term)
+				  (lisp-form-original-form term)
+				(if (and *chaos-verbose*
+					 (term-is-reduced? term))
+				    (format nil "!~{~a~}" (method-symbol (term-head term)))
+				  (format nil "~{~a~}"
+					  (method-symbol (term-head term))))))))
                     (sort (term-sort term)))
                 (if *show-sort*
                     (format nil "~a:~a" name (string (if sort

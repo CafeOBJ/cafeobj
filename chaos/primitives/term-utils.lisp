@@ -703,6 +703,7 @@
   (declare (type term t1 t2)
 	   (values (or null t)))
   (or (term-eq t1 t2)
+      (equal t1 t2)
       (let ((t1-body (term-body t1))
 	    (t2-body (term-body t2)))
 	(cond ((term$is-applform? t1-body)
@@ -1171,7 +1172,7 @@
 	       ;; (print-chaos-object h-op)
 	       (cond ((theory-contains-associativity (method-theory h-op))
 		      ;; (break "OK3")
-		      (make-right-assoc-normal-form 
+		      (make-right-assoc-normal-form-with-sort-check
 		       h-op 
 		       (mapcar #'right-associative-normal-form 
 			       (list-assoc-subterms t1 h-op))))
