@@ -228,6 +228,17 @@ pathname. The file itself may contain `input` commands.
 a line that only contains (the literal) `eof`.
 
 
+### `let <identifier> = <term> .` ### {#let}
+
+Using `let` one can define aliases, or context variables. Bindings
+are local to the current module. Variable defined with `let` can be
+used in various commands like `reduce` and `parse`. 
+
+Although `let` defined variable behave very similar to syntactic
+shorthands, they are not. The right hand side `<term>` needs to
+be a fully parsable expression.
+
+
 ### `ls <pathname>` ### {#ls}
 
 lists the given `pathname`. Argument is obligatory.
@@ -298,7 +309,7 @@ mod! TWICE(X :: C) {
 
 See [`var`](#var)
 
-### `op <op-spec> : <sorts> -> <sort>` ### {#op}
+### `op <op-spec> : <sorts> -> <sort> { <attribute-list> }` ### {#op}
 
 Defines an operator by its domain, codomain, and the term construct.
 `<sorts>` is a space separated list of sort names, `<sort>` is a 
@@ -320,6 +331,51 @@ mixfix-spec
 
     Example: `op _+_ : S S -> S`
 
+For the description of `<attribute-list>` see the entry for
+[operator attributes](#opattr).
+
+### operator attributes ### {#opattr}
+
+In the specification of an operator using the [`op](#op) (and
+related) keyword, attributes of the operator can be specified.
+An `<attribute-list>` is a space-separate list of single
+attribute definitions. Currently the following attributes are supported
+`associative`
+  ~ specifies an associative operator, alias `assoc`
+`commutative`
+  ~ specifies a commutative operator, alias `comm`
+`itempotence`
+  ~ specifies an idempotent operator, alias `idem`
+`id: <const>`
+  ~ specifies that an identity of the operator exists and 
+    that it is `<const>`
+`prec: <int>`
+  ~ specifies the parsing precedence of the operator, an integer <int>.
+    Smaller precedence values designate stronger binding. See
+    [operator precedence](#opprec) for details of the predefined
+    operator precedence values.
+`l-assoc` and `r-assoc`
+  ~ specifies that the operator is left-associative or right-associative
+`constr`
+  ~ specifies that the operator is a constructor of the coarity sort.
+    (not evaluated at the moment)
+`strat: ( <int-list> )`
+  ~ specifies the evaluation strategy. Each integer in the list refers
+    to an argument of the operator, where `0` refers to the whole term,
+    `1` for the first argument, etc. Evaluation proceeds in order of
+    the `<int-list>`. Example:
+
+    `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }
+ 
+    In this case the first argument (the boolean term) is tried to
+    be evaluated, and depending on that either the second or third.
+    But if the first (boolean) argument cannot be evaluated, 
+    no evaluation in the subterms will appear.
+
+    Using negative values allows for lazy evaluation of the corresponding
+    arguments.
+
+
 Remarks:
 - Several operators of the same arity/coarity can be defined by
   using `ops` instead of `op`:
@@ -337,6 +393,10 @@ Remarks:
 - A single underbar cannot be an operator name.
 
 Related: [`bop`](#bop)
+
+### operator precedence ### {opprec}
+
+TODO list the rules for operator precedence
 
 ### `parse [ in <mod-exp> : ] <term> .` ### {#parse}
 
@@ -466,6 +526,15 @@ restrictons.
 
 Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
 
+
+### `select <mod-name>` ### {#select}
+
+TODO
+
+Selects a module, but do not change into it ...???...
+parsing and reduction works, but declarations are forbidden ???
+
+
 ### `set <name> [option] <value>` ### {#set}
 
 Depending on the type of the switch, options and value specification varies.
@@ -583,6 +652,11 @@ find  all rules         off
 ~~~~~
 
 Related: [`set`](#set) [`show`](#show)
+
+
+### `tram <options>` ### {#tram}
+
+TODO - do we have a tram compiler still available???
 
 
 ### `trans [ <label-exp> ] <term> => <term> .` ### {#trans}
