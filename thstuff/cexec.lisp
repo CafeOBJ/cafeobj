@@ -109,23 +109,25 @@
 
 ;;; print the rule & state
 ;;;
-(defun show-rwl-sch-state (dag)
+(defun show-rwl-sch-state (dag &optional (path? t) (bind-pattern nil))
   (declare (type rwl-sch-node dag))
   (let* ((st (dag-node-datum dag))
          (term (rwl-state-term st))
          (rl (rwl-state-rule st))
          (state (rwl-state-state st)))
-    (when rl
+    (when (and rl path?)
       (print-next)
       (princ "  ")
       (let ((*print-indent* (+ 8 *print-indent*)))
-        (print-axiom-brief rl)
-        ;; (princ " . >>>")
-        ))
+        (print-axiom-brief rl)))
     (format t "~&[state ~D] " state)
-    (term-print-with-sort term))
-  )
-
+    (term-print-with-sort term)
+    (dolist (sub (rwl-state-subst st))
+      (format t "~&    ")
+      (print-substitution sub)
+      (when bind-pattern
+	(format t "~%    => ")
+	(term-print-with-sort (substitution-image-simplifying sub bind-pattern))))))
 
 ;;; print the label of a rule which derived a state
 ;;; that denode contains.
@@ -167,6 +169,7 @@
   (state-predicate nil)                 ; STATE equality predicate
   (answers nil)                         ; list of STATEs satisfying specified
                                         ; conditions.
+  (bind nil)				; ....
   )
 
 (defun print-sch-context (ctxt &optional (stream *standard-output*) &rest ignore)
@@ -200,7 +203,8 @@
       (format t "~%   answers: ")
       (dolist (x (reverse (rwl-sch-context-answers ctxt)))
         (term-print-with-sort (rwl-state-term x)))
-      )))
+      (when (rwl-sch-context-bind ctxt)
+	(term-print-with-sort (rwl-sch-context-bind ctxt))))))
 
 ;;; .RWL-SCH-CONTEXT.
 ;;;  moved to comlib/globals.lisp
@@ -258,7 +262,8 @@
     dag))
 
 (defun show-rwl-sch-path (num-tok &optional (label? nil)
-                                            (sch-context .rwl-sch-context.))
+                                            (sch-context .rwl-sch-context.)
+					    (state-only? nil))
   (unless num-tok
     (return-from show-rwl-sch-path
       (format t "~%nothing to be reported...")))
@@ -279,16 +284,15 @@
           (with-output-chaos-warning ()
             (format t "the context(module) of search result is different from the current module.")))
         (with-in-module (mod)
-          (let ((parents (get-bdag-parents dag)))
-            (cond (label?
-                   (dolist (p (cdr parents)) ;root has no transition
-                     (show-rwl-sch-label p))
-                   (show-rwl-sch-label dag))
-                  (t (dolist (p parents)
-                       (show-rwl-sch-state p))
-                     (show-rwl-sch-state dag)))))
-        ))))
-
+	  (cond (state-only? (show-rwl-sch-state dag nil (rwl-sch-context-bind sch-context)))
+		(t (let ((parents (get-bdag-parents dag)))
+		     (cond (label?
+			    (dolist (p (cdr parents)) ;root has no transition
+			      (show-rwl-sch-label p))
+			    (show-rwl-sch-label dag))
+			   (t (dolist (p parents)
+				(show-rwl-sch-state p t (rwl-sch-context-bind sch-context)))
+			      (show-rwl-sch-state dag t (rwl-sch-context-bind sch-context))))))))))))
 
 ;;; *****
 ;;; RULEs
@@ -962,7 +966,11 @@
                 (term-print-with-sort (rwl-state-term state))
 		(dolist (sub (rwl-state-subst state))
 		  (format t "~%   ")
-		  (print-substitution sub))
+		  (print-substitution sub)
+		  (when (rwl-sch-context-bind sch-context)
+		    (format t "~%   => ")
+		    (term-print-with-sort (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
+		  )
                 (format t "~&"))
               (setf (sch-node-is-solution node) t) ; mark the node as solution
               (incf (rwl-sch-context-sol-found sch-context))
@@ -1020,7 +1028,8 @@
 (defun rwl-search* (t1 t2 max-result max-depth zero? final?
                     &optional cond
                               pred-pat
-                              module)
+                              module
+			      bind)
   (with-in-module (module)
     (unless t2
       (setq t2 (make-anything-is-ok-term)))
@@ -1042,6 +1051,7 @@
                         :max-sol max-result
                         :max-depth max-depth
                         :state-predicate nil
+			:bind bind
                         ))
           (root nil)
           (res nil)
@@ -1209,7 +1219,8 @@
                         (zero? nil)
                         (final? nil)
                         (cond nil)
-                        (pred nil))
+                        (pred nil)
+			(bind nil))
   (let ((module (or *current-module* *last-module*))
         max-r
         max-d
@@ -1242,7 +1253,7 @@
     ;;
     (let ((*clean-memo-in-normalize* nil))
       (report-rwl-result 
-       (rwl-search* term pattern max-r max-d zero? final? cond pred module)))
+       (rwl-search* term pattern max-r max-d zero? final? cond pred module bind)))
     ))
 
 ;;; rwl-sch-set-result

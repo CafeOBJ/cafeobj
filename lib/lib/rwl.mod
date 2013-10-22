@@ -80,6 +80,12 @@ sys:mod! RWL
       { strat: (0) prec: 51 }
     pred _=(_,_)=>+_suchThat_: *Cosmos* NzNat* NzNat* *Cosmos* Bool
       { strat: (0) prec: 51 }
+    ** experimental -------------
+    pred _=(_,_)=>*_ suchThat_{_} : *Cosmos* NzNat* NzNat* *Cosmos* Bool *Cosmos*
+      { strat: (0) prec: 51 }
+    pred _=(_,_)=>+_suchThat_{_} : *Cosmos* NzNat* NzNat* *Cosmos* Bool *Cosmos*
+      { strat: (0) prec: 51 }
+    ** -------------------------
     pred _=(_,_)=>!_suchThat_: *Cosmos* NzNat* NzNat* *Cosmos* Bool
       { strat: (0) prec: 51 }
     -- suchThat 'state equality predicate'
@@ -166,6 +172,7 @@ sys:mod! RWL
     var MAX-R : NzNat*
     var MAX-D : NzNat*
     var PRED : *Cosmos*
+    var BIND : *Cosmos*
 
     ** histrical builtin ==> is equivalent with =(1,*)=>*
     eq (CXU ==> CYU) = CXU =(1,*)=>* CYU .
@@ -258,6 +265,11 @@ sys:mod! RWL
       #!! (rwl-sch-set-result
 	     (rwl-search :term cxu :pattern cyu :max-result MAX-R
 		:max-depth MAX-D :zero? t :cond cond)) .
+    eq (CXU =(MAX-R, MAX-D)=>* CYU suchThat COND {BIND}) = 
+      #!! (rwl-sch-set-result
+	     (rwl-search :term cxu :pattern cyu :max-result MAX-R
+		:max-depth MAX-D :zero? t :cond cond :bind bind)) .
+
     eq (CXU =(MAX-R, MAX-D)=>! CYU suchThat COND) = 
       #!! (rwl-sch-set-result
 	     (rwl-search :term cxu :pattern cyu :max-result MAX-R
@@ -266,6 +278,11 @@ sys:mod! RWL
       #!! (rwl-sch-set-result
 	     (rwl-search :term cxu :pattern cyu :max-result MAX-R
 		:max-depth MAX-D :cond cond)) .
+    eq (CXU =(MAX-R, MAX-D)=>+ CYU suchThat COND {BIND}) = 
+      #!! (rwl-sch-set-result
+	     (rwl-search :term cxu :pattern cyu :max-result MAX-R
+		:max-depth MAX-D :cond cond :bind bind)) .
+
     -- =(NzNat*, NzNat*)=> withStateEq(BoolTerm/2)
     eq (CXU =(MAX-R, MAX-D)=>* CYU withStateEq(PRED)) = 
       #!! (rwl-sch-set-result

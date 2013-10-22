@@ -1194,6 +1194,8 @@
                           (if (member opt '("labels" "label") :test #'equal)
                               (show-rwl-sch-path (caddr dat) :label)
                             (show-rwl-sch-path opt))))
+		("state" (let ((opt (cadr dat)))
+			   (show-rwl-sch-path opt nil .rwl-sch-context. t)))
                 ;;
                 ("?"    
                  (princ "** general module inspection commands.")
@@ -1240,6 +1242,7 @@
                  (princ "  show stop") (terpri)
                  (princ "  show features") (terpri)
                  (princ "  show memo")(terpri)
+		 ;;
                  ;;
                  (princ "** PigNose resolve base proof system commands.")
                  (terpri)
