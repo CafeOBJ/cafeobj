@@ -455,6 +455,8 @@
 
 ;;; search command related
 (defvar .rwl-sch-context. nil)
+(defvar .rwl-context-stack. nil)
+(defvar .rwl-states-so-far. 0)
 (defvar *rwl-search-no-state-report* nil)
 
 ;;; basic operations in IDENTICAL.

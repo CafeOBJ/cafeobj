@@ -1,0 +1,415 @@
+** ===============================================================
+**  qlock ObsSetTrOts for cafeobj1412b1 131022
+** ===============================================================
+** ======= Specification and Proof Score for QLOCK ===============
+** ===============================================================
+
+** ===============================================================
+** ================ System Specification =========================
+** ===============================================================
+
+-- three labels for indicating status of each agent
+mod! LABEL {
+-- label literals and labels
+[LabelLt < Label]
+-- rs: remainder section
+-- ws: waiting section
+-- cs: critical section
+ops rs ws cs : -> LabelLt {constr} .
+-- vars L1 L2 : LabelLt .
+eq (L1:LabelLt = L2:LabelLt) = (L1 == L2) .
+}
+
+-- agent identifiers
+mod* AID {[Aid]}
+
+-- ===============================================================
+-- queue (first in first out storage)
+mod! QUEUE (X :: TRIV) {
+-- elements and their queues, Elt comes from (X :: TRIV)
+[Elt.X < Qu]
+-- error elements and error queues
+[Elt.X < Elt&Err]  [Qu < Qu&Err]
+-- empty queue
+op empQ : -> Qu {constr} . 
+-- assoicative queue constructors with id: empQ
+op (_&_) : Qu Qu -> Qu {constr assoc id: empQ} .
+op (_&_) : Qu&Err Qu&Err -> Qu&Err {constr assoc id: empQ} .
+-- equality _=_ over Qu&Err
+eq (empQ = (E:Elt & Q:Qu&Err)) = false .
+ceq ((E1:Elt & Q1:Qu&Err) = (E2:Elt & Q2:Qu&Err)) 
+    = ((E1 = E2) and (Q1 = Q2))
+    if not((Q1 = empQ) and (Q2 = empQ)) .
+-- head
+op hd_ : Qu&Err -> Elt&Err .
+eq hd(E:Elt & Q:Qu&Err) = E .
+-- hd(empQ) is not defined intentionally, an error handling method
+-- tail
+op tl_ : Qu&Err -> Qu&Err .
+eq tl(E:Elt & Q:Qu&Err) = Q .
+-- tl(empQ) is not defined intentionally, an error handling method
+}
+
+-- ===============================================================
+-- observers
+mod! OBS {
+pr(LABEL) 
+pr(QUEUE(AID{sort Elt -> Aid})*{sort Elt&Err -> Aid&Err})
+-- there are two kinds of obserbers
+[Obs]
+op (qu:_ ) : Qu -> Obs {constr} .
+
+-- (lb[A:Aid]: L:Label) is a term of the sort Obs 
+-- (an observer) that indicates an agent A has a label L
+op (lb[_]:_) : Aid Label -> Obs {constr} .
+}
+
+-- generic set 
+mod! SET(X :: TRIV) {
+[Elt.X < Set]
+-- empty set
+op empty : -> Set {constr} .
+-- assicative and commutative set constructor with identity empty
+op (_ _) : Set Set -> Set {constr assoc comm id: empty} .
+-- (_ _) is idempotent
+eq E:Elt E = E .
+}
+
+-- a state is defined as a set of observers
+mod! STATE{pr(SET(OBS{sort Elt -> Obs})*{sort Set -> State})}
+
+-- ===============================================================
+-- wt: want transition
+mod! WT {inc(STATE)
+trans[wt]: 
+     ((qu: Q:Qu)(lb[A:Aid]: rs) S:State) 
+     => ((qu: (Q & A))(lb[A]: ws) S) . 
+}
+-- ty: try transition
+mod! TY {inc(STATE)
+trans[ty]: 
+     ((qu: (A:Aid & Q:Qu))(lb[A]: ws) S:State) 
+     => ((qu: (A & Q))(lb[A]: cs) S) .
+}
+-- ex: exit transition
+mod! EX {inc(STATE)
+trans[ex]: 
+   ((qu: (A1:Aid & Q:Qu))(lb[A2:Aid]: cs) S:State) 
+   => ((qu: Q)(lb[A2]: rs) S) .
+}
+
+-- ===============================================================
+-- system specification of QLOCK
+mod! QLOCKsys{pr(WT + TY + EX)}
+
+** ===============================================================
+** ================ Property Specification =======================
+** ===============================================================
+
+-- ===============================================================
+-- for defining state predicates
+
+-- Peano Style Natural Numbers with ac-_+_ 
+mod! PNAT+ac {
+  [Nat]
+  op 0 : -> Nat {constr} .
+  op s_ : Nat -> Nat {constr} .
+  -- equality over the natural numbers
+  eq (0 = s(Y:Nat)) = false .
+  eq (s(X:Nat) = s(Y:Nat)) = (X = Y) .
+  -- associative and commutative _+_
+-- op _+_ : Nat Nat -> Nat {assoc comm} .
+  op _+_ : Nat Nat -> Nat .
+  eq 0 + Y:Nat = Y .
+  eq (s X:Nat) + Y:Nat = s(X + Y) .
+}
+
+-- elementary functions on states 
+mod! STATEfuns {pr(PNAT+ac + STATE) 
+-- variable declarations
+vars L1 L2 : Label . vars A1 A2 : Aid .
+var S : State .  var Q : Qu .
+-- the number of queues in a state
+op #q : State -> Nat .
+eq #q(empty) = 0 .
+eq #q((qu: Q) S) = (s 0) + #q(S) .
+eq #q((lb[A1]: L1) S) = #q(S) .
+-- the number of a label in a state
+op #ls : State Label -> Nat .
+eq #ls(empty,L1) = 0 .
+eq #ls(((qu: Q) S),L1) = #ls(S,L1) .
+eq #ls(((lb[A1]: L1) S),L2) = 
+   if (L1 = L2) then (s 0) + #ls(S,L2) 
+   else #ls(S,L2) fi .
+-- the number of an aid in a state
+op #as : State Aid -> Nat .
+eq #as(empty,A1) = 0 .
+eq #as((qu: Q) S,A1) = #as(S,A1) .
+eq #as(((lb[A1]: L1) S),A2) = 
+   if (A1 = A2) then (s 0) + #as(S,A2) 
+   else #as(S,A2) fi .
+-- the number of an aid in a queue
+op #aq : Qu&Err Aid -> Nat .
+eq #aq(empQ,A1) = 0 .
+eq #aq(A1 & Q,A2) =
+   if (A1 = A2) then (s 0) + #aq(Q,A2) 
+   else #aq(Q,A2) fi .
+}
+
+-- names of predicates on states and conjunction of the predicates
+mod! PNAMEcj {pr(STATE)
+-- names of predicates on States and sequences of them
+[Pname < PnameSeq]
+op (_ _) : PnameSeq PnameSeq -> PnameSeq {assoc} .
+-- conjunction of predicates indicated in PnameSeq
+op cj : PnameSeq State -> Bool .
+eq cj(PN:Pname PNS:PnameSeq,S:State)
+   = cj(PN,S) and cj(PNS,S) .
+}
+
+-- ===============================================================
+-- predicates on states for well formed states and intitial states
+mod! STATEpred1 {pr(STATEfuns)ex(PNAMEcj)
+-- one queue in a state
+op 1q : -> Pname .
+eq[1q]: cj(1q,S:State) = (#q(S) = (s 0)) .
+-- no duplication of an Aid in a state 
+op 1a : -> Pname .
+eq[1a]: cj(1a,empty) = true .
+eq[1a]: cj(1a,((lb[A:Aid]: L:Label) S:State)) = 
+        (#as(S,A) = 0) and cj(1a,S) .
+eq[1a]: cj(1a,((qu: Q:Qu) S:State)) = cj(1a,S) .
+-- qas pattern, only the state with this pattern is well formed
+pred qas : State .
+eq qas((qu: Q:Qu)(lb[A:Aid]: L:Label) S:State) = true .
+op qas : -> Pname .
+eq[qas]: cj(qas,S:State) = qas(S) .
+-- well formed states
+op wfs : -> Pname .
+eq wfs = qas 1q 1a .
+-- there is exactly one empty queue
+op qe : -> Pname .
+eq[qe]: cj(qe,empty) = false .
+eq[qe]: cj(qe,((lb[A:Aid]: L:Label) S:State)) 
+        = cj(qe,S) .
+eq[qe]: cj(qe,((qu: Q:Qu) S:State)) 
+        = (Q = empQ) and (#q(S) = 0) .
+-- any Aid is in rs status, i.e. no ws, no cs
+op allRs : -> Pname .
+eq[allRs]: cj(allRs,S:State) = (#ls(S,ws)= 0) and (#ls(S,cs)= 0) .
+}
+
+-- ===============================================================
+-- an initial state predicate
+mod! INIT {pr(STATEpred1)
+op init : -> PnameSeq .
+eq init = wfs qe allRs .
+-- initial state predicate
+pred init : State .
+eq init(S:State) = cj(init,S) .
+}
+
+-- ===============================================================
+-- predicates on states for an inductive invariant predicate
+mod! STATEpred2 {pr(STATEpred1)
+-- variable declarations
+var L : Label . var A : Aid .
+var S : State . var Q : Qu .
+-- mutual exclusion property: at most one agent is with cs
+-- this is the goal predicate
+op mx : -> Pname .
+eq[mx]: cj(mx,S) = ((#ls(S,cs) = 0) or (#ls(S,cs) = (s 0))) .
+-- several fragment predicates for an inductive invariant
+ops qep rs ws cs : -> Pname .
+-- if queue is empty
+eq[qep]: cj(qep,((qu: Q)(lb[A]: L) S)) 
+         = ((Q = empQ) implies 
+            (#ls(((lb[A]: L) S),cs) = 0)) .
+-- if agent is in rs
+eq[rs]: cj(rs,((qu: Q)(lb[A]: L) S)) 
+        = ((L = rs) implies (#aq(Q,A) = 0)) .
+-- if agent is in ws
+eq[ws]: cj(ws,((qu: Q)(lb[A]: L) S)) 
+        = ((L = ws) implies 
+           ((#aq(Q,A) = (s 0)) and
+            ((A = hd(Q)) implies (#ls(S,cs) = 0)))) .
+-- if agent is in cs
+eq[cs]: cj(cs,((qu: Q)(lb[A]: L) S)) 
+        = ((L = cs) implies ((A = hd(Q)) and 
+                             (#aq(tl(Q),A) = 0)and 
+                             (#ls(S,cs) = 0))) .
+}
+
+-- ===============================================================
+-- an inductive invariant predicate
+mod! INV {pr(STATEpred2)
+op inv : -> PnameSeq .
+eq inv = wfs mx qep rs ws cs .
+pred inv : State .
+eq inv(S:State) = cj(inv,S) .
+}
+
+-- ===============================================================
+-- property specification of QLOCK
+mod! QLOCKprop{pr(INIT + INV)}
+
+** ===============================================================
+** ================ Proof Score ==================================
+** ===============================================================
+
+-- the following two modules describe an algorithm 
+-- for generating a finite set of patterns that cover 
+-- all possbile cases 
+-- by expanding alternatives indicated by (_;_) 
+
+-- predicate v that is to be checked
+-- and indicator information constructor ii
+mod* PREDtbC {
+-- values and their sequences
+[Val < ValSq]
+op _,_ : ValSq ValSq -> ValSq {assoc} .
+-- predicate to be checed
+pred v_ : ValSq .
+-- indicator information for analysis
+[IndInfo]
+op ii_ : ValSq -> IndInfo {constr} .
+** v_ and ii_ shoud have a same arity
+** as a sequence of 'Val's
+}
+
+-- generating a finit set of patterns
+-- that cover all possible combinations
+-- of values in a value sequence
+mod! GENcases (X :: PREDtbC) {
+-- sequences of values indicating
+-- all possible alternatives
+[Val < VlSq]
+op _;_ : VlSq VlSq -> VlSq {assoc} .
+-- sequence of ValSeq or VlSeq
+[ValSq VlSq < SqSq]
+op _,_ : SqSq SqSq -> SqSq {assoc} .
+-- SqSq enclosures and their trees
+[SqSqEn < SqSqTr]
+op [_] : SqSq -> SqSqEn .
+op _||_ : SqSqTr SqSqTr -> SqSqTr .
+
+-- expanding alternatives indicated by (_;_) 
+-- into (_||_) as much as possible
+var V : Val . 
+var VS : VlSq . 
+vars SS1 SS2 : SqSq .
+eq [((V;VS),SS2)] = [(V,SS2)] || [(VS,SS2)] .
+eq [(SS1,(V;VS),SS2)] 
+   = [(SS1,V,SS2)] || [(SS1,VS,SS2)] .
+eq [(SS1,(V;VS))] = [(SS1,V)] || [(SS1,VS)] .
+
+-- indicators and their trees
+[Ind < IndTr]
+op $ : -> Ind .
+op _|_ : IndTr IndTr -> IndTr .
+-- indicator constructor;
+-- [IndInfo] comes from (X :: PREDtbC)
+op i : Bool IndInfo -> Ind {constr} .
+-- make indicator (mi) using
+--  (v_ : ValSq -> Bool) and 
+--  (ii_ : ValSq -> IndInfo)
+-- that come from (X :: PREDtbC)
+op mi_ : ValSq -> Ind .
+eq mi(VSQ:ValSq) = i(v(VSQ),ii(VSQ)) .
+
+-- make make indicators (mmi):
+-- translating a tree of SqSq (SqSqTr)
+-- into a tree of indicators
+op mmi_ : SqSqTr -> IndTr .
+eq mmi(SST1:SqSqTr || SST2:SqSqTr) 
+   = (mmi SST1) | (mmi SST2) .
+-- if all _;_ in SqSq disappear
+-- then translate mmi to mi
+eq mmi[VSQ:ValSq] = mi(VSQ) .
+
+-- making all indicators with "true" disappear 
+eq i(true,II:IndInfo) | IT:IndTr = IT .
+eq IT:IndTr | i(true,II:IndInfo) = IT .
+}
+
+-- ===============================================================
+-- facts to be used
+mod! FACTtbu {
+pr(QLOCKprop)
+-- necessary fact about _=_ on Nat
+-- eq ((M:Nat + N:Nat) = 0) = ((M = 0) and (N = 0)) . 
+
+-- necessary fact about #aq
+-- eq #aq(Q:Qu & A1:Aid,A2:Aid) = if (A1 = A2) then (s 0) + #aq(Q,A2) 
+--                               else #aq(Q,A2) fi .
+}
+
+--> ==============================================================
+--> Verification of the Invariant Condition:
+--> (for-all (S->S'):State->State(One-Step-Transition))
+-->                 (inv(S) implies inv(S'))
+--> ==============================================================
+
+--> [0] cj(qas,s) = false .
+-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+-- If 'cj(qas,s) = false' for any state 's', there is no
+-- chance for the state 's' to match any of the three 
+-- transition rules wt, ty, or ex.  Hence, no transition
+-- happens from the state 's' with 'cj(qas,s) = false',
+-- and no need to consider this case.
+-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+--> [1] cj(qas,s) = true .
+-- in this case, we can only consider a state 
+-- that is an instance of the pattern:
+--  ((qu: Q:Qu)(lb[A:Aid]: L:Label) S:State)
+--
+-- define v_ and ii_: this module is an actual parameter 
+-- for the GENcases module
+mod! QLOCKinv {pr(QLOCKsys + QLOCKprop)
+-- val and ValSeq
+[Qu Aid Label State < Val < ValSq]
+op _,_ : ValSq ValSq -> ValSq {assoc} .
+-- predicate to be checked
+op v_ : ValSq -> Bool .
+eq v(Q:Qu,A:Aid,L:Label,S:State,SS:State) =
+    (not(((qu: Q) (lb[A]: L) S)  =(*,1)=>+ SS
+         suchThat
+         (not((inv((qu: Q)(lb[A]: L) S) implies inv(SS))
+               == true))
+         {(inv((qu: Q)(lb[A]: L) S) implies inv(SS))})) .
+
+[IndInfo]
+op ii_ : ValSq -> IndInfo .
+op ss_ : State -> IndInfo {constr} .
+eq ii(Q:Qu,A:Aid,L:Label,S:State,SS:State) = ss((qu: Q) (lb[A]: L) S) .
+}
+-- a module to generate and check all possible transitions
+mod! CKallCasesInv {ex(GENcases(QLOCKinv))
+-- Aid constant literals
+[AidConLt < Aid]
+eq (B1:AidConLt = B2:AidConLt) = (B1 == B2) .
+ops b1 b2 : -> AidConLt .
+-- constants declarations
+op q : -> Qu . op s : -> State .
+--
+-- function for generating and checking all possible
+-- transitions defined by the module WT, TY, EX
+op gen&ck : State -> IndTr .
+-- variables to be bound by the built-in predicate:
+--         (_=(*,1)=>+_suchThat_) 
+var SS : State .
+eq gen&ck(SS) = 
+    ($ | mmi[(empQ;(b1 & q)),
+             (b1;b2),
+             (rs;ws;cs),
+             (s),
+             (SS)]) .
+pr(FACTtbu)
+}
+-- reduction for verification of invariant condition
+open CKallCasesInv .
+-- red in CKallCasesInv : gen&ck(SS) .
+red gen&ck(SS) .
+show state 1
+eof

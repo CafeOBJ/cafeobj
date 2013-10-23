@@ -115,6 +115,10 @@
   ;; (setq $$trials 1)
   (setq *m-pattern-subst* nil)
   ;;
+  (setq .rwl-context-stack. nil)
+  (setq .rwl-sch-context. nil)
+  (setq .rwl-states-so-far. 0)
+  ;;
   (let ((*consider-object* t)
         (*rewrite-exec-mode* (or (eq mode :exec)
                                  (eq mode :exec+)))
@@ -1184,12 +1188,15 @@
                 ;; ("option" (pignose-show-option (cadr dat) describe))
                 ("option" (pignose-show-option (cadr dat)))
                 ;; =(*)=> support
-                (("exec" "search" "sch") (case-equal (cadr dat)
-                                                     ("graph" (show-rwl-sch-graph))
-                                                     (otherwise
-                                                      (with-output-chaos-error ()
-                                                        (format t "no such `show exec' option ~a"
-                                                                (cadr dat))))))
+                (("exec" "search" "sch")
+		 (let ((option (cadr dat))
+		       (num (caddr dat)))
+		   (case-equal option
+			       ("graph" (show-rwl-sch-graph num))
+			       (otherwise
+				(with-output-chaos-error ()
+				  (format t "no such `show exec' option ~a"
+					  (cadr dat)))))))
                 ("path" (let ((opt (cadr dat)))
                           (if (member opt '("labels" "label") :test #'equal)
                               (show-rwl-sch-path (caddr dat) :label)
