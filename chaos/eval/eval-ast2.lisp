@@ -1123,7 +1123,8 @@
                    (with-output-chaos-warning ()
                      (princ "no current term to display."))))
                 ("term"
-                 (let* ((target (if (not (equal (second dat) "tree"))
+                 (let* ((target (if (not (or (equal (second dat) "tree")
+					     (equal (second dat) "graph")))
                                     (second dat)
                                   nil))
                         (tree? (if target
@@ -1230,7 +1231,7 @@
                  (princ "  show [all] rules [<Modexp>] .") (terpri)
                  ;; (princ "  show abbrev [<Modexp>] .") (terpri)
                  (princ "  show tree") (terpri)
-                 (princ "  show term [let-variable] [tree]") (terpri)
+                 (princ "  show term [let-variable] [tree | graph]") (terpri)
                  (princ "  show subterm [tree]") (terpri)
                  (princ "  show let") (terpri)
                  (princ "  show selection") (terpri)

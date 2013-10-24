@@ -559,7 +559,7 @@
 (defun print-term-graph (tree &optional (show-sort nil) (stream *standard-output*))
   (!print-term-tree tree show-sort stream t))
 
-(defun !print-term-tree (tree show-sort stream show-as-graph)
+(defun !print-term-tree (tree show-sort stream &optional (show-as-graph t))
   (let* ((*show-sort* show-sort)
          (leaf?
           #'(lambda (tree) (or (term-is-variable? tree)

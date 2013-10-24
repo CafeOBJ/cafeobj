@@ -223,7 +223,7 @@
 	     (setq res (list (info-for-special-builtins token))))
 	    ;; normal token
 	    (t (setq res (dictionary-get-token-info (dictionary-table dictionary)
-						  token))
+						    token))
 	       ;; blocked let variable?
 	       ;;  *TODO*
 	     
@@ -236,10 +236,6 @@
 		       (push (simple-copy-term-sharing-variables
 			      val dictionary)
 			     res)))))
-	       ;;----
-	       ;; (when res (return-from collect nil))
-	       ;;----
-
 	       ;; try other possiblities.
 	       ;; variable ?
 	       (let ((res2 (assoc (intern token) *parse-variables*)))
@@ -253,7 +249,6 @@
 		       (t
 			;; check sort qualified variable reference
 			;; = on-the-fly (dynamic) variable declaration. 
-			;;
 			(let ((q-pos (position #\: (the simple-string token)
 					       :from-end t)))
 			  (declare (type (or null fixnum) q-pos))
@@ -294,6 +289,7 @@
 					 (princ ".")
 					 (terpri))))
 				   ;;
+				   #||
 				   (let ((gv (dictionary-get-token-info
 					      (dictionary-table dictionary)
 					      var-name)))
@@ -303,8 +299,9 @@
 						   'variable)
 					   (with-output-chaos-error ('already-used-name)
 					     (format t "~&on the fly variable name ~A is already used for static variable declaration..." var-name))))))
-				   ;; OK
+				   ||#
 				   (setq var-name (intern var-name))
+
 				   ;; success parsing it as a variable declaration.
 				   ;; checks if there alredy a variable with the same
 				   ;; name. 
@@ -316,7 +313,7 @@
 					 (unless (sort= (variable-sort (cdr old-var))
 							sort) 
 					   (with-output-chaos-error ()
-					     (format t "on the fly variable ~A has been declared as sort ~A, but now being redefined as sort ~A.~%"
+					     (format t "variable ~A has been declared as sort ~A, but now being redefined as sort ~A.~%"
 						     (string var-name)
 						     (string (sort-id
 							      (variable-sort (cdr
@@ -347,7 +344,13 @@
 						      *current-module*)))
 					   ||#
 					   )
-				       (progn
+				       (let ((svar (assoc var res :test #'equal)))
+					 (when *on-parse-debug*
+					   (format t "~%!res = ~s" res))
+					 (when svar
+					   (with-output-chaos-error ()
+					     (format t "Static variable ~s already used before in the same context" var-name)))
+
 					 (push var res)
 					 #||
 					 (when (err-sort-p (variable-sort var))
@@ -444,7 +447,7 @@
     (when *on-parse-debug*
       (format t "~& : sort constraint = ")
       (print-chaos-object sort-constraint)
-      (format t "~& : result info = ")
+      (format t "~& : result info = ~s" res)
       (print-chaos-object res))
     ;; (values (delete-duplicates res :test #'equal) (car mod-token))
     (values res (car mod-token))
@@ -1176,6 +1179,8 @@
     ;;    Note: a variable is referenced by *ONE* token--always !
     ((variable builtin lisp-form normal-term)
      ;; return a list of only one solution (precedence level is ):
+     (when (eq (object-syntactic-type op-var) 'variable)
+       (push (cons (variable-name op-var) op-var) *parse-variables*))
      (list (cons (cons op-var parser-min-precedence) token-list)))
 
     ;; 2. Antefix

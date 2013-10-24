@@ -154,7 +154,8 @@
 (defun show-term (target tree?)
   (when (and tree?
 	     (not (equal tree? "."))
-	     (not (equal tree? "tree")))
+	     (not (equal tree? "tree"))
+	     (not (equal tree? "graph")))
     (with-output-chaos-warning ()
       (format t "unknown option for `show term' : ~a" tree?))
     (return-from show-term nil))
@@ -201,7 +202,9 @@
 	    ))
       ;; (terpri)
       (when (equal tree? "tree")
-	(print-term-tree target *chaos-verbose*)))))
+	(print-term-tree target *chaos-verbose*))
+      (when (equal tree? "graph")
+	(print-term-graph target *chaos-verbose*)))))
 
 ;;; ************
 ;;; SHOW MOD ...
