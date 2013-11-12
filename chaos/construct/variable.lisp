@@ -17,7 +17,7 @@
 (defun check-var-name-overloading-with-builtin (var-name sort module)
   (let ((sorts (module-all-sorts module)))
     (dolist (bi sorts)
-      (when (sort-is-builtin bi)
+      (when (and (sort-is-builtin bi) (not (sort= *id-sort* bi)))
 	(let ((token-pred (bsort-token-predicate bi)))
 	  (when (and token-pred
 		     (funcall token-pred var-name)

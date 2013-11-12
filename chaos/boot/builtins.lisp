@@ -97,7 +97,7 @@
   ;; builtin sorts of internal objects-------------------------------
   ;; *Module* 
   (setq *module-sort* (define-builtin-sort $name-module *chaos-meta*))
-  ;; *Imports*
+  ;; *Import*
   (setq *import-sort* (define-builtin-sort $name-import *chaos-meta*))
   ;; *Signature*
   (setq *signature-sort* (define-builtin-sort $name-signature *chaos-meta*))
@@ -109,9 +109,11 @@
   (setq *sort-sort* (define-builtin-sort $name-sort *chaos-meta*))
   ;; *Operator*
   (setq *operator-sort* (define-builtin-sort $name-operator *chaos-meta*))
+  ;; *OpTheory*
+  (setq *optheory-sort* (define-builtin-sort $name-optheory *chaos-meta*))
   ;; *Axiom*
   (setq *axiom-sort* (define-builtin-sort $name-axiom *chaos-meta*))
-  ;; *Clist*
+  ;; *CafeList*
   (setq *chaos-list-sort* (define-builtin-sort $name-chaos-list *chaos-meta*))
   ;; *ChaosObject*
   (setq *chaos-object* (define-builtin-sort $name-chaos-object *chaos-meta*))
@@ -121,6 +123,8 @@
   (setq *chaos-expr-sort* (define-builtin-sort $name-chaos-expr *chaos-meta*))
   ;; *Substitution*
   (setq *subst-sort* (define-builtin-sort $name-subst *chaos-meta*))
+  ;; *Parameter*
+  (setq *parameter-sort* (define-builtin-sort $name-parameter *chaos-meta*))
   )
 
 (defun print-ast-dict ()
@@ -227,6 +231,11 @@
                        (%bsort-decl "Float" is-float-token
                         create-float print-float is-float nil))))
   
+  (eval-ast-if-need '(%module-decl "ID" :object :hard
+                      ((%psort-decl (%sort-ref "Id" nil))
+                       (%bsort-decl "Id" is-id-token create-id
+                        print-id is-id nil))))
+  (setup-id)
   (eval-ast-if-need '(%module-decl "QID" :object :hard
                       ((%psort-decl (%sort-ref "Id" nil))
                        (%bsort-decl "Id" is-qid-token create-qid

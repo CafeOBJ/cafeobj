@@ -119,6 +119,21 @@
 	(declare (type fixnum x))
 	(princ fill-char stream))
       )))
+
+(defparameter .terminal-width. 70)
+(defun print-centering (string &optional (fill-char " ") (stream *standard-output*))
+  (declare (type simple-string string))
+  (let ((fill-col (truncate (+ (/ (- .terminal-width. (length string)) 2.0) 0.5))))
+    (declare (type fixnum fill-col))
+    (dotimes (x fill-col)
+      (declare (type fixnum x))
+      (princ fill-char stream))
+    (princ string stream)
+    (unless (equal fill-char " ")
+      (dotimes (x fill-col)
+	(declare (type fixnum x))
+	(princ fill-char stream))
+      )))
     
 ;;; print-to-right
 ;;; print the given string

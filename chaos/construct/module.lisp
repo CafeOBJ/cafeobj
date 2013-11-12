@@ -77,7 +77,7 @@
 	  (res nil))
       (dolist (opinfo ops)
 	(dolist (m (opinfo-methods opinfo))
-	  (when (or (not no-error-mehods)
+	  (when (or (not no-error-methods)
 		    (not (method-is-error-method m)))
 	    (push m res))))
       (nreverse res))))

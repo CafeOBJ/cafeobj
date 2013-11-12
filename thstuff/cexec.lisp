@@ -64,7 +64,6 @@
 	  (print-substitution subst)))
       (flush-all))))
 
-
 (defun print-state-transition (state sub-states &optional (stream *standard-output*))
   (declare (type rwl-state state)
            (type list sub-states)

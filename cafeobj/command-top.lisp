@@ -605,29 +605,28 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 ;;;
 (defun parse-cafeobj-input-from-string (string)
   (let ((.reader-ch. 'space)
-	  (*reader-input* *reader-void*)
-	  (*print-array* nil)
-	  (*print-circle* nil)
-	  (*old-context* nil)
-	  (*show-mode* :cafeobj))
-      (let ((inp nil)
-	    (.in-in. nil))
-	(declare (special .in-in.))
-	(with-chaos-top-error ('handle-cafeobj-top-error)
-	  (with-chaos-error ('handle-chaos-error)
-	    (setq inp (cafeobj-parse-from-string string))
-	    (block process-input
-	      ;; (format t "~%inp=~s" inp)
-	      ;; PROCESS INPUT =========================================
-	      (let* ((key (car inp))
-		     (proc (find-if #'(lambda (elt)
-					(member key (car elt) :test #'equal))
-				    .cafeobj-top-command-menu.)))
-		(if proc
-		    (funcall (cdr proc) inp)
-		  (with-output-chaos-warning ()
-		    (format t "unknown declaration form ~a." inp))))))))))
-
+	(*reader-input* *reader-void*)
+	(*print-array* nil)
+	(*print-circle* nil)
+	(*old-context* nil)
+	(*show-mode* :cafeobj))
+    (let ((inp nil)
+	  (.in-in. nil))
+      (declare (special .in-in.))
+      (with-chaos-top-error ('handle-cafeobj-top-error)
+	(with-chaos-error ('handle-chaos-error)
+	  (setq inp (cafeobj-parse-from-string string))
+	  (block process-input
+	    ;; (format t "~%inp=~s" inp)
+	    ;; PROCESS INPUT =========================================
+	    (let* ((key (car inp))
+		   (proc (find-if #'(lambda (elt)
+				      (member key (car elt) :test #'equal))
+				  .cafeobj-top-command-menu.)))
+	      (if proc
+		  (funcall (cdr proc) inp)
+		(with-output-chaos-warning ()
+		  (format t "unknown declaration form ~a." inp))))))))))
 ;;;
 ;;; READING IN DECLARATIONS/COMMANDS and PROCESS THEM.
 ;;;

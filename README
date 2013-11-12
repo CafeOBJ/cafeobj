@@ -1,77 +1,84 @@
+%CafeOBJ Interpreter
+%Version 1.4.11
+% 31 October 2013
 
+CafeOBJ is a new generation algebraic specification and programming language. As a direct successor
+of OBJ, it inherits all its features(flexible mix-fix syntax, powerful typing system with sub-types,
+and sophisticated module composition system featuring various kinds of imports, parameterised
+modules, views for instantiating the parameters, module expressions, etc.) but it also implements
+new paradigms such as rewriting logic and hidden algebra, as well as their combination.
 
-			 CafeOBJ Interpreter
-			    Version 1.4.9
+----------------------------------------------------------------------
 
-The files in this dierectory and its subdirectories constitute the
+The files in this directory and its sub directories constitute the
 complete source code for CafeOBJ interpreter. 
 
 ----------------------------------------------------------------------
-REQUIREMENT for compiling the system from source files.
+
+BINARY DISTRIBUTION
+===================
+You can down load the binary executable of several platforms 
+from [here](https://bitbucket.org/tswd/cafeobj/downloads).
+
+----------------------------------------------------------------------
+
+REQUIREMENT for compiling the system from source files
+=======================================================
 
 CafeOBJ interpreter uses Common Lisp as a underlying implementation
 language, and can be built on one of the following platforms:
 
 (1) Allegro CL version 8.0 or later
-(2) SBCL version 1.1.7 or later
-(3) CMUCL version 19 or later [*]
-(4) CLISP 2.4.9 or later
+(2) SBCL version 1.1.7 or later (<http://www.sbcl.org/platform-table.html>)
+(3) CMUCL version 20D or later (<http://www.cons.org/cmucl/download.html>)
+(4) CLISP 2.4.9 or later (<http://www.clisp.org>)
 
-[*] CMUCL does not compile the system as of this writing (2013/5/13),
-    soon will be fixed.
-
-All of these Lisp systems are freely available except ACL.
-Franz provides free version of ACL please consult to
-	http://www.franz.com/
+All of these Lisp systems are freely available except Allegro CL.
+Franz inc. provides free version, please refer to Franz's [download site](http://www.franz.com/downloads/clp/survey).
 
 ----------------------------------------------------------------------
 
-UNCOMPRESS and UNTAR the SOURCES:
+OBTAINING THE SOURCES
+======================
 
-Change to a directory in which you wish to put CafeOBJ sources, 
-which we shall call $src-dir.
-
-*NOTE* please do not set the $src-dir "/usr/local" to, where the 
-       the default installation process will put the run-time 
-       resouces, thus some confusion will occur.
-
-Copy the file cafeobj-1.xxx.tar.gz to the $src-dir.
-
-	$ gzip -dc cafeobj.tar.gz | tar xvf -
-
-This will create a directory ${src-dir}/cafeobj-1.xxx with all the
-resources in it.
+Source files are available from Bitbucket.
+```bash
+% git clone https://tswd@bitbucket.org/tswd/cafeobj.git
+```
 
 ----------------------------------------------------------------------
 
-INSTALLATION:
+INSTALLATION from sources
+==========================
 
-Change to the directory in which the cafeobj resouces are put ($src-dir,
-see UNCOMPRESS and UNTAR the SOURCES above.)
+Change to the directory in which the cafeobj resources are put.
 
 Please read the INSTALL contained in the distribution for full installation
 instructions. 
 Here's a brief summary:
 
-	$ cd cafeobj-1.xxx
-	$ ./configure -with-lisp={YOUR-LISP}
-	$ make
+``````bash
+	$ cd cafeobj
+	$ ./configure --with-lisp={YOUR-LISP}
+ 	$ make
 	$ sudo make install
-
+``````
 where, 
+``````
 YOUR-LISP ::= acl       ; Allegro CL
-           |  cmu-pc    ; CMUCL on X86
-           |  cmu-sparc ; CMUCL on Sparc, obsolete not supported
+           |  cmu-pc    ; CMUCL on X86, CMUCL on Sparcs are not supported.
            |  sbcl      ; SBCL
            |  clisp     ; CLISP
+``````
 
 ----------------------------------------------------------------------
 
-NO WARRANTY:
+NO WARRANTY
+============
 
-THIS SOFTWARE IS SUPPLIED COMPLETELY "AS IS". CafeOBJ is distrituted 
+THIS SOFTWARE IS SUPPLIED COMPLETELY "AS IS". CafeOBJ is distributed 
 in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY of FITNESS FOR A PARTICULAR
+even the implied warranty of MERCHANT-ABILITY of FITNESS FOR A PARTICULAR
 PURPOSE.
 
 -- EOF

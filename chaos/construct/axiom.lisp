@@ -21,6 +21,7 @@
 		       kind first-match-method
 		       next-match-method 
 		       labels
+		       (meta-and-or nil)
 		       no-method-computation)
   (declare (type (or null term) lhs rhs)
 	   (type list condition)
@@ -41,7 +42,8 @@
 			    kind
 			    first-match-method
 			    next-match-method
-			    labels)))
+			    labels
+			    meta-and-or)))
     (if (term-is-lisp-form? rhs)
 	(setf (axiom-rhs rule)
 	  (convert-lisp-form-term rhs (axiom-lhs rule)))

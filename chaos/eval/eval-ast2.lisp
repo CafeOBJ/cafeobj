@@ -266,7 +266,8 @@
 (defun perform-meta-reduction (pre-term &optional modexp mode)
   (let ((*rewrite-exec-mode* (or (eq mode :exec)
                                  (eq mode :exec+)))
-        (*rewrite-semantic-reduce* nil))
+        (*rewrite-semantic-reduce* nil)
+	sort)
     (let ((mod (if modexp 
                    (eval-modexp modexp)
                  *last-module*)))
@@ -279,6 +280,7 @@
               (print-chaos-object modexp)))
         (progn
           (context-push-and-move *last-module* mod)
+	  (setq sort *cosmos*)
           (with-in-module (mod)
 	    ;;
 	    (change-context *last-module* mod)
@@ -436,6 +438,7 @@
   (or $$trace-rewrite $$trace-rewrite-whole *rewrite-stepping*
       *rewrite-count-limit* *rewrite-stop-pattern*))
 
+#||
 (defun rewrite-debug-on ()
   (setf (symbol-function 'apply-one-rule)
 	(symbol-function 'apply-one-rule-dbg)))
@@ -444,6 +447,10 @@
   (unless (under-debug-rewrite)
     (setf (symbol-function 'apply-one-rule)
 	  (symbol-function 'apply-one-rule-simple))))
+||#
+
+(defun rewrite-debug-on () ())
+(defun rewrite-debug-off () ())
 
 (defun trace-on ()
   (setq $$trace-rewrite t)
