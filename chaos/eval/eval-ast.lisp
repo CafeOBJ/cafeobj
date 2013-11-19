@@ -493,10 +493,11 @@
 	       (is-chaos-value-token-sequence rhs))
 	   ;;
 	   (when (or meta-and meta-or)
-	     (with-output-chaos-error "Invalid special rule ~s for built-in axiom." 
-	       (if meta-and
-		   ":m-and"
-		 ":m-or")))
+	     (with-output-chaos-error ('invalid-special-rule)
+	       (format t "Invalid special rule ~s for built-in axiom." 
+		       (if meta-and
+			   ":m-and"
+			 ":m-or"))))
 	   ;; aka builtin rule.
 	   (let* ((parsed-lhs (simple-parse *current-module* lhs sort))
 		  (parsed-rhs (simple-parse *current-module* rhs sort))

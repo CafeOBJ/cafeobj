@@ -212,7 +212,7 @@
 
 (declaim (special *print-indent*))
 (declaim (type (integer 0 128)
-	       *print-line-limit* *chaos-print-level*
+	       *chaos-print-level*
 	       *print-indent* *print-indent-increment*))
 ;; (defvar *chaos-verbose* nil)
 (defvar *module-all-rules-every* nil)
