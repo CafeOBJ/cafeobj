@@ -16,6 +16,7 @@
 .\#*
 \#*
 *.cache
+*.core
 Sphinx
 *.txt
 safe-bin

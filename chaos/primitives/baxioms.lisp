@@ -61,6 +61,7 @@
   (trace-flag nil :type (or null t))
   (need-copy nil :type (or null t))
   (non-exec nil :type (or null t))
+  (meta-and-or nil :type (or null t))	; :m-and or :m-or
   )
 
 (eval-when (:execute :load-toplevel)
@@ -74,10 +75,10 @@
   (declare (ignore ignore))
   (if *current-module*
       (progn
-	(format stream "[:rule " (addr-of obj))
+	(format stream ":rule[~S: " (addr-of obj))
 	(print-axiom-brief obj stream)
 	(format stream "]"))
-    (format stream "[:rule (~a)]" (rewrite-rule-type obj))))
+    (format stream ":rule[~a]" (rewrite-rule-type obj))))
 
 ;;;
 (defmacro rule-type (_rule) `(rewrite-rule-type ,_rule))
@@ -96,6 +97,7 @@
 (defmacro rule-trace-flag (_rule) `(rewrite-rule-trace-flag ,_rule))
 (defmacro rule-need-copy (_rule) `(rewrite-rule-need-copy ,_rule))
 (defmacro rule-non-exec (_rule) `(rewrite-rule-non-exec ,_rule))
+(defmacro rule-meta-and-or (_rule) `(rewrite-rule-meta-and-or ,_rule))
 
 ;;; Extended rewrite rule
 ;;;
@@ -195,7 +197,7 @@
 
 (eval-when (:execute :load-toplevel)
   (setf (get 'axiom :type-predicate) (symbol-function 'axiom-p))
-  (setf (get 'axiom :print) 'print-axiom-internal)
+  (setf (get 'axiom :print) 'print-axiom-brief)
   (setf (symbol-function 'is-axiom) (symbol-function 'axiom-p))
   )
 
@@ -208,12 +210,9 @@
 (defun print-axiom-object (obj stream &rest ignore)
   (declare (ignore ignore))
   (if *current-module*
-      (progn
-	(format stream "[:axiom ")
-	(print-axiom-brief obj stream)
-	(format stream "]")
-	(force-output stream))
-    (format stream "[:axiom (~a)]" (axiom-type obj))))
+      (with-in-module (*current-module*)
+	(print-axiom-brief obj stream nil nil t))
+    (format stream ":axiom[~S]" (addr-of obj))))
 
 ;;; Type predicate -------------------------------------------------------------
 
@@ -342,7 +341,8 @@
 		     kind
 		     first-match-method
 		     next-match-method
-		     labels) 
+		     labels
+		     &optional (meta-and-or nil))
   (declare (type term lhs rhs condition)
 	   (type (or null t) behavioural)
 	   (type symbol type kind first-match-method next-match-method)
@@ -356,6 +356,7 @@
     (setf (axiom-first-match-method r) first-match-method)
     (setf (axiom-next-match-method r) next-match-method)
     (setf (axiom-labels r) labels)
+    (setf (axiom-meta-and-or r) meta-and-or)
     (set-context-module r)
     r))
 

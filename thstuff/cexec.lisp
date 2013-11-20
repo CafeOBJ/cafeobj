@@ -25,7 +25,7 @@
 ;;; represents a state
 ;;;
 (defstruct (rwl-state
-            (:constructor create-rwl-state(state term rule subst))
+            (:constructor create-rwl-state (state term rule subst))
             (:print-function pr-rwl-state))
   (state 0 :type fixnum)                ; fixnum value identifying this state
   (term nil)                            ; a term
@@ -63,7 +63,6 @@
 	  (print-next)
 	  (print-substitution subst)))
       (flush-all))))
-
 
 (defun print-state-transition (state sub-states &optional (stream *standard-output*))
   (declare (type rwl-state state)
@@ -126,8 +125,10 @@
       (format t "~&    ")
       (print-substitution sub)
       (when bind-pattern
-	(format t "~%    => ")
-	(term-print-with-sort (substitution-image-simplifying sub bind-pattern))))))
+	(let ((bimage (substitution-image-simplifying sub bind-pattern)))
+	  (normalize-term bimage)
+	  (format t "~%    => ")
+	  (term-print-with-sort bimage))))))
 
 ;;; print the label of a rule which derived a state
 ;;; that denode contains.
@@ -162,7 +163,7 @@
   (cur-depth 0 :type fixnum)            ; current depth
   (root nil)                            ; root node of the search tree
                                         ;   (an instance of rwl-sch-node) 
-  (states-so-far 0 :type integer)       ; # of states so far
+  ;; (states-so-far 0 :type integer)       ; # of states so far
   (trans-so-far 0 :type integer)        ; # of transitions so far
   (last-siblings nil)                   ; nodes to be checked
                                         ; initially, this contains the root.
@@ -195,7 +196,7 @@
       (format t "~%   max depth: ~D" (rwl-sch-context-max-depth ctxt))
       (format t "~%   current depth: ~D" (rwl-sch-context-cur-depth ctxt))
       (format t "~%   root node: ~A" (rwl-sch-context-root ctxt))
-      (format t "~%   states: ~D" (rwl-sch-context-states-so-far ctxt))
+      ;; (format t "~%   states: ~D" (rwl-sch-context-states-so-far ctxt))
       (format t "~%   transitions: ~D" (rwl-sch-context-trans-so-far ctxt))
       (format t "~%   last siblings: ")
       (dolist (s (rwl-sch-context-last-siblings ctxt))
@@ -204,6 +205,7 @@
       (dolist (x (reverse (rwl-sch-context-answers ctxt)))
         (term-print-with-sort (rwl-state-term x)))
       (when (rwl-sch-context-bind ctxt)
+	(format t "~%   bind pattern: ")
 	(term-print-with-sort (rwl-sch-context-bind ctxt))))))
 
 ;;; .RWL-SCH-CONTEXT.
@@ -215,35 +217,44 @@
 
 ;;; show-rwl-sch-graph
 ;;;
-(defun show-rwl-sch-graph (&optional (sch-context .rwl-sch-context.))
-  (declare (type rwl-sch-context sch-context))
-  (let ((mod (rwl-sch-context-module sch-context))
-        (root (rwl-sch-context-root sch-context)))
-    (unless mod
-      (with-output-chaos-error ('no-context)
-        (format t "no context module...")))
-    (unless root
-      (with-output-chaos-error ('no-root)
-        (format t "no search result exists...")))
-    (when (and *current-module*
-               (not (eq *current-module* mod)))
-      (with-output-chaos-warning ()
-        (format t "the context(module) of search graph is different from the current module.")))
-    ;;
-    (with-in-module (mod)
-      (let ((state-hash (make-hash-table)))
-        (dag-wfs root
-                 #'(lambda (d)
-                     (let* ((state-node (dag-node-datum d))
-                            (state (rwl-state-state state-node)))
-                       (unless (gethash state state-hash)
-                         (setf (gethash state state-hash) t)
-                         (print-state-transition
-                          state-node
-                          (mapcar #'(lambda (sd)
-                                      (dag-node-datum sd))
-                                  (dag-node-subnodes d))))))
-                 )))))
+(defun show-rwl-sch-graph (&optional num)
+  (let ((c-num (if num
+		   (read-from-string num)
+		 0))
+	(sch-context nil))
+    (unless (integerp c-num)
+      (with-output-chaos-error ('invalid-context-number)
+	(format t "invalid search graph number ~s" num)))
+    (setq sch-context (nth c-num (reverse .rwl-context-stack.)))
+    (unless sch-context
+      (with-output-chaos-error ('no-such-context)
+	(format t "no such search graph ~d" num)))
+    (let ((mod (rwl-sch-context-module sch-context))
+	  (root (rwl-sch-context-root sch-context)))
+      (unless mod
+	(with-output-chaos-error ('no-context)
+	  (format t "no context module...")))
+      (unless root
+	(with-output-chaos-error ('no-root)
+	  (format t "no search result exists...")))
+      (when (and *current-module*
+		 (not (eq *current-module* mod)))
+	(with-output-chaos-warning ()
+	  (format t "the context(module) of search graph is different from the current module.")))
+      ;;
+      (with-in-module (mod)
+	(let ((state-hash (make-hash-table)))
+	  (dag-wfs root
+		   #'(lambda (d)
+		       (let* ((state-node (dag-node-datum d))
+			      (state (rwl-state-state state-node)))
+			 (unless (gethash state state-hash)
+			   (setf (gethash state state-hash) t)
+			   (print-state-transition
+			    state-node
+			    (mapcar #'(lambda (sd)
+					(dag-node-datum sd))
+				    (dag-node-subnodes d))))))))))))
 
 (defun find-rwl-sch-state (num &optional (sch-context .rwl-sch-context.))
   (declare (type fixnum num))
@@ -261,6 +272,12 @@
         nil))
     dag))
 
+(defun find-rwl-sch-state-globally (num)
+  (declare (type fixnum num))
+  (dolist (context .rwl-context-stack.)
+    (let ((st (find-rwl-sch-state num context)))
+      (when st (return-from find-rwl-sch-state-globally (values context st))))))
+
 (defun show-rwl-sch-path (num-tok &optional (label? nil)
                                             (sch-context .rwl-sch-context.)
 					    (state-only? nil))
@@ -274,7 +291,8 @@
     (unless (and (integerp num) (>= num 0))
       (with-output-chaos-error ()
         (format t "state must be a positive integer value.")))
-    (let ((dag (find-rwl-sch-state num sch-context)))
+    (multiple-value-bind (sch-context dag)
+	(find-rwl-sch-state-globally num)
       (unless dag
         (with-output-chaos-error ('no-state)
           (format t "no such state ~D" num)))
@@ -679,7 +697,8 @@
                  )
                (setf (rwl-state-loop new-state) t))
              ))
-          (t  (let ((state-num (incf (rwl-sch-context-states-so-far sch-context))))
+          (t  (let (;; (state-num (incf (rwl-sch-context-states-so-far sch-context)))
+		    (state-num (incf .rwl-states-so-far.)))
                 (setq new-state (create-rwl-state state-num
                                                   target
                                                   rule
@@ -968,9 +987,10 @@
 		  (format t "~%   ")
 		  (print-substitution sub)
 		  (when (rwl-sch-context-bind sch-context)
-		    (format t "~%   => ")
-		    (term-print-with-sort (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
-		  )
+		    (let ((bimg (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
+		      (normalize-term bimg)
+		      (format t "~%   => ")
+		      (term-print-with-sort bimg)) ))
                 (format t "~&"))
               (setf (sch-node-is-solution node) t) ; mark the node as solution
               (incf (rwl-sch-context-sol-found sch-context))
@@ -1094,7 +1114,7 @@
         ;;
         (setf (rwl-sch-context-cur-depth sch-context) 0)
         (setf (rwl-sch-context-sol-found sch-context) 0)
-        (setf (rwl-sch-context-states-so-far sch-context) 0)
+        ;; (setf (rwl-sch-context-states-so-far sch-context) 0)
         (setf (rwl-sch-context-trans-so-far sch-context) 0)
         (setq root (create-sch-node (create-rwl-state 0 t1 nil nil)))
         (setf (rwl-sch-context-root sch-context) root)
@@ -1105,7 +1125,7 @@
           (make-state-pred-pat))
         ;; bind context to global for later use...
         (setq .rwl-sch-context. sch-context)
-
+	(push sch-context .rwl-context-stack.)
         ;; term hash
         (initialize-cexec-term-hash)
         (cexec-set-hashed-term t1 0)

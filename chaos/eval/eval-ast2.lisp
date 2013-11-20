@@ -115,6 +115,10 @@
   ;; (setq $$trials 1)
   (setq *m-pattern-subst* nil)
   ;;
+  (setq .rwl-context-stack. nil)
+  (setq .rwl-sch-context. nil)
+  (setq .rwl-states-so-far. 0)
+  ;;
   (let ((*consider-object* t)
         (*rewrite-exec-mode* (or (eq mode :exec)
                                  (eq mode :exec+)))
@@ -262,7 +266,8 @@
 (defun perform-meta-reduction (pre-term &optional modexp mode)
   (let ((*rewrite-exec-mode* (or (eq mode :exec)
                                  (eq mode :exec+)))
-        (*rewrite-semantic-reduce* nil))
+        (*rewrite-semantic-reduce* nil)
+	sort)
     (let ((mod (if modexp 
                    (eval-modexp modexp)
                  *last-module*)))
@@ -275,6 +280,7 @@
               (print-chaos-object modexp)))
         (progn
           (context-push-and-move *last-module* mod)
+	  (setq sort *cosmos*)
           (with-in-module (mod)
 	    ;;
 	    (change-context *last-module* mod)
@@ -432,6 +438,7 @@
   (or $$trace-rewrite $$trace-rewrite-whole *rewrite-stepping*
       *rewrite-count-limit* *rewrite-stop-pattern*))
 
+#||
 (defun rewrite-debug-on ()
   (setf (symbol-function 'apply-one-rule)
 	(symbol-function 'apply-one-rule-dbg)))
@@ -440,6 +447,10 @@
   (unless (under-debug-rewrite)
     (setf (symbol-function 'apply-one-rule)
 	  (symbol-function 'apply-one-rule-simple))))
+||#
+
+(defun rewrite-debug-on () ())
+(defun rewrite-debug-off () ())
 
 (defun trace-on ()
   (setq $$trace-rewrite t)
@@ -1119,7 +1130,8 @@
                    (with-output-chaos-warning ()
                      (princ "no current term to display."))))
                 ("term"
-                 (let* ((target (if (not (equal (second dat) "tree"))
+                 (let* ((target (if (not (or (equal (second dat) "tree")
+					     (equal (second dat) "graph")))
                                     (second dat)
                                   nil))
                         (tree? (if target
@@ -1184,12 +1196,15 @@
                 ;; ("option" (pignose-show-option (cadr dat) describe))
                 ("option" (pignose-show-option (cadr dat)))
                 ;; =(*)=> support
-                (("exec" "search" "sch") (case-equal (cadr dat)
-                                                     ("graph" (show-rwl-sch-graph))
-                                                     (otherwise
-                                                      (with-output-chaos-error ()
-                                                        (format t "no such `show exec' option ~a"
-                                                                (cadr dat))))))
+                (("exec" "search" "sch")
+		 (let ((option (cadr dat))
+		       (num (caddr dat)))
+		   (case-equal option
+			       ("graph" (show-rwl-sch-graph num))
+			       (otherwise
+				(with-output-chaos-error ()
+				  (format t "no such `show exec' option ~a"
+					  (cadr dat)))))))
                 ("path" (let ((opt (cadr dat)))
                           (if (member opt '("labels" "label") :test #'equal)
                               (show-rwl-sch-path (caddr dat) :label)
@@ -1223,7 +1238,7 @@
                  (princ "  show [all] rules [<Modexp>] .") (terpri)
                  ;; (princ "  show abbrev [<Modexp>] .") (terpri)
                  (princ "  show tree") (terpri)
-                 (princ "  show term [let-variable] [tree]") (terpri)
+                 (princ "  show term [let-variable] [tree | graph]") (terpri)
                  (princ "  show subterm [tree]") (terpri)
                  (princ "  show let") (terpri)
                  (princ "  show selection") (terpri)

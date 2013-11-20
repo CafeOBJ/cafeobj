@@ -463,8 +463,7 @@ open (CLOUD + CLOUDSYNCPROP) .
   op inv-condition : State State -> Bool .
   eq inv-condition(S, SS) =
     (not (S =(*,1)=>+ SS
-       suchThat (not((invariant(S) implies invariant(SS)) == true))
-	  {invariant(SS)})) .
+       suchThat (not((invariant(S) implies invariant(SS)) == true))  {invariant(SS)})) .
 
   red inv-condition(s1, SS) . -- FALSE
   red inv-condition(s2, SS) . -- OK

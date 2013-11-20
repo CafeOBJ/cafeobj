@@ -6,7 +6,7 @@ AC_INIT(./chaosx.system)
 AC_PREREQ(2.4)dnl Required Autoconf version.
 PACKAGE=cafeobj
 VERSION=1.4
-VMINOR=.11
+VMINOR=.12Beta6
 VMEMO=PigNose0.99
 PATCHLEVEL=
 AC_SUBST(PACKAGE)
@@ -16,30 +16,31 @@ AC_SUBST(VMEMO)
 AC_SUBST(PATCHLEVEL)
 AC_ARG_PROGRAM
 AC_PROG_INSTALL
-AC_PATH_PROG(gcl_path,gcl, no)
+dnl AC_PATH_PROG(gcl_path,gcl, no)   ... no more gcl..
 AC_PATH_PROG(cmu_path,lisp, no)
 AC_PATH_PROG(sbcl_path,sbcl,no)
-AC_PATH_PROG(acl_path,cl, no)
+AC_PATH_PROG(acl_path,alisp, no)
 AC_PATH_PROG(clisp_path,clisp, no)
-AC_PATH_PROG(acl6_path,alisp,no)
-AC_PATH_PROG(acl7_path,alisp,no)
-AC_PATH_PROG(acl8_path,alisp,no)
-AC_PATH_PROG(openmcl_path,openmcl,no)
+dnl AC_PATH_PROG(acl8_path,alisp,no)
+dnl AC_PATH_PROG(acl9_path,alisp,no)
+dnl AC_PATH_PROG(openmcl_path,openmcl,no)
+AC_PATH_PROG(clozurecl_32path,ccl,no)
+AC_PATH_PROG(clozurecl_64path,ccl64,no)
 AC_PROG_MAKE_SET
 AC_ARG_WITH(lisp,
 [  --with-lisp[=lisp]	specify the path of Lisp interpter to be used 
 			for building CafeOBJ (defaulted to gcl).],
 	lisp=$withval)
 case "x$lisp" in
-xcmu-pc)
+xcmu)
 	lisp=$cmu_path ;
 	bin_suffix=".x86f" ;
 	exec_command="cafeobj.cmu.in";
 	exec_bin="cafeobj.core"
 	;;
-xcmu-sparc)
+xcmu-pc)
 	lisp=$cmu_path ;
-	bin_suffix=".sparcf";
+	bin_suffix=".x86f" ;
 	exec_command="cafeobj.cmu.in";
 	exec_bin="cafeobj.core"
 	;;
@@ -55,33 +56,21 @@ xacl)
 	exec_command="cafeobj.acl.in";
 	exec_bin="cafeobj.acl"
 	;;
-xacl6)
-	lisp=$acl6_path ;
-	bin_suffix=".fasl";
-	exec_command="cafeobj.acl.in";
-	exec_bin="cafeobj.acl"
-	;;
-xacl7)
-	lisp=$acl7_path ;
-	bin_suffix=".fasl";
-	exec_command="cafeobj.acl.in";
-	exec_bin="cafeobj.acl"
-	;;
-xacl8)
-	lisp=$acl8_path ;
-	bin_suffix=".fasl";
-	exec_command="cafeobj.acl.in";
-	exec_bin="cafeobj.acl"
-	;;
 xclisp)
 	lisp=$clisp_path ;
 	bin_suffix=".fas";
 	exec_command="cafeobj.clisp.in";
 	exec_bin="cafeobj.mem"
 	;;
-xopenmcl)
-	lisp=$openmcl_path ;
+xccl)
+	lisp=$clozurecl_32path ;
 	bin_suffix=".dfsl";
+	exec_command="cafeobj.openmcl.in";
+	exec_bin="cafeobj.img"
+	;;
+xccl64)
+	lisp=$clozurecl_64path ;
+	bin_suffix=".dx64fsl";
 	exec_command="cafeobj.openmcl.in";
 	exec_bin="cafeobj.img"
 	;;

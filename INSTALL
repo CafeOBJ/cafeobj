@@ -1,6 +1,6 @@
 	    ---------------------------------------------
 	    CafeOBJ Interpreter Installation Instructions
-              version 1.4.9 (with PigNose)
+              version 1.4.11 (with PigNose)
 	    ---------------------------------------------
 
 ============
@@ -9,12 +9,18 @@ Prerequisite
    CafeOBJ interpreter is built on Common Lisp, thus you need
 some Common Lisp system to install CafeOBJ. CafeOBJ can be 
 built on the following platforms:
+
   (1) SBCL version 1.1.7 (or later)
-  (2) CMU-CL version 1.8f (or later)
+  (2) CMU-CL version 20D (or later)
   (3) Allegro CL version 8.0 (or later)
   (4) CLISP version 2.4.9 (or later)
 
-At least one of these needs to be installed in the users's PATH.
+At least one of these needs to be installed in the users' PATH.
+
+======================
+Obtaining source files
+======================
+Sources are 
 
 =================
 About `configure'
@@ -24,7 +30,7 @@ various system-dependent variables used during compilation. It uses
 those values to create a `Makefile' of the package. Finally, it
 creates a shell script `config.status' that you can run in the future
 to recreate the current configuration, a file `config.cache' that
-saves the result of its tests to speed up reconfiguring, and file
+saves the result of its tests to speed up re-configuring, and file
 `config.log' contains compiler output(useful mainly for debugging
 configure').
 
@@ -32,7 +38,7 @@ configure').
 to figure out how `configure' could check whether to do them, and mail
 diff or instructions to the address given in the `README' so they can
 be considered for the next release. If at some point `config.cache'
-contains result you do'nt want to keep, you may remove or edit it.
+contains result you don't want to keep, you may remove or edit it.
 
  The file `configure.in' is used to create `configure' by a program
 called `autoconf'. You only need `configure.in' if you want to change
@@ -48,17 +54,17 @@ are put.  We shall call the directory as $src-dir.
 1) Run "configure":
 
 	$ cd $src-dir
-	$ ./configure -with-lisp="platform"
+	$ ./configure --with-lisp="platform"
 
 "platform" specifies the Common Lisp plat form you use, and this
 should be one of the followings:
 	cmu-pc              -- CMUCL running on x86
-	cmu-sparc           -- CMUCL running on sparc, obsolete 
+	cmu-sparc           -- CMUCL running on sparc, now obsolete 
 	sbcl                -- SBCL
 	acl                 -- Allegro CL
         clisp               -- CLISP
 
--with-lisp="platform" can be ommited, in this case it defaulted
+-with-lisp="platform" can be omitted, in this case it defaulted
 to `acl'.
 
 `cmu-pc' is for CMU-CL running on PCs, i.e., Intel x386 or Pentium 
@@ -94,9 +100,9 @@ the --prefix option:
 	$ make
 
  This will make the needed CafeOBJ binaries within the
- subdirectories. If something fails for your system, and you want to
+ sub directories. If something fails for your system, and you want to
  submit a bug report, you may wish to include your "config.status"
- file, your host type, operating system and informations about GCL
+ file, your host type, operating system and information about GCL
  (version number), make output, and anything else you think will be
  helpful. 
 
@@ -121,7 +127,7 @@ the --prefix option:
        /usr/local/bin/cafeobj -- symbolic link to $prefix/bin/cafeobj
                                  If you need to change the place, please
                                  edit Makefile.
-       $prefix/prelude/std.bin -- system intialization internal code.
+       $prefix/prelude/std.bin -- system initialization internal code.
 
 4) Clean up:
 

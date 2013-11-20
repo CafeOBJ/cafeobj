@@ -7,7 +7,7 @@
 				File: meta.lisp
 ===============================================================================|#
 
-;;; ********************
+;;; ************
 ;;; SystemObject
 ;;; ************
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -15,6 +15,8 @@
 (defstruct (chaos-list (:print-function pr-chaos-list))
   (list nil))
 
+;;; MetaLevel builtin constants
+;;; empty *CafeList* :[]
 (defparameter *chaos-null* (make-chaos-list))
 )
 
@@ -28,9 +30,16 @@
        (or (nthcdr num (chaos-list-list chaos-list))
 	   *chaos-null*)))
 
+(defun mlength (chaos-list)
+  (and (chaos-list-p chaos-list)
+       (length (chaos-list-list chaos-list))))
+
 (defun pr-chaos-list (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "[:: ~s]" (chaos-list-list obj)))
+  (let ((lst (chaos-list-list obj)))
+    (if lst
+	(format stream ":[~s]" lst)
+      (format stream ":[]"))))
 
 ;;; 
 ;;; META LEVEL TERM
@@ -90,19 +99,27 @@
 				     (funcall fun (term-system-object system-obj-term)))))
 ||#
 
+#||
 (defun create-list-of-objects (fun system-obj-term)
   (let ((vals (funcall fun (term-system-object system-obj-term))))
     (if vals
 	(create-system-object-term (make-chaos-list :list (mapcar #'(lambda (x) (create-system-object-term x)) vals)))
       (create-system-object-term *chaos-null*))))
+||#
+
+(defun create-list-of-objects (fun system-obj-term)
+  (let ((vals (funcall fun (term-system-object system-obj-term))))
+    (if vals
+	(make-chaos-list :list (mapcar #'(lambda (x) (create-system-object-term x)) vals))
+      *chaos-null*)))
 
 (defun do-apply!! (fun args)
   (let ((rfun (symbol-function (intern (term-builtin-value fun))))
         (rargs (if (and (sort= *cosmos* (term-sort args))
-		       (term-is-application-form? args)
-		       (equal (method-symbol (term-head args)) '("_" "," "_")))
-                  (list-assoc-subterms args (term-head args))
-                (list args))))
+			(term-is-application-form? args)
+			(equal (method-symbol (term-head args)) '("_" "," "_")))
+		   (list-assoc-subterms args (term-head args))
+		 (list args))))
       (if rfun
           (apply rfun rargs)
         (create-system-object-term nil))))
@@ -180,7 +197,7 @@
 		  (sort= (term-sort pterm) *string-sort*))
 	     (setq rterm (simple-parse *current-module*
 				       (term-builtin-value pterm)
-				       *consmos*))
+				       *cosmos*))
 	     (when (term-is-an-error rterm)
 	       (with-output-chaos-error ('invalid-term)
 		 (format t "Could not parse: ~S" (term-builtin-value pterm)))))
@@ -209,7 +226,10 @@
 
 (defvar *meta-match-depth* 0)
 
-(defun do-meta-match (module target pattern depth &optional (type :match) (start-pos nil))
+(defun do-meta-match (target pattern &optional (module *current-module*)
+					       depth
+					       (type :match)
+					       (start-pos nil))
   (let* ((rmod (meta-get-context-module module))
 	 (rtarget (meta-get-term target))
 	 (rpattern (meta-get-term pattern))
@@ -240,7 +260,7 @@
 	      (setf first-match-meth (car meth))
 	      (setf next-match-meth (cdr meth))))
 	  ;; 
-	  (perform-meta-match* real-target rpattern rdepth first-math-meth next-match-meth))))))
+	  (perform-meta-match* real-target rpattern rdepth first-match-meth next-match-meth))))))
     
 #||
 (defun perform-meta-match* (target pattern depth fm nm)
