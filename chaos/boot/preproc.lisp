@@ -127,6 +127,7 @@
 (defun is-Id-token (token)
   (and (stringp token)
        (not (numeric-char-p (char token 0)))
+       (not (find #\. token))
        ;; (alpha-char-p (char token 0))
        (let ((pos (position #\: token))
 	     (len (length token)))
@@ -153,7 +154,12 @@
        (<= 2 (length token))
        (eql #\' (char token 0))
        (alpha-char-p (char token 1))))
-(defun create-qId (token) (intern (subseq token 1)))
+  
+(defun create-qId (token)
+  (if (eql #\' (char token 0))
+      (intern (subseq token 1))
+    (intern token)))
+
 (defun print-qId (x) (format t "'~a" (string x)))
 (defun is-qId (x)
   (and (symbolp x)
