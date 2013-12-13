@@ -1595,7 +1595,8 @@
 
 (defun print-axiom-brief (rul &optional (stream *standard-output*)
 					(no-type nil)
-					(no-label nil))
+					(no-label nil)
+					(meta nil))
   (let ((type (axiom-type rul))
 	(cnd (not (term-is-similar? *BOOL-true* (axiom-condition rul))))
 	(.printed-vars-so-far. nil)
@@ -1605,19 +1606,35 @@
 	(:equation
 	 (if cnd
 	     (if (axiom-is-behavioural rul)
-		 (princ "bceq ")
-		 (princ "ceq "))
-	     (if (axiom-is-behavioural rul)
-		 (princ "beq ")
-		 (princ "eq "))))
+		 (if meta
+		     (princ ":bceq[")
+		   (princ "bceq "))
+	       (if meta
+		   (princ ":ceq[")
+		 (princ "ceq ")))
+	   (if (axiom-is-behavioural rul)
+	       (if meta
+		   (princ ":beq[")
+		 (princ "beq "))
+	     (if meta
+		 (princ ":eq[ ")
+	       (princ "eq ")))))
 	(:rule
 	 (if cnd
 	     (if (axiom-is-behavioural rul)
-		 (princ "bctrans ")
-		 (princ "ctrans "))
-	     (if (axiom-is-behavioural rul)
-		 (princ "btrans ")
-		 (princ "trans "))))
+		 (if meta
+		     (princ ":bctrans[")
+		   (princ "bctrans "))
+	       (if meta
+		   (princ ":ctrans[")
+		 (princ "ctrans ")))
+	   (if (axiom-is-behavioural rul)
+	       (if meta
+		   (princ ":btrans[")
+		 (princ "btrans "))
+	     (if meta
+		 (princ ":trans[")
+	       (princ "trans ")))))
 	(:pignose-axiom
 	 (if (axiom-is-behavioural rul)
 	     (princ "bax ")
@@ -1648,17 +1665,19 @@
 	(when (or cnd
 		  (and *chaos-verbose* (axiom-id-condition  rul)))
 	  (print-check .file-col.)
-	  (princ " if ")
+	  (if meta
+	      (princ " :if ")
+	    (princ " if "))
 	  (setq .file-col. (+ 4 .file-col.))
 	  (when cnd
 	    (term-print (axiom-condition rul)))
-	  (when *chaos-verbose*
+	  (when meta
+	    (princ "]"))
+	  (when (and *chaos-verbose* (not meta))
 	    (when (and cnd (axiom-id-condition rul)) (princ " and "))
 	    (when (axiom-id-condition rul)
 	      (print-id-condition (axiom-id-condition rul)
-				  *standard-output*)))
-	  ))
-      )))
+				  *standard-output*))))))))
 
 (eval-when (:execute :load-toplevel)
   (setf (symbol-function 'print-rule-brief)

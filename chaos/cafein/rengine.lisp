@@ -1596,11 +1596,90 @@
         (*print-with-sort* t))
     (term-print $$term)))
 
+#||
 (defun apply-one-rule (rule term)
   (declare (ignore rule term))
   (format t "~%APPLY-ONE-RULE : INTERNAL ERROR, SPECIFIC REWRITEING ENGINE ISN'T SPECIFIED.")
   (break))
+||#
 
+(defun rew-matcher (pat term)
+  (if (term-is-variable? pat)
+      (if (sort<= (term-sort term) (variable-sort pat)
+                  (module-sort-order *current-module*))
+          (values nil (list (cons pat term)) nil nil)
+        (values nil nil t nil))
+    (if (term-is-lisp-form? pat)
+        (values nil nil t nil)
+      (first-match pat term))))
+
+
+(defun apply-one-rule (rule term)
+  (let ((mandor (axiom-meta-and-or rule))
+	(dbg (or $$trace-rewrite-whole $$trace-rewrite *rewrite-stepping*)))
+    ;; (format t "~&mandor=~s" mandor)
+    (cond (mandor
+	   ;; (format t "~&meta! ~s" mandor)
+	   (let ((all-subst nil)
+		 (rhs-list nil)
+		 (new-rhs nil)
+		 ;;(new-axiom nil)
+		 )
+	     (multiple-value-bind (gs sub no-match eeq)
+		 (rew-matcher (rule-lhs rule) term)
+	       (declare (ignore eeq))
+	       (when no-match
+		 (return-from apply-one-rule nil))
+	       (push sub all-subst)
+	       ;;
+	       ;; try other patterns untill there's no hope
+	       (loop
+		 (multiple-value-setq (gs sub no-match)
+		   (next-match gs))
+		 (when no-match (return))
+		 (push sub all-subst)))
+	     ;; 
+	     (if (cdr all-subst)
+		 (progn
+		   (when *debug-meta*
+		     (format t "~&~s[subst]" mandor))
+		   (dolist (sub all-subst)
+		     (push (set-term-color (substitution-image-simplifying sub (rule-rhs rule))) rhs-list)
+		     (when *debug-meta*
+		       (let ((*print-indent* (+ 4 *print-indent*)))
+			 (print-next)
+			 (print-substitution sub))))
+		   ;; 
+		   (setq new-rhs (make-right-assoc-normal-form-with-sort-check
+				  (if (eq mandor :m-and)
+				      *bool-and*
+				    *bool-or*)
+				  rhs-list))
+		   #||
+		   (setq new-axiom (make-rule :lhs (rule-lhs rule)
+					      :rhs new-rhs
+					      :condition *bool-true*
+					      :behavioural (rule-is-behavioural rule)
+					      :labels (rule-labels rule)
+					      :type (rule-type rule)))
+		   ||#
+		   ;; DEBUG
+		   (when *debug-meta* 
+		     (format t "~&~s[=>] " mandor)
+		     (term-print-with-sort new-rhs))
+		   ;;
+		   ;; do rewrite
+		   ;;
+		   (if dbg
+		       (progn (term-replace-dd-dbg term new-rhs) t)
+		     (progn (term-replace-dd-simple term new-rhs) t)))
+	       (if dbg
+		   (apply-one-rule-dbg rule term)
+		 (apply-one-rule-simple rule term)))))
+	  ;; normal case
+	  (t (if dbg
+		 (apply-one-rule-dbg rule term)
+	       (apply-one-rule-simple rule term))))))
 ;;;
 ;;; SOME MEL SUPPORT
 ;;;
@@ -1778,9 +1857,9 @@
 ;;; ****
 ;;; INIT
 ;;; ****
-(eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'apply-one-rule)
-	#'apply-one-rule-simple))
+;;;(eval-when (:execute :load-toplevel)
+;;;  (setf (symbol-function 'apply-one-rule)
+;;;	#'apply-one-rule-simple))
 
 ;;; EOF
 

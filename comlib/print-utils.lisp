@@ -64,12 +64,12 @@
 (defun filecol (x) (declare (ignore x)) 0) ; use this if you cannot define as
 
 ;; (declaim (function file-column (stream) fixnum))
-#|
+#||
 (defun file-column (strm)
   (if (typep strm 'stream)
       (filecol strm)
     0))
-|#
+||#
 
 (defun file-column (strm)
   (declare (inline filecol))
@@ -106,9 +106,26 @@
 ;;; print-centering
 ;;; print the given string centering
 ;;;
+#||
 (defun print-centering (string &optional (fill-char " ") (stream *standard-output*))
   (declare (type simple-string string))
   (let ((fill-col (truncate (+ (/ (- *print-line-limit* (length string)) 2.0) 0.5))))
+    (declare (type fixnum fill-col))
+    (dotimes (x fill-col)
+      (declare (type fixnum x))
+      (princ fill-char stream))
+    (princ string stream)
+    (unless (equal fill-char " ")
+      (dotimes (x fill-col)
+	(declare (type fixnum x))
+	(princ fill-char stream))
+      )))
+||#
+
+(defparameter .terminal-width. 70)
+(defun print-centering (string &optional (fill-char " ") (stream *standard-output*))
+  (declare (type simple-string string))
+  (let ((fill-col (truncate (+ (/ (- .terminal-width. (length string)) 2.0) 0.5))))
     (declare (type fixnum fill-col))
     (dotimes (x fill-col)
       (declare (type fixnum x))

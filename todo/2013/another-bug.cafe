@@ -1,5 +1,11 @@
 -- cloudsync.cafe
 -- educational module to explain CafeOBJ and verification
+--
+-- TODO:
+-- * replace Nat with a parametrized module that requires only a < function
+--   on the value parameter, then instantiate it with Nat.
+-- * add the missing rewrite equation explicitely and continue fixing
+--   stuff
 -- 
 -- Explanation
 -- one cloud computer and arbitrary many PCs have one value each that
@@ -198,68 +204,30 @@ mod! PNAT+ac {
 -- elementary functions on states 
 mod! STATEfuncs {
   pr(PNAT+ac + STATE) 
-  -- counting number of PCs in a state
-  -- idlepc gotvalue updated finished sleep
-  --
-  -- the number of idle PCs in a state
-  op #idle-pcs : State -> Nat.PNAT+ac .
-  op #idlpcs : PcStates -> Nat.PNAT+ac .
-  eq #idle-pcs( < C:ClState , PS:PcStates > ) = #idlpcs(PS) .
-  eq #idlpcs(empty) = 0 .
-  eq #idlpcs( << N:Nat.NAT ; M:Nat.NAT ; L:PcLabel >> PS:PcStates) =
-    if L = idlepc then
-      (s 0) + #idlpcs(PS)
-    else
-      #idlpcs(PS)
-    fi .
-  -- the number of gotvalue PCs in a state
-  op #gotvalue-pcs : State -> Nat.PNAT+ac .
-  op #gtvpcs : PcStates -> Nat.PNAT+ac .
-  eq #gotvalue-pcs( < C:ClState , PS:PcStates > ) = #gtvpcs(PS) .
-  eq #gtvpcs(empty) = 0 .
-  eq #gtvpcs( << N:Nat.NAT ; M:Nat.NAT ; L:PcLabel >> PS:PcStates) =
-    if L = gotvalue then
-      (s 0) + #gtvpcs(PS)
-    else
-      #gtvpcs(PS)
-    fi .
-  -- the number of updated PCs in a state
-  op #updated-pcs : State -> Nat.PNAT+ac .
-  op #updpcs : PcStates -> Nat.PNAT+ac .
-  eq #updated-pcs( < C:ClState , PS:PcStates > ) = #updpcs(PS) .
-  eq #updpcs(empty) = 0 .
-  eq #updpcs( << N:Nat.NAT ; M:Nat.NAT ; L:PcLabel >> PS:PcStates) =
-    if L = updated then
-      (s 0) + #updpcs(PS)
-    else
-      #updpcs(PS)
-    fi .
-  -- the number of finished PCs in a state
-  op #finished-pcs : State -> Nat.PNAT+ac .
-  op #finpcs : PcStates -> Nat.PNAT+ac .
-  eq #finished-pcs( < C:ClState , PS:PcStates > ) = #finpcs(PS) .
-  eq #finpcs( << N:Nat.NAT ; M:Nat.NAT ; L:PcLabel >> PS:PcStates) =
-    if L = finished then
-      (s 0) + #finpcs(PS)
-    else
-      #finpcs(PS)
-    fi .
-  -- the number of sleep PCs in a state
-  op #sleep-pcs : State -> Nat.PNAT+ac .
-  op #slppcs : PcStates -> Nat.PNAT+ac .
-  eq #sleep-pcs( < C:ClState , PS:PcStates > ) = #slppcs(PS) .
-  eq #slppcs( << N:Nat.NAT ; M:Nat.NAT ; L:PcLabel >> PS:PcStates) =
-    if L = sleep then
-      (s 0) + #slppcs(PS)
-    else
-      #slppcs(PS)
-    fi .
-  -- number of non (idle or sleep) PCs
-  op #non-idle-sleep-pcs : State -> Nat.PNAT+ac .
-  eq #non-idle-sleep-pcs( < C:ClState , PS:PcStates > ) = ( #gtvpcs(PS) + #updpcs(PS) + #finpcs(PS) ) .
-  -- the number of non-idle PCs in a state
-  op #non-idle-pcs : State -> Nat.PNAT+ac .
-  eq #non-idle-pcs( < C:ClState , PS:PcStates > ) = ( #gtvpcs(PS) + #updpcs(PS) + #finpcs(PS) + #slppcs(PS) ) . 
+  -- no pc in gotvalue state
+  pred zero-gotvalue : State .
+  pred zero-gotvalue-pcs : PcStates .
+  eq zero-gotvalue ( < C:ClState , PCS:PcStates > ) = zero-gotvalue-pcs(PCS) .
+  eq zero-gotvalue-pcs ( << N:Nat.NAT ; M:Nat.NAT ; L:PcLabel >> PS:PcStates ) = 
+    if L = gotvalue then false  else zero-gotvalue-pcs (PS) fi .
+  -- no pc in updated state
+  pred zero-updated : State .
+  pred zero-updated-pcs : PcStates .
+  eq zero-updated ( < C:ClState , PCS:PcStates > ) = zero-updated-pcs(PCS) .
+  eq zero-updated-pcs ( << N:Nat.NAT ; M:Nat.NAT ; L:PcLabel >> PS:PcStates  ) = 
+    if L = updated then false  else zero-updated-pcs (PS) fi .
+  -- no pc in finished state
+  pred zero-finished : State .
+  pred zero-finished-pcs : PcStates .
+  eq zero-finished ( < C:ClState , PCS:PcStates > ) = zero-finished-pcs(PCS) .
+  eq zero-finished-pcs ( << N:Nat.NAT ; M:Nat.NAT ; L:PcLabel >> PS:PcStates ) = 
+    if L = finished then false  else zero-finished-pcs (PS) fi .
+  -- no pc in sleep state
+  pred zero-sleep : State .
+  pred zero-sleep-pcs : PcStates .
+  eq zero-sleep ( < C:ClState , PCS:PcStates > ) = zero-sleep-pcs(PCS) .
+  eq zero-sleep-pcs ( << N:Nat.NAT ; M:Nat.NAT ; L:PcLabel >> PS:PcStates ) = 
+    if L = sleep then false  else zero-sleep-pcs (PS) fi .
 }
 
 
@@ -268,7 +236,7 @@ mod! APPLYPREDS {
   [PredName < PredNameSeq]
   op (_ _) : PredNameSeq PredNameSeq -> PredNameSeq {assoc} .
   op apply : PredNameSeq State -> Bool .
-  eq apply(P:PredName PS:PredNameSeq,S:State) = apply(P,S) and apply(PS,S) .
+  eq apply(P:PredName PS:PredNameSeq, S:State) = apply(P,S) and apply(PS,S) .
 }
 
 mod! INITPREDS {
@@ -294,7 +262,8 @@ mod! INITPREDS {
   --
   -- all the PCs are in idle state
   op pcs-are-idle-name : -> PredName .
-  eq[pcs-are-idle] : apply(pcs-are-idle-name,S:State) = ( #non-idle-pcs(S) = 0 ) .
+  eq[pcs-are-idle] : apply(pcs-are-idle-name,S:State) = 
+    zero-gotvalue(S) and zero-updated(S) and zero-finished(S) and zero-sleep(S) .
 }
 
 mod! INITIALSTATE {
@@ -328,12 +297,12 @@ mod! INVPREDS {
   pred pcstates-idle-sleep : PcStates .
   eq[cloud-idle-pcs-idle-sleep] : 
     apply(cloud-idle-pcs-idle-sleep-name, S:State) = cloud-idle-pcs-idle-sleep(S) .
-  eq cloud-idle-pcs-idle-sleep( < < N , c:ClLabel > , PCS:PcStates > ) = 
-    if c = idlecl then
-       ( #gtvpcs(PCS) + #updpcs(PCS) + #finpcs(PCS) = 0 )
-    else
-       true
-    fi .
+  eq cloud-idle-pcs-idle-sleep(if B:Bool then S1:State else S2:State fi) =
+    if B then cloud-idle-pcs-idle-sleep(S1) else cloud-idle-pcs-idle-sleep(S2) fi .
+  eq cloud-idle-pcs-idle-sleep( < < N , idlecl > , PCS:PcStates > ) = 
+    zero-gotvalue-pcs(PCS) and zero-updated-pcs(PCS) and zero-finished-pcs(PCS) .
+  ceq cloud-idle-pcs-idle-sleep( < < N , L:ClLabel > , PCS:PcStates > ) =
+    true if not (L = idlecl) .
   -- 
   --  all PCs in gotvalue state have their gotvalue equal to cloud value
   op gotvalue-cloud-value-name : -> PredName .
@@ -342,15 +311,17 @@ mod! INVPREDS {
   eq[gotvalue-cloud-value] : 
     apply(gotvalue-cloud-value-name, S:State) = gotvalue-cloud-value(S) .
   -- do we care for the fact that CS:ClLabel can only be busy??
+  eq gotvalue-cloud-value(if B:Bool then S1:State else S2:State fi) =
+    if B then gotvalue-cloud-value(S1) else gotvalue-cloud-value(S2) fi .
   eq gotvalue-cloud-value( < < N , CS:ClLabel > , PCS:PcStates > ) =
-    if #gtvpcs(PCS) = 0 then
+    if zero-gotvalue-pcs(PCS) then
       true
     else
       pcstates-gotvalue-cloud-value(N, PCS)
     fi .
   eq pcstates-gotvalue-cloud-value(N, empty) = true .
-  ceq pcstates-gotvalue-cloud-value(N, << K ; M ; gotvalue >> PP:PcStates) = 
-    pcstates-gotvalue-cloud-value(N, PP) if N = M .
+  eq pcstates-gotvalue-cloud-value(N, << K ; N ; gotvalue >> PP:PcStates) = 
+    pcstates-gotvalue-cloud-value(N, PP) .
   ceq pcstates-gotvalue-cloud-value(N, << K ; M ; S:PcLabel >> PP:PcStates) =
     pcstates-gotvalue-cloud-value(N, PP) if not (S = gotvalue) .
 
@@ -360,26 +331,48 @@ mod! INVPREDS {
   pred goal : State .
   pred pcstates-goal : Nat.NAT PcStates .
   eq[goal] : apply(goal-name, S:State) = goal(S) .
+  eq goal(if B:Bool then S1:State else S2:State fi) = 
+    if B then goal(S1) else goal(S2) fi .
   eq goal( < < N, CS:ClLabel > , PCS:PcStates > ) = 
-    if #finpcs(PCS) = 0 then
+    if zero-finished-pcs(PCS) then
       true
     else
       pcstates-goal(N, PCS)
     fi .
   eq pcstates-goal(N, empty) = true .
-  ceq pcstates-goal(N, << K ; M ; updated >> PP:PcStates ) =
-    pcstates-goal(N, PP) if N = K .
-  ceq pcstates-goal(N, << K ; M ; finished >> PP:PcStates ) =
-    pcstates-goal(N, PP) if N = K .
+  eq pcstates-goal(N, << N ; M ; updated >> PP:PcStates ) =
+    pcstates-goal(N, PP) .
+  eq pcstates-goal(N, << N ; M ; finished >> PP:PcStates ) =
+    pcstates-goal(N, PP) .
   ceq pcstates-goal(N, << K ; M ; CL:PcLabel >> PP:PcStates ) =
     pcstates-goal(N, PP) if not ((CL = updated) or (CL = finished)) .
+
+  -- only at most one PC is out of the sleep and idle state
+  op one-active-name : -> PredName .
+  pred one-active : State .
+  eq[one-active] : apply(one-active-name, S:State) = one-active(S) .
+  eq one-active(if B:Bool then S1:State else S2:State fi) = 
+    if B then one-active(S1) else one-active(S2) fi .
+  eq one-active ( < C:ClState , ( << K ; M ; gotvalue >> PCS:PcStates ) > )
+    = ( zero-updated(< C , PCS >) and zero-finished(< C , PCS >)
+	and zero-gotvalue(< C , PCS >) ) .
+  eq one-active ( < C:ClState , ( << K ; M ; updated >> PCS:PcStates ) > )
+    = ( zero-updated(< C , PCS >) and zero-finished(< C , PCS >)
+	and zero-gotvalue(< C , PCS >) ) .
+  eq one-active ( < C:ClState , ( << K ; M ; finished >> PCS:PcStates ) > )
+    = ( zero-updated(< C , PCS >) and zero-finished(< C , PCS >)
+	and zero-gotvalue(< C , PCS >) ) .
+  eq one-active ( < C:ClState , ( << K ; M ; idlepc >> PCS:PcStates ) > )
+    = one-active ( < C , PCS > ) .
+  eq one-active ( < C:ClState , ( << K ; M ; sleep >> PCS:PcStates ) > )
+    = one-active ( < C , PCS > ) . 
 }
 
 
 mod! INVARIANT {
   pr(INVPREDS)
   op invariant-name : -> PredNameSeq .
-  eq invariant-name = cloud-idle-pcs-idle-sleep-name gotvalue-cloud-value-name goal-name .
+  eq invariant-name = cloud-idle-pcs-idle-sleep-name gotvalue-cloud-value-name goal-name one-active-name .
   pred invariant : State .
   eq invariant(S:State) = apply(invariant-name, S) .
 }
@@ -396,15 +389,15 @@ mod! NECESSARYFACTS {
   eq ((M + N) = 0) = ((M = 0) and (N = 0)) . 
   -- a strange thing that this property is necessary
   eq (if B:Bool then true else D:Bool fi) and B = B .
-  -- 
-  eq apply(gotvalue-cloud-value-name, 
-	   < CS:ClState , ( << U ; V ; gotvalue >> PCS:PcStates ) > ) =
-	     ( #gtvpcs(PCS) = 0 ) .
-  eq apply(goal-name, 
-	   < CS:ClState , ( << U ; V ; gotvalue >> PCS:PcStates ) > ) =
-	     ( #gtvpcs(PCS) = 0 ) .
+  --
+  eq ( zero-gotvalue-pcs(PCS:PcStates) and zero-updated-pcs(PCS) and 
+       zero-finished-pcs(PCS) and one-active( < C:ClState, PCS > )) = 
+	 zero-gotvalue-pcs(PCS) and zero-updated-pcs(PCS) and 
+	   zero-finished-pcs(PCS) .
 
-  eq pcstates-gotvalue-cloud-value(W,((<< U ; V ; gotvalue >>) PCS:PcStates)) = true .
+  eq ( zero-gotvalue-pcs(PCS:PcStates) and 
+       pcstates-gotvalue-cloud-value( L:Nat.NAT , PCS ) ) = 
+	 zero-gotvalue-pcs(PCS) .
 }
 
 
@@ -429,30 +422,31 @@ mod! NECESSARYFACTS {
 open (CLOUD + CLOUDSYNCPROP) .
   pr(NECESSARYFACTS)
   vars M N K : Nat.NAT
+  var PCS : PcStates .
   ops s1 s2 s3 s4 s5 : -> State .
   ops t1 t2 t3 t4 t5 : -> State .
-  eq s1 =  < < N , idlecl > , ( << M ; K ; idlepc   >> PCS:PcStates ) >  .
-  eq s2 =  < < N , idlecl > , ( << M ; K ; gotvalue >> PCS:PcStates ) >  .
-  eq s3 =  < < N , idlecl > , ( << M ; K ; updated  >> PCS:PcStates ) >  .
-  eq s4 =  < < N , idlecl > , ( << M ; K ; finished >> PCS:PcStates ) >  .
-  eq s5 =  < < N , idlecl > , ( << M ; K ; sleep    >> PCS:PcStates ) >  .
-  eq t1 =  < < N , busy   > , ( << M ; K ; idlepc   >> PCS:PcStates ) >  .
-  eq t2 =  < < N , busy   > , ( << M ; K ; gotvalue >> PCS:PcStates ) >  .
-  eq t3 =  < < N , busy   > , ( << M ; K ; updated  >> PCS:PcStates ) >  .
-  eq t4 =  < < N , busy   > , ( << M ; K ; finished >> PCS:PcStates ) >  .
-  eq t5 =  < < N , busy   > , ( << M ; K ; sleep    >> PCS:PcStates ) >  .
+  eq s1 =  < < N , idlecl > , ( << M ; K ; idlepc   >> PCS ) >  .
+  eq s2 =  < < N , idlecl > , ( << M ; K ; gotvalue >> PCS ) >  .
+  eq s3 =  < < N , idlecl > , ( << M ; K ; updated  >> PCS ) >  .
+  eq s4 =  < < N , idlecl > , ( << M ; K ; finished >> PCS ) >  .
+  eq s5 =  < < N , idlecl > , ( << M ; K ; sleep    >> PCS ) >  .
+  eq t1 =  < < N , busy   > , ( << M ; K ; idlepc   >> PCS ) >  .
+  eq t2 =  < < N , busy   > , ( << M ; K ; gotvalue >> PCS ) >  .
+  eq t3 =  < < N , busy   > , ( << M ; K ; updated  >> PCS ) >  .
+  eq t4 =  < < N , busy   > , ( << M ; K ; finished >> PCS ) >  .
+  eq t5 =  < < N , busy   > , ( << M ; K ; sleep    >> PCS ) >  .
   -- show that if s is an initial state, then it has the invariant property
   -- this is the base case of the induction
-  red init(s1) implies invariant(s1) . -- OK
-  red init(s2) implies invariant(s2) . -- OK
-  red init(s3) implies invariant(s3) . -- OK
-  red init(s4) implies invariant(s4) . -- OK
-  red init(s5) implies invariant(s5) . -- OK
-  red init(t1) implies invariant(t1) . -- OK
-  red init(t2) implies invariant(t2) . -- OK
-  red init(t3) implies invariant(t3) . -- OK
-  red init(t4) implies invariant(t4) . -- OK
-  red init(t5) implies invariant(t5) . -- OK
+  -- red init(s1) implies invariant(s1) . -- OK
+  -- red init(s2) implies invariant(s2) . -- OK
+  -- red init(s3) implies invariant(s3) . -- OK
+  -- red init(s4) implies invariant(s4) . -- OK
+  -- red init(s5) implies invariant(s5) . -- OK
+  -- red init(t1) implies invariant(t1) . -- OK
+  -- red init(t2) implies invariant(t2) . -- OK
+  -- red init(t3) implies invariant(t3) . -- OK
+  -- red init(t4) implies invariant(t4) . -- OK
+  -- red init(t5) implies invariant(t5) . -- OK
   -- YEAH, init(S) implies invariant(S) has been shown for all
   -- elements of a cover set of the states
 
@@ -463,36 +457,93 @@ open (CLOUD + CLOUDSYNCPROP) .
   op inv-condition : State State -> Bool .
   eq inv-condition(S, SS) =
     (not (S =(*,1)=>+ SS
-       suchThat (not((invariant(S) implies invariant(SS)) == true))  {invariant(SS)})) .
+       suchThat (not((invariant(S) implies invariant(SS)) == true)))) .
 
-  red inv-condition(s1, SS) . -- FALSE
-  red inv-condition(s2, SS) . -- OK
-  red inv-condition(s3, SS) . -- OK
-  red inv-condition(s4, SS) . -- OK 
-  red inv-condition(s5, SS) . -- OK
-  red inv-condition(t1, SS) . -- OK
-  red inv-condition(t2, SS) . -- FALSE
-  red inv-condition(t3, SS) . -- FALSE
-  red inv-condition(t4, SS) . -- FALSE
-  red inv-condition(t5, SS) . -- OK
+  -- red inv-condition(s1, SS) . -- OK
+  -- red inv-condition(s2, SS) . -- OK
+  -- red inv-condition(s3, SS) . -- OK
+  -- red inv-condition(s4, SS) . -- OK 
+  -- red inv-condition(s5, SS) . -- OK
+  -- red inv-condition(t1, SS) . -- OK
+  red inv-condition(t2, SS) . -- probably OK (reduction not done completely!)
+  -- red inv-condition(t3, SS) . -- FALSE
+  -- red inv-condition(t4, SS) . -- OK
+  -- red inv-condition(t5, SS) . -- OK
 
   -- set trace whole on
 
-  -- reducing the following gets false
-  -- red inv-condition(s1, SS) .
-  -- the error state found is
-  op u : -> State .
-  eq u = < (< N , busy >) , ((<< M ; N ; gotvalue >>) PCS:PcStates) > .
+  -- ---------------------------
+  -- red inv-condition(t2, SS) .
+  -- t2 =  < < N , busy   > , ( << M ; K ; gotvalue >> PCS ) > 
+  -- u  =  < (< N , busy >) , ((<< M ; N ; gotvalue >>) PCS ) >
+  -- u  = (if (M <= K) then (< (< N , busy >) , ((<< K ; K ; updated >>) PCS) >) else (< (< M , busy >) , ((<< M ; K ; updated >>) PCS) >) fi)
+  -- eq M <= K = false .
+  red invariant ( < < N , busy   > , ( << M ; K ; gotvalue >> PCS ) > )
+      implies
+      invariant ( if (M <= K) then (< (< N , busy >) , ((<< K ; K ; updated >>) PCS) >) else (< (< M , busy >) , ((<< M ; K ; updated >>) PCS) >) fi ) .
 
-  -- try reducing the inv-condition directly
-  red invariant(s1) implies invariant(u) .
+  -- this produces a long formula that *should* reduce to simpler cases:
+-- (
+--  (
+--    pcstates-gotvalue-cloud-value(N,((<< M ; K ; gotvalue >>) PCS))
+--    and
+--    zero-updated-pcs(PCS)
+--    and
+--    zero-gotvalue-pcs(PCS)
+--    and
+--    zero-finished-pcs(PCS)
+--    and
+--        if (M <= K) then
+--          cloud-idle-pcs-idle-sleep((< (< N , busy >) , ((<< K ; K ; updated >>) PCS) >))
+--        else
+--          cloud-idle-pcs-idle-sleep((< (< M , busy >) , ((<< M ; K ; updated >>) PCS) >))
+--        fi
+--    and    
+--        if (M <= K) then
+--          gotvalue-cloud-value((< (< N , busy >) , ((<< K ; K ; updated >>) PCS) >))
+--        else
+--          gotvalue-cloud-value((< (< M , busy >) , ((<< M ; K ; updated >>) PCS) >))
+--        fi
+--    and  
+--        if (M <= K) then
+--          goal((< (< N , busy >) , ((<< K ; K ; updated >>) PCS) >))
+--        else
+--          goal((< (< M , busy >) , ((<< M ; K ; updated >>) PCS) >))
+--        fi
+--    and  
+--        if (M <= K) then
+--          one-active((< (< N , busy >) , ((<< K ; K ; updated >>) PCS) >))
+--        else
+--          one-active((< (< M , busy >) , ((<< M ; K ; updated >>) PCS) >))
+--        fi
+--  )
+--  xor
+--  (
+--    (
+--      pcstates-gotvalue-cloud-value(N,((<< M ; K ; gotvalue >>) PCS))
+--      and
+--      zero-updated-pcs(PCS)
+--      and
+--      zero-gotvalue-pcs(PCS)
+--      and
+--      zero-finished-pcs(PCS)))
+--    )
+--    xor
+--    true
+--  )
+-- )
 
-  eof
-  -- the strange thing here is that the above reduces to
-  -- (((((#updpcs(PCS) = 0) and (#gtvpcs(PCS) = 0)) and (#finpcs(PCS) = 0)) and (#gtvpcs(PCS) = 0)) xor ((((#updpcs(PCS) = 0) and (#gtvpcs(PCS) = 0)) and (#finpcs(PCS) = 0)) xor true)):Bool
- 
-  -- reducing the same term again:
-  red (((((#updpcs(PCS:PcStates) = 0) and (#gtvpcs(PCS) = 0)) and (#finpcs(PCS) = 0)) and (#gtvpcs(PCS) = 0)) xor ((((#updpcs(PCS) = 0) and (#gtvpcs(PCS) = 0)) and (#finpcs(PCS) = 0)) xor true)) .
- 
--- close
+-- The interesting case is that the inner parts of the if 
+-- are *NOT* reduced anymore!!
+
+-- example
+-- 
+--   red cloud-idle-pcs-idle-sleep((< (< N , busy >) , ((<< K ; K ; updated >>) PCS) >)) .
+-- gives *true* but that is not reduced anymore!!!
+
+-- I checked all the cases and with full reduction the case of
+-- invariant(t2) would also be solved!!!!
+
+
+eof
 

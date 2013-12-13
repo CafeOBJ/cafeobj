@@ -292,6 +292,7 @@
 		     :id-condition (axiom-id-condition r)
 		     :labels (axiom-labels r)
 		     :type (axiom-type r)
+		     :meta-and-or (rule-meta-and-or r)
 		     :behavioural (axiom-is-behavioural r)
 		     :kind (if (eq ':id-theorem (axiom-kind r))
 			       ':id-ext-theory
@@ -322,6 +323,7 @@
 		     :id-condition (axiom-id-condition r)
 		     :labels (axiom-labels r)
 		     :type (axiom-type r)
+		     :meta-and-or (rule-meta-and-or r)
 		     :behavioural (axiom-is-behavioural r)
 		     :kind (if (eq ':id-theorem (axiom-kind r))
 			       ':id-ext-theory
@@ -346,6 +348,7 @@
 		     :id-condition (axiom-id-condition r)
 		     :labels (axiom-labels r)
 		     :type (axiom-type r)
+		     :meta-and-or (rule-meta-and-or r)
 		     :behavioural (axiom-is-behavioural r)
 		     :kind (if (eq ':id-theorem (axiom-kind r))
 			       ':id-ext-theory
@@ -373,6 +376,7 @@
 		     :id-condition (axiom-id-condition r)
 		     :labels (axiom-labels r)
 		     :type (axiom-type r)
+		     :meta-and-or (rule-meta-and-or r)
 		     :behavioural (axiom-is-behavioural r)
 		     :kind (if (eq ':id-theorem (axiom-kind r))
 			       ':id-ext-theory
@@ -833,6 +837,7 @@
 		   :condition condition
 		   :type (axiom-type rul)
 		   :kind ':id-completion
+		   :meta-and-or (rule-meta-and-or rul)
 		   :labels (axiom-labels rul)))
 	    ;;
 	    ;;

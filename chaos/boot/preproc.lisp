@@ -126,14 +126,25 @@
 ;;;-----------------------------------------------------------------------------
 (defun is-Id-token (token)
   (and (stringp token)
-       (<= 1 (length token))
-       (alpha-char-p (char token 0))
-       ))
-(defun create-Id (token) (intern token))
-(defun print-Id (x) (princ (string x)))
+       (not (numeric-char-p (char token 0)))
+       (not (find #\. token))
+       ;; (alpha-char-p (char token 0))
+       (let ((pos (position #\: token))
+	     (len (length token)))
+	 (and (<= 1 len)
+	      (if pos
+		  (= pos (1- len))
+		t)))))
+;; (defun create-Id (token) (intern token))
+(defun create-Id (token) token)
+;; (defun print-Id (x) (princ (string x)))
+(defun print-Id (x) (princ x))
+;; (defun is-Id (x)
+;;  (and (symbolp x)
+;;       (is-Id-token (symbol-name x))))
 (defun is-Id (x)
-  (and (symbolp x)
-       (is-Id-token (symbol-name x))))
+  (and (string x)
+       (is-Id-token x)))
 
 ;;;-----------------------------------------------------------------------------
 ;;; module QID 
@@ -142,13 +153,17 @@
   (and (stringp token)
        (<= 2 (length token))
        (eql #\' (char token 0))
-       (alpha-char-p (char token 1))
-       ))
-(defun create-qId (token) (intern (subseq token 1)))
+       (alpha-char-p (char token 1))))
+  
+(defun create-qId (token)
+  (if (eql #\' (char token 0))
+      (intern (subseq token 1))
+    (intern token)))
+
 (defun print-qId (x) (format t "'~a" (string x)))
 (defun is-qId (x)
   (and (symbolp x)
-       (is-Id-token (symbol-name x))))
+       (is-qId-token (symbol-name x))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; module FLOAT
@@ -314,6 +329,15 @@
 (defun install-truth ()
   (final-setup *truth-module*))
 ||#
+
+;;;-----------------------------------------------------------------------------
+;;; ID
+;;;-----------------------------------------------------------------------------
+(defun setup-id ()
+  (setq *id-module* (eval-modexp "ID"))
+  (final-setup *id-module*)
+  (with-in-module (*id-module*)
+    (setq *id-sort* (find-sort-in *id-module* "Id"))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; QID

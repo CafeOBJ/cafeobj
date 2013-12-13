@@ -802,11 +802,12 @@
 
 (defmacro module-is-object (_mod_) `(eq :object (module-kind ,_mod_)))
 
-(defmacro module-is-loose (_mod_)
-  ` (memq (module-kind ,_mod_) '(:theory :module :ots)))
+(defmacro module-is-final (_mod_) `(eq :theory (module-kind ,_mod)))
 
-(defmacro module-is-initial (_mod_)
-  ` (memq (module-kind ,_mod_) '(:object :module)))
+(defmacro module-is-loose (_mod_)
+  ` (memq (module-kind ,_mod_) '(:module :ots)))
+
+(defmacro module-is-initial (_mod_) `(eq (module-kind ,_mod_) :object))
 
 ;;; REGULARITY
 (defmacro module-is-regular (_mod)
@@ -1138,10 +1139,12 @@
 	   (values t))
   (if (or (module-is-inconsistent obj)
 	  (null (module-name obj)))
-      (format stream "[:module \"~a\"]"
-	      (module-name obj))
-    (format stream "[:module \"~a\"]" (make-module-print-name2 obj))))
-
+      (format stream "[:module \"~a\"]" (module-name obj))
+    (cond ((module-is-object obj)
+	   (format stream ":mod![\"~a\"]" (module-print-name obj)))
+	  ((module-is-theory obj)
+	   (format stream ":mod*[\"~a\"]" (module-print-name obj)))
+	  (t (format stream ":mod[\"~a\"]" (module-print-name obj))))))
 
 ;;; *********************************
 ;;; Constructing RUN TIME ENVIRONMENT -----------------------------------------
@@ -1398,6 +1401,8 @@
   ;; symbol table
   (setf (module-alias mod) nil)
   (setf (module-symbol-table mod) (make-symbol-table))
+  ;; print name
+  (setf (module-print-name mod) (make-module-print-name2 mod))
   ;;
   (clear-tmp-sort-cache)
   (clear-method-info-hash))

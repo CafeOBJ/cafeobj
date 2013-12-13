@@ -212,7 +212,7 @@
 
 (declaim (special *print-indent*))
 (declaim (type (integer 0 128)
-	       *print-line-limit* *chaos-print-level*
+	       *chaos-print-level*
 	       *print-indent* *print-indent-increment*))
 ;; (defvar *chaos-verbose* nil)
 (defvar *module-all-rules-every* nil)
@@ -231,7 +231,7 @@
 (defvar *print-operator-table* nil)
 (defvar *print-flag-module-values* nil)
 (defvar *print-indent-contin* nil)
-(defvar *print-line-limit* 70)
+(defvar *print-line-limit* 2000)
 (defvar *print-mode* nil)
 (defvar *print-all-eqns* nil)
 (defvar *print-ignore-mods* nil)
@@ -288,18 +288,20 @@
 (defconstant $name-or-sort '|_ \|-Sort _|)
 (defconstant $name-err-sort '|_ ?-Sort _|)
 (defconstant $name-operator '|*Operator*|)
+(defconstant $name-optheory '|*OpTheory*|)
 (defconstant $name-module '|*Module*|)
 (defconstant $name-signature '|*Signature*|)
 (defconstant $name-axiomset '|*AxiomSet*|)
 (defconstant $name-trs '|*Trs*|)
 (defconstant $name-axiom '|*Axiom*|)
 (defconstant $name-chaos-object '|*ChaosObject*|)
-(defconstant $name-chaos-expr '|*ChaosExpr*|)
+(defconstant $name-chaos-expr '|*CafeExpr*|)
 (defconstant $name-term-type '|*TermType*|)
-(defconstant $name-chaos-list '|*ChaosList*|)
+(defconstant $name-chaos-list '|*CafeList*|)
 (defconstant $name-void '|*Void*|)
-(defconstant $name-import '|*Imports*|)
+(defconstant $name-import '|*Import*|)
 (defconstant $name-subst '|*Substitution*|)
+(defconstant $name-parameter '|*Parameter*|)
 
 ;;; builtin sorts
 (defvar *cosmos* 'void)			; the whole 
@@ -314,6 +316,7 @@
 (defvar *general-sort* 'void)
 (defvar *builtin-sort* 'void)
 (defvar *identifier-sort* 'void)
+(defvar *id-sort* 'void)
 (defvar *qid-sort* 'void)
 (defvar *syntax-err-sort* 'void)
 (defvar *type-err-sort* 'void)
@@ -325,6 +328,7 @@
 (defvar *record-sort* 'void)
 (defvar *class-sort* 'void)
 (defvar *operator-sort* 'void)
+(defvar *optheory-sort* 'void)
 (defvar *module-sort* 'void)
 (defvar *import-sort* 'void)
 (defvar *signature-sort* 'void)
@@ -338,7 +342,6 @@
 (defvar *glisp-term-sort* 'void)
 (defvar *bconst-term-sort* 'void)
 (defvar *modexpr-sort* 'void)
-(defvar *optheory-sort* 'void)
 (defvar *chaos-list-sort* 'void)
 (defvar *chaos-void-sort* 'void)
 (defvar *bool-sort* 'void)
@@ -361,6 +364,7 @@
 (defvar *acz-configuration-sort* 'void)
 (defvar *subst-sort* 'void)
 (defvar *sort_builtin* 'void)
+(defvar *parameter-sort* 'void)
 
 (defvar sup-universal-sort-name nil)
 (defvar sup-huniversal-sort-name nil)
@@ -398,6 +402,7 @@
 (defvar *universal-module* nil)
 (defvar *parser-module* nil)
 (defvar *qid-module* nil)
+(defvar *id-module* nil)
 
 ;;; Some operators & methods of CHAOS module.
 ;;; these are used for representing builtin constant and ill-formed terms
@@ -455,6 +460,8 @@
 
 ;;; search command related
 (defvar .rwl-sch-context. nil)
+(defvar .rwl-context-stack. nil)
+(defvar .rwl-states-so-far. 0)
 (defvar *rwl-search-no-state-report* nil)
 
 ;;; basic operations in IDENTICAL.
@@ -624,5 +631,6 @@
 (defvar *mel-debug* nil)
 (defvar *check-import-mode* nil)
 (defvar *cexec-debug* nil)
+(defvar *debug-meta* nil)
 
 ;;; EOF

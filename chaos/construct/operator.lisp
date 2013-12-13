@@ -309,17 +309,16 @@
     ;; associativity
     ;;
     (when (theory-contains-associativity theory)
-      (unless (and (sort<= coarity (car arity))
-                   (sort<= coarity (cadr arity))
-		   ;; too restrictive?
-		   (sort= (car arity) (cadr arity)))
+      (unless (and (is-in-same-connected-component coarity (car arity) *current-sort-order*)
+		   (is-in-same-connected-component coarity (cadr arity) *current-sort-order*)
+		   (is-in-same-connected-component (car arity) (cadr arity) *current-sort-order*))
 	;; should always check
 	(unless inherit
 	  (with-output-chaos-warning ()
-	    (format t "rank of method :")
+	    (format t "rank of method ")
 	    (print-chaos-object method)
 	    (print-next)
-	    (format t "does not allow it being associative, ignoring `assoc' attribute.")))
+	    (format t "does not allow it to be associative, ignoring `assoc' attribute.")))
 	(setf new-code (unset-theory new-code .A.))))
     ;;
     ;; commutativity
@@ -344,13 +343,13 @@
       (let* ((id (car (theory-zero theory)))
 	     (id-sort (term-sort id)))
 	(if (not (and (= 2 (length arity))
-		      (sort= (car arity) (cadr arity))
-		      (sort= (car arity) coarity)))
+		      (is-in-same-connected-component (car arity) (cadr arity) *current-sort-order*)
+		      (is-in-same-connected-component (car arity) coarity *current-sort-order*)))
 	    (unless inherit
 	      (with-output-chaos-warning ()
 		(princ "id: makes sense only when the operator is binary,")
 		(print-next)
-		(princ "and its arity sorts and the coarity sort are the same.")
+		(princ "and its arity sorts and the coarity sort are of same connected components.")
 		(print-next)
 		(princ "ignoring id:(idr:) attribute of operator ")
 		(print-chaos-object method)
