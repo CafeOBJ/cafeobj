@@ -236,11 +236,13 @@
                        (%bsort-decl "Id" is-id-token create-id
                         print-id is-id nil))))
   (setup-id)
+  #||
   (eval-ast-if-need '(%module-decl "QID" :object :hard
-                      ((%psort-decl (%sort-ref "Id" nil))
-                       (%bsort-decl "Id" is-qid-token create-qid
+                      ((%psort-decl (%sort-ref "QId" nil))
+                       (%bsort-decl "QId" is-qid-token create-qid
                         print-qid is-qid nil))))
   (setup-qid)
+  ||#
   (eval-ast-if-need '(%module-decl "CHAR-VALUE" :object :hard
                       ((%psort-decl (%sort-ref "Character" nil))
                        (%bsort-decl "Character" is-character-token
@@ -348,7 +350,7 @@
                                         ; (setq *z-int* (get-z-module-or-panic "INT"))
                                         ; (setq *z-rat* (get-z-module-or-panic "RAT"))
                                         ; (setq *z-float* (get-z-module-or-panic "FLOAT"))
-  (setq *z-qid* (get-z-module-or-panic "QID"))
+  ;; (setq *z-qid* (get-z-module-or-panic "QID"))
   (setq *z-char-value* (get-z-module-or-panic "CHAR-VALUE"))
                                         ; (setq *z-char* (get-z-module-or-panic "CHARACTER"))
   (setq *z-string-value* (get-z-module-or-panic "STRING-VALUE"))
@@ -362,7 +364,7 @@
                                         ; *z-rat*
 	      *z-float-value*
                                         ; *z-float*
-	      *z-qid*
+	      ;; *z-qid*
 	      *z-char-value*
                                         ; *z-char*
 	      *z-string-value*
