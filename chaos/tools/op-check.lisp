@@ -364,7 +364,7 @@
 					     :type (axiom-type ax)
 					     :kind (axiom-kind ax)
 					     :labels (axiom-labels ax)
-					     ))
+					     :meta-and-or (axiom-meta-and-or ax)))
 			    (when *chaos-verbose*
 			      (format t "~%   -- check with axiom instance:")
 			      (format t "~%   ")

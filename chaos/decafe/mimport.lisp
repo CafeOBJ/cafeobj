@@ -451,7 +451,8 @@
 			  :labels (axiom-labels axiom)
 			  :type (axiom-type axiom)
 			  :behavioural (axiom-is-behavioural axiom)
-			  :kind (axiom-kind axiom)))
+			  :kind (axiom-kind axiom)
+			  :meta-and-or (axiom-meta-and-or axiom)))
 	     ;;
 	     (using-import-sub (s mode)
 	       (let ((subs (module-all-submodules module)))
