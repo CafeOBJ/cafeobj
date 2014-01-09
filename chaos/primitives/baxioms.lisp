@@ -150,8 +150,9 @@
 ;;; CONSTRUCTOR
 ;;;
 (defmacro create-rewrite-rule (type lhs rhs condition behavioural
-				    id-condition first-match-method
-				    next-match-method extensions)
+			       id-condition first-match-method
+			       next-match-method extensions
+			       &optional (meta-and-or nil))
   ` (create-ex-rewrite-rule ,type
 			    ,lhs
 			    ,rhs
@@ -160,7 +161,8 @@
 			    ,id-condition
 			    ,first-match-method
 			    ,next-match-method
-			    ,extensions))
+			    ,extensions
+			    ,meta-and-or))
   
 ;;; ***** 
 ;;; AXIOM________________________________________________________________________

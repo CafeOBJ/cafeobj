@@ -158,13 +158,14 @@
   (declare (type simple-string string)
 	   (type (or null character simple-string) fill-char)
 	   (type stream stream))
-  (princ string stream)
-  (princ " " stream)
-  (if fill-char
-      (dotimes (x (- *print-line-limit* 1 *print-indent*
-		     (filecol stream) (length string)))
-	(declare (type fixnum x))
-	(princ fill-char stream))))
+  (let ((*print-line-limit* 76))
+    (princ string stream)
+    (princ " " stream)
+    (if fill-char
+	(dotimes (x (- *print-line-limit* 1 *print-indent*
+		       (filecol stream) (length string)))
+	  (declare (type fixnum x))
+	  (princ fill-char stream)))))
     
 ;;; print-next
 ;;; print new-line iff the current column is not at the beggining of line

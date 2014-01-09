@@ -54,7 +54,7 @@
       (compute-rule-method rule))
     rule))
 
-(defun make-simple-axiom (lhs rhs type &optional behavioural)
+(defun make-simple-axiom (lhs rhs type &optional behavioural meta-and-or)
   (declare (type term lhs rhs)
 	   (type (or null t) behavioural))
   (make-rule :lhs lhs
@@ -64,7 +64,8 @@
 	     :id-condition nil
 	     :type type
 	     :kind nil
-	     :labels nil))
+	     :labels nil
+	     :meta-and-or meta-and-or))
 ;;;
 (defun make-fun (f)
   #+GCL f
@@ -318,7 +319,8 @@
 	   :behavioural (axiom-is-behavioural rule)
 	   :kind (if (eq :id-theorem knd)
 		     :id-ext-theory
-		   :A-left-theory)))
+		   :A-left-theory)
+	   :meta-and-or (axiom-meta-and-or rule)))
 	;; (compute-rule-method ext-rule)
 	(push ext-rule listext)
 
@@ -343,7 +345,8 @@
 	   :labels (make-ext-rule-label (axiom-labels rule) "A-r")
 	   :kind (if (eq :id-theorem knd)
 		     :id-ext-theory
-		   :A-right-theory)))
+		   :A-right-theory)
+	   :meta-and-or (axiom-meta-and-or rule)))
 	;; (compute-rule-method ext-rule)
 	(push ext-rule listext)
 
@@ -365,7 +368,8 @@
 	   :labels (make-ext-rule-label (axiom-labels rule) "A-m")
 	   :kind (if (eq :id-theorem knd)
 		     :id-ext-theory
-		   :A-middle-theory)))
+		   :A-middle-theory)
+	   :meta-and-or (axiom-meta-and-or rule)))
 	;;
 	(push ext-rule listext)
 	(setf (axiom-A-extensions rule) listext))
@@ -410,7 +414,8 @@
 	   :labels (make-ext-rule-label (axiom-labels rule) "AC")
 	   :kind (if (eq ':id-theorem knd)
 		     ':id-ext-theory
-		   ':ac-theory)))
+		   ':ac-theory)
+	   :meta-and-or (axiom-meta-and-or rule)))
 	  ;;
 	(setf (axiom-AC-extension rule) (list ext-rule))
 	))))
@@ -493,7 +498,8 @@
      :first-match-method (axiom-first-match-method rule)
      :next-match-method (axiom-next-match-method rule)
      :labels (axiom-labels rule)
-     :kind (axiom-kind rule))
+     :kind (axiom-kind rule)
+     :meta-and-or (axiom-meta-and-or rule))
     ;; 
     (compute-rule-method rule)
     rule
@@ -862,6 +868,7 @@
 		 :labels (axiom-labels rule)
 		 :kind (axiom-kind rule)
 		 :type (axiom-type rule)
+		 ;; :meta-and-or (axiom-meta-and-or rule)
 		 ;; :no-method-computation t
 		 )))
 
@@ -881,7 +888,8 @@
 		    (substitution-image! subst cnd)))
    :labels (axiom-labels rule)
    :type (axiom-type rule)
-   :kind (axiom-kind rule)))
+   :kind (axiom-kind rule)
+   :meta-and-or (axiom-meta-and-or rule)))
 
 ;;; compute-action-rule : rule-spec subst-list -> rule
 ;;;  rule-spec ::= ( <ModId> { <Nat> | <Id> } <Reverse> )
@@ -1040,7 +1048,8 @@
 				   :labels (axiom-labels axiom)
 				   :type (axiom-type axiom)
 				   :kind (axiom-kind axiom)
-				   :no-method-computation t))
+				   :no-method-computation t
+				   :meta-and-or (axiom-meta-and-or axiom)))
 		  (push (cons axiom new-axiom)
 			(module-axioms-to-be-fixed module))
 		  new-axiom)
@@ -1126,7 +1135,8 @@
 			       :labels (axiom-labels axiom)
 			       :type (axiom-type axiom)
 			       :kind (axiom-kind axiom)
-			       :no-method-computation t))
+			       :no-method-computation t
+			       :meta-and-or (axiom-meta-and-or axiom)))
 	      new-axiom))))))
 
 ;;; EOF

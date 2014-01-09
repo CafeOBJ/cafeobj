@@ -1,0 +1,25 @@
+-- ========================================
+-- :m-and test
+
+-- generic set
+mod! SET(X :: TRIV) {
+[Elt.X < Set]
+-- empty set
+op empty : -> Set {constr} .
+-- assicative and commutative set constructor with identity empty
+op (_ _) : Set Set -> Set {constr assoc comm id: empty} .
+-- (_ _) is idempotent with respect to the sort Elt
+eq E:Elt E = E .
+}
+
+mod NAT-SET-PRED {pr(SET(NAT)*{sort Set -> NatSet})
+op p : Nat Nat -> Bool .
+op q : NatSet -> Bool .
+eq [:m-and]: q(N1:Nat N2:Nat NS:NatSet) = p(N1,N2) .
+}
+
+open NAT-SET-PRED .
+red q(1 2 3) .
+-- => (p(3,2)):Bool
+-- but expecting (p(1,2) and p(1,3) and p(2,1) and p(2,3) and p(3,1) and p(3,2)) .
+close

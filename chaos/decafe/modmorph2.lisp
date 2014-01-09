@@ -1615,7 +1615,8 @@
 		 :labels (axiom-labels ax)
 		 :behavioural (axiom-is-behavioural ax)
 		 :type (axiom-type ax)
-		 :kind (axiom-kind ax)))))
+		 :kind (axiom-kind ax)
+		 :meta-and-or (axiom-meta-and-or ax)))))
 
 ;;; *******************
 ;;; MISC MODMORPH UTILS_________________________________________________________

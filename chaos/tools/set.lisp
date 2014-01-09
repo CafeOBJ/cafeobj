@@ -72,8 +72,8 @@
       ("exec" ("limit") general *cexec-limit*
        "limit maximum number of concurrent execution."
        chaos-set-cexec-limit)
-      ("exec" ("normalize") parity *cexec-normalize*
-       "if on, reduce term before and after each transition.")
+      ;; ("exec" ("normalize") parity *cexec-normalize*
+      ;;  "if on, reduce term before and after each transition.")
       ;; ("exec" ("all") parity *cexec-find-all-solutions*
       ;;  "if on, find all solutions of =(*)=>.")
       (:comment "** system behaviour control ----------------------------")
@@ -86,8 +86,8 @@
        "automatic change current context(module).")
       ;; ("auto" ("reconstruct") parity *auto-reconstruct*
       ;;  "perform automatic reconstruction of modules if inconsistent.")
-      ("accept" ("term") parity *allow-general-term-input*
-       "allow input term directly at top level.")
+      ;; ("accept" ("term") parity *allow-general-term-input*
+      ;; "allow input term directly at top level.")
       (("regularize" "reg") ("signature") parity *regularize-signature*
        "regularize module signature automatic.")
       ("check" ("import") parity *check-import-mode*
@@ -95,15 +95,15 @@
       ("check" ("regularity") parity *check-regularity*
        "perform regularity check of signatures in automatic.")
       ("check" ("coherency") parity *check-rwl-coherency*
-       "perform transitions and equations are coherent or not in automatic.")
+       "check transitions and equations are coherent or not in automatic.")
       ("check" ("sensible") parity *check-sensibleness*
-       "perform if sigunature is sensible in automatic.")
+       "check if sigunature is sensible in automatic.")
       ("check" ("compatibility") parity *check-compatibility*
        "perform compatibility check of TRS in automatic.")
-      ("check" ("builtin") parity *builtin-overloading-check*
-       "perform operator overloading check with builtin sorts.")
-      ("select" ("term") parity *select-ambig-term*
-        "allow users to select a term from anbiguously parsed terms.")
+      ;; ("check" ("builtin") parity *builtin-overloading-check*
+      ;; "perform operator overloading check with builtin sorts.")
+      ;; ("select" ("term") parity *select-ambig-term*
+      ;;  "allow users to select a term from anbiguously parsed terms.")
       ("verbose" nil parity *chaos-verbose* "set verbose mode." set-verbose-on set-verbose-off)
       ("quiet" () parity *chaos-quiet* "be quiet." set-quiet-on set-quiet-off)
       (:comment "** show/display options --------------------------------")
@@ -111,26 +111,26 @@
       ;; ("all" ("rules") parity *module-all-rules-every* 
       ;;  "print all rules in \"show rules\" command.")
       ("show" ("mode") general *show-mode*
-       "set syntax of printed modules or views, .e.t.c. ~~value is either :cafeobj or :chaos."
+       "set syntax of printed modules or views, .e.t.c. ~~value is either :cafeobj or :meta."
        chaos-set-show-mode)
       ("show" ("var" "sorts") parity *print-with-sort* 
        "if on, variables are printed with their sorts.")
       ("print" ("mode") general *print-xmode*
        "set term print form, one of :normal, :fancy, :tree or :s-expr."
        chaos-set-print-mode)
+      ("print" ("depth") general *term-print-depth*
+       "max depth of terms to be printed."
+       chaos-set-print-depth)
       (:comment "** misc settings ---------------------------------------")
       ("libpath" () general *chaos-libpath*
        "set file search path. `set libpath + path-list' adds search path."
        chaos-set-search-path)
-      (("tram" "compiler") ("path") general *tram-path*
-       "pathname to TRAM compiler."
-       chaos-set-tram-path)
-      (("tram" "compiler") ("options") general *tram-options*
-       "optional arguments to TRAM cmpiler."
-       chaos-set-tram-options)
-      ("print" ("depth") general *term-print-depth*
-       "max depth of terms to be printed."
-       chaos-set-print-depth)
+      ;; (("tram" "compiler") ("path") general *tram-path*
+      ;; "pathname to TRAM compiler."
+      ;; chaos-set-tram-path)
+      ;; (("tram" "compiler") ("options") general *tram-options*
+      ;; "optional arguments to TRAM cmpiler."
+      ;; chaos-set-tram-options)
       ("accept" ("=*=" "proof") parity *accept-system-proof*
        "accept system's automatic proof of congruency of =*=.")
       ("find" ("all" "rules") parity *find-all-rules*
@@ -325,8 +325,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
     (when (consp path)
       (setq path (car path)))
     (setq *tram-path* path)
-    (kill-tram-process)
-    ))
+    (kill-tram-process)))
 
 (defun chaos-set-tram-options (options)
   (if options
@@ -336,14 +335,13 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
 
 (defun chaos-set-show-mode (value)
   (case-equal (car value)
-              ((":chaos" "chaos")
+              ((":meta" ":chaos" "chaos")
                (setq *show-mode* :chaos))
               ((":cafeobj" "cafeobj")
                (setq *show-mode* :cafeobj))
               (otherwise
                (with-output-chaos-error ('invalid-value)
-                 (format t "value must be either `cafeobj' or `chaos'")
-                 ))))
+                 (format t "value must be either `cafeobj' or `meta'")))))
 
 (defun chaos-set-cexec-limit (value)
   (if (or (null value)
@@ -356,8 +354,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
 	    (with-output-chaos-error ('invalid-value)
 	      (format t "invalid value for exec limit: ~a" (car value))
 	      (print-next)
-	      (princ "must be a positive integer.")
-	      )))))
+	      (princ "must be a positive integer.") )))))
 
 (defun chaos-set-print-depth (value)
   (if (or (null value)
@@ -370,8 +367,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
 	    (with-output-chaos-error ('invalid-value)
 	      (format t "invalid value for term print depth: ~a" (car value))
 	      (print-next)
-	      (princ "must be a positive integer.")
-	      )))))
+	      (princ "must be a positive integer."))))))
 
 (defun chaos-set-print-mode (value)
   (case-equal (car value)
@@ -384,16 +380,14 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
                (with-output-chaos-error ('invalid-value)
                  (format t "invalid value for print mode ~a" (car value))
                  (print-next)
-                 (princ "specify one of :normal :fancy :tree :s-expr.")))
-              ))
+                 (princ "specify one of `normal' `fancy' `tree' or `s-expr'.")))))
 
 (defun chaos-obsolete-print-fancy (value)
   (declare (ignore value))
   (with-output-chaos-warning ()
     (format t "`set print fancy { on | off }' is now obsolete.")
     (print-next)
-    (format t "please use `set print mode fancy' or `print mode normal'.")
-    ))
+    (format t "please use `set print mode fancy' or `print mode normal'.")))
 
 (defun chaos-obsolete-print-tree (value)
   (declare (ignore value))
@@ -409,8 +403,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
   (let ((path (car path)))
     (when (consp path)
       (setq path (car path)))
-    (setq *user-bool* path)
-    ))
+    (setq *user-bool* path)))
 
 ;;; EOF
 
