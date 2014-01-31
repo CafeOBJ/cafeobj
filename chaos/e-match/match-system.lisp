@@ -213,8 +213,10 @@ Based on the implementation of OBJ3 system.
 	((term-is-builtin-constant? t1)
 	 (not (term-builtin-equal t1 t2)))
 
+	#||
 	((term-is-builtin-constant? t2)
 	 t)
+	||#
 
 	;; [4] t1 & t2 is application form.
 	(t (let* ((t1-top (term-head t1))
@@ -300,86 +302,80 @@ Based on the implementation of OBJ3 system.
     ((term-is-builtin-constant? t1)
      (not (term-builtin-equal t1 t2)))
 
+    #||
     ((term-is-builtin-constant? t2)
      t)
+    ||#
 
-    ;; [4] t1 & t2 is application form.
+    ;; [4] t1 is an application form.
     (t (let* ((t1-top (term-head t1))
-	      (t2-top (term-head t2))
 	      (th-info (method-theory-info-for-matching! t1-top)))
-	 ;; since it is OS-matching, we only
-	 ;; test the equality of the operator.
-	 (if (method-is-of-same-operator+ t1-top t2-top)
-	     ;; f(x, y, z ...) = f(x',y',z'...)
-	     (if (theory-info-empty-for-matching th-info)
-		 ;;
-		 ;; the empty theory, do the full decompose.
-		 ;;
-		 (let ((t1-subterms (term-subterms t1))
-		       (t2-subterms (term-subterms t2)))
-		   (declare (type list t1-subterms t2-subterms))
-		   (loop		; for each subterm try decomposition.
-		       (unless t1-subterms (return nil))
-		       (let ((ng (!match-decompose-match (car t1-subterms)
-							 (car t2-subterms)
-							 res)))
-			 (when (and ng
-				    (!match-decompose-on-demand t1 t2 res))
-			   (return-from !match-decompose-match t)))
-		     (setf t1-subterms (cdr t1-subterms)
-			   t2-subterms (cdr t2-subterms)))
-		   nil)
-	       ;;
-	       ;; if the theory has equational theory, we do not
-	       ;; perform full decomposition.
-	       ;;
-	       (progn
-		 (push (make-equation t1 t2) (cdr res))
-		 nil))
-	   
-	   ;;
-	   ;; the different top level
-	   ;; possibly maches only when zero case or on-demand. 
-	   ;;
-	   ;; #|| too danderous: many cases of rewriting rush into infinite loop.
-	   (if (term-is-on-demand? t2)
-	       (progn
-		 (mark-term-as-not-on-demand t2)
-		 (if (normalize-term t2)
-		     ;; no reduction has been performed.
-		     (if (or (test-theory .Z. (theory-info-code th-info))
-			     (test-theory .Z. (theory-info-code
-					       (method-theory-info-for-matching!
-						(term-head t2)))))
-			 (progn (push (make-equation t1 t2) (cdr res))
-				nil)
-		       ;; will never match
-		       t)
-		   ;; t2 is rewritten
-		   (!match-decompose t1 t2 res)))
-	     ;; t2 is not on demand.
-	     (if (or (test-theory .Z. (theory-info-code th-info))
-		     (test-theory .Z. (theory-info-code
-				       (method-theory-info-for-matching!
-					(term-head t2)))))
+	 (if (term-is-builtin-constant? t2)
+	     (if (not (theory-info-empty-for-matching th-info))
 		 (progn (push (make-equation t1 t2) (cdr res))
 			nil)
-	       ;; will never match
-	       t))
-	   ;; ||#
-	   #||
-	   (if (term-is-on-demand? t2)
-	       (progn
-		 (mark-term-as-not-on-demand t2)
-		 (if (normalize-term t2)
-		     ;; no reduction have been performed.
-		     t
-		   (!match-decompose t1 t2 res)))
-	     ;; never ...
-	     t)
-	   ||#
-	   )))
-    ))
+	       t)
+	   ;; t2 also is an application form.
+	   (let ((t2-top (term-head t2)))
+	     ;; since it is OS-matching, we only
+	     ;; test the equality of the operator.
+	     (if (method-is-of-same-operator+ t1-top t2-top)
+		 ;; f(x, y, z ...) = f(x',y',z'...)
+		 (if (theory-info-empty-for-matching th-info)
+		     ;;
+		     ;; the empty theory, do the full decompose.
+		     ;;
+		     (let ((t1-subterms (term-subterms t1))
+			   (t2-subterms (term-subterms t2)))
+		       (declare (type list t1-subterms t2-subterms))
+		       (loop		; for each subterm try decomposition.
+			 (unless t1-subterms (return nil))
+			 (let ((ng (!match-decompose-match (car t1-subterms)
+							   (car t2-subterms)
+							   res)))
+			   (when (and ng
+				      (!match-decompose-on-demand t1 t2 res))
+			     (return-from !match-decompose-match t)))
+			 (setf t1-subterms (cdr t1-subterms)
+			       t2-subterms (cdr t2-subterms)))
+		       nil)
+		   ;;
+		   ;; if the theory has equational theory, we do not
+		   ;; perform full decomposition.
+		   ;;
+		   (progn
+		     (push (make-equation t1 t2) (cdr res))
+		     nil))
+	   
+	       ;;
+	       ;; the different top level
+	       ;; possibly maches only when zero case or on-demand. 
+	       ;;
+	       ;; #|| too danderous: many cases of rewriting rush into infinite loop.
+	       (if (term-is-on-demand? t2)
+		   (progn
+		     (mark-term-as-not-on-demand t2)
+		     (if (normalize-term t2)
+			 ;; no reduction has been performed.
+			 (if (or (test-theory .Z. (theory-info-code th-info))
+				 (test-theory .Z. (theory-info-code
+						   (method-theory-info-for-matching!
+						    (term-head t2)))))
+			     (progn (push (make-equation t1 t2) (cdr res))
+				    nil)
+			   ;; will never match
+			   t)
+		       ;; t2 is rewritten
+		       (!match-decompose t1 t2 res)))
+		 ;; t2 is not on demand.
+		 (if (or (test-theory .Z. (theory-info-code th-info))
+			 (test-theory .Z. (theory-info-code
+					   (method-theory-info-for-matching!
+					    (term-head t2)))))
+		     (progn (push (make-equation t1 t2) (cdr res))
+			    nil)
+		   ;; will never match
+		   t)) )))))))
 
 ;; (declaim (inline match-decompose-equation))
 
