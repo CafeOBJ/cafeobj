@@ -461,7 +461,7 @@
 (defun print-axiom-set (obj stream &rest ignore)
   (declare (ignore ignore))
   (let ((mod (axiom-set$module obj)))
-    (format stream "'[:axiom-set \"~a\"]" (make-module-print-name2 mod))))
+    (format stream "':axset[\"~a\"]" (module-print-name mod))))
 
 ;;; ***
 ;;; TRS________________________________________________________________________
@@ -558,6 +558,7 @@
 		   (:constructor module* (name))
 		   (:print-function print-module-object)
 		   )
+  (print-name "" :type string)
   (signature nil :type (or null signature-struct))
 					; own signature.
   (axiom-set nil :type (or null axiom-set))

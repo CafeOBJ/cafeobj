@@ -77,7 +77,7 @@
 	  (res nil))
       (dolist (opinfo ops)
 	(dolist (m (opinfo-methods opinfo))
-	  (when (or (not no-error-mehods)
+	  (when (or (not no-error-methods)
 		    (not (method-is-error-method m)))
 	    (push m res))))
       (nreverse res))))
@@ -454,6 +454,7 @@
 	(let ((thy (method-theory meth))
 	      (coarity (method-coarity meth))
 	      (arity (method-arity meth)))
+	  #||
 	  (when (theory-contains-associativity thy)
 	    (unless (and (= (length arity) 2) ; redundant ...
 			 (sort<= coarity (car arity))
@@ -462,6 +463,7 @@
 		(princ "associative operator ")
 		(print-chaos-object meth)
 		(princ " has bad rank!"))))
+	  ||#
 	  ;; the following is redundant, more strong restrictive check is
 	  ;; done elsewhere.
 	  #||

@@ -187,6 +187,11 @@
                                (push i sexpr-so-far))))
                       (return-from term-to-sexpr (nreverse sexpr-so-far)))))))))
   
+(defun is-self-terminating (tok)
+  (and (stringp tok)
+       (= (length tok) 1)
+       (assoc (char tok 0) .default-single-chars.)))
+
 (defun term-print1 (term &optional (stream *standard-output*) (print-var-sort t)
                                    (vars-so-far (cons nil nil)))
   (declare (type stream stream)
@@ -226,10 +231,13 @@
 	     (if (or (atom obj) (is-ast obj))
 		 (prin1 obj stream)
 	       (progn
-		 (princ "[:: " stream)
+		 (princ ":[" stream)
 		 ;; (unless (listp obj) (break "!!"))
+		 #||
 		 (dolist (x obj)
 		   (term-print1 x stream print-var-sort vars-so-far))
+		 ||#
+		 (format stream "~{~S~^,~}" obj)
 		 (princ "]" stream)))))
           ((term$is-builtin-constant? body)
            (princ (bconst-print-string term) stream))
@@ -261,9 +269,10 @@
                         (princ ")"))))
                    ;; mix fix 
                    (t (let ((subs (term$subterms body))
+			    (token-seq (operator-token-sequence op))
                             (prv nil))
                         (princ "(" stream)
-                        (dolist (i (operator-token-sequence op))
+                        (dolist (i token-seq)
                           (when prv
                             (princ #\space stream))
                           (setq prv i)
@@ -387,7 +396,9 @@
                         ;;
                         (let ((subs (term-subterms term))
                               (prv nil))
-                          (dolist (i token-seq)
+			  (do* ((tseq token-seq (cdr tseq))
+				(i (car tseq) (car tseq)))
+			      ((endp tseq))
                             (when prv
                               (princ #\space stream))
                             (setq prv t)
@@ -559,7 +570,7 @@
 (defun print-term-graph (tree &optional (show-sort nil) (stream *standard-output*))
   (!print-term-tree tree show-sort stream t))
 
-(defun !print-term-tree (tree show-sort stream show-as-graph)
+(defun !print-term-tree (tree show-sort stream &optional (show-as-graph t))
   (let* ((*show-sort* show-sort)
          (leaf?
           #'(lambda (tree) (or (term-is-variable? tree)

@@ -217,12 +217,17 @@
 (defun pre-choose-final (module final)
   (declare (type module module)
 	   (type list final))
+  (when (and (cdr final) (assoc *id-module* (module-all-submodules module)))
+    ;; (format t "~%~s" final)
+    (setq final
+      (remove-if #'(lambda (x) (sort= *id-sort* (term-sort x))) final)))
   (when (every #'(lambda(x) (term-is-application-form? x)) final)
     (let ((mslist (mapcar #'(lambda (x) (term-head x)) final))
 	  (least-op nil)
 	  (gen-op nil)
 	  (res nil))
       (with-in-module (module)
+	;; 
 	;; first find the lowest one
 	(setq least-op (choose-lowest-op mslist))
 	(when least-op

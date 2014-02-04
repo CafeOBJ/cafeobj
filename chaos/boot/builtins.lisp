@@ -97,7 +97,7 @@
   ;; builtin sorts of internal objects-------------------------------
   ;; *Module* 
   (setq *module-sort* (define-builtin-sort $name-module *chaos-meta*))
-  ;; *Imports*
+  ;; *Import*
   (setq *import-sort* (define-builtin-sort $name-import *chaos-meta*))
   ;; *Signature*
   (setq *signature-sort* (define-builtin-sort $name-signature *chaos-meta*))
@@ -109,9 +109,11 @@
   (setq *sort-sort* (define-builtin-sort $name-sort *chaos-meta*))
   ;; *Operator*
   (setq *operator-sort* (define-builtin-sort $name-operator *chaos-meta*))
+  ;; *OpTheory*
+  (setq *optheory-sort* (define-builtin-sort $name-optheory *chaos-meta*))
   ;; *Axiom*
   (setq *axiom-sort* (define-builtin-sort $name-axiom *chaos-meta*))
-  ;; *Clist*
+  ;; *CafeList*
   (setq *chaos-list-sort* (define-builtin-sort $name-chaos-list *chaos-meta*))
   ;; *ChaosObject*
   (setq *chaos-object* (define-builtin-sort $name-chaos-object *chaos-meta*))
@@ -121,6 +123,8 @@
   (setq *chaos-expr-sort* (define-builtin-sort $name-chaos-expr *chaos-meta*))
   ;; *Substitution*
   (setq *subst-sort* (define-builtin-sort $name-subst *chaos-meta*))
+  ;; *Parameter*
+  (setq *parameter-sort* (define-builtin-sort $name-parameter *chaos-meta*))
   )
 
 (defun print-ast-dict ()
@@ -227,11 +231,18 @@
                        (%bsort-decl "Float" is-float-token
                         create-float print-float is-float nil))))
   
-  (eval-ast-if-need '(%module-decl "QID" :object :hard
+  (eval-ast-if-need '(%module-decl "ID" :object :hard
                       ((%psort-decl (%sort-ref "Id" nil))
-                       (%bsort-decl "Id" is-qid-token create-qid
+                       (%bsort-decl "Id" is-id-token create-id
+                        print-id is-id nil))))
+  (setup-id)
+  #||
+  (eval-ast-if-need '(%module-decl "QID" :object :hard
+                      ((%psort-decl (%sort-ref "QId" nil))
+                       (%bsort-decl "QId" is-qid-token create-qid
                         print-qid is-qid nil))))
   (setup-qid)
+  ||#
   (eval-ast-if-need '(%module-decl "CHAR-VALUE" :object :hard
                       ((%psort-decl (%sort-ref "Character" nil))
                        (%bsort-decl "Character" is-character-token
@@ -339,7 +350,7 @@
                                         ; (setq *z-int* (get-z-module-or-panic "INT"))
                                         ; (setq *z-rat* (get-z-module-or-panic "RAT"))
                                         ; (setq *z-float* (get-z-module-or-panic "FLOAT"))
-  (setq *z-qid* (get-z-module-or-panic "QID"))
+  ;; (setq *z-qid* (get-z-module-or-panic "QID"))
   (setq *z-char-value* (get-z-module-or-panic "CHAR-VALUE"))
                                         ; (setq *z-char* (get-z-module-or-panic "CHARACTER"))
   (setq *z-string-value* (get-z-module-or-panic "STRING-VALUE"))
@@ -353,7 +364,7 @@
                                         ; *z-rat*
 	      *z-float-value*
                                         ; *z-float*
-	      *z-qid*
+	      ;; *z-qid*
 	      *z-char-value*
                                         ; *z-char*
 	      *z-string-value*

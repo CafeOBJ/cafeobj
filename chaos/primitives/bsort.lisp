@@ -144,14 +144,17 @@
 #||
 (defun print-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "[:sort \"~s\" (~a)]"
+  (format stream ":sort[\"~s\" (~a)]"
 	  (string (sort-id obj))
 	  (sort-visible-type obj)))
 ||#
 
 (defun print-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "[:sort ~s]" (string (sort-id obj))))
+  (let ((name (concatenate 'string (string (sort-id obj)) "." (module-print-name (sort-module obj)))))
+    (if (sort-is-hidden obj)
+	(format stream ":hsort[~s]" name)
+      (format stream ":sort[~s]" name))))
 
 ;;; (defmacro sort-p (_object) `(sort-struct-p ,_object))
 

@@ -181,6 +181,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
       ("debug" ("tram") parity *on-tram-debug* "" nil nil t)
       ("debug" ("mel") parity *mel-debug* "" nil nil t)
       ("debug" ("exec") parity *cexec-debug* "" nil nil t)
+      ("debug" ("meta") parity *debug-meta* "" nil nil t)
       ;;
       ))
 
