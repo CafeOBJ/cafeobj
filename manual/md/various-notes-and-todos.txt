@@ -1,4 +1,9 @@
 
+missing:
+	:m-and :m-or tags for equations
+
+-------------
+
 mail from Sawada-san concerning operator precedence:
 
 (1) standard form: ex.  op foo : S1 .. Sk -> S                                  
