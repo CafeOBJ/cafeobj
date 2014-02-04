@@ -15,7 +15,7 @@ PDOPTS=-f markdown --bibliography=manual.bib --biblatex	\
 
 
 MDFILES=reference-manual.md introduction.md overview.md \
-	reference.md
+	reference.md cloudsync.md
 
 #
 # we cannot use -T for gpp, as the @ would function as escape marker which
@@ -23,13 +23,16 @@ MDFILES=reference-manual.md introduction.md overview.md \
 # For now we do *not* specify an escape marker, last argument to -U
 GPPOPTS=-U "\\" "" "{" "}{" "}" "{" "}" "\#" ""
 
+manuals: reference-manual.odt reference-manual.epub reference-manual.html reference-manual.pdf
+
+
 reference-manual.odt: $(MDFILES) odt.gpp makefile
 	gpp $(GPPOPTS) -DODT=1 reference-manual.md | pandoc ${PDOPTS} -t odt -s -o reference-manual.odt
 
 reference-manual.epub: $(MDFILES) epub.gpp makefile
 	gpp $(GPPOPTS) -DEPUB=1 reference-manual.md | pandoc ${PDOPTS} -t epub -s -o reference-manual.epub
 
-reference-manual.tex: $(MDFILES) latex.gpp makefile
+reference-manual.tex: $(MDFILES) latex.gpp makefile manual.bib
 	gpp $(GPPOPTS) -DLATEX=1 reference-manual.md | pandoc ${PDOPTS} -t latex -s -o reference-manual.tex
 
 reference-manual.html: $(MDFILES) html.gpp makefile
