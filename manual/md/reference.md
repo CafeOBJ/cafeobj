@@ -26,6 +26,17 @@ evaluated by the interpreter.
 
 Related: [`**`](#starstar) [comments](#comments)
 
+## `==` ## {#equality}
+
+The predicate `==` is a binary operator defined for each visible sort
+and is defined in terms of evaluation. That is, for ground terms `t`
+and `t'` of the same sort, `t == t'` evaluates to `true` iff terms
+reduce to a common term.
+
+## `=/=` ## {#ineq}
+
+Negation of the predicate [`==`](#equality).
+
 
 ## `apply <action> [ <subst> ] <range> <selection>` ## {#apply}
 

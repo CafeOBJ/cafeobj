@@ -1,13 +1,7 @@
 ---
 title: CafeOBJ Reference Manual
-date: 2014-02-04
-author:
-- name: Toshimi Sawada
-  affiliation: Some SoftWareCompany
-- name: Kokichi Futatsugi
-  affiliation: JAIST Research Center for Software Verification
-- name: Norbert Preining
-  affiliation: JAIST Research Center for Software Verification
+date: 2014-02-05
+author: Toshimi Sawada, Kokichi Futatsugi, Norbert Preining
 bibliography: manual.bibtex
 ---
 

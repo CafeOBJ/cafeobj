@@ -5,12 +5,13 @@ ENGINE=xelatex
 
 #	-V documentclass=book				\
 
-PDOPTS=-f markdown --bibliography=manual.bib --biblatex	\
+PDOPTS=-f markdown -V biblio-files=manual.bib --biblatex	\
 	--table-of-contents				\
 	-V papersize=a4paper				\
 	-V mainfont='Lucida Bright OT'			\
 	-V sansfont='Lucida Sans OT'			\
 	-V monofont='Lucida Sans Typewriter OT'		\
+	-V documentclass=book				\
 	--latex-engine=$(ENGINE)
 
 
