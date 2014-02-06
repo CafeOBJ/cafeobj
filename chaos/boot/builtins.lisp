@@ -236,13 +236,13 @@
                        (%bsort-decl "Id" is-id-token create-id
                         print-id is-id nil))))
   (setup-id)
-  #||
+  ;; #||
   (eval-ast-if-need '(%module-decl "QID" :object :hard
                       ((%psort-decl (%sort-ref "QId" nil))
                        (%bsort-decl "QId" is-qid-token create-qid
                         print-qid is-qid nil))))
   (setup-qid)
-  ||#
+  ;; ||#
   (eval-ast-if-need '(%module-decl "CHAR-VALUE" :object :hard
                       ((%psort-decl (%sort-ref "Character" nil))
                        (%bsort-decl "Character" is-character-token

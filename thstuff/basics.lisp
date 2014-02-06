@@ -463,12 +463,21 @@ File: basics.lisp
   (multiple-value-bind (res subst)
       (@pat-match pat term)
     (when res
+      (dolist (sub subst)
+	(push sub *m-pattern-subst*))
+      #||
       (if *m-pattern-subst*
-	  (setq *m-pattern-subst*
-	    (nconc *m-pattern-subst* subst))
-	(setq *m-pattern-subst* subst))
+	  (progn
+	    (setq *m-pattern-subst*
+	      (nconc *m-pattern-subst* subst))
+	    (princ "new *m-pattern-subst*=")
+	    (print-substitution *m-pattern-subst*))
+	(progn
+	  (setq *m-pattern-subst* subst)
+	  (princ "*m-pattern-subst*=")
+	  (print-substitution *m-pattern-subst*)))
+      ||#
       (return-from match-m-pattern t))
-    (setq *m-pattern-subst* nil)
     nil))
 
 #||

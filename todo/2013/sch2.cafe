@@ -1,0 +1,44 @@
+mod! TEST2 {
+  pr(NAT)
+  [Nat < Sys]
+  op none : -> Sys {constr}
+  op _ _ : Sys Sys -> Sys {constr assoc comm id: none}
+  op f : Sys -> Sys 
+  var N : Nat
+  var S : Sys
+  trans S => S .
+}
+eof
+
+open TEST .
+  var N : Nat .
+  var S : Sys .
+  red (0 1 2) =(*,*)=>* (N S) .
+close
+
+-- に対し、CafeOBJは
+
+-- reduce in %TEST : ((0 (1 2)) = ( * , * ) =>* (N S)):Bool
+
+** Found [state 0] (0 (1 2)):Sys
+--   { N |-> 0, S |-> (1 2) }
+--   { N |-> 1, S |-> (0 2) }
+--   { N |-> 2, S |-> (0 1) }
+
+** No more possible transitions.
+-- (true):Bool
+
+-- という結果を返し、期待どおりの振舞をしてくれています。しかし、
+
+--  red (0) =(*,*)=>* (N S) .
+--  red (0 none) =(*,*)=>* (N S) .
+
+-- のいずれに対しても、
+
+** No more possible transitions.
+-- (false):Bool
+
+-- という結果を返します。{ N |-> 0, S |-> none }というsubstitutionが
+-- ありますので、このsubstitutionを探すとともに(true):Boolを返すべきだ
+-- と思いますが、いかがでしょうか。
+-- 緒方
