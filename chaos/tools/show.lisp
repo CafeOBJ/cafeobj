@@ -514,9 +514,9 @@
     (dolist (entry *modules-so-far-table*)
       (let ((m (cdr entry)))
 	(if (module-is-hard-wired m)
-	    (when (or *on-debug* *chaos-verbose*)
+	    (when t			; (or *on-debug* *chaos-verbose*)
 	      (push m mods))
-	    (unless (equal (module-name m) "%") (push m mods)))))
+	  (unless (equal (module-name m) "%") (push m mods)))))
     ;;
     (dolist (m (sort mods #'ob< :key #'(lambda (x)
 					 (let ((name (module-name x)))

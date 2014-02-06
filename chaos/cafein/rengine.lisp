@@ -298,7 +298,13 @@
        (set-term-color
 	(substitution-image-simplifying *m-pattern-subst*
 					term
-					(rule-need-copy rule)))))
+					(rule-need-copy rule))))
+      (when *rewrite-debug*
+	(format t "~&[applied *m-pattern-subst*]")
+	(print-substitution *m-pattern-subst*)
+	(format t "--> ")
+	(term-print-with-sort term))
+      )
     ;;
     (multiple-value-bind (global-state subst no-match E-equal)
 	(funcall (rule-first-match-method rule) (rule-lhs rule) term)
@@ -312,6 +318,14 @@
       ;; technical assignation related to substitution-image.
       (when E-equal (setq subst nil))
 
+      ;; 
+      #||
+      (when *m-pattern-subst*
+	(setq subst (append *m-pattern-subst* subst))
+	(when *rewrite-debug*
+	  (format t "~&[m+s] ")
+	  (print-substitution subst)))
+      ||#
       ;; match success
       ;; check the rule condition:
       (setq condition (rule-condition rule))
@@ -349,6 +363,15 @@
 	   (when no-match
 	     ;; no hope
 	     (return-from apply-one-rule-simple nil))
+	   ;;
+	   #||
+	   (when *m-pattern-subst*
+	     (setq subst (append *m-pattern-subst* subst))
+	     (when *rewrite-debug*
+	       (format t "~&[m+s2] ")
+	       (print-substitution subst))
+	     )
+	   ||#
 	   ;; ok try another case:
 	   (catch 'rule-failure
 	     (term-replace-dd-simple
@@ -378,27 +401,38 @@
 	   (when (and (or (null (rule-id-condition rule))
 			  (rule-eval-id-condition subst
 						  (rule-id-condition rule)))
-		      (is-true?
-		       (let (($$cond (set-term-color
-				      (substitution-image-cp subst condition)))
-			     (*rewrite-exec-mode*
-			      (if *rewrite-exec-condition*
-				  *rewrite-exec-mode*
-				nil))
-			     ($$trials (1+ $$trials)))
-			 ;;
-			 (when *rewrite-debug*
-			  (princ "[COND] ")
-			  (term-print $$cond))
-                        ;; no simplyfing since probably wouldn't pay
-                        (normalize-term $$cond)
-			;; :=
-			(when *m-pattern-subst*
-			  (setq subst (append *m-pattern-subst* subst)))
-			;;
-                        $$cond)))
+		      (is-true? (let (($$cond (set-term-color
+					       (substitution-image-cp subst condition)))
+				      (*rewrite-exec-mode*
+				       (if *rewrite-exec-condition*
+					   *rewrite-exec-mode*
+					 nil))
+				      ($$trials (1+ $$trials)))
+				  ;;
+				  (when *rewrite-debug*
+				    (princ "[COND] ")
+				    (term-print $$cond))
+				  ;; no simplyfing since probably wouldn't pay
+				  (normalize-term $$cond)
+				  ;; :=
+				  #||
+				  (when *m-pattern-subst*
+				    (setq subst (append *m-pattern-subst* subst))
+				    (when *rewrite-debug*
+				      (format t "~&[m+s3] ")
+				      (print-substitution subst)))
+				  ||#
+				  ;;
+				  $$cond)))
             ;; the condition is satisfied
             (progn
+	      #||
+	      (when *m-pattern-subst* 
+		(setq subst (append *m-pattern-subst* subst))
+		(when *rewrite-debug*
+		  (format t "~&[m+s4] ")
+		  (print-substitution subst)))
+	      ||#
 	      (when *rewrite-debug*
 		(format *error-output* "~&SUBST:")
 		(print-substitution subst))
@@ -469,9 +503,6 @@
             (when E-equal (setq subst nil))
 
 	    ;;
-	    (when *m-pattern-subst*
-	      (setq subst (append *m-pattern-subst* subst)))
-
             ;; match success
             ;; then, the condition must be checked
             (setq condition (rule-condition rule))
