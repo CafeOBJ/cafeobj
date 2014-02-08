@@ -63,6 +63,8 @@ mod TEST {
 
 }
 
+eof
+
 open TEST .
 red rddt(("s" lt 1),empPsc) .
 --> false; should be true
@@ -72,7 +74,7 @@ red rddt((v1,v2),empPsc) .
 --> true
 red rddt((v1,("s" lt 1)),empPsc) .
 --> false; should be true
-close
+-- close
 
 eof
 -- ============================

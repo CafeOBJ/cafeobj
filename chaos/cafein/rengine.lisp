@@ -11,6 +11,11 @@
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
+;;; -------------------
+;;; TRACING or STEPPING
+;;; -------------------
+(defvar .trace-or-step. nil)
+
  ;;; -------
  ;;; MEMOIZE
  ;;; -------
@@ -269,11 +274,11 @@
    (incf *rule-count*)
    (term-replace old new))
 
+#||
 (defun apply-one-rule-simple (rule term)
   (declare (type axiom rule)
 	   (type term term)
-	   (values (or null t))
-	   )
+	   (values (or null t)))
   #||
   (when (rule-non-exec rule)
     (return-from apply-one-rule-simple nil))
@@ -285,374 +290,370 @@
     (term-print-with-sort term))
   ||#
   ;; ________
-  (let* ((condition nil)
-	 (next-match-method nil)
-	 (*self* term)
-	 (builtin-failure nil)
-	 ;; (*m-pattern-subst* nil)
-	 )
-    ;;
-    (when *m-pattern-subst*
-      (term-replace-dd-simple
-       term
-       (set-term-color
-	(substitution-image-simplifying *m-pattern-subst*
-					term
-					(rule-need-copy rule))))
-      (when *rewrite-debug*
-	(format t "~&[applied *m-pattern-subst*]")
-	(print-substitution *m-pattern-subst*)
-	(format t "--> ")
-	(term-print-with-sort term))
-      )
-    ;;
-    (multiple-value-bind (global-state subst no-match E-equal)
-	(funcall (rule-first-match-method rule) (rule-lhs rule) term)
-      (incf $$matches)
-      (when no-match (return-from apply-one-rule-simple nil))
+  (setq *cafein-current-rule* rule)
+  ;;
+  (let ((applied nil))
+    (setq applied
+      (block the-end
+	(let* ((condition nil)
+	       (next-match-method nil)
+	       (*self* term)
+	       (builtin-failure nil))
+	  #||
+	  (when *m-pattern-subst*
+	    (term-replace-dd-simple
+	     term
+	     (set-term-color
+	      (substitution-image-simplifying *m-pattern-subst*
+					      term
+					      (rule-need-copy rule))))
+	    (when *rewrite-debug*
+	      (format t "~&[applied *m-pattern-subst*]")
+	      (print-substitution *m-pattern-subst*)
+	      (format t "--> ")
+	      (term-print-with-sort term)))
+	  ||#
+	  (multiple-value-bind (global-state subst no-match E-equal)
+	      (funcall (rule-first-match-method rule) (rule-lhs rule) term)
+	    (incf $$matches)
+	    (when no-match (return-from the-end nil))
 
-      ;; check behavioural context.
-      (unless (beh-context-ok? rule term)
-	(return-from apply-one-rule-simple nil))
+	    ;; check behavioural context.
+	    (unless (beh-context-ok? rule term)
+	      (return-from the-end nil))
+	    
+	    ;; technical assignation related to substitution-image.
+	    (when E-equal (setq subst nil))
 
-      ;; technical assignation related to substitution-image.
-      (when E-equal (setq subst nil))
+	    ;; match success
+	    ;; check the rule condition:
+	    (setq condition (rule-condition rule))
+	    (when (and (is-true? condition)
+		       (null (rule-id-condition rule)))
+	      ;; no condition, i.e. condition = true
+	      (setq builtin-failure
+		(catch 'rule-failure
+		  (progn
+		    ;; there is no condition --
+		    ;; rewrite term.
+		    (term-replace-dd-simple
+		     term
+		     ;; NOTE that the computation of the substitution
+		     ;; made a copy of the rhs.
+		     ;; NOTE also, subst... may throw 'rule-failure
+		     ;; with non-nil value meaning failure of applying built-in rule.
+		     (set-term-color
+		      (substitution-image-simplifying subst
+						      (rule-rhs rule)
+						      (rule-need-copy rule))))
+		    ;; return with success
+		    (return-from the-end t)))))
+	    ;; 
+	    (setq next-match-method (rule-next-match-method rule))
+	    ;;
+	    (when builtin-failure
+	      ;; this means that the term contains some variables:
+	      ;; if we are lucky, we may find a successful match.
+	      (loop
+		(multiple-value-setq (global-state subst no-match)
+		  (progn
+		    (incf $$matches)
+		    (funcall next-match-method global-state)))
+		(when no-match
+		  ;; no hope
+		  (return-from the-end nil))
+		;;
+		;; ok try another case:
+		(catch 'rule-failure
+		  (term-replace-dd-simple
+		   term
+		   (set-term-color
+		    (substitution-image-simplifying subst
+						    (rule-rhs rule)
+						    (rule-need-copy rule))))
+		  ;; good!
+		  (return-from the-end t))))
 
-      ;; 
-      #||
-      (when *m-pattern-subst*
-	(setq subst (append *m-pattern-subst* subst))
-	(when *rewrite-debug*
-	  (format t "~&[m+s] ")
-	  (print-substitution subst)))
-      ||#
-      ;; match success
-      ;; check the rule condition:
-      (setq condition (rule-condition rule))
-      (when (and (is-true? condition)
-		  (null (rule-id-condition rule)))
-	 ;; no condition, i.e. condition = true
-	 (setq builtin-failure
-	   (catch 'rule-failure
-	     (progn
-	       ;; there is no condition --
-	       ;; rewrite term.
-	       (term-replace-dd-simple
-		term
-		;; NOTE that the computation of the substitution
-		;; made a copy of the rhs.
-		;; NOTE also, subst... may throw 'rule-failure
-		;; with non-nil value meaning failure of applying built-in rule.
-		(set-term-color
-		 (substitution-image-simplifying subst
-						 (rule-rhs rule)
-						 (rule-need-copy rule))))
-	       ;; return with success
-	       (return-from apply-one-rule-simple t)))))
-       ;; 
-       (setq next-match-method (rule-next-match-method rule))
-       ;;
-       (when builtin-failure
-	 ;; this means that the term contains some variables:
-	 ;; if we are lucky, we may find a successful match.
-	 (loop
-	   (multiple-value-setq (global-state subst no-match)
-	     (progn
-	       (incf $$matches)
-	       (funcall next-match-method global-state)))
-	   (when no-match
-	     ;; no hope
-	     (return-from apply-one-rule-simple nil))
-	   ;;
-	   #||
-	   (when *m-pattern-subst*
-	     (setq subst (append *m-pattern-subst* subst))
-	     (when *rewrite-debug*
-	       (format t "~&[m+s2] ")
-	       (print-substitution subst))
-	     )
-	   ||#
-	   ;; ok try another case:
-	   (catch 'rule-failure
-	     (term-replace-dd-simple
-	      term
-	      (set-term-color
-	       (substitution-image-simplifying subst
-					       (rule-rhs rule)
-					       (rule-need-copy rule))))
-	     ;; good!
-	     (return-from apply-one-rule-simple t))))
+	    ;; this is the case for non-simple condition:
+	    ;; if the condition is not trivial, we enter in a loop
+	    ;; where one try to find a match such that the condition 
+	    ;; is satisfied.
+	    ;; (setq next-match-method (rule-next-match-method rule))
+	    (loop 
+	      (when (and *condition-trial-limit*
+			 (> $$trials *condition-trial-limit*))
+		(with-output-chaos-warning ()
+		  (format t "~&Infinite loop? Evaluating rule condition, exceeds trial limit: ~d" $$trials)
+		  (format t "~%terminates rewriting: ")
+		  (term-print $$term))
+		(chaos-error 'too-deep))
+	      ;;
+	      (catch 'rule-failure
+		(when (and (or (null (rule-id-condition rule))
+			       (rule-eval-id-condition subst
+						       (rule-id-condition rule)))
+			   (is-true? (let (($$cond (set-term-color
+						    (substitution-image-cp subst condition)))
+					   (*rewrite-exec-mode*
+					    (if *rewrite-exec-condition*
+						*rewrite-exec-mode*
+					      nil))
+					   ($$trials (1+ $$trials)))
+				       ;;
+				       (when *rewrite-debug*
+					 (princ "[COND] ")
+					 (term-print $$cond))
+				       ;; no simplyfing since probably wouldn't pay
+				       (normalize-term $$cond)
+				       ;; :=
+				       ;;#||
+				       (when *m-pattern-subst*
+					 (setq subst (append *m-pattern-subst* subst))
+					 (when *rewrite-debug*
+					   (format t "~&[subst+] ")
+					   (print-substitution subst)
+					   (format t "~&[subst-updated] ")
+					   (print-substitution subst)))
+				       ;;||#
+				       ;;
+				       $$cond)))
+		  ;; the condition is satisfied
+		  (progn
+		    #||
+		    (when *m-pattern-subst* 
+		      (setq subst (append *m-pattern-subst* subst))
+		      (when *rewrite-debug*
+			(format t "~&[m+s4] ")
+			(print-substitution subst)))
+		    ||#
+		    (when *rewrite-debug*
+		      (format *error-output* "~&SUBST:")
+		      (print-substitution subst))
+		    (term-replace-dd-simple
+		     term
+		     (set-term-color
+		      (substitution-image-simplifying subst
+						      (rule-rhs rule)
+						      (rule-need-copy rule))))
+		    ;; successful return
+		    ;; (setq *m-pattern-subst* nil)
+		    (return-from the-end t))))
+	      ;; else, try another ...
+	      (multiple-value-setq (global-state subst no-match)
+		(progn
+		  (incf $$matches)
+		  (funcall next-match-method global-state)))
+	      ;;
+	      (when (or no-match
+			(not (beh-context-ok? rule term)))
+		(return-from the-end nil))
+	      )				; end loop
+	    ))))
+    ;; 
+    (setq *m-pattern-subst* nil)
+    applied))
+||#
 
-       ;; this is the case for non-simple condition:
-       ;; if the condition is not trivial, we enter in a loop
-       ;; where one try to find a match such that the condition 
-       ;; is satisfied.
-       ;; (setq next-match-method (rule-next-match-method rule))
-       (loop 
-	 (when (and *condition-trial-limit*
-		    (> $$trials *condition-trial-limit*))
-	   (with-output-chaos-warning ()
-	     (format t "~&Infinite loop? Evaluating rule condition, exceeds trial limit: ~d" $$trials)
-	     (format t "~%terminates rewriting: ")
-	     (term-print $$term))
-	   (chaos-error 'too-deep))
-	 ;;
-	 (catch 'rule-failure
-	   (when (and (or (null (rule-id-condition rule))
-			  (rule-eval-id-condition subst
-						  (rule-id-condition rule)))
-		      (is-true? (let (($$cond (set-term-color
-					       (substitution-image-cp subst condition)))
-				      (*rewrite-exec-mode*
-				       (if *rewrite-exec-condition*
-					   *rewrite-exec-mode*
-					 nil))
-				      ($$trials (1+ $$trials)))
-				  ;;
-				  (when *rewrite-debug*
-				    (princ "[COND] ")
-				    (term-print $$cond))
-				  ;; no simplyfing since probably wouldn't pay
-				  (normalize-term $$cond)
-				  ;; :=
-				  #||
-				  (when *m-pattern-subst*
-				    (setq subst (append *m-pattern-subst* subst))
-				    (when *rewrite-debug*
-				      (format t "~&[m+s3] ")
-				      (print-substitution subst)))
-				  ||#
-				  ;;
-				  $$cond)))
-            ;; the condition is satisfied
-            (progn
-	      #||
-	      (when *m-pattern-subst* 
-		(setq subst (append *m-pattern-subst* subst))
-		(when *rewrite-debug*
-		  (format t "~&[m+s4] ")
-		  (print-substitution subst)))
-	      ||#
-	      (when *rewrite-debug*
-		(format *error-output* "~&SUBST:")
-		(print-substitution subst))
-              (term-replace-dd-simple
-               term
-               (set-term-color
-                (substitution-image-simplifying subst
-                                                (rule-rhs rule)
-                                                (rule-need-copy rule))))
-              ;; successful return
-              (return-from apply-one-rule-simple t))))
-        ;; else, try another ...
-        (multiple-value-setq (global-state subst no-match)
-          (progn
-            (incf $$matches)
-            (funcall next-match-method global-state)))
-        ;;
-        (when (or no-match
-                  (not (beh-context-ok? rule term)))
-          (return nil))
-        )                               ; end loop
-      ;; failure
-      nil)))
-
-(defun apply-one-rule-dbg (rule term)
+(defun !apply-one-rule (rule term &aux (applied nil))
   (declare (type axiom rule)
            (type term term)
            (values (or null t)))
-  ;; ________
-  #||
-  (when (err-sort-p (term-sort term))
-    (format t "~&..ERR_TERM: ")
-    (term-print-with-sort term))
-  ||#
-  (when *m-pattern-subst*
-    (term-replace-dd-simple
-     term
-     (set-term-color
-      (substitution-image-simplifying *m-pattern-subst*
-				      term
-				      (rule-need-copy rule)))))
-  ;; ________
+
   ;; check stop pattern
-  (check-stop-pattern term)
+  (when .trace-or-step.
+    (check-stop-pattern term))
+  
   ;; apply rule
   (setq *cafein-current-rule* rule)
-  (if (block the-end
-        (let* ((condition nil)
-               (cur-trial nil)
-               (next-match-method nil)
-               (*trace-level* (1+ *trace-level*))
-               (*print-indent* *print-indent*)
-               (*self* term)
-	       ;; (*m-pattern-subst* nil)
-               (builtin-failure nil))
-          (when *rewrite-debug*
-            (format t "~&+rule-first-match-method=~a" (rule-first-match-method rule)))
-          (multiple-value-bind (global-state subst no-match E-equal)
-              (funcall (rule-first-match-method rule) (rule-lhs rule) term)
-            (incf $$matches)
-            (setq *cafein-current-subst* subst)
-            (when no-match (return-from the-end nil))
-            ;;
-            (unless (beh-context-ok? rule term)
-              (return-from the-end nil))
-            
-            ;; technical assignation related to substitution-image.
-            (when E-equal (setq subst nil))
+  (setq applied
+    (block the-end
+      (let* ((condition nil)
+	     (cur-trial nil)
+	     (next-match-method nil)
+	     (*trace-level* (1+ *trace-level*))
+	     (*print-indent* *print-indent*)
+	     (*self* term)
+	     (builtin-failure nil)
+	     (rhs-instance nil))
+	#||
+	(when *rewrite-debug*
+	  (format t "~&+rule-first-match-method=~a" (rule-first-match-method rule)))
+	||#
+	(multiple-value-bind (global-state subst no-match E-equal)
+	    (funcall (rule-first-match-method rule) (rule-lhs rule) term)
+	  (incf $$matches)
+	  (setq *cafein-current-subst* subst)
+	  (when no-match (return-from the-end nil))
+	  ;;
+	  (unless (beh-context-ok? rule term)
+	    (return-from the-end nil))
+	  
+	  ;; technical assignation related to substitution-image.
+	  (when E-equal (setq subst nil))
 
+	  ;; match success
+	  ;; then, the condition must be checked
+	  (setq condition (rule-condition rule))
+	  (when (and (is-true? condition)
+		     (null (rule-id-condition rule)))
+	    (setq builtin-failure
+	      (catch 'rule-failure
+		;; there is no condition --
+		;; rewrite term.
+		(when (or $$trace-rewrite
+			  (rule-trace-flag rule))
+		  (let ((*print-with-sort* t))
+		    (print-trace-in)
+		    (princ "rule: ")
+		    (let ((*print-indent* (+ 2 *print-indent*)))
+		      (print-axiom-brief rule))
+		    (let ((*print-indent* (+ 4 *print-indent*)))
+		      (print-next)
+		      (print-substitution subst))))
+		;; note that the computation of the substitution
+		;; made a copy of the rhs.
+		(setq rhs-instance (set-term-color
+				    (substitution-image-simplifying subst
+								    (rule-rhs rule)
+								    (rule-need-copy rule))))
+		(if .trace-or-step.
+		    (term-replace-dd-dbg term rhs-instance)
+		  (term-replace-dd-simple term rhs-instance))
+		(return-from the-end t))))
+	  ;;
+	  (setq next-match-method (rule-next-match-method rule))
+	  ;;
+	  (when builtin-failure
+	    ;; this means that the term contains some variables:
+	    ;; if we are lucky, we may find a successful match.
+	    (loop
+	      (when (or $$trace-rewrite
+			(rule-trace-flag rule))
+		(with-output-msg ()
+		  (format t "!! built in rule failed !!")))
+	      ;;
+	      (multiple-value-setq (global-state subst no-match)
+		(progn
+		  (incf $$matches)
+		  (funcall next-match-method global-state)))
+	      (when no-match
+		;; no hope
+		(return-from the-end nil))
+	      ;;
+	      (setq *cafein-current-subst* subst)
+	      (setq cur-trial $$trials)
+	      (when (or $$trace-rewrite
+			(rule-trace-flag rule))
+		(let ((*print-with-sort* t))
+		  (print-trace-in)
+		  (princ "-- rule: ")
+		  (let ((*print-indent* (+ 2 *print-indent*)))
+		    (print-axiom-brief rule))
+		  (let ((*print-indent* (+ 4 *print-indent*)))
+		    (print-next)
+		    (print-substitution subst))
+		  (force-output)))
+	      ;;
+	      (catch 'rule-failure
+		(setq rhs-instance (set-term-color
+				    (substitution-image-simplifying subst
+								    (rule-rhs rule)
+								    (rule-need-copy rule))))
+		(if .trace-or-step.
+		    (term-replace-dd-dbg term rhs-instance)
+		  (term-replace-dd-simple term rhs-instance))
+		(return-from the-end t))))
+
+	  ;; if the condition is not trivial, we enter in a loop
+	  ;; where one try to find a match such that the condition 
+	  ;; is satisfied.
+	  (loop 
 	    ;;
-            ;; match success
-            ;; then, the condition must be checked
-            (setq condition (rule-condition rule))
-            (when (and (is-true? condition)
-                       (null (rule-id-condition rule)))
-              (setq builtin-failure
-                (catch 'rule-failure
-                  ;; there is no condition --
-                  ;; rewrite term.
-                  (when (or $$trace-rewrite
-                            (rule-trace-flag rule))
-                    (let ((*print-with-sort* t))
-                      (print-trace-in)
-                      (princ "rule: ")
-                      (let ((*print-indent* (+ 2 *print-indent*)))
-                        (print-axiom-brief rule))
-                      (let ((*print-indent* (+ 4 *print-indent*)))
-                        (print-next)
-                        (print-substitution subst))))
-                  (term-replace-dd-dbg
-                   term
-                   ;; note that the computation of the substitution
-                   ;; made a copy of the rhs.
-                   (set-term-color
-                    (substitution-image-simplifying subst
-                                                    (rule-rhs rule)
-                                                    (rule-need-copy rule))))
-                  (return-from the-end t))))
-            ;;
-            (setq next-match-method (rule-next-match-method rule))
-            ;;
-            (when builtin-failure
-              ;; this means that the term contains some variables:
-              ;; if we are lucky, we may find a successful match.
-              (loop
-                (when (or $$trace-rewrite
-                          (rule-trace-flag rule))
-                  (with-output-msg ()
-                    (format t "!! built in rule failed !!")))
-                ;;
-                (multiple-value-setq (global-state subst no-match)
-                  (progn
-                    (incf $$matches)
-                    (funcall next-match-method global-state)))
-                (when no-match
-                  ;; no hope
-                  (return-from the-end nil))
-                ;; ok try another case:
-                (setq *cafein-current-subst* subst)
-                (setq cur-trial $$trials)
-                (when (or $$trace-rewrite
-                          (rule-trace-flag rule))
-                  (let ((*print-with-sort* t))
-                    (print-trace-in)
-                    (princ "-- rule: ")
-                    (let ((*print-indent* (+ 2 *print-indent*)))
-                      (print-axiom-brief rule))
-                    (let ((*print-indent* (+ 4 *print-indent*)))
-                      (print-next)
-                      (print-substitution subst))
-                    (force-output)))
-                ;;
-                (catch 'rule-failure
-                  (term-replace-dd-simple
-                   term
-                   (set-term-color
-                    (substitution-image-simplifying subst
-                                                    (rule-rhs rule)
-                                                    (rule-need-copy rule))))
-                  ;; good!
-                  (return-from the-end t))))
-
-            ;; if the condition is not trivial, we enter in a loop
-            ;; where one try to find a match such that the condition 
-            ;; is satisfied.
-            (loop 
-              ;;
-              (when (and *condition-trial-limit*
-                         (>= $$trials *condition-trial-limit*))
-                (with-output-chaos-warning ()
-                  (format t "~&Infinite loop? Evaluating rule condition, exceeds trial limit ~d" $$trials)
-                  (format t "~%terminates rewriting: ")
-                  (term-print $$term))
-                (chaos-error 'too-deep))
-              ;;
-              (setq *cafein-current-subst* subst)
-              (setq cur-trial $$trials)
-              ;;
-              (when (or $$trace-rewrite
-                        (rule-trace-flag rule))
-                (let ((*print-with-sort* t))
-                  (print-trace-in)
-                  (format t "apply trial #~D" cur-trial)
-                  (print-next)
-                  (princ "-- rule: ")
-                  (let ((*print-indent* (+ 2 *print-indent*)))
-                    (print-axiom-brief rule))
-                  (let ((*print-indent* (+ 4 *print-indent*)))
-                    (print-next)
-                    (print-substitution subst))
-                  (force-output)))
-              (catch 'rule-failure
-                (when (and (or (null (rule-id-condition rule))
-                               (rule-eval-id-condition subst
-                                                       (rule-id-condition rule)))
-                           (is-true?
-                            (let (($$cond (set-term-color
-                                           (substitution-image-cp subst condition)))
-                                  (*rewrite-exec-mode*
-                                   (if *rewrite-exec-condition*
-                                       *rewrite-exec-mode*
-                                     nil))
-                                  ($$trials (1+ $$trials)))
-                              ;; no simplyfing since probably wouldn't pay
-                              (normalize-term $$cond)
-			      ;; :=
-			      (when *m-pattern-subst*
-				(setq subst (append *m-pattern-subst* subst)))
-			      ;;
-                              $$cond)))
-		  ;; the condition is satisfied
-                  (when (or $$trace-rewrite
-                            (rule-trace-flag rule))
-                    (print-trace-in)
-                    (format t "match success #~D" cur-trial))
-                  (term-replace-dd-dbg
-                   term
-                   (set-term-color
-                    (substitution-image-simplifying subst
-                                                    (rule-rhs rule)
-                                                    (rule-need-copy rule))))
-                  (return-from the-end t)))
-              
-              ;; else, try another ...
-              (multiple-value-setq (global-state subst no-match)
-                (progn
-                  (incf $$matches)
-                  (funcall next-match-method global-state)))
-              (when no-match
-                (when (or $$trace-rewrite
-                          (rule-trace-flag rule))
-                  (print-trace-in)
-                  (format t "rewrite rule exhausted (#~D)" cur-trial)
-                  (force-output))
-                (return))
-              ;;
-              (unless (beh-context-ok? rule term)
-                (return-from the-end nil))
-              )                         ; end loop
-            )))
+	    (when (and *condition-trial-limit*
+		       (>= $$trials *condition-trial-limit*))
+	      (with-output-chaos-warning ()
+		(format t "~&Infinite loop? Evaluating rule condition, exceeds trial limit ~d" $$trials)
+		(format t "~%terminates rewriting: ")
+		(term-print $$term))
+	      (chaos-error 'too-deep))
+	    ;;
+	    (setq *cafein-current-subst* subst)
+	    (setq cur-trial $$trials)
+	    ;;
+	    (when (or $$trace-rewrite
+		      (rule-trace-flag rule))
+	      (let ((*print-with-sort* t))
+		(print-trace-in)
+		(format t "apply trial #~D" cur-trial)
+		(print-next)
+		(princ "-- rule: ")
+		(let ((*print-indent* (+ 2 *print-indent*)))
+		  (print-axiom-brief rule))
+		(let ((*print-indent* (+ 4 *print-indent*)))
+		  (print-next)
+		  (print-substitution subst))
+		(force-output)))
+	    (catch 'rule-failure
+	      (when (and (or (null (rule-id-condition rule))
+			     (rule-eval-id-condition subst
+						     (rule-id-condition rule)))
+			 (is-true?
+			  (let (($$cond (set-term-color
+					 (substitution-image-cp subst condition)))
+				(*rewrite-exec-mode*
+				 (if *rewrite-exec-condition*
+				     *rewrite-exec-mode*
+				   nil))
+				($$trials (1+ $$trials)))
+			    ;; no simplyfing since probably wouldn't pay
+			    (normalize-term $$cond)
+			    ;; :=
+			    (when *m-pattern-subst*
+			      (setq subst (append *m-pattern-subst* subst))
+			      (when *rewrite-debug*
+				(format t "~&[subst-+] ")
+				(print-substitution *m-pattern-subst*)
+				(format t "~&[subst-updated] ")
+				(print-substitution subst)))
+			    ;;
+			    (setq *m-pattern-subst* nil)
+			    ;;
+			    $$cond)))
+		;; the condition is satisfied
+		(when (or $$trace-rewrite
+			  (rule-trace-flag rule))
+		  (print-trace-in)
+		  (format t "match success #~D" cur-trial))
+		(setq rhs-instance (set-term-color
+				    (substitution-image-simplifying subst
+								    (rule-rhs rule)
+								    (rule-need-copy rule))))
+		  (if .trace-or-step.
+		      (term-replace-dd-dbg term rhs-instance)
+		    (term-replace-dd-simple term rhs-instance))
+		  (return-from the-end t)))
+	    
+	    ;; else, try another ...
+	    (multiple-value-setq (global-state subst no-match)
+	      (progn
+		(incf $$matches)
+		(funcall next-match-method global-state)))
+	    (when no-match
+	      (when (or $$trace-rewrite
+			(rule-trace-flag rule))
+		(print-trace-in)
+		(format t "rewrite rule exhausted (#~D)" cur-trial)
+		(force-output))
+	      (return))
+	    ;;
+	    (unless (beh-context-ok? rule term)
+	      (return-from the-end nil))
+	    )				; end loop
+	  ))))				; end of main process
+  ;;
+  ;; (setq *m-pattern-subst* nil)
+  ;;
+  (if applied
       ;; applied a rule.
       t
     ;; else no rule was applied
@@ -1644,11 +1645,10 @@
         (values nil nil t nil)
       (first-match pat term))))
 
-
 (defun apply-one-rule (rule term)
   (let ((mandor (axiom-meta-and-or rule))
-	(dbg (or $$trace-rewrite-whole $$trace-rewrite *rewrite-stepping*)))
-    ;; (format t "~&mandor=~s" mandor)
+	(.trace-or-step. (or $$trace-rewrite-whole $$trace-rewrite *rewrite-stepping*)))
+    (declare (special .trace-or-step.))
     (cond (mandor
 	   ;; (format t "~&meta! ~s" mandor)
 	   (let ((all-subst nil)
@@ -1701,16 +1701,12 @@
 		   ;;
 		   ;; do rewrite
 		   ;;
-		   (if dbg
+		   (if .trace-or-step.
 		       (progn (term-replace-dd-dbg term new-rhs) t)
 		     (progn (term-replace-dd-simple term new-rhs) t)))
-	       (if dbg
-		   (apply-one-rule-dbg rule term)
-		 (apply-one-rule-simple rule term)))))
+	       (!apply-one-rule rule term))))
 	  ;; normal case
-	  (t (if dbg
-		 (apply-one-rule-dbg rule term)
-	       (apply-one-rule-simple rule term))))))
+	  (t (!apply-one-rule rule term)))))
 ;;;
 ;;; SOME MEL SUPPORT
 ;;;

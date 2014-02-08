@@ -77,8 +77,10 @@
 (eval-when (:execute :load-toplevel)
    #+microsoft
    (load (concatenate 'string *chaos-root* "\\asdf.lisp"))
-   #-(or (and CCL (not :openmcl)) microsoft)
+   #-(or (and CCL (not :openmcl)) microsoft sbcl)
    (load (concatenate 'string *chaos-root* "/asdf.lisp"))
+   #+SBCL
+   (require 'asdf)
    ;; patch by t-seino@jaist.ac.jp
    ;; patch by sawada@sra.co.jp
    #+(and CCL (not :openmcl))

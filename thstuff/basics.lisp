@@ -466,38 +466,11 @@ File: basics.lisp
       (dolist (sub subst)
 	(push sub *m-pattern-subst*))
       #||
-      (if *m-pattern-subst*
-	  (progn
-	    (setq *m-pattern-subst*
-	      (nconc *m-pattern-subst* subst))
-	    (princ "new *m-pattern-subst*=")
-	    (print-substitution *m-pattern-subst*))
-	(progn
-	  (setq *m-pattern-subst* subst)
-	  (princ "*m-pattern-subst*=")
-	  (print-substitution *m-pattern-subst*)))
+      (format t "~&[m-pat-subst]= ")
+      (print-substitution *m-pattern-subst*)
       ||#
       (return-from match-m-pattern t))
     nil))
-
-#||
-(defun match-m-pattern (pat term)
-  (format t "~&[m-pat]: pattern= ")
-  (term-print pat)
-  (format t "~&         term= ")
-  (term-print term)
-  (multiple-value-bind (gs subst no-match eeq)
-      (@matcher pat term :match)
-    (declare (ignore gs eeq))
-    (unless no-match
-      (if *m-pattern-subst*
-	  (setq *m-pattern-subst*
-	    (nconc *m-pattern-subst* subst))
-	(setq *m-pattern-subst* subst))
-      (return-from match-m-pattern t))
-    (setq *m-pattern-subst* nil)
-    nil))
-||#
 
 (defun @test-rule-extensions (rule term type)
   (let ((top (term-head (axiom-lhs rule))))

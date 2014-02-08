@@ -1,0 +1,8 @@
+mod! SET(X :: TRIV) {
+  [Elt.X < Set]
+  op empty : -> Set {constr}
+  op _ _ : Set Set -> Set {constr assoc idem id: empty}
+}
+open (SET(NAT)) .
+  red empty .
+  red 0 empty .

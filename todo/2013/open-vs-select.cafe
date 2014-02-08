@@ -1,0 +1,50 @@
+-- =======================================
+mod GENcss {
+  pr(NAT + STRING)
+  -- ValSq: sequences of Val
+  [Val < ValSq]
+  op empVs : -> ValSq {constr}
+  op _,_ : ValSq ValSq -> ValSq {constr assoc id: empVs}
+
+  -- VlSq: sequences vals indicating alternatives
+  [Val < VlSq]
+  -- alternative sequence
+  op _;_ : VlSq VlSq -> VlSq {assoc} .
+
+  -- SeSq: sequence of ValSeq or VlSeq
+  [ValSq VlSq < SqSq]
+  op empSS : -> SqSq .
+  op _,_ : SqSq SqSq -> SqSq {assoc id: empSS} .
+
+  -- SqSqEn: SqSq enclosures
+  -- SqSqTr: trees of SeSqEn
+  [SqSqEn < SqSqTr]
+  op [_] : SqSq -> SqSqEn .
+  op _||_ : SqSqTr SqSqTr -> SqSqTr .
+
+  -- generate all combinations of alternatives
+  -- indicated by (_;_) into (_||_)
+  eq [(SS1:SqSq,(V:Val;VS:VlSq),SS2:SqSq)]
+  = [(SS1,V,SS2)] || [(SS1,VS,SS2)] .
+}
+
+-- the following does not work
+-- it fails to handle {id: empSS}
+open GENcss .
+[E < Val]
+ops e1 e2 : -> E .
+red [(e1;e2)] .
+red [(e1;e2),(e1;e2)] .
+red [(e1;e2),(e1;e2),(e1;e2)] .
+close
+
+-- the following works
+mod M {inc(GENcss)}
+open M .
+[E < Val]
+ops e1 e2 : -> E .
+red [(e1;e2)] .
+red [(e1;e2),(e1;e2)] .
+red [(e1;e2),(e1;e2),(e1;e2)] .
+close
+-- =======================================
