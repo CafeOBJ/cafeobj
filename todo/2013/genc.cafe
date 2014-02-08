@@ -1,0 +1,80 @@
+-- GENcasesを拡張しようとして，「ceqの条件節で_:=_により生成される変数の
+-- binding」を利用したprogramming（仕様開発ではありません）をしています．
+
+-- たびたびのメールですが，お付き合いください．
+
+-- 以下のcodeで
+--   rddt((("s" lt 1),("s" lt 2)),empPsc) .
+-- は，第一引数の("s" lt 1)といった形の文字列と自然数のペアの並び(系列）に
+-- 対し、その系列に現れる任意の要素(S,N)に対しそれ以前（それより左）に現れ
+-- る同じ文字列Sを持つ任意の要素(S,N1)に対して，N <= N1 + 1 であればtureそ
+-- うでなければfalseを返すことを意図しています．
+
+-- 　red rddt(("s" lt 1),empPsc) .
+-- は("s" lt 1)の以前に要素がなく第２要素のNatが1なのでtrueを返すように定義
+-- したつもりですが，falseが帰ります．
+
+-- この原因は，ceq[2]:　を適用して得られる右辺：
+-- 　　(if (N1 == 1) then rddt(empVs,sn(S,1)) else false fi)
+-- を書き換えるときに条件部：
+-- 　((S)lt(N1) := V) and not((sn(S,N2:Nat) PS1:PscSet) := PS) .
+-- で生成されたbinding：
+-- 　S:String |-> "s", N1:Nat |-> 1
+-- が適用されないためと思われます．
+
+-- ===========================
+-- generate cases by expanding alternatives
+mod TEST {
+  pr(NAT + STRING)
+  -- ValSq: sequences of Val
+  [Val < ValSq]
+  op empVs : -> ValSq {constr}
+  op _,_ : ValSq ValSq -> ValSq {constr assoc id: empVs}
+
+  -- redundancy check of ValSq w.r.t. literals
+  -- literal constructor
+  op _lt_ : String Nat -> Val .
+  ops v1 v2 : -> Val .
+
+  -- pair of sort name string and its count (Psc)
+  -- and set of Psc
+  [Psc < PscSet]
+  op sn : String Nat -> Psc {constr}
+  op empPsc : -> PscSet {constr}
+  op __ : PscSet PscSet -> PscSet {constr assoc comm id: empPsc}
+
+  -- checking redundant seq of literals
+  pred rddt : ValSq PscSet .
+
+  eq[0]: rddt(empVs,PS:PscSet) = true .
+
+  ceq[1]: rddt((V:Val,VS:ValSq),PS:PscSet) =
+    (if (N1:Nat <= N2:Nat) then rddt(VS,PS)
+     else if (N1 == N2 + 1) then rddt(VS,(sn(S:String,N1) PS))
+     else false fi fi)
+  if ((S)lt(N1) := V) and ((sn(S,N2) PS1:PscSet) := PS) .
+
+  ceq[2]: rddt((V:Val,VS:ValSq),PS:PscSet) =
+    (if (N1:Nat == 1) then rddt(VS,(sn(S:String,1) PS)) else false fi)
+  if ((S)lt(N1) := V) and not((sn(S,N2:Nat) PS1:PscSet) := PS) .
+
+  ceq[3]: rddt((V:Val,VS:ValSq),PS:PscSet) = rddt(VS,PS)
+  if not((S:String)lt(N1:Nat) := V) .
+
+}
+
+eof
+
+open TEST .
+red rddt(("s" lt 1),empPsc) .
+--> false; should be true
+red rddt((("s" lt 1),("s" lt 2)),empPsc) .
+--> false; should be true
+red rddt((v1,v2),empPsc) .
+--> true
+red rddt((v1,("s" lt 1)),empPsc) .
+--> false; should be true
+-- close
+
+eof
+-- ============================

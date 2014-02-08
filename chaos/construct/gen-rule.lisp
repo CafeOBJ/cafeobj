@@ -66,6 +66,10 @@
   ;; (format t "~&labels=~s" (axiom-labels ax))
   (intersection (axiom-labels ax) non-exec-labels))
 
+(defun condition-has-match-condition (condition)
+  (and condition
+       (member *bool-match* (term-methods condition))))
+  
 (defun gen-rule-internal (ax module &aux (rule ax))
   (declare (type axiom ax)
 	   (type module module)
@@ -105,16 +109,17 @@
     (let ((rhs-vars (term-variables (axiom-rhs rule)))
 	  (cond-vars (term-variables (axiom-condition rule))))
       (declare (type list rhs-vars cond-vars))
-      ;; just for now
-      (cond ((and nil (or (not (subsetp rhs-vars lhsv))
-			  (not (subsetp cond-vars lhsv))))
-	     (when *chaos-verbose*
-	       (with-output-chaos-warning ()
-		 (princ "the variables in RHS of the axiom : ")
-		 (print-next) (princ "  ")
-		 (print-chaos-object rule)
-		 (print-next)
-		 (princ "is not a subset of variables in LHS, ignored as rewrite rule.")))
+      (cond ((axiom-non-exec ax))	; do nothing
+	    ((and nil			; just for now....
+		  (not (condition-has-match-condition (axiom-condition rule)))
+		  (or (not (subsetp rhs-vars lhsv))
+		      (not (subsetp cond-vars lhsv))))
+	     (with-output-chaos-warning ()
+	       (princ "the variables in RHS of the axiom : ")
+	       (print-next) (princ "  ")
+	       (print-chaos-object rule)
+	       (print-next)
+	       (princ "is not a subset of variables in LHS, ignored as rewrite rule."))
 	     (setf (axiom-kind rule) ':bad-rule)
 	     (setf (axiom-kind ax) ':bad-rule))
 
@@ -137,20 +142,15 @@
 		   (specialize-rule rule module))
 		 (progn
 		   (setf (axiom-kind rule) ':bad-rule)
-		   (setf (axiom-kind ax) ':bad-rule)))
-	     )
-	    ;; #||
-	    ((axiom-non-exec ax)
-	     ;; do nothing
-	     )
-	    ;; ||#
-	    (t 
-	     (add-rule-to-module module rule)
-	     (unless (term-is-variable? (axiom-lhs rule))
-	       (add-associative-extensions module
-					   (term-head (axiom-lhs rule))
-					   rule)
-	       (specialize-rule rule module)))))))
+		   (setf (axiom-kind ax) ':bad-rule))))
+	    ;;
+	    ;; all is ok, we can use this axiom as a rewrite rule
+	    (t (add-rule-to-module module rule)
+	       (unless (term-is-variable? (axiom-lhs rule))
+		 (add-associative-extensions module
+					     (term-head (axiom-lhs rule))
+					     rule)
+		 (specialize-rule rule module)))))))
 
 (defun gather-submodule-rules (module)
   (declare (type module module)
@@ -553,8 +553,7 @@
 		      :condition *BOOL-TRUE*
 		      :labels (create-rule-name module "ident")
 		      :type ':equation
-		      :kind ':ID-THEOREM))))))))
-	))))
+		      :kind ':ID-THEOREM))))))))))))
 
 (defun add-identity-completions (module)
   (declare (type module module)
@@ -599,28 +598,26 @@
        (if (test-bad-axiom a-axiom)
 	   (unless (rule-inf-subst-member subst res)
 	     (setq res (cons (list a-axiom subst 'bad) res)))
-	   (progn
-	     (setq res (cons (list a-axiom subst 'good) res))
-	     (let ((donesubst nil)
-		   sub1
-		   new-axiom
-		   newsubst)
-	       (loop
-		(setq varval
-		      (compute-var-for-identity-completions
-		       (axiom-lhs a-axiom)
-		       donesubst))
-		(unless varval (return))
-		(setq sub1 (cons varval nil))
-		(setq newsubst (substitution-can (cons varval subst)))
-		(setq donesubst (cons (car sub1) donesubst))
-		(setq new-axiom (insert-val sub1 a-axiom))
-		(unless (or (null new-axiom)
-			    (rule-inf-subst-member newsubst res))
-		  (setq newres (cons (list new-axiom newsubst) newres)))
-		)
-	       )))
-       (when (null newres) (return)))
+	 (progn
+	   (setq res (cons (list a-axiom subst 'good) res))
+	   (let ((donesubst nil)
+		 sub1
+		 new-axiom
+		 newsubst)
+	     (loop
+	       (setq varval
+		 (compute-var-for-identity-completions
+		  (axiom-lhs a-axiom)
+		  donesubst))
+	       (unless varval (return))
+	       (setq sub1 (cons varval nil))
+	       (setq newsubst (substitution-can (cons varval subst)))
+	       (setq donesubst (cons (car sub1) donesubst))
+	       (setq new-axiom (insert-val sub1 a-axiom))
+	       (unless (or (null new-axiom)
+			   (rule-inf-subst-member newsubst res))
+		 (setq newres (cons (list new-axiom newsubst) newres)))))))
+	(unless newres (return)))
       ;;
       (let ((errs nil)
 	    (rules1 nil)
@@ -662,21 +659,20 @@
 			 (not (eq r newrule)))
 		(setf (axiom-labels newrule)
 		      (create-rule-name module "compl")))
-	      #||
+	      ;; #||
 	      (when (axiom-extensions newrule)
 		(dolist (e (axiom-a-extensions newrule)) 
 		  (setf (axiom-id-condition e) newidcond))
 		(dolist (e (axiom-AC-extension newrule))
 		  (setf (axiom-id-condition e) newidcond)))
-	      ||#
+	      ;; ||#
 	      (dolist (e (axiom-extensions newrule))
 		(when e
 		  (setf (axiom-id-condition e) newidcond)))
 	      ;;
 	      ;; (break)
 	      (unless (eq r rul)
-		(adjoin-axiom-to-module module newrule)))))
-	))))
+		(adjoin-axiom-to-module module newrule)))))))))
 
 (defun test-bad-axiom (ax)
   (declare (type axiom ax)
@@ -812,42 +808,42 @@
 			 (substitution-partial-image subs (axiom-condition rul)))))))
       (if (is-false? newcond)
 	  nil
-	  (let ((rule nil)
-		(lhs (normalize-for-identity-total
-			 (substitution-partial-image subs (axiom-lhs rul))))
-		(rhs (term-simplify
-		      (normalize-for-identity-total
-		       (substitution-partial-image subs
-						   (axiom-rhs rul)))))
-		(condition (if (is-true? newcond)
-			       *BOOL-TRUE*
-			       newcond)))
-	    (unless (and (term-is-really-well-defined lhs)
-			 (term-is-really-well-defined rhs)
-			 (term-is-really-well-defined condition))
-	      (return-from insert-val nil))
-	    ;;
-	    (when (term-is-similar? lhs rhs)
-	      (return-from insert-val nil))
-	    ;;
-	    (setq rule
-		  (make-rule
-		   :lhs lhs
-		   :rhs rhs
-		   :condition condition
-		   :type (axiom-type rul)
-		   :kind ':id-completion
-		   :meta-and-or (rule-meta-and-or rul)
-		   :labels (axiom-labels rul)))
-	    ;;
-	    ;;
-	    (when *gen-rule-debug*
-	      (format t "~%invert-val: ")
-	      (format t "~% given rule : ")
-	      (print-chaos-object rul)
-	      (format t "~% gen rule : ")
-	      (print-chaos-object rule))
-	    rule)))))
+	(let ((rule nil)
+	      (lhs (normalize-for-identity-total
+		    (substitution-partial-image subs (axiom-lhs rul))))
+	      (rhs (term-simplify
+		    (normalize-for-identity-total
+		     (substitution-partial-image subs
+						 (axiom-rhs rul)))))
+	      (condition (if (is-true? newcond)
+			     *BOOL-TRUE*
+			   newcond)))
+	  (unless (and (term-is-really-well-defined lhs)
+		       (term-is-really-well-defined rhs)
+		       (term-is-really-well-defined condition))
+	    (return-from insert-val nil))
+	  ;;
+	  (when (term-is-similar? lhs rhs)
+	    (return-from insert-val nil))
+	  ;;
+	  (setq rule
+	    (make-rule
+	     :lhs lhs
+	     :rhs rhs
+	     :condition condition
+	     :type (axiom-type rul)
+	     :kind ':id-completion
+	     :meta-and-or (rule-meta-and-or rul)
+	     :labels (cons (car (create-rule-name 'dummy "idcomp")) (axiom-labels rul))))
+	  ;;
+	  ;;
+	  (when *gen-rule-debug*
+	    (format t "~%invert-val: ")
+	    (format t "~% given rule : ")
+	    (print-chaos-object rul)
+	    (format t "~% gen rule : ")
+	    (print-chaos-object rule))
+	  rule)))))
   
 ;;;=============================================================================
 (defun rule-make-or-list (l)

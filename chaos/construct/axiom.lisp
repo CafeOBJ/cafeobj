@@ -287,9 +287,12 @@
   (declare (type axiom rule)
 	   (type method top)
 	   (values list))
-  ;; (declare (optimize (speed 3) (safety 0)))
   (let ((knd (axiom-kind rule)))
-    (if (and knd (not (eq :id-theorem knd)) (not (eq :idem-theory knd)))
+    (when *on-axiom-debug*
+      (format t "~%[A-extension] ")
+      (print-chaos-object rule)
+      (format t "~%  kind=~S" knd))
+    (if (and knd (or (eq :id-theorem knd) (eq :idem-theory knd)))
 	(setf  (!axiom-A-extensions rule) '(nil nil nil))
       (let ((listext nil)
 	    ext-rule

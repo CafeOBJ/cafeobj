@@ -332,8 +332,10 @@
     ;; add axioms in paramters as theorems if any.
     ;; (add-parameter-theorem module)
     ;; add operator theory axioms
-    (dolist (oinfo (module-all-operators module))
-      (add-operator-theory-axioms module oinfo))
+    (unless (and *open-module*
+		 (equal "%" (get-module-print-name module)))
+      (dolist (oinfo (module-all-operators module))
+	(add-operator-theory-axioms module oinfo)))
     ;;
     (add-identity-completions module)
     ;; add equations for behavioural congruence relation.

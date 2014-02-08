@@ -144,7 +144,7 @@
   (declare (type simple-string string)
 	   (type (or character simple-string) fill-char)
 	   (type stream stream))
-  (dotimes (x (- *print-line-limit* 1 (filecol stream)
+  (dotimes (x (- .terminal-width. 1 (filecol stream)
 		 *print-indent* (length string)))
     (declare (type fixnum x))
     (princ fill-char stream))
@@ -158,7 +158,7 @@
   (declare (type simple-string string)
 	   (type (or null character simple-string) fill-char)
 	   (type stream stream))
-  (let ((*print-line-limit* 76))
+  (let ((*print-line-limit* .terminal-width.))
     (princ string stream)
     (princ " " stream)
     (if fill-char

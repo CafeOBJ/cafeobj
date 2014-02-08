@@ -415,8 +415,7 @@
 					      new-sort var-name)))
 				(push (cons var-name new-var)
 				      *import-local-vars*)
-				new-var))))
-		      )
+				new-var)))))
 		     ((term-is-lisp-form? term) term)
 		     (t (let ((head (term-head term)))
 			  (let ((new-head
@@ -430,7 +429,7 @@
 				   (method-coarity head)))))
 			    (when (null new-head)
 			      (when *on-import-debug*
-				(format t "~&!! recreate-term null new-head")
+				(format t "~&!! recreate-term null new-head~%")
 				(with-in-module (module)
 				  (print-chaos-object head)
 				  (format t "~% arity = ~a" (method-arity head))
@@ -493,7 +492,7 @@
 	     (using-import-subs (smod)
 	       (dolist (s (reverse (module-direct-submodules smod)))
 		 (using-import-sub (car s) (cdr s))))
-	     )
+	     )				; end labels
       ;;
       (with-in-module (module)
 	;; *NOTE* : the follwing code is executed in the context of given
@@ -528,51 +527,37 @@
 	      (when xnew-rel
 		(adjoin-sort-relation xnew-rel module))
 	      (add-relation-to-order xnew-rel so)))
-	  (generate-err-sorts so)
-	  )
+	  (generate-err-sorts so))
 	;;
 	;; import operators(methods) copying
 	;;
-	(dolist (opinfo (reverse (module-all-operators submodule)))
+	(let ((m-so-far nil))
+	  (dolist (opinfo (reverse (module-all-operators submodule)))
 					; again, operators(methods) of
 					; sub-submodules already be imported at
 					; this point.
 					; BUT, operator object is not created
 					; iff strictly overloaded. thus we must
 					; check ALL operators.
-	  (let ((op-symbol (operator-symbol (opinfo-operator opinfo))))
-	    (dolist (meth (opinfo-methods opinfo))
-	      (if (eq submodule (method-module meth))
+	    (let ((op-symbol (operator-symbol (opinfo-operator opinfo))))
+	      (dolist (meth (opinfo-methods opinfo))
+		(when (eq submodule (method-module meth))
 		  (when (or ;; (method-is-user-defined-error-method meth)
-			    (and (not (method-is-error-method meth))
-				 (not (method-is-user-defined-error-method meth))
-				 (not (memq meth
-					    (module-methods-for-regularity
-					     submodule)))))
+			 (and (not (method-is-error-method meth))
+			      (not (method-is-user-defined-error-method meth))
+			      (not (memq meth
+					 (module-methods-for-regularity
+					  submodule)))))
 		    (let* ((new-arity (mapcar #'(lambda (x)
 						  (using-find-sort-err x))
 					      (method-arity meth)))
 			   (new-coarity (using-find-sort-err
 					 (method-coarity meth)))
-			   #||
-			   (new-meth (recreate-method
-				      submodule
-				      meth
-				      module
-				      op-symbol
-				      (mapcar #'(lambda (x)
-						  (using-find-sort-err x))
-					      (method-arity meth))
-				      (using-find-sort-err
-				       (method-coarity meth))))
-			   ||#
-			   (new-meth nil)
-			   )
+			   (new-meth nil))
 		      (when *on-import-debug*
-			(format t "~%* trying to make new method ~a:"
-				op-symbol)
-			(format t "~%  arity = ~a" new-arity)
-			(format t "~%  coarity = ~a" new-coarity))
+		      (format t "~%* trying to make new method ~a:" op-symbol)
+		      (format t "~%  arity = ~a" new-arity)
+		      (format t "~%  coarity = ~a" new-coarity))
 		      (setq new-meth (recreate-method submodule
 						      meth
 						      module
@@ -580,22 +565,23 @@
 						      new-arity
 						      new-coarity
 						      *import-sort-map*))
+		      (push (cons meth new-meth) m-so-far)
 		      (when *on-import-debug*
 			(format t "~%* created method ~a: " new-meth)
-			(print-chaos-object new-meth))
-		      ;; check identity in theory
-		      (let ((theory (method-theory meth (module-opinfo-table
-							 submodule))))
-			(when (theory-contains-identity theory)
-			  (let ((zero (theory-zero theory)))
-			    (setq zero (cons (using-recreate-term (car zero))
-					     (cdr zero)))
-			    (setf (method-theory new-meth)
-				  (theory-make (theory-info theory) zero))
-			    (compute-method-theory-info-for-matching new-meth)
-			    )))
-		      ))
-		  ))))
+			(print-chaos-object new-meth))))))))
+
+	  ;; check identity in theory
+	  (dolist (om-nm m-so-far)
+	    (let ((meth (car om-nm))
+		  (new-meth (cdr om-nm)))
+	      (let ((theory (method-theory meth (module-opinfo-table submodule))))
+		(when (theory-contains-identity theory)
+		  (let ((zero (theory-zero theory)))
+		    (setq zero (cons (using-recreate-term (car zero))
+				     (cdr zero)))
+		    (setf (method-theory new-meth)
+		      (theory-make (theory-info theory) zero))
+		    (compute-method-theory-info-for-matching new-meth)))))))
 	;;
 	;; dumn it!
 	;;
@@ -663,15 +649,13 @@
 	  (adjoin-axiom-to-module module
 				  (check-axiom-error-method
 				   module
-				   (using-recreate-axiom e))
-				  ))
+				   (using-recreate-axiom e))))
 	
 	(dolist (r (reverse (module-rules submodule)))
 	  (adjoin-axiom-to-module module
 				  (check-axiom-error-method
 				   module
-				   (using-recreate-axiom r))
-				  ))
+				   (using-recreate-axiom r))))
 	;;
 	;; all done, hopefully
 	;;
