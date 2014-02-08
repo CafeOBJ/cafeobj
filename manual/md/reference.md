@@ -205,19 +205,19 @@ operators.
 
 `check regularity <mod_exp>`
   ~ Checks whether the module given by the module expression
-  `<mod_exp>` is regular. 
+    `<mod_exp>` is regular. 
 
 `check compatibility <mod_exp>`
   ~ Checks whether term rewriting system of the module given by the
-  module expression `<mod_exp>` is compatible, i.e., every application
-  of every rewrite rule to every well-formed term results in a
-  well-formed term. (This is not necessarily the case in order-sorted
-  rewriting!)
+    module expression `<mod_exp>` is compatible, i.e., every
+    application of every rewrite rule to every well-formed term
+    results in a well-formed term. (This is not necessarily the case
+    in order-sorted rewriting!)
 
 `check laziness <op_name>`
   ~ Checks whether the given operator can be evaluated lazily. If not
-  `<op_name>` is given, all operators of the current module are
-  checked. 
+    `<op_name>` is given, all operators of the current module are
+    checked. 
 
 Related: [`regularize`](#regularize) 
 
