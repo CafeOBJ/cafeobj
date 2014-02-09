@@ -465,6 +465,19 @@
   
   ;; apply rule
   (setq *cafein-current-rule* rule)
+  ;;
+  (when (and *m-pattern-subst* $$cond)
+    (let ((nt (set-term-color
+	       (substitution-image-simplifying *m-pattern-subst*
+					       term
+					       (rule-need-copy rule)))))
+      (term-replace term nt)
+      (when *rewrite-debug*
+	(format t "~&[applied *m-pattern-subst*]")
+	(print-substitution *m-pattern-subst*)
+	(format t "--> ")
+	(term-print-with-sort term))))
+  ;;
   (setq applied
     (block the-end
       (let* ((condition nil)
@@ -490,7 +503,6 @@
 	  
 	  ;; technical assignation related to substitution-image.
 	  (when E-equal (setq subst nil))
-
 	  ;; match success
 	  ;; then, the condition must be checked
 	  (setq condition (rule-condition rule))
@@ -609,15 +621,13 @@
 			    (normalize-term $$cond)
 			    ;; :=
 			    (when *m-pattern-subst*
-			      (setq subst (append *m-pattern-subst* subst))
+			      (dolist (sub *m-pattern-subst*)
+				(push sub subst))
 			      (when *rewrite-debug*
 				(format t "~&[subst-+] ")
 				(print-substitution *m-pattern-subst*)
 				(format t "~&[subst-updated] ")
 				(print-substitution subst)))
-			    ;;
-			    (setq *m-pattern-subst* nil)
-			    ;;
 			    $$cond)))
 		;; the condition is satisfied
 		(when (or $$trace-rewrite
@@ -651,7 +661,8 @@
 	    )				; end loop
 	  ))))				; end of main process
   ;;
-  ;; (setq *m-pattern-subst* nil)
+  (unless $$cond
+    (setq *m-pattern-subst* nil))
   ;;
   (if applied
       ;; applied a rule.
