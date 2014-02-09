@@ -122,7 +122,7 @@ Related: [`signature`](#signature) [`imports`](#imports)
 	 [`var`](#var) [`eq`](#eq) [`trans`](#trans)
 
 
-## `bceq [ <label-exp> ] <term> = <term> if <boolterm> .` ## {#bceq}
+## `bceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#bceq}
 
 Alias: `bcq`
 
@@ -130,7 +130,7 @@ Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
 
 Related: [`eq`](#eq) [`ceq`](#ceq) [`beq`](#beq)
 
-## `beq [ <label-exp> ] <term> = <term> .` ## {#beq}
+## `beq [ <op-exp> ] <term> = <term> .` ## {#beq}
 
 Defines a behaviour equation. For details see [`eq`](#eq).
 
@@ -189,7 +189,7 @@ The argument is necessary. No kind of expansion or substitution is done.
 
 Related: [`pwd`](#pwd) [`ls`](#ls)
 
-## `ceq [ <label-exp> ] <term> = <term> if <boolterm> .` ## {#ceq}
+## `ceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#ceq}
 
 Defines a conditional equation. Spaces around the `if` are obligatory.
 `<boolterm>` needs to be a Boolean term. For other requirements
@@ -205,19 +205,19 @@ operators.
 
 `check regularity <mod_exp>`
   ~ Checks whether the module given by the module expression
-  `<mod_exp>` is regular. 
+    `<mod_exp>` is regular. 
 
 `check compatibility <mod_exp>`
   ~ Checks whether term rewriting system of the module given by the
-  module expression `<mod_exp>` is compatible, i.e., every application
-  of every rewrite rule to every well-formed term results in a
-  well-formed term. (This is not necessarily the case in order-sorted
-  rewriting!)
+    module expression `<mod_exp>` is compatible, i.e., every
+    application of every rewrite rule to every well-formed term
+    results in a well-formed term. (This is not necessarily the case
+    in order-sorted rewriting!)
 
 `check laziness <op_name>`
   ~ Checks whether the given operator can be evaluated lazily. If not
-  `<op_name>` is given, all operators of the current module are
-  checked. 
+    `<op_name>` is given, all operators of the current module are
+    checked. 
 
 Related: [`regularize`](#regularize) 
 
@@ -271,7 +271,7 @@ untested code or documentations below the `eof` mark. Has
 to be on a line by itself without leading spaces.
 
 
-## `eq [ <label-exp> ] <term> = <term> .` ## {#eq}
+## `eq [ <op-exp> ] <term> = <term> .` ## {#eq}
 
 Declares an axiom, or equation.
 
@@ -282,16 +282,41 @@ same connected component in the graph defined by the sort ordering.
 In simple words, the objects determined by the terms must be
 interpretable as of the same sort.
 
-One can give an equation a name by providing an optional 
-`<label-exp>` which is:
+The optional part `<op-exp>` serves two purposes, one is to give
+an axiom an identifier, and one is to modify its behaviour. The
+`<op-exp>` is of the form:
 
-` [ <label-name> ] : `
+` [ <modifier> <label> ] : `
 
 Warning: The square brackets here are *not* specifying optional
-components, but syntactical elements. Thus, a named equation
+components, but syntactical elements. Thus, a labeled axiom
 can look like:
 
 `eq[foobar] : foo = bar .`
+
+The `<modifier>` part is used to change the rewriting behaviour of
+the axiom.  There are at the moment two possible 
+modifiers, namely `:m-and` and `:m-or`. Both make sense only for
+operators where the arguments come from an associative sort.
+In this case both modifiers create all possible permutations
+of the arguments and rewrite the original term to the conjunction
+in case of `:m-and` or to the disjunction in case of `:m-or` of all
+the generated terms.
+
+Assume that `NatSet` is a sort with associative constructor modelling
+a set of natural number, and let
+
+`````
+  pred p1: Nat .
+  ops q1 q2 : NatSet -> Bool .
+  eq [:m-and]: q1(N1:Nat NS:NatSet) = p1(N1) .
+  eq [:m-or]:  q2(N1:Nat NS:NatSet) = p1(N1) .
+`````
+
+In this case an expression like `q1(1 2 3)` would reduce to 
+`p1(1) and p1(2) and p1(3)` (modulo AC), and `q2(1 2 3)` into
+the same term with `or` instead.
+
 
 Related: [`ceq`](#ceq) [`beq`](#beq) [`bceq`](#bceq)
 
@@ -420,6 +445,9 @@ Although `let` defined variable behave very similar to syntactic
 shorthands, they are not. The right hand side `<term>` needs to
 be a fully parsable expression.
 
+## `look up <something>` ## {#lookup}
+
+TODO to be written, currently segfaults
 
 ## `ls <pathname>` ## {#ls}
 
