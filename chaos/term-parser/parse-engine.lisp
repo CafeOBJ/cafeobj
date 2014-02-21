@@ -1979,13 +1979,11 @@
 	       (parser-in-same-connected-component (first sort-list)
 						   (third sort-list)
 						   so))
-	      #||
 	      ((eq method *sort-membership*)
-	       ;; _:_, the first argument is a term and the second
+	       ;; _:is_, the first argument is a term and the second
 	       ;; argument is built-in constant of SortId.
-	       ;; thus we cannot check here!!!
-	       )
-	      ||#
+	       ;; thus, anyhing is OK. 
+	       t)
 	      (t
 	       ;; other binary universal operators
 	       (parser-in-same-connected-component (first sort-list)
