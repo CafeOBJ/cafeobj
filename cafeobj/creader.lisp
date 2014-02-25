@@ -509,6 +509,105 @@ File: creader.lisp
         (open :modexp |.|)
         (close)
         (start :term |.|)
+	;; scase (<Term>) on (<Modexp>) as <Name> { <ModuleElements> } : <GoalTerm> .
+	(scase |(| (:seq-of :term) |)| in |(| :modexp |)| as :symbol |{|
+	       (:many-of
+		;; MODULE IMPORTATIONS
+		;; *NOTE*  imports { ... } is not in MANUAL, and does not have
+		;;         translater to Chaos now.
+		((:+ imports import)
+		 |{|
+		 (:many-of
+		  #.ExDeclaration
+		  #.PrDeclaration
+		  #.UsDeclaration
+		  #.IncDeclaration
+		  ((:+ --> **>) :comment)
+		  ((:+ -- **) :comment)
+		  )
+		 |}|)
+		#.ExDeclaration
+		#.PrDeclaration
+		#.UsDeclaration
+		#.IncDeclaration
+		
+		;; SIGNATURE
+		((:+ sig signature) |{|
+				    (:many-of
+				     #.BSortDeclaration
+				     #.BHSortDeclaration
+				     #.HSortDeclaration
+				     #.SortDeclaration
+				     #.OperatorDeclaration
+				     #.BOperatorDeclaration
+				     #.PredicateDeclaration
+				     #.BPredicateDeclaration
+				     #.OperatorAttribute
+				     #.R-C-Declaration
+				     ((:+ --> **>) :comment)
+				     ((:+ -- **) :comment)
+				     )
+				    |}|)
+
+		;; AXIOMS
+		((:+ axiom axioms axs) |{|
+				       (:many-of
+					#.LetDeclaration
+					#.MacroDeclaration
+					#.VarDeclaration
+					#.VarsDeclaration
+					#.EqDeclaration
+					#.CeqDeclaration
+					#.RlDeclaration
+					#.CRlDeclaration
+					#.BeqDeclaration
+					#.BCeqDeclaration
+					#.BRLDeclaration
+					#.BCRLDeclaration
+					#.FoplAXDeclaration
+					#.FoplGoalDeclaration
+					((:+ --> **>) :comment)
+					((:+ -- **) :comment)
+					)
+				       |}|)
+
+		;; Module elements without signature/axioms.
+		#.BSortDeclaration
+		#.BHSortDeclaration
+		#.SortDeclaration
+		#.HSortDeclaration
+		#.BHSortDeclaration
+		#.R-C-Declaration
+		#.OperatorDeclaration
+		#.BOperatorDeclaration
+		#.PredicateDeclaration
+		#.BPredicateDeclaration
+		#.OperatorAttribute
+		#.LetDeclaration
+		#.MacroDeclaration
+		#.VarDeclaration
+		#.VarsDeclaration
+		#.EqDeclaration
+		#.BEqDeclaration
+		#.CeqDeclaration
+		#.BCeqDeclaration
+		#.RlDeclaration
+		#.CRlDeclaration
+		#.BRlDeclaration
+		#.BCRLDeclaration
+		#.FoplAXDeclaration
+		#.FoplGoalDeclaration
+		((:+ --> **>) :comment)
+		((:+ -- **) :comment)
+		
+		;; Misc elements.
+		;; (parse :term |.|)
+		((:+ ev lisp evq lispq) (:call (read)))
+		;; allow sole ".", and do nothing
+		(|.|)
+		)
+	       |}|
+	       |:| (:seq-of :term) |.|)
         ;; trace/untrace
         ((:+ trace untrace) :symbol)
         ;; apply

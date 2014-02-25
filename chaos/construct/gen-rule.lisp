@@ -91,7 +91,7 @@
 	(setf (axiom-need-copy rule) t))
       ;;
       (unless (eq (axiom-type rule) :rule)
-	(when *chaos-verbose*
+	(when t				; *chaos-verbose*
 	  (with-output-chaos-warning ()
 	    (princ "the LHS of axiom : ")
 	    (print-next)
@@ -106,18 +106,24 @@
 	  (cond-vars (term-variables (axiom-condition rule))))
       (declare (type list rhs-vars cond-vars))
       ;; just for now
-      (cond ((and nil (or (not (subsetp rhs-vars lhsv))
-			  (not (subsetp cond-vars lhsv))))
-	     (when *chaos-verbose*
+      (cond ((or (not (subsetp rhs-vars lhsv))
+		 (not (subsetp cond-vars lhsv)))
+	     (when t			; *chaos-verbose*
 	       (with-output-chaos-warning ()
 		 (princ "the variables in RHS of the axiom : ")
 		 (print-next) (princ "  ")
 		 (print-chaos-object rule)
 		 (print-next)
-		 (princ "is not a subset of variables in LHS, ignored as rewrite rule.")))
-	     (setf (axiom-kind rule) ':bad-rule)
-	     (setf (axiom-kind ax) ':bad-rule))
-
+		 (princ "is not a subset of variables in LHS, system does not gurantee the result of rewriting.")))
+	     ;; (setf (axiom-kind rule) ':bad-rule)
+	     ;; (setf (axiom-kind ax) ':bad-rule))
+	     (add-rule-to-module module rule)
+	     (unless (term-is-variable? (axiom-lhs rule))
+	       (add-associative-extensions module
+					   (term-head (axiom-lhs rule))
+					   rule)
+	       (specialize-rule rule module)))
+	    ;;
 	    ((and (axiom-is-behavioural rule)
 		  (not (and (term-can-be-in-beh-axiom? (axiom-lhs rule))
 			    (term-can-be-in-beh-axiom? (axiom-rhs rule)))))

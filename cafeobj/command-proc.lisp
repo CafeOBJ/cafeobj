@@ -827,6 +827,13 @@
     (eval-ast ast)))
 
 ;;;
+;;; case
+;;;
+(defun eval-case-split-proc (inp)
+  (let ((ast (process-case-command inp)))
+    (eval-ast ast)))
+
+;;;
 ;;; cafeobj-eval-inspect
 ;;;
 (defun cafeobj-eval-inspect (inp)

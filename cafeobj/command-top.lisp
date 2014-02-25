@@ -563,9 +563,11 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
       (("look") . cafeobj-eval-look-up)
       ;; (("inspect") . cafeobj-eval-inspect)
       (("names" "name") . cafeobj-eval-inspect)
-      ;;
+      ;; obsolete
       (("delimiter") . eval-delimiter-proc)
       (("delim") . eval-show-delimiter)
+      ;; new: case
+      (("scase") . eval-case-split-proc)
       ;; ================================================================
       ;; PigNose specific commands
       ;; (("fax" "bfax" "frm" "bfrm" "ax" "bax") . pignose-eval-fax-proc)

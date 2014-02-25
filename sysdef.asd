@@ -159,7 +159,8 @@
 			   (:file "basics")
 			   (:file "eval-match")
 			   (:file "eval-apply")
-			   (:file "cexec")))
+			   (:file "cexec")
+			   (:file "case")))
      (:module cafeobj
 	      :serial t
 	      :components ((:file "cafeobjvar")

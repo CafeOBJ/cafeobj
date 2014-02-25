@@ -164,7 +164,8 @@
                          "thstuff/basics"
                          "thstuff/eval-match"
                          "thstuff/eval-apply"
-                         "thstuff/cexec"))
+                         "thstuff/cexec"
+			 "thstuff/case"))
          (:module-group :cafeobj
                         (:definitions
                             "cafeobj/cafeobjvar"

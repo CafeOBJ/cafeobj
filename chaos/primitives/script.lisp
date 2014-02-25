@@ -407,4 +407,12 @@
 	    char-list)
   :eval eval-delimiter)
 	    
+;;; ****
+;;; CASE
+;;; case (<Term>) on (<Modexp>) as (<Name>) : <GoalTerm> .
+;;; ****
+(defterm scase (%script)
+  :visible (bool-term module name body goal-term)
+  :eval perform-case-reduction)
+
 ;;; EOF

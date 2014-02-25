@@ -180,4 +180,20 @@
       (parse-in-context-modexp-with-name e)
     (%look-up* name modexp)))
 
+;;; CASE
+;;; scase (<Term>) in (<Modexp>) as <Name> { ... } : <GoalTerm> .
+;;; ("scase" "(" ("1" "==" "2") ")" "in" "(" ("NAT") ")" "as" "NAT-C1" "{" <ModElements> "}" ":" ("1" "==" "2") ".") 
+;;;     0    1         2        3    4   5     6     7   8      9      10      11        12  13        14
+(defun process-case-command (expr &rest ignore)
+  (declare (ignore ignore))
+  (let ((case-term (nth 2 expr))
+	(modexpr (parse-modexp (nth 6 expr)))
+	(name (nth 9 expr))
+	(body (nth 11 expr))
+	(goal (nth 14 expr)))
+    (when (atom body) 
+      (setq body nil)
+      (setq goal (nth 13 expr)))
+    (%scase* case-term modexpr name body goal)))
+
 ;;; EOF
