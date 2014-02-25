@@ -108,7 +108,7 @@
       ;; just for now
       (cond ((or (not (subsetp rhs-vars lhsv))
 		 (not (subsetp cond-vars lhsv)))
-	     (when t			; *chaos-verbose*
+	     (when *chaos-verbose*
 	       (with-output-chaos-warning ()
 		 (princ "the variables in RHS of the axiom : ")
 		 (print-next) (princ "  ")

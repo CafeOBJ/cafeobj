@@ -1202,7 +1202,8 @@
   (declare (type method meth1 meth2)
 	   (type sort-order so)
 	   (values (or null t)))
-  (and (method-is-of-same-operator meth1 meth2)
+  (and (method-p meth1) (method-p meth2)
+       (method-is-of-same-operator meth1 meth2)
        (let ((arx (method-arity meth1))
 	     (ary (method-arity meth2))
 	     (coarx (method-coarity meth1))
@@ -1226,7 +1227,8 @@
 	   (type sort-order so)
 	   (values (or null t)))
   (or (method= meth1 meth2)
-      (and (method-is-of-same-operator meth1 meth2)
+      (and (method-p meth1) (method-p meth2)
+	   (method-is-of-same-operator meth1 meth2)
 	   (is-in-same-connected-component
 	    (method-coarity meth1) (method-coarity meth2) so)
 	   (let ((al1 (method-arity meth1))
@@ -1244,7 +1246,9 @@
   (declare (type method meth1 meth2)
 	   (type sort-order sort-order)
 	   (values (or null t)))
-  (and (method-is-of-same-operator meth1 meth2)
+  (and (method-p meth1)
+       (method-p meth2)
+       (method-is-of-same-operator meth1 meth2)
        (or (method-is-universal* meth2)
 	   (and (or (not (sort= (method-coarity meth1) (method-coarity meth2)))
 		    (not (sort-list= (method-arity meth1) (method-arity meth2))))
@@ -1256,11 +1260,12 @@
 (defun method-is-same-qual-method (meth1 meth2)
   (declare (type method meth1 meth2)
 	   (values (or null t)))
-  (or (method= meth1 meth2)
-      (and (method-is-of-same-operator meth1 meth2)
-	   (is-in-same-connected-component* (method-coarity meth1)
-					    (method-coarity meth2)
-					    *current-sort-order*))))
+  (and (method-p meth1) (method-p meth2)
+       (or (method= meth1 meth2)
+	   (and (method-is-of-same-operator meth1 meth2)
+		(is-in-same-connected-component* (method-coarity meth1)
+						 (method-coarity meth2)
+						 *current-sort-order*)))))
 
 ;;; METHOD<= : Method1 Method2 -> Bool
 ;;; returns t iff
@@ -1272,7 +1277,8 @@
   (declare (type method meth1 meth2)
 	   (type sort-order so)
 	   (values (or null t)))
-  (and (method-is-of-same-operator meth1 meth2)
+  (and (method-p meth1) (method-p meth2)
+       (method-is-of-same-operator meth1 meth2)
        (not (eq meth1 meth2))
        (and (sort<= (method-coarity meth1) (method-coarity meth2) so)
 	    (sort-list<= (method-arity meth1) (method-arity meth2) so))))
@@ -1284,7 +1290,8 @@
   (declare (type method meth1 meth2)
 	   (type sort-order so)
 	   (values (or null t)))
-  (and (method-is-of-same-operator meth1 meth2)
+  (and (method-p meth1) (method-p meth2)
+       (method-is-of-same-operator meth1 meth2)
        (not (eq meth1 meth2))
        (or (method-is-universal* meth2)
 	   (and (sort<= (method-coarity meth1) (method-coarity meth2) so)
@@ -1323,16 +1330,18 @@
 					     meth2)
   (declare (type method meth1 meth2)
 	   (values (or null t)))
-  (or (method= meth1 meth2)
-      (equal (method-name meth1) (method-name meth2))))
+  (and (method-p meth1) (method-p meth2)
+       (or (method= meth1 meth2)
+	   (equal (method-name meth1) (method-name meth2)))))
 
 #+GCL 
 (si:define-inline-function  method-is-associative-restriction-of (meth1
 					     meth2)
   (declare (type method meth1 meth2)
 	   (values (or null t)))
-  (or (method= meth1 meth2)
-      (eq (method-name meth1) (method-name meth2))))
+  (and (method-p meth1) (method-p meth2)
+       (or (method= meth1 meth2)
+	   (eq (method-name meth1) (method-name meth2)))))
 
 ;;; METHOD-IS-AC-RESTRICTION-OF : Method1 Method2 -> Bool
 ;;; returns t iff
@@ -1371,14 +1380,16 @@
   (declare (type method meth1 meth2)
 	   (ignore ignore)
 	   (values (or null t)))
-  (or (method= meth1 meth2)
-      (eq (method-name meth1) (method-name meth2))))
+  (and (method-p meth1) (method-p meth2)
+       (or (method= meth1 meth2)
+	   (eq (method-name meth1) (method-name meth2)))))
 
 #+GCL
 (si:define-inline-function
     method-is-ac-restriction-of (meth1 meth2)
-  (or (method= meth1 meth2)
-      (eq (method-name meth1) (method-name meth2))))
+  (and (method-p meth1) (method-p meth2)
+       (or (method= meth1 meth2)
+	   (eq (method-name meth1) (method-name meth2)))))
 					     
 
 ;;; METHOD-IS-COMMUTATIVE-RESTRICTION-OF : Method1 Method2 -> Bool
@@ -1415,15 +1426,17 @@
 (defun method-is-commutative-restriction-of (meth1 meth2)
   (declare (type method meth1 meth2)
 	   (values (or null t)))
-  (or (method= meth1 meth2)
-      (eq (method-name meth1) (method-name meth2))))
+  (and (method-p meth2) (method-p meth1)
+       (or (method= meth1 meth2)
+	   (eq (method-name meth1) (method-name meth2)))))
 
 #+GCL
 (si:define-inline-function method-is-commutative-restriction-of (meth1 meth2)
   (declare (type method meth1 meth2)
 	   (values (or null t)))
-  (or (method= meth1 meth2)
-      (eq (method-name meth1) (method-name meth2))))
+  (and (method-p meth2)
+       (or (method= meth1 meth2)
+	   (eq (method-name meth1) (method-name meth2)))))
 
 ;;; METHOD-IS-OVERLOADED-WITH-AC-ATTRIBUTE : Method1 Method2 -> Bool
 ;;; returns t iff

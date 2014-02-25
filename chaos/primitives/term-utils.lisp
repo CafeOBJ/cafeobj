@@ -1534,4 +1534,26 @@
 	    (t (print-chaos-object term)
 	       (print-occr))))))
 
+;;;
+;;; REPLACE-VARIABLES-WITH-TOC
+;;;
+(defun replace-variables-with-toc (term &optional (warn nil))
+  (unless (term-is-applform? term)
+    (return-from replace-variables-with-toc term))
+  (let ((vars (term-variables term))
+	(subst nil))
+    (if vars
+	(progn
+	  (when (and warn (stringp warn))
+	    (with-output-chaos-warning ()
+	      (format t warn)))
+	  (dolist (var vars)
+	    (let ((toc (make-pvariable-term (variable-sort var)
+					    (intern (concatenate 'string "`" (string (variable-name var)))))))
+	      (push (cons var toc) subst)))
+	  (multiple-value-bind (res list-new-var-res)
+	      (copy-list-term-using-list-var (list term) subst)
+	    (car res)))
+      term)))
+
 ;;; EOF
