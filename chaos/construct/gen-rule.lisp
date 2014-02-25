@@ -91,7 +91,7 @@
 	(setf (axiom-need-copy rule) t))
       ;;
       (unless (eq (axiom-type rule) :rule)
-	(when t				; *chaos-verbose*
+	(unless (axiom-non-exec rule)
 	  (with-output-chaos-warning ()
 	    (princ "the LHS of axiom : ")
 	    (print-next)
@@ -114,7 +114,7 @@
 		 (print-next) (princ "  ")
 		 (print-chaos-object rule)
 		 (print-next)
-		 (princ "is not a subset of variables in LHS, system does not gurantee the result of rewriting.")))
+		 (princ "is not a subset of variables in LHS, system does not guarantee the result of rewriting.")))
 	     ;; (setf (axiom-kind rule) ':bad-rule)
 	     ;; (setf (axiom-kind ax) ':bad-rule))
 	     (add-rule-to-module module rule)

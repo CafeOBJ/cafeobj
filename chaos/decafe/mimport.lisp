@@ -811,13 +811,13 @@
 	      (format t "~&-- importing method ~s : " method)
 	      (print-chaos-object method))
 	    ;;
-	    #||
+	    ;;#||
 	    (when (modexp-add-method-to-table new-opinfo method module)
 	      (when *on-import-debug*
 		(format t "~&-- importing method-theory ~s:"
 			(method-theory method from-opinfo))
 		(finish-output *error-output*)))
-	    ||#
+	    ;; ||#
 	    (modexp-add-method-to-table new-opinfo method module)
 	    (transfer-operator-attributes method module from-module theory-mod)
 	    ;; import axioms
@@ -869,7 +869,7 @@
 	(method-info-table (module-opinfo-table module)))
     (if (or (eq pmeth method)
 	    ;; dirty kludge!
-	    (and pmeth (method-is-of-same-operator method *rwl-predicate*)))
+	    (and pmeth (method-is-of-same-operator-safe method *rwl-predicate*)))
 	nil
 	(progn
 	  (setf (get-method-info method method-info-table)
