@@ -150,7 +150,8 @@ File: eval-match.lisp
               (format t "~{~a~^ ~}" (mapcar #'(lambda (x) (string (variable-name x)))
                                             extra)))))))))
 
-(defvar *use-choose-match* nil)
+;;; moved to 'meta.lisp'
+;;; (defvar *use-choose-match* nil)
 
 (defun perform-match (target pre-pattern &optional (type :match))
   (let ((real-target (if (eq type :match)

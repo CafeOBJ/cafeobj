@@ -125,13 +125,14 @@
 			(type list bindings)
 			(values (or symbol list)))
 	       (let ((cval (variable-image bindings var))
-		     (x-is-var nil))
+		     ;; (x-is-var nil)
+		     )
 		 (declare (type (or null term) cval))
 		 (when cval
 		   (return-from var-unify
 		     (pn-decompose-terms-unify cval x bindings)))
 		 (when (term-is-variable? x)
-		   (setq x-is-var t)
+		   ;; (setq x-is-var t)
 		   (let ((cval2 (variable-image bindings x)))
 		     (declare (type (or null term) cval2))
 		     (when cval2

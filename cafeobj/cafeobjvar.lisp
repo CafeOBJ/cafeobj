@@ -13,8 +13,8 @@
 
 (defvar *cafeobj-batch* nil)
 (defvar *cafeobj-no-banner* nil)
-(defvar *cafeobj-input-quiet* nil)
-(defvar $)
+;; (defvar *cafeobj-input-quiet* nil)
+;; (defvar $)
 (defvar *cafeobj-verbose* nil)
 (defvar *prompt* 'system)
 (defvar *cafeobj-initial-load-files* nil)
@@ -22,12 +22,12 @@
 (defvar *cafeobj-secondary-prelude-file* nil)
 (defvar *cafeobj-load-init-file* t)
 ;;; (defvar *cafeobj-load-path* nil)
-(defvar *cafeobj-standard-prelude-path* nil)
+;;; (defvar *cafeobj-standard-prelude-path* nil)
 (defvar *cafeobj-secondary-prelude-path* nil)
 
 (defvar *cafeobj-install-dir* nil)      ; must be set at make time.
 
-(defvar -cafeobj-load-time- nil)        ; set by save-cafeobj.
+;; (defvar -cafeobj-load-time- nil)        ; set by save-cafeobj.
 
 (defvar *cafeobj-schemas* nil)
 (defvar *cafeobj-print-errors* t)

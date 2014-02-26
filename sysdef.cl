@@ -166,17 +166,7 @@
                          "thstuff/eval-apply"
                          "thstuff/cexec"
 			 "thstuff/case"))
-         (:module-group :cafeobj
-                        (:definitions
-                            "cafeobj/cafeobjvar"
-                            (:serial
-                             "cafeobj/creader"
-                             "cafeobj/trans-com"
-                             "cafeobj/trans-decl"
-                             "cafeobj/command-proc"
-                             "cafeobj/command-top"
-                             "cafeobj/cafeobj-top")))
-         (:module-group :bigpink
+	 (:module-group :bigpink
                         (:definitions
                             "BigPink/codes/types"
                             "BigPink/codes/glob"
@@ -199,6 +189,17 @@
                            "BigPink/codes/refine"
                            "BigPink/codes/commands"
                            "BigPink/codes/inv")))
+         (:module-group :cafeobj
+                        (:definitions
+                            "cafeobj/cafeobjvar"
+                            (:serial
+                             "cafeobj/creader"
+                             "cafeobj/trans-com"
+                             "cafeobj/trans-decl"
+                             ;; "cafeobj/command-proc"
+                             "cafeobj/command-top"
+                             "cafeobj/cafeobj-top")))
+         
          "acl-init"
          ))))
 

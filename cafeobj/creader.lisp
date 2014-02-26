@@ -472,7 +472,7 @@ File: creader.lisp
          (:seq-of :top-opname))
         ;; (select :modexp :args)
         ((:+ show sh select describe desc) :args)
-        (trans-chaos (:seq-of :top-opname))
+        ;; (trans-chaos (:seq-of :top-opname))
 
         ;; module elements which can appear at top(iff a module is opened.)
 
@@ -687,7 +687,7 @@ File: creader.lisp
         (eof)
         #-CMU (#\^D)
         #+CMU (#\)
-        (prompt (:seq-of :top-opname))
+        ;; (prompt (:seq-of :top-opname))
         ((:+ quit q |:q| |:quit|))
         (cd :args)
         (pushd :args)

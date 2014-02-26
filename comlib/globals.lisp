@@ -247,6 +247,12 @@
 (declaim (type (or null fixnum) *term-print-depth*))
 (defvar *term-print-depth* nil)
 
+;;; CafeOBJ variables
+(defvar *cafeobj-input-quiet* nil)
+(defvar $)
+(defvar -cafeobj-load-time- nil)
+(defvar *cafeobj-standard-prelude-path* nil)
+
 ;;; NOT USED
 ;;; GRAMMAR
 ;;; 
@@ -632,5 +638,13 @@
 (defvar *check-import-mode* nil)
 (defvar *cexec-debug* nil)
 (defvar *debug-meta* nil)
-
+;;;
+;;; ** TO DO for other platforms
+(defvar *top-level-tag*
+    #+KCL si::*quit-tag*
+    #+CMU 'common-lisp::top-level-catcher
+    #+EXCL 'top-level::top-level-break-loop
+    #+(or LUCID :CCL) '(*quit-tag*)
+    #+CLISP 'system::debug
+    )
 ;;; EOF

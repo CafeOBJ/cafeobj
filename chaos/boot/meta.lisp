@@ -225,6 +225,7 @@
       (meta-get-list-integers (chaos-list-list rterm)))))
 
 (defvar *meta-match-depth* 0)
+(defvar *use-choose-match* nil)
 
 (defun do-meta-match (target pattern &optional (module *current-module*)
 					       depth

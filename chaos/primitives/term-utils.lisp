@@ -1552,10 +1552,11 @@
 	   (when (and warn (stringp warn))
 	     (with-output-chaos-warning ()
 	       (format t warn))
-	     (format t "~& substitution: ")
+	     (format t "~%substitution: ")
 	     (print-substitution subst))
 	   (multiple-value-bind (res list-new-var-res)
 	       (copy-list-term-using-list-var (list term) subst)
+	     (declare (ignore list-new-var-res))
 	     (car res)))
 	  (t term))))
 

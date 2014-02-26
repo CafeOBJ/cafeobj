@@ -802,7 +802,7 @@
 
 (defmacro module-is-object (_mod_) `(eq :object (module-kind ,_mod_)))
 
-(defmacro module-is-final (_mod_) `(eq :theory (module-kind ,_mod)))
+(defmacro module-is-final (_mod_) `(eq :theory (module-kind ,_mod_)))
 
 (defmacro module-is-loose (_mod_)
   ` (memq (module-kind ,_mod_) '(:module :ots)))

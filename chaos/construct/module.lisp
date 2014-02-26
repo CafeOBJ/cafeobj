@@ -448,13 +448,13 @@
 		     (princ " is in a cycle."))))
 	     *current-sort-order*)
     
+    #||
     ;; checks theory is proper for operators. not complete.
     (dolist (op-info (module-all-operators module))
       (dolist (meth (opinfo-methods op-info))
 	(let ((thy (method-theory meth))
 	      (coarity (method-coarity meth))
 	      (arity (method-arity meth)))
-	  #||
 	  (when (theory-contains-associativity thy)
 	    (unless (and (= (length arity) 2) ; redundant ...
 			 (sort<= coarity (car arity))
@@ -463,10 +463,10 @@
 		(princ "associative operator ")
 		(print-chaos-object meth)
 		(princ " has bad rank!"))))
-	  ||#
+
 	  ;; the following is redundant, more strong restrictive check is
 	  ;; done elsewhere.
-	  #||
+
 	  (when (theory-contains-commutativity thy)
 	    (unless (and (= (length arity) 2)
 			 (is-in-same-connected-component* (car arity) (cadr arity)))
@@ -474,17 +474,17 @@
 		(princ "commutative operator ")
 		(print-chaos-object meth)
 		(princ " has bad rank!"))))
-	  ||#
+
 	  ;; identity, ??
-	  #||
+
 	  (when (theory-contains-identity thy)
 	    (unless (= (length arity) 2)
 	      (with-output-chaos-warning ()
 		(princ "operator with identity ")
 		(print-chaos-object meth)
-		(princ " has bad rank!"))))
-	  ||#
-	  )))))
+		(princ " has bad rank!")))))))
+    ||#
+    ))
 
 ;; *todo* must re-import iff necessary.
 ;;

@@ -1523,6 +1523,9 @@
 ;;; STOP AT PATTERN
 ;;; ("stop" <term> ".")
 ;;;
+(defun parse-stop-at (inp)
+  (%stop-at* (cdadr inp)))
+
 (defun cafein-stop-at-proc (inp)
   (eval-ast (%stop-at* (cdadr inp))))
 
