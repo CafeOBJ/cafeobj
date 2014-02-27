@@ -198,6 +198,7 @@
                              "cafeobj/trans-decl"
                              ;; "cafeobj/command-proc"
                              "cafeobj/command-top"
+			     "cafeobj/defcommand"
                              "cafeobj/cafeobj-top")))
          
          "acl-init"
