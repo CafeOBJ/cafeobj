@@ -20,7 +20,8 @@
     ;; prepare modules
     (setf (%module-decl-name .case-module-true.) (concatenate 'string name "-#T"))
     (setf (%module-decl-name .case-module-false.) (concatenate 'string name "-#F"))
-    (push (%import* :including (parse-modexp module)) body)
+    ;; (push (%import* :including (parse-modexp module)) body)
+    (push (%import* :including module) body)
     (setf (%axiom-decl-lhs .case-true-axiom.) bool-term)
     (setf (%module-decl-elements .case-module-true.) (append body (list .case-true-axiom.)))
     (setf (%axiom-decl-lhs .case-false-axiom.) bool-term)
