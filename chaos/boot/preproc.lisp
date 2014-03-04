@@ -156,11 +156,9 @@
        (alpha-char-p (char token 1))))
   
 (defun create-qId (token)
-  (if (eql #\' (char token 0))
-      (intern (subseq token 1))
-    (intern token)))
+  (intern token))
 
-(defun print-qId (x) (format t "'~a" (string x)))
+(defun print-qId (x) (format t "~a" (string x)))
 
 (defun is-qId (x)
   (and (symbolp x)
@@ -182,11 +180,9 @@
        (alpha-char-p (char token 1))))
   
 (defun create-Sort-object (token)
-  (if (eql #\' (char token 0))
-      (intern (subseq token 1))
-    (intern token)))
+  (intern token))
 
-(defun print-meta-sort-object (x) (format t "'~a" (string x)))
+(defun print-meta-sort-object (x) (format t "~a" (string x)))
 
 (defun is-sort-object (x)
   (and (symbolp x)
@@ -203,11 +199,9 @@
        (position #\. token :start 1)))
   
 (defun create-constant-object (token)
-  (if (eql #\' (char token 0))
-      (intern (subseq token 1))
-    (intern token)))
+  (intern token))
 
-(defun print-constant-object (x) (format t "'~a" (string x)))
+(defun print-constant-object (x) (format t "~a" (string x)))
 
 (defun is-constant-object (x)
   (and (symbolp x)
@@ -537,22 +531,22 @@
 	  (break)))))
 
 (defun s-find (Char Str Num)
-  (let ((C (term-builtin-value char))
+  (let ((C (term-builtin-value Char))
 	(S (term-builtin-value Str))
 	(N (term-builtin-value Num)))
-  (let ((pos (position C S :start N)))
-    (if pos
-	(simple-parse-from-string (format nil "~s" pos))
-      *string-not-found*))))
+    (let ((pos (position C S :start N)))
+      (if pos
+	  (simple-parse-from-string (format nil "~s" pos))
+	(simple-parse-from-string "notFound")))))
 
-(defun s-rfind (C S N)
+(defun s-rfind (Char Str Num)
   (let ((C (term-builtin-value char))
 	(S (term-builtin-value Str))
 	(N (term-builtin-value Num)))
     (let ((pos (position C S :start N :from-end t)))
       (if pos
 	  (simple-parse-from-string (format nil "~s" pos))
-	*string-not-found*))))
+	(simple-parse-from-string "notFound")))))
 
 ; ;;;-----------------------------------------------------------------------------
 ; ;;; module CHAOS:EXPR

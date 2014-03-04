@@ -559,7 +559,9 @@
 (defun cafeobj-eval-module-element-proc (inp)
   (if *open-module*
       (with-in-module (*last-module*)
-        (let ((ast (parse-module-element inp)))
+	(multiple-value-bind (type ast)
+	    (parse-module-element inp)
+	  (declare (ignore type))
           (dolist (a ast)
             (eval-ast a))))
     (with-output-chaos-warning ()

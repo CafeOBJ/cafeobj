@@ -1,3 +1,140 @@
+**
+** CafeOBJ MetaLevel Core
+**
+module! :SET(X :: TRIV) {
+  protecting (BOOL)
+  protecting (NAT)
+  [ Elt.X < NeSet < Set ]
+
+  op empty : -> Set {ctor}
+  op _;_ : Set Set -> Set {ctor assoc comm id: empty prec: 43}
+  op _;_ : NeSet Set -> NeSet {ctor assoc comm id: empty prec: 43}
+
+  var E : Elt.X
+  var N : NeSet
+  vars A S S' : Set
+  var C : Nat
+
+  op !espattern : Elt.X Set -> Bool
+  eq !espattern(E, (N ; S)) = true .
+
+  eq N, N = N .
+  
+  op insert : Elt.X Set -> Set
+  eq insert(E ; S) = E, S .
+
+  op delete : Elt.X Set -> Set
+  eq delete(E, (E ; S)) = delete(E, S) .
+  ceq delete(E ; S) = S if !espattern(E, S) =/= true .
+
+  op _in_ : Elt.X Set -> Bool 
+  eq E in (E ; S) = true .
+  ceq E in S = false if !espattern(E,S) =/= true .
+
+  op |_| : Set -> Nat
+  op |_| : NeSet -> NzNat
+  eq | S | = $card(S, 0) .
+
+  op $card : Set Nat -> Nat
+  eq $card(empty, C) = C .
+  eq $card((N ; N ; S), C) = $card((N ; S), C) .
+  ceq $card((E ; S), C) = $card(S, C + 1) if !espattern(E, S) =/= true .
+
+  op union : Set Set -> Set
+  op union : NeSet Set -> NeSet
+  op union : Set NeSet -> NeSet
+  eq union(S, S') = S, S' .
+
+  op intersection : Set Set -> Set
+  eq intersection(S, empty) = empty .
+  eq intersection(S, N) = $intersect(S, N, empty) .
+
+  op $intersect : Set Set Set -> Set
+  eq $intersect(empty, S', A) = A .
+  eq $intersect((E ; S), S', A) = $intersect(S, S', if E in S' then E ; A else A fi) .
+
+  op _\_ : Set Set -> Set
+  eq S \ empty = S .
+  eq S \ N = $diff(S; N, empty) .
+
+  op $diff : Set Set Set -> Set
+  eq $diff(empty, S', A) = A .
+  eq $diff((E; S), S', A) = $diff(S, S', if E in S' then A else E ; A fi) .
+
+  op _subset_ : Set Set -> Bool .
+  eq empty subset S' = true .
+  eq (E, S) subset S' = E in S' and-also S subset S' .
+
+  op _psubset_ : Set Set -> Bool .
+  eq S psubset S' = S =/= S' and-also S subset S' .
+}
+
+module! :LIST(X :: TRIV) {
+  protecting (NAT)
+  [ Elt.X < NeList < List ]
+
+  op nil : -> List {ctor}
+  op __ : List List -> List {ctor assoc id: nil prec: 25}
+  op __ : NeList List -> NeList {ctor assoc id: nil prec: 25}
+  op __ : List NeList -> NeList {ctor assoc id: nil prec: 25}
+
+  vars E E' : Elt.X
+  vars A L : List
+  var C : Nat 
+
+  op append : List List -> List
+  op append : NeList List -> NeList
+  op append : List NeList -> NeList
+  eq append(A, L) = A L .
+
+  op head : NeList -> Elt.X
+  eq head(E L) = E .
+
+  op tail : NeList -> List
+  eq tail(E L) = L .
+
+  op last : NeList -> Elt.X
+  eq last(L E) = E .
+
+  op front : NeList -> List
+  eq front(L E) = L .
+
+  op occurs : Elt.X List -> Bool 
+  eq occurs(E, nil) = false .
+  eq occurs(E, E' L) = if E == E' then true else occurs(E, L) fi .
+
+  op reverse : List -> List
+  op reverse : NeList -> NeList
+  eq reverse(L) = $reverse(L, nil) .
+
+  op $reverse : List List -> List
+  eq $reverse(nil, A) = A .
+  eq $reverse(E L, A) = $reverse(L, E A).
+
+  op size : List -> Nat .
+  op size : NeList -> NzNat
+  eq size(L) = $size(L, 0) .
+
+  op $size : List Nat -> Nat 
+  eq $size(nil, C) = C .
+  eq $size(E L, C) = $size(L, C + 1) .
+}
+
+module! NAT-LIST {
+  protecting (:LIST(NAT) * {sort NeList -> NeNatList, sort List -> NatList}) 
+}
+
+module! QID-LIST {
+  protecting (:LIST * {sort NeList -> NeQidList, sort List -> QidList})
+}
+
+module! QID-SET {
+  protecting (:SET * {sort NeSet -> NeQidSet, sort Set -> QidSet})
+}
+
+**
+** META-TERM
+**
 module! META-TERM {
   protecting (QID)
 
@@ -21,27 +158,6 @@ module! META-TERM {
   op _[_] : Qid NeGroundTermList -> GroundTerm {ctor}
   op _[_] : Qid NeTermList -> Term {ctor}
 
-  ** extraction of names and types
-  op getName : Constant -> Qid 
-  op getType : Constant -> Sort
-  var C : Constant 
-  eq getName(C) = qid(substring(string(C), 0, rfind('.', string(C), 0))) .
-  eq getType(C) = qid(substring(string(C), rfind('.', string(C), 0))) .
-
-  op getName : Variable -> Qid 
-  op getType : Variable -> Sort 
-  var V : Variable 
-  eq getName(V) = qid(substring(string(V), 0, rfind(':', string(V), 0))) .
-  eq getType(V) = qid(substring(string(V), rfind(':', string(V), 0))) .
-
-  ** substitutions
-  [ Assignment < Substitution ]
-  op _<-_ : Variable Term -> Assignment {ctor prec 63}
-  op none : -> Substitution {ctor}
-  op _;_ : Substitution Substitution -> Substitution
-    {ctor assoc comm id: none prec 65}
-  eq A:Assignment ; A:Assignment = A:Assignment .
-
   ** contexts (terms with a single hole)
   [ Context < NeCTermList < GTermList,
     TermList < GTermList ]
@@ -51,4 +167,238 @@ module! META-TERM {
   op _,_ : NeCTermList TermList -> NeCTermList {ctor assoc id: empty prec 121}
   op _,_ : GTermList GTermList -> GTermList {ctor assoc id: empty prec 121}
   op _[_] : Qid NeCTermList -> Context {ctor}
+
+  ** extraction of names and types
+  op getName : Constant -> Qid 
+  op getType : Constant -> Sort
+  var C : Constant 
+  eq getName(C) = qid(substring(string(C), 0, rfind('.', string(C), 0))) .
+  eq getType(C) = qid(substring(string(C), rfind('.', string(C), 0) + 1)) .
+
+  op getName : Variable -> Qid 
+  op getType : Variable -> Sort 
+  var V : Variable 
+  eq getName(V) = qid(substring(string(V), 0, rfind(':', string(V), 0))) .
+  eq getType(V) = qid(substring(string(V), rfind(':', string(V), 0) + 1)) .
+
+  ** substitutions
+  [ Assignment < Substitution ]
+  op _<-_ : Variable Term -> Assignment {ctor prec 63}
+  op none : -> Substitution {ctor}
+  op _;_ : Substitution Substitution -> Substitution
+    {ctor assoc comm id: none prec 65}
+  eq A:Assignment ; A:Assignment = A:Assignment .
+}
+
+module! META-MODULE {
+  protecting (META-TERM)
+  protecting (NAT-LIST)
+  protecting (QID-LIST)
+  protecting (QID-SET * {op empty -> none})
+
+  ** subsort declarations
+  [ SubsortDecl < SubsortDeclSet ]
+  op [_<_] : Sort Sort -> SubsortDecl {ctor}
+  op none : -> SubsortDeclSet {ctor}
+  op __ : SubsortDeclSet SubsortDeclSet -> SubsortDeclSet {ctor assoc comm id: none}
+  eq S:SubsortDecl S:SubsortDecl = S:SubsortDecl 
+
+  ** sort set
+  [ EmptySortSet < SortSet < QidSet]
+  [ Sort < NeSortSet < SortSet ]
+  [ NeSortSet < NeQidSet ]
+  op none : -> EmptyTypeSet {ctor}
+  op _;_ : SortSet SortSet -> SortSet {ctor assoc comm id: none prec: 43}
+  op _;_ : NeSortSet SortSet -> NeSortSet {ctor assoc comm id: none prec: 43}
+  op _;_ : EmptySortSet EmptySortSet -> EmptyTypeSet {ctor assoc comm id: none prec: 43}
+
+  ** sort lists
+  [ NeTypeList TypeList ]
+  [ Type < NeTypeList < TypeList < QidList ]
+  -- subsorts NeTypeList < NeQidList .
+  op nil : -> TypeList [ctor] .
+  op __ : TypeList TypeList -> TypeList {ctor ditto}
+  op __ : NeTypeList TypeList -> NeTypeList {ctor ditto}
+  op __ : TypeList NeTypeList -> NeTypeList {ctor ditto}
+  eq T:TypeList ; T:TypeList = T:TypeList .
+
+  ** sets of sort lists
+  sort TypeListSet .
+  subsort TypeList TypeSet < TypeListSet .
+  op _;_ : TypeListSet TypeListSet -> TypeListSet {ctor assoc comm id: none prec: 43}
+
+  ** attribute sets
+  [ Attr < AttrSet ]
+  op none : -> AttrSet {ctor}
+  op __ : AttrSet AttrSet -> AttrSet {ctor assoc comm id: none}
+  eq A:Attr A:Attr = A:Attr .
+
+  ** renamings
+  [ Renaming < RenamingSet ]
+  op sort_->_ : Qid Qid -> Renaming {ctor}
+  op op_->_{_} : Qid Qid AttrSet -> Renaming {ctor}
+  op op_:_->_to_{_} : Qid TypeList Type Qid AttrSet -> Renaming {ctor}
+  op label_->_ : Qid Qid -> Renaming {ctor}
+  op _,_ : RenamingSet RenamingSet -> RenamingSet {ctor assoc comm prec: 43}
+
+  ** parameter lists
+  --sort EmptyCommaList NeParameterList ParameterList .
+  [ Sort < NeParameterList < ParameterList ]
+  [ EmptyCommaList < GroundTermList ParameterList ]
+  op empty : -> EmptyCommaList {ctor}
+  op _,_ : ParameterList ParameterList -> ParameterList {ctor ditto}
+  op _,_ : NeParameterList ParameterList -> NeParameterList {ctor ditto}
+  op _,_ : ParameterList NeParameterList -> NeParameterList {ctor ditto}
+  op _,_ : EmptyCommaList EmptyCommaList -> EmptyCommaList {ctor ditto}
+
+  ** module expressions
+  [ Qid < ModuleExpression ]
+  op _+_ : ModuleExpression ModuleExpression -> ModuleExpression {ctor assoc comm}
+  op _*{_} : ModuleExpression RenamingSet -> ModuleExpression {ctor prec: 39}
+  op _(_) : ModuleExpression ParameterList -> ModuleExpression {ctor prec: 37}
+
+  ** parameter declarations
+  [ ParameterDecl < NeParameterDeclList < ParameterDeclList ]
+  op _::_ : Sort ModuleExpression -> ParameterDecl .
+  op nil : -> ParameterDeclList [ctor] .
+  op _,_ : ParameterDeclList ParameterDeclList -> ParameterDeclList {ctor 
+  op _,_ : NeParameterDeclList ParameterDeclList -> NeParameterDeclList {ctor assoc id: nil prec: 121}
+  op _,_ : ParameterDeclList NeParameterDeclList -> NeParameterDeclList {ctor assoc id: nil prec: 121}
+
+  ** importations
+  [ Import < ImportList ]
+  op protecting : ModuleExpression -> Import {ctor}
+  op extending  : ModuleExpression -> Import {ctor}
+  op including  : ModuleExpression -> Import {ctor}
+  op nil : -> ImportList {ctor}
+  op __ : ImportList ImportList -> ImportList {ctor assoc id: nil}
+
+  ** operator attributes
+  op assoc : -> Attr {ctor}
+  op comm : -> Attr {ctor}
+  op idem : -> Attr [ctor]
+  op (id:)  : Term -> Attr {ctor}
+  op (idr:) : Term -> Attr {ctor}
+  op l-assoc : -> Attr {ctor}
+  op r-assoc : -> Attr {ctor}
+  op (strat:) : NeNatList -> Attr {ctor}
+  op memo : -> Attr {ctor}
+  op (prec:) : Nat -> Attr {ctor}
+  op ctor : -> Attr {ctor}
+
+  ** statement attributes
+  op label    : Qid -> Attr {ctor}
+  op :nonexec : -> Attr {ctor}
+
+  ** operator declarations
+  [ OpDecl < OpDeclSet ]
+  op (op_:_->_[_].) : Qid TypeList Type AttrSet -> OpDecl {ctor}
+  op none : -> OpDeclSet {ctor}
+  op __ : OpDeclSet OpDeclSet -> OpDeclSet {ctor assoc comm id: none}
+  eq O:OpDecl O:OpDecl = O:OpDecl .
+
+  ** conditions
+  [ EqCondition < Condition ]
+  op nil : -> EqCondition {ctor}
+  op _=_ : Term Term -> EqCondition {ctor prec: 71}
+  op _:_ : Term Sort -> EqCondition {ctor prec: 71}
+  op _:=_ : Term Term -> EqCondition {ctor prec: 71}
+  op _=>_ : Term Term -> Condition {ctor prec: 71}
+  op _/\_ : EqCondition EqCondition -> EqCondition {ctor assoc id: nil prec: 73}
+  op _/\_ : Condition Condition -> Condition {ctor assoc id: nil prec: 73}
+
+  ** equations
+  [ Equation < EquationSet ]
+  op eq[_]:_=_. : AttrSet Term Term -> Equation {ctor}
+  op ceq[_]:_=_if_[_]. : AttrSet Term Term EqCondition -> Equation {ctor}
+  op none : -> EquationSet {ctor}
+  op __ : EquationSet EquationSet -> EquationSet{ctor assoc comm id: none}
+  eq E:Equation E:Equation = E:Equation .
+
+  ** rules
+  [ Rule < RuleSet ]
+  op rl[_]:_=>_. : AttrSet Term Term AttrSet -> Rule {ctor}
+  op crl[_]:_=>_if_. : AttrSet Term Term Condition AttrSet -> Rule {ctor}
+  op none : -> RuleSet {ctor}
+  op __ : RuleSet RuleSet -> RuleSet {ctor assoc comm id: none}
+  eq R:Rule R:Rule = R:Rule .
+
+  ** modules
+  sorts FModule SModule FTheory STheory Module .
+  [ FModule < SModule < Module ]
+  [ FTheory < STheory < Module ]
+  [ Qid < Header ]
+
+  op _{_}  : Qid ParameterDeclList -> Header {ctor}
+  op module!_{_[_]__} : Header ImportList SubsortDeclSet OpDeclSet EquationSet 
+    -> FModule {ctor}
+     format (d d s n++i ni d d ni ni ni ni n--i d)] .
+  op module_{_[_]___} : Header ImportList SubsortDeclSet OpDeclSet EquationSet RuleSet 
+    -> SModule {ctor} 
+  op [_] : Qid -> Module .
+  eq [Q:Qid] = (th Q:Qid is including Q:Qid .
+                sorts none . none none none none none endth) .
+
+  ** projection functions
+  var Q : Qid .
+  var PDL : ParameterDeclList .
+  var H : Header .
+  var M : Module .
+  var IL : ImportList .
+  var SS : SortSet .
+  var SSDS : SubsortDeclSet .
+  var OPDS : OpDeclSet .
+  var MAS : MembAxSet .
+  var EQS : EquationSet .
+  var RLS : RuleSet .
+
+  op getName : Module -> Qid .
+  eq getName(fmod Q is IL sorts SS . SSDS OPDS MAS EQS endfm) = Q .
+  eq getName(mod Q is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = Q .
+  eq getName(fmod Q{PDL} is IL sorts SS . SSDS OPDS MAS EQS endfm) = Q .
+  eq getName(mod Q{PDL} is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = Q .
+  eq getName(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = Q .
+  eq getName(th Q is IL sorts SS . SSDS OPDS MAS EQS RLS endth) = Q .
+
+  op getImports : Module -> ImportList .
+  eq getImports(fmod H is IL sorts SS . SSDS OPDS MAS EQS endfm) = IL .
+  eq getImports(mod H is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = IL .
+  eq getImports(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = IL .
+  eq getImports(th Q is IL sorts SS . SSDS OPDS MAS EQS RLS endth) = IL .
+
+  op getSorts : Module -> SortSet .
+  eq getSorts(fmod H is IL sorts SS . SSDS OPDS MAS EQS endfm) = SS .
+  eq getSorts(mod H is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = SS .
+  eq getSorts(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = SS .
+  eq getSorts(th Q is IL sorts SS . SSDS OPDS MAS EQS RLS endth) = SS .
+
+  op getSubsorts : Module -> SubsortDeclSet .
+  eq getSubsorts(fmod H is IL sorts SS . SSDS OPDS MAS EQS endfm) = SSDS .
+  eq getSubsorts(mod H is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = SSDS .
+  eq getSubsorts(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = SSDS .
+  eq getSubsorts(th Q is IL sorts SS . SSDS OPDS MAS EQS RLS endth) = SSDS .
+
+  op getOps : Module -> OpDeclSet .
+  eq getOps(fmod H is IL sorts SS . SSDS OPDS MAS EQS endfm) = OPDS .
+  eq getOps(mod H is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = OPDS .
+  eq getOps(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = OPDS .
+  eq getOps(th Q is IL sorts SS . SSDS OPDS MAS EQS RLS endth) = OPDS .
+
+  op getMbs : Module -> MembAxSet .
+  eq getMbs(fmod H is IL sorts SS . SSDS OPDS MAS EQS endfm) = MAS .
+  eq getMbs(mod H is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = MAS .
+  eq getMbs(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = MAS .
+  eq getMbs(th Q is IL sorts SS . SSDS OPDS MAS EQS RLS endth) = MAS .
+
+  op getEqs : Module -> EquationSet .
+  eq getEqs(fmod H is IL sorts SS . SSDS OPDS MAS EQS endfm) = EQS .
+  eq getEqs(mod H is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = EQS .
+  eq getEqs(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = EQS .
+  eq getEqs(th Q is IL sorts SS . SSDS OPDS MAS EQS RLS endth) = EQS .
+
+  op getRls : Module -> RuleSet .
+  eq getRls(fmod H is IL sorts SS . SSDS OPDS MAS EQS endfm) = none .
+  eq getRls(mod H is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = RLS .
+  eq getRls(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = none .
+  eq getRls(th Q is IL sorts SS . SSDS OPDS MAS EQS RLS endth) = RLS .
 }

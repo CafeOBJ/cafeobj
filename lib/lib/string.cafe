@@ -45,16 +45,13 @@ module! STRING {
   eq [:BDEMOD]: string>(S1,S2) = #! (string> s1 s2) .
   eq [:BDEMOD]: string<=(S1,S2) = #! (string<= s1 s2) .
   eq [:BDEMOD]: string>=(S1,S2) = #! (string>= s1 s2) .
-  eq find(C, S, N) = #! (s-find C S N) .
-  eq rfind(C, S, N) = #! (s-rfind C S N) .
+  eq find(C, S, N) = #!! (s-find C S N) .
+  eq rfind(C, S, N) = #!! (s-rfind C S N) .
 }
 
-evq (setq x_current *current-module*)
-select STRING
-let notFound = notFound .
-evq (setq *string-not-found* (simple-copy-term (get-bound-value "notFound" *current-module*)))
-evq (register-metalevel-sort (term-sort *string-not-found*))
-evq (when x_current (eval-mod-ext x_current t))
+lispq (setq _string_mod_ (eval-modexp "STRING"))
+lispq (with-in-module (_string_mod_)
+        (setq *strig-not-found* (simple-parse-from-string "notFound")))
 
 lispq
 (defun chaos-install-string ()
@@ -75,18 +72,3 @@ lispq
   (chaos-install-string)
   (chaos-string-tram-interface))
 
-lispq
-(defun s-find (C S N)
-  (let ((pos (position C S :start N)))
-    (if pos
-        pos
-      *string-not-found*)))
-
-lispq
-(defun s-rfind (C S N)
-  (let ((pos (position C S :start N :from-end t)))
-    (if pos
-        pos
-       *string-not-found*)))
-
-;;; EOF
