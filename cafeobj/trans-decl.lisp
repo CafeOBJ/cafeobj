@@ -495,7 +495,7 @@
                   (("prec:" "precedence:" "prec" "precedence")
                    (setf prec (read-from-string (second att))))
                   ("memo" (setf memo t))
-                  (("constr" "constructor")(setf constr t))
+                  (("constr" "ctor" "constructor")(setf constr t))
                   (("coherent" "beh-coherent") (setf coherent t))
                   (("demod" "meta-demod") (setq meta-demod t))
                   (t (with-output-chaos-error ()

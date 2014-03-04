@@ -182,6 +182,9 @@
       (catch 'rewrite-failure
 	(values (apply fun bindings) t)))))
 
+(defun is-metalevel-special-sort (sort)
+  (gethash sort *builtin-metalevel-sort*))
+
 (defun invoke-simple-lisp-fun (fun vars substitution sort-x)
   (declare (type function fun)
 	   (type list vars substitution)
@@ -195,8 +198,10 @@
 	       ` (if (sort= *bool-sort* ,sort)
 		     (if ,value
 			 *bool-true*
-			 *bool-false*)
-  		     (make-bconst-term ,sort ,value))))
+		       *bool-false*)
+		   (if (is-metalevel-special-sort sort)
+		       ,value
+  		     (make-bconst-term ,sort ,value)))))
     ;;
     (block invoke
       (let ((bindings nil)

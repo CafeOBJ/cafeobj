@@ -97,7 +97,7 @@ File: creader.lisp
               ((:+ strat strategy |strat:| |strategy:|)
                |(| (:seq-of :int) |)|)
               ((:+ l-assoc r-assoc left-associative right-associative))
-              ((:+ constr constructor))
+              ((:+ constr ctor constructor))
               ((:+ coherent beh-coherent))
               (memo)
               )

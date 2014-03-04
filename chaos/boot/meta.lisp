@@ -6,12 +6,21 @@
 			   Module: primitives.chaos
 				File: meta.lisp
 ===============================================================================|#
-
+;;;
+;;;
+;;;
 ;;; ************
 ;;; SystemObject
 ;;; ************
 (eval-when (:compile-toplevel :load-toplevel :execute)
+(defun clear-metalevel-sort ()
+  (clrhash *builtin-metalevel-sort*))
 
+(defun register-metalevel-sort (sort)
+  (setf (gethash sort *builtin-metalevel-sort*) t))
+
+  (clear-metalevel-sort)
+  
 (defstruct (chaos-list (:print-function pr-chaos-list))
   (list nil))
 

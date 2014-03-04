@@ -1,12 +1,54 @@
-**
-**
-**
-
 module! META-TERM {
-  
+  protecting (QID)
 
+  ** Sort
+  bsort Sort (is-sort-token create-sort-object print-meta-sort-object is-sort-object nil)
+  [ Sort < Qid ]
+
+  ** terms
+  bsort Constant (is-constant-token create-constant-object print-constant-object is-constant-object nil)
+  bsort Variable (is-variable-token create-variable-object print-variable-object is-variable-object nil)
+  [ Constant Variable < TermQid < Qid Term,
+    Constant < GroundTerm < Term NeGroundTermList < NeTermList,
+    NeGroundTermList < NeTermList GroundTermList < TermList ]
+  op empty : -> GroundTermList {ctor}
+  op _,_ : NeGroundTermList GroundTermList -> NeGroundTermList {ctor assoc id: empty prec 121}
+  op _,_ : GroundTermList NeGroundTermList -> NeGroundTermList {ctor assoc id: empty prec 121}
+  op _,_ : GroundTermList GroundTermList -> GroundTermList {ctor assoc id: empty prec 121}
+  op _,_ : NeTermList TermList -> NeTermList {ctor assoc id: empty prec 121}
+  op _,_ : TermList NeTermList -> NeTermList {ctor assoc id: empty prec 121}
+  op _,_ : TermList TermList -> TermList {ctor assoc id: empty prec 121}
+  op _[_] : Qid NeGroundTermList -> GroundTerm {ctor}
+  op _[_] : Qid NeTermList -> Term {ctor}
+
+  ** extraction of names and types
+  op getName : Constant -> Qid 
+  op getType : Constant -> Sort
+  var C : Constant 
+  eq getName(C) = qid(substring(string(C), 0, rfind('.', string(C), 0))) .
+  eq getType(C) = qid(substring(string(C), rfind('.', string(C), 0))) .
+
+  op getName : Variable -> Qid 
+  op getType : Variable -> Sort 
+  var V : Variable 
+  eq getName(V) = qid(substring(string(V), 0, rfind(':', string(V), 0))) .
+  eq getType(V) = qid(substring(string(V), rfind(':', string(V), 0))) .
+
+  ** substitutions
+  [ Assignment < Substitution ]
+  op _<-_ : Variable Term -> Assignment {ctor prec 63}
+  op none : -> Substitution {ctor}
+  op _;_ : Substitution Substitution -> Substitution
+    {ctor assoc comm id: none prec 65}
+  eq A:Assignment ; A:Assignment = A:Assignment .
+
+  ** contexts (terms with a single hole)
+  [ Context < NeCTermList < GTermList,
+    TermList < GTermList ]
+
+  op [] : -> Context {ctor}
+  op _,_ : TermList NeCTermList -> NeCTermList {ctor assoc id: empty prec 121}
+  op _,_ : NeCTermList TermList -> NeCTermList {ctor assoc id: empty prec 121}
+  op _,_ : GTermList GTermList -> GTermList {ctor assoc id: empty prec 121}
+  op _[_] : Qid NeCTermList -> Context {ctor}
 }
-
---
---
---

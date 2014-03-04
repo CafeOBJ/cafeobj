@@ -1,0 +1,8 @@
+module! QID {
+  protecting (STRING)
+  bsort Qid (is-qid-token create-qid print-qid is-qid nil)
+  op string : Qid    -> String
+  op qid    : String -> Qid
+  eq string(Q:Qid) = #! (qid->string Q) .
+  eq qid(S:String) = #! (string->qid S) .
+}

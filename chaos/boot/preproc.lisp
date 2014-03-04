@@ -147,7 +147,7 @@
        (is-Id-token x)))
 
 ;;;-----------------------------------------------------------------------------
-;;; module QID 
+;;; sort Qid
 ;;;-----------------------------------------------------------------------------
 (defun is-qId-token (token)
   (and (stringp token)
@@ -161,9 +161,78 @@
     (intern token)))
 
 (defun print-qId (x) (format t "'~a" (string x)))
+
 (defun is-qId (x)
   (and (symbolp x)
        (is-qId-token (symbol-name x))))
+
+(defun qid->string (obj)
+  (string obj))
+
+(defun string->qid (obj)
+  (create-qId (concatenate 'string "'" obj)))
+
+;;;-----------------------------------------------------------------------------
+;;; sort Sort
+;;;-----------------------------------------------------------------------------
+(defun is-Sort-token (token)
+  (and (stringp token)
+       (<= 2 (length token))
+       (eql #\' (char token 0))
+       (alpha-char-p (char token 1))))
+  
+(defun create-Sort-object (token)
+  (if (eql #\' (char token 0))
+      (intern (subseq token 1))
+    (intern token)))
+
+(defun print-meta-sort-object (x) (format t "'~a" (string x)))
+
+(defun is-sort-object (x)
+  (and (symbolp x)
+       (is-sort-token (symbol-name x))))
+
+;;;-----------------------------------------------------------------------------
+;;; sort constant
+;;;-----------------------------------------------------------------------------
+(defun is-constant-token (token)
+  (and (stringp token)
+       (<= 2 (length token))
+       (eql #\' (char token 0))
+       (alpha-char-p (char token 1))
+       (position #\. token :start 1)))
+  
+(defun create-constant-object (token)
+  (if (eql #\' (char token 0))
+      (intern (subseq token 1))
+    (intern token)))
+
+(defun print-constant-object (x) (format t "'~a" (string x)))
+
+(defun is-constant-object (x)
+  (and (symbolp x)
+       (is-constant-token (symbol-name x))))
+
+;;;-----------------------------------------------------------------------------
+;;; sort variable
+;;;-----------------------------------------------------------------------------
+(defun is-variable-token (token)
+  (and (stringp token)
+       (<= 2 (length token))
+       (eql #\' (char token 0))
+       (alpha-char-p (char token 1))
+       (position #\: token :start 1)))
+  
+(defun create-variable-object (token)
+  (if (eql #\' (char token 0))
+      (intern (subseq token 1))
+    (intern token)))
+
+(defun print-variable-object (x) (format t "'~a" (string x)))
+
+(defun is-variable-object (x)
+  (and (symbolp x)
+       (is-variable-token (symbol-name x))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; module FLOAT
@@ -342,11 +411,11 @@
 ;;;-----------------------------------------------------------------------------
 ;;; QID
 ;;;-----------------------------------------------------------------------------
-(defun setup-qid ()
-  (setq *qid-module* (eval-modexp "QID"))
-  (final-setup *qid-module*)
-  (with-in-module (*qid-module*)
-    (setq *qid-sort* (find-sort-in *qid-module* "Id"))))
+;; (defun setup-qid ()
+;;  (setq *qid-module* (eval-modexp "QID"))
+;;  (final-setup *qid-module*)
+;;  (with-in-module (*qid-module*)
+;;    (setq *qid-sort* (find-sort-in *qid-module* "QId"))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; module RWL
@@ -466,6 +535,24 @@
 	(with-output-panic-message()
 	  (princ "Could not find module STRING-VALUE.")
 	  (break)))))
+
+(defun s-find (Char Str Num)
+  (let ((C (term-builtin-value char))
+	(S (term-builtin-value Str))
+	(N (term-builtin-value Num)))
+  (let ((pos (position C S :start N)))
+    (if pos
+	(simple-parse-from-string (format nil "~s" pos))
+      *string-not-found*))))
+
+(defun s-rfind (C S N)
+  (let ((C (term-builtin-value char))
+	(S (term-builtin-value Str))
+	(N (term-builtin-value Num)))
+    (let ((pos (position C S :start N :from-end t)))
+      (if pos
+	  (simple-parse-from-string (format nil "~s" pos))
+	*string-not-found*))))
 
 ; ;;;-----------------------------------------------------------------------------
 ; ;;; module CHAOS:EXPR
