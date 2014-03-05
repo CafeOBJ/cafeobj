@@ -313,7 +313,7 @@ File: creader.lisp
          :symbol                        ; (:optional (:! Params))
          (:if-present (:+ \( \[) (:! Param) :append (:seq-of |,| (:! Param))
                       (:+ \) \]))
-         (:if-present principal-sort :sort)
+         (:if-present (:+ principal-sort psort p-sort) :sort)
          ;; (:if-present psort :sort)
          |{|
          (:many-of
