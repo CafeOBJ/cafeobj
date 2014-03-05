@@ -1,0 +1,65 @@
+sys:mod! FLOAT
+      principal-sort Float
+{
+  imports {
+    protecting (FLOAT-VALUE)
+    protecting (BOOL)
+  }
+  signature {
+    op _ + _ : Float Float -> Float { assoc comm demod prec: 33 r-assoc }
+    op _ - _ : Float Float -> Float { demod prec: 33 r-assoc }
+    op _ * _ : Float Float -> Float { assoc comm demod prec: 31 r-assoc }
+    op _ / _ : Float Float -> Float { demod prec: 31 l-assoc }
+    op _ rem _ : Float Float -> Float { demod prec: 31 l-assoc }
+    op exp : Float -> Float { demod prec: 0 }
+    op log : Float -> Float { demod prec: 0 }
+    op sqrt : Float -> Float { demod prec: 0 }
+    op abs : Float -> Float { demod prec: 0 }
+    op sin : Float -> Float { demod prec: 0 }
+    op cos : Float -> Float { demod prec: 0 }
+    op atan : Float -> Float { demod prec: 0 }
+    op pi : -> Float { demod prec: 0 }
+    pred _ < _ : Float Float  { demod prec: 51 }
+    pred _ <= _ : Float Float  { demod prec: 51 }
+    pred _ > _ : Float Float  { demod prec: 51 }
+    pred _ >= _ : Float Float  { demod prec: 51 }
+    pred _ = [ _ ] _ : Float Float Float  { demod prec: 51 }
+  }
+  axioms {
+    var X : Float
+    var Y : Float
+    var Z : Float
+    eq [:BDEMOD]: (X + Y) = #! (+ x y) .
+    eq [:BDEMOD]: (X - Y) = #! (- x y) .
+    eq [:BDEMOD]: (X * Y) = #! (* x y) .
+    eq [:BDEMOD]: (X / Y) = #! (/ x y) .
+    eq [:BDEMOD]: (X rem Y) = #! (rem x y) .
+    eq [:BDEMOD]: exp(X) = #! (exp x) .
+    eq [:BDEMOD]: log(X) = #! (log x) .
+    eq [:BDEMOD]: sqrt(X) = #! (sqrt x) .
+    eq [:BDEMOD]: abs(X) = #! (abs x) .
+    eq [:BDEMOD]: sin(X) = #! (sin x) .
+    eq [:BDEMOD]: cos(X) = #! (cos x) .
+    eq [:BDEMOD]: atan(X) = #! (atan x) .
+    eq [:BDEMOD]: pi = #! pi .
+    eq [:BDEMOD]: (X < Y) = #! (< x y) .
+    eq [:BDEMOD]: (X <= Y) = #! (<= x y) .
+    eq [:BDEMOD]: (X > Y) = #! (> x y) .
+    eq [:BDEMOD]: (X >= Y) = #! (>= x y) .
+    eq [:BDEMOD]: (X = [ Z ] Y) = #! (< (abs (- x y)) z) .
+  }
+}
+
+lispq
+(defun chaos-float-tram-interface ()
+  (setq *z-float* (get-z-module-or-panic "FLOAT"))
+  (push *z-float* *tram-builtin-modules*))
+
+(eval-when (:execute :load-toplevel)
+  (chaos-float-tram-interface))
+
+provide float
+provide FLOAT
+--
+eof
+

@@ -155,11 +155,14 @@
 
 ;;; Operator Attribute declarations
 ;;;-----------------------------------------------------------------------------
+#||
 (defun print-opattr-decl (ast &optional (stream *standard-output*))
   (let ((opref (%opattr-decl-opref ast))
 	(attribute (%opattr-decl-attribute ast)))
     (print-opref opref stream)
     (print-opattrs-ast attribute stream)))
+
+||#
 
 (defun print-opattrs-ast (ast &optional (stream *standard-output*))
   (let ((theory (%opattrs-theory ast))

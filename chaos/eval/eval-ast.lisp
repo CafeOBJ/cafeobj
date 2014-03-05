@@ -354,6 +354,7 @@
 ;;; DECLARE-OPERATOR-ATTRIBUTES : decl -> operator
 ;;; returns operator if success, otherwise nil.
 ;;;
+#||
 (defun declare-operator-attributes (decl)
   (I-miss-current-module declare-operator-attributes)
   ;; *NOTE* qualifier in opref is ignored, is it OK?
@@ -385,6 +386,7 @@
 	;; save the declaration form.
 	(push decl (module-opattrs *current-module*))
 	op))))
+||#
 
 ;;;=============================================================================
 ;;;			       AXIOMS, VARIABLES

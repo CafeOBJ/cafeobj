@@ -1,0 +1,53 @@
+sys:mod! RAT
+      principal-sort Rat
+{
+  imports {
+    protecting (INT)
+    protecting (RAT-VALUE)
+  }
+  signature {
+    op - _ : Rat -> Rat { demod prec: 15 }
+    op - _ : NzRat -> NzRat { demod prec: 15 }
+    op _ - _ : Rat Rat -> Rat { strat: (0 1 2) demod prec: 33 r-assoc }
+    pred _ >= _ : Rat Rat  { demod prec: 41 }
+    pred _ > _ : Rat Rat  { demod prec: 41 }
+    pred _ <= _ : Rat Rat  { demod prec: 41 }
+    pred _ < _ : Rat Rat  { demod prec: 41 }
+    op _ * _ : Rat Rat -> Rat { demod prec: 41 }
+    op _ + _ : Rat Rat -> Rat { idr: 0 demod prec: 41 }
+    op _ rem _ : Rat NzRat -> Rat { demod prec: 41 }
+    op _ / _ : Rat NzRat -> Rat { demod prec: 31 l-assoc }
+    op _ / _ : NzRat NzRat -> NzRat { demod prec: 31 l-assoc }
+  }
+  axioms {
+    var R : Rat
+    var S : Rat
+    var NS : NzRat
+    eq [:BDEMOD]: (R + S) = #! (+ r s) .
+    eq [:BDEMOD]: (- R) = #! (- r) .
+    eq [:BDEMOD]: (R - S) = (R + (- S)) .
+    eq [:BDEMOD]: (R * S) = #! (* r s) .
+    eq [:BDEMOD]: (R / NS) = #! (/ r ns) .
+    eq [:BDEMOD]: (R rem NS) = #! (rem r ns) .
+    eq [:BDEMOD]: (R < S) = #! (< r s) .
+    eq [:BDEMOD]: (R <= S) = #! (<= r s) .
+    eq [:BDEMOD]: (R > S) = #! (> r s) .
+    eq [:BDEMOD]: (R >= S) = #! (>= r s) .
+  }
+}
+
+lispq
+(defun chaos-rat-tram-interface ()
+  (setq *z-rat* (get-z-module-or-panic "RAT"))
+  (push *z-rat* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-rat-tram-interface))
+
+provide rat
+provide RAT
+--
+eof
+
+

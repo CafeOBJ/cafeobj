@@ -714,11 +714,11 @@
   process-predicate-declaration-form
   eval-ast)
               
-(defdecl ("opattr" "attr" "attrs")
-    ""
-  :sig
-  process-opattr-declaration-form
-  eval-ast)
+;;;(defdecl ("opattr" "attr" "attrs")
+;;;    ""
+;;;  :sig
+;;;  process-opattr-declaration-form
+;;;  eval-ast)
               
 (defdecl ("rec" "record")
     ""

@@ -1,4 +1,5 @@
-sys:mod! STRING {
+sys:mod! STRING principal-sort String
+{
   protecting (NAT)
   protecting (CHARACTER)
   protecting (STRING-VALUE)

@@ -1,9 +1,9 @@
 ;CHAOS_BINS_____
 #|| -*- Mode: LISP -*-
 		      -- Chaos internal file --
-			 chaos version: 1.4.7
+			 chaos version: 1.4.13
 		      file: lib/prelude/std.bin
-		     Wed Jan 24 12:41:58 JST 2007
+		Wed March 5 18:28:14: JST 2014
 * NOTE : DO NOT MODIFY THIS FILE ULESS YOU REALLY KNOW WHAT YOU ARE DOING!.
 ||#
 (in-package :CHAOS)
@@ -19,7 +19,6 @@
 (setq *autoload-alist*
   '(("TRUTH" . "truth")
     ("BOOL" . "bool")
-    ("IDENTICAL" . "identical")
     ("RWL" . "rwl")
     ("NZNAT" . "nznat")
     ("NAT" . "nat")
@@ -30,7 +29,7 @@
     ("FOPL-CLAUSE" . "fopl")
     ("PROPC" . "propc")
     ("STRING" . "string")
-    ("2TUPLE" . "tuple")
+    ("2TUPLE" . "2tuple")
     ("3TUPLE" . "3tuple")
     ("4TUPLE" . "4tuple")
     ("EQL" . "eql")
@@ -41,16 +40,7 @@
     ("STATE-CONFIGURATION" . "reobject")
     ("ACZ-CONFIGURATION" . "reobject")
     ("QID" . "qid")
-    ("META-LEVEL" . "meta")
+    ("META-LEVEL" . "metalevel")
     ))
-#|| --- no more depends : important intitializations are
-        moved to the introduction of TRUTH-VALUE.
-;; we need TRUTH at start up
-    (chaos-input-file :file "truth"
-                      :proc 'process-cafeobj-input
-		      :suffix '(".mod" ".bin")
-		      :load-path *chaos-libpath*
-		      :args nil
-		      :errorp t)
-||#
 )
+;;; EOF

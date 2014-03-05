@@ -534,6 +534,7 @@
 ;;; ***********************************
 ;;; input form: '("attr" (opname) ("{" attributes "}"))
 ;;;
+#||
 (defun process-opattr-declaration-form (decl &rest ignore)
   (declare (ignore ignore))
   (let ((pat (let ((val (nth 1 decl)))
@@ -548,6 +549,7 @@
       (%make-opattr-decl :opref (%make-opref :name op-id
                                              :num-args num-args)
                          :attribute (process-opattr-form attrs)))))
+||#
 
 ;;; *********
 ;;; SIGNATURE

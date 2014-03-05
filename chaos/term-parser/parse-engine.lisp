@@ -1,4 +1,4 @@
-;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
+;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;; $Id: parse-engine.lisp,v 1.12 2010-07-20 06:59:37 sawada Exp $
 (in-package :chaos)
 #|==============================================================================
