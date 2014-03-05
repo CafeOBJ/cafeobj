@@ -118,6 +118,7 @@ lispq
   (setup-tram-bool-modules)
   (init-builtin-universal)
 )
+protect BOOL
 **
 ** evq (setq *include-bool* *include-bool-save*)
 **

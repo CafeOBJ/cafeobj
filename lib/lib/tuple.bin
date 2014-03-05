@@ -52,7 +52,7 @@
     (eval-ast-if-need-no-error '(%provide "tuple"))
     ))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (chaos-install-2tuple))
 
 ;;; EOF

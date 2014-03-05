@@ -1,4 +1,4 @@
-module! STRING {
+sys:mod! STRING {
   protecting (NAT)
   protecting (CHARACTER)
   protecting (STRING-VALUE)
@@ -49,18 +49,6 @@ module! STRING {
   eq rfind(C, S, N) = #!! (s-rfind C S N) .
 }
 
-lispq (setq _string_mod_ (eval-modexp "STRING"))
-lispq (with-in-module (_string_mod_)
-        (setq *strig-not-found* (simple-parse-from-string "notFound")))
-
-lispq
-(defun chaos-install-string ()
-  (let ((string-module (eval-modexp "STRING")))
-   (with-in-module (string-module)
-    (eval-ast-if-need '(%protect ("STRING") :set))
-    (eval-ast-if-need '(%provide "STRING"))
-    (eval-ast-if-need '(%provide "string")))))
-
 lispq
 (defun chaos-string-tram-interface ()
   (setq *z-string* (get-z-module-or-panic "STRING"))
@@ -68,7 +56,6 @@ lispq
   )
 
 lispq
-(eval-when (eval load)
-  (chaos-install-string)
+(eval-when (:execute :load-toplevel)
   (chaos-string-tram-interface))
 

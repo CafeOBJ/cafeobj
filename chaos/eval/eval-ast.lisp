@@ -766,8 +766,7 @@
 	(*allow-$$term* nil)
 	(*modexp-eval-table* nil)
 	(auto-context? *auto-context-change*)
-	(*auto-context-change* nil)
-	)
+	(*auto-context-change* nil))
     (declare (special *modexp-eval-table*
 		      *auto-context-change*))
     (unless *chaos-quiet*
@@ -777,15 +776,12 @@
 	    (print-mod-name *open-module*)
 	    (force-output))
 	  (unless (modexp-is-parameter-theory name)
-	    ;; (with-output-msg ()
 	      (format t "~&-- defining ~(~a~) ~a" (case kind
 						    (:object "module!")
 						    (:theory "module*")
 						    (otherwise "module"))
 		      name)
-	      (force-output)
-	      ;; )
-	    )))
+	      (force-output))))
     ;;
     (let ((modval (eval-modexp name nil nil))
 	  (recover-same-context nil))
@@ -795,21 +791,17 @@
 		  (equal "%" name)
 		  (eq '% name)
 		  (equal " % % " name))
-	(unless *chaos-quiet*
+
 	  (unless (modexp-is-parameter-theory name)
-	    (when (module-is-hard-wired modval)
+	    (when (or (module-is-hard-wired modval)
+		      (module-is-system-module modval))
 	      (with-output-chaos-error ('invalid-module-decl)
-		(format t "you cannot redefine system hard-wired module ~a " name)
-		))
+		(format t "You can not redefine system module ~a ." name)))
 	    (when (module-is-write-protected modval)
 	      (with-output-chaos-error ('invalid-module-decl)
-		(format t "module ~a is protected!" name)
-		))
+		(format t "Module ~a is protected!" name)))
 	    (with-output-chaos-warning ()
-	      (format t "redefining module ~a " name)
-	      (when (module-is-system-module modval)
-		(format t "~%** CAUTION: you are redefining system builtin module!")))
-	    ))
+	      (format t "Redefining module ~a " name)))
 	;;
 	(propagate-module-change modval)
 	;;
@@ -857,8 +849,7 @@
 	      ;;
 	      (with-chaos-error (#'report-decl-error)
 		(eval-ast e))
-	      (print-in-progress ".")
-	      )))
+	      (print-in-progress "."))))
 	;; FINAL SET UP.
 	(let ((real-mod (find-module-in-env name nil)))
 	  (final-setup real-mod)

@@ -1008,57 +1008,57 @@
 	       (rhs (axiom-rhs axiom))
 	       (rhs-e (term-error-operators&variables rhs nil))
 	       (cond (axiom-condition axiom))
-	       (cond-e (term-error-operators&variables cond nil))
-	       )
+	       (cond-e (term-error-operators&variables cond nil)))
 	  (when (and (or lhs-e rhs-e cond-e)
 		     message?)
+	    (when *chaos-verbose*
 	      (with-output-chaos-warning ()
 		(format t "axiom : ")
 		(print-chaos-object axiom)
 		(print-next)
-		(format t "contains error operators.")))
-	    ;; check 
-	    (when *optimize-error-operators*
-	      (check-check lhs-e)
-	      (check-check rhs-e)
-	      (check-check cond-e))
-	    ;;
-	    (if (or lhs-e rhs-e cond-e)
-		(let ((vars (mapcar #'(lambda (x) (cons x x)) (term-variables lhs))))
-		  (when lhs-e
-		    (push (cons lhs
-				(or (cdr (assq lhs
-					       (module-terms-to-be-fixed module)))
-				    (setq lhs
-					  (copy-term-using-variable lhs vars))))
-			  (module-terms-to-be-fixed module)))
-		  (when rhs-e
-		    (push (cons rhs
-				(or (cdr (assq rhs
-					       (module-terms-to-be-fixed module)))
-				    (setq rhs
-					  (copy-term-using-variable rhs vars))))
-			  (module-terms-to-be-fixed module)))
-		  (when cond-e
-		    (push (cons cond
-				(or (cdr (assq cond
-					       (module-terms-to-be-fixed module)))
-				    (setq cond
-					  (copy-term-using-variable cond vars))))
-			  (module-terms-to-be-fixed module)))
-		  (setq new-axiom
-			(make-rule :lhs lhs
-				   :rhs rhs
-				   :condition cond
-				   :labels (axiom-labels axiom)
-				   :type (axiom-type axiom)
-				   :kind (axiom-kind axiom)
-				   :no-method-computation t
-				   :meta-and-or (axiom-meta-and-or axiom)))
-		  (push (cons axiom new-axiom)
-			(module-axioms-to-be-fixed module))
-		  new-axiom)
-		axiom))))))
+		(format t "contains error operators."))))
+	  ;; check 
+	  (when *optimize-error-operators*
+	    (check-check lhs-e)
+	    (check-check rhs-e)
+	    (check-check cond-e))
+	  ;;
+	  (if (or lhs-e rhs-e cond-e)
+	      (let ((vars (mapcar #'(lambda (x) (cons x x)) (term-variables lhs))))
+		(when lhs-e
+		  (push (cons lhs
+			      (or (cdr (assq lhs
+					     (module-terms-to-be-fixed module)))
+				  (setq lhs
+				    (copy-term-using-variable lhs vars))))
+			(module-terms-to-be-fixed module)))
+		(when rhs-e
+		  (push (cons rhs
+			      (or (cdr (assq rhs
+					     (module-terms-to-be-fixed module)))
+				  (setq rhs
+				    (copy-term-using-variable rhs vars))))
+			(module-terms-to-be-fixed module)))
+		(when cond-e
+		  (push (cons cond
+			      (or (cdr (assq cond
+					     (module-terms-to-be-fixed module)))
+				  (setq cond
+				    (copy-term-using-variable cond vars))))
+			(module-terms-to-be-fixed module)))
+		(setq new-axiom
+		  (make-rule :lhs lhs
+			     :rhs rhs
+			     :condition cond
+			     :labels (axiom-labels axiom)
+			     :type (axiom-type axiom)
+			     :kind (axiom-kind axiom)
+			     :no-method-computation t
+			     :meta-and-or (axiom-meta-and-or axiom)))
+		(push (cons axiom new-axiom)
+		      (module-axioms-to-be-fixed module))
+		new-axiom)
+	    axiom))))))
 
 ;;;
 ;;; RECREATE-ERROR-AXIOM

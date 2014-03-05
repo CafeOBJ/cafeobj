@@ -1,4 +1,4 @@
-module! QID {
+sys:mod! QID {
   protecting (STRING)
   bsort Qid (is-qid-token create-qid print-qid is-qid nil)
   op string : Qid    -> String

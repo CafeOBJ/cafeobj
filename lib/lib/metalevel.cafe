@@ -1,7 +1,7 @@
 **
 ** CafeOBJ MetaLevel Core
 **
-module! :SET(X :: TRIV) {
+mod! :SET(X :: TRIV) {
   protecting (BOOL)
   protecting (NAT)
   [ Elt.X < NeSet < Set ]
@@ -18,14 +18,14 @@ module! :SET(X :: TRIV) {
   op !espattern : Elt.X Set -> Bool
   eq !espattern(E, (N ; S)) = true .
 
-  eq N, N = N .
+  eq N ; N = N .
   
   op insert : Elt.X Set -> Set
-  eq insert(E ; S) = E, S .
+  eq insert(E,  S) = E ; S .
 
   op delete : Elt.X Set -> Set
   eq delete(E, (E ; S)) = delete(E, S) .
-  ceq delete(E ; S) = S if !espattern(E, S) =/= true .
+  ceq delete(E, S) = S if !espattern(E, S) =/= true .
 
   op _in_ : Elt.X Set -> Bool 
   eq E in (E ; S) = true .
@@ -43,7 +43,7 @@ module! :SET(X :: TRIV) {
   op union : Set Set -> Set
   op union : NeSet Set -> NeSet
   op union : Set NeSet -> NeSet
-  eq union(S, S') = S, S' .
+  eq union(S, S') = S ; S' .
 
   op intersection : Set Set -> Set
   eq intersection(S, empty) = empty .
@@ -55,7 +55,7 @@ module! :SET(X :: TRIV) {
 
   op _\_ : Set Set -> Set
   eq S \ empty = S .
-  eq S \ N = $diff(S; N, empty) .
+  eq S \ N = $diff(S, N, empty) .
 
   op $diff : Set Set Set -> Set
   eq $diff(empty, S', A) = A .
@@ -63,13 +63,13 @@ module! :SET(X :: TRIV) {
 
   op _subset_ : Set Set -> Bool .
   eq empty subset S' = true .
-  eq (E, S) subset S' = E in S' and-also S subset S' .
+  eq (E ; S) subset S' = E in S' and-also S subset S' .
 
   op _psubset_ : Set Set -> Bool .
   eq S psubset S' = S =/= S' and-also S subset S' .
 }
 
-module! :LIST(X :: TRIV) {
+mod! :LIST(X :: TRIV) {
   protecting (NAT)
   [ Elt.X < NeList < List ]
 
@@ -120,22 +120,22 @@ module! :LIST(X :: TRIV) {
   eq $size(E L, C) = $size(L, C + 1) .
 }
 
-module! NAT-LIST {
+mod! NAT-LIST {
   protecting (:LIST(NAT) * {sort NeList -> NeNatList, sort List -> NatList}) 
 }
 
-module! QID-LIST {
+mod! QID-LIST {
   protecting (:LIST * {sort NeList -> NeQidList, sort List -> QidList})
 }
 
-module! QID-SET {
+mod! QID-SET {
   protecting (:SET * {sort NeSet -> NeQidSet, sort Set -> QidSet})
 }
 
 **
 ** META-TERM
 **
-module! META-TERM {
+mod! META-TERM {
   protecting (QID)
 
   ** Sort
@@ -185,12 +185,11 @@ module! META-TERM {
   [ Assignment < Substitution ]
   op _<-_ : Variable Term -> Assignment {ctor prec 63}
   op none : -> Substitution {ctor}
-  op _;_ : Substitution Substitution -> Substitution
-    {ctor assoc comm id: none prec 65}
+  op _;_ : Substitution Substitution -> Substitution {ctor assoc comm id: none prec 65}
   eq A:Assignment ; A:Assignment = A:Assignment .
 }
 
-module! META-MODULE {
+mod! META-MODULE {
   protecting (META-TERM)
   protecting (NAT-LIST)
   protecting (QID-LIST)
@@ -217,9 +216,9 @@ module! META-MODULE {
   [ Type < NeTypeList < TypeList < QidList ]
   -- subsorts NeTypeList < NeQidList .
   op nil : -> TypeList [ctor] .
-  op __ : TypeList TypeList -> TypeList {ctor ditto}
-  op __ : NeTypeList TypeList -> NeTypeList {ctor ditto}
-  op __ : TypeList NeTypeList -> NeTypeList {ctor ditto}
+  op __ : TypeList TypeList -> TypeList {ctor assoc comm id: none}
+  op __ : NeTypeList TypeList -> NeTypeList {ctor assoc comm id: none}
+  op __ : TypeList NeTypeList -> NeTypeList {ctor assoc comm id: none}
   eq T:TypeList ; T:TypeList = T:TypeList .
 
   ** sets of sort lists
@@ -246,10 +245,10 @@ module! META-MODULE {
   [ Sort < NeParameterList < ParameterList ]
   [ EmptyCommaList < GroundTermList ParameterList ]
   op empty : -> EmptyCommaList {ctor}
-  op _,_ : ParameterList ParameterList -> ParameterList {ctor ditto}
-  op _,_ : NeParameterList ParameterList -> NeParameterList {ctor ditto}
-  op _,_ : ParameterList NeParameterList -> NeParameterList {ctor ditto}
-  op _,_ : EmptyCommaList EmptyCommaList -> EmptyCommaList {ctor ditto}
+  op _,_ : ParameterList ParameterList -> ParameterList {ctor assoc comm prec: 43}
+  op _,_ : NeParameterList ParameterList -> NeParameterList {ctor assoc comm prec: 43}
+  op _,_ : ParameterList NeParameterList -> NeParameterList {ctor assoc comm prec: 43}
+  op _,_ : EmptyCommaList EmptyCommaList -> EmptyCommaList {ctor assoc comm prec: 43}
 
   ** module expressions
   [ Qid < ModuleExpression ]
@@ -261,7 +260,7 @@ module! META-MODULE {
   [ ParameterDecl < NeParameterDeclList < ParameterDeclList ]
   op _::_ : Sort ModuleExpression -> ParameterDecl .
   op nil : -> ParameterDeclList [ctor] .
-  op _,_ : ParameterDeclList ParameterDeclList -> ParameterDeclList {ctor 
+  op _,_ : ParameterDeclList ParameterDeclList -> ParameterDeclList {ctor assoc id: nil prec: 121}
   op _,_ : NeParameterDeclList ParameterDeclList -> NeParameterDeclList {ctor assoc id: nil prec: 121}
   op _,_ : ParameterDeclList NeParameterDeclList -> NeParameterDeclList {ctor assoc id: nil prec: 121}
 

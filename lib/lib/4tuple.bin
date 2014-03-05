@@ -81,7 +81,7 @@
     (eval-ast-if-need-no-error '(%provide "4tuple"))
     ))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (chaos-install-4tuple))
 
 ;;; EOF
