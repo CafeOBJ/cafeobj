@@ -67,7 +67,7 @@
     (eval-ast-if-need-no-error '(%provide "3tuple"))
     ))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (chaos-install-3tuple))
 
 ;;; EOF

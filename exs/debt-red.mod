@@ -13,7 +13,7 @@ in integer
 
 -- specification of a system of debts data type
 mod! DEBT (X :: DINT) {
-  protecting(QID * { sort Id -> Agent })
+  protecting(QID * { sort QId -> Agent })
 
   [ Debt < Debt* ]
 

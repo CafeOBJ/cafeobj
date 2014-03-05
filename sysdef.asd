@@ -159,18 +159,8 @@
 			   (:file "basics")
 			   (:file "eval-match")
 			   (:file "eval-apply")
-			   (:file "cexec")))
-     (:module cafeobj
-	      :serial t
-	      :components ((:file "cafeobjvar")
-			   (:file "creader")
-			   (:file "trans-com")
-			   (:file "trans-decl")
-			   (:file "trans-form")
-			   (:file "command-proc")
-			   (:file "command-top")
-			   (:file "cafeobj-top")
-			   ))
+			   (:file "cexec")
+			   (:file "case")))
      (:module "BigPink"
 		 :components ((:module codes
 				       :serial t
@@ -195,6 +185,19 @@
 						    (:file "commands")
 						    (:file "inv")
 						    ))))
+     (:module cafeobj
+	      :serial t
+	      :components ((:file "cafeobjvar")
+			   (:file "creader")
+			   (:file "trans-com")
+			   (:file "trans-decl")
+			   (:file "trans-form")
+			   ;; (:file "command-proc")
+			   (:file "command-top")
+			   (:file "defcommand")
+			   (:file "cafeobj-top")
+			   ))
+
      ))
 
 

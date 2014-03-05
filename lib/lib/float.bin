@@ -183,7 +183,7 @@
   (push *z-float* *tram-builtin-modules*)
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (chaos-install-float)
   (chaos-float-tram-interface)
   )

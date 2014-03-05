@@ -324,13 +324,11 @@
     ;; commutativity
     ;;
     (when (theory-contains-commutativity theory)
-      (unless (sort= (car arity) (cadr arity))
+      (unless (is-in-same-connected-component (car arity) (cadr arity) *current-sort-order*)
 	;;
 	(unless inherit
 	  (with-output-chaos-warning ()
-	    (princ "the current implementation requires a STRONG condition for")
-	    (print-next)
-	    (princ "commutative operations, their arguments must be of the SAME sort,")
+	    (princ "commutative operations, their arguments must be of the same connected component.")
 	    (print-next)
 	    (princ "`comm' attribute of operation ")
 	    (print-chaos-object method)

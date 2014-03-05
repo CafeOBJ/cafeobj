@@ -89,7 +89,7 @@
   :eval eval-sos)
 
 ;;; pre-args ::= "sos" "=" "{" <real-args> "}"
-(defun pignose-eval-sos-proc (pre-args)
+(defun pignose-parse-sos (pre-args)
   (declare (type list pre-args)
 	   (values t))
   (let ((args nil)
@@ -112,16 +112,15 @@
 	(push a args)))
     (pop args)				; pop last "}"
     (setq ast (%sos* op (nreverse args) type))
-    (eval-ast ast)))
+    ast))
 
 ;;; db reset
 (defterm pndb (%script)
   :visible (arg)
   :eval eval-pndb)
 
-(defun pignose-eval-db-proc (inp)
-  ;; (declare (ignore inp))
-  (eval-ast (%pndb* (cadr inp))))
+(defun pignose-parse-db (inp)
+  (%pndb* (cadr inp)))
 
 ;;; clause <term> .
 (defterm clause-print (%script)
@@ -130,31 +129,31 @@
 
 ;;; "clause" <term>
 ;;;
-(defun pignose-eval-clause-proc (inp)
+(defun pignose-parse-clause (inp)
   (declare (type list inp)
 	   (values t))
-  (eval-ast (%clause-print* (cadr inp))))
+  (%clause-print* (cadr inp)))
 
 ;;; resolve
 (defterm resolve (%script)
   :visible (arg)
   :eval eval-resolve)
 
-(defun pignose-eval-resolve-proc (inp)
+(defun pignose-parse-resolve (inp)
   (declare (type list inp))
   (let ((ast (%resolve* (cadr inp))))
-    (eval-ast ast)))
+    ast))
 
 ;;; demod
 (defterm demod (%script)
   :visible (term &optional module mode return-text)
   :eval perform-demodulation)
 
-(defun pignose-eval-demod-proc (inp &rest ignore)
+(defun pignose-parse-demod (inp &rest ignore)
   (declare (type list inp) (ignore ignore))
   (multiple-value-bind (modexp preterm)
       (parse-in-context-modexp-with-term inp)
-    (eval-ast (%demod* preterm modexp :red))))
+    (%demod* preterm modexp :red)))
 
 ;;; save-option name
 (defterm save-option (%script)
@@ -168,7 +167,7 @@
   :eval eval-pn-list)
 
 ;;; ("list" arg)
-(defun pignose-eval-list-proc (inp)
+(defun pignose-parse-list-command (inp)
   (declare (type list inp))
   (let ((arg (cadr inp))
 	(ast nil))
@@ -186,25 +185,24 @@
        (t (with-output-chaos-error ('invalid-list-option)
 	    (format t "invalid list option ~a" arg))))
     (setq ast (%pn-list* arg))
-    (eval-ast ast)))
+    ast))
 
 ;;; option reset
 (defterm pn-option (%script)
   :visible (command &optional name)
   :eval eval-pn-option)
 
-(defun pignose-eval-save-option-proc (inp)
+(defun pignose-parse-save-option (inp)
   (declare (type list inp))
   (let ((name (second inp)))
     (declare (type t name))
     (when (equal name ".")
       (with-output-chaos-warning ()
 	(format t "option name `.' is not allowed.")
-	(return-from pignose-eval-save-option-proc nil)))
-    (eval-ast (%pn-option* :save name))
-    ))
+	(return-from pignose-parse-save-option nil)))
+    (%pn-option* :save name)))
   
-(defun pignose-eval-option-proc (inp)
+(defun pignose-parse-option (inp)
   (declare (type list inp))
   (let* ((arg (second inp))
 	 (arg-1 (first arg)))
@@ -214,14 +212,12 @@
 	     (unless name
 	       (with-output-chaos-error ('insuf-arg)
 		 (princ "insufficient arguments to option command")))
-	     (eval-ast (%pn-option* :restore name))))
+	     (%pn-option* :restore name)))
 	  ((or (equal arg-1 ".")
 	       (equal arg-1 "reset"))
-	   (eval-ast (%pn-option* :reset)))
+	   (%pn-option* :reset))
 	  (t (with-output-chaos-error ('inv-arg)
-	       (format t "invalid argument to option command ~{~a~}" arg)))
-	  )
-    ))
+	       (format t "invalid argument to option command ~{~a~}" arg))))))
 
 ;;; flag(name, value)
 ;;;
@@ -229,11 +225,11 @@
   :visible (name value)
   :eval eval-pn-set-flag)
 
-(defun pignose-eval-flag-proc (inp)
+(defun pignose-parse-flag (inp)
   (declare (type list inp))
   (let ((name (third inp))
 	(value (fifth inp)))
-    (eval-ast (%pn-set-flag* name value))))
+    (%pn-set-flag* name value)))
 
 ;;; param(name, value)
 ;;;
@@ -241,10 +237,10 @@
   :visible (name value)
   :eval eval-pn-assign)
 
-(defun pignose-eval-param-proc (inp)
+(defun pignose-parse-param (inp)
   (let ((name (third inp))
 	(value (fifth inp)))
-    (eval-ast (%pn-assign* name value))))
+    (%pn-assign* name value)))
 
 ;;; sigmatch '(' M1 ')' 'to' '(' M2 ')'
 ;;;    0      1  2  3    4    5  6   7
@@ -253,11 +249,7 @@
   :visible (mod1 mod2)
   :eval eval-pn-sigmatch)
 
-(defun pignose-eval-sigmatch-proc (inp)
-  (declare (type list inp))
-  (eval-ast (pignose-process-sigmatch inp)))
-
-(defun pignose-process-sigmatch (inp)
+(defun pignose-parse-sigmatch (inp)
   (declare (type list inp))
   (let ((mod1 (parse-modexp (nth 2 inp)))
 	(mod2 (parse-modexp (nth 6 inp))))
@@ -269,7 +261,7 @@
 	    ops)
   :eval eval-pn-lex)
 
-(defun pignose-eval-lex-proc (inp)
+(defun pignose-parse-lex (inp)
   (declare (type list inp)
 	   (values t))
   (let ((ops nil)
@@ -279,8 +271,7 @@
 	(push elt ops)))
     (pop ops)				; last ")"
     (setq ast (%pn-lex* (nreverse ops)))
-    (eval-ast ast)))
-      
+    ast))
 
 ;;; =============================
 ;;; TOP LEVEL COMMANDS EVALUATORS

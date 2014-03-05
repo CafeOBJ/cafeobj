@@ -60,7 +60,9 @@ open COUNTER(NNAT{sort Data -> Nat}) .
 --> PROOF BY CONTEXT INDUCTION
 --> Base case: length of context is 1
 **> want to perform only transitions:
-set exec normalize off
+** set exec normalize off <- now this is obsolete switch.
+** but this example rely on this setting.
+evq (setq *cexec-normalize* nil)
 
 red read add(m | n,counter) ==> read add(m,counter) .
 --> Induction hypothesis: length of context read(c(z)) is n

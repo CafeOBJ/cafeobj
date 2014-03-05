@@ -12,9 +12,8 @@
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 ;;;=============================================================================
-;;; DESCRIPTION:
-;;; INTERPRETER COMMANDS HANDLERS
-;;;
+;;; Declarations/Commands handlers
+;;;-----------------------------------------------------------------------------
 
 ;;;*****************************************************************************
 ;;; Top-level utility functions
@@ -45,7 +44,11 @@
 (defun get-arg-string ()
   (cdr (system:command-line-arguments)))
 
-#-(or GCL CMU EXCL)
+#+sbcl
+(defun get-arg-string ()
+  (cdr sb-ext:*posix-argv*))
+
+#-(or GCL CMU EXCL sbcl)
 (defun get-arg-string ()
   nil)
 
@@ -60,6 +63,7 @@
         (setq *cafeobj-initial-prelude-file* nil)
         (let* ((args (get-arg-string))
                (argc (length args)))
+	  (declare (type list args))
           (when (< 0 argc)
             (let ((i 0))
               (while (> argc i)
@@ -179,31 +183,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
               (load-prelude+ *cafeobj-secondary-prelude-file* 'process-cafeobj-input)))
           ;; load site init
           (load-prelude "site-init" 'process-cafeobj-input t)
-          #||
-          ;; load users init
-          (let ((home (get-environment-variable "HOME")))
-            (if home
-                (catch *top-level-tag*
-                  (with-chaos-top-error ()
-                    (with-chaos-error ()
-                      (let ((*dribble-ast* t)
-                            (*ast-log* nil))
-                        (chaos-input-file :file ".cafeobj"
-                                          :proc 'process-cafeobj-input
-                                          :load-path home
-                                          :errorp nil)))))
-              (format t "~&** HOME environment variable is not defined,~% or env is not supported on this platform.")))
-          ||#
           )
-        ;; postponed, will done after greeting messages.
-        ;; load files
-        #||
-        (dolist (f *cafeobj-initial-load-files*)
-          (cafeobj-input f))
-        ||#
-        ;; done
         ))))
-
 
 ;;; TOP LEVEL HELP
 ;;;_____________________________________________________________________________
@@ -366,11 +347,6 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 (defun print-cafeobj-prompt ()
   (fresh-all)
   (flush-all)
-  #||
-  (unless (eq *prompt* 'none)
-    (fresh-line)
-    (force-output))
-  ||#
   (cond ((eq *prompt* 'system)
          (if *last-module*
              (if (module-is-inconsistent *last-module*)
@@ -394,8 +370,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
            (if (atom *prompt*)
                (princ *prompt*)
              (print-simple-princ-open *prompt*))
-           (princ " ")))
-        )
+           (princ " "))))
   (flush-all))
 
 ;;; SAVE INTERPRETER IMAGE
@@ -478,129 +453,117 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 
 (defun bye-bye-bye ()
   #+GCL (bye)
+  #+sbcl (sb-ext:exit)
   #+CMU (ext:quit)
   #+EXCL (exit)
   #+CCL (quit)
   #+CLISP (ext::exit))
 
-;;; COMMAND-PROCESSORS
 ;;;
-(defparameter .cafeobj-top-command-menu.
-    `((("mod" "module" "module*" "mod*" "module!" "mod!"
-              "sys:mod" "sys:mod*" "sys:mod!"
-              "sys:module" "sys:module*" "sys:module!"
-              "hwd:module" "hwd:module!" "hwd:module*"
-              "ots" "sys:ots" "hwd:ots")
-       . cafeobj-eval-module-proc)
-      (("view") . cafeobj-eval-view-proc)
-      (("check") . cafeobj-eval-check-proc)
-      (("regularize") . cafeobj-eval-regularize-proc)
-      (("red" "reduce") . cafeobj-eval-reduce-proc)
-      (("exec" "execute")  . cafeobj-eval-exec-proc)
-      (("exec!" "execute!") . cafeobj-eval-exec+-proc)
-      (("bred" "breduce") . cafeobj-eval-bred-proc)
-      (("cbred") . cafeobj-eval-cbred-proc)
-      (("version") . cafeobj-eval-version-proc)
-      (("stop") . cafein-stop-at-proc)
-      (("rwt" "rewrite" ":rwt" ":rewrite") . cafein-rewrite-count-limit-proc)
-      (("parse") . cafeobj-eval-parse-proc)
-      (("test") . cafeobj-eval-test-reduce-proc)
-      (("rl" "red-loop") . cafeobj-eval-reduce-loop-proc)
-      (("language" "lang") . cafeobj-eval-lang-proc)
-      (("match" "unify") . cafeobj-eval-match-proc)
-      (("lisp" "ev") . cafeobj-eval-lisp-proc)
-      (("lispq" "lisp-quiet" "evq" "cafeobj-eval-quiet") . cafeobj-eval-lisp-q-proc)
-      (("eval") . cafeobj-meta-eval-proc)
-      (("make") . cafeobj-eval-make-proc)
-      (("in" "input") . cafeobj-eval-input-proc)
-      (("save") . cafeobj-eval-save-proc)
-      (("restore") . cafeobj-eval-restore-proc)
-      (("save-system") . cafeobj-eval-save-system)
-      (("reset") . cafeobj-eval-reset-proc)
-      (("full" "full-reset" "reset-full") . cafeobj-eval-full-reset-proc)
-      (("clean") . cafeobj-eval-clear-memo-proc)
-      (("prelude") . cafeobj-eval-prelude-proc)
-      (("let") . cafeobj-eval-let-proc)
-      (("call-that") . cafeobj-eval-call-that-proc)
-      (("--" "**") . cafeobj-eval-comment-proc)
-      (("-->" "**>") . cafeobj-eval-dyna-comment-proc)
-      (,*cafeobj-mod-elts* . cafeobj-eval-module-element-proc)
-      (("open") . cafeobj-eval-open-proc)
-      (("close") . cafeobj-eval-close-proc)
-      (("start") . cafeobj-eval-start-proc)
-      (("apply") . cafeobj-eval-apply-proc)
-      (("choose") . cafeobj-eval-choose-proc)
-      (("inspect" "inspect-term") . cafeobj-eval-inspect-term-proc)
-      (("find") . cafeobj-eval-find-proc)
-      (("show" "sh") . cafeobj-eval-show-proc)
-      (("set") . cafeobj-eval-set-proc)
-      (("protect") . cafeobj-eval-protect-proc)
-      (("unprotect") . cafeobj-eval-unprotect-proc)
-      (("select") . cafeobj-eval-show-proc)
-      (("describe" "desc") . cafeobj-eval-show-proc)
-      (("tram") . cafeobj-eval-tram-proc)
-      (("autoload") . cafeobj-eval-autoload-proc)
-      (("provide") . cafeobj-provide-proc)
-      (("require") . cafeobj-require-proc)
-      (("do") . cafeobj-eval-do-proc)
-      (("??" "?") . cafeobj-eval-help-proc)
-      ;; (("what") . cafeobj-eval-what-proc)
-      (("dribble") . cafeobj-eval-dribble-proc)
-      (("pwd") . cafeobj-eval-pwd-proc)
-      (("cd") . cafeobj-eval-cd-proc)
-      (("pushd") . cafeobj-eval-pushd-proc)
-      (("popd") . cafeobj-eval-popd-proc)
-      (("popd*") . cafeobj-eval-popd-proc)
-      (("dirs") . cafeobj-eval-dirs-proc)
-      (("ls") . cafeobj-eval-ls-proc)
-      (("!") . cafeobj-eval-shell-proc)
-      (("") . cafeobj-eval-control-d)
-      (("prompt") . cafeobj-eval-prompt)
-      (("trans-chaos") . cafeobj-2-chaos-proc)
-      (("chaos") . cafeobj-eval-chaos-proc)
-      (("cont" "continue") . cafeobj-eval-continue)
-      ;;
-      (("look") . cafeobj-eval-look-up)
-      ;; (("inspect") . cafeobj-eval-inspect)
-      (("names" "name") . cafeobj-eval-inspect)
-      ;;
-      (("delimiter") . eval-delimiter-proc)
-      (("delim") . eval-show-delimiter)
-      ;; ================================================================
-      ;; PigNose specific commands
-      ;; (("fax" "bfax" "frm" "bfrm" "ax" "bax") . pignose-eval-fax-proc)
-      ;; (("goal" "bgoal") . pignose-eval-goal-proc)
-      (("sos" "passive") . pignose-eval-sos-proc)
-      (("db") . pignose-eval-db-proc)
-      (("clause") . pignose-eval-clause-proc)
-      (("list") . pignose-eval-list-proc)
-      (("flag") . pignose-eval-flag-proc)
-      (("param") . pignose-eval-param-proc)
-      (("option") . pignose-eval-option-proc)
-      (("resolve") . pignose-eval-resolve-proc)
-      (("demod") . pignose-eval-demod-proc)
-      (("save-option") . pignose-eval-save-option-proc)
-      (("sigmatch") . pignose-eval-sigmatch-proc)
-      (("lex") . pignose-eval-lex-proc)
-      ;;
-      ;; 
-      ((".") . cafeobj-nop)))
+;;; DEFCOM
+;;;
+(defvar *cafeobj-commands* (make-hash-table :test #'equal))
 
+(defstruct (command (:print-function print-command))
+  (name "" :type string)		; command name
+  (category nil :type symbol)		; command types
+  (parser nil :type symbol)		; parser function
+  (evaluator nil :type symbol)		; evaluator function
+  (help-string "" :type string))	; command's help string
+
+(defun print-command (me &optional (stream *standard-output*) &rest ignore)
+  (declare (ignore ignore))
+  (format stream "~&** command     : ~a" (command-name me))
+  (format stream "~%   category    : ~a" (command-category me))
+  (format stream "~%   parser      : ~a" (command-parser me))
+  (format stream "~%   evaluator   : ~a" (command-evaluator me))
+  (format stream "~%   description : ~a" (command-help-string me)))
+
+(defun print-command-usage (command &optional (stream *standard-output*))
+  (let ((com (if (command-p command)
+		 command
+	       (and (stringp command)
+		    (gethash command *cafeobj-commands*)))))
+    (unless com
+      (with-output-chaos-error ('no-com)
+	(format t "No such command '~a'" command)))
+    (format stream "~&~a : ~a" (command-name com) (command-help-string com))))
+
+(defmacro defcom ((&rest names) doc-string category parser evaluator)
+    (unless (fboundp parser) (warn "no parser ~s" parser))
+    (unless (fboundp evaluator) (warn "no evaluator ~s" evaluator))
+  `(dolist (name ',names)
+    (setf (gethash name *cafeobj-commands*)
+      (make-command :name name
+		    :category ',category
+		    :parser ',parser
+		    :evaluator ',evaluator
+		    :help-string ,doc-string))))
+;;;
+;;; DEFDECL
+;;;
+(defstruct (decl (:print-function print-decl) (:include command)))
+
+(defmacro defdecl ((&rest names) doc-string category parser evaluator)
+    (unless (fboundp parser) (warn "no parser ~s" parser))
+    (unless (fboundp evaluator) (warn "no evaluator ~s" evaluator))
+  `(dolist (name ',names)
+    (setf (gethash name *cafeobj-declarations*)
+      (make-decl :name name
+		 :category ',category
+		 :parser ',parser
+		 :evaluator ',evaluator
+		 :help-string ,doc-string))))
+
+(defun print-decl (me &optional (stream *standard-output*) &rest ignore)
+  (declare (ignore ignore))
+  (format stream "~&** declaration : ~a" (decl-name me))
+  (format stream "~%   category    : ~a" (decl-category me))
+  (format stream "~%   parser      : ~a" (decl-parser me))
+  (format stream "~%   evaluator   : ~a" (decl-evaluator me))
+  (format stream "~%   description : ~a" (decl-help-string me)))
+
+(defun print-decl-usage (decl &optional (stream *standard-output*))
+  (let ((decl (if (decl-p decl)
+		 decl
+	       (and (stringp decl)
+		    (gethash decl *cafeobj-declarations*)))))
+    (unless decl
+      (with-output-chaos-error ('no-decl)
+	(format t "No such declaration form '~a'" decl)))
+    (format stream "~&~a : ~a" (decl-name decl) (decl-help-string decl))))
+
+;;;
+;;; NOP
+;;;
 (defun cafeobj-nop (&rest ignore)
   ignore)
 
-(defparameter .cafeobj-declarations-menu.
-    `((("mod" "module" "module*" "mod*" "module!" "mod!"
-              "sys:mod" "sys:mod*" "sys:mod!"
-              "sys:module" "sys:module*" "sys:module!"
-              "hwd:module" "hwd:module!" "hwd:module*"
-              "ots" "sys:ots" "hwd:ots")
-       . process-module-declaration-form)
-      (("view") . process-view-declaration-form)
-      (,*cafeobj-mod-elts* . parse-module-element-1)
-      ((".") . cafeobj-nop)))
-
 ;;;
+;;; cafeobj-evaluate-command : Key -> Void
+;;;
+(defun cafeobj-evaluate-command (key inp)
+  (declare (type string key))
+  (let ((com (gethash key *cafeobj-commands*)))
+    (unless com
+      (with-output-chaos-error ('no-commands)
+	(format t "No such command or declaration keyword '~a'." key)))
+    (let ((parser (command-parser com)))
+      (unless parser
+	(with-output-chaos-error ('no-parser)
+	  (format t "No parser is defined for command ~a" key)))
+      (let ((pform (funcall parser inp)))
+	(unless pform
+	  (with-output-chaos-error ('parse-error)
+	    (format t "Invalid argument to command ~a." key)))
+	(if (eq pform :help)
+	    (print-command-usage com)
+	  (let ((evaluator (command-evaluator com)))
+	    (unless evaluator
+	      (with-output-chaos-error ('no-evaluator)
+		(format t "No evaluator is defined for command ~a." key)))
+	    (funcall evaluator pform)))))))
+
 ;;;
 ;;;
 (defun parse-cafeobj-input-from-string (string)
@@ -617,16 +580,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 	(with-chaos-error ('handle-chaos-error)
 	  (setq inp (cafeobj-parse-from-string string))
 	  (block process-input
-	    ;; (format t "~%inp=~s" inp)
-	    ;; PROCESS INPUT =========================================
-	    (let* ((key (car inp))
-		   (proc (find-if #'(lambda (elt)
-				      (member key (car elt) :test #'equal))
-				  .cafeobj-top-command-menu.)))
-	      (if proc
-		  (funcall (cdr proc) inp)
-		(with-output-chaos-warning ()
-		  (format t "unknown declaration form ~a." inp))))))))))
+	    ;; PROCESS INPUT
+	    (cafeobj-evaluate-command (car inp) inp)))))))
 ;;;
 ;;; READING IN DECLARATIONS/COMMANDS and PROCESS THEM.
 ;;;
@@ -663,20 +618,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
                 (return-from top-loop nil))
 
               (block process-input
-                ;; (format t "~%inp=~s" inp)
-                ;; PROCESS INPUT COMMANDS =========================================
-                (let* ((key (car inp))
-                       (proc (find-if #'(lambda (elt)
-                                          (member key (car elt) :test #'equal))
-                                      .cafeobj-top-command-menu.)))
-                  (if proc
-                      (funcall (cdr proc) inp)
-                    (progn
-                      (if *allow-general-term-input*
-                          (try-reduce-term inp)
-                        (with-output-chaos-warning ()
-                          (format t "unknown top level command ~a." inp)))
-                      ))))
+                ;; PROCESS INPUT COMMANDS ==============
+		(cafeobj-evaluate-command (car inp) inp))
               (setq *chaos-print-errors* t)))
           (when .in-in.
             (setq *chaos-print-errors* t)

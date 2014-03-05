@@ -101,7 +101,7 @@
 	  (sups (_superops relation)))
       (pushnew-relation (get-op-relation op order) res)
       (dolist (lops subs)
-o	(pushnew-relation (get-op-relation lops order) res))
+	(pushnew-relation (get-op-relation lops order) res))
       (dolist (gops sups)
 	(pushnew-relation (get-op-relation gops order) res))
       res)))

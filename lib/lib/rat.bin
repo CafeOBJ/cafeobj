@@ -121,7 +121,7 @@
   (push *z-rat* *tram-builtin-modules*)
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (chaos-install-rat)
   (chaos-rat-tram-interface))
 

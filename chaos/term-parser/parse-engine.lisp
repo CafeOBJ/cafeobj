@@ -224,6 +224,23 @@
 	    ;; normal token
 	    (t (setq res (dictionary-get-token-info (dictionary-table dictionary)
 						    token))
+	       ;; check builtin constant
+	       (let (pos)
+		 (dolist (bi (dictionary-builtins dictionary))
+		   (let ((token-pred (bsort-token-predicate bi)))
+		     (when (and token-pred
+				(funcall token-pred token))
+		       (push bi pos))))
+		 (if pos
+		     ;; may be builtin constant.
+		     (if (cdr pos)
+			 (let ((so (module-sort-order
+				    *current-module*))) 
+			   (dolist (bi pos)
+			     (unless (some #'(lambda (x) (sort< x bi so)) pos)
+			       (push (dictionary-make-builtin-constant token bi) res))))
+		       (push (dictionary-make-builtin-constant token (car pos)) res))))
+	       
 	       ;; blocked let variable?
 	       ;;  *TODO*
 	     
@@ -233,8 +250,7 @@
 		   (when val
 		     (if (is-special-let-variable? token)
 			 (push val res)
-		       (push (simple-copy-term-sharing-variables
-			      val dictionary)
+		       (push (simple-copy-term-sharing-variables val dictionary)
 			     res)))))
 	       ;; try other possiblities.
 	       ;; variable ?
@@ -266,7 +282,6 @@
 				   (setq var-name (subseq (the simple-string token)
 							  0
 							  (the fixnum q-pos)))
-				   ;; (setf var-name (intern var-name))
 				   (setf sort (find-sort-in *current-module*
 							    (subseq
 							     (the simple-string token)
@@ -361,62 +376,32 @@
 
 				;; must not be a variable declaration.
 				;; try yet other possibilities.
-				(t (let ((pos nil))
-				     ;; builtin constant tokens?
-				     (dolist (bi (dictionary-builtins dictionary))
-				       (let ((token-pred (bsort-token-predicate bi)))
-					 (when (and token-pred
-						    (funcall token-pred token))
-					   (push bi pos))))
-				     (if pos
-					 ;; may be builtin constant.
-					 (if (cdr pos)
-					     (let ((so (module-sort-order
-							*current-module*))) 
-					       (dolist (bi pos)
-						 (unless (some #'(lambda (x)
-								   (sort< x bi so))
-							       pos)
-						   (push
-						    (dictionary-make-builtin-constant
-						     token bi) 
-						    res))))
-					   (push (dictionary-make-builtin-constant
-						  token 
-						  (car pos))
-						 res))
-
-				       ;; no possibilities of vairable nor builtin
-				       ;; constant.
-				       (let ((ast (gethash token *builtin-ast-dict*)))
-					 (if ast
-					     ;; abstract syntax tree.
-					     (setf res ast))
-					 (unless res
-					   (multiple-value-setq (res mod-token)
-					     (get-qualified-op-pattern token)))
-					 ;;
-					 (when (and (null res)
-						    (memq *identifier-sort*
-							  (module-all-sorts
-							   *current-module*)))
-					   (let ((ident (intern token)))
-					     (unless (member ident '(|.| |,|
-								     |(| |)|
-								     |{| |}|
-								     |[| |]|))
-					       (push (make-bconst-term
-						      *identifier-sort* ident)
-						     res))))))))
-				)))))
-	       ;; #||
+				(t
+				 ;; no possibilities of vairable nor builtin
+				 ;; constant.
+				 (let ((ast (gethash token *builtin-ast-dict*)))
+				   (if ast
+				       ;; abstract syntax tree.
+				       (setf res ast))
+				   (unless res
+				     (multiple-value-setq (res mod-token)
+				       (get-qualified-op-pattern token)))
+				   ;;
+				   (when (and (null res)
+					      (memq *identifier-sort*
+						    (module-all-sorts
+						     *current-module*)))
+				     (let ((ident (intern token)))
+				       (unless (member ident '(|.| |,|
+							       |(| |)|
+							       |{| |}|
+							       |[| |]|))
+					 (push (make-bconst-term *identifier-sort* ident) res)))))))))))
 	       ;; final possibility
 	       (unless res
 		 (multiple-value-setq (res mod-token)
-		   (get-qualified-op-pattern token)))
-	       ;; ||#
-	       )))
-    ;;
+		   (get-qualified-op-pattern token))))))
+    ;; end collect
     (when sort-constraint
       (let ((real-res nil))
 	(dolist (r res)
@@ -449,7 +434,6 @@
       (print-chaos-object sort-constraint)
       (format t "~& : result info = ~s" res)
       (print-chaos-object res))
-    ;; (values (delete-duplicates res :test #'equal) (car mod-token))
     (values res (car mod-token))
     ))
 

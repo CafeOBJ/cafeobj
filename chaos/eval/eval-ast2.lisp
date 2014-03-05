@@ -19,15 +19,6 @@
 
 (declaim (special *interactive*))
 
-;;; ** TO DO for other platforms
-(defvar *top-level-tag*
-    #+KCL si::*quit-tag*
-    #+CMU 'common-lisp::top-level-catcher
-    #+EXCL 'top-level::top-level-break-loop
-    #+(or LUCID :CCL) '(*quit-tag*)
-    #+CLISP 'system::debug
-    )
-
 (defun top-noshow ()
   (or (and (null *chaos-input-source*)
            (<= *chaos-input-level* 0))
@@ -161,6 +152,9 @@
               (when (or (null (term-sort term))
                         (sort<= (term-sort term) *syntax-err-sort* *chaos-sort-order*))
                 (return-from perform-reduction* nil))
+	      (setq term (replace-variables-with-toc
+			  term
+			  "The target term contains variables, system replaces them with 'constants'." ))
               (when *rewrite-stepping* (setq *steps-to-be-done* 1))
               (when *show-stats*
                 (setq time2 (get-internal-run-time))
@@ -1746,5 +1740,156 @@
   (let ((parameters (%chaos-parameters ast)))
     (declare (ignore parameters))       ; for now
     (chaos-top)))
+
+;;;
+(eval-when (:execute :load-toplevel :compile-toplevel)
+  (defmacro with-no-chaos-counter-parts ((name) &body body)
+    ` (block body
+        (when (and *dribble-ast* *dribble-stream*)
+          (format *dribble-stream* "~&;; ** ~s has no chaos couterparts.~%" ,name))
+        (when *eval-ast*
+          ,@body))))
+
+;;; *********
+;;; CONTROL-D
+;;; *********
+;;; specialy handled for interacting with CafeOBJ server.
+
+(defun cafeobj-eval-control-d (&rest ignore)
+  (declare (ignore ignore))
+  (when *eval-ast*
+    (princ eof-char)
+    (force-output)))
+
+;;; ***********
+;;; LISP Escape
+;;; ***********
+
+(defun cafeobj-eval-lisp-proc (ast)
+  (let ((res (eval-ast ast)))
+    (setq $ res)
+    (unless *cafeobj-input-quiet*
+      (let ((*print-case* :upcase))
+        (format t "~&-> ~s" res)))))
+
+(defun cafeobj-eval-lisp-q-proc (ast)
+  (let ((*cafeobj-input-quiet* t))
+    (declare (special *cafeobj-input-quiet*))
+    (cafeobj-eval-lisp-proc ast)))
+
+;;; *****
+;;; INPUT
+;;; *****
+;;; reading in file.
+
+(defvar .in-in. nil)
+(declaim (special .in-in.))
+
+(defun cafeobj-eval-input-proc (file)
+  (!input-file file))
+
+(defun !input-file (file)
+  (when *eval-ast*
+    (unless (or (at-top-level) *cafeobj-input-quiet*)
+      (format t "~&-- reading in file  : ~a~%" (namestring file))))
+  (setq .in-in. t)
+  (with-chaos-top-error ()
+    (with-chaos-error ()
+      (eval-ast
+       (%input* file *chaos-libpath*
+                'process-cafeobj-input '(".bin" ".cafe" ".mod") nil))
+      ))
+  ;; (cafeobj-input file)
+  (when *eval-ast*
+    (unless (or (at-top-level) *cafeobj-input-quiet*)
+      (format t "~&-- done reading in file: ~a~%" (namestring file)))))
+
+;;; ***********
+;;; SAVE-SYSTEM
+;;; ***********
+;;; save current status CafeOBJ interpreter as a executable file.
+
+(defun save-cafeobj (&optional (file "./xbin/cafeobj.exe"))
+  (setq -cafeobj-load-time- (get-time-string))
+  (set-cafeobj-standard-library-path)
+  (eval-ast (%save-chaos* 'cafeobj-top-level file)))
+
+(defun save-cafeobj-no-top (&optional (file "./xbin/cafeobj.exe"))
+  (setq -cafeobj-load-time- (get-time-string))
+  (set-cafeobj-standard-library-path)
+  (eval-ast (%save-chaos* nil file)))
+
+(defun cafeobj-eval-save-system (inp)
+  (let ((file (cadr inp)))
+    (if (equal file ".")
+        (save-cafeobj-no-top)
+      (save-cafeobj-no-top file))))
+
+;;; **********
+;;; CLEAR-MEMO
+;;; **********
+(defun cafeobj-eval-clear-memo-proc (&rest ignore)
+  (declare (ignore ignore))
+  (clear-term-memo-table *term-memo-table*))
+
+;;; *******
+;;; PRELUDE
+;;; *******
+;;; reading in prelude file
+
+;;; defined in cafeobjvar.lisp
+;;; (defvar *cafeobj-standard-prelude-path* nil)
+
+(defun cafeobj-eval-prelude-proc (ast)
+  (setq *cafeobj-standard-prelude-path*
+    (with-chaos-error ()
+      (eval-ast ast))))
+
+(defun cafeobj-eval-prelude-proc+ (inp)
+  (let ((f (cafeobj-probe-file (cadr inp))))
+    (unless f
+      (with-output-chaos-error ()
+        (format t "no such file ~a" (cadr inp))))
+    ;;
+    (setq *cafeobj-standard-prelude-path* f)
+    ;; now not uses AST
+    ;; (eval-ast (%load-prelude* f 'process-cafeobj-input))
+    (load-prelude+ f 'process-cafeobj-input)))
+
+;;; ********
+;;; Comments
+;;; ********
+
+(defun cafeobj-eval-comment-proc (inp)
+  (declare (ignore inp))
+  nil)
+
+;;; WHAT?
+(defun cafeobj-eval-what-proc (inp)
+  (cafeobj-what-is inp))
+
+;;; DELIMITER
+(defun eval-delimiter-proc (pre-args)
+  (declare (type list pre-args)
+	   (values t))
+  (let ((args nil)
+	(op nil)
+	(ast nil))
+    (case-equal (the simple-string (second pre-args))
+		("=" (setq op :set))
+		("+" (setq op :add))
+		("-" (setq op :delete))
+		(t (with-output-chaos-error ('internal)
+		     (format t "delimiter op given ivalid op ~a" (second pre-args)))))
+    (setq pre-args (fourth pre-args))
+    (dolist (a pre-args)
+      (push a args))
+    (setq ast (%delimiter* op (nreverse args)))
+    (eval-ast ast)))
+
+(defun eval-show-delimiter (&rest ignore)
+  (declare (ignore ignore))
+  (lex-show-delimiters *standard-output*))
+
 
 ;;; EOF

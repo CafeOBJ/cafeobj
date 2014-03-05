@@ -88,7 +88,8 @@
    ;; patch by t-seino@jaist.ac.jp (2000/02/09)
    ;; patch by sawada@sra.co.jp
    #+(and CCL (not :openmcl)) 
-   (load (concatenate 'string *chaos-root* ":system")))
+   (load (concatenate 'string *chaos-root* ":system"))
+   #+sbcl (require :asdf))
 
 #+GCL
 (defun make-exec-image (path)

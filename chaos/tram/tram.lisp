@@ -169,8 +169,8 @@
 ;;;
 ;;; body is executed with *standard-output* bound to output stream.
 ;;; 
-(defmacro with-output-to-tram ((ignore) &body body)
-  ` (let ((*standard-output* (cdr *tram-process*)))
+(defmacro with-output-to-tram ((proc) &body body)
+  ` (let ((*standard-output* (cdr ,proc)))
       (prog1
 	  (progn ,@body)
 	(force-output *standard-output*))))

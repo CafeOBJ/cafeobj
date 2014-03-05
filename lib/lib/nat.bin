@@ -139,7 +139,7 @@
   (push *z-nat* *tram-builtin-modules*)
   )
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (chaos-install-nat)
   (chaos-nat-tram-interface))
 

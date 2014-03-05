@@ -122,7 +122,7 @@
   (setq *z-nznat* (get-z-module-or-panic "NZNAT"))
   (pushnew *z-nznat* *tram-builtin-modules*))
 
-(eval-when (eval load)
+(eval-when (:execute :load-toplevel)
   (chaos-install-nznat)
   (chaos-nznat-tram-interface)
   )

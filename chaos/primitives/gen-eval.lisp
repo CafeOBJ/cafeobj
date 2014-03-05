@@ -86,7 +86,7 @@
 		    (return-from eval-ast nil)))
 		 ((listp ast)
 		  (unless (symbolp (car ast))
-		    (format t "~&invalid function application form." ast)
+		    (format t "~&invalid function application form: ~a" ast)
 		    (return-from eval-ast nil))
 		  (unless (fboundp (car ast))
 		    (format t "~&symbol ~s has no function definition." (car ast))

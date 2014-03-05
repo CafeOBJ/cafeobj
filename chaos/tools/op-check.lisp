@@ -638,7 +638,7 @@
 					meth)))
 			      nil
 			      0)
-		  (declare (ignore mul-if-l))
+		  (declare (ignore num-if-l))
 		  (multiple-value-bind (occ-r num-if-r)
 		    (find-occ rhs
 			      #'(lambda (x)

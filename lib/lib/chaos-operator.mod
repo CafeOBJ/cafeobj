@@ -1,9 +1,0 @@
-**
-**
-**
-
-mod! CHAOS:OPERATOR
-{
-
-
-}

@@ -97,7 +97,7 @@ File: creader.lisp
               ((:+ strat strategy |strat:| |strategy:|)
                |(| (:seq-of :int) |)|)
               ((:+ l-assoc r-assoc left-associative right-associative))
-              ((:+ constr constructor))
+              ((:+ constr ctor constructor))
               ((:+ coherent beh-coherent))
               (memo)
               )
@@ -134,8 +134,8 @@ File: creader.lisp
         (:upto (op ops bop bops |[| pred preds bpred bpreds hidden signature sig
                 axioms ax axiom imports dpred
                 |{| |}| |.| -- ** --> **> class record eq rule rl ceq crule crl
-                bq bcq beq bceq brule brl bcrule bcrl trans trns btrans btrns
-                bctrans bctrns fax bfax
+                bq bcq beq bceq brule brl bcrule bcrl trans tr btrans btr
+                bctrans bctr fax bfax
                 var vars parse ev evq lisp lispq let)
          :sorts)
         (:if-present
@@ -472,7 +472,7 @@ File: creader.lisp
          (:seq-of :top-opname))
         ;; (select :modexp :args)
         ((:+ show sh select describe desc) :args)
-        (trans-chaos (:seq-of :top-opname))
+        ;; (trans-chaos (:seq-of :top-opname))
 
         ;; module elements which can appear at top(iff a module is opened.)
 
@@ -509,6 +509,105 @@ File: creader.lisp
         (open :modexp |.|)
         (close)
         (start :term |.|)
+	;; scase (<Term>) on (<Modexp>) as <Name> { <ModuleElements> } : <GoalTerm> .
+	(scase |(| (:seq-of :term) |)| in |(| :modexp |)| as :symbol |{|
+	       (:many-of
+		;; MODULE IMPORTATIONS
+		;; *NOTE*  imports { ... } is not in MANUAL, and does not have
+		;;         translater to Chaos now.
+		((:+ imports import)
+		 |{|
+		 (:many-of
+		  #.ExDeclaration
+		  #.PrDeclaration
+		  #.UsDeclaration
+		  #.IncDeclaration
+		  ((:+ --> **>) :comment)
+		  ((:+ -- **) :comment)
+		  )
+		 |}|)
+		#.ExDeclaration
+		#.PrDeclaration
+		#.UsDeclaration
+		#.IncDeclaration
+		
+		;; SIGNATURE
+		((:+ sig signature) |{|
+				    (:many-of
+				     #.BSortDeclaration
+				     #.BHSortDeclaration
+				     #.HSortDeclaration
+				     #.SortDeclaration
+				     #.OperatorDeclaration
+				     #.BOperatorDeclaration
+				     #.PredicateDeclaration
+				     #.BPredicateDeclaration
+				     #.OperatorAttribute
+				     #.R-C-Declaration
+				     ((:+ --> **>) :comment)
+				     ((:+ -- **) :comment)
+				     )
+				    |}|)
+
+		;; AXIOMS
+		((:+ axiom axioms axs) |{|
+				       (:many-of
+					#.LetDeclaration
+					#.MacroDeclaration
+					#.VarDeclaration
+					#.VarsDeclaration
+					#.EqDeclaration
+					#.CeqDeclaration
+					#.RlDeclaration
+					#.CRlDeclaration
+					#.BeqDeclaration
+					#.BCeqDeclaration
+					#.BRLDeclaration
+					#.BCRLDeclaration
+					#.FoplAXDeclaration
+					#.FoplGoalDeclaration
+					((:+ --> **>) :comment)
+					((:+ -- **) :comment)
+					)
+				       |}|)
+
+		;; Module elements without signature/axioms.
+		#.BSortDeclaration
+		#.BHSortDeclaration
+		#.SortDeclaration
+		#.HSortDeclaration
+		#.BHSortDeclaration
+		#.R-C-Declaration
+		#.OperatorDeclaration
+		#.BOperatorDeclaration
+		#.PredicateDeclaration
+		#.BPredicateDeclaration
+		#.OperatorAttribute
+		#.LetDeclaration
+		#.MacroDeclaration
+		#.VarDeclaration
+		#.VarsDeclaration
+		#.EqDeclaration
+		#.BEqDeclaration
+		#.CeqDeclaration
+		#.BCeqDeclaration
+		#.RlDeclaration
+		#.CRlDeclaration
+		#.BRlDeclaration
+		#.BCRLDeclaration
+		#.FoplAXDeclaration
+		#.FoplGoalDeclaration
+		((:+ --> **>) :comment)
+		((:+ -- **) :comment)
+		
+		;; Misc elements.
+		;; (parse :term |.|)
+		((:+ ev lisp evq lispq) (:call (read)))
+		;; allow sole ".", and do nothing
+		(|.|)
+		)
+	       |}|
+	       |:| (:seq-of :term) |.|)
         ;; trace/untrace
         ((:+ trace untrace) :symbol)
         ;; apply
@@ -588,7 +687,7 @@ File: creader.lisp
         (eof)
         #-CMU (#\^D)
         #+CMU (#\)
-        (prompt (:seq-of :top-opname))
+        ;; (prompt (:seq-of :top-opname))
         ((:+ quit q |:q| |:quit|))
         (cd :args)
         (pushd :args)

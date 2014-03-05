@@ -478,7 +478,7 @@
 
 (defstruct (TRS (:conc-name trs$)
 	        (:print-function print-trs))
-  (module nil :type (or null module))	; the reverse pointer
+  (module nil :type (or null top-object))	; the reverse pointer
   ;; SIGNATURE INFO
   (opinfo-table	(make-hash-table :test #'eq)
 		:type (or null hash-table))

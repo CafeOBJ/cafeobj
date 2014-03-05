@@ -1,0 +1,61 @@
+sys:mod! STRING {
+  protecting (NAT)
+  protecting (CHARACTER)
+  protecting (STRING-VALUE)
+  [ Nat < FindResult ]
+  op notFound : -> FindResult {ctor}
+  op _++_     : String String -> String 
+  op length   : String -> Nat
+  op substr   : String Nat Nat -> String
+  op find     : Character String Nat -> FindResult
+  op rfind    : Character String Nat -> FindResult
+  op string=  : String String -> Bool
+  op string<  : String String -> Bool
+  op string<= : String String -> Bool
+  op string>  : String String -> Bool
+  op string>= : String String -> Bool
+  op schar    : String Nat -> Character
+  op string   : Character -> String
+  op upcase   : String -> String
+  op downcase : String -> String
+  op capitalize : String -> String
+  op substring  : String Nat Nat -> String
+  op substring  : String Nat -> String
+  op rsubstring : String Nat -> String
+  **
+  var S : String
+  var S1 : String
+  var S2 : String
+  var C : Character
+  var N : Nat
+  var FROM : Nat
+  var TO : Nat
+  eq [:BDEMOD]: (S ++ S2) = #! (concatenate (quote string) s s2) .
+  eq [:BDEMOD]: string(C) = #! (string c) .
+  eq [:BDEMOD]: schar(S,N) = #! (schar s n) .
+  eq [:BDEMOD]: upcase(S) = #! (string-upcase s) .
+  eq [:BDEMOD]: downcase(S) = #! (string-downcase s) .
+  eq [:BDEMOD]: capitalize(S) = #! (string-capitalize s) .
+  eq [:BDEMOD]: substring(S,FROM,TO) = #! (subseq s from to) .
+  eq [:BDEMOD]: substring(S,N) = #! (subseq s n) .
+  eq [:BDEMOD]: rsubstring(S,N) = #! (subseq s 0 n) .
+  eq [:BDEMOD]: length(S) = #! (length s) .
+  eq [:BDEMOD]: string=(S1,S2) = #! (string= s1 s2) .
+  eq [:BDEMOD]: string<(S1,S2) = #! (string< s1 s2) .
+  eq [:BDEMOD]: string>(S1,S2) = #! (string> s1 s2) .
+  eq [:BDEMOD]: string<=(S1,S2) = #! (string<= s1 s2) .
+  eq [:BDEMOD]: string>=(S1,S2) = #! (string>= s1 s2) .
+  eq find(C, S, N) = #!! (s-find C S N) .
+  eq rfind(C, S, N) = #!! (s-rfind C S N) .
+}
+
+lispq
+(defun chaos-string-tram-interface ()
+  (setq *z-string* (get-z-module-or-panic "STRING"))
+  (push *z-string* *tram-builtin-modules*)
+  )
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-string-tram-interface))
+
