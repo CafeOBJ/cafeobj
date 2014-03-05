@@ -167,7 +167,7 @@
     (eval-ast-if-need '(%provide "reobject"))
     ))
 
-(eval-when (execute :load-toplevel)
+(eval-when (:execute :load-toplevel)
   (let ((*chaos-quiet* t))
     (chaos-install-record-object))
   )

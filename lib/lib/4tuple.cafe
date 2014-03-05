@@ -1,0 +1,26 @@
+sys:mod! 4TUPLE (C1 :: TRIV, C2 :: TRIV, C3 :: TRIV, C4 :: TRIV)
+{
+  signature {
+    [ 4Tuple ]
+    op << _ ; _ ; _ ; _ >> : Elt.C1 Elt.C2 Elt.C3 Elt.C4 -> 4Tuple { constr prec: 0 }
+    op 1* _ : 4Tuple -> Elt.C1 { demod prec: 15 }
+    op 2* _ : 4Tuple -> Elt.C2 { demod prec: 15 }
+    op 3* _ : 4Tuple -> Elt.C3 { demod prec: 15 }
+    op 4* _ : 4Tuple -> Elt.C4 { demod prec: 15 }
+  }
+  axioms {
+    var e1 : Elt.C1
+    var e2 : Elt.C2
+    var e3 : Elt.C3
+    var e4 : Elt.C4
+    eq [:BDEMOD]: (1* (<< e1 ; e2 ; e3 ; e4 >>)) = e1 .
+    eq [:BDEMOD]: (2* (<< e1 ; e2 ; e3 ; e4 >>)) = e2 .
+    eq [:BDEMOD]: (3* (<< e1 ; e2 ; e3 ; e4 >>)) = e3 .
+    eq [:BDEMOD]: (4* (<< e1 ; e2 ; e3 ; e4 >>)) = e4 .
+  }
+}
+
+provide 4tuple
+provide 4TUPLE
+--
+eof

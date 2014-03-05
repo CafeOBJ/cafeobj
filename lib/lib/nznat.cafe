@@ -1,0 +1,51 @@
+**
+** NZNAT
+**
+
+sys:mod! NZNAT
+     principal-sort NzNat
+{
+  imports {
+    protecting (NZNAT-VALUE)
+    protecting (BOOL)
+  }
+  signature {
+    op _ + _ : NzNat NzNat -> NzNat { assoc comm demod prec: 33 r-assoc }
+    op d : NzNat NzNat -> NzNat { comm demod prec: 0 }
+    op _ * _ : NzNat NzNat -> NzNat { assoc comm idr: 1 demod prec: 31 r-assoc }
+    op _ quot _ : NzNat NzNat -> NzNat { demod prec: 31 l-assoc }
+    pred _ < _ : NzNat NzNat  { demod prec: 51 }
+    pred _ <= _ : NzNat NzNat  { demod prec: 51 }
+    pred _ > _ : NzNat NzNat  { demod prec: 51 }
+    pred _ >= _ : NzNat NzNat  { demod prec: 51 }
+    op s _ : NzNat -> NzNat { demod prec: 15 }
+  }
+  axioms {
+    var NN : NzNat
+    var NM : NzNat
+    eq [:BDEMOD]: (NN + NM) = #! (+ nn nm) .
+    eq [:BDEMOD]: d(NN,NM) = #! (if (= nn nm) 1 (abs (- nn nm))) .
+    eq [:BDEMOD]: (NN * NM) = #! (* nn nm) .
+    eq [:BDEMOD]: (NN quot NM) = #! (if (> nn nm) (truncate nn nm) 1) .
+    eq [:BDEMOD]: (NN < NM) = #! (< nn nm) .
+    eq [:BDEMOD]: (NN <= NM) = #! (<= nn nm) .
+    eq [:BDEMOD]: (NN > NM) = #! (> nn nm) .
+    eq [:BDEMOD]: (NN >= NM) = #! (>= nn nm) .
+    eq [:BDEMOD]: (s NN) = #! (1+ nn) .
+    eq [ident0]: (1 * X-ID:NzNat) = X-ID .
+  }
+}
+
+lispq
+(defun chaos-nznat-tram-interface ()
+  (setq *z-nznat* (get-z-module-or-panic "NZNAT"))
+  (pushnew *z-nznat* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-nznat-tram-interface))
+
+provide nznat
+provide NZNAT
+--
+eof

@@ -1,0 +1,63 @@
+sys:mod! CHARACTER
+      principal-sort Character
+{
+  imports {
+    protecting (BOOL)
+    protecting (NAT)
+    protecting (CHAR-VALUE)
+  }
+  signature {
+    op char-code : Character -> Nat { demod prec: 0 }
+    op code-char : Nat -> Character { demod prec: 0 }
+    op upcase : Character -> Character { demod prec: 0 }
+    op downcase : Character -> Character { demod prec: 0 }
+    pred graphic-char-p : Character  { demod prec: 0 }
+    pred alpha-char-p : Character  { demod prec: 0 }
+    pred upper-case-p : Character  { demod prec: 0 }
+    pred lower-case-p : Character  { demod prec: 0 }
+    pred both-case-p : Character  { demod prec: 0 }
+    pred digit-char-p : Character  { demod prec: 0 }
+    pred alphanumericp : Character  { demod prec: 0 }
+    pred char< : Character Character  { demod prec: 0 }
+    pred char> : Character Character  { demod prec: 0 }
+    pred char<= : Character Character  { demod prec: 0 }
+    pred char>= : Character Character  { demod prec: 0 }
+    pred char= : Character Character  { demod prec: 0 }
+  }
+  axioms {
+    var C : Character
+    var C2 : Character
+    var N : Nat
+    eq [:BDEMOD]: char-code(C) = #! (char-code c) .
+    ceq code-char(N) = #! (code-char n) if (N <= 255) .
+    eq [:BDEMOD]: upcase(C) = #! (char-upcase c) .
+    eq [:BDEMOD]: downcase(C) = #! (char-downcase c) .
+    eq [:BDEMOD]: graphic-char-p(C) = #! (graphic-char-p c) .
+    eq [:BDEMOD]: alpha-char-p(C) = #! (alpha-char-p c) .
+    eq [:BDEMOD]: upper-case-p(C) = #! (upper-case-p c) .
+    eq [:BDEMOD]: lower-case-p(C) = #! (lower-case-p c) .
+    eq [:BDEMOD]: both-case-p(C) = #! (both-case-p c) .
+    eq [:BDEMOD]: digit-char-p(C) = #! (digit-char-p c) .
+    eq [:BDEMOD]: alphanumericp(C) = #! (alphanumericp c) .
+    eq [:BDEMOD]: char=(C,C2) = #! (char= c c2) .
+    eq [:BDEMOD]: char<(C,C2) = #! (char< c c2) .
+    eq [:BDEMOD]: char>(C,C2) = #! (char> c c2) .
+    eq [:BDEMOD]: char<=(C,C2) = #! (char<= c c2) .
+    eq [:BDEMOD]: char>=(C,C2) = #! (char>= c c2) .
+  }
+}
+
+lispq
+(defun chaos-character-tram-interface ()
+  (setq *z-char* (get-z-module-or-panic "CHARACTER"))
+  (push *z-char* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-character-tram-interface))
+
+provide character
+provide CHARACTER
+--
+eof
+

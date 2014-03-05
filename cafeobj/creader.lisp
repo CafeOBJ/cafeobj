@@ -86,7 +86,7 @@ File: creader.lisp
       '((:+ op ops) (:seq-of :opname) |:| :sorts -> :sort
         (:if-present
          |{| (:many-of
-              ((:+ assoc comm idem associative commutative idempotent))
+              ((:+ assoc comm idem associative commutative idempotent demod))
               (|id:| :chaos-item)
               (|identity:| :chaos-item)
               (|idr:| :chaos-item)
@@ -110,7 +110,7 @@ File: creader.lisp
       '((:+ bop bops) (:seq-of :opname) |:| :sorts -> :sort
         (:if-present
          |{| (:many-of
-              ((:+ assoc comm idem associative commutative idempotent))
+              ((:+ assoc comm idem associative commutative idempotent demod))
               (|id:| :chaos-item)
               (|identity:| :chaos-item)
               (|idr:| :chaos-item)
@@ -140,7 +140,7 @@ File: creader.lisp
          :sorts)
         (:if-present
          |{| (:many-of
-              ((:+ assoc comm idem associative commutative idempotent))
+              ((:+ assoc comm idem associative commutative idempotent demod))
               (|id:| :chaos-item)
               (|identity:| :chaos-item)
               (|idr:| :chaos-item)
@@ -170,7 +170,7 @@ File: creader.lisp
          :sorts)
         (:if-present
          |{| (:many-of
-              ((:+ assoc comm idem associative commutative idempotent))
+              ((:+ assoc comm idem associative commutative idempotent demod))
               (|id:| :chaos-item)
               (|identity:| :chaos-item)
               (|idr:| :chaos-item)
@@ -196,7 +196,7 @@ File: creader.lisp
       '((:+ attr attrs) (:seq-of :opname)
         |{|
         (:many-of
-         ((:+ assoc comm idem associative commutative idempotent))
+         ((:+ assoc comm idem associative commutative idempotent demod))
          (|id:| :chaos-item)
          (|identity:| :chaos-item)
          (|idr:| :chaos-item)

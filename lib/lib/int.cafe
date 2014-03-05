@@ -1,0 +1,54 @@
+sys:mod! INT
+      principal-sort Int
+{
+  imports {
+    protecting (NAT)
+    protecting (INT-VALUE)
+  }
+  signature {
+    pred _ divides _ : NzInt Int  { demod prec: 41 }
+    op _ rem _ : Int NzInt -> Int { demod prec: 41 }
+    op _ quo _ : Int NzInt -> Int { demod prec: 41 }
+    op _ + _ : Int Int -> Int { idr: 0 demod prec: 41 }
+    op _ * _ : Int Int -> Int { demod prec: 41 }
+    pred _ < _ : Int Int  { demod prec: 41 }
+    pred _ <= _ : Int Int  { demod prec: 41 }
+    pred _ > _ : Int Int  { demod prec: 41 }
+    pred _ >= _ : Int Int  { demod prec: 41 }
+    op s _ : Int -> Int { strat: (0 1) demod prec: 15 }
+    op _ - _ : Int Int -> Int { strat: (0 1 2) demod prec: 33 r-assoc }
+    op - _ : Int -> Int { demod prec: 15 }
+    op - _ : NzInt -> NzInt { demod prec: 15 }
+  }
+  axioms {
+    var I : Int
+    var J : Int
+    var NJ : NzInt
+    eq [:BDEMOD]: (- I) = #! (- i) .
+    eq [:BDEMOD]: (I + J) = #! (+ i j) .
+    eq [:BDEMOD]: (I - J) = (I + (- J)) .
+    eq [:BDEMOD]: (I * J) = #! (* i j) .
+    eq [:BDEMOD]: (I quo NJ) = #! (truncate i nj) .
+    eq [:BDEMOD]: (I rem NJ) = #! (rem i nj) .
+    eq [:BDEMOD]: (NJ divides I) = #! (= 0 (rem i nj)) .
+    eq [:BDEMOD]: (I < J) = #! (< i j) .
+    eq [:BDEMOD]: (I <= J) = #! (<= i j) .
+    eq [:BDEMOD]: (I > J) = #! (> i j) .
+    eq [:BDEMOD]: (I >= J) = #! (>= i j) .
+    eq [:BDEMOD]: (s I) = (1 + I) .
+  }
+}
+
+lispq
+(defun chaos-int-tram-interface ()
+  (setq *z-int* (get-z-module-or-panic "INT"))
+  (push *z-int* *tram-builtin-modules*)
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-int-tram-interface))
+
+provide int
+provide INT
+--
+eof

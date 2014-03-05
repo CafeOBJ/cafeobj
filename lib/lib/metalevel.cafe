@@ -125,11 +125,11 @@ mod! NAT-LIST {
 }
 
 mod! QID-LIST {
-  protecting (:LIST * {sort NeList -> NeQidList, sort List -> QidList})
+  protecting (:LIST(QID) * {sort NeList -> NeQidList, sort List -> QidList})
 }
 
 mod! QID-SET {
-  protecting (:SET * {sort NeSet -> NeQidSet, sort Set -> QidSet})
+  protecting (:SET(QID) * {sort NeSet -> NeQidSet, sort Set -> QidSet})
 }
 
 **
@@ -200,31 +200,31 @@ mod! META-MODULE {
   op [_<_] : Sort Sort -> SubsortDecl {ctor}
   op none : -> SubsortDeclSet {ctor}
   op __ : SubsortDeclSet SubsortDeclSet -> SubsortDeclSet {ctor assoc comm id: none}
-  eq S:SubsortDecl S:SubsortDecl = S:SubsortDecl 
+  eq S:SubsortDecl S:SubsortDecl = S:SubsortDecl .
 
   ** sort set
   [ EmptySortSet < SortSet < QidSet]
   [ Sort < NeSortSet < SortSet ]
   [ NeSortSet < NeQidSet ]
-  op none : -> EmptyTypeSet {ctor}
+  op none : -> EmptySortSet {ctor}
   op _;_ : SortSet SortSet -> SortSet {ctor assoc comm id: none prec: 43}
   op _;_ : NeSortSet SortSet -> NeSortSet {ctor assoc comm id: none prec: 43}
-  op _;_ : EmptySortSet EmptySortSet -> EmptyTypeSet {ctor assoc comm id: none prec: 43}
+  op _;_ : EmptySortSet EmptySortSet -> EmptySortSet {ctor assoc comm id: none prec: 43}
 
   ** sort lists
-  [ NeTypeList TypeList ]
-  [ Type < NeTypeList < TypeList < QidList ]
-  -- subsorts NeTypeList < NeQidList .
-  op nil : -> TypeList [ctor] .
-  op __ : TypeList TypeList -> TypeList {ctor assoc comm id: none}
-  op __ : NeTypeList TypeList -> NeTypeList {ctor assoc comm id: none}
-  op __ : TypeList NeTypeList -> NeTypeList {ctor assoc comm id: none}
-  eq T:TypeList ; T:TypeList = T:TypeList .
+  [ NeSortList SortList ]
+  [ Sort < NeSortList < SortList < QidList ]
+
+  op nil : -> SortList {ctor}
+  op __ : SortList SortList -> SortList {ctor assoc comm id: nil}
+  op __ : NeSortList SortList -> NeSortList {ctor assoc comm id: nil}
+  op __ : SortList NeSortList -> NeSortList {ctor assoc comm id: nil}
+  eq T:SortList ; T:SortList = T:SortList .
 
   ** sets of sort lists
-  sort TypeListSet .
-  subsort TypeList TypeSet < TypeListSet .
-  op _;_ : TypeListSet TypeListSet -> TypeListSet {ctor assoc comm id: none prec: 43}
+  [ SortList SortSet < SortListSet ]
+  op none : -> SortListSet
+  op _;_ : SortListSet SortListSet -> SortListSet {ctor assoc comm id: none prec: 43}
 
   ** attribute sets
   [ Attr < AttrSet ]
@@ -234,14 +234,13 @@ mod! META-MODULE {
 
   ** renamings
   [ Renaming < RenamingSet ]
-  op sort_->_ : Qid Qid -> Renaming {ctor}
-  op op_->_{_} : Qid Qid AttrSet -> Renaming {ctor}
-  op op_:_->_to_{_} : Qid TypeList Type Qid AttrSet -> Renaming {ctor}
+  op (sort_->_) : Qid Qid -> Renaming {ctor}
+  op (op_->_) : Qid Qid -> Renaming {ctor}
+  op (op_:_->_to_) : Qid SortList Sort Qid -> Renaming {ctor}
   op label_->_ : Qid Qid -> Renaming {ctor}
   op _,_ : RenamingSet RenamingSet -> RenamingSet {ctor assoc comm prec: 43}
 
   ** parameter lists
-  --sort EmptyCommaList NeParameterList ParameterList .
   [ Sort < NeParameterList < ParameterList ]
   [ EmptyCommaList < GroundTermList ParameterList ]
   op empty : -> EmptyCommaList {ctor}
@@ -291,7 +290,7 @@ mod! META-MODULE {
 
   ** operator declarations
   [ OpDecl < OpDeclSet ]
-  op (op_:_->_[_].) : Qid TypeList Type AttrSet -> OpDecl {ctor}
+  op (op_:_->_{_}) : Qid SortList Sort AttrSet -> OpDecl {ctor}
   op none : -> OpDeclSet {ctor}
   op __ : OpDeclSet OpDeclSet -> OpDeclSet {ctor assoc comm id: none}
   eq O:OpDecl O:OpDecl = O:OpDecl .
@@ -308,35 +307,34 @@ mod! META-MODULE {
 
   ** equations
   [ Equation < EquationSet ]
-  op eq[_]:_=_. : AttrSet Term Term -> Equation {ctor}
-  op ceq[_]:_=_if_[_]. : AttrSet Term Term EqCondition -> Equation {ctor}
+  op (eq[_]:_=_.) : AttrSet Term Term -> Equation {ctor}
+  op (ceq[_]:_=_if_.) : AttrSet Term Term EqCondition -> Equation {ctor}
   op none : -> EquationSet {ctor}
   op __ : EquationSet EquationSet -> EquationSet{ctor assoc comm id: none}
   eq E:Equation E:Equation = E:Equation .
 
   ** rules
   [ Rule < RuleSet ]
-  op rl[_]:_=>_. : AttrSet Term Term AttrSet -> Rule {ctor}
-  op crl[_]:_=>_if_. : AttrSet Term Term Condition AttrSet -> Rule {ctor}
+  op (tr[_]:_=>_.) : AttrSet Term Term -> Rule {ctor}
+  op (ctr[_]:_=>_if_.) : AttrSet Term Term Condition -> Rule {ctor}
   op none : -> RuleSet {ctor}
   op __ : RuleSet RuleSet -> RuleSet {ctor assoc comm id: none}
   eq R:Rule R:Rule = R:Rule .
 
   ** modules
-  sorts FModule SModule FTheory STheory Module .
   [ FModule < SModule < Module ]
   [ FTheory < STheory < Module ]
   [ Qid < Header ]
 
-  op _{_}  : Qid ParameterDeclList -> Header {ctor}
+  op _[_]  : Qid ParameterDeclList -> Header {ctor}
   op module!_{_[_]__} : Header ImportList SubsortDeclSet OpDeclSet EquationSet 
     -> FModule {ctor}
-     format (d d s n++i ni d d ni ni ni ni n--i d)] .
+
   op module_{_[_]___} : Header ImportList SubsortDeclSet OpDeclSet EquationSet RuleSet 
     -> SModule {ctor} 
   op [_] : Qid -> Module .
-  eq [Q:Qid] = (th Q:Qid is including Q:Qid .
-                sorts none . none none none none none endth) .
+  ** eq [Q:Qid] = (module* Q:Qid { including(Q:Qid)
+  **              [ none ] none none none none none }) .
 
   ** projection functions
   var Q : Qid .
@@ -347,10 +345,11 @@ mod! META-MODULE {
   var SS : SortSet .
   var SSDS : SubsortDeclSet .
   var OPDS : OpDeclSet .
-  var MAS : MembAxSet .
   var EQS : EquationSet .
   var RLS : RuleSet .
+}
 
+eof
   op getName : Module -> Qid .
   eq getName(fmod Q is IL sorts SS . SSDS OPDS MAS EQS endfm) = Q .
   eq getName(mod Q is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = Q .
@@ -383,7 +382,7 @@ mod! META-MODULE {
   eq getOps(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = OPDS .
   eq getOps(th Q is IL sorts SS . SSDS OPDS MAS EQS RLS endth) = OPDS .
 
-  op getMbs : Module -> MembAxSet .
+  ;; op getMbs : Module -> MembAxSet .
   eq getMbs(fmod H is IL sorts SS . SSDS OPDS MAS EQS endfm) = MAS .
   eq getMbs(mod H is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = MAS .
   eq getMbs(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = MAS .

@@ -1,0 +1,20 @@
+sys:mod! 2TUPLE (C1 :: TRIV, C2 :: TRIV)
+{
+  signature {
+    [ 2Tuple ]
+    op << _ ; _ >> : Elt.C1 Elt.C2 -> 2Tuple { constr prec: 0 }
+    op 1* _ : 2Tuple -> Elt.C1 { demod prec: 15 }
+    op 2* _ : 2Tuple -> Elt.C2 { demod prec: 15 }
+  }
+  axioms {
+    var e1 : Elt.C1
+    var e2 : Elt.C2
+    eq [:BDEMOD]: (1* (<< e1 ; e2 >>)) = e1 .
+    eq [:BDEMOD]: (2* (<< e1 ; e2 >>)) = e2 .
+  }
+}
+
+provide 2tuple
+provide 2TUPLE
+--
+eof

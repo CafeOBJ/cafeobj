@@ -1,0 +1,57 @@
+sys:mod! NAT
+      principal-sort Nat
+{
+  imports {
+    protecting (NZNAT)
+    protecting (NAT-VALUE)
+  }
+  signature {
+    op s _ : Nat -> NzNat { demod prec: 15 }
+    pred _ >= _ : Nat Nat  { demod prec: 41 }
+    pred _ > _ : Nat Nat  { demod prec: 41 }
+    pred _ <= _ : Nat Nat  { demod prec: 41 }
+    pred _ < _ : Nat Nat  { demod prec: 41 }
+    op _ * _ : Nat Nat -> Nat { strat: (2 0 1) demod prec: 41 }
+    op _ + _ : Nat Nat -> Nat { idr: 0 demod prec: 41 }
+    op sd : Nat Nat -> Nat { comm demod prec: 0 }
+    op _ quo _ : Nat NzNat -> Nat { demod prec: 41 }
+    op _ rem _ : Nat NzNat -> Nat { demod prec: 31 l-assoc }
+    pred _ divides _ : NzNat Nat  { demod prec: 51 }
+    op p _ : NzNat -> Nat { demod prec: 15 }
+  }
+  axioms {
+    var M : Nat
+    var N : Nat
+    var NN : NzNat
+    eq [:BDEMOD]: sd(M,N) = #! (abs (- m n)) .
+    eq [:BDEMOD]: (M + N) = #! (+ m n) .
+    eq [:BDEMOD]: (N * 0) = 0 .
+    eq [:BDEMOD]: (M quo NN) = #! (truncate m nn) .
+    eq [:BDEMOD]: (M rem NN) = #! (rem m nn) .
+    eq [:BDEMOD]: (NN divides M) = #! (= 0 (rem m nn)) .
+    eq [:BDEMOD]: (N < 0) = false .
+    eq [:BDEMOD]: (0 < NN) = true .
+    eq [:BDEMOD]: (NN <= 0) = false .
+    eq [:BDEMOD]: (0 <= N) = true .
+    eq [:BDEMOD]: (0 > N) = false .
+    eq [:BDEMOD]: (NN > 0) = true .
+    eq [:BDEMOD]: (0 >= NN) = false .
+    eq [:BDEMOD]: (N >= 0) = true .
+    eq [:BDEMOD]: (s 0) = 1 .
+    eq [:BDEMOD]: (p NN) = #! (- nn 1) .
+ }
+}
+
+lispq
+(defun chaos-nat-tram-interface ()
+  (setq *z-nat* (get-z-module-or-panic "NAT"))
+  (push *z-nat* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-nat-tram-interface))
+
+provide nat
+provide NAT
+--
+eof

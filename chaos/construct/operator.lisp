@@ -110,6 +110,7 @@
      
 ;;; *RESTRICTION*: NOW IDENTITY TERM MUST BE A CONSTANT.
 ;;; *TODO* : 
+#||
 (defun declare-operator-theory (operator theory &optional (module *current-module*))
   (declare (type operator operator)
 	   (type list theory)
@@ -120,20 +121,21 @@
 					       (operator-theory operator)
 					       module)))
     (setf (operator-theory operator) theory) ))
+||#
 
-(defun compute-theory-from-attr-decl (num-args theory-decl old-theory
-					       &optional (module *current-module*))
-  (declare (type fixnum num-args)
+(defun compute-theory-from-attr-decl (arity theory-decl old-theory &optional (module *current-module*))
+  (declare (type list arity)
 	   (type list theory-decl)
 	   (type (or null op-theory) old-theory)
 	   (type module module)
 	   (values op-theory))
   (unless old-theory (setf old-theory *the-empty-theory*))
-  (let ((code (theory-code old-theory))
+  (let ((num-args (length arity))
+	(code (theory-code old-theory))
 	(t-code 0)
 	(is-iden-r nil)
 	(id nil))
-    (declare (type fixnum code)
+    (declare (type fixnum num-args code)
 	     (type (or null fixnum) t-code))
     (dolist (theory-elt theory-decl)
       (cond ((symbolp theory-elt)
@@ -150,8 +152,7 @@
 	     (unless t-code
 	       (with-output-chaos-error ('invalid-op-attribute)
 		 (princ "invalid operator theory ")
-		 (princ theory-elt)
-		 ))
+		 (princ theory-elt)))
 	     (setq code (logior code t-code))
 	     (setq id (if (consp (cadr theory-elt)) (cadr theory-elt)
 			  (cdr theory-elt)))
@@ -163,12 +164,10 @@
     ;; identity
     (when id
       (prepare-for-parsing module)
-      (let ((trm (simple-parse module id)))
+      (let ((trm (simple-parse module id (car (maximal-sorts arity *current-sort-order*)))))
 	(when (term-ill-defined trm)
 	  (with-output-chaos-error ('invalid-op-attribute)
-	    (format t "invalid identity term ~a" id)
-	    ))
-	;;
+	    (format t "invalid identity term ~a" id)))
 	(setq id trm)))
 
     ;; associativity
@@ -260,10 +259,9 @@
 	   (type list attr)
 	   (type hash-table info)
 	   (values t))
-  (let ((theory (compute-theory-from-attr-decl
-		 (length (method-arity method))
-		 attr
-		 (operator-theory (method-operator method info)))))
+  (let ((theory (compute-theory-from-attr-decl (method-arity method)
+					       attr
+					       (operator-theory (method-operator method info)))))
     (set-method-theory method theory info)))
 
 (defun set-method-theory (method theory
@@ -837,6 +835,7 @@
     (unless opinfo (return-from declare-operator-precedence-in-module nil))
     (declare-operator-precedence (opinfo-operator opinfo) prec)))
 
+#||
 (defun declare-operator-theory-in-module (op-name number-of-args
 						  theory
 						  &optional
@@ -850,6 +849,7 @@
   (let ((opinfo (find-operator-or-warn op-name number-of-args module)))
     (unless opinfo (return-from declare-operator-theory-in-module nil))
     (declare-operator-theory (opinfo-operator opinfo)  theory)))
+||#
 
 (defun declare-operator-associativity-in-module (op-name number-of-args
 							 assoc

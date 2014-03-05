@@ -612,19 +612,19 @@
 	      (latefix (dictionary-add-info-on-token mod-dict
 						     (cadr token-seq)
 						     meth)
-		       #||
+		       ;;#||
 		       (dictionary-add-info-on-token mod-dict
 						     (token-seq-to-str token-seq)
 						     meth)
-		       ||#
+		       ;;||#
 		       )
 	      (juxtaposition
-	       #||
+	       ;;#||
 	       (dictionary-add-info-on-token
 		mod-dict
 		(token-seq-to-str token-seq)
 		meth)
-	       ||#
+	       ;;||#
 	       (pushnew meth (module-juxtaposition module) :test #'eq))
 	      (otherwise (break "SNARK: update-parse-information"))))
 	  ))

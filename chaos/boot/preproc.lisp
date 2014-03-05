@@ -152,8 +152,7 @@
 (defun is-qId-token (token)
   (and (stringp token)
        (<= 2 (length token))
-       (eql #\' (char token 0))
-       (alpha-char-p (char token 1))))
+       (eql #\' (char token 0))))
   
 (defun create-qId (token)
   (intern token))
@@ -176,8 +175,7 @@
 (defun is-Sort-token (token)
   (and (stringp token)
        (<= 2 (length token))
-       (eql #\' (char token 0))
-       (alpha-char-p (char token 1))))
+       (eql #\' (char token 0))))
   
 (defun create-Sort-object (token)
   (intern token))
@@ -195,7 +193,6 @@
   (and (stringp token)
        (<= 2 (length token))
        (eql #\' (char token 0))
-       (alpha-char-p (char token 1))
        (position #\. token :start 1)))
   
 (defun create-constant-object (token)
@@ -214,7 +211,6 @@
   (and (stringp token)
        (<= 2 (length token))
        (eql #\' (char token 0))
-       (alpha-char-p (char token 1))
        (position #\: token :start 1)))
   
 (defun create-variable-object (token)

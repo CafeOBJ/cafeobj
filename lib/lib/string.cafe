@@ -1,4 +1,5 @@
-sys:mod! STRING {
+sys:mod! STRING psort String
+{
   protecting (NAT)
   protecting (CHARACTER)
   protecting (STRING-VALUE)
