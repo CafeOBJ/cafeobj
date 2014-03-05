@@ -1,6 +1,7 @@
-%CafeOBJ Interpreter
-%Version 1.4.11
-% 31 October 2013
+CafeOBJ Interpreter
+===============
+*Version 1.4.12*  
+2014/3/5
 
 CafeOBJ is a new generation algebraic specification and programming language. As a direct successor
 of OBJ, it inherits all its features(flexible mix-fix syntax, powerful typing system with sub-types,
@@ -16,22 +17,22 @@ complete source code for CafeOBJ interpreter.
 ----------------------------------------------------------------------
 
 BINARY DISTRIBUTION
-===================
+------------------
 You can down load the binary executable of several platforms 
 from [here](https://bitbucket.org/tswd/cafeobj/downloads).
 
 ----------------------------------------------------------------------
 
 REQUIREMENT for compiling the system from source files
-=======================================================
+------------
 
 CafeOBJ interpreter uses Common Lisp as a underlying implementation
 language, and can be built on one of the following platforms:
 
-(1) Allegro CL version 8.0 or later
-(2) SBCL version 1.1.7 or later (<http://www.sbcl.org/platform-table.html>)
-(3) CMUCL version 20D or later (<http://www.cons.org/cmucl/download.html>)
-(4) CLISP 2.4.9 or later (<http://www.clisp.org>)
+1. Allegro CL version 8.0 or later
+2. SBCL version 1.1.7 or later (<http://www.sbcl.org/platform-table.html>)
+3. CMUCL version 20D or later (<http://www.cons.org/cmucl/download.html>)
+4. CLISP 2.4.9 or later (<http://www.clisp.org>)
 
 All of these Lisp systems are freely available except Allegro CL.
 Franz inc. provides free version, please refer to Franz's [download site](http://www.franz.com/downloads/clp/survey).
@@ -39,7 +40,7 @@ Franz inc. provides free version, please refer to Franz's [download site](http:/
 ----------------------------------------------------------------------
 
 OBTAINING THE SOURCES
-======================
+-----------------
 
 Source files are available from Bitbucket.
 ```bash
@@ -49,7 +50,7 @@ Source files are available from Bitbucket.
 ----------------------------------------------------------------------
 
 INSTALLATION from sources
-==========================
+--------------------
 
 Change to the directory in which the cafeobj resources are put.
 
@@ -74,7 +75,7 @@ YOUR-LISP ::= acl       ; Allegro CL
 ----------------------------------------------------------------------
 
 NO WARRANTY
-============
+-------------
 
 THIS SOFTWARE IS SUPPLIED COMPLETELY "AS IS". CafeOBJ is distributed 
 in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
