@@ -1686,8 +1686,8 @@
 		   ;; 
 		   (setq new-rhs (make-right-assoc-normal-form-with-sort-check
 				  (if (eq mandor :m-and)
-				      *bool-and-also*
-				    *bool-or-else*)
+				      *m-and-op*
+				    *m-or-op*)
 				  rhs-list))
 		   #||
 		   (setq new-axiom (make-rule :lhs (rule-lhs rule)

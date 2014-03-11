@@ -14,8 +14,6 @@
 ;;; *NOTE* PARSING ALGORITHM is BASED ON OBJ3 interpreter of SRI International.
 ;;; Copyright 1988,1991 SRI International.
 
-;;; (defvar *on-parse-debug* nil)
-
 ;;;*********************************
 ;;; PARSE DICTIONARY BASIC ROUTINES
 ;;;*********************************
@@ -134,22 +132,18 @@
 	  (declare (type list res))
 	  (if res
 	      (cdr res)
-	      (progn
-		(push (cons (variable-name term) ;; (variable-copy term)
-			    term)
-		      *parse-variables*)
-		term))))
+	    (progn
+	      (push (cons (variable-name term) ;; (variable-copy term)
+			  term)
+		    *parse-variables*)
+	      term))))
       (if (term-is-application-form? term)
 	  (@create-application-form-term (term-head term)
 					 (term-sort term)
 					 (mapcar #'(lambda (x)
-						     (simple-copy-term-sharing-variables
-						      x
-						      dict))
+						     (simple-copy-term-sharing-variables x dict))
 						 (term-subterms term)))
-	  (simple-copy-term term)
-	  )))
-
+	  (simple-copy-term term))))
 
 (defun get-qualified-op-pattern (tok &optional (module (or *current-module*
 							   *last-module*)))
@@ -162,7 +156,6 @@
 			       (destruct-op-name
 				(subseq expr (1+ pos)))))
 		   expr)))
-	   ;;
 	   (parse-opref (expr)
 	     (declare (type string expr))
 	     (let ((val (destruct-op-name expr)))
@@ -173,33 +166,26 @@
 		 (let ((pos (position #\. name)))
 		   (if (and pos (< 0 pos) (< (1+ pos) (length name)))
 		       ;; "foo.qualifier"
-		       (values (cons (subseq name 0 pos)
-				     (cdr val))
+		       (values (cons (subseq name 0 pos) (cdr val))
 			       (subseq name (1+ pos)))
 		       (return-from get-qualified-op-pattern nil))))))
 	   (find-qual-operators-2 (name module context)
-	     (let ((modval (find-module-in-env-ext
-			    (canonicalize-simple-module-name module)
-			    context
-			    :no-error)))
+	     (let ((modval (find-module-in-env-ext (canonicalize-simple-module-name module)
+						   context
+						   :no-error)))
 	       (if (module-p modval)
 		   (find-operators-in-module-no-number name modval nil t)
 		   (with-output-chaos-error ('invalid-context)
-		     (format t "module ~a is not available in the current context." module)))
-	       ))
-	   )
-    ;;
+		     (format t "module ~a is not available in the current context." module))))))
     (let ((info nil)
 	  (res nil))
       (multiple-value-bind (name qual)
 	  (parse-opref tok)
-	(setq info (find-qual-operators-2 name
-					  qual
-					  module))
+	(setq info (find-qual-operators-2 name qual module))
 	(dolist (i info)
 	  (if (cdr (opinfo-methods i))
 	      (push (cadr (opinfo-methods i)) res)
-	      (push (car (opinfo-methods i)) res)))
+	    (push (car (opinfo-methods i)) res)))
 	(values res name)))))
 
 (defun parser-is-more-general-one (obj lst)
@@ -340,13 +326,9 @@
 				       (progn
 					 ;; check name, if it start with `, we make
 					 ;; pseudo variable
-					 (if (eql #\` (char (the simple-string
-							      (string var-name))
-							    0))
-					     (setf var (make-pvariable-term sort
-									    var-name))
-					   (setf var (make-variable-term sort
-									 var-name)))
+					 (if (eql #\` (char (the simple-string (string var-name)) 0))
+					     (setf var (make-pvariable-term sort var-name))
+					   (setf var (make-variable-term sort var-name)))
 					 (push (cons var-name var) *parse-variables*)))
 				     (if old-var
 					 (progn
@@ -365,7 +347,6 @@
 					 (when svar
 					   (with-output-chaos-error ()
 					     (format t "Static variable ~s already used before in the same context" var-name)))
-
 					 (push var res)
 					 #||
 					 (when (err-sort-p (variable-sort var))
@@ -406,36 +387,31 @@
       (let ((real-res nil))
 	(dolist (r res)
 	  (cond ((term? r)
-		 (when (parser-in-same-connected-component
-			(term-sort r)
-			sort-constraint
-			*current-sort-order*)
+		 (when (parser-in-same-connected-component (term-sort r)
+							   sort-constraint
+							   *current-sort-order*)
 		   (push r real-res)))
 		((method-p r)
-		 (when (parser-in-same-connected-component
-			(method-coarity r) sort-constraint
-			*current-sort-order*)
+		 (when (parser-in-same-connected-component (method-coarity r)
+							   sort-constraint
+							   *current-sort-order*)
 		   (push r real-res)))
 		(t (push r real-res))))
 	(when real-res
 	  (setq res real-res))))
-    ;;
     (let ((result nil))
       (loop 
 	(unless res (return))
 	(let ((p (pop res)))
 	  (unless (parser-is-more-general-one p res)
-	    (push p result)))
-	)
+	    (push p result))))
       (setq res (nreverse result)))
-    ;;
     (when *on-parse-debug*
       (format t "~& : sort constraint = ")
       (print-chaos-object sort-constraint)
       (format t "~& : result info = ~s" res)
       (print-chaos-object res))
-    (values res (car mod-token))
-    ))
+    (values res (car mod-token))))
 
 (defun dictionary-delete-vars (lst)
   (declare (type list lst))
@@ -481,10 +457,10 @@
 	 (if (term-is-variable? e)
 	     'variable
 	     (if (term-is-builtin-constant? e)
-	      'builtin
-	      (if (term-is-lisp-form? e)
-		  'lisp-form
-		  'normal-term))))
+		 'builtin
+	       (if (term-is-lisp-form? e)
+		   'lisp-form
+		 'normal-term))))
 	((operator-method-p e)
 	 (operator-syntactic-type (method-operator e)))
 	(t 'ast)))
@@ -656,9 +632,7 @@
       (print-chaos-object terletox-sublist-prime))
     ;;
     (nconc terletox-sublist-prime
-	   (parser-continue terletox0 module level-constraint sort-constraint)
-	   )
-    ))
+	   (parser-continue terletox0 module level-constraint sort-constraint))))
 
 ;;;  PARSER-CONTINUE :
 ;;;       ( ( ChaosTerm . PrecedenceLevel ) . TokenList )
@@ -823,10 +797,10 @@
 							    module)))
     (if (null first-result-list)
 	nil				;return an empty solution
-	(parser-continuing first-result-list
-			   module
-			   level-constraint
-			   sort-constraint))))
+      (parser-continuing first-result-list
+			 module
+			 level-constraint
+			 sort-constraint))))
 
 ;;;  op parser-finish-term-for-operator :
 ;;;       TokenList
@@ -869,13 +843,12 @@
 	 (arg-acc-list-prime		;possibly nil
 	  (parser-collect-arguments arg-acc-list
 				    module
-				    rest-form
-				    )))
+				    rest-form)))
     (if (null arg-acc-list-prime)
 	;; illegal
 	;; (parser-make-terms late-juxt-operator arg-acc-list module)
 	nil
-	(parser-make-terms late-juxt-operator arg-acc-list-prime module))))
+      (parser-make-terms late-juxt-operator arg-acc-list-prime module))))
 
 ;;;  op parser-get-term : 
 ;;;       TokenList  -- not empty !
@@ -904,8 +877,7 @@
 	   (if (null token-list-prime)
 	       nil			;return an empty set of solutions
 	       (parser-get-rest-of-parenthesized-expr token-list-prime
-						      module
-						      )))
+						      module)))
 	  (;; (member token1 '( ")" "," ) :test #'equal)
 	   (equal token1 ")")
 	   ;;* Unacceptable reserved tokens
@@ -916,8 +888,7 @@
 					 token-list-prime
 					 module
 					 level-constraint
-					 sort-constraint
-					 )))))
+					 sort-constraint)))))
 
 ;;;  op parser-get-rest-of-parenthesized-expr :
 ;;;       TokenList  -- not empty !
@@ -966,12 +937,9 @@
 			   (and (eql #\: fst)
 				(not (equal (cadr token-list) ":is"))
 				(dolist (in info t)
-				  (when (member (object-syntactic-type
-						 in)
-						'(antefix juxtaposition
-						  latefix))
-				    (return nil))))
-			   ))
+				  (when (member (object-syntactic-type in)
+						'(antefix juxtaposition latefix))
+				    (return nil))))))
 		    ;; !! might modify this last condition a bit
 		    (multiple-value-bind (terms toks)
 			(parser-scan-qualification chaos-terms
@@ -998,8 +966,7 @@
   (let ((tokens (if (equal (car token-list) ":")
 		    (cdr token-list)
 		  (cons (subseq (the simple-string (car token-list)) 1)
-			(cdr token-list)))
-		)
+			(cdr token-list))))
 	(res nil)
 	qualifier
 	rest)
@@ -1135,8 +1102,7 @@
 		      (setq terletox-list-prime ; accumulate
 			    (nconc res terletox-list-prime))
 		      (return-from get-term-for-regular-token
-			(nconc res terletox-list-prime))))))
-	    )))))
+			(nconc res terletox-list-prime)))))))))))
 
 ;;;  op get-term-for-op-var :
 ;;;       Operator(Mehotd) + Variable
@@ -1146,7 +1112,6 @@
 ;;;       ->
 ;;;       LIST[ ( ( ChaosTerm . PrecedenceLevel ) . TokenList ) ] .
 ;;;         -- possibly empty
-
 (defun get-term-for-op-var (op-var token-list module level-constraint
 				   &optional sort-constraint)
   (declare (type t op-var)
@@ -1170,21 +1135,19 @@
     ;; 2. Antefix
     (antefix
      ;; is precedence of antefix operator acceptable ?
-     (unless (<= (the fixnum
-		   (get-method-precedence op-var))
+     (unless (<= (the fixnum (get-method-precedence op-var))
 		 level-constraint)
        (return-from get-term-for-op-var nil))
      (let ((res (get-term-from-antefix-operator op-var token-list module)))
-       res)
-     )
+       res))
+
     ;; 3. Ast
     (ast
      (get-term-from-ast-operator op-var token-list module))
     
     ;; 4. token does not belong to sub-formula.
-    ;; 
-    (otherwise nil)  ;return a void solution
-    ))
+    ;; return a void solution
+    (otherwise nil)))
 
 ;;;  op get-term-from-antefix-operator :
 ;;;       Operator  -- must be antefix !
@@ -1203,8 +1166,7 @@
 	 (arg-acc-list (list (cons nil token-list))) ;initialization
 	 (arg-acc-list-prime (parser-collect-arguments arg-acc-list
 						       module
-						       rest-form
-						       )))
+						       rest-form)))
     (if (null arg-acc-list-prime)
 	;; return a void answer
 	;; (parser-make-terms method arg-acc-list module)
@@ -1295,8 +1257,7 @@
 				     op-var
 				     module
 				     level-constraint)
-		   late-juxt-op-list-prime)
-	    ))))
+		   late-juxt-op-list-prime)))))
 
 ;;;  op choose-operators :
 ;;;       ( ChaosTerm . PrecedenceLevel )
@@ -1364,8 +1325,7 @@
 			     (get-method-precedence juxt-op))
 			   level-constraint)
 		       (parser-check-operator term-level0 juxt-op module))
-	      (setq res (cons juxt-op res)))
-	    )))))
+	      (setq res (cons juxt-op res))))))))
 
 ;;;  op choose-latefix-operators :
 ;;;       ( ChaosTerm . PrecedenceLevel )
@@ -1380,8 +1340,7 @@
 ;;;    - able to accept term-level0 as a first argument
 ;;;      (check sort and precedence)
 
-(defun choose-latefix-operators (term-level0 latefix-operator module
-					     level-constraint)
+(defun choose-latefix-operators (term-level0 latefix-operator module level-constraint)
   (declare (type t term-level0)
 	   (type method latefix-operator)
 	   (type module module)
@@ -1392,8 +1351,8 @@
 				  latefix-operator
 				  module))
       (list latefix-operator)
-      nil				;return a void answer
-      ))
+    ;; return a void answer
+    nil))
 
 ;;;  op parser-check-operator :
 ;;;       ( ChaosTerm . PrecedenceLevel )
@@ -1415,8 +1374,7 @@
 	 (first-arg-constraints (car form))
 	 (first-arg-level-constraint (or (cadr first-arg-constraints) 0))
 	 (first-arg-sort-constraint (car (method-arity late-juxt-op)))
-	 (sort-order (module-sort-order module))
-	 )
+	 (sort-order (module-sort-order module)))
     (declare (type fixnum level0 first-arg-level-constraint))
     (and (<= level0 first-arg-level-constraint)
 	 (parser-in-same-connected-component sort0
@@ -1465,9 +1423,7 @@
 			(parser-collect-one-argument arg-acc-list-prime
 						     module
 						     (cadr form-item)
-						     (cddr form-item)))
-		  )
-
+						     (cddr form-item))))
 	;; 3. collect varargs. --- to be done.
 	((argument* argument+)
 	 (let ((limit 256))		; for avoiding infinite loop
@@ -1493,15 +1449,13 @@
 			(parser-collect-one-argument arg-acc-list-prime
 						     module
 						     (cadr form-item)
-						     (cddr form-item))))))))
-	)
-      ;;
+						     (cddr form-item)))))))))
       (if (null arg-acc-list-prime)
 	  (return nil)
 	  ;; to avoid unnecessary additional loops, and to avoid calling
 	  ;;  either parser-scan-token or
 	  ;;  parser-collect-one-argument with void arguments.
-	  ))
+	))
     ;; a bit optimization
     #||
     (let ((res nil))
@@ -1761,8 +1715,7 @@
 		    (eq ,sort *cosmos-sort*)
 		    (eq (sort-type ,sort) '%err-sort))))
     (flet ((make-form (sort method arg-list)
-	     (make-applform sort method arg-list)
-	     ))
+	     (make-applform sort method arg-list)))
       (let ((result nil))
 	(if *fill-rc-attribute*
 	    (let ((attrpos nil)
@@ -1830,8 +1783,7 @@
 	;; special treatment of generic operators
 	(when (eq (term-head result) *bool-if*)
 	  (set-if-then-else-sort result))
-	result
-	))))
+	result))))
 
 (defun replace-class-id-with-var (cr-sort arg-list)
   (declare (type sort* cr-sort)
@@ -1972,8 +1924,7 @@
 	       ;; other binary universal operators
 	       (parser-in-same-connected-component (first sort-list)
 						   (second sort-list)
-						   so))
-	      )
+						   so)))
 	t)))
 
 ;;;  op are-well-defined-terms :
@@ -1987,8 +1938,8 @@
   (let ((result t))
     (dolist (chaos-term chaos-term-list result)
       (if (term-ill-defined chaos-term)
-	  (return nil)			;abort looping and return false
-	  ))))
+	  ;; abort looping and return false
+	  (return nil)))))
 
 
 ;;; EOF

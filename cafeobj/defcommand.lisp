@@ -22,7 +22,7 @@
 ;;; commands which can apper at top-level --------------------------------------
 ;;;  
 
-(defcom ("mod" "module" "module*" "mod*" "module!" "mod!" "sys:mod!")
+(defcom ("mod" "module" "module*" "mod*" "module!" "mod!" "sys:mod!" "sys:module!" "sys:mod*" "sys:module*")
   "declares module.~%module <Name> [<Parameters>] [<PrincipalSort>] { <ModuleBody> }."
   :toplevel-declaration
   process-module-declaration-form

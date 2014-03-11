@@ -380,7 +380,7 @@
         (return-from process-operator-declaration-form nil)))
     (when (equal '("_") pat)
       (with-output-chaos-warning ()
-        (princ "operator pattern is just _, declaration ignored.")
+        (format t "operator pattern is just _, declaration ignored. ~s" e)
         (return-from process-operator-declaration-form nil)))
     (let ((arity (mapcar #'(lambda (x)
                              (process-sort-reference-form x))

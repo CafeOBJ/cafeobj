@@ -183,6 +183,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
       ("debug" ("exec") parity *cexec-debug* "" nil nil t)
       ("debug" ("meta") parity *debug-meta* "" nil nil t)
       ;;
+      ("m-and-also" () general nil "" set-m-and-also nil t)
       ))
 
 (defun set-chaos-switch (which value)
@@ -404,6 +405,15 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
     (when (consp path)
       (setq path (car path)))
     (setq *user-bool* path)))
+
+;;;
+(defun set-m-and-also (value)
+  (cond ((string= (car value) "on")
+	 (setq *m-and-op* *bool-and-also*)
+	 (setq *m-or-op* *bool-or-else*))
+	(t
+	 (setq *m-and-op* *bool-and*)
+	 (setq *m-or-op* *bool-or-else*))))
 
 ;;; EOF
 

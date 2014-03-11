@@ -459,6 +459,8 @@
 (defvar *bool-or-else* 'void)
 (defvar *bool-iff* 'void)
 (defvar *eql-op* 'void)
+(defvar *m-and-op* nil)
+(defvar *m-or-op* nil)
 
 ;;; RWL
 ;;;-----------------------------------------------------------------------------

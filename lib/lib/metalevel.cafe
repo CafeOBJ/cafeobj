@@ -1,7 +1,7 @@
 **
 ** CafeOBJ MetaLevel Core
 **
-mod! :SET(X :: TRIV) {
+sys:mod! :SET(X :: TRIV) {
   protecting (BOOL)
   protecting (NAT)
   [ Elt.X < NeSet < Set ]
@@ -69,7 +69,7 @@ mod! :SET(X :: TRIV) {
   eq S psubset S' = S =/= S' and-also S subset S' .
 }
 
-mod! :LIST(X :: TRIV) {
+sys:mod! :LIST(X :: TRIV) {
   protecting (NAT)
   [ Elt.X < NeList < List ]
 
@@ -120,17 +120,11 @@ mod! :LIST(X :: TRIV) {
   eq $size(E L, C) = $size(L, C + 1) .
 }
 
-mod! NAT-LIST {
-  protecting (:LIST(NAT) * {sort NeList -> NeNatList, sort List -> NatList}) 
-}
+sys:mod! NAT-LIST {protecting (:LIST(NAT) * {sort NeList -> NeNatList, sort List -> NatList})}
 
-mod! QID-LIST {
-  protecting (:LIST(QID) * {sort NeList -> NeQidList, sort List -> QidList})
-}
+sys:mod! QID-LIST {protecting (:LIST(QID) * {sort NeList -> NeQidList, sort List -> QidList})}
 
-mod! QID-SET {
-  protecting (:SET(QID) * {sort NeSet -> NeQidSet, sort Set -> QidSet})
-}
+sys:mod! QID-SET {protecting (:SET(QID) * {sort NeSet -> NeQidSet, sort Set -> QidSet})}
 
 **
 ** META-TERM
@@ -253,7 +247,7 @@ mod! META-MODULE {
   [ Qid < ModuleExpression ]
   op _+_ : ModuleExpression ModuleExpression -> ModuleExpression {ctor assoc comm}
   op _*{_} : ModuleExpression RenamingSet -> ModuleExpression {ctor prec: 39}
-  op _(_) : ModuleExpression ParameterList -> ModuleExpression {ctor prec: 37}
+  op _[_] : ModuleExpression ParameterList -> ModuleExpression {ctor prec: 37}
 
   ** parameter declarations
   [ ParameterDecl < NeParameterDeclList < ParameterDeclList ]
@@ -297,13 +291,13 @@ mod! META-MODULE {
 
   ** conditions
   [ EqCondition < Condition ]
-  op nil : -> EqCondition {ctor}
-  op _=_ : Term Term -> EqCondition {ctor prec: 71}
-  op _:_ : Term Sort -> EqCondition {ctor prec: 71}
-  op _:=_ : Term Term -> EqCondition {ctor prec: 71}
-  op _=>_ : Term Term -> Condition {ctor prec: 71}
-  op _/\_ : EqCondition EqCondition -> EqCondition {ctor assoc id: nil prec: 73}
-  op _/\_ : Condition Condition -> Condition {ctor assoc id: nil prec: 73}
+  op nil   : -> EqCondition {ctor}
+  op _=_   : Term Term -> EqCondition {ctor prec: 71}
+  op (_:_) : Term Sort -> EqCondition {ctor prec: 71}
+  op (_:=_): Term Term -> EqCondition {ctor prec: 71}
+  op _=>_  : Term Term -> Condition {ctor prec: 71}
+  op _/\_  : EqCondition EqCondition -> EqCondition {ctor assoc id: nil prec: 73}
+  op _/\_  : Condition Condition -> Condition {ctor assoc id: nil prec: 73}
 
   ** equations
   [ Equation < EquationSet ]
@@ -322,17 +316,17 @@ mod! META-MODULE {
   eq R:Rule R:Rule = R:Rule .
 
   ** modules
-  [ FModule < SModule < Module ]
-  [ FTheory < STheory < Module ]
+  [ FModule Theory LModule < Module ]
   [ Qid < Header ]
 
   op _[_]  : Qid ParameterDeclList -> Header {ctor}
-  op module!_{_[_]__} : Header ImportList SubsortDeclSet OpDeclSet EquationSet 
+  op module!_{_[_]____} : Header ImportList SortSet SubsortDeclSet OpDeclSet EquationSet RuleSet
     -> FModule {ctor}
-
-  op module_{_[_]___} : Header ImportList SubsortDeclSet OpDeclSet EquationSet RuleSet 
-    -> SModule {ctor} 
-  op [_] : Qid -> Module .
+  op module_{_[_]____} : Header ImportList SortSet SubsortDeclSet OpDeclSet EquationSet RuleSet 
+    -> LModule {ctor} 
+  op module*_{_[_]____} : Header ImportList SortSet SubsortDeclSet OpDeclSet EquationSet RuleSet 
+    -> Theory {ctor} 
+  ** op [_] : Qid -> Module .
   ** eq [Q:Qid] = (module* Q:Qid { including(Q:Qid)
   **              [ none ] none none none none none }) .
 
@@ -351,8 +345,8 @@ mod! META-MODULE {
 
 eof
   op getName : Module -> Qid .
-  eq getName(fmod Q is IL sorts SS . SSDS OPDS MAS EQS endfm) = Q .
-  eq getName(mod Q is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = Q .
+  eq getName(mod! Q {IL sorts SS . SSDS OPDS MAS EQS }) = Q .
+  eq getName(mod! Q {IL sorts SS . SSDS OPDS MAS EQS RLS }) = Q .
   eq getName(fmod Q{PDL} is IL sorts SS . SSDS OPDS MAS EQS endfm) = Q .
   eq getName(mod Q{PDL} is IL sorts SS . SSDS OPDS MAS EQS RLS endm) = Q .
   eq getName(fth Q is IL sorts SS . SSDS OPDS MAS EQS endfth) = Q .
