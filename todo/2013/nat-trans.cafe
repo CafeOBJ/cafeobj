@@ -4,7 +4,7 @@ open NAT .
 ops n1 n2 : -> Nat .
 trans n1 => n1 .
 trans n1 => n2 .
-eof
+-- eof
 -- (1)
 red n1 =(*,1)=>* NNN:Nat .
 -- (2)

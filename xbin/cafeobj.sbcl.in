@@ -1,2 +1,2 @@
 #!/bin/sh
-exec CAFEOBJPATH -- -prefix CAFEROOT $*
+exec CAFEOBJPATH -prefix CAFEROOT $*
