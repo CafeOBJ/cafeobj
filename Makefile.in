@@ -209,7 +209,9 @@ install-lib:
 	done
 	@cd $(top_srcdir)/lib/lib ; \
 	for f in *.mod *.bin *.cafe *.msg *.desc; do \
-	  $(INSTALL_DATA) $$f $(DESTDIR)$(xlibdir)/$$f ; \
+	  if [ -f $$f ] ; then \
+	    $(INSTALL_DATA) $$f $(DESTDIR)$(xlibdir) ; \
+	  fi ; \
 	done
 #	@cd $(top_srcdir)/lib/prelude ; \
 
