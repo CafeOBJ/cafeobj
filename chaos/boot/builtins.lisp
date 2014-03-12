@@ -174,10 +174,10 @@
                       ((%psort-decl (%sort-ref "Bool" nil))
                        (%sort-decl (%sort-ref "Bool" nil) nil)
                        (%op-decl ("false") nil (%sort-ref "Bool" nil)
-                        (%opattrs nil nil nil nil nil t nil)
+                        (%opattrs nil nil nil nil nil t nil nil)
                         nil)
                        (%op-decl ("true") nil (%sort-ref "Bool" nil)
-                        (%opattrs nil nil nil nil nil t nil)
+                        (%opattrs nil nil nil nil nil t nil nil)
                         nil))))
   (setup-truth-value)
   ;;
@@ -186,7 +186,7 @@
                        (%bsort-decl "NzNat" is-nznat-token
                         create-nznat prin1 is-nznat nil))))
   (eval-ast-if-need '(%module-decl "NAT-VALUE" :object :hard
-                      ((%import :protecting "NZNAT-VALUE" nil)
+                      ((%import :protecting "NZNAT-VALUE" nil nil)
                        (%psort-decl (%sort-ref "Nat" nil))
                        (%bsort-decl "Nat" is-nat-token create-nat
                         prin1 is-nat nil)
@@ -199,7 +199,7 @@
                         (nil (%sort-ref "Zero" nil) :<
                          (%sort-ref "Nat" nil))))))
   (eval-ast-if-need '(%module-decl "INT-VALUE" :object :hard
-                      ((%import :protecting "NAT-VALUE" nil)
+                      ((%import :protecting "NAT-VALUE" nil nil)
                        (%psort-decl (%sort-ref "Int" nil))
                        (%bsort-decl "Int" is-int-token create-int
                         prin1 is-int nil)
@@ -213,7 +213,7 @@
                          (%sort-ref "NzInt" nil) :<
                          (%sort-ref "Int" nil))))))
   (eval-ast-if-need '(%module-decl "RAT-VALUE" :object :hard
-                      ((%import :protecting "INT-VALUE" nil)
+                      ((%import :protecting "INT-VALUE" nil nil)
                        (%psort-decl (%sort-ref "Rat" nil))
                        (%bsort-decl "Rat" is-rat-token create-rat
                         rat-print rationalp nil)

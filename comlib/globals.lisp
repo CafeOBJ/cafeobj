@@ -645,11 +645,15 @@
 (defvar *debug-meta* nil)
 ;;;
 ;;; ** TO DO for other platforms
+#+SBCL
+(proclaim '(SB-EXT:DISABLE-PACKAGE-LOCKS 'SB-INT:TOPLEVEL-CATCHER))
+
 (defvar *top-level-tag*
     #+KCL si::*quit-tag*
     #+CMU 'common-lisp::top-level-catcher
     #+EXCL 'top-level::top-level-break-loop
     #+(or LUCID :CCL) '(*quit-tag*)
     #+CLISP 'system::debug
-    )
+    #+SBCL 'SB-INT:TOPLEVEL-CATCHER)
+
 ;;; EOF

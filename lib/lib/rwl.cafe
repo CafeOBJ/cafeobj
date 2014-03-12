@@ -327,7 +327,7 @@ set sys universal-sort off
 lispq
 (setq *include-bool* *include-bool-save*)
 **
-provide RWL
+protect RWL
 provide rwl
 **
 eof

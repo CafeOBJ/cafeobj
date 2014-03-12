@@ -60,3 +60,6 @@ lispq
 (eval-when (:execute :load-toplevel)
   (chaos-string-tram-interface))
 
+protect STRING
+provide string
+** EOF

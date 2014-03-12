@@ -56,8 +56,8 @@ lispq
 (eval-when (:execute :load-toplevel)
   (chaos-character-tram-interface))
 
+protect CHARACTER
 provide character
-provide CHARACTER
 --
 eof
 

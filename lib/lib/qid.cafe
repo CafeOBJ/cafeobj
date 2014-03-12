@@ -7,3 +7,7 @@ sys:mod! QID principal-sort Qid
   eq string(Q:Qid) = #! (qid->string Q) .
   eq qid(S:String) = #! (string->qid S) .
 }
+
+protect QID
+provide qid
+** EOF

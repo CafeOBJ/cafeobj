@@ -20,6 +20,7 @@ sys:mod! 4TUPLE (C1 :: TRIV, C2 :: TRIV, C3 :: TRIV, C4 :: TRIV)
   }
 }
 
+protect 4TUPLE
 provide 4tuple
 provide 4TUPLE
 --

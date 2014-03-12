@@ -102,8 +102,8 @@ set sys universal-sort off
 lispq
 (setq *include-bool* *include-bool-save*)
 **
+protect TRUTH
 provide truth
-provide TRUTH
 **
 eof
 

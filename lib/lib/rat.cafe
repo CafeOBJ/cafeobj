@@ -45,8 +45,8 @@ lispq
 (eval-when (:execute :load-toplevel)
   (chaos-rat-tram-interface))
 
+protect RAT
 provide rat
-provide RAT
 --
 eof
 

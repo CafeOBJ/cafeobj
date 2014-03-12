@@ -51,7 +51,7 @@ lispq
 (eval-when (:execute :load-toplevel)
   (chaos-nat-tram-interface))
 
+protect NAT
 provide nat
-provide NAT
 --
 eof

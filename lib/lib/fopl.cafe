@@ -42,6 +42,8 @@ sys:module* T&F
   ops #t #f : -> TruthValue
 }
 
+protect T&F
+
 ** Abstract Syntax
 
 sys:module* ABS-FOPL (TVAL :: T&F)
@@ -73,6 +75,8 @@ sys:module* ABS-FOPL (TVAL :: T&F)
 
 }
 
+protect ABS-FOPL
+
 -- ;;; binding Lisp variable *allow-universal-sort* to t
 -- ;;; allows users to access invisible system's universal
 -- ;;; sorts.
@@ -91,6 +95,8 @@ sys:module* ABS-FOPL+EQ-1 (TVAL :: T&F)
   ** equality
   op eq : *Cosmos* *Cosmos* -> Sentence
 }
+
+protect ABS-FOPL+EQ-1
 
 ** this is similar to the above, but have two different types of
 ** equalities. not used for now. 
@@ -113,6 +119,9 @@ sys:module* ABS-FOPL+EQ-1 (TVAL :: T&F)
 
 sys:module! MFOPL(TVAL :: T&F, SYNTAX :: ABS-FOPL(TVAL)){}
 sys:module! MFOPL+EQ-1(TVAL :: T&F, SYNTAX :: ABS-FOPL+EQ-1(TVAL)){}
+
+protect MFOPL
+protect MFOPL+EQ-1
 
 ** --------------------
 ** "3. CONCRETE-SYNTAX"
@@ -234,6 +243,7 @@ view bool-as-truth-value from T&F to TRUTH-VALUE
 ** instance of concrete syntax of FOPL
 -- assumes that view bool-as-truth-value will be used together 
 -- with this for instantiating FOPL.
+
 sys:module! FOPL-BASIC
 {    
   protecting (TRUTH-VALUE)
@@ -281,6 +291,8 @@ sys:module! FOPL-BASIC
     {prec: 0 strategy:(0)}
 }
 
+protect FOPL-BASIC
+
 ** instance of concrete syntax of FOPL with an equality
 **
 sys:module! FOPL-BASIC+EQ-1
@@ -289,6 +301,8 @@ sys:module! FOPL-BASIC+EQ-1
   op _=_ : *Cosmos* *Cosmos* -> FoplSentence
     {prec: 51 strategy: (0)}
 }
+
+protect FOPL-BASIC+EQ-1
 
 ** instance of concrete syntax of FOPL with two equality
 -- module! FOPL-BASIC+EQ-2
@@ -314,6 +328,8 @@ make FOPLE-SENTENCE
 			      op exists -> \E[_]_,
 			      op not -> ~_,
 			      op eq -> _=_}))
+
+protect FOPLE-SENTENCE
 
 **
 ** We need some Lisp accessible values for PigNose engine.
@@ -398,6 +414,7 @@ lispq
 set include BOOL on
 set quiet off
 **> providing fopl
+protect FOPL-CLAUSE
 provide fopl
 provide FOPL-CLAUSE
 **

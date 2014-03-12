@@ -27,6 +27,7 @@ sys:mod! BASE-BOOL
 }
 
 evq (setq *include-bool* *include-bool-save*)
+protect BASE-BOOL
 provide base_bool
 --
 eof

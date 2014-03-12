@@ -391,7 +391,7 @@
 (defstruct (pignose-flag (:type list))
   (value nil)
   (name "" :type simple-string)
-  (hook #'identity :type function))
+  (hook #'identity :type (or function symbol)))
 
 (declaim (type (simple-array * (100)) *pn-control-flags*))
 (defvar *pn-control-flags*)

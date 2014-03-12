@@ -42,13 +42,13 @@ sys:mod! INT
 lispq
 (defun chaos-int-tram-interface ()
   (setq *z-int* (get-z-module-or-panic "INT"))
-  (push *z-int* *tram-builtin-modules*)
+  (push *z-int* *tram-builtin-modules*))
 
 lispq
 (eval-when (:execute :load-toplevel)
   (chaos-int-tram-interface))
 
 provide int
-provide INT
+protect INT
 --
 eof

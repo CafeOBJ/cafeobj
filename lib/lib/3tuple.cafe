@@ -16,6 +16,7 @@ sys:mod! 3TUPLE (C1 :: TRIV, C2 :: TRIV, C3 :: TRIV) {
   }
 }
 
+protect 3TUPLE
 provide 3tuple
 provide 3TUPLE
 --

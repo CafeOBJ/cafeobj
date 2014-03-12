@@ -42,6 +42,7 @@ sys:mod! BOOL
 }
 
 evq (setq *include-bool* *include-bool-save*)
+protect BOOL
 provide sys_bool
 --
 eof

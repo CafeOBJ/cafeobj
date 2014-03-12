@@ -46,8 +46,8 @@ set sys universal-sort off
 lispq
 (setq *include-bool* *include-bool-save*)
 **
+protect EQL
 provide eql
-provide EQL
 **
 eof
 ** EOF

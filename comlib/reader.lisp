@@ -118,8 +118,8 @@
 	 (string= (the simple-string x)
 		  (if (stringp y)
 		      (the simple-string y)
-		      (the simple-string
-			(string-downcase (string (the character y)))))))
+		    (the simple-string
+		      (string-downcase (string y))))))
 	((characterp x)
 	 (eql (the character x) (the character y)))
 	(t (eq x y))))

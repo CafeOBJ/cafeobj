@@ -6,10 +6,13 @@
                               Module:thstuff
                              File:cexec.lisp
 =============================================================================|#
-#-:chaos-debug
+#-(or :chaos-debug SBCL)
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
+
+#+SBCL
+(declaim (optimize (speed 1) (safety 3)))
 
 ;;; set t if you want a debug mode --> set debug exec on.
 ;;; (defvar *cexec-debug* nil)
@@ -605,7 +608,7 @@
 (#-GCL defun #+GCL si:define-inline-function
  get-sch-hashed-term (term term-hash)
  (let ((val (hash-term term)))
-   (declare (type term-hash-key val))
+   ;; (declare (type term-hash-key val))
    (let* ((ent (svref term-hash
                       (mod val term-hash-size)))
           (val (cdr (assoc term ent :test #'term-equational-equal))))
@@ -618,13 +621,12 @@
 (#-GCL defun #+GCL si:define-inline-function
  set-sch-hashed-term (term term-hash value)
  (let ((val (hash-term term)))
-   (declare (type term-hash-key val))
+   ;; (declare (type term-hash-key val))
    (let ((ind (mod val term-hash-size)))
      (let ((ent (svref term-hash ind)))
        (let ((pr (assoc term ent :test #'term-equational-equal)))
          (if pr (rplacd pr value)
-           (setf (svref term-hash ind) (cons (cons term value) ent)))
-         )))))
+           (setf (svref term-hash ind) (cons (cons term value) ent))))))))
 
 (defmacro cexec-get-hashed-term (term)
   `(get-sch-hashed-term ,term .cexec-term-hash.))

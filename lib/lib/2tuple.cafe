@@ -14,6 +14,7 @@ sys:mod! 2TUPLE (C1 :: TRIV, C2 :: TRIV)
   }
 }
 
+protect 2TUPLE
 provide 2tuple
 provide 2TUPLE
 --

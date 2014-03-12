@@ -55,11 +55,11 @@ lispq
   (setq *z-float* (get-z-module-or-panic "FLOAT"))
   (push *z-float* *tram-builtin-modules*))
 
+lispq
 (eval-when (:execute :load-toplevel)
   (chaos-float-tram-interface))
 
+protect FLOAT
 provide float
-provide FLOAT
---
-eof
+** EOF
 

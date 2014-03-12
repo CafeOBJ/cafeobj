@@ -477,7 +477,6 @@
   
   (defun create-rule-name (mod label)
     (declare (ignore mod)
-	     (type module mod)
 	     (type simple-string label)
 	     (values list))
     (prog1

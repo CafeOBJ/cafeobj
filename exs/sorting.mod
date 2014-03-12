@@ -39,7 +39,7 @@ set exec normalize on
 open SORTING-STRG(NAT) .
 exec (4 3 5 3 1) .
 -- fast execution by brute engine
-set tram path brute .
+-- set tram path brute .
 -- tram exec (40  39  38  37  36  35  34  33  32  31  30  29  28  27  26  25  24  23  22  21  20  19  18  17  16  15  14  13  12  11  10  9  8  7  6  5  4  3  2  1) .
 close
 
@@ -97,6 +97,8 @@ open SORTING-STRG-PROOF .
 --> the reduction causes stack overflow!
 --> red disorder(e s) < disorder(e s') .
 close
+
+eof
 
 -- proof of (generic) local confluence for the sorting algorithm
 ** case 1 for local confluence 

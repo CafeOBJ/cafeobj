@@ -45,7 +45,7 @@ lispq
 (eval-when (:execute :load-toplevel)
   (chaos-nznat-tram-interface))
 
+protect NZNAT
 provide nznat
-provide NZNAT
 --
 eof

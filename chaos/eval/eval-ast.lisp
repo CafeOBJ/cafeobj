@@ -795,8 +795,7 @@
 		  (equal " % % " name))
 
 	  (unless (modexp-is-parameter-theory name)
-	    (when (or (module-is-hard-wired modval)
-		      (module-is-system-module modval))
+	    (when (module-is-hard-wired modval)
 	      (with-output-chaos-error ('invalid-module-decl)
 		(format t "You can not redefine system module ~a ." name)))
 	    (when (module-is-write-protected modval)
