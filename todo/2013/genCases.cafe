@@ -1,0 +1,72 @@
+-- the following two modules describe an algorithm 
+-- for generating a finite set of patterns 
+-- by expanding alternatives indicated by (_;_) 
+
+-- the formal parameter module for defining
+-- (1) predicate v_ that is to be checked, and 
+-- (2) indicator information constructor ii
+mod* PREDtbc {
+-- values and their sequences
+[Val < ValSq]
+op _,_ : ValSq ValSq -> ValSq {assoc} .
+-- predicate to be checed
+pred v_ : ValSq .
+-- indicator information for analysis
+[IndInfo]
+op ii_ : ValSq -> IndInfo {constr} .
+** v_ and ii_ shoud have a same arity
+** as a sequence of 'Val's
+}
+
+-- generating a finit set of patterns
+-- that cover all possible combinations
+-- of values in a value sequence
+mod GENcases (X :: PREDtbc) {
+-- sequences of values indicating
+-- all combinations indicated by
+-- alternative notations (_;_) 
+[Val < VlSq]
+-- alternative sequence
+op _;_ : VlSq VlSq -> VlSq {assoc} .
+-- sequence of ValSeq or VlSeq
+[ValSq VlSq < SqSq]
+op empSS : -> SqSq .
+op _,_ : SqSq SqSq -> SqSq {assoc id: empSS} .
+-- SqSq enclosures and their trees
+[SqSqEn < SqSqTr]
+op [_] : SqSq -> SqSqEn .
+op _||_ : SqSqTr SqSqTr -> SqSqTr .
+
+-- generate all combinations of alternatives 
+-- indicated by (_;_) into (_||_) 
+eq [(SS1:SqSq,(V:Val;VS:VlSq),SS2:SqSq)] 
+   = [(SS1,V,SS2)] || [(SS1,VS,SS2)] .
+
+-- indicators and their trees
+[Ind < IndTr]
+op $ : -> Ind .
+op _|_ : IndTr IndTr -> IndTr .
+-- indicator constructor;
+-- [IndInfo] comes from (X :: PREDtbc)
+op i : Bool IndInfo -> Ind {constr} .
+-- make indicator (mi) using
+--  (v_ : ValSq -> Bool) and 
+--  (ii_ : ValSq -> IndInfo)
+-- that come from (X :: PREDtbc)
+op mi_ : ValSq -> Ind .
+eq mi(VSQ:ValSq) = i(v(VSQ),ii(VSQ)) .
+
+-- make make indicators (mmi):
+-- translating a tree of SqSq (SqSqTr)
+-- into a tree of indicators
+op mmi_ : SqSqTr -> IndTr .
+eq mmi(SST1:SqSqTr || SST2:SqSqTr) 
+   = (mmi SST1) | (mmi SST2) .
+-- if all _;_ in SqSq disappear
+-- then translate mmi to mi
+eq mmi[VSQ:ValSq] = mi(VSQ) .
+
+-- making all indicators with "true" disappear 
+eq i(true,II:IndInfo) | IT:IndTr = IT .
+eq IT:IndTr | i(true,II:IndInfo) = IT .
+}

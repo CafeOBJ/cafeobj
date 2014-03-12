@@ -1,0 +1,187 @@
+** ===============================================================
+** ===== QLOCK Proof Score for a lockout free property ===========
+** ===============================================================
+
+in qlock-sysProp.cafe
+
+-- ===============================================================
+-- enhancing Peano Style Natural Numbers 
+-- for defining necessary new state functions 
+mod! PNATerr-a {pr(PNATerr)
+  -- plus over Nat&Err
+  op _+_ : Nat&Err Nat&Err -> Nat&Err {assoc comm} .
+  -- associative and commutative _*_
+  op _*_ : Nat&Err Nat&Err -> Nat&Err {assoc comm} .
+  op _*_ : Nat Nat -> Nat {assoc comm} .
+  eq 0 * Y:Nat = 0 .
+  eq (s X:Nat) * Y:Nat = Y + (X * Y) . 
+  -- greater than Nat&Err
+  op _>_ : Nat&Err Nat&Err -> Bool .
+}
+
+mod* LABELerr {pr(LABEL)[Label < Label&Err]}
+
+** ===============================================================
+-- enhanced elementary functions on states 
+mod! STATEfuns-a {pr(STATEfuns + PNATerr-a + LABELerr) 
+-- the depth of the first appearence of an aid in a queue
+op #daq : Qu Aid -> Nat&Err .
+op #daq-sub : Qu Aid -> Nat .
+ceq #daq(Q:Qu,A1:Aid) = #daq-sub(Q,A1) if not(#aq(Q,A1) = 0) .
+eq #daq-sub(A1:Aid & Q:Qu,A2:Aid) = 
+   if (A1 = A2) then 0 else s(#daq-sub(Q,A2)) fi .
+-- counter count of cs
+op #ccs : State -> Nat .
+eq #ccs(S:State) = if (#ls(S,cs) > 0) then 0 else (s 0) fi .
+-- decreasing Nat measure for the lockout freedom verification
+op #dms : State Aid -> Nat&Err .
+eq #dms(S:State,A:Aid) = ((s s s 0) * #daq(qu(S),A)) 
+                          + #ls(S,rs) + #ccs(S) .
+-- the transition:
+-- (((b1 & q) $ (((lb [ b22 ] : ws) (lb [ b1 ] : cs)) as1)) ->
+--         (q $ ((lb [ b1 ] : rs) ((lb [ b22 ] : ws) as1)))
+-- increases (#ls(_,rs) + #ccs(_)) by (s s 0) 
+-- decreases #daq(qu(_),b22)) by (s 0)
+-- so we need ((s s s 0) * (s 0) = (s s s 0)) 
+-- for proper decrease of #dms(_,b22)
+
+-- label of an agent in a state
+op las : State Aid -> Label&Err .
+eq las((Q:Qu $ (lb[A:Aid]: L:Label) AS:Aobs),A) = L .
+}
+
+-- load the module GENcases from genCases.cafe file
+in genCases.cafe
+
+--> ==============================================================
+--> The following proof score proves that for any 
+--> one-step transition:
+-->  ((Q $ ((lb[A1]: ws)(lb[A2]: L2) AS))
+-->   -> SS)
+--> over the states, the predicate:
+-->    (inv(Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)) 
+-->           implies
+-->           (#dms((Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)),A1) >
+-->            #dms(SS,A1)) and 
+-->           ((las(SS,A1) = cs) or (las(SS,A1) = ws)))
+--> holds. 
+--> Note that inv is already proved to be an inductive invariant,
+--> and #dms is defined in the module STATEfuns-a as:
+-->   eq #dms(S:State,A:Aid) = ((s s s 0) * #daq(qu(S),A)) 
+-->                            + #ls(S,rs) + #ccs(S) .
+-->
+--> Because #dms(_,_) is a natural number,  
+--> it implies that for any state S and any aid A,
+--> if (lb[A]: ws) is a component of S,
+--> any sequence of transtions from S should finally
+--> leads to the state SS on which 
+--> (1) (las(SS,A) = cs),
+--> or 
+--> (2) (#dms(SS,A) = 0), that is
+-->      (#daq(qu(SS),A)) = 0) and (#ls(SS,rs) = 0) 
+-->                            and (#ccs(SS) = 0).
+--> It implies that a state of the form:
+-->    (Q $ ((lb[A]: ws) AS))
+--> finally reaches to a state of the form:
+-->    ((A & QQ) $ ((lb[A]: cs) AAS))
+--> no matter what sequence of transitions is taken.
+--> ==============================================================
+
+-- qlock lockout freeness module:
+-- actual parameter for GENcases module
+mod QLOCKlof {pr(QLOCKsys + QLOCKprop + STATEfuns-a)
+-- val and ValSeq
+[Qu Aid Label Aobs State < Val < ValSq]
+op _,_ : ValSq ValSq -> ValSq {assoc} .
+
+-- for indicating information for the fourth argument 
+[IndInfo]
+op _->_!!_ : State State Bool -> IndInfo {constr} .
+op _!_ : Bool Bool -> Bool {constr assoc} .
+op nb_ : Nat&Err -> Bool .
+
+-- predicate to be checked
+op v_ : ValSq -> Bool .
+eq v(Q:Qu,A1:Aid,A2:Aid,L2:Label,AS:Aobs,SS:State) =
+     not((Q $ ((lb[A1]: ws)(lb[A2]: L2) AS))  =(*,1)=>+ SS
+         suchThat 
+         not((inv(Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)) 
+              implies
+              (#dms((Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)),A1) >
+               #dms(SS,A1)) and 
+              ((las(SS,A1) = cs) or (las(SS,A1) = ws)))
+              == true)
+
+       {(Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)) -> SS
+       !!
+             (inv(Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)) 
+              implies
+              (#dms((Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)),A1) >
+               #dms(SS,A1)))
+        !
+              inv(Q $ ((lb[A1]: ws)(lb[A2]: L2) AS))
+        !
+              (#dms((Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)),A1) >
+               #dms(SS,A1))
+        !
+             nb(#dms((Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)),A1))
+        !
+             nb(#dms(SS,A1))
+       }) .
+
+-- for indicating information
+op ii_ : ValSq -> IndInfo .
+op ss_ : State -> IndInfo {constr} .
+eq ii(Q:Qu,A1:Aid,A2:Aid,L2:Label,AS:Aobs,SS:State)
+    = ss(Q $ ((lb[A1]: ws)(lb[A2]: L2) AS)) .
+}
+
+-- a module to generate and check all possible transitions
+mod! CKallCasesLof {ex(GENcases(QLOCKlof))
+-- constants declarations
+op q : -> Qu . 
+op as : -> Aobs .
+
+-- Aid constant literals
+[AidConLt < Aid]
+eq (B1:AidConLt = B2:AidConLt) = (B1 == B2) .
+ops b1 b21 b22 b3 : -> AidConLt .
+eq #aq(q,b21) = 0 .
+eq (#aq(q,b22) = 0) = false  .
+
+[AobsLt < Aobs]
+eq (AS1:AobsLt = AS2:AobsLt) = (AS1 == AS2) .
+ops as1 as2 : -> AobsLt .
+-- the following is complete case splitting 
+-- because cj(mx,S:State) is an invariant
+eq #lss(as1,cs) = 0 .
+eq #lss(as2,cs) = (s 0) .
+
+-- function for generating and checking all possible
+-- transitions defined by the module WT, TY, EX
+op gen&ck1 : State -> IndTr .
+eq gen&ck1(SS:State) = 
+    ($ | mmi[(empQ;(b1 & q)),
+             (b1;(b21;b22)),
+             (b1;(b21;b22);b3),
+             (rs;ws;cs),
+             (as1;as2),
+             (SS)]) .
+
+}
+
+-- ===============================================================
+-- facts to be used
+mod! FACTtbu-a {pr(QLOCKprop + STATEfuns-a)
+
+-- about #daq
+ceq #daq((Q:Qu & A1:Aid),A2:Aid) = #daq(Q,A2) if not(A1 = A2) .
+}
+
+-- checking all possible cases
+open (CKallCasesLof + FACTtbu-a) .
+red gen&ck1(SS:State) .
+close
+
+-- ==============================================================
+-- ==============================================================
