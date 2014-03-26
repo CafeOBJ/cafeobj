@@ -708,7 +708,7 @@ Remarks:
 
 Related: [`bop`](#bop)
 
-## operator precedence ## {opprec}
+## operator precedence ## {#opprec}
 
 TODO list the rules for operator precedence
 

@@ -6,12 +6,13 @@ ENGINE=xelatex
 #	-V documentclass=book				\
 
 PDOPTS=-f markdown -V biblio-files=manual.bib --biblatex	\
+	--template=template.tex				\
 	--table-of-contents				\
 	-V papersize=a4paper				\
 	-V mainfont='Lucida Bright OT'			\
 	-V sansfont='Lucida Sans OT'			\
 	-V monofont='Lucida Sans Typewriter OT'		\
-	-V documentclass=book				\
+	-V documentclass=memoir				\
 	--latex-engine=$(ENGINE)
 
 
@@ -33,7 +34,7 @@ reference-manual.odt: $(MDFILES) odt.gpp makefile
 reference-manual.epub: $(MDFILES) epub.gpp makefile
 	gpp $(GPPOPTS) -DEPUB=1 reference-manual.md | pandoc ${PDOPTS} -t epub -s -o reference-manual.epub
 
-reference-manual.tex: $(MDFILES) latex.gpp makefile manual.bib
+reference-manual.tex: $(MDFILES) latex.gpp makefile manual.bib template.tex
 	gpp $(GPPOPTS) -DLATEX=1 reference-manual.md | pandoc ${PDOPTS} -t latex -s -o reference-manual.tex
 
 reference-manual.html: $(MDFILES) html.gpp makefile
