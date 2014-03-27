@@ -33,9 +33,37 @@ and is defined in terms of evaluation. That is, for ground terms `t`
 and `t'` of the same sort, `t == t'` evaluates to `true` iff terms
 reduce to a common term.
 
+## `=*=` ## {#bequality}
+
+The predicate for behavioural equivalence, written `=*=`, is a binary
+operator defined on each hidden sort. 
+
+TODO: old manual very unclear ... both about `=*=` and 
+`accept =*= proof` ??? (page 46 of old manual)
+
 ## `=/=` ## {#ineq}
 
 Negation of the predicate [`==`](#equality).
+
+## `accept =*= proof` switch ## {#switch-accept}
+
+TODO missing documentation
+difficult - see TODO for [`=*=`](#bequality)
+
+
+## `all axioms` switch ## {#switch-all-axioms)
+
+Controls whether axioms from included modules are shown
+during a `show` invocation.
+
+Related: [`show`](#show)
+
+## `always memo` switch ## {#switch-always-memo)
+
+Turns on memorization of computation also for operators without
+the [`memo`](#opattr) operator attribute.
+
+Related: [`memo` switch](#switch-memo) [operator attributes](#opattr)
 
 
 ## `apply <action> [ <subst> ] <range> <selection>` ## {#apply}
@@ -110,6 +138,18 @@ where each `<selector>` is one of
 
 Related: [`choose`](#choose) [`start`](#start) 
 
+## `auto context` switch ## {#switch-auto-context}
+
+Possible values: `on` or `off`, default is `off`.
+
+If this switch is `on`, the context will automatically switch to
+the most recent module, i.e., defining a module or inspecting 
+a module's content will switch the current module.
+
+
+## `autoload` ## {#autoload}
+
+TODO No documentation in original manual, no idea!
 
 ## `axioms { <decls> }` ## {#axioms}
 
@@ -143,6 +183,10 @@ Defines a behaviour conditional transition.
 For details see [`ctrans`](#ctrans).
 
 Related [`trans`](#trans) [`ctrans`](#ctrans) [`btrans`](#btrans)
+
+## `BOOL =` switch ## {#switch-bool}
+
+TODO missing documentation
 
 ## `bop <op-spec> : <sorts> -> <sort>` ## {#bop}
 
@@ -181,6 +225,9 @@ Defines a behaviour transition. For details see [`trans`](#trans).
 
 Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
 
+## `cbred` ## {#cbred}
+
+TODO no documentation
 
 ## `cd <dirname>` ## {#cd}
 
@@ -197,6 +244,24 @@ see [`eq`](#eq).
 
 Related: [`eq`](#eq) [`beq`](#beq) [`bceq`](#bceq)
 
+## `check <something>` switch ## {#switch-check}
+
+These switches turn on automatic checking of certain properties:
+
+`check coherency`
+  ~ TODO
+
+`check compatibility`
+  ~ see the [`check`](#check) command
+
+`check import`
+  ~ TODO
+
+`check regularity`
+  ~ see the [`check`](#check) command
+
+`check sensible`
+  ~ TODO
 
 ## `check <options>` ## {#check}
 
@@ -231,12 +296,26 @@ Related: [`apply`](#apply) [`start`](#start)
 	 [`strat` in operator attributes](#opattr)
 
 
+## `clean memo` ## {#cleanmemo}
+
+Resets (clears) the memo storages of the system. Memorized computations 
+are forgotten. 
+
+Related: [`clean memo` switch](#switch-clean-memo)
+
+## `clean memo` switch ## {#switch-clean-memo}
+
+Possible values: `on`, `off`, default `off`.
+
+tells the system to be forgetful.
+
+TODO what is the difference between `set memo off` and `set clean memo off`
+
 ## `close` ## {#close}
 
 This command closes a modification of a module started by `open`.
 
 Related: [`open`](#open)
-
 
 ## comments ## {#comments}
 
@@ -248,6 +327,9 @@ displayed when run through the interpreter.
 
 Related: [`**`](#starstar) [`--`](#dashdash)
 
+## `cond limit` switch ## {#switch-cond-limit}
+
+TODO missing documentation
 
 ## `ctrans [ <label-exp> ] <term> => <term> .` ## {#ctrans}
 
@@ -321,6 +403,27 @@ the same term with `or` instead.
 Related: [`ceq`](#ceq) [`beq`](#beq) [`bceq`](#bceq)
 
 
+## `eval` `evalq` ## {#eval}
+
+TODO missing documentation
+
+Related: [`lisp`](#lisp)
+
+## `exec limit` switch ## {#switch-exec-limit}
+
+Possible values: integers, default limit 4611686018427387903.
+
+Controls the number of maximal transition steps.
+
+Related: [`reduce`](#reduce)
+
+## `exec trace` switch ## {#switch-exec-trace}
+
+Possible values: `on` `off, default `off`.
+
+controls whether further output is provided during reductions.
+
+Related: [`reduce`](#reduce)
 
 ## `execute [ in <mod-exp> : ] <term> .` ## {#execute}
 
@@ -347,6 +450,21 @@ Related: [`including`](#including) [`protecting`](#protecting)
 	 [`using`](#using)
 
 
+## `find` ## {#find}
+
+TODO missing documentation
+
+## `find all rules` switch ## {#switch-find-all-rules}
+
+TODO missing documentation
+
+## `full reset` ## {#fullreset}
+
+Reinitializes the internal state of the system. All supplied modules
+definitions are lost.
+
+Related: [`reset`](#reset)
+
 ## `imports { <import-decl> }` ## {#imports}
 
 Block enclosing import of other modules (`protecting` etc). 
@@ -358,16 +476,33 @@ Related: [`signature`](#signature) [`axioms`](#axioms)
   [`protecting`](#protecting) [`using`](#using)
 
 
+## `include BOOL` switch ## {#switch-include-bool}
+
+Possible values: `on` `off`, default `on`.
+
+By default a couple of built-in modules are implicitly imported with
+protecting mode. In particular, BOOL is of practical importance. It
+defines Boolean operators. It is imported to admit conditional
+axioms.
+
+This switch allows to disable automatic inclusion of BOOL.
+
+## `include RWL` switch ## {#switch-include-rwl}
+
+Possible values: `on` `off`, default `off`.
+
+This switch allows to disable automatic inclusion of RWL.
+
 ## `including ( <modexp> )` ## {#including}
 
 Alias: `in`
 
 imports the object specified by `modexp` into the current
 module. TODO what are the consequences for the models? TODO
-See [`module expression`](#modulesexpression) for format of `modexp`.
+See [`module expression`](#moduleexpression) for format of `modexp`.
 
 Related: [`extending`](#including) [`protecting`](#protecting) 
-	 [`using`](#using) [`module expression`](#modulesexpression)
+	 [`using`](#using) [`module expression`](#moduleexpression)
 
 ## `input <pathname>` ## {#input}
 
@@ -444,6 +579,31 @@ used in various commands like `reduce` and `parse`.
 Although `let` defined variable behave very similar to syntactic
 shorthands, they are not. The right hand side `<term>` needs to
 be a fully parsable expression.
+
+## `libpath` switch ## {#switch-libpath}
+
+Possible values: list of strings.
+
+The switch `libpath` contains a list of directories where \_cafeobj
+searches for include files. Addition and removal of directories can be
+done with
+
+`````
+set libpath + <path1>:<path2>:...
+set libpath - <path1>:<path2>:...
+`````
+
+or the full libpath reset by `set libpath <path1>:<path2>:...`
+
+The current directory has a privileged status: It is always searched
+first and cannot be suppressed.
+
+
+## `lisp`, `lispq` ## {#lisp}
+
+TODO missing documentation
+
+Related: [`eval`](#eval)
 
 ## `look up <something>` ## {#lookup}
 
@@ -572,6 +732,12 @@ mod! TWICE(X :: C) {
 
 Related: [qualified sort etc](#qualifiedother)
 
+## `memo` switch ## {#switch-memo}
+
+controls the memorization of computations. The system memorizes 
+evaluations of operators declared with the [`memo`](#opattr) operator
+attribute. Turning this switch off disables all memorization.
+
 ## on-the-fly declarations ## {#onthefly}
 
 Variables and constants can be declared *on-the-fly* (or *inline*). If an 
@@ -687,6 +853,9 @@ supported
     Using negative values allows for lazy evaluation of the corresponding
     arguments.
 
+`memo`
+  ~ tells the system to remember the results of evaluations where the
+    operator appeared. See [`memo` switch](#switch-memo) for details.
 
 Remarks:
 
@@ -723,11 +892,33 @@ command will prompt for one of the trees.
 
 Related: [qualified term](#qualified)
 
+
+## `parse normalize` switch ## {#switch-parse-normalize}
+
+TODO missing documentation
+
+
 ## `pred <op-spec> : <sorts>` ## {#pred}
 
 Short hand for `op <op-spec> : <sorts> -> Bool` defining a predicate.
 
 Related: [`op`](#op) [`bpred`](#bpred)
+
+
+## `print depth` switch ## {#switch-print-depth}
+
+Possible values: natural numbers, default `unlimited`.
+
+Controls to which depth terms are printed.
+
+
+## `print mode` switch ## {#switch-print-mode}
+
+Possible values: `normal` `fancy` `tree` `s-expr`
+
+Selects one of the print modes.
+
+TODO explain the different print modes!
 
 ## `protect <module-name>` ## {#protect}
 
@@ -794,6 +985,18 @@ Example: `1:NzNat` `2:Nat`
 Related: [`parse`](#parse)
 
 
+## `quiet` switch ## {#switch-quiet}
+
+Possible values: `on` `off`, default `off`
+
+If set to `on`, the system only issues error messages.
+
+Related: [`verbose` switch](#switch-verbose)
+
+## `quit` ## {#quit}
+
+Leaves the CafeOBJ interpreter.
+
 ## `reduce [ in <mod-exp> : ] <term> .` ## {#reduce}
 
 Alias: `red`
@@ -807,6 +1010,16 @@ account for reduction.
 Related: [`execute`](#execute) [`breduce`](#breduce)
 
 
+## `reduce conditions` switch ## {#switch-reduce-conditions}
+
+Possible values: `on` `off`, default `off`.
+
+When using [`apply`](#apply) to step through a reduction, this switch
+allows to turn on automatic reduction of conditions in conditional
+equations. 
+
+Related: [`apply`](#apply)
+
 
 ## `regularize <mod-name>` ## {#regularize}
 
@@ -815,11 +1028,14 @@ term has exactely one minimal parse tree. In this process additional
 sorts are generated to ensure unique least sort of all terms.
 
 Modules can be automatically regularized by the interpreter if the
-`regularize signature` switch is turn to `on`:
-
-`set regularize signature on`
+`regularize signature` switch is turn to `on`.
 
 TODO -- should we give more details here -- unclear to me.
+
+## `regularize signature` switch ## {#switch-regularize-signature}
+
+See [`regularize](#regularize)
+
 
 ## `require <feature> [ <pathname> ]` ## {#require}
 
@@ -831,6 +1047,12 @@ named the pathname instead.
 
 Related: [`provide`](#provide)
 
+## `reset` ## {#reset}
+
+Restores the definitions of built-in modules and preludes, but does not
+affect other modules.
+
+Related: [`full reset`](#fullreset)
 
 ## `restore <pathname>` ## {#restore}
 
@@ -842,6 +1064,15 @@ TODO -- should we keep the different effects? What is the real difference?
 
 Related: [`input`](#input) [`save`](#save) 
 	 [`save-system`](#save-system)
+
+## `rewrite limit` switch ## {#switch-rewrite}
+
+Possible values: positive integers, default not specified.
+
+Allows limiting the number of rewrite steps during a stepwise
+execution.
+
+Related: [`step` switch](#switch-step)
 
 ## `save <pathname>` ## {#save}
 
@@ -901,6 +1132,10 @@ See the entry for `switches` for a full list.
 
 Related: [`switches`](#switches) [`describe`](#describe)
 
+## `show mode` switch ## {#switch-show-mode}
+
+TODO missing documentation
+
 ## `signature { <sig-decl> }` ## {#signature}
 
 Block enclosing declarations of sorts and operators.
@@ -943,55 +1178,6 @@ Example:
 defines five sorts `A`,...,`E`, with the following relations:
 `C < A`, `D < A`, `A < E`, `B < D`.
 
-## switches ## {#switches}
-
-The following list is the full set of switches at the time of writing:
-
-TODO subsections of all the switches with explanations for each one
-
-~~~~~
-trace  whole            off
-trace                   off
-step                    off
-memo                    on
-always  memo            off
-clean  memo             off
-statistics|stats        on
-rewrite|rwt  limit      = not specified
-stop  pattern           = not specified
-reduce  conditions      off
-exec  trace             off
-exec  limit             = 536870911
-exec  normalize         on
-include  BOOL           on
-include  RWL            on
-include  FOPL-CLAUSE    on
-auto  context           off
-accept  term            on
-regularize|reg  signature  off
-check  import           off
-check  regularity       off
-check  coherency        off
-check  sensible         off
-check  compatibility    off
-check  builtin          on
-select  term            off
-verbose                 off
-quiet                   off
-all  axioms             off
-show  mode              = :cafeobj
-show  var sorts         off
-print  mode             = :normal
-libpath                 = ("/usr/local/cafeobj-1.4/lib" "/usr/local/cafeobj-1.4/exs")
-tram|compiler  path     = "tram"
-tram|compiler  options  = ""
-print  depth            = not specified
-accept  =*= proof       off
-find  all rules         off
-~~~~~
-
-Related: [`set`](#set) [`show`](#show)
-
 
 ## `start <term> .` ## {#start}
 
@@ -1000,6 +1186,46 @@ module or context. Commands like `apply`, `choose`, or `match` will
 then operate on this term.
 
 Related: [`apply`](#apply) [`choose`](#choose) [`match`](#match)
+
+
+## `statistics` switch ## {#switch-statistics}
+
+TODO missing documentation
+
+## `step` switch ## {#switch-step}
+
+Possible values: `on` `off`, default `off`.
+
+With this switch turned on, rewriting proceeds in steps and prompts
+the user interactively. At each prompt the following commands can be
+given to the stepper:
+
+TODO missing documentation see page 77 of old manual!
+
+## `stop pattern` switch ## {#switch-stop-pattern}
+
+TODO missing documentation
+
+Related: [`step` switch](#switch-step)
+
+## switches ## {#switches}
+
+Switches control various aspects of the computations and behaviour
+of \_cafeobj. The current list of switches and their values can be
+shown with 
+
+`````
+show switches
+`````
+
+The single switches are described separately in this manual.
+
+Related: [`set`](#set) [`show`](#show)
+
+
+## `trace [whole]` switch ## {#switch-trace}
+
+TODO missing documentation
 
 
 ## `tram <options>` ## {#tram}
@@ -1051,36 +1277,17 @@ using the `vars` construct:
 
 Related: [`op`](#op) [qualified term](#qualified) [on-the-fly](#onthefly)
 
-## on-the-fly declarations ## {#onthefly}
+## `verbose` switch ## {#switch-verbose}
 
-Variables and constants can be declared *on-the-fly* (or *inline*). If an 
-equation contains a qualified variable (see [qualified term](#qualified)),
-i.e., `<name>:<sort-name>`, then from this point on *within* the current
-equation only `<name>` is declared as a variable of sort `<sort-name>`.
+Possible values: `on` `off`, default `off`.
 
-It is allowed to redeclare a previously defined variable name via
-an on-the-fly declaration, but as mentioned above, not via an 
-explicit redeclaration.
+If turn `on`, the system is much more verbose in many commands.
 
-Using a predeclared variable name within an equation first as is,
-that is as the predeclared variable, and later on in the same 
-equation with an on-the-fly declaration is forbidden. That is, under
-the assumption that `A` has been declared beforehand, the following
-equation is *not* valid:
+Related: [`quiet` switch](#switch-quiet)
 
-`eq foo(A, A:S) = A .`
+## `version` ## {#version}
 
-On-the-fly declaration of constants are done the same way, where the
-`<name>` is a constant name as in `\`a:Nat`. Using this construct is
-equivalent to defining an operator
-
-`op <name> : -> <sort>`
-
-or in the above example, `op a : -> Nat .` These constant definitions
-are quite common in proof scores.
-
-Related: [`var`](#var)
-
+Prints out the version of CafeOBJ.
 
 ## `view <name> from <modname> to <modname> { <viewelems> }` ## {#view}
 
@@ -1132,14 +1339,3 @@ In specifying views some rules can be omitted:
 
 Related: [instantiation](#instantiation)
 
-
-
-
-MISSING UNCLEAR
----------------
-
-chapter 4.4
-
-TO BE REMOVED DISCUSSION
-------------------------
-stop command, can be done with set stop pattern ...
