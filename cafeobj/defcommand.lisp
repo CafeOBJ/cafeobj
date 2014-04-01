@@ -19,7 +19,7 @@
   (clrhash *cafeobj-declarations*)
   
 ;;;
-;;; commands which can apper at top-level --------------------------------------
+;;; declarations/commands which can apper at top-level --------------------------------------
 ;;;  
 
 (defcom ("mod" "module" "module*" "mod*" "module!" "mod!" "sys:mod!" "sys:module!" "sys:mod*" "sys:module*")
@@ -647,8 +647,10 @@
   identity
   cafeobj-nop)
 
-;;; Declaration forms
+;;; 
+;;; All the Declaration forms --------------------------------------------------------------
 ;;;
+
 (defdecl ("bsort")
     ""
   :sig

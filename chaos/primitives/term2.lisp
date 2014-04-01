@@ -236,10 +236,10 @@
 
 (defmacro term$op-code (_term-body) `(body-2nd ,_term-body))
 (defmacro term$method (_term-body) `(the method (body-2nd ,_term-body)))
-(defmacro term$head (_term-body) `(the method (body-2nd ,_term-body)))
+(defmacro term$head (_term-body) `(body-2nd ,_term-body))
 (defmacro term-op-code (_term) `(term-2nd ,_term))
 (defmacro term-method (_term) `(the method (term-2nd ,_term)))
-(defmacro term-head (_term) `(the method (term-2nd ,_term)))
+(defmacro term-head (_term) `(term-2nd ,_term))
 
 (defmacro change$head-operator (_body _op)
   `(setf (body-2nd ,_body) ,_op))

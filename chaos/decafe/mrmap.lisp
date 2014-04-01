@@ -263,41 +263,40 @@
 	;; there's no image and is not a sort of oldmod
 	;; and we need not to generate a new sort.
 	old-sort
-	;; may have image in module morphism or in sortmap.
-	;; or we must generate a sort with new-name.
-	(if (sort-struct-p (cdr val))
-	    ;; has image in map, and its a sort object.
-	    (cdr val)
-	    ;; has no sort object image and the sort is of oldmod,
-	    ;; or no image and must create with new-name.
-	    (let* ((mod (sort-module old-sort))
-		   (mod-image (cdr (assq mod (modmorph-module map))))
-		   (old-sort-id (sort-id old-sort)))
-	      ;; non nill mod-image means the sort's module is mapped by
-	      ;; module morphism `map' to mod-image.
-	      (let ((res (if mod-image
-			     (find-if #'(lambda (x)
-					  (and (equal (sort-id x) old-sort-id)
-					       (eq (sort-module x) mod)))
-				      (module-all-sorts mod-image)))))
-		;;
-		(if res
-		    res
-		    (let ((dmod (if mod-image
-				    mod-image
-				    (if (eq mod oldmod)
-					newmod
-					(create-dummy-module-then-map
-					 map
-					 (sort-module old-sort)
-					 (list old-sort new-name))))))
-		      (let ((newsort (!recreate-sort dmod old-sort new-name)))
-			(if val
-			    (rplacd val newsort)
-			    (push (cons old-sort newsort) (modmorph-sort map)))
-			(add-sort-to-module newsort dmod)
-			newsort)
-		      ))))))))
+      ;; may have image in module morphism or in sortmap.
+      ;; or we must generate a sort with new-name.
+      (if (sort-struct-p (cdr val))
+	  ;; has image in map, and its a sort object.
+	  (cdr val)
+	;; has no sort object image and the sort is of oldmod,
+	;; or no image and must create with new-name.
+	(let* ((mod (sort-module old-sort))
+	       (mod-image (cdr (assq mod (modmorph-module map))))
+	       (old-sort-id (sort-id old-sort)))
+	  ;; non nill mod-image means the sort's module is mapped by
+	  ;; module morphism `map' to mod-image.
+	  (let ((res (if mod-image
+			 (find-if #'(lambda (x)
+				      (and (equal (sort-id x) old-sort-id)
+					   (eq (sort-module x) mod)))
+				  (module-all-sorts mod-image)))))
+	    ;;
+	    (if res
+		res
+	      (let ((dmod mod-image))
+		(unless dmod
+		  (setq dmod 
+		    (if (eq mod oldmod)	; (assq mod (module-all-submodules oldmod))
+			  newmod
+		      (create-dummy-module-then-map map
+						    (sort-module old-sort)
+						    (list old-sort new-name)))))
+		(let ((newsort (!recreate-sort dmod old-sort new-name)))
+		  (if val
+		      (rplacd val newsort)
+		    (push (cons old-sort newsort) (modmorph-sort map)))
+		  (add-sort-to-module newsort dmod)
+		  newsort)))))))))
 
 (defun rename-sorts (map oldmod newmod sorts)
   (mapcar #'(lambda (x) (rename-sort map oldmod newmod x))
@@ -317,28 +316,34 @@
   (let ((old-method-info-table (module-opinfo-table mod))
 	(opnm (if (%is-opref op-name)
 		  (%opref-name op-name)
-		  op-name)))
+		op-name)))
     (when (check-enclosing-parens op-name)
       (setq opnm (butlast (cdr op-name))))
     ;;
     (dolist (method (opinfo-methods opinfo))
       (when (or (method-is-user-defined-error-method method)
 		(not (method-is-error-method method)))
+	;;**
+	(when *on-modexp-debug*
+	  (format t "~%[rename-op] op = ~s" (method-operator method old-method-info-table))
+	  (format t "~% meth [~s] " method)
+	  (format t "of module ~s" (method-module method)))
+	;; **
 	(let* ((op (method-operator method old-method-info-table))
 	       (oldmod (if (eq mod (method-module method))
 			   mod
-			   (let ((amod (cdr (assq (method-module method)
-						  (modmorph-module map)))))
-			     (if amod
-				 (setq newmod amod)
-				 (setq newmod
-				       (create-dummy-module-then-map
-					map
-					(method-module method)
-					(list ':op
-					      (operator-symbol op)
-					      op-name))))
-			     (method-module method)))))
+			 (method-module method))))
+	  (let ((amod (cdr (assq (method-module method)
+				 (modmorph-module map)))))
+	    (if amod
+		(setq newmod amod)
+	      (setq newmod
+		(create-dummy-module-then-map map
+					      (method-module method)
+					      (list ':op
+						    (operator-symbol op)
+						    op-name)))))
+	  ;;
 	  (let ((arity (rename-sorts map oldmod newmod
 				     (method-arity method)))
 		(coarity (rename-sort map oldmod newmod
@@ -351,48 +356,50 @@
 	      (unless (find-operator opnm (length arity) newmod)
 		(setq newop (make-operator-internal opnm (length arity) newmod))
 		(setf (operator-theory newop)
-		      (rename-recreate-theory (operator-theory op)))
+		  (rename-recreate-theory (operator-theory op)))
 		(setf (operator-precedence newop)
-		      (operator-precedence op))
+		  (operator-precedence op))
 		(setf (operator-associativity newop)
-		      (operator-associativity op)))
+		  (operator-associativity op)))
 	      (unless (setq newmeth (find-method-in newmod opnm arity coarity))
 		(multiple-value-setq (newop newmeth)
-		  (add-operator-declaration-to-module
-		   opnm arity coarity newmod
-		   (method-constructor method)
-		   (method-behavioural method)
-		   nil ;; (method-coherent method) -- set later
-		   (method-is-user-defined-error-method method)))
-		;; (copy-method-info method newmeth)
+		  (add-operator-declaration-to-module opnm
+						      arity
+						      coarity
+						      newmod
+						      (method-constructor method)
+						      (method-behavioural method)
+						      nil ;; (method-coherent method) -- set later
+						      (method-is-user-defined-error-method method)))
 		(setf (method-supplied-strategy newmeth)
-		      (method-supplied-strategy method))
+		  (method-supplied-strategy method))
 		(setf (method-precedence newmeth)
-		      (method-precedence method))
+		  (method-precedence method))
 		(setf (method-has-memo newmeth)
-		      (method-has-memo method))
+		  (method-has-memo method))
 		(setf (method-is-meta-demod newmeth)
 		  (method-is-meta-demod method))
 		(setf (method-associativity newmeth)
-		      (method-associativity method))
+		  (method-associativity method))
 		(setf (method-theory newmeth)
-		      (rename-recreate-theory
-		       (method-theory method
-				      (module-opinfo-table
-				       (or theory-mod oldmod)))))
+		  (rename-recreate-theory
+		   (method-theory method
+				  (module-opinfo-table
+				   (or theory-mod oldmod)))))
 		(setf (method-derived-from newmeth) method)
 		(setf (method-is-coherent newmeth)
-		      (method-is-coherent method
-					  (module-opinfo-table
-					   (or theory-mod oldmod))))
+		  (method-is-coherent method
+				      (module-opinfo-table
+				       (or theory-mod oldmod))))
 		(compute-method-theory-info-for-matching newmeth)
 		;; (push (cons method newmeth) (modmorph-op map))
 		(if (method-is-user-defined-error-method method)
 		    (push (cons method (cons :simple-error-map newmeth))
 			  (modmorph-op map))
-		    (push (cons method (cons :simple-map newmeth))
-			  (modmorph-op map)))
-		))))))))
+		  (push (cons method (cons :simple-map newmeth))
+			(modmorph-op map)))))))))
+    map))
+
 ;;;
 ;;; TRANSFER-METHOD
 ;;;
@@ -406,12 +413,13 @@
 	  op)
       (setf op (method-operator method from-opinfo))
       (setf new-opinfo
-	    (dolist (x (module-all-operators module) nil)
-	      (when (and (operator-eql op (opinfo-operator x))
-			 (is-in-same-connected-component* (method-coarity method)
-							  (method-coarity (car (opinfo-methods x)))
-							  so))
-		(return x))))
+	(and op
+	     (dolist (x (module-all-operators module) nil)
+	       (when (and (operator-eql op (opinfo-operator x))
+			  (is-in-same-connected-component* (method-coarity method)
+							   (method-coarity (car (opinfo-methods x)))
+							   so))
+		 (return x)))))
       (when *on-modexp-debug*
 	(format t "~&[transfer-method]: transfering ~a from " (operator-symbol op))
 	(print-modexp from-module)
@@ -468,9 +476,10 @@
   (when *on-modexp-debug*
     (format t "~%[reduce-rename-dummy] : ")
     (print-modexp mod) (princ " ==> ") (print-modexp newmod)
+    (format t "~% ... ~a  --> ~a" (module-print-name mod) (module-print-name newmod))
     (format t "~% - map = ") (print-mapping map))
   ;; -------------------------------------------------------
-  (let ((modmap (modmorph-module map))) ; module map
+  (let ((modmap (modmorph-module map)))	; module map
     ;; sort mapping
     (dolist (sm (modmorph-sort map))
       (let ((s1 (car sm))		; source
@@ -479,13 +488,12 @@
 	       (a1 (cdr (assq mod1 modmap)))
 	       (mod2 (sort-module s2)))
 	  (when *on-modexp-debug*
-	    (format t "~& - source = ~a." (string (sort-id s1)))
-	    (print-modexp mod1)
-	    (format t "~& - target = ~a." (string (sort-id s2)))
-	    (print-modexp mod2)
+	    (format t "~& - source = ~a.~a" (string (sort-id s1)) (module-print-name mod1))
+	    ;; (print-modexp mod1)
+	    (format t "~& - target = ~a.~a" (string (sort-id s2)) (module-print-name mod2))
+	    ;; (print-modexp mod2)
 	    (when a1
-	      (format t "~& - module of sort ~a is mapped to " (string (sort-id s1)))
-	      (print-modexp a1)))
+	      (format t "~& - module of sort ~a is mapped to ~a" (string (sort-id s1)) (module-print-name a1))))
 	  ;;
 	  (if (and a1 (not (eq a1 mod2)))
 	      ;; s1.mod1 -> s2.mod2
@@ -499,28 +507,25 @@
 		  (print-modexp a1))
 		(setf (sort-module s2) a1)
 		(add-sort-to-module s2 newmod))
-	      ;; source sort is generated in dummy module.
-	      ;; mod1 is not mapped,
-	      ;; or s1.mod1 -> s2.mod2
-	      ;;       mod1 -> a1 == mod2
-	      (if (module-is-rename-dummy-for mod1 mod)
-		  ;; mod1 == dummy(mod)
-		  (progn
-		    ;; s2.dymmy(mod) ==> s2.newmod
-		    (when *on-modexp-debug*
-		      (format t "~& - changes target module to ")
-		      (print-modexp newmod))
+	    ;; source sort is generated in dummy module.
+	    ;; mod1 is not mapped,
+	    ;; or s1.mod1 -> s2.mod2
+	    ;;       mod1 -> a1 == mod2
+	    (if (or ;; (and a1 (eq a1 mod2))
+		    ;; s1.mod1 -> s2.mod2
+		    ;; mod1 -> a1 = mod2
+		    (module-is-rename-dummy-for mod1 mod))
+		(progn
+		  (when *on-modexp-debug*
+		    (format t "~& - changes target module to ~a" (module-print-name newmod))
 		    (setf (sort-module s2) newmod)
-		    (add-sort-to-module s2 newmod))
-		  ))
-	  )))
+		    (add-sort-to-module s2 newmod))))))))
     ;;
     ;; operator mapping
     ;; (method1 :simple-map . method2)
     (dolist (om (modmorph-op map))
       (let ((method-1 (car om))		; source
-	    (method-2 (cddr om))	; target
-	    )
+	    (method-2 (cddr om)))	; target
 	(let* ((mod1 (method-module method-1))
 	       (a1 (cdr (assq mod1 modmap))))
 	  (if (and a1 
@@ -528,17 +533,13 @@
 	      (progn
 		(setf (method-module method-2) a1)
 		(modmorph-check-rank newmod mod map method-2)
-		(transfer-method newmod mod method-2)
-		)
-	      (if (module-is-rename-dummy-for mod1 mod)
-		  (progn
-		    (setf (method-module method-2) newmod)
-		    (modmorph-check-rank newmod mod map method-2)
-		    (transfer-method newmod mod method-2)
-		    )
-		  )))))
-    
-    ))
+		(transfer-method newmod mod method-2))
+	    (if (or ;; (and a1 (is-dummy-module a1))
+		    (module-is-rename-dummy-for mod1 mod))
+		(progn
+		  (setf (method-module method-2) newmod)
+		  (modmorph-check-rank newmod mod map method-2)
+		  (transfer-method newmod mod method-2)))))))))
 
 ;;; FIX-SORT-RENAMING
 ;;; fix the following situation:

@@ -101,7 +101,7 @@
       ;; update module map mod->newmod
       (if amod
 	  (when (null (cdr amod)) (rplacd amod newmod))
-	  (push (cons mod newmod) (modmorph-module map)))
+	(push (cons mod newmod) (modmorph-module map)))
 
       ;; this makes temporaly generated module for remaing trash away.
       (when (modmorph-is-rename map)

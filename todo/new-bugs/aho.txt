@@ -40,7 +40,7 @@ mod! QUEUE(X :: TRIV) {
 }
 
 --> test cases for checking that
-select QUEUE(NAT)
+select QUEUE(NAT) .
 red rest(rest(put(empty,1))) .
 red get(put(put(empty,1),2)) .
 red get(rest(put(put(empty,1),2))) .
@@ -59,7 +59,7 @@ mod! QUEUEapp(X :: TRIV) {
 --> proving that append is associative:
 -->   append(Q1,append(Q2,Q3)) = append(append(Q1,Q2),Q3)
 --> by induction of the length of Q3
-open QUEUEapp 
+open QUEUEapp .
 ops q1 q2 q3 : -> Qu .
 op e : -> Elt .
 
@@ -79,7 +79,7 @@ close
 make Qnat (QUEUEapp(NAT) * {op put -> (_ _)})
 make QQnat (Qnat * {op append -> (_ _)})
 
-select QQnat
+select QQnat .
 reduce ((empty 1 3 4 3) (empty 3 4 2 34 5)) .
 --> the above works well; but we have the following problem
 

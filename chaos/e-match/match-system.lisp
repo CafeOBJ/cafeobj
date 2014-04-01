@@ -275,13 +275,6 @@ Based on the implementation of OBJ3 system.
   (cond
     ;; [1] t1 is variable
     ((term-is-variable? t1)
-     ;;
-     #||
-     (when (and *one-way-match*
-		(term-is-variable? t2))
-       (return-from !match-decompose-match t))
-     ||#
-     ;;
      ;; OS sort check.
      (if (sort<= (term-sort t2) (term-sort t1) *current-sort-order*)
 	 (progn (push (make-equation t1 t2) (cdr res))

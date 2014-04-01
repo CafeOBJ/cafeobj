@@ -56,7 +56,9 @@
 		       ok?)
 		     t)))))))
 
-;; could improve on this
+;;; could improve on this
+;;; t1 : pattern
+;;; t2 : term
 (defun possibly-matches (t1 t2)
   (declare (type term t1 t2)
 	   (values (or null t)))

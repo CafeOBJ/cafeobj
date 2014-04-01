@@ -81,9 +81,11 @@
   (setq rule (or (cdr (assq ax (module-axioms-to-be-fixed module)))
 		 ax))
   ;;
+  #|| the following are just for testing. forgot to commen out...
   (when (axiom-is-non-exec? ax)
     (setf (axiom-non-exec ax) t)
     (setf (rule-non-exec rule) t))
+  ||#
   ;;
   (let ((lhsv (term-variables (axiom-lhs rule))))
     (declare (type list lhsv))
@@ -109,16 +111,16 @@
     (let ((rhs-vars (term-variables (axiom-rhs rule)))
 	  (cond-vars (term-variables (axiom-condition rule))))
       (declare (type list rhs-vars cond-vars))
-      ;; just for now
-      (cond ((or (not (subsetp rhs-vars lhsv))
-		 (not (subsetp cond-vars lhsv)))
-	     (when *chaos-verbose*
+      (cond ((and lhsv
+		  (or (not (subsetp rhs-vars lhsv))
+		      (not (subsetp cond-vars lhsv))))
+	     (when t			; *chaos-verbose*
 	       (with-output-chaos-warning ()
 		 (princ "the variables in RHS of the axiom : ")
 		 (print-next) (princ "  ")
 		 (print-chaos-object rule)
 		 (print-next)
-		 (princ "is not a subset of variables in LHS, system does not guarantee the result of rewriting.")))
+		 (princ "is not a subset of variables in LHS, system does not guarantee the result of the rewriting.")))
 	     ;; (setf (axiom-kind rule) ':bad-rule)
 	     ;; (setf (axiom-kind ax) ':bad-rule))
 	     (add-rule-to-module module rule)

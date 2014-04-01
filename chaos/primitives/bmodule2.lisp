@@ -1235,7 +1235,7 @@
       (setf (car entry) modexp)
       (return-from modexp-update-name nil))
     (with-output-panic-message ()
-      (format t "modexp-update-name: no such module ~a" modexp)
+      (format t "modexp-update-name: no such module ~a" modval)
       (chaos-error 'panic))))
 
 ;;; *MODEXP-LOCAL-TABLE*
@@ -1402,7 +1402,8 @@
   (setf (module-alias mod) nil)
   (setf (module-symbol-table mod) (make-symbol-table))
   ;; print name
-  (setf (module-print-name mod) (make-module-print-name2 mod))
+  ;; (setf (module-print-name mod) (make-module-print-name2 mod))
+  (setf (module-print-name mod) (make-module-print-name mod))
   ;;
   (clear-tmp-sort-cache)
   (clear-method-info-hash))

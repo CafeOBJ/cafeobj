@@ -841,8 +841,7 @@
 ||#
 
 (defun get-module-imported-parameters* (module res)
-  (declare (type module module)
-	   (type list res))
+  (declare (type list res))
   (unless (module-p module)
     (return-from get-module-imported-parameters* nil))
   ;;

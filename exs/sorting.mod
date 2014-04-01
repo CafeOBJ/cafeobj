@@ -23,8 +23,8 @@ mod* POSET {
   vars E1 E2 E3 : Elt
 
   eq E1 <= E1 = true .
-  cq E1 = E2      if (E1 <= E2) and (E2 <= E1) .
-  cq (E1 <= E3) = true      if (E1 <= E2) and (E2 <= E3) .
+  cq [:nonexec]: E1 = E2  if (E1 <= E2) and (E2 <= E1) .
+  cq [:nonexec]: (E1 <= E3) = true      if (E1 <= E2) and (E2 <= E3) .
 }
 
 -- generic sorting algorithm

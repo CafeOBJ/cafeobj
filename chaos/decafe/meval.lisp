@@ -104,8 +104,7 @@
 		       newmod
 		     (progn
 		       (add-modexp-defn me newmod)
-		       newmod))))))
-      )))
+		       newmod)))))))))
 
 ;;; EVAL-MODEXP* : modexp -> module
 ;;; creates a module from a canonicalized module expression.
@@ -126,19 +125,23 @@
 	
 	;; PLUS
 	((or (%is-plus modexp) (int-plus-p modexp))
-	 (create-plus modexp))
+	 (compile-module (create-plus modexp) t))
 
 	;; RENAME
 	((or (%is-rename modexp) (int-rename-p modexp))
-	 (create-rename modexp))
+	 (compile-module (create-rename modexp) t))
 
 	;; INSTANTIATION
 	((or (%is-instantiation modexp) (int-instantiation-p modexp))
-	 (create-instantiation modexp))
+	 (compile-module (create-instantiation modexp) t))
 	  
 	;; VIEW
 	((%is-view modexp) (complete-view modexp nil))
 	  
+	;; MODULE
+	((module-p modexp)
+	 (compile-module modexp))
+	
 	;; Internal Error!
 	(t (with-output-chaos-error ('invalid-modexp)
 	     (format t "bad modexp form ~s" modexp)))
@@ -405,7 +408,7 @@
 	     (chaos-error 'modexp-error))))
     (cond ((int-rename-p modexp)	; internal evaluated
 	   (let* ((newmod (!create-module modexp))
-		  (target-mod (int-rename-module modexp))
+		  (target-mod (eval-modexp* (int-rename-module modexp)))
 		  (modmap (acons target-mod newmod nil))
 		  (map (create-modmorph modexp
 					(int-rename-sort-maps modexp)
@@ -428,6 +431,7 @@
 		 (with-output-chaos-error ('no-such-module)
 		   (princ "no such module: ")
 		   (print-modexp (%rename-module modexp))))
+	       (setf (%rename-module modexp) target-module)
 	       (let* ((mod target-module)
 		      (ren (if (%is-rmap (%rename-map modexp))
 			       (%rmap-map (%rename-map modexp))

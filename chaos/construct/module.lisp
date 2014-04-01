@@ -247,7 +247,7 @@
 	)
       (mark-module-ready-for-parsing module)
       ;; that's end.
-      )))
+      module)))
 
 ;;;
 ;;; COMPILE-MODULE
@@ -310,8 +310,8 @@
 	  (print-mod-name module *standard-output* t)
 	  (princ " is not compatible.")
 	  (print-next)
-	  (princ "please try `check compatible' command for details."))))
-    ))
+	  (princ "please try `check compatible' command for details.")))))
+  module)
 
 (defun !setup-reduction (mod)
   (declare (type module mod)

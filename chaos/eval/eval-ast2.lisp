@@ -738,7 +738,7 @@
         (terpri stream)
         (princ "|#" stream)
         (format stream "~&(in-package \"CHAOS\")")
-        (format stream "~&(eval-when (eval load)")
+        (format stream "~&(eval-when (:execute :load-toplevel)")
         (format stream "~&;;; system standard prelude.")
         (dolist (elt *system-standard-prelude*)
           (format stream "~&(eval-ast-if-need-no-error '~s)" elt))

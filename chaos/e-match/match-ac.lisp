@@ -819,6 +819,7 @@
 	  ;; quick failure cases.
 	  (unless (and (theory-contains-AC (method-theory lhs-op))
 		       (not (term-is-builtin-constant? rhs-1))
+		       (method-p rhs-op)
 		       (method-is-ac-restriction-of rhs-op lhs-op))
 	    ;; is the first condition really need?
 	    ;; (format t "~&failure case #1")

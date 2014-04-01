@@ -607,7 +607,11 @@
 
 (defun print-view-struct-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "#<view ~a : ~x>" (view-struct-name obj) (addr-of obj)))
+  (format stream "#<view ~a: ~s => ~s | ~s>"
+	  (view-struct-name obj)
+	  (view-struct-src obj)
+	  (view-struct-target obj)
+	  (addr-of obj)))
 
 
 ;;; EOF

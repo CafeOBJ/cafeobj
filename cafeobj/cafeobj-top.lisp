@@ -227,6 +227,10 @@
   `(handler-bind ((error #'abort))
      ,@forms))
 
+(defun resume-cafeobj (&rest ignore)
+  (declare (ignore ignore))
+  (throw *top-level-tag* nil))
+
 (defun cafeobj-top-level ()
   ;; dirty kludge!!
   (setq *print-pretty* nil)
@@ -241,7 +245,7 @@
   #+(or CCL allegro)
   (set-cafeobj-standard-library-path)
   ;;
-  (with-simple-restart (abort "Sorry... we must abort.")
+  (with-simple-restart (continue "Continues ....")
     (let ((res (catch *top-level-tag* (cafeobj) 'ok-exit)))
       (if (eq res 'ok-exit)
 	  (bye-bye-bye)
