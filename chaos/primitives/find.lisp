@@ -206,6 +206,7 @@
 		       (with-output-chaos-warning ()
 			 (princ "in module ")
 			 (print-chaos-object module)
+			 (break "...")
 			 (format t ", sort name ~a is ambiguous:"
 				 (string sort-id))
 			 (setq am (reverse am))

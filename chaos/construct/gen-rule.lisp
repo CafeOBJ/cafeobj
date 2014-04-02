@@ -270,6 +270,8 @@
 	   (type method method)
 	   (type axiom r)
 	   (values t))
+  (when (term-is-lisp-form? (rule-rhs r))
+    (return-from add-associative-extensions nil))
   (when (method-is-associative method)
     (dolist (method-above (list-associative-method-above method))
       (unless (or (method-is-error-method method-above)

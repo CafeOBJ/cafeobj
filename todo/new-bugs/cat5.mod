@@ -20,6 +20,8 @@
 -- Razvan
 -- ---------------------------------
 -- basic code for categories
+set auto context on
+
 mod BASIC-CAT {
 
   [ Obj Arr ]
@@ -278,3 +280,4 @@ mod* ADJUNCTION
 
 -- proof that the composition of two adjunctions is an adjunction
 
+set auto context off

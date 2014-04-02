@@ -70,7 +70,7 @@
 
 (eval-when (:execute :load-toplevel)
   (setq chaos::*make-bigpink* :BIGPINK)
-  (push :chaos-debug *features*)
+  ;; (push :chaos-debug *features*)
   (push :bigpink *features*))
 
 #-:ASDF

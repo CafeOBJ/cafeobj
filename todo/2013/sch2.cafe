@@ -10,7 +10,7 @@ mod! TEST2 {
 }
 eof
 
-open TEST .
+open TEST2 .
   var N : Nat .
   var S : Sys .
   red (0 1 2) =(*,*)=>* (N S) .

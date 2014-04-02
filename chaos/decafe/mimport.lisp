@@ -311,11 +311,14 @@
 	(dolist (opinfo opinfos)
 	  (transfer-operator module submodule opinfo nil theory-mod))
 	)
-      #||
+      ;; #||
       ;; import error operators which might be reused.
+      ;; (dolist (em (module-error-methods submodule))
+      ;; (when (method-is-user-defined-error-method em)
+      ;;   (pushnew em (module-error-methods module) :test #'eq)))
       (dolist (em (module-error-methods submodule))
-	(pushnew em (module-error-methods module) :test #'eq))
-      ||#
+	  (pushnew em (module-error-methods module) :test #'eq))
+      ;; ||#
       ;; user defined error ops -----
       #||
       (when (module-error-op-decl submodule)
@@ -324,9 +327,10 @@
 	  (nconc (module-error-op-decl module)
 		 (copy-tree (module-error-op-decl submodule)))))
       ||#
+      #||
       (dolist (edecl (module-error-op-decl submodule))
 	(eval-ast edecl))
-
+      ||#
       ;; import macros
       (dolist (macro (module-macros submodule))
 	(add-macro-to-module module macro))

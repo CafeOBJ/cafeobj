@@ -32,7 +32,6 @@ sys:mod! NZNAT
     eq [:BDEMOD]: (NN > NM) = #! (> nn nm) .
     eq [:BDEMOD]: (NN >= NM) = #! (>= nn nm) .
     eq [:BDEMOD]: (s NN) = #! (1+ nn) .
-    eq [ident0]: (1 * X-ID:NzNat) = X-ID .
   }
 }
 

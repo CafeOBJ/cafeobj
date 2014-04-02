@@ -73,6 +73,7 @@ mod! CAT2 {
 }  
 red << 1 ; 2 ; 2 >> ; << 2 ; 3 ; 3 >> .
 red << 1 ; 2 ; 2 >> ; << 3 ; 3 ; 3 >> .
+eof
 red << 1 ; 2 ; 2 >> ; << 2 ; 0 ; 2 >> .
 
 view cat2 from CATEGORY to CAT2 {
