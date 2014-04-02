@@ -424,16 +424,14 @@
 	   (type list giv-lits)
 	   (type (or null clause) giv-sat)
 	   (type symbol inf-id)
-	   (type (or null fixnum) nuc-pos)
-	   (values list))
+	   (type (or null fixnum) nuc-pos))
   (let ((clashes nil)
 	(list-resolvent nil)
 	(backup nil)
 	(c-end nil))
     (declare (type (or null clash) clashes)
 	     (type list list-resolvent)
-	     (type (or null clash) c-end)
-	     )
+	     (type (or null clash) c-end))
     ;;
     (loop
       (if (not backup)
@@ -489,9 +487,7 @@
 		      (is-true? inst)))
 		  (setf (clash-already-evaluated clashes) nil)))
 	      ;; initialize clashsable list
-	      (setf (clash-clashables clashes) nil)
-	      )
-	    )
+	      (setf (clash-clashables clashes) nil)))
 	;;
 	;; else backup
 	;;
@@ -515,8 +511,7 @@
 	    ;; try again
 	    (unless (clash-evaluable clashes)
 	      (setf (clash-subst clashes) nil))
-	    (setq backup nil)))
-	)
+	    (setq backup nil))))
       ;;
       (unless backup
 	(if (clash-evaluable clashes)
@@ -856,8 +851,7 @@
 	(clash-start nil)
 	(last-clash nil)
 	(nuc-literals nil)
-	(nuc-pos 0)
-	)
+	(nuc-pos 0))
     (setq num-lits (num-literals clause))
     (when (= 0 num-lits)
       (return-from ur-resolution nil))
@@ -1156,8 +1150,7 @@
 ;;; FIRST-FACTOR (clause)
 ;;;
 (defun next-factor (f-struct)
-  (declare (type factor f-struct)
-	   (values (or null clause)))
+  (declare (type factor f-struct))
   (let ((factored nil)
 	(a-factor nil)
 	(subst nil)

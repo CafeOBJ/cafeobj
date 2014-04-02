@@ -275,7 +275,7 @@
 	   )
       ;; (format t "~&--- category -- ~s" cat)
       (if keyword
-	  ` (eval-when (eval compile load)
+	  ` (eval-when (:execute :compile-toplevel :load-toplevel)
 	      (let ((*package *keyword-package*))
 		(setf (get ',type-name ':category) ,cat)
 		(defun ,type-name () ,type-name)
@@ -289,7 +289,7 @@
 		||#
 		))
 	    ;;
-	    ` (eval-when (eval compile load)
+	    ` (eval-when (:execute :compile-toplevel :load-toplevel)
 		(defparameter,type-name ',type-name)
 		(setf (get ',type-name ':chaos-slots) ',slots)
 		(setf (get ',type-name ':visible-slots) ',visible)

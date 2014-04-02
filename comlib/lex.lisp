@@ -633,8 +633,7 @@
 ;;; read up to matching close parenthesis
 ;;;
 (defun lex-read-list (&optional (stream *standard-input*))
-  (declare (type stream stream)
-	   (values list))
+  (declare (type stream stream))
   (reader-get-char stream)
   (lex-read-rest-of-list stream))
 

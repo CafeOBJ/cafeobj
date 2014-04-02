@@ -734,14 +734,12 @@
 
 (defun compute-var-for-identity-completions (term donesubst)
   (declare (type term term)
-	   (type list donesubst)
-	   (values list))
+	   (type list donesubst))
   (select-var-for-identity-completions term donesubst))
 
 (defun select-var-for-identity-completions (term donesubst)
   (declare (type term term)
-	   (type list donesubst)
-	   (values list))
+	   (type list donesubst))
   (cond ((or (term-is-variable? term) (term-is-constant? term)) nil)
 	(t (let* ((meth (term-head term))
 		  (thy (method-theory meth))
@@ -750,34 +748,32 @@
 		  (id (if id-flag (car (theory-zero thy)))))
 	     (if id
 		 (select-var-for-identity-completions-alt2 meth id term donesubst)
-		 (dolist (sb (term-subterms term))
-		   (let ((val (select-var-for-identity-completions sb donesubst)))
-		     (when val (return val)))))))))
+	       (dolist (sb (term-subterms term))
+		 (let ((val (select-var-for-identity-completions sb donesubst)))
+		   (when val (return val)))))))))
 
 (defun select-var-for-identity-completions-alt2 (meth id term donesubst)
   (declare (type method meth)
 	   (type t id)
 	   (type term term)
-	   (type list donesubst)
-	   (values list))
+	   (type list donesubst))
   (let ((val1 (select-var-for-identity-completions-alt meth
 						       id
 						       (term-arg-1 term)
 						       donesubst)))
     (if val1
 	val1
-	(let ((val2 (select-var-for-identity-completions-alt meth
-							     id
-							     (term-arg-2 term)
-							     donesubst)))
-	  val2))))
+      (let ((val2 (select-var-for-identity-completions-alt meth
+							   id
+							   (term-arg-2 term)
+							   donesubst)))
+	val2))))
 
 (defun select-var-for-identity-completions-alt (meth id term donesubst)
   (declare (type method meth)
 	   (type t id)
 	   (type term term)
-	   (type list donesubst)
-	   (values list))
+	   (type list donesubst))
   (cond ((term-is-variable? term)
 	 (let ((srt (variable-sort term))
 	       (so (module-sort-order *current-module*)))
@@ -902,21 +898,19 @@
 
 ;;; cond as list of substitutions
 (defun make-improved-id-cond (cond)
-  (declare (type (or null term) cond)
-	   (values (or null term)))
+  (declare (type (or null term) cond))
   (if cond
       (let ((atomic (compute-atomic cond)))
 	(improve-id-cnd (elim-supersets	(canonicalize-atomic cond atomic))))
-      nil))
+    nil))
 
 ;;; c assumed canonicalized and in DNF
 ;;; result is and/or/equal expression
 (defun improve-id-cnd (c)
-  (declare (type list c)
-	   (values list))
+  (declare (type list c))
   (if (null (cdr c))
-    (rule-make-and-list
-     (mapcar #'rule-make-eqeqeq (car c)))
+      (rule-make-and-list
+       (mapcar #'rule-make-eqeqeq (car c)))
     (let ((freqs (compute-atomic-freq c))
 	  max
 	  nxt
@@ -939,22 +933,19 @@
 		  (if (null res)
 		      (setq flag nil
 			    p1 nil)
-		      (push res p1))))
-	      (push s p2))))
+		    (push res p1))))
+	    (push s p2))))
       (when (and p1 (null flag)) (break "ERR"))
       (if p1
 	  (setq p1 (improve-id-cnd p1))
-	  (setq p1 t))
+	(setq p1 t))
       (when p2 (setq p2 (improve-id-cnd p2)))
-      (rule-make-or-cond
-       (rule-make-and-cond (rule-make-eqeqeq nxt) p1)
-       p2)
-      )))
+      (rule-make-or-cond (rule-make-and-cond (rule-make-eqeqeq nxt) p1)
+			 p2))))
 
 ;;; arg is list of substs
 (defun compute-atomic (expr)
-  (declare (type list expr)
-	   (values list))
+  (declare (type list expr))
   (let ((res nil))
     (dolist (x expr)
       (dolist (y x)
@@ -1050,8 +1041,7 @@
 	nil)))
 
 (defun normalize-for-identity-total (tm)
-  (declare (type term tm)
-	   (values term))
+  (declare (type term tm))
   (theory-standard-form (normalize-for-identity tm)))
 
 ;;; rules for and or not == =/= identical nonidentical must not have conditions
@@ -1089,8 +1079,7 @@
   tm)
 
 (defun normalize-for-identity (term)
-  (declare (type term term)
-	   (values term))
+  (declare (type term term))
   (cond ((or (term-is-variable? term) (term-is-constant? term))
 	 term)
 	(t (let* ((meth (term-head term))
@@ -1108,9 +1097,8 @@
 	     (if id
 		 (if (term-is-similar? (car subs) id)
 		     (cadr subs)
-		     (if (term-is-similar? (cadr subs) id)
-			 (car subs)
-			 (make-term-with-sort-check meth subs)))
-		 (make-term-with-sort-check meth subs))
-	     ))))
+		   (if (term-is-similar? (cadr subs) id)
+		       (car subs)
+		     (make-term-with-sort-check meth subs)))
+	       (make-term-with-sort-check meth subs))))))
 ;;; EOF

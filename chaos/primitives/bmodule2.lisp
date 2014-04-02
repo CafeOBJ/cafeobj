@@ -147,8 +147,7 @@
 ;;; for downward compatibility
 ;;;
 (defun module-direct-submodules (module)
-  (declare (type module module)
-	   (values list))
+  (declare (type module module))
   (delete-if #'(lambda (x)
 		 (memq (cdr x) '(:modmorph :view)))
 	     (the list
@@ -828,7 +827,7 @@
 (defun add-module-alias (module submod alias)
   (when (rassoc alias (module-alias module) :test #'equal)
     (with-output-chaos-error ('invalid-alias)
-      (format t "Alias name ~A is already used for module "
+      (format t "Alias name ~A is already used for module ~A."
 	      alias
 	      (get-module-print-name submod))))
   (push (cons submod alias) (module-alias module)))

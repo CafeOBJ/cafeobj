@@ -26,14 +26,13 @@
   (module nil :type (or null module))	; context module
   (sort nil :type (or null sort*))	; sort of object
   (predicate nil :type (or null method)) ; predicate representing invariance
-  (initial-state nil :type term)	; initial state constant term
+  (initial-state nil :type (or null term)) ; initial state constant term
   (object nil :type term)		; term representing target object
   (methods nil :type list)		; methods w.r.t. hidden sort
   (goals nil :type list)		; goals to be proved
   (conditions nil :type list)		; filed goals
   (after-loop 0 :type fixnum)		; loop start point
-  (after-num  0 :type fixnum)
-  )
+  (after-num  0 :type fixnum))
 
 (defun pn-get-meth-unique (module opname)
   (declare (type module module)
@@ -393,8 +392,7 @@
 	(sort (inv-check-system-sort check-sys))
 	(success nil)
 	(skip-l (inv-check-system-after-loop check-sys))
-	(skip-num (inv-check-system-after-num check-sys))
-	)
+	(skip-num (inv-check-system-after-num check-sys)))
     (with-in-module (module)
       (case type
 	((:from :of)
@@ -772,8 +770,7 @@
 			(simple-parse target-module object-pat)
 		      nil))
 	    (hsort nil)
-	    (check-sys nil)
-	    )
+	    (check-sys nil))
 	(declare (type fixnum loop-after loop-after-sub))
 	;;
 	(unless (sort= (method-coarity predicate)
@@ -850,9 +847,7 @@
 	  (unless *chaos-quiet*
 	    (when (pn-flag print-stats)
 	      (with-output-simple-msg ()
-		(format t "(grand total time ~a)" grand-total))))
-	  )
-	))))
+		(format t "(grand total time ~a)" grand-total)))))))))
 
 ;;; PN-CHECK-SAFETY
 ;;;

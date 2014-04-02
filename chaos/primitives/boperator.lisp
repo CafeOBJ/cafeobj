@@ -314,8 +314,7 @@
 	(t (break "Internal error: invalid op-nam ~S" op-nam))))
 
 (defun cmake-operator-print-name (operator)
-  (declare (type operator operator)
-	   (values simple-string))
+  (declare (type operator operator))
   (let ((nam (operator-name operator))
 	(mixfix (operator-is-mixfix operator)))
     (if mixfix
@@ -896,8 +895,7 @@
 (defun get-method-precedence (method &optional
 				     (method-info-tab *current-opinfo-table*))
   (declare (type method method)
-	   (type hash-table method-info-tab)
-	   (values fixnum))
+	   (type hash-table method-info-tab))
   (or (the (or null fixnum) (method-precedence method))
       (the (or null fixnum) (operator-computed-precedence
 			     (method-operator method method-info-tab)))

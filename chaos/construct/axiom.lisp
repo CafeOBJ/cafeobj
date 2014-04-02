@@ -515,21 +515,20 @@
 
 (defun term-copy-id-cond (tm vars)
   (declare (type (or null term) tm)
-	   (type list vars)
-	   (values (or null term)))
+	   (type list vars))
   (cond
-    ((null tm) nil)
-    ((term-is-variable? tm)
-     (let ((val (assoc tm vars)))
-       (if val (cdr val)
-	 (variable-copy tm) ; This should never occur
-	 )))
-    (t (make-applform (method-coarity (term-method tm))
-		      (term-method tm)
-		      (mapcar #'(lambda (stm)
-				  (term-copy-id-cond stm vars))
-			      (term-subterms tm))))
-    ))
+   ((null tm) nil)
+   ((term-is-variable? tm)
+    (let ((val (assoc tm vars)))
+      (if val
+	  (cdr val)
+	(variable-copy tm)		; This should never occur
+	)))
+   (t (make-applform (method-coarity (term-method tm))
+		     (term-method tm)
+		     (mapcar #'(lambda (stm)
+				 (term-copy-id-cond stm vars))
+			     (term-subterms tm))))))
 
 
 ;;; ******************
@@ -753,8 +752,7 @@
 				&optional (opinfo-table *current-opinfo-table*))
   (declare (type axiom rule)
 	   (type method method)
-	   (type hash-table opinfo-table)
-	   (values t))
+	   (type hash-table opinfo-table))
   ;; set trans-rule flag.
   (when (eq (axiom-type rule) :rule)
     (setf (method-has-trans-rule method opinfo-table) t))
@@ -814,8 +812,7 @@
 ;;;
 (defun get-rule-numbered (mod n)
   (declare (type module mod)
-	   (type fixnum n)
-	   (values axiom))
+	   (type fixnum n))
   (!setup-reduction mod)
   (when (<= n 0)
     (with-output-chaos-error ()
@@ -845,8 +842,7 @@
 
 (defun get-rule-labelled (mod l)
   (declare (type module mod)
-	   (type (or symbol simple-string) l)
-	   (values axiom))
+	   (type (or symbol simple-string) l))
   (let ((val (get-all-rules-labelled mod l)))
     (if (null val)
 	(with-output-chaos-error ()
@@ -866,19 +862,18 @@
 ;;;
 
 (defun make-rule-reverse (rule)
-  (declare (type axiom rule)
-	   (values axiom))
+  (declare (type axiom rule))
   (if (rule-is-builtin rule)
       rule
-      (make-rule :lhs (axiom-rhs rule)
-		 :rhs (axiom-lhs rule)
-		 :condition (axiom-condition rule)
-		 :labels (axiom-labels rule)
-		 :kind (axiom-kind rule)
-		 :type (axiom-type rule)
-		 ;; :meta-and-or (axiom-meta-and-or rule)
-		 ;; :no-method-computation t
-		 )))
+    (make-rule :lhs (axiom-rhs rule)
+	       :rhs (axiom-lhs rule)
+	       :condition (axiom-condition rule)
+	       :labels (axiom-labels rule)
+	       :kind (axiom-kind rule)
+	       :type (axiom-type rule)
+	       ;; :meta-and-or (axiom-meta-and-or rule)
+	       ;; :no-method-computation t
+	       )))
 
 (defun make-rule-instance (rule subst)
   (declare (type axiom rule)

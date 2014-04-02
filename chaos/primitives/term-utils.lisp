@@ -788,8 +788,7 @@
 (defun make-term-check-op (f subterms &optional module)
   (declare (type method f)
 	   (type list subterms)
-	   (type (or null module) module)
-	   (values term))
+	   (type (or null module) module))
   (make-term-with-sort-check f subterms module))
 
 ;;; op make-term-check-op-with-sort-check :
@@ -813,8 +812,7 @@
 							*last-module*)))
   (declare (type method meth)
 	   (type list subterms)
-	   (type module module)
-	   (values term))
+	   (type module module))
   (let ((res nil))
     (if (do ((arl (method-arity meth) (cdr arl))
 	     (sl subterms (cdr sl)))
@@ -887,8 +885,7 @@
 (defun list-assoc-subterms-aux (term method lst)
   (declare (type term term)
 	   (type method method)
-	   (type list lst)
-	   (values list))
+	   (type list lst))
   (let ((body (term-body term)))
     (if (term$is-application-form? body)
 	(progn
@@ -930,15 +927,13 @@
 
 (defun list-assoc-id-subterms (term method)
   (declare (type term term)
-	   (type method method)
-	   (values list))
+	   (type method method))
   (list-assoc-id-subterms-aux term method nil))
 
 (defun list-assoc-id-subterms-aux (term method lst)
   (declare (type term term)
 	   (type method method)
-	   (type list lst)
-	   (values list))
+	   (type list lst))
   (let ((body (term-body term)))
     (if (term$is-variable? body)
 	(cons term lst)
@@ -993,15 +988,13 @@
 #+GCL
 (defun list-AC-subterms (term method)
   (declare (type term term)
-	   (type method method)
-	   (values list))
+	   (type method method))
   (list-ac-subterms-aux term method nil))
 
 (defun list-AC-subterms-aux (term method lst)
   (declare (type term term)
 	   (type method method)
-	   (type list lst)
-	   (values list))
+	   (type list lst))
   (let ((body (term-body term)))
     (if (term$is-application-form? body)
 	(if (method-is-ac-restriction-of (term$head body) method)
@@ -1016,13 +1009,11 @@
 #-GCL
 (defun list-AC-subterms (term method)
   (declare (type term term)
-		      (type method method)
-		      (values list))
+		      (type method method))
   (labels ((list-subs (term method lst)
 	     (declare (type term term)
 		      (type method method)
-		      (type list lst)
-		      (values list))
+		      (type list lst))
 	     (let ((body (term-body term)))
 	       (if (term$is-application-form? body)
 		   (if (method-is-ac-restriction-of (term$head body) method)
@@ -1045,15 +1036,13 @@
 #+GCL
 (defun list-ACZ-subterms (term meth)
   (declare (type term term)
-	   (type method meth)
-	   (values list))
+	   (type method meth))
   (list-ACZ-subterms-aux term meth nil))
 
 (defun list-ACZ-subterms-aux (term method lst)
   (declare (type term term)
 	   (type method method)
-	   (type list lst)
-	   (values list))
+	   (type list lst))
   (let ((body (term-body term)))
     (if (term$is-variable? body)
 	(cons term lst)
@@ -1072,31 +1061,29 @@
 #-GCL
 (defun list-ACZ-subterms (term meth)
   (declare (type term term)
-	   (type method meth)
-	   (values list))
+	   (type method meth))
   (labels ((list-subs (term method lst)
 	     (declare (type term term)
 		      (type method method)
-		      (type list lst)
-		      (values list))
+		      (type list lst))
 	     (let ((body (term-body term)))
 	       (if (term$is-variable? body)
 		   (cons term lst)
-		   (if (term-is-zero-for-method term method)
-		       lst
-		       (if (term$is-application-form? body)
-			   (if ;; (method-is-ac-restriction-of (term$head body)
-			       ;;				    method)
-			    (method-is-of-same-operator (term$head body)
-							method)
-			    ;; then the operator is binary of course
-			       (list-subs (term$arg-1 body)
-					  method
-					  (list-subs (term$arg-2 body)
-						     method
-						     lst))
-			       (cons term lst))
-			   (cons term lst)))))))
+		 (if (term-is-zero-for-method term method)
+		     lst
+		   (if (term$is-application-form? body)
+		       (if ;; (method-is-ac-restriction-of (term$head body)
+			   ;;				    method)
+			   (method-is-of-same-operator (term$head body)
+						       method)
+			   ;; then the operator is binary of course
+			   (list-subs (term$arg-1 body)
+				      method
+				      (list-subs (term$arg-2 body)
+						 method
+						 lst))
+			 (cons term lst))
+		     (cons term lst)))))))
     ;;
     (list-subs term meth nil)))
 
@@ -1109,8 +1096,7 @@
 ;;;
 (defun make-right-assoc-normal-form (meth subterms)
   (declare (type method meth)
-	   (type list subterms)
-	   (values term))
+	   (type list subterms))
   #||
   (when *term-debug*
     (format t "~&make-right-assoc-normal-form:")
@@ -1142,13 +1128,13 @@
 	   (values term))
   (if (= 1 (length subterms))
       (car subterms)
-      (if (= 2 (length subterms))
-	  (make-term-with-sort-check-bin meth subterms)
-	  (make-term-with-sort-check-bin
-	   meth
-	   (list (car subterms)
-		 (make-right-assoc-normal-form-with-sort-check meth
-							       (cdr subterms)))))))
+    (if (= 2 (length subterms))
+	(make-term-with-sort-check-bin meth subterms)
+      (make-term-with-sort-check-bin
+       meth
+       (list (car subterms)
+	     (make-right-assoc-normal-form-with-sort-check meth
+							   (cdr subterms)))))))
 
 ;;; RIGHT-ASSOCIATIVE-NORMAL-FORM : TERM -> TERM
 ;;; Reconstruct the subterms to be right associative iff the head operator has
@@ -1160,8 +1146,7 @@
 ;;; which represent the associative class.
 
 (defun right-associative-normal-form (t1)
-  (declare (type term t1)
-	   (values term))
+  (declare (type term t1))
   ;; (format t "~&ranf: ")
   ;; (term-print t1)
   (let ((body (term-body t1)))
@@ -1208,8 +1193,7 @@
 ||#
 
 (defun right-associative-id-normal-form (t1)
-  (declare (type term t1)
-	   (values term))
+  (declare (type term t1))
   (if (term-is-applform? t1)
       (let ((meth (term-head t1)))
 	(if (theory-contains-az (method-theory meth))
@@ -1217,15 +1201,14 @@
 	     meth
 	     (mapcar #'right-associative-id-normal-form
 		     (list-assoc-id-subterms t1 meth)))
-	    t1))
-      t1))
+	  t1))
+    t1))
 
 ;;; ID-NORMAL-FORM : term -> term
 ;;; returns the term simplified by considering identity theory among subterms.
 ;;;
 (defun id-normal-form (t1)
-  (declare (type term t1)
-	   (values term))
+  (declare (type term t1))
   (let ((body (term-body t1)))
     (cond ((term$is-constant? body) t1)
 	  ((term$is-variable? body) t1)
@@ -1246,13 +1229,12 @@
 
 (defun filter-zero (method subterms)
   (declare (type method method)
-	   (type list subterms)
-	   (values (or null term)))
+	   (type list subterms))
   (when subterms
     (if (term-is-zero-for-method (car subterms) method)
 	(filter-zero method (cdr subterms))
-	(cons (car subterms)
-	      (filter-zero method (cdr subterms))))))
+      (cons (car subterms)
+	    (filter-zero method (cdr subterms))))))
 
 
 ;;; **********
@@ -1326,8 +1308,7 @@
 ;;; TERM is supposed of the application form f(t1,...,tn).
 ;;;
 (defun theory-standard-form (term)
-  (declare (type term term)
-	   (values term))
+  (declare (type term term))
   (let ((body (term-body term)))
     (if (term$is-application-form? body)
 	(let* ((f (term$head body))
@@ -1364,24 +1345,22 @@
 			   )))
 	    (if val
 		val
-		(make-applform (method-coarity f) f subterms))))
-	term)))
+	      (make-applform (method-coarity f) f subterms))))
+      term)))
 
 (defun A-idempotent-normal-form (f t1 t2)
   (declare (type method f)
-	   (type term t1 t2)
-	   (values term))
+	   (type term t1 t2))
   (if (term-is-similar? t1 t2)
       t1
-      (make-applform (method-coarity f) f (list t1 t2))))
+    (make-applform (method-coarity f) f (list t1 t2))))
 
 (defun AC-idempotent-normal-form (f t1 t2)
   (declare (type method f)
-	   (type term t1 t2)
-	   (values term))
+	   (type term t1 t2))
   (if (term-is-similar? t1 t2)
       t1
-      (make-applform (method-coarity f) f (list t1 t2))))
+    (make-applform (method-coarity f) f (list t1 t2))))
 
 ;;; **********
 ;;; MISC UTILS------------------------------------------------------------------
@@ -1404,13 +1383,12 @@
   `(term-methods ,term))
 
 (defun clean-term (term)
-  (declare (type term term)
-	   (values term))
+  (declare (type term term))
   (if (term-is-application-form? term)
       (make-applform (method-coarity (term-head term))
 		     (term-head term)
 		     (mapcar #'clean-term (term-subterms term)))
-      term))
+    term))
 
 (defun term-make-zero (method)
   (declare (type method method)

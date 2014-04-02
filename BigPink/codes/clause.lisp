@@ -61,8 +61,7 @@ File:formula.lisp
 ;;; 3. lexical ordering (see. compare term)
 ;;;
 (defun compare-literal (l1 l2)
-  (declare (type literal l1 l2)
-           (values symbol))
+  (declare (type literal l1 l2))
   (if (and (positive-literal? l1)
            (negative-literal? l2))
       :greater
@@ -137,15 +136,11 @@ File:formula.lisp
                    ||#
                    (dolist (clause (psystem-axioms psys))
                      (when (eq (clause-axiom clause) ax)
-                       (push clause clauses)))
-                   )
-                 ))
+                       (push clause clauses))))))
               ;;
               (t (with-output-chaos-error ('internal-error)
-                   (format t "find-clause got illegual arg ~a" id))
-                 ))
+                   (format t "find-clause got illegual arg ~a" id))))
         clauses))))
-
 
 ;;; CLEAR-CLAUSE-HASH
 ;;; clean up clause hash table
@@ -1147,17 +1142,15 @@ File:formula.lisp
     (setf (svref .map-array. x) nil))
   (if (map-rest c d nil)
       (progn
-        ;; every literal of c matches some literal of d
-        ;; thus c subsumes d.
+	;; every literal of c matches some literal of d
+	;; thus c subsumes d.
         (when (pn-flag debug-infer)
           (with-output-simple-msg ()
             (princ "*subsume?: ")
             (print-clause c)
             (print-next) (princ " => ")
             (print-next)
-            (print-clause d)
-            )
-          )
+            (print-clause d)))
         t)
     nil))
 
@@ -1165,8 +1158,7 @@ File:formula.lisp
 ;;; attemps to find a clause that subsumes given clause.
 ;;;
 (defun for-sub-prop (d)
-  (declare (type clause d)
-           (values (or null clause)))
+  (declare (type clause d))
   (dolist (c *usable*)
     (declare (type clause c))
     (when (ordered-sub-clause c d)

@@ -76,13 +76,6 @@
 ;;;   generated as an instace of term with gensort as its body part.
 ;;;-----------------------------------------------------------------------------
 
-#||
-(defterm sort (sort-struct)
-  :visible (id &optional hidden)
-  :int-printer print-sort-object
-  :print print-sort-internal)
-||#
-
 (defstruct (sort* (:include sort-struct (-type 'sort))
 		  (:conc-name "SORT-")
 		  (:copier nil)
@@ -141,28 +134,12 @@
       :h
       :v))
 
-#||
-(defun print-sort-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (format stream ":sort[\"~s\" (~a)]"
-	  (string (sort-id obj))
-	  (sort-visible-type obj)))
-||#
-
 (defun print-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
   (let ((name (concatenate 'string (string (sort-id obj)) "." (module-print-name (sort-module obj)))))
     (if (sort-is-hidden obj)
 	(format stream ":hsort[~s]" name)
       (format stream ":sort[~s]" name))))
-
-;;; (defmacro sort-p (_object) `(sort-struct-p ,_object))
-
-#|
-(defmacro is-sort-term (term)
-  (once-only (term)
-    `(and (term? ,term) (sort-struct-p (term-body ,term)))))
-|#
 
 ;;; Constructor ----------------------------------------------------------------
 (defun new-general-sort (id module &optional hidden)
@@ -227,21 +204,6 @@
 ;;; template term (generalizing constructor terms in axioms).
 ;;; 
 
-#||
-(defterm crsort (sort)
-  :visible (id &optional hidden)
-  :hidden (slots			; slot informations.
-	   idconstr			; id constructor info.
-	   constr			; term constructor method.
-	   maker			; list of methods for `make.Foo'
-					; operations. 
-	   copy				; t iff the sort is a copy.
-	   )
-  :int-printer print-cr-sort-object
-  :print print-sort-internal
-  )
-||#
-
 (defstruct (crsort (:include sort* (-type 'crsort))
 		   (:copier nil)
 		   (:constructor make-crsort)
@@ -261,27 +223,12 @@
   (setf (get 'crsort :type-predicate) (symbol-function 'crsort-p))
   )
 
-#||
 (defun print-cr-sort-object (obj stream &rest ignore)
-  (declare (ignore ignore)
-	   (type crsort obj)
-	   (type stream stream)
-	   (values t))
-  (format stream "[:~a ~a]"
-	  (object-type obj)
-	  (string (sort-id obj))
-	  (addr-of obj)))
-||#
-(defun print-cr-sort-object (obj stream &rest ignore)
-  (print-sort-object obj stream))
+  (print-sort-object obj stream ignore))
 
 ;;; Class sort _________________
 ;;;           
-#||
-(defterm class-sort (crsort) :visible (id &optional hidden)
-	 :int-printer print-class-sort-object
-	 :print print-sort-internal)
-||#
+
 (defstruct (class-sort (:include crsort (-type 'class-sort))
 		       (:copier nil)
 		       (:constructor make-class-sort)
@@ -294,22 +241,10 @@
   (setf (symbol-function 'is-class-sort) (symbol-function 'class-sort-p))
   (setf (get 'class-sort :print) 'print-sort-internal))
 
-#||
-(defun print-class-sort-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (format stream "[:class-sort ~a]" (sort-id obj)))
-||#
-
 (defun print-class-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
 
 ;;; Record sort ________________
-
-#||
-(defterm record-sort (crsort) :visible (id &optional hidden)
-	 :int-printer print-record-sort-object
-	 :print print-sort-internal)
-||#
 
 (defstruct (record-sort (:include crsort (-type 'record-sort))
 			(:constructor make-record-sort)
@@ -325,17 +260,12 @@
   (setf (symbol-function 'is-record-sort)
 	(symbol-function 'record-sort-p)))
 
-#||
-(defun print-record-sort-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (format stream "[:record-sort ~a]" (sort-id obj)))
-||#
 (defun print-record-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
 
 ;;; Primitive structure accessors ----------------------------------------------
 
-;;;(defmacro crsort-slots (_s) `(%crsort-slots ,_s))
+;;; (defmacro crsort-slots (_s) `(%crsort-slots ,_s))
 ;;; (defmacro crsort-id (_s) `(crsort-idconstr ,_s))
 ;;; (defmacro crsort-constr (_s) `(crsort-constr ,_s))
 (defmacro crsort-constr-method (_s) `(crsort-constr ,_s)) ; synonym
@@ -445,13 +375,6 @@
 ;;; additional slot:
 ;;;  info -- BSORT-INFO see below for the definition.
 ;;;
-#||
-(defterm bsort (sort)
-  :visible (id &optional hidden)
-  :hidden (info)
-  :int-printer print-bsort-object
-  :print print-bsort-internal)
-||#
 
 (defstruct (bsort (:include sort* (-type 'bsort))
 		  (:copier nil)
@@ -465,13 +388,6 @@
   (setf (get 'bsort :type-predicate) (symbol-function 'bsort-p))
   (setf (get 'bsort :print) 'print-bsort-internal))
 
-#||
-(defun print-bsort-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (format stream "[:bsort ~a(~a)]"
-	  (string (sort-id obj))
-	  (sort-visible-type-print obj)))
-||#
 (defun print-bsort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
 
@@ -514,22 +430,6 @@
 
 ;;; *BUILTIN-SORT-TABLE* holds all of the builtin sorts.
 
-#||
-(defvar *builtin-sort-table*)
-(eval-when (:execute :load-toplevel)
-  (setq *builtin-sort-table* (make-hash-table :test #'eq)))
-
-(defmacro get-builtin-sort-named (sort-name_)
-  `(gethash ,sort-name_ *get-builtin-sort-table*))
-
-(defun register-builtin-sort (sort)
-  (setf (gethash (sort-id sort) *builtin-sort-table*) sort))
-
-(defun clear-builtin-sorts ()
-  (clrhash *builtin-sort-table*))
-
-||#
-
 (defvar *builtin-sort-table* nil)
 
 (defun get-builtin-sort-named (sort-name)
@@ -555,15 +455,6 @@
 ;;; This type of sorts are generated internally.
 ;;;
 
-#||
-(defterm and-sort (sort)
-  :visible (id &optional hidden)
-  :hidden (components)
-  :int-printer print-and-sort-object
-  :print print-and-sort-internal
-  )
-||#
-
 (defstruct (and-sort (:include sort* (-type 'and-sort))
 		     (:copier nil)
 		     (:constructor make-and-sort)
@@ -579,13 +470,6 @@
   (setf (get 'and-sort :print)
 	'print-and-sort-internal))
 
-#||
-(defun print-and-sort-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (format stream "[:and-sort ~s (~a)]"
-	  (string (sort-id obj))
-	  (sort-visible-type obj)))
-||#
 (defun print-and-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
 
@@ -611,11 +495,11 @@
 
 ;;; (defmacro and-sort-p (_object) `(is-and-sort ,_object))
 
-#|
+#|| not used
 (defmacro is-and-sort-term (term)
   (once-only (term)
     `(and (term? ,term) (and-sort-p (term-body ,term)))))
-|#
+||#
 
 ;;; *******
 ;;; OR-SORT__________________
@@ -625,14 +509,6 @@
 ;;; its components).
 ;;; This type of sorts are also generated internally only.
 ;;;
-
-#||
-(defterm or-sort (sort)
-  :visible (id &optional hidden)
-  :hidden (components)
-  :int-printer print-or-sort-object
-  :print print-or-sort-internal)
-||#
 
 (defstruct (or-sort (:include sort* (-type 'or-sort))
 		    (:copier nil)
@@ -647,13 +523,6 @@
   (setf (symbol-function 'is-or-sort)
 	(symbol-function 'or-sort-p)))
 
-#||
-(defun print-or-sort-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (format stream "[:or-sort ~s (~a)]"
-	  (string (sort-id obj))
-	  (sort-visible-type obj)))
-||#
 (defun print-or-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
 
@@ -687,14 +556,6 @@
 ;;; For each connected component of subsort relation, an err-sort is generated
 ;;; at the top (see `generate-err-sorts' in "sort.lisp").
 ;;;
-#||
-(defterm err-sort (sort)
-  :visible (id &optional hidden)
-  :hidden (components
-	   lowers)
-  :int-printer print-err-sort-object
-  :print print-err-sort-internal)
-||#
 
 (defstruct (err-sort (:include sort* (-type 'err-sort))
 		     (:copier nil)
@@ -709,12 +570,6 @@
   (setf (get 'err-sort :print) 'print-err-sort-internal)
   (setf (symbol-function 'is-err-sort) (symbol-function 'err-sort-p)))
 
-#||
-(defun print-err-sort-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (format stream "[:err-sort ~s (~a))"
-	  (string (sort-id obj))(sort-visible-type obj)))
-||#
 (defun print-err-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
 
@@ -723,8 +578,8 @@
 ;;; (defmacro err-sort-components (_err-sort)
 ;;;   `(%err-sort-components ,_err-sort))
 
-(defmacro err-sort-subsorts (_err-sort)
-  `(err-sort-lowers ,_err-sort))
+;;; (defmacro err-sort-subsorts (_err-sort)
+;;;  `(err-sort-lowers ,_err-sort))
 
 ;;; Primitive Constructor ------------------------------------------------------
 
@@ -737,7 +592,7 @@
   (let ((es (err-sort* id hidden)))
     (setf (sort-module es) module
 	  (err-sort-components es) components
-	  (err-sort-subsorts es) lowers)
+	  (err-sort-lowers es) lowers)
     (set-context-module es module)
     es))
 
@@ -878,13 +733,13 @@
 (defmacro subsorts (_sort &optional (_sort-order '*current-sort-order*))
   (once-only (_sort)
     ` (if (err-sort-p ,_sort)
-	  (err-sort-subsorts ,_sort)
+	  (err-sort-lowers ,_sort)
 	  (_subsorts (get-sort-relation ,_sort ,_sort-order)))))
 
 (defmacro sub-or-equal-sorts (_sort &optional (_sort-order '*current-sort-order*))
   (once-only (_sort)
     ` (if (err-sort-p ,_sort)
-	  (cons ,_sort (err-sort-subsorts ,_sort))
+	  (cons ,_sort (err-sort-lowers ,_sort))
 	  (let ((.sort-relation. (get-sort-relation ,_sort ,_sort-order)))
 	    (cons ,_sort
 		  (_subsorts .sort-relation.))))))
@@ -1325,8 +1180,7 @@
 		   (if (err-sort-p s2)
 		       (sort= (the-err-sort s1 sort-order) s2)
 		     (sort= (the-err-sort s1 sort-order)
-			    (the-err-sort s2 sort-order))))
-		 )))))
+			    (the-err-sort s2 sort-order)))))))))
 
 ;;; COMPONENT-TOP  : sort sort-order -> sort
 ;;;  returns the greatest sorts of given sort
@@ -1352,11 +1206,11 @@
 	       (cond ((err-sort-p s1)
 		      (if (err-sort-p s2)
 			  nil
-			  (let ((lowers (err-sort-subsorts s1)))
+			  (let ((lowers (err-sort-lowers s1)))
 			    (intersection lowers
 					  (sub-or-equal-sorts s2 so)))))
 		     ((err-sort-p s2)
-		      (let ((lowers (err-sort-subsorts s2)))
+		      (let ((lowers (err-sort-lowers s2)))
 			(intersection lowers
 				      (sub-or-equal-sorts s1 so))))
 		     (t (or (if (sort-is-hidden s1)
@@ -1373,8 +1227,7 @@
 			    (have-common-subsort s1 s2 so)
 			    (let ((t1 (component-top s1 so)))
 			      (and t1 (sort-set-equal t1
-						      (component-top s2 so))))))
-		     )))))
+						      (component-top s2 so)))))))))))
 
 ;;; HAVE-COMMON-SUBSORT : Sort Sort SortOrder -> Bool
 ;;;
@@ -1386,8 +1239,7 @@
 	(ss2 (subsorts s2 so)))
     (dolist (s ss1 nil)
       (declare (type sort* s))
-      (when (memq s ss2) (return t)))
-  ))
+      (when (memq s ss2) (return t)))))
 
 ;;; ALL-SORTS-IN-ORDER (&optional (sort-order *current-sort-order*))
 ;;;
@@ -1452,7 +1304,7 @@
 	   (values list))
   (minimal-sorts (supersorts-no-err sort sort-order) sort-order))
 
-#|
+#||
  ;;;  DELETE-SORT-FROM-ORDER sort sort-order
  ;;;  returns sort-order after eliminating sort.
  ;;;
@@ -1467,7 +1319,7 @@
 	     sort-order)
    (update-sort-order sort-order)
    sort-order)
-|#
+||#
 
 ;;; SORT-RELATIONS-TRANSITIVE-CLOSURE sort-relations1 sort-relations2
 ;;;  sort-relations2 is destructively modified.

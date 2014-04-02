@@ -318,10 +318,11 @@
 	(*print-xmode* :fancy)
 	(*standard-output* stream)
 	(fcol-1 0))
-    ;;(declare (special *print-pretty*))
+    #||
     (when (symbolp cl)
       (format stream "~a" cl)
       (return-from print-clause nil))
+    ||#
     (let ((flg nil))
       (declare (type symbol flg))
       (when (<= 0 (clause-id cl))
@@ -366,9 +367,7 @@
 		 (princ ip stream))
 		;; list
 		(t (setq flg :comma)
-		   (format stream "~a.~a" (car ip) (cdr ip)))
-		))
-	))
+		   (format stream "~a.~a" (car ip) (cdr ip)))))))
     ;;
     (princ "] " stream)
     (let* ((.file-col. (file-column stream))

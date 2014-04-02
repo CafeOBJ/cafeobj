@@ -153,8 +153,8 @@
     (with-output-chaos-error ('not-context)
       (format t "No context module is specified.")))
   (case pred
-    ('< (sort< s1 s2))
-    ('<= (sort<= s1 s2))
+    (< (sort< s1 s2))
+    (<= (sort<= s1 s2))
     (t nil)))
 
 (defun in-same-cc (s1 s2)

@@ -64,8 +64,7 @@
 ||#
 
 (defun axiom->formula (ax)
-  (declare (type axiom ax)
-	   (values (or null term)))
+  (declare (type axiom ax))
   (when *debug-formula*
     (format t "~&>> start axiom->formula conversion <<")
     (print-next)
@@ -307,8 +306,7 @@
 ;;;
 (defun intro-exists (form vars)
   (declare (type term form)
-	   (type list vars)
-	   (values term))
+	   (type list vars))
   (if (null vars)
       form
     (let ((var-decl nil))

@@ -413,8 +413,8 @@
       ;; gather rules
       ;; (clean-rule-table)
       (setq res (find-matching-rules-for-exec* target rls start-pos))
-      (delete-duplicates res
-                         :test #'rule-pat-equal)
+      (setq res (delete-duplicates res
+				   :test #'rule-pat-equal))
       ;;
       (when *cexec-debug*
         (format t "~%** ~D rules were found for term: "
@@ -422,8 +422,7 @@
         (term-print target)
         (terpri)
         (dolist (r res)
-          (pr-rule-pat r))
-        )
+          (pr-rule-pat r)))
       ;;
       res )))
 
@@ -444,7 +443,7 @@
                            nil
                          (term-head lhs))))
             ;;::
-            (unless rule (break "HANA !!!"))
+            ;;(unless rule (break "HANA !!!"))
             (push rule patterns)
 	    ;; #|| ------- apply-rule always applies extensions
             (when head
@@ -636,8 +635,23 @@
         (subst nil)
         (res nil))
     ;; make substittion
-    (push (cons (car vars) term) subst)
-    (push (cons (cadr vars) t1) subst)
+    (if (sort<= (term-sort term) (term-sort (car vars)) *current-sort-order*)
+	(push (cons (car vars) term) subst)
+      (with-output-chaos-error ('invalid-state)
+	(format t "withStateEq: sort of term does not match with variable:")
+	(format t "~%  variable: ")
+	(term-print-with-sort (car vars))
+	(format t "~%  term:  ")
+	(term-print-with-sort term)))
+    (if (sort<= (term-sort term) (term-sort (cadr vars)) *current-sort-order*)
+	(push (cons (cadr vars) t1) subst)
+      (with-output-chaos-error ('invalid-state)
+	(format t "withStateEq: sort of term does not match with variable:")
+	(format t "~%  variable: ")
+	(term-print-with-sort (cadr vars))
+	(format t "~%  term: ")
+	(term-print-with-sort t1)))
+      
     ;; apply subst with coping pred
     ;; then reduce
     (setq res
@@ -661,8 +675,7 @@
             (dotimes (x term-hash-size nil)
               (let ((ent (svref .cexec-term-hash. x)))
                 (dolist (e ent)
-                  (let ((t1 (car e))
-                        (state (cdr e)))
+                  (let ((t1 (car e)))
                     (when (cexec-sch-check-predicate term t1 pred-pat)
                       (return-from cexec-loop-check (cdr e)))))))
           nil))))

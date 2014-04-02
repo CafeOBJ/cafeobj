@@ -1176,8 +1176,7 @@
   (unless (sort-struct-p s) (break "print-sort-name: given non sort: ~s" s))
   (let ((*standard-output* stream)
 	(mod-name (get-module-print-name (sort-module s))))
-    (cond ((not (sort-struct-p s)) (print-chaos-object s)) ; is this really need?
-	  ((and module
+    (cond ((and module
 		(sort-name-is-ambiguous (sort-id s) module))
 	   (if (modexp-is-parameter-theory mod-name)
 	       (let ((cntxt (fourth mod-name)))
@@ -1188,8 +1187,7 @@
 	       (progn
 		 (format t "~a." (string (sort-id s)))
 		 ;; (print-simple-mod-name (sort-module s))
-		 (print-mod-name (sort-module s) stream t t)
-		 )))
+		 (print-mod-name (sort-module s) stream t t))))
 	  (t (format t "~a" (string (sort-id s)))))))
 
 (defun sort-print-name (sort &optional (with-mod-qualifier))

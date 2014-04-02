@@ -148,8 +148,7 @@
 
 (defun find-sort-in (module sort-name &optional search-in-mod)
   (declare (type module module)
-	   (type (or sort* symbol string list) sort-name)
-	   (values (or null sort*)))
+	   (type (or sort* symbol string list) sort-name))
   (cond ((sort-struct-p sort-name)
 	 (if search-in-mod
 	     (if (or (memq sort-name (module-all-sorts module))
@@ -231,8 +230,7 @@
 		   (if am
 		       (car am)
 		     ;; else
-		     (find-error-sort-in module sort-id)))))))
-	))
+		     (find-error-sort-in module sort-id)))))))))
 
 (defun find-error-sort-in (module sort-name)
   (declare (type module module)
@@ -594,9 +592,6 @@
 	   (type list arity)
 	   (type (or list string) op-name)
 	   (type sort* coarity))
-  (unless module
-    (with-output-chaos-error ('no-context)
-      (format t "No context module is specified.")))
   (let ((len (length arity)))
     (declare (type fixnum len))
     (dolist (opinfo (find-operators-in-module op-name len module) nil)
@@ -619,21 +614,21 @@
 	  (let ((opnm (car op-name)))
 	    (if (funcall (car sort-info) opnm) ; token predicate
 		(make-bconst-term sort opnm)
-		(with-in-module (module)
-		  (let ((srt nil))
-		    (dolist (x (subsorts sort))
-		      (let ((si nil))
-			(when (and (sort-is-builtin sort)
-				   (setf si (bsort-info sort))
-				   (or (null srt)
-				       (sort< x srt))
-				   (funcall (car si) opnm))
-			  (setq srt x))))
-		    (if srt
-			(make-bconst-term srt opnm)
-			nil)
-		    ))))))
-      nil))
+	      (with-in-module (module)
+		(let ((srt nil))
+		  (dolist (x (subsorts sort))
+		    (let ((si nil))
+		      (when (and (sort-is-builtin sort)
+				 (setf si (bsort-info sort))
+				 (or (null srt)
+				     (sort< x srt))
+				 (funcall (car si) opnm))
+			(setq srt x))))
+		  (if srt
+		      (make-bconst-term srt opnm)
+		    nil)
+		  ))))))
+    nil))
 			
 ;;; FIND-METHOD-NAMED-IN (module op-symbol)
 ;;;

@@ -74,7 +74,7 @@
 ;;; SUBSTITUTION-LIST-OF-PAIRS sigma
 ;;; returns the list of pair in substitution-
 ;;;
-(defmacro substitution-list-of-pairs (*_sigma_*) *_sigma_*)
+(defmacro substitution-list-of-pairs (_sigma_) _sigma_)
 
 ;;; SUBSTITUTION-ADD sigma variable term
 ;;; adds the new map variable -> term to sigma.
@@ -153,8 +153,7 @@
 ;;; assumed canonicalized
 ;;;
 (defun substitution-subset (s1 s2)
-  (declare (type list s1 s2)
-	   (values list))
+  (declare (type list s1 s2))
   (substitution-subset-list (substitution-list-of-pairs s1)
 			    (substitution-list-of-pairs s2)))
 (defun substitution-subset-list (s1 s2)
@@ -221,23 +220,21 @@
 ;;; Returns sigma(t) and "true" iff the sort of "t" and "sigma(t)" are the same.
 ;;; A COPY of the term "t" is done and the sort information is updated.
 ;;;
-
 (defun substitution-image (sigma term)
   (declare (type list sigma)
-	   (type term term)
-	   (values term (or null t)))
+	   (type term term))
   (let ((*consider-object* t))
     (cond ((term-is-variable? term)
 	   (let ((im (variable-image sigma term)))
 	     (if im;; i.e. im = sigma(term)
 		 (values im nil)
-		 (values term t))))
+	       (values term t))))
 	  ((term-is-lisp-form? term)
 	   (multiple-value-bind (new-term success)
 	       (funcall (lisp-form-function term) sigma)
 	     (if success
 		 new-term
-		 (throw 'rule-failure :fail-builtin))))
+	       (throw 'rule-failure :fail-builtin))))
 	  ((term-is-chaos-expr? term)
 	   (multiple-value-bind (new-term success)
 	       (funcall (chaos-form-expr term) sigma)
@@ -260,27 +257,26 @@
 		     (values term-image
 			     (sort= (term-sort term)
 				    (term-sort term-image))))
-		   (values (make-applform (term-sort term)
-					  (term-head term)
-					  l-result)
-			   t)))))))
+		 (values (make-applform (term-sort term)
+					(term-head term)
+					l-result)
+			 t)))))))
 
 (defun substitution-image! (sigma term)
   (declare (type list sigma)
-	   (type term term)
-	   (values term (or null t)))
+	   (type term term))
   (let ((*consider-object* t))
     (cond ((term-is-variable? term)
 	   (let ((im (variable-image-slow sigma term)))
 	     (if im;; i.e. im = sigma(term)
 		 (values im nil)
-		 (values term t))))
+	       (values term t))))
 	  ((term-is-lisp-form? term)
 	   (multiple-value-bind (new-term success)
 	       (funcall (lisp-form-function term) sigma)
 	     (if success
 		 new-term
-		 (throw 'rule-failure :fail-builtin))))
+	       (throw 'rule-failure :fail-builtin))))
 	  ((term-is-chaos-expr? term)
 	   (multiple-value-bind (new-term success)
 	       (funcall (chaos-form-expr term) sigma)
@@ -302,27 +298,26 @@
 		     (values term-image
 			     (sort= (term-sort term)
 				    (term-sort term-image))))
-		   (values (make-applform (term-sort term)
-					  (term-head term)
-					  l-result)
-			   t)))))))
+		 (values (make-applform (term-sort term)
+					(term-head term)
+					l-result)
+			 t)))))))
 
 (defun substitution-image-cp (sigma term)
   (declare (type list sigma)
-	   (type term term)
-	   (values term (or null t)))
+	   (type term term))
   (let ((*consider-object* t))
     (cond ((term-is-variable? term)
 	   (let ((im (variable-image sigma term)))
 	     (if im;; i.e. im = sigma(term)
 		 (values (simple-copy-term im) nil)
-		 (values term t))))
+	       (values term t))))
 	  ((term-is-lisp-form? term)
 	   (multiple-value-bind (new-term success)
 	       (funcall (lisp-form-function term) sigma)
 	     (if success
 		 new-term
-		 (throw 'rule-failure :fail-builtin))))
+	       (throw 'rule-failure :fail-builtin))))
 	  ((term-is-chaos-expr? term)
 	   (multiple-value-bind (new-term success)
 	       (funcall (chaos-form-expr term) sigma)
@@ -344,10 +339,10 @@
 		     (values term-image
 			     (sort= (term-sort term)
 				    (term-sort term-image))))
-		   (values (make-applform (term-sort term)
-					  (term-head term)
-					  l-result)
-			   t)))))))
+		 (values (make-applform (term-sort term)
+					(term-head term)
+					l-result)
+			 t)))))))
 
 (defun substitution-check-built-in (trm) trm)
 

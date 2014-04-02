@@ -971,8 +971,7 @@
 ;;;
 (defun gather-subterms-with-top (op sentence)
   (declare (type method op)
-	   (type term sentence)
-	   (values list))
+	   (type term sentence))
   (list-assoc-subterms sentence op))
 
 ;;; CONFLICT-TAUTOLOGY : Sentence -> Sentence'

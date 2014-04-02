@@ -34,28 +34,24 @@
 (defvar int-node-children nil)
 
 (defun make-augm-leaf (width root name info)
-  (declare (type t width root name info)
-           (values list))
+  (declare (type t width root name info))
   (list 'leaf width root name info))
 
 (defun make-augm-pad (width)
-  (declare (type t width)
-           (values list))
+  (declare (type t width))
   (list 'pad width))
 
 (defun make-augm-int-node (width root name lpad rpad children)
-  (declare (type t width root name lpad rpad children)
-           (values t))
+  (declare (type t width root name lpad rpad children))
   (list nil width root name lpad rpad children))
 
 (defun augm-tree-int-node? (x)
   (declare (type list x)
-           (values (or null t)))
+	   (values (or null t)))
   (null (car x)))
 
 (defun augm-tree-pad? (x)
-  (declare (type list x)
-           (values (or null t)))
+  (declare (type list x))
   (eq (car x) 'pad))
 
 (defun augm-tree-width (x)
@@ -128,8 +124,7 @@
       (t 0))))
 
 (defun augment-tree (tree)
-  (declare (type list tree)
-           (values list))
+  (declare (type list tree))
   (if (funcall leaf? tree)
       (let* ((name (funcall leaf-name tree))
              (info (funcall leaf-info tree))

@@ -186,7 +186,7 @@
 ;;;-----------------------------------------------------------------------------
 (defun cafeobj-init-files ()
   (when *cafeobj-load-init-file*
-    (when *chaos-vergine*
+    (when *chaos-new*
       (let ((val (get-environment-variable "CAFEOBJINIT")))
         (if (and val (probe-file val))
             (cafeobj-input val)
@@ -210,7 +210,7 @@
           (setq *chaos-libpath* (append (nreverse load-path)
                                         *chaos-libpath*))
           ))
-      (setq *chaos-vergine* nil)))
+      (setq *chaos-new* nil)))
   ;; message DB
   ;; #+:Allegro
   ;; (setup-message-db)

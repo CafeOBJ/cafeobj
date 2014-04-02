@@ -429,8 +429,7 @@
 ;;; WEIGHT-LEX-ORDER : TERM1 TERM2 -> {:greater, :less, nil}
 ;;;
 (defun weight-lex-order (t1 t2)
-  (declare (type term t1 t2)
-	   (values symbol))
+  (declare (type term t1 t2))
   (let ((i1 (term-weight t1))
 	(i2 (term-weight t2)))
     (declare (type fixnum i1 i2))
@@ -443,8 +442,7 @@
 ;;; TERM-LEX-ORDER : TERM1 TERM2 -> {:greater, :less, nil}
 ;;;
 (defun term-lex-order (t1 t2)
-  (declare (type term t1 t2)
-	   (values symbol))
+  (declare (type term t1 t2))
   (when (sort< (term-sort t1) (term-sort t2) *current-sort-order*)
     (return-from term-lex-order :less))
   (when (sort< (term-sort t2) (term-sort t1) *current-sort-order*)
@@ -487,8 +485,7 @@
 	))
 
 (defun term-lex-order-vars (t1 t2)
-  (declare (type term t1 t2)
-	   (values symbol))
+  (declare (type term t1 t2))
   (when (sort< (term-sort t1) (term-sort t2) *current-sort-order*)
     (return-from term-lex-order-vars :less))
   (when (sort< (term-sort t2) (term-sort t1) *current-sort-order*)
@@ -532,8 +529,7 @@
 (defun lex-check (term1 term2)
   (declare (type term term1 term2)
 	   (inline term-lex-order-vars)
-	   (inline term-lex-order)
-	   (values symbol))
+	   (inline term-lex-order))
   (if (pn-flag lex-order-vars)
       (term-lex-order-vars term1 term2)
     (term-lex-order term1 term2)))

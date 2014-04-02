@@ -53,16 +53,14 @@
       ;; may introduce skolem functions.
       (prepare-for-parsing mod)
       ;;
-      psystem))
-  )
+      psystem)))
 
 (defun reset-module-proof-system (module)
   (declare (type module module))
   ;; setup lexical precedence of symbols.
   (make-op-lex-prec-table module)
   ;; reset db:
-  (update-module-proof-system module t)
-  )
+  (update-module-proof-system module t))
 
 ;;; PN-DB-RESET
 ;;;

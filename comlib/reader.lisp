@@ -586,7 +586,6 @@
 	  ))))
 
 (defun read-comment-line ()
-  (declare (values simple-string))
   (let ((ch (peek-char nil *standard-input* nil nil)))
     (unless ch (return-from read-comment-line " "))
     (if (eq .reader-ch. 'return)
@@ -700,8 +699,7 @@
 	(read-term-from-string lines))))
   
 (defun read-seq-of-term-at-top (&rest ignore)
-  (declare (ignore ignore)
-	   (values list))
+  (declare (ignore ignore))
   (let ((lines (read-lines)))
     (if #+:MCL (equal lines *lex-eof*)
 	#-:MCL (eq lines *lex-eof*)

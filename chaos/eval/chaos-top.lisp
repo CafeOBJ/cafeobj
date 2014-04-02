@@ -31,11 +31,11 @@
 
 ;;;
 
-(defvar *chaos-vergine* t)
+(defvar *chaos-new* t)
 
 #+GCL
 (defun save-chaos (top &optional (path "./bin/chaos.exe"))
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (when top
     (defun system::top-level () (funcall top))
     (si::set-up-top-level)
@@ -46,7 +46,7 @@
 
 #+CMU
 (defun save-chaos (top &optional (path "bin/chaos.core"))
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (ext:gc)
   (ext:purify)
   (ext:gc)
@@ -62,7 +62,7 @@
 
 #+LUCID
 (defun save-chaos (top &optional (path "bin/chaos.exe"))
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (if top
       (disksave path
 		:full-gc t
@@ -72,7 +72,7 @@
 
 #+:ccl
 (defun save-chaos (top &optional (path "chaos"))
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (if top
       (save-application path :toplevel-function top
 			:size '(6144000 4196000))
@@ -80,20 +80,29 @@
 			:size '(6144000 4196000))))
 #+:ALLEGRO
 (defun save-chaos (top &optional (path "aobj"))
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (setq excl:*restart-app-function* top)
   (setq excl:*print-startup-message* nil)
   (setq excl::.dump-lisp-suppress-allegro-cl-banner. t)
-  (dumplisp :name path :suppress-allegro-cl-banner t)
-  )
+  (dumplisp :name path :suppress-allegro-cl-banner t))
 
 #+:CLISP
 (defun save-chaos (top &optional (path "chaos"))
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (in-package :chaos)
   (if top
       (ext:saveinitmem path :quiet t :init-function top)
     (ext:saveinitmem path :quiet t)))
+
+#+SBCL
+(defun save-chaos (top &optional (path "chaos.sbcl"))
+  (declare (ignore top))
+  (setq *chaos-new* t)
+  (sb-ext:save-lisp-and-die path
+			    :toplevel 'chaos::cafeobj-top-level
+			    :purify t
+			    :executable t
+			    :save-runtime-options t))
 
 ;;; PROCESS-CHAOS-INPUT
 ;;;

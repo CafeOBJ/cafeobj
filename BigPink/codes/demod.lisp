@@ -40,8 +40,7 @@
 
 (defun rule-2-demod (rule &optional (order :normal))
   (declare (type axiom rule)
-	   (type symbol order)
-	   (values demod))
+	   (type symbol order))
   (make-demod :axiom rule
 	      :order order))
 

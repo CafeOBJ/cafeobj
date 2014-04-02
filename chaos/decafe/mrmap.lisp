@@ -197,7 +197,7 @@
 				     (not (equal (car x)
 						 (car y)))
 				     (equal (cadr x) (cadr y))))
-				ren)
+			    ren)
 	       (return-from check-map :warn)))
 	   (dolist (x ren)
 	     (when  (find-if #'(lambda (y)
@@ -210,23 +210,18 @@
     ;;
     (let* ((ren (if (%is-rmap rmap)
 		    (%rmap-map rmap)
-		    rmap))
+		  rmap))
 	   (sort-map (cadr (assq '%ren-sort ren)))
 	   (op-map (cadr (assq '%ren-op ren))))
-      #||
-      (unless (and (check-map sort-map)
-		   (check-map op-map))
-	(return-from is-rename-injective nil))
-      ||#
       (let ((sort-check (check-map sort-map))
 	    (op-check (check-map op-map)))
 	(if (and (eq sort-check :ok)
 		 (eq op-check :ok))
 	    :ok
-	    (if sort-check
-		sort-check
-		op-check))))))
-
+	  (if (or (eq sort-check :invalid)
+		  (eq sort-check :invalid))
+	      :invalid
+	    :warn))))))
 
 ;;; ******************
 ;;; RENAME APPLICATION__________________________________________________________

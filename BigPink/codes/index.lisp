@@ -188,7 +188,7 @@
 (declaim (inline get-literal-entry-from-atom))
 
 (defun get-literal-entry-from-atom (db atom)
-  (declare (type hash-table db) (type term atom)
+  (declare (type hash-table db) (type (or term sort*) atom)
 	   (values list))
   (get-indexed-data db (pn-const-pat atom)))
 

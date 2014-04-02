@@ -593,7 +593,6 @@
 (defun check-method-congruency (meth iobservers
 				&optional (module (or *current-module*
 						      *last-module*)))
-  ;;
   (unless module
     (with-output-panic-message ()
       (princ "congruence check: no context module!")))
@@ -607,11 +606,6 @@
     ;;
     (with-in-module (module)
       (let ((observers nil))
-	#||
-	(with-output-simple-msg ()
-	  (princ "** check cong of: ")
-	  (print-chaos-object meth))
-	||#
 	(dolist (op iobservers)
 	  (when (find-if #'(lambda (x) (sort<= hs x))
 			 (method-arity op))
@@ -621,11 +615,6 @@
 	(dolist (ob observers)
 	  (let ((found nil))
 	    (dolist (rule (method-rules ob))
-	      #||
-	      (with-output-simple-msg ()
-		(princ "  rule = ")
-		(print-rule-internal rule))
-	      ||#
 	      (let ((lhs (axiom-lhs rule))
 		    (subst-var nil)
 		    (rhs (axiom-rhs rule)))
@@ -638,16 +627,15 @@
 					meth)))
 			      nil
 			      0)
-		  (declare (ignore num-if-l))
 		  (multiple-value-bind (occ-r num-if-r)
-		    (find-occ rhs
-			      #'(lambda (x)
-				  (and (term-is-applform? x)
-				       (method-is-of-same-operator
-					(term-head x)
-					meth)))
-			      nil
-			      0)
+		      (find-occ rhs
+				#'(lambda (x)
+				    (and (term-is-applform? x)
+					 (method-is-of-same-operator
+					  (term-head x)
+					  meth)))
+				nil
+				0)
 		    (unless (listp occ-l)
 		      (multiple-value-setq (occ-l num-if-l)
 			(find-occ lhs 
@@ -667,23 +655,15 @@
 				  nil
 				  0)))
 		    
-		    #||
-		    (with-output-msg ()
-		      (format t "occ-l: ~a" occ-l)
-		      (print-next)
-		      (format t "occ-r: ~a, num-if=~d" occ-r num-if-r))
-		    ||#
 		    (when (and (listp occ-l)
-			     (or (not (listp occ-r))
-				 ;; (<= (length occ-r) (length occ-l))
-				 (<= (- (length occ-r) num-if-r) (length occ-l))
-				 ))
+			       (or (not (listp occ-r))
+				   ;; (<= (length occ-r) (length occ-l))
+				   (<= (- (length occ-r) num-if-r) (length occ-l))
+				   ))
 		      (setq found t)
-		      (return t))))
-		))			; done for all rules of an observer
+		      (return t))))))	; done for all rules of an observer
 	    (unless found
-	      (return-from check-method-congruency nil))
-	    ))
+	      (return-from check-method-congruency nil))))
 	;; done for all
 	t))))
 ;;;

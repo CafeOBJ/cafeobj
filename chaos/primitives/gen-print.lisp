@@ -210,11 +210,6 @@
                   (the fixnum *term-print-depth*)))
       (princ " ... ")
       (return-from term-print1 nil))
-    (unless term
-      (princ "!! empty term !!")        ; this should not happen in general,
-                                        ; but may happen while debug output.
-      (return-from term-print1 nil))
-
     (when (and (term-is-red term) *print-term-color*)
       (princ "r::"))
       
@@ -312,12 +307,6 @@
                   (the fixnum *term-print-depth*)))
       (princ " ... " stream)
       (return-from term-print2 nil))
-    ;;
-    (unless term
-      (princ "!! empty term !!" stream) ; this should not happen in general,
-                                        ; but may happen while debug output.
-      (return-from term-print2 nil))
-    ;;
     ;;
     (when (print-check .file-col. 0 stream)             ; 20?? 
       (setq .file-col. (file-column stream)))

@@ -95,7 +95,7 @@
 (defun make-exec-image (path)
   (setq chaos::-cafeobj-load-time- (chaos::get-time-string))
   (chaos::set-cafeobj-standard-library-path)
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (defun system::top-level () (funcall 'chaos::cafeobj-top-level))
   (si::set-up-top-level)
   (system::save-system path)
@@ -105,7 +105,7 @@
 (defun make-exec-image (path)
   (setq chaos::-cafeobj-load-time- (chaos::get-time-string))
   (chaos::set-cafeobj-standard-library-path)
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (ext:save-lisp path
 		 :purify t
 		 :init-function 'chaos::cafeobj-top-level
@@ -117,7 +117,7 @@
 (defun make-exec-image (path)
   (setq chaos::-cafeobj-load-time- (chaos::get-time-string))
   (chaos::set-cafeobj-standard-library-path)
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (sb-ext:save-lisp-and-die path
 			    :toplevel 'chaos::cafeobj-top-level
 			    :purify t
@@ -131,7 +131,7 @@
 (defun make-exec-image (path)
   (setq chaos::-cafeobj-load-time- (chaos::get-time-string))
   (chaos::set-cafeobj-standard-library-path)
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (disksave path
 	    :full-gc t
 	    :restart-function 'chaos::cafeobj-top-level))
@@ -140,7 +140,7 @@
 (defun make-exec-image (path)
   (setq chaos::-cafeobj-load-time- (chaos::get-time-string))
   (chaos::set-cafeobj-standard-library-path)
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   ;; patch by t-seino@jaist.ac.jp
   (save-application path :toplevel-function 'chaos::cafeobj-top-level)
   )
@@ -149,7 +149,7 @@
 (defun make-exec-image (path)
   (setq chaos::-cafeobj-load-time- (chaos::get-time-string))
   (chaos::set-cafeobj-standard-library-path)
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (ccl::save-application path :toplevel-function 'chaos::cafeobj-top-level)
   )
 
@@ -160,7 +160,7 @@
 (defun make-exec-image (path)
   (setq chaos::-cafeobj-load-time- (chaos::get-time-string))
   (chaos::set-cafeobj-standard-library-path)
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (setq excl:*restart-app-function* 'chaos::cafeobj-top-level)
   #||
   (setq excl:*restart-init-function*
@@ -177,7 +177,7 @@
 (defun make-exec-image (path)
   (setq chaos::-cafeobj-load-time- (chaos::get-time-string))
   (chaos::set-cafeobj-standard-library-path)
-  (setq *chaos-vergine* t)
+  (setq *chaos-new* t)
   (chaos::save-chaos 'chaos::cafeobj-top-level path))
 
 ;;;;

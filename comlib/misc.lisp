@@ -196,62 +196,59 @@ object alloc_svec_fixnum (size)
 ;;;   integer < symbol < cons < othernumber
 
 (defun ob< (x y)
-  (declare (type t x y)
-	   (values (or null t)))
+  (declare (type t x y))
   (eq :lt (ob-compare x y)))
 
 (defun ob-compare (x y)
-  (declare (type t x y)
-	   (values symbol))
+  (declare (type t x y))
   (typecase x
     (integer (typecase y
-	      (integer (if (< (the integer x) (the integer y))
-			  :lt
+	       (integer (if (< (the integer x) (the integer y))
+			    :lt
 			  (if (< (the integer y) (the integer x))
 			      :gt
-			      :eq
-			      )))
-	      (otherwise :lt)))
+			    :eq)))
+	       (otherwise :lt)))
     (symbol (typecase y
 	      (symbol (if (eq x y)
 			  :eq
-			  (if (string-lessp (string (the symbol x))
-					    (string (the symbol y)))
-			      :lt
-			      :gt)))
+			(if (string-lessp (string (the symbol x))
+					  (string (the symbol y)))
+			    :lt
+			  :gt)))
 	      (integer :gt)
 	      (otherwise :lt)))
     (cons (typecase y
 	    (cons (let ((comp-car (ob-compare (car x ) (car y))))
 		    (if (eq :eq comp-car)
 			(ob-compare (cdr x) (cdr y))
-			comp-car)))
+		      comp-car)))
 	    ((or symbol integer) :gt)
 	    (otherwise :lt)))
     (number (typecase y
 	      (number (if (< (the number x) (the number y))
 			  :lt
-			  (if (< (the number y) (the number x))
-			      :gt
-			      :eq)))
+			(if (< (the number y) (the number x))
+			    :gt
+			  :eq)))
 	      ((or symbol integer cons) :gt)
 	      (otherwise :lt)))
     (character (typecase y
 		 (character (if (char< (the character x)
 				       (the character y))
 				:lt
-				(if (char< (the character y)
-					   (the character x))
-				    :gt
-				    :eq)))
+			      (if (char< (the character y)
+					 (the character x))
+				  :gt
+				:eq)))
 		 ((or number cons symbol) :gt)
 		 (otherwise :lt)))
     (string (typecase y
 	      (string (if (string-lessp (the string x) (the string y))
 			  :lt
-			  (if (string-lessp (the string y) (the string x))
-			      :gt
-			      :eq)))
+			(if (string-lessp (the string y) (the string x))
+			    :gt
+			  :eq)))
 	      ((or character number cons symbol) :gt)
 	      (otherwise :lt)))
     (sequence (typecase y

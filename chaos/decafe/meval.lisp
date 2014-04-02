@@ -40,30 +40,24 @@
       mod)))
 
 (defun eval-modexp (modexp &optional also-local (reconstruct-if-need t))
-  ;;
-  (declare (type t modexp)
-	   (values (or modexp module)))
-  ;;
+  (declare (type t modexp))
   (when (module-p modexp)
     (return-from eval-modexp
       (if reconstruct-if-need
 	  (reconstruct-module-if-need modexp)
-	  modexp)))
-  ;;
+	modexp)))
   (let ((mod nil)
 	(me (normalize-modexp modexp)))
-    ;; 
     (when (and (equal me "THE-LAST-MODULE")
 	       *last-module*)
       (return-from eval-modexp
 	(if reconstruct-if-need
 	    (reconstruct-module-if-need *last-module*)
-	    *last-module*)))
+	  *last-module*)))
     (when (and (equal me ".")
 	       *current-module*)
       (return-from eval-modexp
 	*current-module*))
-    ;;
     (when (stringp me)
       (let ((pos (position #\. (the simple-string me) :from-end t)))
 	(if pos
@@ -77,16 +71,14 @@
 		    (format t "Could not evaluate modexpr ~a, " me)
 		    (format t " no such module ~a" qual)
 		    )
-		  (setf mod (find-module-in-env name context))))
-	    (setq mod (find-module-in-env me (if also-local
-						 *current-module*
-						 nil)))
-	    )))
-    ;;
+		(setf mod (find-module-in-env name context))))
+	  (setq mod (find-module-in-env me (if also-local
+					       *current-module*
+					     nil))))))
     (if mod
 	(if reconstruct-if-need
 	    (reconstruct-module-if-need mod)
-	    mod)
+	  mod)
       ;; autoloading
       (let ((ent (assoc me *autoload-alist* :test #'equal)))
 	(cond ((and ent (not (equal (car ent) *on-autoload*)))

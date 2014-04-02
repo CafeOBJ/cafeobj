@@ -93,8 +93,7 @@
 ;;; ops %+, %*, %view, %view-under
 ;;;
 (defun do-normalize-modexp (modexp)
-  (declare (type (or module view-struct modexp) modexp)
-	   (values (or view-struct module modexp)))
+  (declare (type (or module view-struct modexp) modexp))
   (cond ((module-p modexp) modexp)
 	((view-p modexp) modexp)
 	((%is-plus modexp)	; right associate and re-order
