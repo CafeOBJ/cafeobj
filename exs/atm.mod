@@ -433,13 +433,13 @@ mod* ATM-SYSTEM {
           (get-request(atm(A, S)) <=
                  balance(user-id(atm(A, S)), account-sys(S))) .
   ceq account-sys(ok(A, S)) = account-sys(S)
-       if (user-id(atm(A, S)) == unidentified-user) or
-	 ((button-status(atm(A, S)) == deposit) and-also
-	    get-input(atm(A, S)) == 0) or
-          ((button-status(atm(A, S)) == withdraw) and-also
-              ((get-request(atm(A, S)) == 0) or
-		 (get-request(atm(A, S)) >
-		    balance(user-id(atm(A, S))), account-sys(S)))) .
+       if user-id(atm(A, S)) == unidentified-user or
+          (button-status(atm(A, S)) == deposit and-also
+              get-input(atm(A, S)) == 0) or
+          (button-status(atm(A, S)) == withdraw and-also
+              (get-request(atm(A, S)) == 0 or
+              get-request(atm(A, S)) >
+                       balance(user-id(atm(A, S)), account-sys(S)))) .
   eq account-sys(cancel(A, S)) = account-sys(S) .
 
   eq atm(A, init-sys) = no-atm .

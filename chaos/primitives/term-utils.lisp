@@ -1253,7 +1253,7 @@
 			       (if (setq v-image
 				     (cdr (assoc term list-new-var :test test)))
 				   v-image
-				 (let ((new-var (variable-copy-x term)))
+				 (let ((new-var (variable-copy term)))
 				   (declare (type term new-var))
 				   (setf list-new-var (acons term new-var list-new-var))
 				   new-var)))
