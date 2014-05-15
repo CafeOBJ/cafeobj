@@ -20,7 +20,7 @@ mod! INT= { ex(INT) -- us(EQL)
 	    ex(EQL)
  eq (N1:Nat = N2:Nat) = (N1 == N2) . }
 
-open (SET(INT={sort Elt -> Int}))
+open (SET(INT={sort Elt -> Int})) .
 red 3 = 4 .
 red 3 3 3 3 4 4 5 .
 red 4 in (3 3 3 3 4 4 5) .
@@ -30,7 +30,7 @@ close
 -- this does not work
 -- + EQL masks the equation:
 --   eq (N1:Nat = N2:Nat) = (N1 == N2) . }
-open (SET(INT={sort Elt -> Int}) + EQL)
+open (SET(INT={sort Elt -> Int}) + EQL) .
 red 3 = 4 .
 red 3 3 3 3 4 4 5 .
 red 4 in (3 3 3 3 4 4 5) .

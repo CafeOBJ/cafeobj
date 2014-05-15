@@ -81,11 +81,9 @@
   (setq rule (or (cdr (assq ax (module-axioms-to-be-fixed module)))
 		 ax))
   ;;
-  #|| the following are just for testing. forgot to commen out...
   (when (axiom-is-non-exec? ax)
     (setf (axiom-non-exec ax) t)
     (setf (rule-non-exec rule) t))
-  ||#
   ;;
   (let ((lhsv (term-variables (axiom-lhs rule))))
     (declare (type list lhsv))

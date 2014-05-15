@@ -42,12 +42,12 @@ mod! EX3 {
   eq app(L1:List,L2:List) = foldr(L2,L1) .
 }
 
-open EX3
+open EX3 .
   ops a b c d : -> Elt .
   red app(a | b | nil,c | d | nil) .
 close
 
-open EX3(NAT)
+open EX3(NAT) .
   red app(0 | 1 | nil,2 | 3 | nil) .
 close
 

@@ -337,14 +337,14 @@
     (unless (term-is-ground? trm)
       (with-output-chaos-warning ()
 	(format t "in ~a, term contains variable(s): " id)
-	(term-print trm)
-	))
+	(term-print trm)))
     trm))
 
 ;;; parse-convert : term -> term'
 ;;;
 (defun parse-convert (term
 		      &optional (module (or *current-module* *last-module*)))
+  ;; #define macro expand
   (when *macroexpand*
     (setq term (expand-macro term module)))
   (if *parse-normalize*

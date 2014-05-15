@@ -521,8 +521,8 @@
     (let ((terletox0-list (parser-get-term token-list
 					   module
 					   level-constraint
-					   sort-constraint))
-	  )
+					   ;; sort-constraint
+					   )))
       (declare (type list terletox0-list))
       (let ((res nil))
 	(when terletox0-list
@@ -866,7 +866,10 @@
   (let ((token1 (car token-list))	;token-list non null
 	(token-list-prime (cdr token-list)))
     (when *on-parse-debug*
-      (format t "~%[parser-get-term]: token-list=~s" token-list))
+      (format t "~%[parser-get-term]: token-list=~s" token-list)
+      (format t " sort-constraint: ~a" (if sort-constraint
+					   (string (sort-name sort-constraint))
+					 "None")))
     (when (and (symbolp token1)
 	       (memq token1 '(%slisp %glisp |%Chaos|)))
       (return-from parser-get-term nil))
@@ -876,8 +879,8 @@
 	   ;;* Parenthesized expression
 	   (if (null token-list-prime)
 	       nil			;return an empty set of solutions
-	       (parser-get-rest-of-parenthesized-expr token-list-prime
-						      module)))
+	     (parser-get-rest-of-parenthesized-expr token-list-prime
+						    module)))
 	  (;; (member token1 '( ")" "," ) :test #'equal)
 	   (equal token1 ")")
 	   ;;* Unacceptable reserved tokens
@@ -1065,7 +1068,6 @@
       (multiple-value-bind (op-var-list mod-token)
 	  (get-info-on-token (module-parse-dictionary module)
 			     token
-			     ;; sort-constraint -- this is bad sometimes
 			     )
 	(declare (ignore mod-token))
 	;; list of Operators and Variables--token is the first token
@@ -1101,8 +1103,8 @@
 			       ))
 		      (setq terletox-list-prime ; accumulate
 			    (nconc res terletox-list-prime))
-		      (return-from get-term-for-regular-token
-			(nconc res terletox-list-prime)))))))))))
+		    (return-from get-term-for-regular-token
+		      (nconc res terletox-list-prime)))))))))))
 
 ;;;  op get-term-for-op-var :
 ;;;       Operator(Mehotd) + Variable
@@ -1130,10 +1132,16 @@
      ;; return a list of only one solution (precedence level is ):
      (when (eq (object-syntactic-type op-var) 'variable)
        (push (cons (variable-name op-var) op-var) *parse-variables*))
-     (list (cons (cons op-var parser-min-precedence) token-list)))
+     (if (or (null sort-constraint)
+	     (sort<= (term-sort op-var) sort-constraint *current-sort-order*))
+	 (list (cons (cons op-var parser-min-precedence) token-list))
+       nil))
 
     ;; 2. Antefix
     (antefix
+     (when sort-constraint
+       (unless (sort<= (method-coarity op-var) sort-constraint *current-sort-order*)
+	 (return-from get-term-for-op-var nil)))
      ;; is precedence of antefix operator acceptable ?
      (unless (<= (the fixnum (get-method-precedence op-var))
 		 level-constraint)
@@ -1171,7 +1179,7 @@
 	;; return a void answer
 	;; (parser-make-terms method arg-acc-list module)
 	nil
-	(parser-make-terms method arg-acc-list-prime module))))
+      (parser-make-terms method arg-acc-list-prime module))))
 
 ;;; AST
 ;;;
@@ -1222,16 +1230,15 @@
 	(t
 	 (multiple-value-bind (op-var-list mod-token)
 	     (get-info-on-token (module-parse-dictionary module)
-				token)
+				token
+				sort-constraint)
 	   (if (null op-var-list)
 	       nil			;
-	       (values 
-		(parser-choosing-operators term-level0
-					   op-var-list
-					   module
-					   level-constraint)
-		mod-token))
-	   ))))
+	     (values (parser-choosing-operators term-level0
+						op-var-list
+						module
+						level-constraint)
+		     mod-token))))))
 
 ;;;  op parser-choosing-operators :
 ;;;       ( ChaosTerm . PrecedenceLevel )
@@ -1319,13 +1326,13 @@
   (let ((juxt-op-list (module-juxtaposition module)) )
     (if (null juxt-op-list)
 	nil				; return a void answer
-        (let ((res nil))
-          (dolist (juxt-op juxt-op-list res)
-            (when (and (<= (the fixnum
-			     (get-method-precedence juxt-op))
-			   level-constraint)
-		       (parser-check-operator term-level0 juxt-op module))
-	      (setq res (cons juxt-op res))))))))
+      (let ((res nil))
+	(dolist (juxt-op juxt-op-list res)
+	  (when (and (<= (the fixnum
+			   (get-method-precedence juxt-op))
+			 level-constraint)
+		     (parser-check-operator term-level0 juxt-op module))
+	    (setq res (cons juxt-op res))))))))
 
 ;;;  op choose-latefix-operators :
 ;;;       ( ChaosTerm . PrecedenceLevel )

@@ -13,11 +13,11 @@ mod* VENDM {
   pr (PARA-CONFIG(INT, QID)*{hsort Tuple -> S})
   bops (Q_) (D_) (T_) (C_) : S -> S 
   bop $_ : S -> Nat 
-  bop o_ : S -> Id
+  bop o_ : S -> Qid
   op I : -> S  { constr }
   
   var N : Nat
-  var L : Id
+  var L : Qid
   var S : S
   eq I = < 0, 'Hello > .
   eq $ < N, L > = N .
@@ -34,7 +34,7 @@ mod! LEMMAS
 {
   pr(VENDM)
   vars M N : Nat
-  var L : Id
+  var L : Qid
   eq N + M >= N = true .
   eq (N + M) - N = M .
   ceq N < M = true if N < M - 1 .

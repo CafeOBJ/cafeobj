@@ -515,8 +515,7 @@
 	     ;;
 	     (when (term-is-builtin-constant? parsed-lhs)
 	       (with-output-chaos-error ('invlaid-lhs)
-		 (format t "sole built-in constant on LHS is not allowed, sorry!")
-		 ))
+		 (format t "sole built-in constant on LHS is not allowed, sorry!")))
 	     ;;
 	     (if (or (term-ill-defined parsed-lhs)
 		     (null sort))
@@ -524,14 +523,15 @@
 		   (princ "[Error] no parse for LHS of the axiom (ignored): ")
 		   nil)
 		 (if (not error-p)
-		     (setq the-axiom
-			   (make-rule :lhs parsed-lhs
-				      :rhs parsed-rhs
-				      :condition parsed-cnd
-				      :labels labels
-				      :behavioural behavioural
-				      :type type))
-		     (chaos-error 'invalid-axiom-decl) ))))
+		     (let ((canon (canonicalize-variables (list parsed-lhs parsed-rhs parsed-cnd) *current-module*)))
+		       (setq the-axiom
+			 (make-rule :lhs (first canon)
+				    :rhs (second canon)
+				    :condition (third canon)
+				    :labels labels
+				    :behavioural behavioural
+				    :type type)))
+		   (chaos-error 'invalid-axiom-decl) ))))
 	  
 	  ;; normal rule
 	  (t (let* ((parses-lhs (let ((*parsing-axiom-lhs* t))
@@ -621,21 +621,21 @@
 								       (term-sort rhs-result)
 								       *current-sort-order*)
 				 (with-output-chaos-error ('invalid-rhs)
-				   (format t "RHS must be a term of sort Bool for :m-and/:m-or axiom.")))
-			       )
+				   (format t "RHS must be a term of sort Bool for :m-and/:m-or axiom."))))
 			     ;;
-			     (setq the-axiom
-				   (make-rule :lhs lhs-result
-					      :rhs rhs-result
-					      :condition parsed-cnd
-					      :behavioural behavioural
-					      :labels labels
-					      :type type
-					      :meta-and-or (if meta-and
-							       :m-and
-							     (if meta-or
-								 :m-or
-							       nil))))
+			     (let ((canon (canonicalize-variables (list lhs-result rhs-result parsed-cnd) *current-module*)))
+			       (setq the-axiom
+				 (make-rule :lhs (first canon)
+					    :rhs (second canon)
+					    :condition (third canon)
+					    :behavioural behavioural
+					    :labels labels
+					    :type type
+					    :meta-and-or (if meta-and
+							     :m-and
+							   (if meta-or
+							       :m-or
+							     nil)))))
 			     ;;
 			     (when *chaos-verbose*
 			       (when behavioural
@@ -647,11 +647,8 @@
 				     (format t "non-behavioural operation on hidden sorts appearing in the behavioural axiom:")
 				     (with-in-module (*current-module*)
 				       (print-next)
-				       (print-chaos-object the-axiom))
-				     ))))
-			     )
-			   (chaos-error 'invalid-axiom-decl))
-		       ))))))
+				       (print-chaos-object the-axiom)))))))
+			   (chaos-error 'invalid-axiom-decl))))))))
     ;; check the axiom
     (check-axiom-error-method *current-module* the-axiom t)
     ;; additionaly if condition part contains match-op...
@@ -679,13 +676,7 @@
       (prepare-for-parsing *current-module*)
       (let ((*parse-variables* nil))
 	(let ((res (simple-parse *current-module* value *cosmos*)))
-	  #||
-	  (when (or (null (term-sort res))
-		    (sort<= (term-sort res)
-			    *syntax-err-sort*
-			    *chaos-sort-order*))
-	    (return-from eval-let nil))
-	  ||#
+	  (setq res (car (canonicalize-variables (list res) *current-module*)))
 	  ;; we treate $$term & $$subterm, we must copy for
 	  ;; avoiding side effect.
 	  (when (or (equal "$$term" sym) (equal "$$subtem" sym))
@@ -746,8 +737,9 @@
 	  (print-chaos-object ast)))
       ;;
       ;; check in 
-      (setq macro (make-macro :lhs lhs :rhs rhs))
-      (add-macro-to-module *current-module* macro)
+      (let ((canon (canonicalize-variables (list lhs rhs) *current-module*)))
+	(setq macro (make-macro :lhs (first canon) :rhs (second canon)))
+	(add-macro-to-module *current-module* macro))
       ;; set module status
       (set-needs-parse)
       macro)))

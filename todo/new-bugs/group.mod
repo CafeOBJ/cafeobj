@@ -12,8 +12,8 @@ module* GROUP {
   eq [r-inv]: X + (- X) = 0 .
 }
 
-** Theorem 1 (left inverse): (- g) + g = 0
-open GROUP
+**> Theorem 1 (left inverse): (- g) + g = 0
+open GROUP .
 op g : -> G .
 start - g + g == 0 .
 apply -.r-id at (1 2) .
@@ -22,8 +22,8 @@ apply reduce at term .
 close
 **
 
-** Theorem 2 (left identity) : 0 + g = g
-open GROUP
+**> Theorem 2 (left identity) : 0 + g = g
+open GROUP .
 op g : -> G .
 var U : G
 eq [l-inv]: (- U) + U = 0 . ** by Theorem 1
@@ -33,8 +33,8 @@ apply +.l-inv within (1) .
 apply reduce at term .
 close
 
-** Theorem 3 (uniqueness): g' = - g if g' + g = 0
-open GROUP
+**> Theorem 3 (uniqueness): g' = - g if g' + g = 0
+open GROUP .
 op g : -> G .
 op g' : -> G .
 var U : G
@@ -47,8 +47,8 @@ apply reduce at term .
 close
 **
 
-** Theorem 4 (uniqueness): g = 0 if g + g' = g' (for all g')
-open GROUP
+**> Theorem 4 (uniqueness): g = 0 if g + g' = g' (for all g')
+open GROUP .
 op g : -> G .
 var U : G
 eq [hypo] : g + U = U . ** hypothesis
@@ -62,8 +62,8 @@ apply reduce at term .
 close
 **
 
-** Theorem 5: - (x + y) = - y + - x
-open GROUP
+**> Theorem 5: - (x + y) = - y + - x
+open GROUP .
 ops x y : -> G .
 vars U V : G
 eq - U == V = U + V == 0 . ** by Theorem 3
@@ -89,8 +89,8 @@ module* G-HOM {
   eq [hom] : (U + V) h = (U h) + (V h) .
 }
 
-** Theorem 6 (preserve neutral): 0 h = 0
-open G-HOM
+**> Theorem 6 (preserve neutral): 0 h = 0
+open G-HOM .
 start 0 h == 0 .
 apply -GROUP.r-id at (1) .
 apply -GROUP.r-inv with X = (0 h) at (1 2) .
@@ -99,8 +99,8 @@ apply reduce at term .
 close
 **
 
-** Theorem 7 (preserve inverse): (- g) h = - (g h)
-open G-HOM
+**> Theorem 7 (preserve inverse): (- g) h = - (g h)
+open G-HOM .
 op g : -> H .
 vars U V : H
 eq [l-inv-H] : (- U) + U = 0 . ** by Theorem 1
@@ -149,23 +149,23 @@ module* IMAGE {
   eq [image]: U :is I = V h == U .
 }
 
-** Theorem 8: the kernel is a normal subgroup
+**> Theorem 8: the kernel is a normal subgroup
 ** view K-is-N from KERNEL to NORMAL {
 **   sort K -> H,
 **   sort H -> G,
 **   op _+_ -> _+_
 ** }
 
-** 8.1: the kernel is a subgroup
-** 8.1.1: the kernel contains zero
-open KERNEL
+**> 8.1: the kernel is a subgroup
+**> 8.1.1: the kernel contains zero
+open KERNEL .
 eq [hom-0]: 0 h = 0 . ** by Theorem 6
 reduce 0 :is K .
 close
 **
 
-** 8.1.2: the kernel is closed under application
-open KERNEL
+**> 8.1.2: the kernel is closed under application
+open KERNEL .
 ops k k' : -> H .
 eq [hom-0]: 0 h = 0 . ** by Theorem 6
 eq [hypo-1]: k h = 0 . ** hypothesis
@@ -174,8 +174,8 @@ reduce k + k' :is K .
 close
 **
 
-** 8.1.3: the kernel is closed under inverse
-open KERNEL
+**> 8.1.3: the kernel is closed under inverse
+open KERNEL .
 op k : -> H .
 var U : H
 eq [hom-inv]: (- U) h = - (U h) . ** by Theorem 7
@@ -185,8 +185,8 @@ reduce - k :is K .
 close
 **
 
-** 8.2: the kernel is normal
-open KERNEL
+**> 8.2: the kernel is normal
+open KERNEL .
 op u : -> H .
 op k : -> H .
 var V : H
@@ -204,28 +204,28 @@ apply +.l-inv within term .
 apply reduce at term .
 close
 
-** Theorem 9: the image is a subgroup
+**> Theorem 9: the image is a subgroup
 ** view I-is-S from IMAGE to SUBGROUP {
 **   sort I -> H,
 **   sort G -> G
 ** }
 
-** 9.1: the image contains zero
-open IMAGE
+**> 9.1: the image contains zero
+open IMAGE .
 eq [hom-0]: 0 h = 0 . ** by Theorem 6
 -- start dirty work
 -- op x : -> H .
 -- eq x = 0 .
 -- end dirty work
 start 0 :is I .
-apply +.image with V = (0).H at term .
+apply +.image with V = (0):H at term .
 -- currently (0):H does not work, hence the dirty work
 apply reduce at term .
 close
 **
 
-** 9.2: the image is closed under _+_
-open IMAGE
+**> 9.2: the image is closed under _+_
+open IMAGE .
 ops i i' : -> G .
 ops v v' : -> H .
 eq [hypo-1]: v h = i . ** hypothesis
@@ -236,8 +236,8 @@ apply reduce at term .
 close
 **
 
-** 9.3: the image is closed under inverse
-open IMAGE
+**> 9.3: the image is closed under inverse
+open IMAGE .
 op i : -> G .
 op v : -> H .
 eq [hom-inv]: (- V) h = - (V h) . ** by Theorem 7
@@ -268,8 +268,8 @@ module* QUOTIENT {
   eq [cos-=] : U =#= V = (X in U) == (X in V) .
 }
 
-** Theorem 10: x + n =#= n if x :is N
-open QUOTIENT
+**> Theorem 10: x + n =#= n if x :is N
+open QUOTIENT .
 op x : -> G .
 ops a b : -> G .
 eq - 0 = 0 . ** from 0 + 0 = 0 and Theorem 3
@@ -281,11 +281,11 @@ apply +.cos-= with X = a at term .
 apply +.cos-2 within term .
 apply reduce at term .
 
-** Theorem 10: the quotient is a group
+**> Theorem 10: the quotient is a group
 
-** 10.0: _+_ is well-defined: (x + n) + (y + n) =#= (x + n) + (y' + n)
-**    if y + n =#= y' + n, similarly for the 1st argument
-open QUOTIENT
+**> 10.0: _+_ is well-defined: (x + n) + (y + n) =#= (x + n) + (y' + n)
+**>    if y + n =#= y' + n, similarly for the 1st argument
+open QUOTIENT .
 ops x y y' : -> G .
 op a : -> G .
 eq [hypo] : y + n =#= y' + n = true .
@@ -297,7 +297,7 @@ apply +.cos-2 within term .
 apply -.cos-= within term .
 apply +.hypo at term .
 close
-open QUOTIENT
+open QUOTIENT .
 ops x x' y : -> G .
 op a : -> G .
 vars X Y : G
@@ -313,8 +313,8 @@ apply -.cos-= within term .
 apply +.hypo at term .
 close
 
-** 10.1: _+_ is associative
-open QUOTIENT
+**> 10.1: _+_ is associative
+open QUOTIENT .
 ops x y z : -> G .
 ops a b : -> G .
 eq a + - (x + y + z) :is N = true .  ** splitting
@@ -328,8 +328,8 @@ apply reduce at term .
 close
 **
 
-** 10.2.0 lemma: 0 + n =#= n
-open QUOTIENT
+**> 10.2.0 lemma: 0 + n =#= n
+open QUOTIENT .
 op x : -> G .
 ops a b : -> G .
 eq - 0 = 0 . ** from 0 + 0 = 0 and Theorem 3
@@ -349,8 +349,8 @@ close
 **
 
 
-** 10.2: n is neutral
-open QUOTIENT
+**> 10.2: n is neutral
+open QUOTIENT .
 op x : -> G .
 ops a b : -> G .
 eq a + - x :is N = true .  ** splitting
@@ -369,8 +369,8 @@ apply reduce at term .
 close
 **
 
-** 10.3: -_ is the inverse
-open QUOTIENT
+**> 10.3: -_ is the inverse
+open QUOTIENT .
 op x : -> G .
 ops a b : -> G .
 beq [lema]: 0 + n = n . ** by 10.2.0
@@ -398,8 +398,8 @@ module* Q-MAP {
   eq X q = X + n .
 }
 
-** Theorem 10: G -> G/N is a homomorphism
-open Q-MAP
+**> Theorem 10: G -> G/N is a homomorphism
+open Q-MAP .
 ops x y : -> G .
 ops a b : -> G .
 eq a + - (x + y) :is N = true .
@@ -440,9 +440,9 @@ module* ISO-1 {
 
 ** !!!!!
 
-** Theorem 11: iso is indeed iso
-** 11.1: iso is well-defined: iso(x + n) = iso(x' + n) if x + n =#= x' + n
-open ISO-1
+**> Theorem 11: iso is indeed iso
+**> 11.1: iso is well-defined: iso(x + n) = iso(x' + n) if x + n =#= x' + n
+open ISO-1 .
 ops x x' : -> H .
 vars P Q : G
 ceq [!inv]: P == Q = true if P + - Q == 0 . ** by Theorem 2 and x = - - x
@@ -468,15 +468,15 @@ apply +.hom-0 at term .
 close
 **
 
-** 11.2: iso is a homomorphism
-open ISO-1
+**> 11.2: iso is a homomorphism
+open ISO-1 .
 ops x x' : -> H .
 reduce iso(x + n) + iso(x' + n) == iso((x + n) + (x' + n)) .
 close
 **
 
-** 11.3: iso is surjective
-open ISO-1
+**> 11.3: iso is surjective
+open ISO-1 .
 op g : -> G .
 op x : -> H .
 eq g :is I = true .
@@ -487,8 +487,8 @@ apply reduce at term .
 close
 **
 
-** 11.4: iso is injective: x + n =#= x' + n if iso(x + n) = iso(x' + n)
-open ISO-1
+**> 11.4: iso is injective: x + n =#= x' + n if iso(x + n) = iso(x' + n)
+open ISO-1 .
 ops x x' : -> H .
 eq [hypo]: iso(x + n) = iso(x' + n) .
 start x + n =#= x' + n .

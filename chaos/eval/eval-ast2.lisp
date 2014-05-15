@@ -157,6 +157,7 @@
 			  term
 			  "The target term contains variables, system replaces them with 'constants'." ))
 	      ||#
+	      (setq term (car (canonicalize-variables (list term) mod)))
               (when *rewrite-stepping* (setq *steps-to-be-done* 1))
               (when *show-stats*
                 (setq time2 (get-internal-run-time))
@@ -292,7 +293,7 @@
               (when (or (null (term-sort term))
                         (sort<= (term-sort term) *syntax-err-sort* *chaos-sort-order*))
                 (return-from perform-meta-reduction nil))
-	      (setq res term)
+	      (setq res (car (canonicalize-variables (list term) mod)))
 	      (catch 'rewrite-abort
 		(let ((*do-empty-match* nil)) ; t
 		  (if (and *rewrite-exec-mode*
@@ -355,6 +356,7 @@
       (prepare-for-parsing *current-module*)
       (let ((*parse-variables* nil))
 	(let ((res (simple-parse *current-module* preterm *cosmos*)))
+	  (setq res (car (canonicalize-variables (list res) mod)))
 	  ;; ******** MEL 
 	  (when *mel-sort*
 	    (!setup-reduction mod)
@@ -551,6 +553,7 @@
                   (sort<= (term-sort term) *syntax-err-sort*
                           *chaos-sort-order*))
           (return-from set-rewrite-stop-pattern2 nil))
+	(setq term (car (canonicalize-variables (list term) mod)))
         (set-rewrite-stop-pattern term)))))
 
 ;;; *******
@@ -1598,6 +1601,9 @@
                     (sort<= (term-sort rhs) *syntax-err-sort* *chaos-sort-order*))
             (context-pop-and-recover)
             (return-from  eval-cbred nil))
+	  (let ((canon (canonicalize-variables (list lhs rhs) mod)))
+	    (setq lhs (first canon))
+	    (setq rhs (second canon)))
           (when *show-stats*
             (setq time2 (get-internal-run-time))
             (setq time-for-parse
@@ -1661,10 +1667,8 @@
                   (format t ")~%")
                 (format t ", ~d memo hits)~%"
                         *term-memo-hash-hit*))
-              (flush-all))
-            )))
-      (context-pop-and-recover)
-      )))
+              (flush-all)))))
+      (context-pop-and-recover))))
 
 ;;; INSEPCT
 (defun eval-inspect (ast)
@@ -1676,13 +1680,11 @@
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
         (princ "incorrect module expression or uknown module: ")
-        (print-modexp modexp)
-        ))
+        (print-modexp modexp)))
     ;;
     (unless mod
       (with-output-chaos-error ('no-context)
-        (princ "no module to be inspeted!")
-        ))
+        (princ "no module to be inspeted!")))
     ;;
     (!inspect-module mod) ))
 
@@ -1732,8 +1734,7 @@
       ((:set :add) (!force-single-reader chars))
       ((:delete) (!unset-single-reader chars))
       (otherwise (with-output-chaos-error ('internal)
-		   (format t "Internal error, invalid delimiter operation ~s" op)
-		   )))))
+		   (format t "Internal error, invalid delimiter operation ~s" op))))))
 
 ;;; *******************
 ;;; Chaos Top

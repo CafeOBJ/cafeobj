@@ -626,6 +626,12 @@
 			 (variable-name ,var)
 			 (variable-print-name ,var))))
 
+(defmacro variable-copy-x (var)
+  (once-only (var)
+	     `(make-variable-term (variable-sort ,var)
+				  (intern (concatenate 'string (string (variable-name ,var)) "'"))
+				  (variable-print-name ,var))))
+
 ;;; ****************
 ;;; APPLICATION-FORM ___________________________________________________________
 ;;; ****************

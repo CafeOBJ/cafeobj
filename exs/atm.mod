@@ -422,24 +422,24 @@ mod* ATM-SYSTEM {
   eq account-sys(withdraw(A, S)) = account-sys(S) .
   ceq account-sys(ok(A, S)) = 
        deposit(user-id(atm(A, S)), get-input(atm(A, S)), account-sys(S))
-       if button-status(atm(A, S)) == deposit and-also
-          user-id(atm(A, S)) =/= unidentified-user and-also
-          get-input(atm(A, S)) =/= 0 .
+       if (button-status(atm(A, S)) == deposit) and-also
+          (user-id(atm(A, S)) =/= unidentified-user) and-also
+          (get-input(atm(A, S)) =/= 0) .
   ceq account-sys(ok(A, S)) = 
        withdraw(user-id(atm(A, S)), get-request(atm(A, S)), account-sys(S))
-       if button-status(atm(A, S)) == withdraw and-also
-          user-id(atm(A, S)) =/= unidentified-user and-also
-          get-request(atm(A, S)) =/= 0 and-also
-          get-request(atm(A, S)) <=
-                 balance(user-id(atm(A, S)), account-sys(S)) .
+       if (button-status(atm(A, S)) == withdraw) and-also
+          (user-id(atm(A, S)) =/= unidentified-user) and-also
+          (get-request(atm(A, S)) =/= 0) and-also
+          (get-request(atm(A, S)) <=
+                 balance(user-id(atm(A, S)), account-sys(S))) .
   ceq account-sys(ok(A, S)) = account-sys(S)
-       if user-id(atm(A, S)) == unidentified-user or
-          (button-status(atm(A, S)) == deposit and-also
-              get-input(atm(A, S)) == 0) or
-          (button-status(atm(A, S)) == withdraw and-also
-              (get-request(atm(A, S)) == 0 or
-              get-request(atm(A, S)) >
-                       balance(user-id(atm(A, S)), account-sys(S)))) .
+       if (user-id(atm(A, S)) == unidentified-user) or
+	 ((button-status(atm(A, S)) == deposit) and-also
+	    get-input(atm(A, S)) == 0) or
+          ((button-status(atm(A, S)) == withdraw) and-also
+              ((get-request(atm(A, S)) == 0) or
+		 (get-request(atm(A, S)) >
+		    balance(user-id(atm(A, S))), account-sys(S)))) .
   eq account-sys(cancel(A, S)) = account-sys(S) .
 
   eq atm(A, init-sys) = no-atm .
@@ -478,21 +478,21 @@ mod* ATM-SYSTEM {
   ceq atm(A, withdraw(A', S)) = atm(A, S)
        if A =/= A' .
   ceq atm(A, ok(A', S)) = clear(atm(A, S))
-       if A == A' and-also
-          user-id(atm(A, S)) =/= unidentified-user and-also
-          button-status(atm(A, S)) == deposit .
+       if (A == A') and-also
+	  (user-id(atm(A, S)) =/= unidentified-user) and-also
+          (button-status(atm(A, S)) == deposit) .
   ceq atm(A, ok(A', S)) = set-money(get-request(atm(A, S)), clear(atm(A, S)))
        if A == A' and-also
-          user-id(atm(A, S)) =/= unidentified-user and-also
-          button-status(atm(A, S)) ==  withdraw and-also
-          get-request(atm(A, S)) <=
-                    balance(user-id(atm(A, S)), account-sys(S)) .
+          (user-id(atm(A, S)) =/= unidentified-user) and-also
+          (button-status(atm(A, S)) ==  withdraw) and-also
+          (get-request(atm(A, S)) <=
+                       balance(user-id(atm(A, S)), account-sys(S))) .
   ceq atm(A, ok(A', S)) = invalid-operation
        if A == A' and-also
-          (user-id(atm(A, S)) == unidentified-user or
-          (button-status(atm(A, S)) ==  withdraw and-also
+          ((user-id(atm(A, S)) == unidentified-user) or
+           ((button-status(atm(A, S)) ==  withdraw) and-also
               (get-request(atm(A, S)) >
-                   balance(user-id(atm(A, S)), account-sys(S))))) .
+                           balance(user-id(atm(A, S)), account-sys(S))))) .
   ceq atm(A, ok(A', S)) = atm(A, S)
        if A =/= A' .
   ceq atm(A, cancel(A', S)) = init-atm(A)

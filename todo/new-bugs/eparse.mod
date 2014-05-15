@@ -28,7 +28,7 @@ mod OStest3 {
   op f_ : S2 -> S2' .
 }
 parse in OStest3 : f a .
-open OStest3
+open OStest3 .
 op b : -> S1 .
 eq a = b .
 parse f a .

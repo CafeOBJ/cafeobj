@@ -344,6 +344,8 @@ mod! META-MODULE {
 }
 
 eof
+
+** TODO 
   op getName : Module -> Qid .
   eq getName(mod! Q {IL sorts SS . SSDS OPDS MAS EQS }) = Q .
   eq getName(mod! Q {IL sorts SS . SSDS OPDS MAS EQS RLS }) = Q .

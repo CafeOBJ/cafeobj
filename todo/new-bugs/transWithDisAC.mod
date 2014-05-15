@@ -7,7 +7,7 @@ mod TRANSwithDifAcMatch {
   trans [ab-AB]: (a: D:Data) (b: D) => A B .
 }
 
-open TRANSwithDifAcMatch
+open TRANSwithDifAcMatch .
 -- 1
 red ((a: 1) (b: 1) (a: 2) (b: 2) (a: 3) (b: 3))
      =(*,1)=>* S:Struct .

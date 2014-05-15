@@ -26,7 +26,7 @@ mod* B-LIST  {
   beq cdr(cons(E, L)) = L .
 }
 
-open B-LIST
+open B-LIST .
 
 ops l1 l2 : -> List .
 ops e e' : -> Elt .

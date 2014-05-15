@@ -242,7 +242,7 @@ mod* CALENDAR {
 }
 
 -- some testing
-open CALENDAR
+open CALENDAR .
 op cd : -> Calendar .
 --> Date is (19 July 1998 : Sunday)
 eq year(cd) = 1998 .

@@ -43,7 +43,7 @@ mod* BUF {
   cq get put(E, B) = get B if not empty?(B) .
 }
 
-open BUF
+open BUF .
 ops b b' : -> Buf .
 op e : -> Elt .
 beq b = b' .

@@ -703,30 +703,22 @@
   (declare (type term t1 t2)
 	   (values (or null t)))
   (or (term-eq t1 t2)
-      (equal t1 t2)
+      ;; (equal t1 t2)
       (let ((t1-body (term-body t1))
 	    (t2-body (term-body t2)))
 	(cond ((term$is-applform? t1-body)
 	       (let ((f1 (term$head t1-body)))
-		 ;; (break)
 		 (if (theory-info-empty-for-matching
 		      (method-theory-info-for-matching f1))
 		     (match-with-empty-theory t1 t2)
-		     (E-equal-in-theory (method-theory f1) t1 t2)))
-	       )
+		     (E-equal-in-theory (method-theory f1) t1 t2))))
 	      ((term$is-builtin-constant? t1-body)
 	       (term$builtin-equal t1-body t2-body))
 	      ((term$is-builtin-constant? t2-body) nil)
 	      ;;
 	      ((term$is-variable? t1-body)
 	       (setq *used==* t)
-	       #||
-	       (and (term$is-variable? t2-body)
-		    (eq (variable$name t1-body) (variable$name t2-body))
-		    (eq (term$sort t1-body) (term$sort t2-body)))
-	       ||#
-	       (eq t1-body t2-body)
-	       )
+	       (eq t1-body t2-body))
 	      ((term$is-variable? t2-body)
 	       (setq *used==* t)
 	       nil)
@@ -734,8 +726,7 @@
 	       (and (term$is-lisp-form? t2-body)
 		    (equal (term$lisp-code-original-form t1-body)
 			   (term$lisp-code-original-form t2-body))))
-	      (t (break "term-equational-equal: not-implemented ~s" t1))
-	      ))))
+	      (t (break "term-equational-equal: not-implemented ~s" t1))))))
 
 ;;; TERM-IS-SIMILAR? : TERM TERM -> BOOL
 ;;; returns true iff two terms are similar, i.e., syntactically equal.
@@ -1252,7 +1243,7 @@
     (declare (type list res list-new-var))
     (values (car res) list-new-var)))
 
-(defun copy-list-term-using-list-var (term-list list-new-var)
+(defun copy-list-term-using-list-var (term-list list-new-var &key (test #'variable-eq))
   (declare (type list term-list list-new-var)
 	   (values list list))
   (let ((v-image nil)
@@ -1260,21 +1251,18 @@
     (values (mapcar #'(lambda (term)
 			(cond ((term-is-variable? term)
 			       (if (setq v-image
-				     (cdr (assoc term list-new-var
-						 :test #'variable-eq)))
+				     (cdr (assoc term list-new-var :test test)))
 				   v-image
-				 (let ((new-var (variable-copy term)))
+				 (let ((new-var (variable-copy-x term)))
 				   (declare (type term new-var))
-				   (setf list-new-var (acons term new-var
-							     list-new-var))
-				   new-var
-				   )))
+				   (setf list-new-var (acons term new-var list-new-var))
+				   new-var)))
 			      ((term-is-builtin-constant? term) term)
 			      ((term-is-lisp-form? term) term)
 			      (t (multiple-value-setq (list-copied-term list-new-var)
-				   (copy-list-term-using-list-var
-				    (term-subterms term)
-				    list-new-var))
+				   (copy-list-term-using-list-var (term-subterms term)
+								  list-new-var
+								  :test test))
 				 (make-applform (term-sort term)
 						(term-head term)
 						list-copied-term))))
@@ -1283,12 +1271,12 @@
 
 ;;; COPY-TERM-USING-VARIABLE : term List[variable] -> term
 ;;;
-(defun copy-term-using-variable (term list-new-var)
+(defun copy-term-using-variable (term list-new-var &optional (test #'variable-eq))
   (declare (type term term)
 	   (type list list-new-var)
 	   (values term))
   (multiple-value-bind (res list-new-var-res)
-      (copy-list-term-using-list-var (list term) list-new-var)
+      (copy-list-term-using-list-var (list term) list-new-var :test test)
     (declare (ignore list-new-var-res)
 	     (type list res))
     (car res)))
@@ -1537,5 +1525,14 @@
 	     (declare (ignore list-new-var-res))
 	     (car res)))
 	  (t term))))
+
+;;; canonicalize--variables
+;;;
+(defun canonicalize-variables (list-term module)
+  (with-in-module (module)
+    (multiple-value-bind (list-copied-term list-new-var)
+	(copy-list-term-using-list-var list-term nil :test #'variable-equal)
+      (declare (ignore list-new-var))
+      list-copied-term)))
 
 ;;; EOF

@@ -271,40 +271,40 @@ mod* RABP {
   ceq sender m(A) = m(sender A) 
   if event A == SENDER and (event sender A == SEND or cserr? uch2 A) .
   ceq sender m(A) = m(receive(sender A, get uch2 A)) 
-  if event A == SENDER and event sender A == REC and 
-    not empty? uch2 A and not cserr? uch2 A .
+  if event A == SENDER and (event sender A == REC) and 
+    (not empty? uch2 A) and (not cserr? uch2 A) .
   ceq sender m(A) = sender A 
-    if event A == RECEIVER or 
-      (event A == SENDER and event sender A == REC and empty? uch2 A) .
+    if (event A == RECEIVER) or 
+      (event A == SENDER) and (event sender A == REC) and (empty? uch2 A) .
   
   ceq receiver m(A) = m(receiver A) 
   if event A == RECEIVER and (event receiver A == SEND or cserr? uch1 A) .
   ceq receiver m(A) = m(receive(receiver A, get uch1 A)) 
-  if event A == RECEIVER and event receiver A == REC and 
-    not empty? uch1 A and not cserr? uch1 A .
+  if (event A == RECEIVER) and (event receiver A == REC) and 
+    (not empty? uch1 A) and (not cserr? uch1 A) .
   ceq receiver m(A) = receiver A 
-    if event A == SENDER or 
-      (event A == RECEIVER and event receiver A == REC and empty? uch1 A) .
+    if (event A == SENDER) or 
+       (event A == RECEIVER) and (event receiver A == REC) and (empty? uch1 A) .
 
   ceq uch1 m(A) = put(uch1 A, << head(sndng-list sender A) ; flag sender A >>) 
-  if event A == SENDER and event sender A == SEND and empty? uch1 A .
+  if (event A == SENDER) and (event sender A == SEND) and (empty? uch1 A) .
   ceq uch1 m(A) = del(uch1 A) 
-  if event A == RECEIVER and event receiver A == REC and not empty? uch1 A .
+  if (event A == RECEIVER) and (event receiver A == REC) and (not empty? uch1 A) .
   ceq uch1 m(A) = uch1 A  
-    if (event A == SENDER and event sender A == SEND and not empty? uch1 A) or
-      (event A == SENDER and event sender A == REC) or
-	(event A == RECEIVER and event receiver A == REC and empty? uch1 A) or
-	  (event A == RECEIVER and event receiver A == SEND) .
+    if (event A == SENDER) and (event sender A == SEND) and (not empty? uch1 A) or
+      (event A == SENDER) and (event sender A == REC) or
+	(event A == RECEIVER) and (event receiver A == REC) and (empty? uch1 A) or
+	  (event A == RECEIVER) and (event receiver A == SEND) .
   
   ceq uch2 m(A) = put(uch2 A, flag receiver A) 
-  if event A == RECEIVER and event receiver A == SEND and empty? uch2 A .
+  if (event A == RECEIVER) and (event receiver A == SEND) and (empty? uch2 A) .
   ceq uch2 m(A) = del(uch2 A) 
-  if event A == SENDER and event sender A == REC and not empty? uch2 A .
+  if (event A == SENDER) and (event sender A == REC) and (not empty? uch2 A) .
   ceq uch2 m(A) = uch2 A 
-    if (event A == RECEIVER and event receiver A == SEND and not empty? uch2 A) or
-      (event A == RECEIVER and event receiver A == REC) or
-	(event A == SENDER and event sender A == REC and empty? uch2 A) or
-	  (event A == SENDER and event sender A == SEND) .
+    if (event A == RECEIVER) and (event receiver A == SEND) and (not empty? uch2 A) or
+      (event A == RECEIVER) and (event receiver A == REC) or
+	(event A == SENDER) and (event sender A == REC) and (empty? uch2 A) or
+	  (event A == SENDER) and (event sender A == SEND) .
 }
 
 
@@ -336,15 +336,16 @@ mod RABP-PROOF {
   eq not not B:Bool = B .
 }
 
-open RABP-PROOF
+open RABP-PROOF .
 eq sndng-list sender a = IL .
 eq rcvd-list receiver a = FL .
 eq flag(sender a) = b .
 eq flag(receiver a) = (not b) .
 
 **
-eof
 ** 
+-- eof
+
 red sndng-list(sender  m(m(m(m(a))))) .
 red rcvd-list(receiver m(m(m(m(a))))) .
 red flag(sender        m(m(m(m(a))))) .

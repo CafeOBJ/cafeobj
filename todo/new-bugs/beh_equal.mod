@@ -45,7 +45,7 @@ mod* BUF-BEQ {
  eq [beq3] : B1 R[N] B2 = (get take(N, B1) = get take(N, B2)) .
 }
 
-open (BUF-BEQ + EQL)
+open (BUF-BEQ + EQL) .
 ops b1 b1' b2 b2' : -> Buf .
 vars B1 B2 : Buf .
 op n : -> Nat .
