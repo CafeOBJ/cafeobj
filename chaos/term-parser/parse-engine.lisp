@@ -1621,11 +1621,13 @@
 			  (make-inheritedly-ill-term
 			   method-prime direct-arg-list)))
 		;; check for _:is_, sortmembership predicate
+		#||
 		(when (eq *sort-membership* method-prime)
 		  (unless (test-sort-memb-predicate chaos-term)
 		    (setq chaos-term
 			  (make-directly-ill-term method-prime
 						  direct-arg-list))))
+		||#
 		)
 	      ;;
 	      ;; incorrect argument(s).
