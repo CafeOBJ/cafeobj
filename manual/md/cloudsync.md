@@ -6,6 +6,10 @@ syncronization of a set of PCs. The full code of the actual
 specification, as well as parts of the verification proof score will
 be included and discussed.
 
+Besides giving an example of a specification and verification, we also
+try to explain several of the most important concepts in \_cafeobj
+using rather simple examples.
+
 Protocoll
 ---------
 
@@ -56,6 +60,8 @@ for the labels. One can see that we declare the signatures of the
 literal labels with the [`ops`](#op) keyword, which introduces several
 operators of the same signature at the same time.
 
+The last equation in each models provides a definition of equality by
+using the _behavioral_ equality `==`. 
 The predicate `==` is the equivalence predicate defined via
 reduction. Thus, the two axioms given above state that two literals
 for labels are the same if they are syntactically the same, since they
@@ -153,8 +159,8 @@ Finally, the state of the whole system is declared as a pair of the
 cloud state and the pc states.
 `````
 mod! STATE { 
-  pr(PAIR(CLSTATE{sort Elt -> ClState},PCSTATES{sort Elt -> PcStates})*
-      {sort Pair -> State}) 
+  pr(PAIR(CLSTATE{sort Elt -> ClState},
+          PCSTATES{sort Elt -> PcStates})*{sort Pair -> State}) 
 }
 `````
 
@@ -176,7 +182,8 @@ into another.
 `````
 mod! GETVALUE { pr(STATE)
   trans[getvalue]: 
-    < < ClVal:Nat , idlecl > , ( << PcVal:Nat ; OldClVal:Nat ; idlepc >> S:PcStates ) >
+    < < ClVal:Nat , idlecl > , 
+      ( << PcVal:Nat ; OldClVal:Nat ; idlepc >> S:PcStates ) >
     =>
     < < ClVal , busy > , ( << PcVal ; ClVal ; gotvalue >> S ) > .
 }
@@ -186,10 +193,10 @@ The next transition is the critical part, the update of the side with
 the lower value. Here we are using the built-in `if ... then ... else
 ... fi` operator.
 `````
-mod! UPDATE {
-  pr(STATE)
+mod! UPDATE { pr(STATE)
   trans[update]:
-    < < ClVal:Nat , busy > , ( << PcVal:Nat ; GotClVal:Nat ; gotvalue >> S:PcStates ) >
+    < < ClVal:Nat , busy > , 
+      ( << PcVal:Nat ; GotClVal:Nat ; gotvalue >> S:PcStates ) >
     =>
       if PcVal <= GotClVal then
 	< < ClVal , busy > , ( << GotClVal ; GotClVal ; updated >> S ) >
@@ -202,10 +209,10 @@ mod! UPDATE {
 The last transition is sending the both sides of the syncronization
 into the idle states.
 `````
-mod! GOTOIDLE {
-  pr(STATE)
+mod! GOTOIDLE { pr(STATE)
   trans[gotoidle]: 
-    < < ClVal:Nat , busy > , ( << PcVal:Nat ; OldClVal:Nat ; updated >> S:PcStates ) >
+    < < ClVal:Nat , busy > , 
+      ( << PcVal:Nat ; OldClVal:Nat ; updated >> S:PcStates ) >
     =>
     < < ClVal , idlecl > , ( << PcVal ; OldClVal ; idlepc >> S ) > .
 }
@@ -224,17 +231,19 @@ Verification
 
 Aim of the verification is to show *correctness* in the sense that no
 two PCs are at the same time in the busy state. The idea of the proof
-is to show using induction over all reachable states, that this
+is to show using induction on the length of transition sequences from
+initial states to reachable states, that for all reachable states this
 property is fulfilled.
 
 More specific, we give a characterization of initial states, and show
 that for initial states the property holds (base case of the
 induction). Then we show that for all possible transitions, if the
 target property holds at the beginning of the transition, it also
-holds at the end of the transition.
+holds at the end of the transition. 
 
-Combining this we show that in every state reachable from an initial
-state the target property holds.
+Combining this with a (meta-level) induction proof on the length of
+transition sequences, we show that the target property holds for all
+reachable states. 
 
 Like with loop invariants in other verification schemes, it turns out
 that a single target property, the exclusion property mentioned above,
@@ -284,6 +293,7 @@ mod! INITPREDS {
 `````
 
 In the following we define the predicate specifying initial states:
+`````
 mod! INITIALSTATE {
   pr(INITPREDS)
   op init-name : -> PredNameSeq .
@@ -291,6 +301,7 @@ mod! INITIALSTATE {
   pred init : State .
   eq init(S:State) = apply(init-name, S) .
 }
+`````
 
 Let us now turn to the most difficult part, that is finding an
 invariant. This is not a one-shot technique, but mostly iterative. One
@@ -387,4 +398,14 @@ following expressions, too:
 Unfortunately, in the case of `t2` this didn't turn out to be directly
 possible, and a further case distinction was necessary to complete the
 proof. 
+
+This concludes the presentation of the CloudSync protocol. We
+described the cloud protocol using a _state system_ and
+transitions. This is just one way of implementation. There are other
+approaches to specification using purely term-based expressions that
+do not use transitions, but equational theory only. 
+One of the strength of \_cafeobj is that it does not require any
+specific approach to modeling, but allows for freedom in choosing
+methodology.
+
 

@@ -1,6 +1,6 @@
 ---
 title: CafeOBJ Reference Manual
-date: 2014-03-27
+date: 2014-05-25
 author: Toshimi Sawada, Kokichi Futatsugi, Norbert Preining
 bibliography: manual.bib
 ---

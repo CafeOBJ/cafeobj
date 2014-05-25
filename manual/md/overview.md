@@ -52,7 +52,7 @@ the (builtin) sort `Nat`.
 
 For more details concerning sorts, see [`sort declaration`](#sort).
 
-Imports
+Imports {#intro-imports}
 -------
 
 \_cafeobj allows for importing and reusing of already defined
@@ -124,20 +124,4 @@ For further details see [`eq`](#eq).
 
 In the following chapter we will include the specification of a
 protocol with the full code, explaining some concepts on the way.
-
-
-
-to be written
-
-alternative title: Main concepts (?)
-
-discuss the following topics in bit more details (parts of the
-current manual, stripped down)
-
-- sorts [Ch 3]
-- operators [Ch 4, Ch 7]
-- module [Ch 2, Ch 8]
-
-do not contain the syntactic definition in all the details,
-but explain these important items in more detail
 

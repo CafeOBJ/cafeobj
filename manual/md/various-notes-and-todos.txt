@@ -1,9 +1,7 @@
 
-missing:
-	:m-and :m-or tags for equations
-
 -------------
 
+DONE
 mail from Sawada-san concerning operator precedence:
 
 (1) standard form: ex.  op foo : S1 .. Sk -> S                                  
@@ -20,6 +18,7 @@ S1 .. Sn -> S
 
 comments from Sawada-san 2013-10-30
 
+(DONE)
 (1) on-the-fly declarations (on p.21)
      The description of on-the-fly constant "`a:Nat" declaration
 

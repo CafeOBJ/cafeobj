@@ -10,6 +10,12 @@ cross-linked for easy accessibility.
 lists all top-level commands. The `?` can be used after many of the
 top-level commands to obtain help.
 
+## `! <command>` ## {#commandexec}
+
+TODO Currently not working!! 
+
+On Unix only, forks a shell and executes the given `<command>`.
+
 ## `**`, `**>` ## {#starstar}
 
 Starts a comment which extends to the end of the line. 
@@ -26,12 +32,30 @@ evaluated by the interpreter.
 
 Related: [`**`](#starstar) [comments](#comments)
 
+## `=` ## {#axeq}
+
+The syntax element `=` introduces an axiom of the equational theory,
+and is different from `==` which specifies an equality based on
+rewriting. 
+
+Related: [`==`](#equality) [`eq`](#eq)
+
 ## `==` ## {#equality}
 
 The predicate `==` is a binary operator defined for each visible sort
 and is defined in terms of evaluation. That is, for ground terms `t`
 and `t'` of the same sort, `t == t'` evaluates to `true` iff terms
-reduce to a common term.
+reduce to a common term. This is different from the equational `=`
+which specifies the equality of the theory.
+
+## `==>` ## {#transrel}
+
+This binary predicate is defined on each visible sort, and defines the
+transition relation, which is reflexive, transitive, and closed under
+operator application. It expresses the fact that two states (terms)
+are connected via transitions.
+
+Related: [`trans`](#trans) [`=(*)=>`](#transsearch)
 
 ## `=*=` ## {#bequality}
 
@@ -40,6 +64,10 @@ operator defined on each hidden sort.
 
 TODO: old manual very unclear ... both about `=*=` and 
 `accept =*= proof` ??? (page 46 of old manual)
+
+## `=(n)=>` `=(n,m)=>` ## {#transsearch}
+
+See [search predicate](#searchpredicate)
 
 ## `=/=` ## {#ineq}
 
@@ -177,16 +205,12 @@ Defines a behaviour equation. For details see [`eq`](#eq).
 Related: [`eq`](#eq) [`ceq`](#ceq) [`bceq`](#bceq)
 
 
-## `bctrans [ <label-exp> ] <term> => <term> if <boolterm> .` ## {#bctrans}
+## `bctrans [ <label-exp> ] <term> => <term> if <bool> .` ## {#bctrans}
 
 Defines a behaviour conditional transition. 
 For details see [`ctrans`](#ctrans).
 
 Related [`trans`](#trans) [`ctrans`](#ctrans) [`btrans`](#btrans)
-
-## `BOOL =` switch ## {#switch-bool}
-
-TODO missing documentation
 
 ## `bop <op-spec> : <sorts> -> <sort>` ## {#bop}
 
@@ -498,7 +522,8 @@ This switch allows to disable automatic inclusion of RWL.
 Alias: `in`
 
 imports the object specified by `modexp` into the current
-module. TODO what are the consequences for the models? TODO
+module. 
+
 See [`module expression`](#moduleexpression) for format of `modexp`.
 
 Related: [`extending`](#including) [`protecting`](#protecting) 
@@ -601,7 +626,13 @@ first and cannot be suppressed.
 
 ## `lisp`, `lispq` ## {#lisp}
 
-TODO missing documentation
+TODO missing documentation `lispq` is ??quiet??
+
+These two commands evaluate an arbitrary lisp expression, example:
+`````
+CafeOBJ> lisp (+ 4 5)
+(+ 4 5) -> 9
+`````
 
 Related: [`eval`](#eval)
 
@@ -652,7 +683,6 @@ are declarations of
 
   - import - see `protecting`, `extending`, `including`, `using`
   - sorts - see `sort declaration`
-  - records - TODO delete?
   - variable - see `var`
   - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
   - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
@@ -759,12 +789,14 @@ equation is *not* valid:
 
 On-the-fly declaration of constants are done the same way, where the
 `<name>` is a constant name as in `\`a:Nat`. Using this construct is
-equivalent to defining an operator
+similar to defining an operator
 
 `op <name> : -> <sort>`
 
-or in the above example, `op a : -> Nat .` These constant definitions
-are quite common in proof scores.
+or in the above example, `op a : -> Nat .`, besides that the
+on-the-fly declaration of constants, like to one of variables, is only
+valid in the current context (i.e., term or axiom). These constant
+definitions are quite common in proof scores.
 
 Related: [`var`](#var)
 
@@ -879,7 +911,26 @@ Related: [`bop`](#bop)
 
 ## operator precedence ## {#opprec}
 
-TODO list the rules for operator precedence
+\_cafeobj allows for complete freedom of syntax, in particular infix
+operators and overloading. To correctly parse terms that are ambigous,
+all operators have precedence values. These values can be adjusted
+manually during definition of the operator 
+(see [operator attributes](#opattr)). In absence of manual
+specification of the operator precedence, the values are determined by
+the following rules:
+
+- standard prefix operators, i.e., those of the form `op f : S1 .. Sk -> S`,
+  receive operator precedence value 0.
+- unary operators, i.e., those of the form `op u_ : S1 -> S`, receive
+  precedence 15.
+- mix-fix operators with forst and last token being arguments, i.e.,
+  those of the form `op _ arg-or-op _ : S1 .. Sk -> S`, receive
+  precedence 41.
+- all other operators (constants, operators of the form `a _ b`, etc.)
+  receive precedence 0.
+
+Related: [operator attributes](#opattr)
+
 
 ## `parse [ in <mod-exp> : ] <term> .` ## {#parse}
 
@@ -917,8 +968,6 @@ Controls to which depth terms are printed.
 Possible values: `normal` `fancy` `tree` `s-expr`
 
 Selects one of the print modes.
-
-TODO explain the different print modes!
 
 ## `protect <module-name>` ## {#protect}
 
@@ -1092,6 +1141,17 @@ restrictons.
 
 Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
 
+## search predicates ## {#searchpredicate}
+
+\_cafeobj provides a whole set of search predicates `=(n,m)=>` for
+searching transitions starting from a given term. The first value `n`
+specifies the maximum number of solutions searched, and can be either
+a natural number of `*`, in which case all solutions are searched. The
+second value `m` is the maximum depth, and can be a natural number
+(but not `*`).
+
+TODO: `=(n,m)=>+` ??? other specifiers?
+
 
 ## `select <mod_exp> . ` ## {#select}
 
@@ -1134,7 +1194,9 @@ Related: [`switches`](#switches) [`describe`](#describe)
 
 ## `show mode` switch ## {#switch-show-mode}
 
-TODO missing documentation
+Possible values for `set show mode <mode>` are `cafeobj` and `meta`.
+
+TODO no further information on what this changes
 
 ## `signature { <sig-decl> }` ## {#signature}
 
@@ -1190,7 +1252,14 @@ Related: [`apply`](#apply) [`choose`](#choose) [`match`](#match)
 
 ## `statistics` switch ## {#switch-statistics}
 
-TODO missing documentation
+Possible values: `on` `off`, default `on`.
+
+After each reduction details about the reduction are
+shown. Information shown are the time for parsing the expression, the
+number of rewrites and run time during rewriting, and the number of
+total matches performed during the reduce.
+
+TODO: verify
 
 ## `step` switch ## {#switch-step}
 
@@ -1198,13 +1267,60 @@ Possible values: `on` `off`, default `off`.
 
 With this switch turned on, rewriting proceeds in steps and prompts
 the user interactively. At each prompt the following commands can be
-given to the stepper:
+given to the stepper (with our without leading colon `:`): 
 
-TODO missing documentation see page 77 of old manual!
+`help`
+:   (`h`, `?`) print out help page
+`next`
+:   (`n`) go one step
+`continue`
+:   (`c`) continue rewriting without stepping
+`quit`
+:   (`q`) leave stepper continuing rewrite
+`abort`
+:   (`a`) abort rewriting
+`rule`
+:   (`r`) print out current rewrite rule
+`subst`
+:   (`s`) print out substitution
+`limit`
+:   (`l`) print out rewrite limit count
+`pattern`
+:   (`p`) print out stop pattern
+`stop [<term>] .`
+:   set (or unset) stop pattern
+`rwt [<number>] .`
+:   set (or unset) max number of rewrite
+
+Other standard \_cafeobj commands that can be used are [`show`](#show),
+[`describe`](#describe), [`set`](#set), [`cd`](#cd), [`ls`](#ls),
+[`pwd`](#pwd), [`lisp`](#lisp), [`lispq`](#lisp), and (on Unix only)
+[`!`](#commandexec).
 
 ## `stop pattern` switch ## {#switch-stop-pattern}
 
-TODO missing documentation
+This command causes reductions to stop when the reductants get to
+containing subterms that match the given term. If no term is given,
+this restriction is lifted. 
+
+TODO does not work as far as I see -- shouldn't the following code
+fragment stop at the occurrence of `(s 2)`, before rewriting it to
+the final 3?
+
+`````
+CafeOBJ> open NAT .
+
+-- opening module NAT.. done.
+
+%NAT> set stop pattern (s 2) .
+
+%NAT> red (s (s (s 0))) .
+-- reduce in %NAT : (s (s (s 0))):NzNat
+(3):NzNat
+(0.000 sec for parse, 3 rewrites(0.000 sec), 3 matches)
+
+%NAT> 
+`````
 
 Related: [`step` switch](#switch-step)
 
@@ -1225,12 +1341,11 @@ Related: [`set`](#set) [`show`](#show)
 
 ## `trace [whole]` switch ## {#switch-trace}
 
-TODO missing documentation
-
-
-## `tram <options>` ## {#tram}
-
-TODO - do we have a tram compiler still available???
+During evaluation, it is sometimes desirable to see the rewrite
+sequences, not just the results. Setting the switch `trace whole` will
+result in the resultant term of each rewrite step being
+printed. Setting the switch `trace` will result in the display of
+which rule, substitution, and replacement are used.
 
 
 ## `trans [ <label-exp> ] <term> => <term> .` ## {#trans}
@@ -1241,8 +1356,12 @@ symmetry.
 See [`eq`](#eq) for specification of requirements on `<label-exp>`
 and the terms.
 
-TODO: should we write more here
-
+Transitions and equations server similar, but different purpose. In
+particular, reductions (both with or without behavior axioms used) do
+not take transitions into account. Only [`exec`](#execute) also uses
+transitions. On the other hand, the built-in 
+[search predicate](#searchpredicate) searches all possible transitions
+from a given term.
 
 ## `unprotect <module-name>` ## {#unprotect}
 
