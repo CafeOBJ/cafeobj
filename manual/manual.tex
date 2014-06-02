@@ -19,7 +19,7 @@
 \frontmatter
 \pagestyle{empty}
 %%
-\title{\cafeobj~User's Manual \\ --- ver.1.4.9 ---}
+\title{\cafeobj~User's Manual \\ --- ver.1.4.12 ---}
 \author{Ataru T. Nakagawa \and Toshimi Sawada \and Kokichi Futatsugi}
 %\date{\today}
 \date{2013/3/1}
@@ -1002,10 +1002,13 @@ A module without parameters\index{module} has the following syntax.
 
 A module name\index{module name} is an arbitrary character string.
 A module element\index{module element} is either
+%% (1) import declaration, (2) sort declaration (with ordering),
+%% (3) operator declaration, (4) record declaration,
+%% (5) variable declaration, (6) equation declaration, or
+%% (7) transition declaration.
 (1) import declaration, (2) sort declaration (with ordering),
-(3) operator declaration, (4) record declaration,
-(5) variable declaration, (6) equation declaration, or
-(7) transition declaration.
+(3) operator declaration, (4) variable declaration, 
+(5) equation declaration, or (6) transition declaration.
 In the subsequent chapters, we shall introduce each of them in turn.
 
 A general rule about module elements is that a referent must precede
@@ -1095,9 +1098,14 @@ and axioms may be clustered by
 \texttt{axioms} ``\texttt{\{} \textit{module\_element} $*$ ``\texttt{\}}''
 \end{bsyntax}
 
+%% where module elements in a \verb|signature| block
+%% are restricted to declarations of sorts,
+%% operators, and records (Chapter \ref{sec:p2-signature}),
+%% while those in an \verb|axioms| block are restricted
+%% to declarations of variables, equations, and transitions
+%% (Chapter \ref{sec:p2-axioms}).
 where module elements in a \verb|signature| block
-are restricted to declarations of sorts,
-operators, and records (Chapter \ref{sec:p2-signature}),
+are restricted to declarations of sorts and operators (Chapter \ref{sec:p2-signature}),
 while those in an \verb|axioms| block are restricted
 to declarations of variables, equations, and transitions
 (Chapter \ref{sec:p2-axioms}).
@@ -2219,179 +2227,180 @@ and the system will oblige with
   0 : OctalDigit
 \end{ccode}
 \end{vvtm}
-\section{Record Declaration}\label{sec:p2-record-declaration}
 
-A {\em record} declaration\index{record declaration} defines a record-type
-data structure. A record type consists of fields, and an element of the
-type is completely determined by the value of each field.
-In \cafeobj, a field is called {\em slot}\index{slot}.
+%% \section{Record Declaration}\label{sec:p2-record-declaration}
 
-\subsection{Plain Record Declaration}\label{sec:p2-plain-record-decl}
+%% A {\em record} declaration\index{record declaration} defines a record-type
+%% data structure. A record type consists of fields, and an element of the
+%% type is completely determined by the value of each field.
+%% In \cafeobj, a field is called {\em slot}\index{slot}.
 
-A record declaration without inheritance (see the next section) is as
-follows.
+%% \subsection{Plain Record Declaration}\label{sec:p2-plain-record-decl}
 
-\begin{bsyntax} plain record declaration \index{\texttt{record}} \Hline
-\texttt{record} \textit{record\_name} ``\texttt{\{}'' \textit{list\_of\_slot\_declarations} ``\texttt{\}}''
-\end{bsyntax}
+%% A record declaration without inheritance (see the next section) is as
+%% follows.
 
-where a list of slot declarations is a blank-separated list.
-A slot declaration has the following construct.
+%% \begin{bsyntax} plain record declaration \index{\texttt{record}} \Hline
+%% \texttt{record} \textit{record\_name} ``\texttt{\{}'' \textit{list\_of\_slot\_declarations} ``\texttt{\}}''
+%% \end{bsyntax}
 
-\begin{bsyntax} slot declaration \Hline
-\textit{slot\_name} ``\texttt{:}'' \textit{sort\_name}
-\end{bsyntax}
+%% where a list of slot declarations is a blank-separated list.
+%% A slot declaration has the following construct.
 
-where a slot name is a character string and a sort name is
-the name of an already declared sort. For example, if \verb|Nat|
-is a sort of natural numbers with usual digit notations,
-\begin{vvtm}
-\begin{ccode}
-  record Date {
-    year  : Nat
-    month : Nat
-    day   : Nat
-  }
-\end{ccode}
-\end{vvtm}
-is a sloppy definition of records that consist of years, months, and days.
-(Sloppy because it admits e.g. 554/32/1984 as a date.)
+%% \begin{bsyntax} slot declaration \Hline
+%% \textit{slot\_name} ``\texttt{:}'' \textit{sort\_name}
+%% \end{bsyntax}
 
-In ordinary programming languages, once a record is declared,
-notation/functions to access fields are automatically determined.
-The dotted notation \verb|d.day|, where \verb|d| is a record variable
-and \verb|day| is a field name, is typical.
-\cafeobj~also provides access functions. In fact, a record is nothing more
-than a special sort. The effects of a record declaration are as follows.
-\begin{itemize}
-\item A sort with the record name is declared. A record is a sort,
-  so the name can appear wherever a sort name can.
-\item A mixfix operator is declared, so that a term of the form
-  \begin{vvtm}
-\begin{ccode}
-     record-name { slot-name1 = value1, slot-name2 = value2, ... }
-  \end{ccode}
-\end{vvtm}
-  is an element of \verb|record-name|.
-  Using the above example,
-  \begin{vvtm}
-\begin{ccode}
-     Date { year = 1984, month = 1, day = 1 }
-  \end{ccode}
-\end{vvtm}
-  is a term of sort \verb|Date|. Moreover, the slot-value pairs
-  in the braces may be written in whatever order, and you may even
-  omit some of them. Thus
-  \begin{vvtm}
-\begin{ccode}
-     Date { month = 1, day = 1, year = 1984 }
-     Date { year = 1984 }
-  \end{ccode}
-\end{vvtm}
-  are well-formed terms of sort \verb|Date|. Note that \verb|Date| in
-  these terms is part of an operator symbol, not the sort name
-  which happens to be the same character string.
-\item For each slot, two access functions are declared and defined.
-  In case of \verb|Date|, it is as if the declarations
-  \begin{vvtm}
-\begin{ccode}
-     op year : Date -> Nat
-     op set-year : Date Nat -> Date
-     -- similarly for month and day
-  \end{ccode}
-\end{vvtm}
-  are given. Accordingly, to get the value of \verb|year| slot
-  from a term \verb|d| of sort \verb|Date|, you can write \verb|year(d)|;
-  and to set the slot to \verb|y|, write \verb|set-year(d,y)|.
-\end{itemize}
-Strictly speaking, since the definitions of access functions are by
-axioms (axioms are to be explained in Chapter \ref{sec:p2-axioms}), a
-record declaration involve axioms as well as signatures.
-You may investigate all the above effects by \verb|show| command
-(cf. Section \ref{sec:p2-record-inspection}).
+%% where a slot name is a character string and a sort name is
+%% the name of an already declared sort. For example, if \verb|Nat|
+%% is a sort of natural numbers with usual digit notations,
+%% \begin{vvtm}
+%% \begin{ccode}
+%%   record Date {
+%%     year  : Nat
+%%     month : Nat
+%%     day   : Nat
+%%   }
+%% \end{ccode}
+%% \end{vvtm}
+%% is a sloppy definition of records that consist of years, months, and days.
+%% (Sloppy because it admits e.g. 554/32/1984 as a date.)
 
-\subsection{Inheriting Records}\label{sec:p2-record-inheritance}
+%% In ordinary programming languages, once a record is declared,
+%% notation/functions to access fields are automatically determined.
+%% The dotted notation \verb|d.day|, where \verb|d| is a record variable
+%% and \verb|day| is a field name, is typical.
+%% \cafeobj~also provides access functions. In fact, a record is nothing more
+%% than a special sort. The effects of a record declaration are as follows.
+%% \begin{itemize}
+%% \item A sort with the record name is declared. A record is a sort,
+%%   so the name can appear wherever a sort name can.
+%% \item A mixfix operator is declared, so that a term of the form
+%%   \begin{vvtm}
+%% \begin{ccode}
+%%      record-name { slot-name1 = value1, slot-name2 = value2, ... }
+%%   \end{ccode}
+%% \end{vvtm}
+%%   is an element of \verb|record-name|.
+%%   Using the above example,
+%%   \begin{vvtm}
+%% \begin{ccode}
+%%      Date { year = 1984, month = 1, day = 1 }
+%%   \end{ccode}
+%% \end{vvtm}
+%%   is a term of sort \verb|Date|. Moreover, the slot-value pairs
+%%   in the braces may be written in whatever order, and you may even
+%%   omit some of them. Thus
+%%   \begin{vvtm}
+%% \begin{ccode}
+%%      Date { month = 1, day = 1, year = 1984 }
+%%      Date { year = 1984 }
+%%   \end{ccode}
+%% \end{vvtm}
+%%   are well-formed terms of sort \verb|Date|. Note that \verb|Date| in
+%%   these terms is part of an operator symbol, not the sort name
+%%   which happens to be the same character string.
+%% \item For each slot, two access functions are declared and defined.
+%%   In case of \verb|Date|, it is as if the declarations
+%%   \begin{vvtm}
+%% \begin{ccode}
+%%      op year : Date -> Nat
+%%      op set-year : Date Nat -> Date
+%%      -- similarly for month and day
+%%   \end{ccode}
+%% \end{vvtm}
+%%   are given. Accordingly, to get the value of \verb|year| slot
+%%   from a term \verb|d| of sort \verb|Date|, you can write \verb|year(d)|;
+%%   and to set the slot to \verb|y|, write \verb|set-year(d,y)|.
+%% \end{itemize}
+%% Strictly speaking, since the definitions of access functions are by
+%% axioms (axioms are to be explained in Chapter \ref{sec:p2-axioms}), a
+%% record declaration involve axioms as well as signatures.
+%% You may investigate all the above effects by \verb|show| command
+%% (cf. Section \ref{sec:p2-record-inspection}).
 
-You can extend a record to create a new record.
-The same access functions can be used as before.
-The process of extending a record is called
-{\em record inheritance}\index{record inheritance},
-{\` a} la peculiar parlance of some community, and
-is denoted by the following construct.
+%% \subsection{Inheriting Records}\label{sec:p2-record-inheritance}
 
-\begin{bsyntax} record declaration with inheritance \index{\texttt{record}} \Hline
-\texttt{record} \textit{record\_name} ``\texttt{[}'' \textit{list\_of\_upper\_records} ``\texttt{]}'' ``\texttt{\{}'' \textit{list\_of\_slot\_declarations} ``\texttt{\}}''
-\end{bsyntax}
+%% You can extend a record to create a new record.
+%% The same access functions can be used as before.
+%% The process of extending a record is called
+%% {\em record inheritance}\index{record inheritance},
+%% {\` a} la peculiar parlance of some community, and
+%% is denoted by the following construct.
 
-A list of slot declarations is as in a plain record declaration.
-A list of upper records is comma-separated. An upper record is of
-the form
+%% \begin{bsyntax} record declaration with inheritance \index{\texttt{record}} \Hline
+%% \texttt{record} \textit{record\_name} ``\texttt{[}'' \textit{list\_of\_upper\_records} ``\texttt{]}'' ``\texttt{\{}'' \textit{list\_of\_slot\_declarations} ``\texttt{\}}''
+%% \end{bsyntax}
 
-\begin{bsyntax} upper record \Hline
-\textit{record\_name} $[$``\texttt{*}'' ``\texttt{(}'' \textit{slot\_mapping} ``\texttt{)}''$]$
-\end{bsyntax}
+%% A list of slot declarations is as in a plain record declaration.
+%% A list of upper records is comma-separated. An upper record is of
+%% the form
 
-where a slot mapping is
+%% \begin{bsyntax} upper record \Hline
+%% \textit{record\_name} $[$``\texttt{*}'' ``\texttt{(}'' \textit{slot\_mapping} ``\texttt{)}''$]$
+%% \end{bsyntax}
 
-\begin{bsyntax} slot mapping \Hline
-\textit{slot\_name} ``\texttt{->}'' \textit{slot\_name} $\{$ ``\texttt{,}'' \textit{slot\_name} ``\texttt{->}'' \textit{slot\_name} $\}$ $*$
-\end{bsyntax}
+%% where a slot mapping is
 
-where slot names before ``\verb|->|'' must be the ones belonging to the
-given record, while names after ``\verb|->|'' are arbitrary (so long as
-not conflicting).
+%% \begin{bsyntax} slot mapping \Hline
+%% \textit{slot\_name} ``\texttt{->}'' \textit{slot\_name} $\{$ ``\texttt{,}'' \textit{slot\_name} ``\texttt{->}'' \textit{slot\_name} $\}$ $*$
+%% \end{bsyntax}
 
-Under a record declaration with inheritance,
-the newly declared record inherits all the slots from
-the upper records. Slot mappings, which specify renaming,
-are to be used to avoid name conflicts.
-\cafeobj~does not allow slots of the same name to be inherited
-twice. If there is no conflict, slot mappings may be omitted.
+%% where slot names before ``\verb|->|'' must be the ones belonging to the
+%% given record, while names after ``\verb|->|'' are arbitrary (so long as
+%% not conflicting).
 
-An %boring 
-example of inheritance, using \verb|Date| of the previous
-section, is
-\begin{vvtm}
-\begin{ccode}
-   record Time [ Date ] {
-     hour   : Nat
-     minute : Nat
-   }
-\end{ccode}
-\end{vvtm}
-This code declares \verb|Time| to have slots \verb|year|, \verb|month|,
-and \verb|day|, as well as \verb|hour| and \verb|minute|.
-Access functions \verb|year|, \verb|set-year|, and so on are
-applicable to terms of \verb|Time| exactly as they are
-to those of \verb|Date|.
-The effects of the declaration are equivalent to
-\begin{vvtm}
-\begin{ccode}
-   record Time {
-     year   : Nat
-     month  : Nat
-     day    : Nat
-     hour   : Nat
-     minute : Nat
-   }
-\end{ccode}
-\end{vvtm}
-Here is another example, which needs slot renaming.
-\begin{vvtm}
-\begin{ccode}
-   record Week {
-     day : Nat
-   }
-   record Time'
-    [ Date * ( day -> day-of-the-month ), Week * ( day -> day-of-the-week ) ]
-   {
-      hour   : Nat
-      minute : Nat
-   }
-\end{ccode}
-\end{vvtm}
-Since \verb|day| was the slot name of both \verb|Date| and \verb|Week|,
-each slot was accorded a more accurate, distinct name.
+%% Under a record declaration with inheritance,
+%% the newly declared record inherits all the slots from
+%% the upper records. Slot mappings, which specify renaming,
+%% are to be used to avoid name conflicts.
+%% \cafeobj~does not allow slots of the same name to be inherited
+%% twice. If there is no conflict, slot mappings may be omitted.
+
+%% An %boring 
+%% example of inheritance, using \verb|Date| of the previous
+%% section, is
+%% \begin{vvtm}
+%% \begin{ccode}
+%%    record Time [ Date ] {
+%%      hour   : Nat
+%%      minute : Nat
+%%    }
+%% \end{ccode}
+%% \end{vvtm}
+%% This code declares \verb|Time| to have slots \verb|year|, \verb|month|,
+%% and \verb|day|, as well as \verb|hour| and \verb|minute|.
+%% Access functions \verb|year|, \verb|set-year|, and so on are
+%% applicable to terms of \verb|Time| exactly as they are
+%% to those of \verb|Date|.
+%% The effects of the declaration are equivalent to
+%% \begin{vvtm}
+%% \begin{ccode}
+%%    record Time {
+%%      year   : Nat
+%%      month  : Nat
+%%      day    : Nat
+%%      hour   : Nat
+%%      minute : Nat
+%%    }
+%% \end{ccode}
+%% \end{vvtm}
+%% Here is another example, which needs slot renaming.
+%% \begin{vvtm}
+%% \begin{ccode}
+%%    record Week {
+%%      day : Nat
+%%    }
+%%    record Time'
+%%     [ Date * ( day -> day-of-the-month ), Week * ( day -> day-of-the-week ) ]
+%%    {
+%%       hour   : Nat
+%%       minute : Nat
+%%    }
+%% \end{ccode}
+%% \end{vvtm}
+%% Since \verb|day| was the slot name of both \verb|Date| and \verb|Week|,
+%% each slot was accorded a more accurate, distinct name.
 
 \chapter{Axioms}\label{sec:p2-axioms}
 
@@ -3466,125 +3475,125 @@ flavour of difference between \verb|show| and \verb|describe|.
 \end{ccode}
 \end{vvtm}
 
-\newpage
-\subsection{Inspecting Records}\label{sec:p2-record-inspection}
+%% \newpage
+%% \subsection{Inspecting Records}\label{sec:p2-record-inspection}
 
-As explained in Section \ref{sec:p2-plain-record-decl}, a record
-declaration has the same effects as several related declarations
-of sorts and operators. You may be anxious to know how the system
-handles record declarations. If you are, put the record \verb|Date|
-into a module declaration, and inspect it.\label{exs:date}
-\begin{vvtm}
-\begin{ccode}
-CafeOBJ> module DATE {
-  protecting (SIMPLE-NAT)
-  record Date {
-    year  : Nat
-    month : Nat
-    day   : Nat
- } }
-  -- defining module DATE.._* done.
-  CafeOBJ> select DATE
-  DATE> show sorts
-  * visible sorts :
-    Date, Date < RecordInstance
-    RecordDate, RecordDate < RecordId
-    Slotyear, Slotyear < AttrId
-    Slotmonth, Slotmonth < AttrId
-    Slotday, Slotday < AttrId
-  DATE>
-\end{ccode}
-\end{vvtm}
-\verb|SIMPLE-NAT| (Section \ref{exs:simple-nat}) should be familiar.
-The record \verb|Date| was indeed declared as a sort, as we stated.
-But it seems that a lot more sorts are involved. They are used to define
-the operators. To see what operators were declared, you may inspect
-further. But hold your breath:
-\begin{vvtm}
-\begin{ccode}
-DATE> show ops
-................................(_ { })................................
-  * rank: RecordDate -> Date
-    - attributes:  { constr }
-...............................(_ { _ })...............................
-  * rank: RecordDate Attributes -> Date
-    - attributes:  { constr }
-................................(Date)................................
-  * rank: -> RecordDate
-    - attributes:  { constr }
-..............................(makeDate)..............................
-  * rank: Attributes -> Date
-    - axioms:
-      eq makeDate(ATTRS-6:Attributes) = #!! (make-record-instance 'date
-                                             attrs-6)
-..............................(makeDate)..............................
-  * rank: -> Date
-    - axioms:
-      eq makeDate = #!! (make-record-instance 'date)
-................................(year)................................
-  * rank: -> Slotyear
-    - attributes:  { constr }
-................................(year)................................
-  * rank: Date -> Nat
-    - axioms:
-      eq year(RID-5:RecordDate { (VAR-SLOTYEAR-2:Slotyear = VAL-11:Nat, 
-          ATTRS-6:Attributes) }) = VAL-11:Nat
-..............................(set-year)..............................
-  * rank: Date Nat -> Date
-    - axioms:
-      eq set-year(RID-5:RecordDate { (VAR-SLOTYEAR-2:Slotyear = VAL-11:Nat, 
-          ATTRS-6:Attributes) },NEW-VAL-12) = RID-5:RecordDate
-          { (VAR-SLOTYEAR-2:Slotyear =  NEW-VAL-12 , ATTRS-6:Attributes) }
-\end{ccode}
-\end{vvtm}
-The print continues for \verb|month|, \verb|set-month| and so on.
-We do not explain the above in detail, and only say that these
-declarations are necessary for the flexible syntax you may use, and
-for realising record inheritances. Remember that a record may be written as
-\begin{vvtm}
-\begin{ccode}
-  Date { year = 1984, month = 1, day = 1 }
-\end{ccode}
-\end{vvtm}
-or
-\begin{vvtm}
-\begin{ccode}
-  Date { month = 1, day = 1, year = 1984 }
-\end{ccode}
-\end{vvtm}
-interchangeably; you may also omit uninteresting slots, as
-\begin{vvtm}
-\begin{ccode}
-  Date { year = 1984 }
-\end{ccode}
-\end{vvtm}
-where \verb|month| and \verb|date| disappear;
-and \verb|set|, \verb|set-year| etc. will be declared for every record
-that inherits \verb|Date|.
+%% As explained in Section \ref{sec:p2-plain-record-decl}, a record
+%% declaration has the same effects as several related declarations
+%% of sorts and operators. You may be anxious to know how the system
+%% handles record declarations. If you are, put the record \verb|Date|
+%% into a module declaration, and inspect it.\label{exs:date}
+%% \begin{vvtm}
+%% \begin{ccode}
+%% CafeOBJ> module DATE {
+%%   protecting (SIMPLE-NAT)
+%%   record Date {
+%%     year  : Nat
+%%     month : Nat
+%%     day   : Nat
+%%  } }
+%%   -- defining module DATE.._* done.
+%%   CafeOBJ> select DATE
+%%   DATE> show sorts
+%%   * visible sorts :
+%%     Date, Date < RecordInstance
+%%     RecordDate, RecordDate < RecordId
+%%     Slotyear, Slotyear < AttrId
+%%     Slotmonth, Slotmonth < AttrId
+%%     Slotday, Slotday < AttrId
+%%   DATE>
+%% \end{ccode}
+%% \end{vvtm}
+%% \verb|SIMPLE-NAT| (Section \ref{exs:simple-nat}) should be familiar.
+%% The record \verb|Date| was indeed declared as a sort, as we stated.
+%% But it seems that a lot more sorts are involved. They are used to define
+%% the operators. To see what operators were declared, you may inspect
+%% further. But hold your breath:
+%% \begin{vvtm}
+%% \begin{ccode}
+%% DATE> show ops
+%% ................................(_ { })................................
+%%   * rank: RecordDate -> Date
+%%     - attributes:  { constr }
+%% ...............................(_ { _ })...............................
+%%   * rank: RecordDate Attributes -> Date
+%%     - attributes:  { constr }
+%% ................................(Date)................................
+%%   * rank: -> RecordDate
+%%     - attributes:  { constr }
+%% ..............................(makeDate)..............................
+%%   * rank: Attributes -> Date
+%%     - axioms:
+%%       eq makeDate(ATTRS-6:Attributes) = #!! (make-record-instance 'date
+%%                                              attrs-6)
+%% ..............................(makeDate)..............................
+%%   * rank: -> Date
+%%     - axioms:
+%%       eq makeDate = #!! (make-record-instance 'date)
+%% ................................(year)................................
+%%   * rank: -> Slotyear
+%%     - attributes:  { constr }
+%% ................................(year)................................
+%%   * rank: Date -> Nat
+%%     - axioms:
+%%       eq year(RID-5:RecordDate { (VAR-SLOTYEAR-2:Slotyear = VAL-11:Nat, 
+%%           ATTRS-6:Attributes) }) = VAL-11:Nat
+%% ..............................(set-year)..............................
+%%   * rank: Date Nat -> Date
+%%     - axioms:
+%%       eq set-year(RID-5:RecordDate { (VAR-SLOTYEAR-2:Slotyear = VAL-11:Nat, 
+%%           ATTRS-6:Attributes) },NEW-VAL-12) = RID-5:RecordDate
+%%           { (VAR-SLOTYEAR-2:Slotyear =  NEW-VAL-12 , ATTRS-6:Attributes) }
+%% \end{ccode}
+%% \end{vvtm}
+%% The print continues for \verb|month|, \verb|set-month| and so on.
+%% We do not explain the above in detail, and only say that these
+%% declarations are necessary for the flexible syntax you may use, and
+%% for realising record inheritances. Remember that a record may be written as
+%% \begin{vvtm}
+%% \begin{ccode}
+%%   Date { year = 1984, month = 1, day = 1 }
+%% \end{ccode}
+%% \end{vvtm}
+%% or
+%% \begin{vvtm}
+%% \begin{ccode}
+%%   Date { month = 1, day = 1, year = 1984 }
+%% \end{ccode}
+%% \end{vvtm}
+%% interchangeably; you may also omit uninteresting slots, as
+%% \begin{vvtm}
+%% \begin{ccode}
+%%   Date { year = 1984 }
+%% \end{ccode}
+%% \end{vvtm}
+%% where \verb|month| and \verb|date| disappear;
+%% and \verb|set|, \verb|set-year| etc. will be declared for every record
+%% that inherits \verb|Date|.
 
-Finally, look at axioms.
-\begin{vvtm}
-\begin{ccode}
-  DATE> show axioms
-  - Equations
-    eq day(RID-5:RecordDate { (VAR-SLOTDAY-4:Slotday = VAL-7:Nat , 
-           ATTRS-6:Attributes) }) = VAL-7:Nat
-    eq set-day(RID-5:RecordDate { (VAR-SLOTDAY-4:Slotday = VAL-7:Nat , 
-           ATTRS-6:Attributes) }, NEW-VAL-8) 
-       = RID-5:RecordDate { (VAR-SLOTDAY-4:Slotday = NEW-VAL-8 , 
-           ATTRS-6:Attributes) }
-\end{ccode}
-\end{vvtm}
-Again we omitted the rest of the (long) output. The above two equations
-define \verb|day| and \verb|set-day|. Their simplified forms are
-\begin{vvtm}
-\begin{ccode}
-  eq day (Date { day = D, month = M, year = Y }) = D .
-  eq set-day (Date { day = D, month = M, year = Y }, D') =
-        Date { day = D', month = M, year = Y } .
-\end{ccode}
-\end{vvtm}
-which look exactly like the access functions to \verb|day|.
+%% Finally, look at axioms.
+%% \begin{vvtm}
+%% \begin{ccode}
+%%   DATE> show axioms
+%%   - Equations
+%%     eq day(RID-5:RecordDate { (VAR-SLOTDAY-4:Slotday = VAL-7:Nat , 
+%%            ATTRS-6:Attributes) }) = VAL-7:Nat
+%%     eq set-day(RID-5:RecordDate { (VAR-SLOTDAY-4:Slotday = VAL-7:Nat , 
+%%            ATTRS-6:Attributes) }, NEW-VAL-8) 
+%%        = RID-5:RecordDate { (VAR-SLOTDAY-4:Slotday = NEW-VAL-8 , 
+%%            ATTRS-6:Attributes) }
+%% \end{ccode}
+%% \end{vvtm}
+%% Again we omitted the rest of the (long) output. The above two equations
+%% define \verb|day| and \verb|set-day|. Their simplified forms are
+%% \begin{vvtm}
+%% \begin{ccode}
+%%   eq day (Date { day = D, month = M, year = Y }) = D .
+%%   eq set-day (Date { day = D, month = M, year = Y }, D') =
+%%         Date { day = D', month = M, year = Y } .
+%% \end{ccode}
+%% \end{vvtm}
+%% which look exactly like the access functions to \verb|day|.
 
 \section{Some Typical Modules}\label{sec:p2-typical-modules}
 
@@ -10445,7 +10454,7 @@ appear in the face like this: ``\sym{terminal}'', and may be
 surrounded by `` and '' for emphasis or to avoid confusion
 with meta characters used in the extended BNF. We will refer terminal
 symbols other than self-terminating characters (see section
-~\ref{sec:self-terminating}) as \textit{keyword}s in this document.
+~\ref{sec:lex-selfterminating}) as \textit{keyword}s in this document.
 
 \subsection{\cafeobj~Codes}
 A \cafeobj~code is a sequence of modules, views, and evaluation commands.
@@ -10482,7 +10491,8 @@ where a \nonterm{module} is
   \\
   \synindent parameter\_name &::=& ident \\
   principal\_sort &::=& \sym{principal-sort}\; sort\_name \\
-  module\_elt &::=& import \alt sort \alt record \alt operator \alt 
+  % module\_elt &::=& import \alt sort \alt record \alt operator \alt 
+  module\_elt &::=& import \alt sort \alt operator \alt 
   % module\_elt &::=& import \alt sort  \alt operator \alt
   variable \alt axiom \alt comment
   % &\footnote{\nonterm{comment} is
@@ -10501,15 +10511,15 @@ where a \nonterm{module} is
   \\ 
   \synindent sort\_symbol &::=& ident \\
   \synindent qualifier &::=& \sym{``.''}module\_expr\optn{qualifier}\\
-  record &::=& \sym{record}\; sort\_name\; \optn{super\;\cdots}\;
-  \sym{``\{''}\; \seqof{slot \alt comment}\cdots \; \sym{``\}''} \\
-  \synindent super &::=&
-  \sym{``[''}\;sort\_name\;\optn{\sym{``(''}\; slot\_rename,\cdots
-    \sym{``)''}}\;\sym{``]''} \\
-  \synindent slot &::=& slot\_name : sort\_name \alt
-  slot\_name\;\sym{=}\;\sym{``(''}term\sym{``)''}\;:\; sort\_name \\
-  \synindent slot\_name &::=& ident \\
-  \synindent slot\_rename &::=& slot\_name\; \verb|->|\; slot\_name\\
+  %% record &::=& \sym{record}\; sort\_name\; \optn{super\;\cdots}\;
+  %% \sym{``\{''}\; \seqof{slot \alt comment}\cdots \; \sym{``\}''} \\
+  %% \synindent super &::=&
+  %% \sym{``[''}\;sort\_name\;\optn{\sym{``(''}\; slot\_rename,\cdots
+  %%   \sym{``)''}}\;\sym{``]''} \\
+  %% \synindent slot &::=& slot\_name : sort\_name \alt
+  %% slot\_name\;\sym{=}\;\sym{``(''}term\sym{``)''}\;:\; sort\_name \\
+  %% \synindent slot\_name &::=& ident \\
+  %% \synindent slot\_rename &::=& slot\_name\; \verb|->|\; slot\_name\\
   operator &::=& \seqof{\sym{op}\alt\sym{bop}}
                \; operator\_symbol\; : \; \optn{arity}\; \verb|->|\;
   coarity \; \optn{op\_attrs} 
@@ -10769,7 +10779,8 @@ axioms can be clusterd in blocks
   &&\synindent\seqof{import \alt comment}\cdots\\
   &&\sym{``\}''}\\
   signature &::=& \sym{signature}\;\sym{``\{''}\\
-  &&\synindent\seqof{sort \alt record \alt operator \alt
+%  &&\synindent\seqof{sort \alt record \alt operator \alt
+  &&\synindent\seqof{sort \alt operator \alt
     comment}\cdots\\
   &&\sym{``\}''}\\
   axioms &::=&  \sym{axioms}\;\sym{``\{''}\\

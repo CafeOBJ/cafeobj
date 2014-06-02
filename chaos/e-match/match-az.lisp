@@ -297,12 +297,10 @@
 	  ;; skip zero
 	  (when no-more (return))
 	  (when (not zero) (return))
-	  (push sys (match-az-state-zero-matches az-st))
-	  )
+	  (push sys (match-az-state-zero-matches az-st)))
 	(if no-more
 	    (match-az-next-state az-st)
-	  (values sys state nil)
-	  )))))
+	  (values sys state nil))))))
 
 (defun match-az-next-state-aux (az-st)
   (let* ((new-sys (new-m-system))
@@ -317,38 +315,37 @@
     (if (match-AZ-state-no-more AZ-st)	
 	;; there is no more match-AZ-state
 	(values nil nil t nil)
-        (progn
-	  (dotimes-fixnum (k sz)	; k = 0,...,sz-1
-	    ;; i.e. for each equation of the system
-	    (let* ((eq-comp (%svref sys k))
-		   (sz-left (match-equation-comp-sz-left eq-comp))
-		   (left (match-equation-comp-left eq-comp))
-		   (right (match-equation-comp-right eq-comp))
-		   (sz-right (length (the simple-vector right)))
-		   (comp (match-equation-comp-comp eq-comp)))
-	      (declare (type #-GCL simple-vector #+GCL vector comp))
-	      (dotimes-fixnum (l sz-left) ; l = 0,...,sz-left - 1
-		;; i.e. for each term of the left hand 
-		;; side of the equation 
-		(let ((deb (if (= l 0)
-			       0 
-			       (%svref comp (1- l))))
-		      (fin (if (= l (1- sz-left)) 
-			       sz-right
-			     (%svref comp l)
-			     ;; (1- (%svref comp l))
-			     ))
-		      )
-		  (declare (type fixnum deb fin))
-		  (multiple-value-bind (term zero?)
-		      (match-AZ-make-term method right deb fin)
-		    (if zero? (setq made-zero t))
-		    (add-equation-to-m-system new-sys 
-					      (make-equation
-					       (%svref left l)
-					       term)))))))
-	  (increment-the-match-AZ-state AZ-st) 
-	  (values new-sys AZ-st nil made-zero)))))
+      (progn
+	(dotimes-fixnum (k sz)		; k = 0,...,sz-1
+  	  ;; i.e. for each equation of the system
+	  (let* ((eq-comp (%svref sys k))
+		 (sz-left (match-equation-comp-sz-left eq-comp))
+		 (left (match-equation-comp-left eq-comp))
+		 (right (match-equation-comp-right eq-comp))
+		 (sz-right (length (the simple-vector right)))
+		 (comp (match-equation-comp-comp eq-comp)))
+	    (declare (type #-GCL simple-vector #+GCL vector comp))
+	    (dotimes-fixnum (l sz-left)	; l = 0,...,sz-left - 1
+	      ;; i.e. for each term of the left hand 
+	      ;; side of the equation 
+   	      (let ((deb (if (= l 0)
+			     0 
+			   (%svref comp (1- l))))
+		    (fin (if (= l (1- sz-left)) 
+			     sz-right
+			   (%svref comp l)
+			   ;; (1- (%svref comp l))
+			   )))
+		(declare (type fixnum deb fin))
+		(multiple-value-bind (term zero?)
+		    (match-AZ-make-term method right deb fin)
+		  (if zero? (setq made-zero t))
+		  (add-equation-to-m-system new-sys 
+					    (make-equation
+					     (%svref left l)
+					     term)))))))
+	(increment-the-match-AZ-state AZ-st) 
+	(values new-sys AZ-st (match-az-state-no-more AZ-st) made-zero)))))
 
 #||
 (defun match-AZ-next-state (state)

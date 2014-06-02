@@ -31,8 +31,8 @@
 			(string name)
 		      name)))
     (when (and (stringp print-name)
-	       (not (char-equal .current-char-index.
-				(char print-name 0))))
+	       (not (eql .current-char-index.
+			 (char print-name 0))))
       (setq .current-char-index. (char print-name 0))
       (format stream "~%** [~a] -----------------------------------------" 
 	      (string-upcase .current-char-index.)))
@@ -179,7 +179,7 @@
     (format t "inspect: internal error, ~s" obj)))
 
 (defun !inspect-module (mod)
-  (let ((.current-char-index. ""))
+  (let ((.current-char-index. nil))
     (declare (special .current-char-index.))
     (with-in-module (mod)
       (show-module-symbol-table mod))))

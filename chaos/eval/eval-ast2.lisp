@@ -1037,7 +1037,7 @@
     (run-shell command)))
 
 (defun run-shell (command)
-  #+(OR GCL LUCID EXCL CLISP)
+  #+(OR GCL LUCID EXCL CLISP :SBCL)
   (when command
     (setq command (reduce #'(lambda (x y) (concatenate 'string x " " y))
 			  command))

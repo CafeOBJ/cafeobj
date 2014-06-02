@@ -130,11 +130,9 @@
 ;;; ********
 (defun parse-autoload-command (inp &rest ignore)
   (declare (ignore ignore))
-  (let ((mod-name (car inp))
-	(file (cadr inp)))
-    (%autoload* mod-name file)
-    ))
-
+  (let ((mod-name (second inp))
+	(file (third inp)))
+    (%autoload* mod-name file)))
     
 ;;; ******
 ;;; CBREAD
@@ -160,8 +158,7 @@
 	(with-output-chaos-error ('invalid-command-form)
 	  (princ "cbred: syntax error: ")
 	  (princ toks)))
-      (%cbred* modexp lhs rhs)
-      )))
+      (%cbred* modexp lhs rhs))))
 
 ;;; *******
 ;;; LOOK UP
