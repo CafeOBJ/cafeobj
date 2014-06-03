@@ -382,22 +382,15 @@ Based on the implementation of OBJ3 system.
 		     (!match-decompose-match t1 t2 list-of-decomposed-equation))))
     (declare (type list list-of-decomposed-equation)
 	     (type (or null t) no-match))
-    (cond (*do-unify*
-	   (cond (no-match (values (cdr list-of-decomposed-equation)
-				   no-match))
-		 (t (if (cdr list-of-decomposed-equation)
-			(let ((new-subst
-			       (normal-form-sub (cdr list-of-decomposed-equation)
-						nil)))
-			  (if new-subst
-			      (values new-subst no-match)
-			    ;; no match
-			    (values (cdr list-of-decomposed-equation) t)))
-		      (values nil nil))))) ; equational equal
-	  (t (values 
-		(cdr list-of-decomposed-equation)
-		no-match))
-	  )))
+    (cond (no-match (values (cdr list-of-decomposed-equation) t)) ; no match
+	  (t (if (cdr list-of-decomposed-equation)
+		 (let ((new-subst
+			(normal-form-sub (cdr list-of-decomposed-equation) nil)))
+		   (if new-subst
+		       (values new-subst no-match)
+		     ;; 
+		     (values (cdr list-of-decomposed-equation) no-match)))
+	       (values nil nil))))))	; equational equal
   
 (defun normal-form-sub (sub ans)
   (if sub

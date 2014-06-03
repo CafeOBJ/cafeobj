@@ -920,7 +920,9 @@
                         (exec-trace-form)
                         (format t " [state ~D] "
                                 (rwl-state-state sub-state))
-                        (term-print-with-sort target-whole))
+                        (term-print-with-sort target-whole)
+			(print-next)
+			(print-axiom-brief (rwl-state-rule sub-state)))
                       (flush-all))
                     ;;
                     (push sub-state sub-states)))))

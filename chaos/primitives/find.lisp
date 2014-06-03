@@ -203,10 +203,10 @@
 		     (push s am)))
 		 (if (cdr am)
 		     (progn
-		       (with-output-chaos-warning ()
+		       (with-output-chaos-error ('ambiguous-sort-name)
 			 (princ "in module ")
 			 (print-chaos-object module)
-			 (break "...")
+			 ;; (break "...")
 			 (format t ", sort name ~a is ambiguous:"
 				 (string sort-id))
 			 (setq am (reverse am))
@@ -219,14 +219,7 @@
 			       (print-next)
 			       (format t "sort   = ~a" (nth x am))
 			       (print-next)
-			       (format t "module = ~a" (sort-module (nth x am)))
-			       )))
-			 (print-next)
-			 (princ "arbitrary take ")
-			 (print-chaos-object (car am))
-			 (princ " as the resolved name."))
-		       ;; (break)
-		       (car (nreverse am)))
+			       (format t "module = ~a" (sort-module (nth x am))) )))))
 		   ;; else
 		   (if am
 		       (car am)

@@ -153,11 +153,8 @@
                         (sort<= (term-sort term) *syntax-err-sort* *chaos-sort-order*))
                 (return-from perform-reduction* nil))
 	      #||
-	      (setq term (replace-variables-with-toc
-			  term
-			  "The target term contains variables, system replaces them with 'constants'." ))
-	      ||#
 	      (setq term (car (canonicalize-variables (list term) mod)))
+	      ||#
               (when *rewrite-stepping* (setq *steps-to-be-done* 1))
               (when *show-stats*
                 (setq time2 (get-internal-run-time))

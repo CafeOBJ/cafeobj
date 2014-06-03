@@ -279,6 +279,7 @@ File: eval-apply.lisp
   (block the-end
     (let ((condition nil)
           next-match-method
+	  ;; (*do-unify* t)
           (*self* term))
       (multiple-value-bind (global-state subst nomatch Eequal)
           (funcall (rule-first-match-method rule) (rule-lhs rule) term)
