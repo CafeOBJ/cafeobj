@@ -1,0 +1,17 @@
+
+-- ====
+mod A {[S] op a : -> S . var V : S}
+mod B {[S] op a : -> S . var V : S}
+open A + B .
+
+parse a .
+parse a:S.A .
+parse a:S.B .
+
+parse V .
+
+parse W:S.A .
+parse W:S.B .
+
+parse W:S .
+-- ====

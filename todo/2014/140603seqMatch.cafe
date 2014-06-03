@@ -1,0 +1,123 @@
+** 添付した２つのファイルはいずれもqlockの動きを３つのtrans rulesで記述した
+** ものです．１つ(setMatch)はAobsをAC-listで、もう１つ(seqMatch)はAobsを
+** A(Assoc)-listで表わしています．
+
+** どちらも最後のopen...closeの２番目のred (-- [ty])が期待通り動いていませ
+** ん．いずれも，matchすることが期待されるtrans[ty]:の左辺（同じ変数が２度
+** 現れるnon-linear term)にmatchしないのが原因のようです．
+
+** ===============================================================
+** ============= QLOCK System Specification ======================
+** ===============================================================
+
+-- three labels for indicating status of each agent
+mod! LABEL {
+-- label literals and labels
+[LabelLt < Label]
+-- rs: remainder section
+-- ws: waiting section
+-- cs: critical section
+ops rs ws cs : -> LabelLt {constr} .
+-- an equation to declare that 
+-- the elements of LabelLt are literals
+eq (L1:LabelLt = L2:LabelLt) = (L1 == L2) .
+}
+
+-- agent identifiers
+mod* AID {[Aid]}
+
+-- ===============================================================
+-- queue (first in first out storage)
+mod! QUEUE (X :: TRIV) {
+-- elements and their queues, Elt comes from (X :: TRIV)
+[Elt.X < Qu]
+-- empty queue
+op empQ : -> Qu {constr} . 
+-- assoicative queue constructors with id: empQ
+op (_&_) : Qu Qu -> Qu {constr assoc id: empQ} .
+-- equality _=_ over the sort Qu
+-- _=_ is defined for each sort in the built-in module EQL
+eq (empQ = (E:Elt & Q:Qu)) = false .
+ceq ((E1:Elt & Q1:Qu) = (E2:Elt & Q2:Qu)) 
+    = ((E1 = E2) and (Q1 = Q2))
+    if not((Q1 = empQ) and (Q2 = empQ)) .
+}
+
+-- ===============================================================
+-- agent observer
+mod! AOB {pr(LABEL) pr(AID)
+[Aob]
+-- (lb[A:Aid]: L:Label) is a term of the sort Aobs 
+-- (an observer) that indicates an agent A is in a label L
+-- i.e. (lb[A:Aid]: L:Label)
+op (lb[_]:_) : Aid Label -> Aob {constr} .
+}
+-- generic sets realized by generic sequences
+-- AC set is intentionally avoided 
+-- for efficient matchings and reductions
+mod! SET(X :: TRIV) {
+[Elt.X < Set]
+-- empty set
+op empty : -> Set {constr} .
+-- assicative set constructor with identity empty
+-- commutativity is intentionally dropped 
+-- for efficient matchings and reductions
+op (_ _) : Set Set -> Set {constr assoc id: empty} .
+-- (_ _) is pseudo-idempotent with respect to the sort Elt
+eq S1:Set E:Elt S2:Set E S3:Set = S1 S2 E S3 .
+}
+-- queue of Aid
+mod! AID-QUEUE {pr(QUEUE(AID{sort Elt -> Aid}))}
+-- a state is defined as a pair of queue of Aid and a set of Aob
+mod! STATE{
+pr(AID-QUEUE)
+pr(SET(AOB{sort Elt -> Aob})*{sort Set -> Aobs})
+-- a state is a pair of Qu and Aobs
+[State]
+op _$_ : Qu Aobs -> State {constr} .
+}
+
+-- ===============================================================
+-- wt: want transition
+mod! WT {pr(STATE)
+trans[wt]: 
+           (Q:Qu    $ (AS1:Aobs (lb[A:Aid]: rs) AS2:Aobs)) 
+       =>  ((Q & A) $ (AS1      (lb[A    ]: ws) AS2)) . 
+}
+-- ty: try transition
+mod! TY {pr(STATE)
+trans[ty]: 
+          ((A:Aid & Q:Qu) $ (AS1:Aobs (lb[A]: ws) AS2:Aobs)) 
+       => ((A     & Q)    $ (AS1      (lb[A]: cs) AS2)) .
+}
+-- ex: exit transition
+mod! EX {pr(STATE)
+ctrans[ex]: 
+          ((A1:Aid & Q:Qu) $ (AS1:Aobs (lb[A2:Aid]: cs) AS2:Aobs)) 
+       => (Q               $ (AS1      (lb[A2    ]: rs) AS2)) 
+          if (A1 = A2) .
+}
+
+-- ===============================================================
+-- system specification of QLOCK
+mod! QLOCKsys{pr(WT + TY + EX)}
+
+-- ===============================================================
+-- ===============================================================
+
+open QLOCKsys .
+op b : -> Aid .
+op q : -> Qu .
+ops as1 as2 : -> Aobs .
+
+-- [wt]
+red ((b & q) $ (as1 ((lb [ b ] : rs) as2))) =(*,1)=>+ SS:State .
+
+-- [ty]
+red ((b & q) $ (as1 ((lb [ b ] : ws) as2))) =(*,1)=>+ SS:State .
+
+-- [ex]
+red ((b & q) $ (as1 ((lb [ b ] : cs) as2))) =(*,1)=>+ SS:State .
+
+close
+
