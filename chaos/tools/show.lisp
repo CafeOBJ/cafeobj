@@ -361,11 +361,13 @@
     (multiple-value-bind (sort-n modexp)
 	(check-qualified-sort-name sort)
       (cond (modexp
-	     (setq mod 
-		   (find-module-in-env-ext modexp (or
-						   *current-module*
-						   *last-module*)
-					   :no-error))
+	     (setq mod (eval-modexp modexp))
+	     #||
+	     (find-module-in-env-ext modexp (or
+					     *current-module*
+					     *last-module*)
+				     :no-error)
+	     ||#
 	     (unless (module-p mod)
 	       (with-output-msg ()
 		 (format t "no such module ~a" modexp)
@@ -405,10 +407,13 @@
 (defun get-module-from-opref (parsedop)
   (let ((mod nil))
     (cond ((%opref-module parsedop)
+	   #||
 	   (setq mod (find-module-in-env-ext (%opref-module parsedop)
 					     (or *current-module*
 						 *last-module*)
 					     :no-error))
+	   ||#
+	   (setq mod (%opref-module parsedop))
 	   (unless (module-p mod)
 	     (setq mod (eval-modexp (%opref-module parsedop)))
 	     (unless (module-p mod)

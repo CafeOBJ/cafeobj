@@ -801,7 +801,9 @@
 		    )))
 	  (when (member (car *modexp-parse-input*) cntxt :test #'equal)
 	    (return))
-	      (setq res (nconc res (parse-balanced-context cntxt))))
+	  (setq res (nconc res (parse-balanced-context cntxt))))
+	(setq res (mapcan #'(lambda (x) (remove "" (parse-with-delimiter2 x #\_) :test #'equal)) res))
+	;; (setq res (remove "" res :test #'equal))
 	res)))
 
 ;;; PARSE PARAMETER REFERENCE

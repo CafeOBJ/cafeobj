@@ -109,9 +109,7 @@
 	  (unless (term-is-zero-for-method (%svref vect i) method)
 	    (setq res (make-term-with-sort-check 
 		       method (list (%svref vect i) res)))))
-	(values res nil))))
-  )
-
+	(values res nil)))))
 
 ;;; try to increase with respect with the lexicographical order
 ;;; on the arrays of integer the integer array "comp". These are
@@ -168,15 +166,12 @@
 	    ;; After that the previous composant are reset like in
 	    ;; 599 -> 600
 	    (match-AZ-reset-equation-comp sys k)
-	    (return-from the-end (values nil))
+	    (return-from the-end (values nil)))
 	    ;;otherwise, try to increase the next equation
-	    )
-	  (incf k)
-	  ))
+	  (incf k)))
       ;; this "normal" exit of the loop means that none of the
       ;; state has been increased so there is no more state
       (setf (match-AZ-state-no-more AZ-st) t))))
-
 
 ;;; reset the comp of "eq-comp" to his initial value i.e. (1,1,1,1,1)
 ;;; op match-AZ-reset-comp: EquationComp -> EquationComp~
@@ -201,7 +196,6 @@
        match-AZ-reset-equation-comp (sys K)
   (declare (type #+GCL vector #-GCL simple-vector sys))
   (dotimes-fixnum (i K)				; i = 0,...,K-1 
-
     (match-AZ-reset-comp (%svref sys i))))
 
 ;;; INITIALIZATION
@@ -218,8 +212,6 @@
 ;;;    at their left or right extremity
 ;;; 4) initialize left-state
 ;;;
-
-
 (defun match-AZ-state-initialize (sys env)
   (declare (type list sys env))
   (block no-match
@@ -227,7 +219,7 @@
 	   (assoc-sys (alloc-svec dim))
 	   (meth nil)
 	   (i 0)
-	   )
+	   (az-state nil))
       (declare (type fixnum dim i)
 	       (type #+GCL vector #-GCL simple-vector assoc-sys))
       (dolist (equation (m-system-to-list sys))
@@ -263,19 +255,19 @@
 	    ;;	      (return-from no-match (values nil t)))
 	    (multiple-value-setq (sub1 sub2)
 	      (match-associative-id-simplify sub1 sub2))
+	    ;; this never matches
+	    (when (and (null sub1) sub2)
+	      (return-from no-match (values nil t)))
 	    ;;31 Mar 88 sub1 may be nil but have modified match-AZ-$..set-eq-state
 	    (setf (%svref assoc-sys i)
-	      (match-associativity-id-set-eq-state sub1 sub2)
-	      )))
+	      (match-associativity-id-set-eq-state sub1 sub2))))
 	(incf i))
-      (values 
-       (create-match-AZ-state dim meth assoc-sys)
-       nil))))
-
-#||
-(defun match-AZ-state-initialize (sys env)
-  (match-A-state-initialize sys env :have-unit))
-||#
+      ;;
+      (setq az-state (create-match-AZ-state dim meth assoc-sys))
+      (when *match-debug*
+	(format t "~%** AZ: initial state")
+	(match-az-state-unparse az-state))
+      (values az-state nil))))
 
 ;;; NEXT AZ State
 
@@ -307,50 +299,45 @@
  	 (sz (match-AZ-state-size AZ-st))
 	 (sys (match-AZ-state-sys AZ-st))
 	 (method (match-AZ-state-method AZ-st))
-	 (made-zero nil)
-	 )
+	 (made-zero nil))
     (declare (type list new-sys)
 	     (type fixnum sz)
 	     (type method method))
-    (if (match-AZ-state-no-more AZ-st)	
-	;; there is no more match-AZ-state
-	(values nil nil t nil)
-      (progn
-	(dotimes-fixnum (k sz)		; k = 0,...,sz-1
-  	  ;; i.e. for each equation of the system
-	  (let* ((eq-comp (%svref sys k))
-		 (sz-left (match-equation-comp-sz-left eq-comp))
-		 (left (match-equation-comp-left eq-comp))
-		 (right (match-equation-comp-right eq-comp))
-		 (sz-right (length (the simple-vector right)))
-		 (comp (match-equation-comp-comp eq-comp)))
-	    (declare (type #-GCL simple-vector #+GCL vector comp))
-	    (dotimes-fixnum (l sz-left)	; l = 0,...,sz-left - 1
-	      ;; i.e. for each term of the left hand 
-	      ;; side of the equation 
-   	      (let ((deb (if (= l 0)
-			     0 
-			   (%svref comp (1- l))))
-		    (fin (if (= l (1- sz-left)) 
-			     sz-right
-			   (%svref comp l)
-			   ;; (1- (%svref comp l))
-			   )))
-		(declare (type fixnum deb fin))
-		(multiple-value-bind (term zero?)
-		    (match-AZ-make-term method right deb fin)
-		  (if zero? (setq made-zero t))
-		  (add-equation-to-m-system new-sys 
-					    (make-equation
-					     (%svref left l)
-					     term)))))))
-	(increment-the-match-AZ-state AZ-st) 
-	(values new-sys AZ-st (match-az-state-no-more AZ-st) made-zero)))))
-
-#||
-(defun match-AZ-next-state (state)
-  (match-a-next-state state))
-||#
+    (when (match-AZ-state-no-more AZ-st)	
+      ;; there is no more match-AZ-state
+      (return-from match-az-next-state-aux (values nil nil t nil)))
+    ;;
+    (dotimes-fixnum (k sz)		; k = 0,...,sz-1
+      ;; i.e. for each equation of the system
+      (let* ((eq-comp (%svref sys k))
+	     (sz-left (match-equation-comp-sz-left eq-comp))
+	     (left (match-equation-comp-left eq-comp))
+	     (right (match-equation-comp-right eq-comp))
+	     (sz-right (length (the simple-vector right)))
+	     (comp (match-equation-comp-comp eq-comp)))
+	(declare (type #-GCL simple-vector #+GCL vector comp))
+	(dotimes-fixnum (l sz-left)	; l = 0,...,sz-left - 1
+	  ;; i.e. for each term of the left hand 
+	  ;; side of the equation 
+   	  (let ((deb (if (= l 0)
+			 0 
+		       (%svref comp (1- l))))
+		(fin (if (= l (1- sz-left)) 
+			 sz-right
+		       (%svref comp l)
+		       ;; (1- (%svref comp l))
+		       )))
+	    (declare (type fixnum deb fin))
+	    (multiple-value-bind (term zero?)
+		(match-AZ-make-term method right deb fin)
+	      (when zero? (setq made-zero t))
+	      (add-equation-to-m-system new-sys (make-equation (%svref left l)
+							       term)))))))
+    (increment-the-match-AZ-state AZ-st) 
+    (when *match-debug*
+      (format t "~%** AZ: next state")
+      (match-AZ-state-unparse AZ-st))
+    (values new-sys AZ-st nil made-zero)))
 
 ;;; AZ EQUALITY
 
@@ -359,9 +346,9 @@
   ;; strip zeros
   ;; (break)
   #||
-  (princ "term1 = ")(term-print term1)
+  (princ "az:term1 = ")(term-print term1)
   (terpri)
-  (princ "term2 = ")(term-print term2)
+  (princ "az:term2 = ")(term-print term2)
   (when (variables-occur-at-top? term1)
     (return-from match-az-equal nil))
   ||#
@@ -383,7 +370,7 @@
       nil))
 
 (defun match-AZ-state-unparse (AZ-st)
-  (print "--------------- unparse of: ") 
+  (format t "~&--AZ-state~%")
   (princ "size: ")(prin1 (match-AZ-state-size AZ-st))(terpri)
   (princ "operator: ")(prin1 (match-AZ-state-method AZ-st))(terpri)
   (princ "sys: ")(dotimes (x (length (the simple-vector

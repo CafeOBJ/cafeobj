@@ -1,0 +1,114 @@
+-- three labels for indicating status of each agent
+mod! LABEL {
+-- label literals and labels
+[LabelLt < Label]
+-- rs: remainder section
+-- ws: waiting section
+-- cs: critical section
+ops rs ws cs : -> LabelLt {constr} .
+-- an equation to declare that 
+-- the elements of LabelLt are literals
+eq (L1:LabelLt = L2:LabelLt) = (L1 == L2) .
+}
+
+-- agent identifiers
+mod* AID {[Aid]}
+
+-- ===============================================================
+-- queue (first in first out storage)
+mod! QUEUE (X :: TRIV) {
+-- elements and their queues, Elt comes from (X :: TRIV)
+[Elt.X < Qu]
+-- empty queue
+op empQ : -> Qu {constr} . 
+-- assoicative queue constructors with id: empQ
+op (_&_) : Qu Qu -> Qu {constr assoc id: empQ} .
+-- equality _=_ over the sort Qu
+-- _=_ is defined for each sort in the built-in module EQL
+eq (empQ = (E:Elt & Q:Qu)) = false .
+ceq ((E1:Elt & Q1:Qu) = (E2:Elt & Q2:Qu)) 
+    = ((E1 = E2) and (Q1 = Q2))
+    if not((Q1 = empQ) and (Q2 = empQ)) .
+}
+
+-- ===============================================================
+-- agent observer
+mod! AOB {pr(LABEL) pr(AID)
+[Aob]
+-- (lb[A:Aid]: L:Label) is a term of the sort Aobs 
+-- (an observer) that indicates an agent A is in a label L
+-- i.e. (lb[A:Aid]: L:Label)
+op (lb[_]:_) : Aid Label -> Aob {constr} .
+}
+-- generic sets realized by generic sequences
+-- AC set is intentionally avoided 
+-- for efficient matchings and reductions
+mod! SET(X :: TRIV) {
+[Elt.X < Set]
+-- empty set
+op empty : -> Set {constr} .
+-- assicative set constructor with identity empty
+-- commutativity is intentionally dropped 
+-- for efficient matchings and reductions
+op (_ _) : Set Set -> Set {constr assoc id: empty} .
+-- (_ _) is pseudo-idempotent with respect to the sort Elt
+eq S1:Set E:Elt S2:Set E S3:Set = S1 S2 E S3 .
+}
+-- queue of Aid
+mod! AID-QUEUE {pr(QUEUE(AID{sort Elt -> Aid}))}
+-- a state is defined as a pair of queue of Aid and a set of Aob
+mod! STATE{
+pr(AID-QUEUE)
+pr(SET(AOB{sort Elt -> Aob})*{sort Set -> Aobs})
+-- a state is a pair of Qu and Aobs
+[State]
+op _$_ : Qu Aobs -> State {constr} .
+}
+
+-- for defining state functions and predicates we need
+-- Peano Style Natural Numbers with _+_ and _>_
+mod! PNAT {
+  [Nat]
+  op 0 : -> Nat {constr} .
+  op s_ : Nat -> Nat {constr} .
+ -- equality over the natural numbers
+  eq (0 = s(Y:Nat)) = false .
+  eq (s(X:Nat) = s(Y:Nat)) = (X = Y) .
+  eq (s(X:Nat) = X) = false .
+  -- associative and commutative _+_
+  [Nat]
+  op _+_ : Nat Nat -> Nat {assoc comm} .
+  eq 0 + Y:Nat = Y .
+  eq (s X:Nat) + Y:Nat = s(X + Y) .
+  -- strict greater than
+  op _>_ : Nat Nat -> Bool .
+  eq (s X:Nat) > (s Y:Nat) = X > Y .
+  eq (s X:Nat) > 0 = true .
+  eq 0 > (s Y:Nat) = false .
+  eq X:Nat > X = false .
+--
+  eq (s X:Nat) > X = true .
+  eq X:Nat > (s X) = false .
+}
+
+-- elementary functions on states 
+mod! STATEfuns {pr(STATE + PNAT)
+-- the number of a label in a Aobs
+op #lss : Aobs Label -> Nat .
+eq #lss(empty,L:Label) = 0 .
+eq #lss((AS1:Aobs (lb[A:Aid]: L1:Label) AS2:Aobs),L2:Label) = 
+   if (L1 = L2) then (s 0) + #lss((AS1 AS2),L2) 
+   else #lss((AS1 AS2),L2) fi .
+}
+
+open STATEfuns .
+red s N:Nat > N .
+
+ops as1 as2 : -> Aobs .
+parse #lss((as1 as2),rs) .  --> (#lss((as1 as2),rs)):Nat
+-- but the following does not return true!
+red (s #lss((as1 as2),rs)) > #lss((as1 as2),rs) .
+
+-- close
+
+eof

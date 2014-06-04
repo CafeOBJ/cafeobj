@@ -22,7 +22,7 @@ red s1 e1 e2 e3 s2 .
 red s1 s3 s2 .
 red s1 s3 s4 s2 .
 
-eof
+-- eof
 
 -- the following returns expected result
 
