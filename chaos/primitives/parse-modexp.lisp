@@ -169,13 +169,11 @@
   (declare (type symbol type))
   (cond ((null *modexp-parse-input*)
 	 (with-output-chaos-error ('invalid-modexp)
-	   (princ "premature end of module expression in a mapping.")
-	   ))
+	   (princ "premature end of module expression in a mapping.")))
 	;; the first token of rename must be "{".
 	((not (equal "{" (car *modexp-parse-input*)))
 	 (with-output-chaos-error ('invalid-modexp)
-	   (princ "body of renaming should be preceded by \"{\"")
-	   ))
+	   (princ "body of renaming should be preceded by \"{\"")))
 	(t (modexp-skip)		; skip "{"
 	   (let ((sort-map nil)		; accumulators
 		 (hsort-map nil)
@@ -187,8 +185,7 @@
 	     ;; gather rename map elements
 	     (loop (when (null *modexp-parse-input*)
 		     (with-output-chaos-error ('invalid-modexp)
-		       (princ "ill-formed mapping.")
-		       ))
+		       (princ "ill-formed mapping.")))
 		   (setq map (if (eq type :rename)
 				 (parse-map-elt)
 				 (parse-view-elt)))
@@ -213,8 +210,7 @@
 			    (when op-map (list (%ren-op* op-map)))
 			    (when bop-map (list (%ren-bop* bop-map)))
 			    (when vars (list (%vars* vars)))
-			    (when param-map (list (%ren-param* param-map)))))
-	     ))))
+			    (when param-map (list (%ren-param* param-map)))))))))
 
 ;;; PARSE-MAP-ELT 
 ;;; parse one map element.
@@ -718,14 +714,13 @@
 ;;; PARSE-OPERATOR-REFERENCE
 ;;; used in renames and after op in parameter position
 ;;;
-(defun parse-operator-reference (cntxt)
+(defun parse-operator-reference (cntxt &optional (ignore-qual nil))
   (declare (type list cntxt))
   (when *on-modexp-debug*
     (format t "~&[parse-operator-reference]:*modexp-parse-input*=~a" *modexp-parse-input*))
   (cond ((null *modexp-parse-input*)
 	 (with-output-chaos-error ('invalid-modexp)
-	   (princ "premature end of input at operator specification")
-	   ))
+	   (princ "premature end of input at operator specification")))
 	((equal "(" (car *modexp-parse-input*))
 	 ;; parenthesized reference -------------------------------------------------
 	 (modexp-skip)			; skip "("
@@ -735,12 +730,14 @@
 	     (modexp-skip)
 	     (setq flag nil))		; we are now out of parens.
 	   ;;
-	   (let ((res (cond ((and (equal "." (car *modexp-parse-input*))
+	   (let ((res (cond ((and (not ignore-qual)
+				  (equal "." (car *modexp-parse-input*))
 				  (not (member "." cntxt :test #'equal)))
 			     ;; ( <simple-op-ref> . <Modexpr> ...)
 			     (modexp-skip) ; skip "."
 			     (%opref* val (do-parse-modexp)))
 			    ((and *modexp-parse-input*
+				  (not ignore-qual)
 				  (<= 2 (length (car *modexp-parse-input*)))
 				  (eql #\. (char
 					    (the simple-string
@@ -769,7 +766,7 @@
 		 ;; op-ref is just a simple string.
 		 (let ((name (car val)))
 		   (declare (type simple-string name))
-		   (let ((pos (position #\. name)))
+		   (let ((pos (and (not ignore-qual) (position #\. name))))
 		     (if (and pos (< 0 pos) (< (1+ pos) (length name)))
 			 ;; "foo.qualifier"
 			 (%opref* (list (subseq name 0 pos))

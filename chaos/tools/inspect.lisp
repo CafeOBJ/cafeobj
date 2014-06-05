@@ -138,8 +138,7 @@
 			    (print-next)
 			    (format stream "  but the module name is not simple one:")
 			    (print-mod-name (object-context-mod obj)
-					    stream)))))
-		 ))))))
+					    stream)))))))))))
 
 (defun inspect-show-operators (mod name objs stream)
   (declare (ignore name))
