@@ -192,6 +192,8 @@
   ;; (mk::operate-on-system :chaosx :compile)
   (setq chaos::*compile-builtin-axiom* nil)
   (load "sysdef.asd")
+  (load "cl-ppcre/cl-ppcre.asd")
+  (asdf:oos 'asdf:load-op :cl-ppcre)
   (asdf:oos 'asdf:load-op 'chaosx)
   (make-exec-image
    (concatenate 'string *chaos-root*

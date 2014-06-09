@@ -26,8 +26,6 @@
 ;;; would be more clean. This should be done in the near future.
 ;;; ****************************************************************************
 
-(defvar *cafeobj-declarations* (make-hash-table :test #'equal))
-
 ;;; ***************
 ;;; INTERFACE  FORM____________________________________________________________
 ;;; ***************
@@ -770,18 +768,19 @@
 	  (parse-module-element e)
 	(case kind
 	  ((:ignore :misc) nil)
-	  (:sig (setq sig (nconc sig elt)))
-	  (:ax (setq ax (nconc ax elt))))))
+	  (:signature (setq sig (nconc sig elt)))
+	  (:import (setq sig (nconc sig elt)))
+	  (:axiom (setq ax (nconc ax elt))))))
     (setf body (append sig ax))
     body))
 
 (defun parse-module-element (e &rest ignore)
   (declare (ignore ignore))
-  (let ((decl (gethash (car e) *cafeobj-declarations*)))
+  (let ((decl (get-decl-info (car e))))
     (unless decl
       (with-output-chaos-error ('no-decl)
 	(format t "No such declaration '~a'" (car e))))
-    (let ((parser (decl-parser decl)))
+    (let ((parser (comde-parser decl)))
       (unless parser
 	(with-output-chaos-error ('no-parser)
 	  (format t "No parser is defined for declaration ~a" (car e))))
@@ -789,7 +788,7 @@
 	(declare (list ast))
 	(when (and ast (atom (car ast)))
 	  (setq ast (list ast)))
-	(values (decl-category decl) ast)))))
+	(values (comde-category decl) ast)))))
 
 (defun parse-module-element-1 (e &rest ignore)
   (multiple-value-bind (type elt)

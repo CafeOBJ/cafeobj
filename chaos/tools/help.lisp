@@ -2,8 +2,8 @@
 (in-package :chaos)
 #|==============================================================================
                             System: CHAOS
-				          Module: chaos/tools
-			              File: help.lisp
+		          Module: chaos/tools
+                            File: help.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))

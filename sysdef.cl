@@ -194,11 +194,13 @@
                             "cafeobj/cafeobjvar"
                             (:serial
                              "cafeobj/creader"
+			     "cafeobj/define"
                              "cafeobj/trans-com"
                              "cafeobj/trans-decl"
                              ;; "cafeobj/command-proc"
                              "cafeobj/command-top"
-			     "cafeobj/defcommand"
+			     "cafeobj/commands"
+			     "cafeobj/declarations"
                              "cafeobj/cafeobj-top")))
          
          "acl-init"

@@ -189,12 +189,14 @@
 	      :serial t
 	      :components ((:file "cafeobjvar")
 			   (:file "creader")
+			   (:file "define")
 			   (:file "trans-com")
 			   (:file "trans-decl")
 			   (:file "trans-form")
 			   ;; (:file "command-proc")
 			   (:file "command-top")
-			   (:file "defcommand")
+			   (:file "commands")
+			   (:file "declarations")
 			   (:file "cafeobj-top")
 			   ))
 
