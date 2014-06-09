@@ -274,6 +274,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 ;;; 
 (defparameter .?-invalid-chars. '("." "#" "'" "`"))
 
+#||
 (defun cafeobj-what-is (inp)
   (flet ((check-pat (pat)
            (if (not (some #'(lambda (str)
@@ -298,6 +299,25 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
       (if desc
           (format t desc)
         (format t "~&Unknown command/switch or message ID: ~{~a ~^~}." (cdr inp))))))
+||#
+
+(defun cafeobj-what-is (inp)
+  (let* ((ask (intern (car inp)))
+	 (question (cdr inp))
+	 (key (reduce #'(lambda (x y) (concatenate 'string x y)) question))
+	 (description nil))
+    (case ask
+      (|?| (setq description (get-document-string key)))
+      ;; (|??| (setq description (get-detailed-document key)))
+      ;; ((|?ex| |?example|) (setq description (get-example key)))
+      (otherwise
+       ;; this cannot happen
+       (with-output-chaos-error ('internal-error)
+	 (format t "Unknown help command ~a" (car inp)))))
+    (cond (description
+	   (format t (format-description description)))
+	  (t	(with-output-chaos-warning ()
+		  (format t "System does not know about \"~{~a~^~}\"." question))))))
 
 ;;; 
 (defun get-command-description (level id)
@@ -460,80 +480,6 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
   #+CLISP (ext::exit))
 
 ;;;
-;;; DEFCOM
-;;;
-(defvar *cafeobj-commands* (make-hash-table :test #'equal))
-
-(defstruct (command (:print-function print-command))
-  (name "" :type string)		; command name
-  (category nil :type symbol)		; command types
-  (parser nil :type symbol)		; parser function
-  (evaluator nil :type symbol)		; evaluator function
-  (help-string "" :type string))	; command's help string
-
-(defun print-command (me &optional (stream *standard-output*) &rest ignore)
-  (declare (ignore ignore))
-  (format stream "~&** command     : ~a" (command-name me))
-  (format stream "~%   category    : ~a" (command-category me))
-  (format stream "~%   parser      : ~a" (command-parser me))
-  (format stream "~%   evaluator   : ~a" (command-evaluator me))
-  (format stream "~%   description : ~a" (command-help-string me)))
-
-(defun print-command-usage (command &optional (stream *standard-output*))
-  (let ((com (if (command-p command)
-		 command
-	       (and (stringp command)
-		    (gethash command *cafeobj-commands*)))))
-    (unless com
-      (with-output-chaos-error ('no-com)
-	(format t "No such command '~a'" command)))
-    (format stream "~&~a : ~a" (command-name com) (command-help-string com))))
-
-(defmacro defcom ((&rest names) doc-string category parser evaluator)
-    (unless (fboundp parser) (warn "no parser ~s" parser))
-    (unless (fboundp evaluator) (warn "no evaluator ~s" evaluator))
-  `(dolist (name ',names)
-    (setf (gethash name *cafeobj-commands*)
-      (make-command :name name
-		    :category ',category
-		    :parser ',parser
-		    :evaluator ',evaluator
-		    :help-string ,doc-string))))
-;;;
-;;; DEFDECL
-;;;
-(defstruct (decl (:print-function print-decl) (:include command)))
-
-(defmacro defdecl ((&rest names) doc-string category parser evaluator)
-    (unless (fboundp parser) (warn "no parser ~s" parser))
-    (unless (fboundp evaluator) (warn "no evaluator ~s" evaluator))
-  `(dolist (name ',names)
-    (setf (gethash name *cafeobj-declarations*)
-      (make-decl :name name
-		 :category ',category
-		 :parser ',parser
-		 :evaluator ',evaluator
-		 :help-string ,doc-string))))
-
-(defun print-decl (me &optional (stream *standard-output*) &rest ignore)
-  (declare (ignore ignore))
-  (format stream "~&** declaration : ~a" (decl-name me))
-  (format stream "~%   category    : ~a" (decl-category me))
-  (format stream "~%   parser      : ~a" (decl-parser me))
-  (format stream "~%   evaluator   : ~a" (decl-evaluator me))
-  (format stream "~%   description : ~a" (decl-help-string me)))
-
-(defun print-decl-usage (decl &optional (stream *standard-output*))
-  (let ((decl (if (decl-p decl)
-		 decl
-	       (and (stringp decl)
-		    (gethash decl *cafeobj-declarations*)))))
-    (unless decl
-      (with-output-chaos-error ('no-decl)
-	(format t "No such declaration form '~a'" decl)))
-    (format stream "~&~a : ~a" (decl-name decl) (decl-help-string decl))))
-
-;;;
 ;;; NOP
 ;;;
 (defun cafeobj-nop (&rest ignore)
@@ -544,11 +490,11 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 ;;;
 (defun cafeobj-evaluate-command (key inp)
   (declare (type string key))
-  (let ((com (gethash key *cafeobj-commands*)))
+  (let ((com (get-command-info key)))
     (unless com
       (with-output-chaos-error ('no-commands)
 	(format t "No such command or declaration keyword '~a'." key)))
-    (let ((parser (command-parser com)))
+    (let ((parser (comde-parser com)))
       (unless parser
 	(with-output-chaos-error ('no-parser)
 	  (format t "No parser is defined for command ~a" key)))
@@ -557,8 +503,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 	  (with-output-chaos-error ('parse-error)
 	    (format t "Invalid argument to command ~a." key)))
 	(if (eq pform :help)
-	    (print-command-usage com)
-	  (let ((evaluator (command-evaluator com)))
+	    (print-comde-usage com)
+	  (let ((evaluator (comde-evaluator com)))
 	    (unless evaluator
 	      (with-output-chaos-error ('no-evaluator)
 		(format t "No evaluator is defined for command ~a." key)))
