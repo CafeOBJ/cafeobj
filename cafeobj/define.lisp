@@ -21,18 +21,23 @@
   (key        ""  :type string)		; 
   (doc-string ""  :type string)		; document string of commad/declaration
   (names      nil :type list)		;
+  (cache nil)				; formatted doc cache
   )
 
 (defun print-online-document (doc &optional (stream *standard-output*) &rest ignore)
   (declare (ignore ignore))
   (format stream "~%*** key    : ~a" (oldoc-key doc))
   (format stream "~&doc-string : ~a" (oldoc-doc-string doc))
-  (format stream "~&name       : ~a" (oldoc-names doc)))
+  (format stream "~&name       : ~a" (oldoc-names doc))
+  (format stream "~&cache      : ~a" (oldoc-cache doc)))
 
-(defun get-document-string (key)
+(defun get-document-string (key &optional (raw nil))
   (let ((doc (gethash key *cafeobj-doc-db*)))
     (if doc
-	(oldoc-doc-string doc)
+	(if (not raw)
+	    (or (oldoc-cache doc)
+		(setf (oldoc-cache doc) (format-description (oldoc-doc-string doc))))
+	  (oldoc-doc-string doc))
       nil)))
 
 (defun show-doc-entries ()
@@ -73,13 +78,23 @@
 								    :doc-string doc-string
 								    :names keyp)))))))))
 
-(defparameter .md-special-chars.
-    '((#\# #\null)
-      (#\` #\')
-      (#\~ #\null)))
+(defparameter .md-remove-hash-hash. #~s/##//)
+(defparameter .md-remove-link. #~s/{#.*}//)
+(defparameter .md-remove-link2. #~s/\(#.+\)//)
+(defparameter .md-remove-code-sign. #~s/~~//)
+(defparameter .md-cafeobj. #~s/_cafeobj/CafeOBJ/)
+(defparameter .md-replace-tilde. #~s/~/*/)
+(defparameter .md-replace-bq. #~s/`/'/)
 
 (defun format-description (doc)
-  (parallel-substitute .md-special-chars. doc))
+  (funcall .md-replace-bq.
+	   (funcall .md-replace-tilde.
+		    (funcall .md-cafeobj.
+			     (funcall .md-remove-code-sign.
+				      (funcall .md-remove-link2.
+					       (funcall .md-remove-link.
+							(funcall .md-remove-hash-hash. doc))))))))
+
 ;;; ******
 ;;; DEFINE : define command or declaration
 ;;; ******

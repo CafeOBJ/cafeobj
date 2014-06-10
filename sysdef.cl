@@ -29,7 +29,9 @@
      "fsys"
      "tree-display"
      "lex"
-     "reader"))
+     "reader"
+     "lol"
+     "lol2"))
   )
 
 (excl:defsystem :chaos

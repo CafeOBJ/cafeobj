@@ -314,10 +314,10 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
        ;; this cannot happen
        (with-output-chaos-error ('internal-error)
 	 (format t "Unknown help command ~a" (car inp)))))
-    (cond (description
-	   (format t (format-description description)))
-	  (t	(with-output-chaos-warning ()
-		  (format t "System does not know about \"~{~a~^~}\"." question))))))
+    (cond (description (format t description)
+		       (terpri))
+	  (t (with-output-chaos-warning ()
+	       (format t "System does not know about \"~{~a ~^~}\"." question))))))
 
 ;;; 
 (defun get-command-description (level id)

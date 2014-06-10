@@ -39,6 +39,8 @@
 			   (:file "tree-display")
 			   (:file "lex")
 			   (:file "reader")
+			   (:file "lol")
+			   (:file "lol2")
 			   ))
      (:module "chaos"
 	      :components ((:module primitives
