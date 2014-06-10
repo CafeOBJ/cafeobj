@@ -1892,4 +1892,11 @@
   (lex-show-delimiters *standard-output*))
 
 
+;;;
+;;; EVAL-GENDOC
+;;;
+(defun eval-gendoc (ast)
+  (let ((file (%gendoc-file ast)))
+    (export-refman file)))
+
 ;;; EOF

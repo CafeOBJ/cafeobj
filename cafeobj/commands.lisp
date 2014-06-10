@@ -31,23 +31,15 @@
 ;;; --------------------------------------------------------------------------
 ;;; all of the declarations/commands in alphabetical order.
 ;;; --------------------------------------------------------------------------
-  
-(define ("??" "?")
-    :category :help
-    :parser identity
-    :evaluator cafeobj-top-level-help
-        :doc "
-## `?` ## {#help}
+(define ("!refman")
+     :type :doc-only
+     :doc "
+Gory Details {#gorydetails}
+============
 
-lists all top-level commands. The `?` can be used after many of the
-top-level commands to obtain help.
-")
-
-(define ("#define")
-    :category :module-element
-    :parser identity
-    :evaluator cafeobj-eval-module-element-proc
-    :doc "
+This chapter presents all syntactic elements of \_cafeobj as
+well as several meta-concepts in alphabetic order. Concepts are
+cross-linked for easy accessibility.
 ")
   
 (define ("!")
@@ -62,6 +54,13 @@ TODO Currently not working!!
 On Unix only, forks a shell and executes the given `<command>`.
 ")
 
+(define ("#define")
+    :category :module-element
+    :parser identity
+    :evaluator cafeobj-eval-module-element-proc
+    :doc "
+")
+  
 
 (define ("--" "**")
     :category :decl-toplevel
@@ -159,6 +158,17 @@ TODO: `=(n,m)=>+` ??? other specifiers?
     :doc "
 TODO missing documentation
 difficult - see TODO for [`=*=`](#bequality)
+")
+
+(define ("?")
+    :category :help
+    :parser identity
+    :evaluator cafeobj-top-level-help
+        :doc "
+## `?` ## {#help}
+
+lists all top-level commands. The `?` can be used after many of the
+top-level commands to obtain help.
 ")
 
 (define ("all axioms")
@@ -713,6 +723,16 @@ definitions are lost.
 Related: [`reset`](#reset)
 ")))
 
+(define ("gendoc")
+    :category :io
+    :parser parse-gendoc-command
+    :evaluator eval-ast
+    :doc "
+## `gendoc <pathname>` ## {#gendoc}
+
+generates reference manual from system's on line help documents, 
+and save it to `pathname`.
+")
 
 (define ("imports")
     :category :module-element

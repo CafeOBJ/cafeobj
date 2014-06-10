@@ -564,4 +564,13 @@
     (with-output-chaos-warning ()
       (princ "no module open."))))
 
+;;; ******
+;;; GENDOC
+;;; ******
+(defparameter _gendoc-pat (%gendoc* 'file))
+
+(defun parse-gendoc-command (inp)
+  (setf (%gendoc-file _gendoc-pat) (cadr inp))
+  _gendoc-pat)
+
 ;;; EOF

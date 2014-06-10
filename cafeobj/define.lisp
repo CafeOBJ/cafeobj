@@ -211,4 +211,28 @@
   (format t "~&[Usage] ~s, not yet" com))
 
 
+;;;
+;;; Export
+;;; export document string to a file.
+;;;
+(defparameter .md-refman-title. "!refman")
+
+(defvar .out-done. (make-hash-table :test #'equal))
+
+(defun export-refman (&optional (output "manual/md/reference.md"))
+  (clrhash .out-done.)
+  (let (doc keys)
+    (with-open-file (out output :direction :output :if-exists :supersede :if-does-not-exist :create)
+      (maphash #'(lambda (k doc) (declare (ignore doc)) (push k keys)) *cafeobj-doc-db*)
+      (setq keys (remove .md-refman-title. keys :test #'string=))
+      (setq keys (sort keys #'string<=))
+      (push .md-refman-title. keys)
+      (dolist (key keys)
+	(setq doc (get-document-string key t))
+	(unless doc
+	  (error "The document string not found for ~s." key))
+	(unless (gethash key .out-done.)
+	  (format out "~a" doc)
+	  (setf (gethash key .out-done.) t))))))
+
 ;;; EOF

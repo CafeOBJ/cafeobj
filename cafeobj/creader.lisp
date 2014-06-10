@@ -7,9 +7,9 @@
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 #|=============================================================================
-System:CHAOS
-Module: cafeobj
-File: creader.lisp
+                            System:CHAOS
+                           Module: cafeobj
+                         File: creader.lisp
 ==============================================================================|#
 
 ;;;=============================================================================
@@ -638,7 +638,6 @@ File: creader.lisp
                   |.|)))
 
         (find (:+ rule -rule +rule rules -rules +rules))
-
         ;; RWL related commands
         ((:+ cont continue) :args)
         
@@ -710,6 +709,8 @@ File: creader.lisp
 	(look up (:if-present in :modexp |:|) (:seq-of :top-opname))
 	;; term inspector
 	((:+ inspect inspect-term) :args)
+	;; generate reference manual
+	(gendoc :symbol)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.
