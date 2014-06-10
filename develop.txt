@@ -1,6 +1,10 @@
 ;;; defsystem
 ;;:ld sysdef
 ;; (mk:compile-system :chaosx) --or --
+(require :asdf)
+(load "cl-ppcre/cl-ppcre.asd")
+(asdf:oos 'asdf:load-op :cl-ppcre)
+(load "sysdef.cl")
 (excl:compile-system :chaosx :recompile t)
 (in-package :chaos)
 (set-cafeobj-libpath "/usr/local/cafeobj-1.4")
