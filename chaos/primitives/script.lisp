@@ -415,4 +415,13 @@
   :visible (bool-term module name body goal-term)
   :eval perform-case-reduction)
 
+;;; ******
+;;; GENDOC
+;;; gendoc <pathname>
+;;; *****
+
+(defterm gendoc (%script)
+  :visible (file)
+  :eval eval-gendoc)
+
 ;;; EOF
