@@ -3,11 +3,11 @@ Introduction
 
 (present a module (idea: stripped down version of the bank-account.mod)
 which contains most important and often used constructs
-describe the fundamental concepts of \_cafeobj 
+describe the fundamental concepts of CafeOBJ 
 (algebraic spec, order sort, model spec, ...)
 also contains a quick intro to interaction [Ch 1] but much shorter)
 
-\_cafeobj as TRS specification system, background, algebraic specification
+CafeOBJ as TRS specification system, background, algebraic specification
 based on equational theory. 
 
 Overview of the system

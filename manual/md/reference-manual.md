@@ -5,14 +5,15 @@ author: Toshimi Sawada, Kokichi Futatsugi, Norbert Preining
 bibliography: manual.bib
 ---
 
-\include{macros.gpp}
+<!--
+% \include{macros.gpp}
 
-\include{introduction.md}
+% \include{introduction.md}
 
-\include{overview.md}
+% \include{overview.md}
 
-\include{cloudsync.md}
+% \include{cloudsync.md}
 
-\include{reference.md}
-
+% \include{reference.md}
+-->
 

@@ -1,20 +1,19 @@
+
 Gory Details {#gorydetails}
 ============
 
-This chapter presents all syntactic elements of \_cafeobj as
+This chapter presents all syntactic elements of _cafeobj as
 well as several meta-concepts in alphabetic order. Concepts are
 cross-linked for easy accessibility.
 
-## `?` ## {#help}
-
-lists all top-level commands. The `?` can be used after many of the
-top-level commands to obtain help.
 
 ## `! <command>` ## {#commandexec}
 
 TODO Currently not working!! 
 
 On Unix only, forks a shell and executes the given `<command>`.
+
+
 
 ## `**`, `**>` ## {#starstar}
 
@@ -32,6 +31,56 @@ evaluated by the interpreter.
 
 Related: [`**`](#starstar) [comments](#comments)
 
+## sort declaration ## {#sort}
+
+_cafeobj supports two kind of sorts, visible and hidden sorts. Visible 
+sorts are introduced between `[` and `]`, while hidden sorts are introduced
+between `*[` and `]*`.
+
+~~~~
+  [ Nat ]
+  *[ Obs ]*
+~~~~
+
+Several sorts can be declared at the same time, as in `[ Nat Int ]`.
+
+Since _cafeobj is based on order sorting, sorts can form a partial order.
+Definition of the partial order can be interleaved by giving
+
+~~~~
+  [ <sorts> < <sorts> ]
+~~~~
+
+Where `sorts` is a list of sort names. This declaration defines an inclusion
+relation between each pair or left and right sorts.
+
+Example:
+
+~~~~
+  [ A B , C D < A < E, B < D ]
+~~~~
+
+defines five sorts `A`,...,`E`, with the following relations:
+`C < A`, `D < A`, `A < E`, `B < D`.
+
+## `**`, `**>` ## {#starstar}
+
+Starts a comment which extends to the end of the line. 
+With the additional `>` the comment is displayed while
+evaluated by the interpreter.
+
+Related: [`--`](#dashdash) [comments](#comments)
+
+## `--`, `-->` ## {#dashdash}
+
+Starts a comment which extends to the end of the line. 
+With the additional `>` the comment is displayed while
+evaluated by the interpreter.
+
+Related: [`**`](#starstar) [comments](#comments)
+
+Do nothing.
+
 ## `=` ## {#axeq}
 
 The syntax element `=` introduces an axiom of the equational theory,
@@ -39,6 +88,41 @@ and is different from `==` which specifies an equality based on
 rewriting. 
 
 Related: [`==`](#equality) [`eq`](#eq)
+
+_cafeobj provides a whole set of search predicates `=(n,m)=>` for
+searching transitions starting from a given term. The first value `n`
+specifies the maximum number of solutions searched, and can be either
+a natural number of `*`, in which case all solutions are searched. The
+second value `m` is the maximum depth, and can be a natural number
+(but not `*`).
+
+TODO: `=(n,m)=>+` ??? other specifiers?
+
+_cafeobj provides a whole set of search predicates `=(n,m)=>` for
+searching transitions starting from a given term. The first value `n`
+specifies the maximum number of solutions searched, and can be either
+a natural number of `*`, in which case all solutions are searched. The
+second value `m` is the maximum depth, and can be a natural number
+(but not `*`).
+
+TODO: `=(n,m)=>+` ??? other specifiers?
+
+_cafeobj provides a whole set of search predicates `=(n,m)=>` for
+searching transitions starting from a given term. The first value `n`
+specifies the maximum number of solutions searched, and can be either
+a natural number of `*`, in which case all solutions are searched. The
+second value `m` is the maximum depth, and can be a natural number
+(but not `*`).
+
+TODO: `=(n,m)=>+` ??? other specifiers?
+
+## `=*=` ## {#bequality}
+
+The predicate for behavioural equivalence, written `=*=`, is a binary
+operator defined on each hidden sort. 
+
+TODO: old manual very unclear ... both about `=*=` and 
+`accept =*= proof` ??? (page 46 of old manual)
 
 ## `==` ## {#equality}
 
@@ -54,45 +138,37 @@ This binary predicate is defined on each visible sort, and defines the
 transition relation, which is reflexive, transitive, and closed under
 operator application. It expresses the fact that two states (terms)
 are connected via transitions.
-
 Related: [`trans`](#trans) [`=(*)=>`](#transsearch)
 
-## `=*=` ## {#bequality}
+## `?` ## {#help}
 
-The predicate for behavioural equivalence, written `=*=`, is a binary
-operator defined on each hidden sort. 
+lists all top-level commands. The `?` can be used after many of the
+top-level commands to obtain help.
 
-TODO: old manual very unclear ... both about `=*=` and 
-`accept =*= proof` ??? (page 46 of old manual)
-
-## `=(n)=>` `=(n,m)=>` ## {#transsearch}
-
-See [search predicate](#searchpredicate)
-
-## `=/=` ## {#ineq}
-
-Negation of the predicate [`==`](#equality).
-
-## `accept =*= proof` switch ## {#switch-accept}
 
 TODO missing documentation
 difficult - see TODO for [`=*=`](#bequality)
 
+TODO missing documentation
+difficult - see TODO for [`=*=`](#bequality)
 
-## `all axioms` switch ## {#switch-all-axioms)
+TODO missing documentation
+difficult - see TODO for [`=*=`](#bequality)
 
 Controls whether axioms from included modules are shown
 during a `show` invocation.
 
 Related: [`show`](#show)
 
-## `always memo` switch ## {#switch-always-memo)
-
 Turns on memorization of computation also for operators without
 the [`memo`](#opattr) operator attribute.
 
 Related: [`memo` switch](#switch-memo) [operator attributes](#opattr)
 
+Turns on memorization of computation also for operators without
+the [`memo`](#opattr) operator attribute.
+
+Related: [`memo` switch](#switch-memo) [operator attributes](#opattr)
 
 ## `apply <action> [ <subst> ] <range> <selection>` ## {#apply}
 
@@ -164,7 +240,84 @@ where each `<selector>` is one of
   then the expression `{2, 4, 5}` selects the subterm `c * c * e`.
 
 
-Related: [`choose`](#choose) [`start`](#start) 
+Related: [`choose`](#choose)
+         [`start`](#start) 
+
+## operator attributes ## {#opattr}
+
+In the specification of an operator using the [`op`](#op) (and
+related) keyword, attributes of the operator can be specified.
+An `<attribute-list>` is a space-separate list of single
+attribute definitions. Currently the following attributes are
+supported
+
+`associative`
+  ~ specifies an associative operator, alias `assoc`
+
+`commutative`
+  ~ specifies a commutative operator, alias `comm`
+
+`itempotence`
+  ~ specifies an idempotent operator, alias `idem`
+
+`id: <const>`
+  ~ specifies that an identity of the operator exists and 
+    that it is `<const>`
+
+`prec: <int>`
+  ~ specifies the parsing precedence of the operator, an integer <int>.
+    Smaller precedence values designate stronger binding. See
+    [operator precedence](#opprec) for details of the predefined
+    operator precedence values.
+
+`l-assoc` and `r-assoc`
+  ~ specifies that the operator is left-associative or
+  right-associative
+
+`constr`
+  ~ specifies that the operator is a constructor of the coarity sort.
+    (not evaluated at the moment)
+
+
+`strat: ( <int-list> )`
+  ~ specifies the evaluation strategy. Each integer in the list refers
+    to an argument of the operator, where `0` refers to the whole term,
+    `1` for the first argument, etc. Evaluation proceeds in order of
+    the `<int-list>`. Example:
+
+    `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
+ 
+    In this case the first argument (the boolean term) is tried to
+    be evaluated, and depending on that either the second or third.
+    But if the first (boolean) argument cannot be evaluated, 
+    no evaluation in the subterms will appear.
+
+    Using negative values allows for lazy evaluation of the corresponding
+    arguments.
+
+`memo`
+  ~ tells the system to remember the results of evaluations where the
+    operator appeared. See [`memo` switch](#switch-memo) for details.
+
+Remarks:
+
+  - Several operators of the same arity/coarity can be defined by
+    using `ops` instead of `op`:
+
+    `ops f g : S -> S`
+
+    For the case of mixfix operators the underbars have to be given
+    and the expression surrounded by parenthesis:
+
+    `ops (_+_) (_*_) : S S -> S`
+
+  - Spaces *can* be part of the operator name, thus an operator 
+  definition of `op foo op : S -> S` is valid, but not advisable,
+  as parsing needs hints.
+
+  - A single underbar cannot be an operator name.
+
+Related: [`bop`](#bop)
 
 ## `auto context` switch ## {#switch-auto-context}
 
@@ -174,10 +327,18 @@ If this switch is `on`, the context will automatically switch to
 the most recent module, i.e., defining a module or inspecting 
 a module's content will switch the current module.
 
+## `auto context` switch ## {#switch-auto-context}
+
+Possible values: `on` or `off`, default is `off`.
+
+If this switch is `on`, the context will automatically switch to
+the most recent module, i.e., defining a module or inspecting 
+a module's content will switch the current module.
 
 ## `autoload` ## {#autoload}
 
 TODO No documentation in original manual, no idea!
+
 
 ## `axioms { <decls> }` ## {#axioms}
 
@@ -186,8 +347,37 @@ transitions.
 Other statements are not allowed within the `axioms` block.
 Optional structuring of the statements in a module.
 
-Related: [`signature`](#signature) [`imports`](#imports)
-	 [`var`](#var) [`eq`](#eq) [`trans`](#trans)
+Related: [`signature`](#signature)
+         [`imports`](#imports)
+	 [`var`](#var)
+         [`eq`](#eq)
+         [`trans`](#trans)
+
+## `axioms { <decls> }` ## {#axioms}
+
+Block enclosing declarations of variables, equations, and 
+transitions.
+Other statements are not allowed within the `axioms` block.
+Optional structuring of the statements in a module.
+
+Related: [`signature`](#signature)
+         [`imports`](#imports)
+	 [`var`](#var)
+         [`eq`](#eq)
+         [`trans`](#trans)
+
+## `axioms { <decls> }` ## {#axioms}
+
+Block enclosing declarations of variables, equations, and 
+transitions.
+Other statements are not allowed within the `axioms` block.
+Optional structuring of the statements in a module.
+
+Related: [`signature`](#signature)
+         [`imports`](#imports)
+	 [`var`](#var)
+         [`eq`](#eq)
+         [`trans`](#trans)
 
 
 ## `bceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#bceq}
@@ -198,6 +388,23 @@ Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
 
 Related: [`eq`](#eq) [`ceq`](#ceq) [`beq`](#beq)
 
+## `bceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#bceq}
+
+Alias: `bcq`
+
+Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
+
+Related: [`eq`](#eq) [`ceq`](#ceq) [`beq`](#beq)
+
+
+
+## `btrans [ <label-exp> ] <term> => <term> .` ## {#btrans}
+
+Defines a behaviour transition. For details see [`trans`](#trans).
+
+Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
+
+
 ## `beq [ <op-exp> ] <term> = <term> .` ## {#beq}
 
 Defines a behaviour equation. For details see [`eq`](#eq).
@@ -205,12 +412,15 @@ Defines a behaviour equation. For details see [`eq`](#eq).
 Related: [`eq`](#eq) [`ceq`](#ceq) [`bceq`](#bceq)
 
 
-## `bctrans [ <label-exp> ] <term> => <term> if <bool> .` ## {#bctrans}
+## `bop <op-spec> : <sorts> -> <sort>` ## {#bop}
 
-Defines a behaviour conditional transition. 
-For details see [`ctrans`](#ctrans).
+Defines a behavioural operator by its domain, codomain, and the term 
+construct. `<sorts>` is a space separated list of sort names containing
+*exactely* one hidden sort. `<sort>` is a single sort name.
 
-Related [`trans`](#trans) [`ctrans`](#ctrans) [`btrans`](#btrans)
+For `<op-spec>` see the explanations of [`op`](#op).
+
+Related: [`op`](#op)
 
 ## `bop <op-spec> : <sorts> -> <sort>` ## {#bop}
 
@@ -227,8 +437,21 @@ Related: [`op`](#op)
 Short hand for `op <op-spec> : <sorts> -> Bool` defining a
 behavioural predicate.
 
-Related: [`op`](#op) [`bop`](#op) [`pred`](#bpred)
+Related: [`op`](#op)
+         [`bop`](#op)
+         [`pred`](#bpred)
 
+## `breduce [ in <mod-exp> : ] <term> .` ## {#breduce}
+
+Alias: `bred`
+
+Reduce the given term in the given module, if `<mod-exp>` is given, 
+otherwise in the current module. 
+
+For `breduce` equations, possibly conditional, possibly behavioural, are taken
+into account for reduction.
+
+Related: [`execute`](#execute) [`reduce`](#reduce)
 
 ## `breduce [ in <mod-exp> : ] <term> .` ## {#breduce}
 
@@ -243,15 +466,19 @@ into account for reduction.
 Related: [`execute`](#execute) [`reduce`](#reduce)
 
 
+
+
 ## `btrans [ <label-exp> ] <term> => <term> .` ## {#btrans}
 
 Defines a behaviour transition. For details see [`trans`](#trans).
 
 Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
 
+
 ## `cbred` ## {#cbred}
 
 TODO no documentation
+
 
 ## `cd <dirname>` ## {#cd}
 
@@ -267,25 +494,6 @@ Defines a conditional equation. Spaces around the `if` are obligatory.
 see [`eq`](#eq).
 
 Related: [`eq`](#eq) [`beq`](#beq) [`bceq`](#bceq)
-
-## `check <something>` switch ## {#switch-check}
-
-These switches turn on automatic checking of certain properties:
-
-`check coherency`
-  ~ TODO
-
-`check compatibility`
-  ~ see the [`check`](#check) command
-
-`check import`
-  ~ TODO
-
-`check regularity`
-  ~ see the [`check`](#check) command
-
-`check sensible`
-  ~ TODO
 
 ## `check <options>` ## {#check}
 
@@ -308,8 +516,7 @@ operators.
     `<op_name>` is given, all operators of the current module are
     checked. 
 
-Related: [`regularize`](#regularize) 
-
+Related: [`regularize`](#regularize)
 
 ## `choose <selection>` ## {#choose}
 
@@ -327,19 +534,104 @@ are forgotten.
 
 Related: [`clean memo` switch](#switch-clean-memo)
 
-## `clean memo` switch ## {#switch-clean-memo}
+## `clean memo` ## {#cleanmemo}
 
-Possible values: `on`, `off`, default `off`.
+Resets (clears) the memo storages of the system. Memorized computations 
+are forgotten. 
 
-tells the system to be forgetful.
-
-TODO what is the difference between `set memo off` and `set clean memo off`
+Related: [`clean memo` switch](#switch-clean-memo)
 
 ## `close` ## {#close}
 
 This command closes a modification of a module started by `open`.
 
 Related: [`open`](#open)
+
+## operator attributes ## {#opattr}
+
+In the specification of an operator using the [`op`](#op) (and
+related) keyword, attributes of the operator can be specified.
+An `<attribute-list>` is a space-separate list of single
+attribute definitions. Currently the following attributes are
+supported
+
+`associative`
+  ~ specifies an associative operator, alias `assoc`
+
+`commutative`
+  ~ specifies a commutative operator, alias `comm`
+
+`itempotence`
+  ~ specifies an idempotent operator, alias `idem`
+
+`id: <const>`
+  ~ specifies that an identity of the operator exists and 
+    that it is `<const>`
+
+`prec: <int>`
+  ~ specifies the parsing precedence of the operator, an integer <int>.
+    Smaller precedence values designate stronger binding. See
+    [operator precedence](#opprec) for details of the predefined
+    operator precedence values.
+
+`l-assoc` and `r-assoc`
+  ~ specifies that the operator is left-associative or
+  right-associative
+
+`constr`
+  ~ specifies that the operator is a constructor of the coarity sort.
+    (not evaluated at the moment)
+
+
+`strat: ( <int-list> )`
+  ~ specifies the evaluation strategy. Each integer in the list refers
+    to an argument of the operator, where `0` refers to the whole term,
+    `1` for the first argument, etc. Evaluation proceeds in order of
+    the `<int-list>`. Example:
+
+    `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
+ 
+    In this case the first argument (the boolean term) is tried to
+    be evaluated, and depending on that either the second or third.
+    But if the first (boolean) argument cannot be evaluated, 
+    no evaluation in the subterms will appear.
+
+    Using negative values allows for lazy evaluation of the corresponding
+    arguments.
+
+`memo`
+  ~ tells the system to remember the results of evaluations where the
+    operator appeared. See [`memo` switch](#switch-memo) for details.
+
+Remarks:
+
+  - Several operators of the same arity/coarity can be defined by
+    using `ops` instead of `op`:
+
+    `ops f g : S -> S`
+
+    For the case of mixfix operators the underbars have to be given
+    and the expression surrounded by parenthesis:
+
+    `ops (_+_) (_*_) : S S -> S`
+
+  - Spaces *can* be part of the operator name, thus an operator 
+  definition of `op foo op : S -> S` is valid, but not advisable,
+  as parsing needs hints.
+
+  - A single underbar cannot be an operator name.
+
+Related: [`bop`](#bop)
+
+## comments ## {#comments}
+
+The interpreter accepts the following strings as start of a comment
+that extends to the end of the line: `--`, `-->`, `**`, `**>`.
+
+The difference in the variants with `>` is that the comment is
+displayed when run through the interpreter.
+
+Related: [`**`](#starstar) [`--`](#dashdash)
 
 ## comments ## {#comments}
 
@@ -355,12 +647,109 @@ Related: [`**`](#starstar) [`--`](#dashdash)
 
 TODO missing documentation
 
+
+## `cond limit` switch ## {#switch-cond-limit}
+
+TODO missing documentation
+
+
+## operator attributes ## {#opattr}
+
+In the specification of an operator using the [`op`](#op) (and
+related) keyword, attributes of the operator can be specified.
+An `<attribute-list>` is a space-separate list of single
+attribute definitions. Currently the following attributes are
+supported
+
+`associative`
+  ~ specifies an associative operator, alias `assoc`
+
+`commutative`
+  ~ specifies a commutative operator, alias `comm`
+
+`itempotence`
+  ~ specifies an idempotent operator, alias `idem`
+
+`id: <const>`
+  ~ specifies that an identity of the operator exists and 
+    that it is `<const>`
+
+`prec: <int>`
+  ~ specifies the parsing precedence of the operator, an integer <int>.
+    Smaller precedence values designate stronger binding. See
+    [operator precedence](#opprec) for details of the predefined
+    operator precedence values.
+
+`l-assoc` and `r-assoc`
+  ~ specifies that the operator is left-associative or
+  right-associative
+
+`constr`
+  ~ specifies that the operator is a constructor of the coarity sort.
+    (not evaluated at the moment)
+
+
+`strat: ( <int-list> )`
+  ~ specifies the evaluation strategy. Each integer in the list refers
+    to an argument of the operator, where `0` refers to the whole term,
+    `1` for the first argument, etc. Evaluation proceeds in order of
+    the `<int-list>`. Example:
+
+    `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
+ 
+    In this case the first argument (the boolean term) is tried to
+    be evaluated, and depending on that either the second or third.
+    But if the first (boolean) argument cannot be evaluated, 
+    no evaluation in the subterms will appear.
+
+    Using negative values allows for lazy evaluation of the corresponding
+    arguments.
+
+`memo`
+  ~ tells the system to remember the results of evaluations where the
+    operator appeared. See [`memo` switch](#switch-memo) for details.
+
+Remarks:
+
+  - Several operators of the same arity/coarity can be defined by
+    using `ops` instead of `op`:
+
+    `ops f g : S -> S`
+
+    For the case of mixfix operators the underbars have to be given
+    and the expression surrounded by parenthesis:
+
+    `ops (_+_) (_*_) : S S -> S`
+
+  - Spaces *can* be part of the operator name, thus an operator 
+  definition of `op foo op : S -> S` is valid, but not advisable,
+  as parsing needs hints.
+
+  - A single underbar cannot be an operator name.
+
+Related: [`bop`](#bop)
+
+
+
+## `ceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#ceq}
+
+Defines a conditional equation. Spaces around the `if` are obligatory.
+`<boolterm>` needs to be a Boolean term. For other requirements
+see [`eq`](#eq).
+
+Related: [`eq`](#eq) [`beq`](#beq) [`bceq`](#bceq)
+
+
+
 ## `ctrans [ <label-exp> ] <term> => <term> .` ## {#ctrans}
 
 Defines a conditional transition. For details see [`trans`](#trans)
 and [`ceq`](#ceq).
 
 Related [`trans`](#trans) [`btrans`](#ctrans) [`bctrans`](#bctrans)
+
+
+
 
 
 ## `describe <something>` ## {#describe}
@@ -370,12 +759,21 @@ the possible set of invocations.
 
 Related: [`show`](#show)
 
+## `describe <something>` ## {#describe}
+
+like the `show` command with more details. See `describe ?` for
+the possible set of invocations.
+
+Related: [`show`](#show)
+
+
+
+
 ## `eof` ## {#eof}
 
 Terminates reading of the current file. Allows for keeping
 untested code or documentations below the `eof` mark. Has
 to be on a line by itself without leading spaces.
-
 
 ## `eq [ <op-exp> ] <term> = <term> .` ## {#eq}
 
@@ -423,15 +821,34 @@ In this case an expression like `q1(1 2 3)` would reduce to
 `p1(1) and p1(2) and p1(3)` (modulo AC), and `q2(1 2 3)` into
 the same term with `or` instead.
 
-
 Related: [`ceq`](#ceq) [`beq`](#beq) [`bceq`](#bceq)
 
 
-## `eval` `evalq` ## {#eval}
 
-TODO missing documentation
+## `extending ( <modexp> )` ## {#extending}
 
-Related: [`lisp`](#lisp)
+Alias: `ex`
+
+imports the object specified by `modexp` into the current
+module, allowing models to be inflated, but not collapsing. 
+See [`module expression`](#moduleexpression) for format of `modexp`.
+
+Related: [`including`](#including) [`protecting`](#protecting) 
+	 [`using`](#using)
+
+## `execute [ in <mod-exp> : ] <term> .` ## {#execute}
+
+Alias: `exec`
+
+Reduce the given term in the given module, if `<mod-exp>` is given, 
+otherwise in the current module. 
+
+For `execute` equations and transitions, possibly conditional, are taken
+into account for reduction.
+
+Related: [`breduce`](#breduce) [`reduce`](#reduce)
+
+exec! [in <Modexpr> :] <Term> .
 
 ## `exec limit` switch ## {#switch-exec-limit}
 
@@ -461,6 +878,7 @@ into account for reduction.
 
 Related: [`breduce`](#breduce) [`reduce`](#reduce)
 
+exec! [in <Modexpr> :] <Term> .
 
 ## `extending ( <modexp> )` ## {#extending}
 
@@ -473,7 +891,6 @@ See [`module expression`](#moduleexpression) for format of `modexp`.
 Related: [`including`](#including) [`protecting`](#protecting) 
 	 [`using`](#using)
 
-
 ## `find` ## {#find}
 
 TODO missing documentation
@@ -482,12 +899,168 @@ TODO missing documentation
 
 TODO missing documentation
 
-## `full reset` ## {#fullreset}
+## `find all rules` switch ## {#switch-find-all-rules}
 
-Reinitializes the internal state of the system. All supplied modules
-definitions are lost.
+TODO missing documentation
 
-Related: [`reset`](#reset)
+reset system to initial status.reset system to initial status.
+## `gendoc <pathname>` ## {#gendoc}
+
+generates reference manual from system's on line help documents, 
+and save it to `pathname`.
+
+
+## operator attributes ## {#opattr}
+
+In the specification of an operator using the [`op`](#op) (and
+related) keyword, attributes of the operator can be specified.
+An `<attribute-list>` is a space-separate list of single
+attribute definitions. Currently the following attributes are
+supported
+
+`associative`
+  ~ specifies an associative operator, alias `assoc`
+
+`commutative`
+  ~ specifies a commutative operator, alias `comm`
+
+`itempotence`
+  ~ specifies an idempotent operator, alias `idem`
+
+`id: <const>`
+  ~ specifies that an identity of the operator exists and 
+    that it is `<const>`
+
+`prec: <int>`
+  ~ specifies the parsing precedence of the operator, an integer <int>.
+    Smaller precedence values designate stronger binding. See
+    [operator precedence](#opprec) for details of the predefined
+    operator precedence values.
+
+`l-assoc` and `r-assoc`
+  ~ specifies that the operator is left-associative or
+  right-associative
+
+`constr`
+  ~ specifies that the operator is a constructor of the coarity sort.
+    (not evaluated at the moment)
+
+
+`strat: ( <int-list> )`
+  ~ specifies the evaluation strategy. Each integer in the list refers
+    to an argument of the operator, where `0` refers to the whole term,
+    `1` for the first argument, etc. Evaluation proceeds in order of
+    the `<int-list>`. Example:
+
+    `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
+ 
+    In this case the first argument (the boolean term) is tried to
+    be evaluated, and depending on that either the second or third.
+    But if the first (boolean) argument cannot be evaluated, 
+    no evaluation in the subterms will appear.
+
+    Using negative values allows for lazy evaluation of the corresponding
+    arguments.
+
+`memo`
+  ~ tells the system to remember the results of evaluations where the
+    operator appeared. See [`memo` switch](#switch-memo) for details.
+
+Remarks:
+
+  - Several operators of the same arity/coarity can be defined by
+    using `ops` instead of `op`:
+
+    `ops f g : S -> S`
+
+    For the case of mixfix operators the underbars have to be given
+    and the expression surrounded by parenthesis:
+
+    `ops (_+_) (_*_) : S S -> S`
+
+  - Spaces *can* be part of the operator name, thus an operator 
+  definition of `op foo op : S -> S` is valid, but not advisable,
+  as parsing needs hints.
+
+  - A single underbar cannot be an operator name.
+
+Related: [`bop`](#bop)
+
+## operator attributes ## {#opattr}
+
+In the specification of an operator using the [`op`](#op) (and
+related) keyword, attributes of the operator can be specified.
+An `<attribute-list>` is a space-separate list of single
+attribute definitions. Currently the following attributes are
+supported
+
+`associative`
+  ~ specifies an associative operator, alias `assoc`
+
+`commutative`
+  ~ specifies a commutative operator, alias `comm`
+
+`itempotence`
+  ~ specifies an idempotent operator, alias `idem`
+
+`id: <const>`
+  ~ specifies that an identity of the operator exists and 
+    that it is `<const>`
+
+`prec: <int>`
+  ~ specifies the parsing precedence of the operator, an integer <int>.
+    Smaller precedence values designate stronger binding. See
+    [operator precedence](#opprec) for details of the predefined
+    operator precedence values.
+
+`l-assoc` and `r-assoc`
+  ~ specifies that the operator is left-associative or
+  right-associative
+
+`constr`
+  ~ specifies that the operator is a constructor of the coarity sort.
+    (not evaluated at the moment)
+
+
+`strat: ( <int-list> )`
+  ~ specifies the evaluation strategy. Each integer in the list refers
+    to an argument of the operator, where `0` refers to the whole term,
+    `1` for the first argument, etc. Evaluation proceeds in order of
+    the `<int-list>`. Example:
+
+    `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
+ 
+    In this case the first argument (the boolean term) is tried to
+    be evaluated, and depending on that either the second or third.
+    But if the first (boolean) argument cannot be evaluated, 
+    no evaluation in the subterms will appear.
+
+    Using negative values allows for lazy evaluation of the corresponding
+    arguments.
+
+`memo`
+  ~ tells the system to remember the results of evaluations where the
+    operator appeared. See [`memo` switch](#switch-memo) for details.
+
+Remarks:
+
+  - Several operators of the same arity/coarity can be defined by
+    using `ops` instead of `op`:
+
+    `ops f g : S -> S`
+
+    For the case of mixfix operators the underbars have to be given
+    and the expression surrounded by parenthesis:
+
+    `ops (_+_) (_*_) : S S -> S`
+
+  - Spaces *can* be part of the operator name, thus an operator 
+  definition of `op foo op : S -> S` is valid, but not advisable,
+  as parsing needs hints.
+
+  - A single underbar cannot be an operator name.
+
+Related: [`bop`](#bop)
 
 ## `imports { <import-decl> }` ## {#imports}
 
@@ -498,6 +1071,26 @@ Optional structuring of the statements in a module.
 Related: [`signature`](#signature) [`axioms`](#axioms)
   [`extending`](#extending)   [`including`](#including) 
   [`protecting`](#protecting) [`using`](#using)
+
+## `input <pathname>` ## {#input}
+
+requests the system to read the file specified by the
+pathname. The file itself may contain `input` commands.
+_cafeobj reads the file up to the end, or until it encounters
+a line that only contains (the literal) `eof`.
+
+
+## `including ( <modexp> )` ## {#including}
+
+Alias: `in`
+
+imports the object specified by `modexp` into the current
+module. 
+
+See [`module expression`](#moduleexpression) for format of `modexp`.
+
+Related: [`extending`](#including) [`protecting`](#protecting) 
+	 [`using`](#using) [`module expression`](#moduleexpression)
 
 
 ## `include BOOL` switch ## {#switch-include-bool}
@@ -529,12 +1122,72 @@ See [`module expression`](#moduleexpression) for format of `modexp`.
 Related: [`extending`](#including) [`protecting`](#protecting) 
 	 [`using`](#using) [`module expression`](#moduleexpression)
 
+
 ## `input <pathname>` ## {#input}
 
 requests the system to read the file specified by the
 pathname. The file itself may contain `input` commands.
-\_cafeobj reads the file up to the end, or until it encounters
+_cafeobj reads the file up to the end, or until it encounters
 a line that only contains (the literal) `eof`.
+
+
+
+## instantiation of parametrised modules ## {#instantiation}
+
+Parametrized modules allow for instantiation. The process of
+instantiation binds actual parameters to formal parameters. The result
+of an instantiation is a new module, obtained by replacing occurrences
+of parameter sorts and operators by their actual counterparts. If, as
+a result of instantiation, a module is imported twice, it is assumed
+to be imported once and shared throughout.
+
+Instantiation is done by
+
+`<module_name> ( <bindings> )`
+
+where `<module_name>` is the name of a parametrized module, and
+`<bindings>` is a comma-separated list of binding constructs.
+
+using declared views
+  ~ you may bind an already declared view to a parameter:
+    
+    `<parameter> <= <view_name>`
+
+    If a module `M` has a parameter `X :: T` and a view `V` from `T`
+    to `M'` is declared, `V` may be bound to `X`, with the effect that
+
+    1. The sort and operator names of `T` that appear in the body
+       of `M` are replaced by those in `M'`, in accordance with `V`,
+
+    2. The common submodules of `M` and `M'` are shared.
+
+using ephemeral views
+  ~ In this case the view is declared and used at the same time.
+
+    `<parameter> <= view to <mod_name> { <view_elements> }`
+
+    See [`view`](#view) for details concerning `<view_elements>`. The
+    `from` parameter in the `view` declaration is taken from
+    `<parameter>`.
+
+
+To make notation more succinct, parameters can be identified also by
+position instead of names as in
+
+`<mod_name> ( <view_name>, <view_name> )`
+
+which would bind the `<view_name>`s to the respective parameters
+of the parametrized module `<mod_name>`.
+
+This can be combined with the ephemeral defintion of a view like in
+the following example (assume `ILIST` has two parameters):
+
+~~~~~
+module NAT-ILIST {
+  protecting ( ILIST(SIMPLE-NAT { sort Elt -> Nat },
+                     DATATYPE   { sort Elt -> Data }) )
+}
+~~~~~
 
 
 ## instantiation of parametrised modules ## {#instantiation}
@@ -605,11 +1258,30 @@ Although `let` defined variable behave very similar to syntactic
 shorthands, they are not. The right hand side `<term>` needs to
 be a fully parsable expression.
 
+
 ## `libpath` switch ## {#switch-libpath}
 
 Possible values: list of strings.
 
-The switch `libpath` contains a list of directories where \_cafeobj
+The switch `libpath` contains a list of directories where _cafeobj
+searches for include files. Addition and removal of directories can be
+done with
+
+`````
+set libpath + <path1>:<path2>:...
+set libpath - <path1>:<path2>:...
+`````
+
+or the full libpath reset by `set libpath <path1>:<path2>:...`
+
+The current directory has a privileged status: It is always searched
+first and cannot be suppressed.
+
+## `libpath` switch ## {#switch-libpath}
+
+Possible values: list of strings.
+
+The switch `libpath` contains a list of directories where _cafeobj
 searches for include files. Addition and removal of directories can be
 done with
 
@@ -624,21 +1296,17 @@ The current directory has a privileged status: It is always searched
 first and cannot be suppressed.
 
 
-## `lisp`, `lispq` ## {#lisp}
 
-TODO missing documentation `lispq` is ??quiet??
-
-These two commands evaluate an arbitrary lisp expression, example:
-`````
-CafeOBJ> lisp (+ 4 5)
-(+ 4 5) -> 9
-`````
-
-Related: [`eval`](#eval)
 
 ## `look up <something>` ## {#lookup}
 
 TODO to be written, currently segfaults
+
+
+## `look up <something>` ## {#lookup}
+
+TODO to be written, currently segfaults
+
 
 ## `ls <pathname>` ## {#ls}
 
@@ -673,12 +1341,17 @@ including those declared in built-in modules, are inspected.
 If a term is given, then the two terms are matched, and if successful,
 the matching substitution is printed.
 
+## `memo` switch ## {#switch-memo}
+
+controls the memorization of computations. The system memorizes 
+evaluations of operators declared with the [`memo`](#opattr) operator
+attribute. Turning this switch off disables all memorization.
 
 ## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
 
 Alias: `mod`
 
-defines a module, the basic building block of \_cafeobj. Possible elements
+defines a module, the basic building block of _cafeobj. Possible elements
 are declarations of 
 
   - import - see `protecting`, `extending`, `including`, `using`
@@ -703,70 +1376,154 @@ If `principal_sort_spec` is given, it has to be of the form
 sort of the module is specified, which allows more concise `view`s from
 single-sort modules as the sort mapping needs not be given.
 
-## module expression ## {#moduleexpression}
+## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
 
-In various syntax elements not only module names itself, but whole
-module expressions can appear. A typical example is
+Alias: `mod`
 
-`open <mod_exp> .`
+defines a module, the basic building block of _cafeobj. Possible elements
+are declarations of 
 
-which opens a module expression. The following constructs are
-supported:
+  - import - see `protecting`, `extending`, `including`, `using`
+  - sorts - see `sort declaration`
+  - variable - see `var`
+  - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
+  - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
+  
+`modname` is an arbitrary string.
 
-module name
-  ~ using the name of a module
+`module*` introduces a loose semantic based module.
 
-renaming
-  ~ `<mod_exp> * { <mappings> }`
+`module!` introduces a strict semantic based module.
 
-    This expressions describes a new module where sort and/or
-    operators are renamed. 
-    `<mappings>` are like in the case of [`view`](#view) a comma
-    separated list of mappings of either sorts (`sort` and `hsort`) or
-    operators (`op` and `bop`). Source names may be qualified, while
-    target names are not, they are required to be new names. Renaming
-    is often used in combination with [instantiantion](#instantiation).
+`module` introduces a module without specified semantic type.
 
-summation
-  ~ `<mod_exp> + <mod_exp>`
+If `params` are given, it is a parametrized module. See `parametrized module`
+for more details.
 
-    This expression describes a module consisting of all the module
-    elements of the summands. If a submodule is imported more than
-    once, it is assumed to be shared.
+If `principal_sort_spec` is given, it has to be of the form
+`principal-sort <sortname>` (or `p-sort <sortname>`). The principal
+sort of the module is specified, which allows more concise `view`s from
+single-sort modules as the sort mapping needs not be given.
 
-## parametrized module ## {#parametrizedmodule}
+## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
 
-A module with a parameter list (see `module`) is a parametrized module.
-Parameters are given as a comma (`,`) separated list. Each parameter is
-of the form `[ <import_mode> ] <param_name> :: <module_name>` 
-(spaces around `::` are obligatory).
+Alias: `mod`
 
-The parameter's module gives minimal requirements on the module
-instantiation.
+defines a module, the basic building block of _cafeobj. Possible elements
+are declarations of 
 
-Within the module declaration sorts and operators of the parameter
-are qualified with `.<parameter_name>` as seen in the example below.
+  - import - see `protecting`, `extending`, `including`, `using`
+  - sorts - see `sort declaration`
+  - variable - see `var`
+  - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
+  - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
+  
+`modname` is an arbitrary string.
 
-Example:
+`module*` introduces a loose semantic based module.
 
-~~~~~
-mod* C {
-  [A]
-  op add : A A -> A .
-}
-mod! TWICE(X :: C) {
-  op twice : A.X -> A.X .
-  eq twice(E:A.X) = add.X(E,E) .
-}
-~~~~~
+`module!` introduces a strict semantic based module.
 
-Related: [qualified sort etc](#qualifiedother)
+`module` introduces a module without specified semantic type.
 
-## `memo` switch ## {#switch-memo}
+If `params` are given, it is a parametrized module. See `parametrized module`
+for more details.
 
-controls the memorization of computations. The system memorizes 
-evaluations of operators declared with the [`memo`](#opattr) operator
-attribute. Turning this switch off disables all memorization.
+If `principal_sort_spec` is given, it has to be of the form
+`principal-sort <sortname>` (or `p-sort <sortname>`). The principal
+sort of the module is specified, which allows more concise `view`s from
+single-sort modules as the sort mapping needs not be given.
+
+## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
+
+Alias: `mod`
+
+defines a module, the basic building block of _cafeobj. Possible elements
+are declarations of 
+
+  - import - see `protecting`, `extending`, `including`, `using`
+  - sorts - see `sort declaration`
+  - variable - see `var`
+  - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
+  - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
+  
+`modname` is an arbitrary string.
+
+`module*` introduces a loose semantic based module.
+
+`module!` introduces a strict semantic based module.
+
+`module` introduces a module without specified semantic type.
+
+If `params` are given, it is a parametrized module. See `parametrized module`
+for more details.
+
+If `principal_sort_spec` is given, it has to be of the form
+`principal-sort <sortname>` (or `p-sort <sortname>`). The principal
+sort of the module is specified, which allows more concise `view`s from
+single-sort modules as the sort mapping needs not be given.
+
+## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
+
+Alias: `mod`
+
+defines a module, the basic building block of _cafeobj. Possible elements
+are declarations of 
+
+  - import - see `protecting`, `extending`, `including`, `using`
+  - sorts - see `sort declaration`
+  - variable - see `var`
+  - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
+  - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
+  
+`modname` is an arbitrary string.
+
+`module*` introduces a loose semantic based module.
+
+`module!` introduces a strict semantic based module.
+
+`module` introduces a module without specified semantic type.
+
+If `params` are given, it is a parametrized module. See `parametrized module`
+for more details.
+
+If `principal_sort_spec` is given, it has to be of the form
+`principal-sort <sortname>` (or `p-sort <sortname>`). The principal
+sort of the module is specified, which allows more concise `view`s from
+single-sort modules as the sort mapping needs not be given.
+
+## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
+
+Alias: `mod`
+
+defines a module, the basic building block of _cafeobj. Possible elements
+are declarations of 
+
+  - import - see `protecting`, `extending`, `including`, `using`
+  - sorts - see `sort declaration`
+  - variable - see `var`
+  - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
+  - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
+  
+`modname` is an arbitrary string.
+
+`module*` introduces a loose semantic based module.
+
+`module!` introduces a strict semantic based module.
+
+`module` introduces a module without specified semantic type.
+
+If `params` are given, it is a parametrized module. See `parametrized module`
+for more details.
+
+If `principal_sort_spec` is given, it has to be of the form
+`principal-sort <sortname>` (or `p-sort <sortname>`). The principal
+sort of the module is specified, which allows more concise `view`s from
+single-sort modules as the sort mapping needs not be given.
+
+show
+
+show
 
 ## on-the-fly declarations ## {#onthefly}
 
@@ -788,7 +1545,39 @@ equation is *not* valid:
 `eq foo(A, A:S) = A .`
 
 On-the-fly declaration of constants are done the same way, where the
-`<name>` is a constant name as in `\`a:Nat`. Using this construct is
+`<name>` is a constant name as in ``a:Nat`. Using this construct is
+similar to defining an operator
+
+`op <name> : -> <sort>`
+
+or in the above example, `op a : -> Nat .`, besides that the
+on-the-fly declaration of constants, like to one of variables, is only
+valid in the current context (i.e., term or axiom). These constant
+definitions are quite common in proof scores.
+
+Related: [`var`](#var)
+
+## on-the-fly declarations ## {#onthefly}
+
+Variables and constants can be declared *on-the-fly* (or *inline*). If an 
+equation contains a qualified variable (see [qualified term](#qualified)),
+i.e., `<name>:<sort-name>`, then from this point on *within* the current
+equation only `<name>` is declared as a variable of sort `<sort-name>`.
+
+It is allowed to redeclare a previously defined variable name via
+an on-the-fly declaration, but as mentioned above, not via an 
+explicit redeclaration.
+
+Using a predeclared variable name within an equation first as is,
+that is as the predeclared variable, and later on in the same 
+equation with an on-the-fly declaration is forbidden. That is, under
+the assumption that `A` has been declared beforehand, the following
+equation is *not* valid:
+
+`eq foo(A, A:S) = A .`
+
+On-the-fly declaration of constants are done the same way, where the
+`<name>` is a constant name as in ``a:Nat`. Using this construct is
 similar to defining an operator
 
 `op <name> : -> <sort>`
@@ -909,9 +1698,161 @@ Remarks:
 
 Related: [`bop`](#bop)
 
+## operator attributes ## {#opattr}
+
+In the specification of an operator using the [`op`](#op) (and
+related) keyword, attributes of the operator can be specified.
+An `<attribute-list>` is a space-separate list of single
+attribute definitions. Currently the following attributes are
+supported
+
+`associative`
+  ~ specifies an associative operator, alias `assoc`
+
+`commutative`
+  ~ specifies a commutative operator, alias `comm`
+
+`itempotence`
+  ~ specifies an idempotent operator, alias `idem`
+
+`id: <const>`
+  ~ specifies that an identity of the operator exists and 
+    that it is `<const>`
+
+`prec: <int>`
+  ~ specifies the parsing precedence of the operator, an integer <int>.
+    Smaller precedence values designate stronger binding. See
+    [operator precedence](#opprec) for details of the predefined
+    operator precedence values.
+
+`l-assoc` and `r-assoc`
+  ~ specifies that the operator is left-associative or
+  right-associative
+
+`constr`
+  ~ specifies that the operator is a constructor of the coarity sort.
+    (not evaluated at the moment)
+
+
+`strat: ( <int-list> )`
+  ~ specifies the evaluation strategy. Each integer in the list refers
+    to an argument of the operator, where `0` refers to the whole term,
+    `1` for the first argument, etc. Evaluation proceeds in order of
+    the `<int-list>`. Example:
+
+    `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
+ 
+    In this case the first argument (the boolean term) is tried to
+    be evaluated, and depending on that either the second or third.
+    But if the first (boolean) argument cannot be evaluated, 
+    no evaluation in the subterms will appear.
+
+    Using negative values allows for lazy evaluation of the corresponding
+    arguments.
+
+`memo`
+  ~ tells the system to remember the results of evaluations where the
+    operator appeared. See [`memo` switch](#switch-memo) for details.
+
+Remarks:
+
+  - Several operators of the same arity/coarity can be defined by
+    using `ops` instead of `op`:
+
+    `ops f g : S -> S`
+
+    For the case of mixfix operators the underbars have to be given
+    and the expression surrounded by parenthesis:
+
+    `ops (_+_) (_*_) : S S -> S`
+
+  - Spaces *can* be part of the operator name, thus an operator 
+  definition of `op foo op : S -> S` is valid, but not advisable,
+  as parsing needs hints.
+
+  - A single underbar cannot be an operator name.
+
+Related: [`bop`](#bop)
+
+## operator attributes ## {#opattr}
+
+In the specification of an operator using the [`op`](#op) (and
+related) keyword, attributes of the operator can be specified.
+An `<attribute-list>` is a space-separate list of single
+attribute definitions. Currently the following attributes are
+supported
+
+`associative`
+  ~ specifies an associative operator, alias `assoc`
+
+`commutative`
+  ~ specifies a commutative operator, alias `comm`
+
+`itempotence`
+  ~ specifies an idempotent operator, alias `idem`
+
+`id: <const>`
+  ~ specifies that an identity of the operator exists and 
+    that it is `<const>`
+
+`prec: <int>`
+  ~ specifies the parsing precedence of the operator, an integer <int>.
+    Smaller precedence values designate stronger binding. See
+    [operator precedence](#opprec) for details of the predefined
+    operator precedence values.
+
+`l-assoc` and `r-assoc`
+  ~ specifies that the operator is left-associative or
+  right-associative
+
+`constr`
+  ~ specifies that the operator is a constructor of the coarity sort.
+    (not evaluated at the moment)
+
+
+`strat: ( <int-list> )`
+  ~ specifies the evaluation strategy. Each integer in the list refers
+    to an argument of the operator, where `0` refers to the whole term,
+    `1` for the first argument, etc. Evaluation proceeds in order of
+    the `<int-list>`. Example:
+
+    `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
+ 
+    In this case the first argument (the boolean term) is tried to
+    be evaluated, and depending on that either the second or third.
+    But if the first (boolean) argument cannot be evaluated, 
+    no evaluation in the subterms will appear.
+
+    Using negative values allows for lazy evaluation of the corresponding
+    arguments.
+
+`memo`
+  ~ tells the system to remember the results of evaluations where the
+    operator appeared. See [`memo` switch](#switch-memo) for details.
+
+Remarks:
+
+  - Several operators of the same arity/coarity can be defined by
+    using `ops` instead of `op`:
+
+    `ops f g : S -> S`
+
+    For the case of mixfix operators the underbars have to be given
+    and the expression surrounded by parenthesis:
+
+    `ops (_+_) (_*_) : S S -> S`
+
+  - Spaces *can* be part of the operator name, thus an operator 
+  definition of `op foo op : S -> S` is valid, but not advisable,
+  as parsing needs hints.
+
+  - A single underbar cannot be an operator name.
+
+Related: [`bop`](#bop)
+
 ## operator precedence ## {#opprec}
 
-\_cafeobj allows for complete freedom of syntax, in particular infix
+_cafeobj allows for complete freedom of syntax, in particular infix
 operators and overloading. To correctly parse terms that are ambigous,
 all operators have precedence values. These values can be adjusted
 manually during definition of the operator 
@@ -931,6 +1872,116 @@ the following rules:
 
 Related: [operator attributes](#opattr)
 
+## `op <op-spec> : <sorts> -> <sort> { <attribute-list> }` ## {#op}
+
+Defines an operator by its domain, codomain, and the term construct.
+`<sorts>` is a space separated list of sort names, `<sort>` is a 
+single sort name.
+`<op-spec>` can be of the following forms:
+
+prefix-spec
+  ~ the `<op-spec>` does not contain a literal `_`:
+    This defines a normal prefix operator with domain `<sorts>` and
+    codomain `<sort>`
+
+    Example: `op f : S T -> U`
+mixfix-spec
+  ~ the `<op-spec>` contains exactely as many literal `_` as there are
+    sort names in `<sorts>`:
+    This defines an arbitrary mixfix (including postfix) operator
+    where the arguments are inserted into the positions designated 
+    by the underbars.
+
+    Example: `op _+_ : S S -> S`
+
+For the description of `<attribute-list>` see the entry for
+[operator attributes](#opattr).
+
+
+
+## parametrized module ## {#parametrizedmodule}
+
+A module with a parameter list (see `module`) is a parametrized module.
+Parameters are given as a comma (`,`) separated list. Each parameter is
+of the form `[ <import_mode> ] <param_name> :: <module_name>` 
+(spaces around `::` are obligatory).
+
+The parameter's module gives minimal requirements on the module
+instantiation.
+
+Within the module declaration sorts and operators of the parameter
+are qualified with `.<parameter_name>` as seen in the example below.
+
+Example:
+
+~~~~~
+mod* C {
+  [A]
+  op add : A A -> A .
+}
+mod! TWICE(X :: C) {
+  op twice : A.X -> A.X .
+  eq twice(E:A.X) = add.X(E,E) .
+}
+~~~~~
+
+Related: [qualified sort etc](#qualifiedother)
+
+## parametrized module ## {#parametrizedmodule}
+
+A module with a parameter list (see `module`) is a parametrized module.
+Parameters are given as a comma (`,`) separated list. Each parameter is
+of the form `[ <import_mode> ] <param_name> :: <module_name>` 
+(spaces around `::` are obligatory).
+
+The parameter's module gives minimal requirements on the module
+instantiation.
+
+Within the module declaration sorts and operators of the parameter
+are qualified with `.<parameter_name>` as seen in the example below.
+
+Example:
+
+~~~~~
+mod* C {
+  [A]
+  op add : A A -> A .
+}
+mod! TWICE(X :: C) {
+  op twice : A.X -> A.X .
+  eq twice(E:A.X) = add.X(E,E) .
+}
+~~~~~
+
+Related: [qualified sort etc](#qualifiedother)
+
+## parametrized module ## {#parametrizedmodule}
+
+A module with a parameter list (see `module`) is a parametrized module.
+Parameters are given as a comma (`,`) separated list. Each parameter is
+of the form `[ <import_mode> ] <param_name> :: <module_name>` 
+(spaces around `::` are obligatory).
+
+The parameter's module gives minimal requirements on the module
+instantiation.
+
+Within the module declaration sorts and operators of the parameter
+are qualified with `.<parameter_name>` as seen in the example below.
+
+Example:
+
+~~~~~
+mod* C {
+  [A]
+  op add : A A -> A .
+}
+mod! TWICE(X :: C) {
+  op twice : A.X -> A.X .
+  eq twice(E:A.X) = add.X(E,E) .
+}
+~~~~~
+
+Related: [qualified sort etc](#qualifiedother)
 
 ## `parse [ in <mod-exp> : ] <term> .` ## {#parse}
 
@@ -949,6 +2000,39 @@ Related: [qualified term](#qualified)
 TODO missing documentation
 
 
+
+## `protecting ( <modexp> )` ## {#protecting}
+
+Alias: `pr`
+
+imports the object specified by `modexp` into the current
+module, preserving all intended models as they are. See `module expression`
+for format of `modexp`.
+
+Related: [`extending`](#extending) [`using`](#using) [`including`](#including)
+
+## operator precedence ## {#opprec}
+
+_cafeobj allows for complete freedom of syntax, in particular infix
+operators and overloading. To correctly parse terms that are ambigous,
+all operators have precedence values. These values can be adjusted
+manually during definition of the operator 
+(see [operator attributes](#opattr)). In absence of manual
+specification of the operator precedence, the values are determined by
+the following rules:
+
+- standard prefix operators, i.e., those of the form `op f : S1 .. Sk -> S`,
+  receive operator precedence value 0.
+- unary operators, i.e., those of the form `op u_ : S1 -> S`, receive
+  precedence 15.
+- mix-fix operators with forst and last token being arguments, i.e.,
+  those of the form `op _ arg-or-op _ : S1 .. Sk -> S`, receive
+  precedence 41.
+- all other operators (constants, operators of the form `a _ b`, etc.)
+  receive precedence 0.
+
+Related: [operator attributes](#opattr)
+
 ## `pred <op-spec> : <sorts>` ## {#pred}
 
 Short hand for `op <op-spec> : <sorts> -> Bool` defining a predicate.
@@ -961,7 +2045,6 @@ Related: [`op`](#op) [`bpred`](#bpred)
 Possible values: natural numbers, default `unlimited`.
 
 Controls to which depth terms are printed.
-
 
 ## `print mode` switch ## {#switch-print-mode}
 
@@ -976,7 +2059,6 @@ Some modules vital for the system are initially protected.
 Can be reversed with `unprotect`.
 
 Related: [`unprotect`](#unprotect)
-
 
 ## `protecting ( <modexp> )` ## {#protecting}
 
@@ -996,15 +2078,64 @@ already.
 
 Related: [`require`](#require)
 
+
+
+
 ## `pwd` ## {#pwd}
 
 Prints the current working directory.
 
 Related: [`cd`](#cd) [`ls`](#ls)
 
+## `quit` ## {#quit}
+
+Leaves the CafeOBJ interpreter.
+
 ## qualified sort/operator/parameter ## {#qualifiedother}
 
-\_cafeobj allows for using the same name for different sorts,
+_cafeobj allows for using the same name for different sorts,
+operators, and parameters. One example is declaring the same sort in
+different modules. In case it is necessary to qualify the sort,
+operator, or parameter, the intended module name can be affixed after
+a literal `.`: `<name>.<modname>`
+
+Example: In case the same sort `Nat` is declared in both the module
+`SIMPLE-NAT` and `PANAT`, one can use `Nat.SIMPLE-NAT` to reference
+the sort from the former module.
+
+Furthermore, a similar case can arise when operators of the same name
+have been declared with different number of arguments. During operator
+renaming (see [view](#view)) the need
+for qualification of the number of parameters might arise. In this
+case the number can be specified after an affixed `/`: 
+`<opname>/<argnr>`
+
+Related: [parametrized module](#parametrizedmodule) [qualified term](#qualified) 
+
+## qualified sort/operator/parameter ## {#qualifiedother}
+
+_cafeobj allows for using the same name for different sorts,
+operators, and parameters. One example is declaring the same sort in
+different modules. In case it is necessary to qualify the sort,
+operator, or parameter, the intended module name can be affixed after
+a literal `.`: `<name>.<modname>`
+
+Example: In case the same sort `Nat` is declared in both the module
+`SIMPLE-NAT` and `PANAT`, one can use `Nat.SIMPLE-NAT` to reference
+the sort from the former module.
+
+Furthermore, a similar case can arise when operators of the same name
+have been declared with different number of arguments. During operator
+renaming (see [view](#view)) the need
+for qualification of the number of parameters might arise. In this
+case the number can be specified after an affixed `/`: 
+`<opname>/<argnr>`
+
+Related: [parametrized module](#parametrizedmodule) [qualified term](#qualified) 
+
+## qualified sort/operator/parameter ## {#qualifiedother}
+
+_cafeobj allows for using the same name for different sorts,
 operators, and parameters. One example is declaring the same sort in
 different modules. In case it is necessary to qualify the sort,
 operator, or parameter, the intended module name can be affixed after
@@ -1033,6 +2164,26 @@ Example: `1:NzNat` `2:Nat`
 
 Related: [`parse`](#parse)
 
+## qualified sort/operator/parameter ## {#qualifiedother}
+
+_cafeobj allows for using the same name for different sorts,
+operators, and parameters. One example is declaring the same sort in
+different modules. In case it is necessary to qualify the sort,
+operator, or parameter, the intended module name can be affixed after
+a literal `.`: `<name>.<modname>`
+
+Example: In case the same sort `Nat` is declared in both the module
+`SIMPLE-NAT` and `PANAT`, one can use `Nat.SIMPLE-NAT` to reference
+the sort from the former module.
+
+Furthermore, a similar case can arise when operators of the same name
+have been declared with different number of arguments. During operator
+renaming (see [view](#view)) the need
+for qualification of the number of parameters might arise. In this
+case the number can be specified after an affixed `/`: 
+`<opname>/<argnr>`
+
+Related: [parametrized module](#parametrizedmodule) [qualified term](#qualified) 
 
 ## `quiet` switch ## {#switch-quiet}
 
@@ -1058,6 +2209,17 @@ account for reduction.
 
 Related: [`execute`](#execute) [`breduce`](#breduce)
 
+## `reduce [ in <mod-exp> : ] <term> .` ## {#reduce}
+
+Alias: `red`
+
+Reduce the given term in the given module, if `<mod-exp>` is given, 
+otherwise in the current module. 
+
+For `reduce` only equations and conditional equations are taken into
+account for reduction.
+
+Related: [`execute`](#execute) [`breduce`](#breduce)
 
 ## `reduce conditions` switch ## {#switch-reduce-conditions}
 
@@ -1069,6 +2231,21 @@ equations.
 
 Related: [`apply`](#apply)
 
+
+## `reduce conditions` switch ## {#switch-reduce-conditions}
+
+Possible values: `on` `off`, default `off`.
+
+When using [`apply`](#apply) to step through a reduction, this switch
+allows to turn on automatic reduction of conditions in conditional
+equations. 
+
+Related: [`apply`](#apply)
+
+
+## `regularize signature` switch ## {#switch-regularize-signature}
+
+See [`regularize](#regularize)
 
 ## `regularize <mod-name>` ## {#regularize}
 
@@ -1084,7 +2261,6 @@ TODO -- should we give more details here -- unclear to me.
 ## `regularize signature` switch ## {#switch-regularize-signature}
 
 See [`regularize](#regularize)
-
 
 ## `require <feature> [ <pathname> ]` ## {#require}
 
@@ -1103,6 +2279,7 @@ affect other modules.
 
 Related: [`full reset`](#fullreset)
 
+
 ## `restore <pathname>` ## {#restore}
 
 restores module definitions from the designated file `pathname` which 
@@ -1114,6 +2291,7 @@ TODO -- should we keep the different effects? What is the real difference?
 Related: [`input`](#input) [`save`](#save) 
 	 [`save-system`](#save-system)
 
+
 ## `rewrite limit` switch ## {#switch-rewrite}
 
 Possible values: positive integers, default not specified.
@@ -1122,6 +2300,17 @@ Allows limiting the number of rewrite steps during a stepwise
 execution.
 
 Related: [`step` switch](#switch-step)
+
+## `rewrite limit` switch ## {#switch-rewrite}
+
+Possible values: positive integers, default not specified.
+
+Allows limiting the number of rewrite steps during a stepwise
+execution.
+
+Related: [`step` switch](#switch-step)
+
+
 
 ## `save <pathname>` ## {#save}
 
@@ -1133,6 +2322,7 @@ given in the current session.
 
 Related: [`input`](#input) [`restore`](#restore) [`save-system`](#save-system)
 
+
 ## `save-system <pathname>` ## {#save-system}
 
 dumps the image of the whole system into a file. This is functionality
@@ -1141,9 +2331,18 @@ restrictons.
 
 Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
 
+## `save-system <pathname>` ## {#save-system}
+
+dumps the image of the whole system into a file. This is functionality
+provided by the underlying Common Lisp system and might carry some 
+restrictons.
+
+Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
+
+
 ## search predicates ## {#searchpredicate}
 
-\_cafeobj provides a whole set of search predicates `=(n,m)=>` for
+_cafeobj provides a whole set of search predicates `=(n,m)=>` for
 searching transitions starting from a given term. The first value `n`
 specifies the maximum number of solutions searched, and can be either
 a natural number of `*`, in which case all solutions are searched. The
@@ -1152,6 +2351,27 @@ second value `m` is the maximum depth, and can be a natural number
 
 TODO: `=(n,m)=>+` ??? other specifiers?
 
+## search predicates ## {#searchpredicate}
+
+_cafeobj provides a whole set of search predicates `=(n,m)=>` for
+searching transitions starting from a given term. The first value `n`
+specifies the maximum number of solutions searched, and can be either
+a natural number of `*`, in which case all solutions are searched. The
+second value `m` is the maximum depth, and can be a natural number
+(but not `*`).
+
+TODO: `=(n,m)=>+` ??? other specifiers?
+
+## search predicates ## {#searchpredicate}
+
+_cafeobj provides a whole set of search predicates `=(n,m)=>` for
+searching transitions starting from a given term. The first value `n`
+specifies the maximum number of solutions searched, and can be either
+a natural number of `*`, in which case all solutions are searched. The
+second value `m` is the maximum depth, and can be a natural number
+(but not `*`).
+
+TODO: `=(n,m)=>+` ??? other specifiers?
 
 ## `select <mod_exp> . ` ## {#select}
 
@@ -1161,7 +2381,6 @@ given module. In constrast to `open` this does not allow for
 modification of the module, e.g., addition of new sorts etc.
 
 Related: [`open`](#open) [module expression](#moduleexpression)
-
 
 ## `set <name> [option] <value>` ## {#set}
 
@@ -1178,7 +2397,24 @@ Related: [`show`](#show) [`switches`](#switches)
 ## `show <something>` ## {#show}
 
 The `show` command provides various ways to inspect all kind of objects
-of the \_cafeobj language. For a full list call `show ?`.
+of the _cafeobj language. For a full list call `show ?`.
+
+Some of the more important (but far from complete list) ways to call
+the `show` command are:
+
+  - `show [ <modexp> ]` - describes the current modules of the one specified
+	as argument
+  - `show switches` - lists all possible switches
+  - `show <term>` - displays a term, posible in tree format
+
+See the entry for `switches` for a full list.
+
+Related: [`switches`](#switches) [`describe`](#describe)
+
+## `show <something>` ## {#show}
+
+The `show` command provides various ways to inspect all kind of objects
+of the _cafeobj language. For a full list call `show ?`.
 
 Some of the more important (but far from complete list) ways to call
 the `show` command are:
@@ -1208,9 +2444,18 @@ Related: [`axioms`](#axioms) [`imports`](#imports)
 	 [`sort`](#sort) [`op`](#op)
 
 
+## `signature { <sig-decl> }` ## {#signature}
+
+Block enclosing declarations of sorts and operators.
+Other statements are not allowed within the `signature` block.
+Optional structuring of the statements in a module.
+
+Related: [`axioms`](#axioms) [`imports`](#imports)
+	 [`sort`](#sort) [`op`](#op)
+
 ## sort declaration ## {#sort}
 
-\_cafeobj supports two kind of sorts, visible and hidden sorts. Visible 
+_cafeobj supports two kind of sorts, visible and hidden sorts. Visible 
 sorts are introduced between `[` and `]`, while hidden sorts are introduced
 between `*[` and `]*`.
 
@@ -1221,7 +2466,39 @@ between `*[` and `]*`.
 
 Several sorts can be declared at the same time, as in `[ Nat Int ]`.
 
-Since \_cafeobj is based on order sorting, sorts can form a partial order.
+Since _cafeobj is based on order sorting, sorts can form a partial order.
+Definition of the partial order can be interleaved by giving
+
+~~~~
+  [ <sorts> < <sorts> ]
+~~~~
+
+Where `sorts` is a list of sort names. This declaration defines an inclusion
+relation between each pair or left and right sorts.
+
+Example:
+
+~~~~
+  [ A B , C D < A < E, B < D ]
+~~~~
+
+defines five sorts `A`,...,`E`, with the following relations:
+`C < A`, `D < A`, `A < E`, `B < D`.
+
+## sort declaration ## {#sort}
+
+_cafeobj supports two kind of sorts, visible and hidden sorts. Visible 
+sorts are introduced between `[` and `]`, while hidden sorts are introduced
+between `*[` and `]*`.
+
+~~~~
+  [ Nat ]
+  *[ Obs ]*
+~~~~
+
+Several sorts can be declared at the same time, as in `[ Nat Int ]`.
+
+Since _cafeobj is based on order sorting, sorts can form a partial order.
 Definition of the partial order can be interleaved by giving
 
 ~~~~
@@ -1249,6 +2526,17 @@ then operate on this term.
 
 Related: [`apply`](#apply) [`choose`](#choose) [`match`](#match)
 
+
+## `statistics` switch ## {#switch-statistics}
+
+Possible values: `on` `off`, default `on`.
+
+After each reduction details about the reduction are
+shown. Information shown are the time for parsing the expression, the
+number of rewrites and run time during rewriting, and the number of
+total matches performed during the reduce.
+
+TODO: verify
 
 ## `statistics` switch ## {#switch-statistics}
 
@@ -1292,10 +2580,11 @@ given to the stepper (with our without leading colon `:`):
 `rwt [<number>] .`
 :   set (or unset) max number of rewrite
 
-Other standard \_cafeobj commands that can be used are [`show`](#show),
+Other standard _cafeobj commands that can be used are [`show`](#show),
 [`describe`](#describe), [`set`](#set), [`cd`](#cd), [`ls`](#ls),
 [`pwd`](#pwd), [`lisp`](#lisp), [`lispq`](#lisp), and (on Unix only)
 [`!`](#commandexec).
+
 
 ## `stop pattern` switch ## {#switch-stop-pattern}
 
@@ -1324,10 +2613,86 @@ CafeOBJ> open NAT .
 
 Related: [`step` switch](#switch-step)
 
+## operator attributes ## {#opattr}
+
+In the specification of an operator using the [`op`](#op) (and
+related) keyword, attributes of the operator can be specified.
+An `<attribute-list>` is a space-separate list of single
+attribute definitions. Currently the following attributes are
+supported
+
+`associative`
+  ~ specifies an associative operator, alias `assoc`
+
+`commutative`
+  ~ specifies a commutative operator, alias `comm`
+
+`itempotence`
+  ~ specifies an idempotent operator, alias `idem`
+
+`id: <const>`
+  ~ specifies that an identity of the operator exists and 
+    that it is `<const>`
+
+`prec: <int>`
+  ~ specifies the parsing precedence of the operator, an integer <int>.
+    Smaller precedence values designate stronger binding. See
+    [operator precedence](#opprec) for details of the predefined
+    operator precedence values.
+
+`l-assoc` and `r-assoc`
+  ~ specifies that the operator is left-associative or
+  right-associative
+
+`constr`
+  ~ specifies that the operator is a constructor of the coarity sort.
+    (not evaluated at the moment)
+
+
+`strat: ( <int-list> )`
+  ~ specifies the evaluation strategy. Each integer in the list refers
+    to an argument of the operator, where `0` refers to the whole term,
+    `1` for the first argument, etc. Evaluation proceeds in order of
+    the `<int-list>`. Example:
+
+    `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
+ 
+    In this case the first argument (the boolean term) is tried to
+    be evaluated, and depending on that either the second or third.
+    But if the first (boolean) argument cannot be evaluated, 
+    no evaluation in the subterms will appear.
+
+    Using negative values allows for lazy evaluation of the corresponding
+    arguments.
+
+`memo`
+  ~ tells the system to remember the results of evaluations where the
+    operator appeared. See [`memo` switch](#switch-memo) for details.
+
+Remarks:
+
+  - Several operators of the same arity/coarity can be defined by
+    using `ops` instead of `op`:
+
+    `ops f g : S -> S`
+
+    For the case of mixfix operators the underbars have to be given
+    and the expression surrounded by parenthesis:
+
+    `ops (_+_) (_*_) : S S -> S`
+
+  - Spaces *can* be part of the operator name, thus an operator 
+  definition of `op foo op : S -> S` is valid, but not advisable,
+  as parsing needs hints.
+
+  - A single underbar cannot be an operator name.
+
+Related: [`bop`](#bop)
+
 ## switches ## {#switches}
 
 Switches control various aspects of the computations and behaviour
-of \_cafeobj. The current list of switches and their values can be
+of _cafeobj. The current list of switches and their values can be
 shown with 
 
 `````
@@ -1338,6 +2703,135 @@ The single switches are described separately in this manual.
 
 Related: [`set`](#set) [`show`](#show)
 
+## switches ## {#switches}
+
+Switches control various aspects of the computations and behaviour
+of _cafeobj. The current list of switches and their values can be
+shown with 
+
+`````
+show switches
+`````
+
+The single switches are described separately in this manual.
+
+Related: [`set`](#set) [`show`](#show)
+
+## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
+
+Alias: `mod`
+
+defines a module, the basic building block of _cafeobj. Possible elements
+are declarations of 
+
+  - import - see `protecting`, `extending`, `including`, `using`
+  - sorts - see `sort declaration`
+  - variable - see `var`
+  - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
+  - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
+  
+`modname` is an arbitrary string.
+
+`module*` introduces a loose semantic based module.
+
+`module!` introduces a strict semantic based module.
+
+`module` introduces a module without specified semantic type.
+
+If `params` are given, it is a parametrized module. See `parametrized module`
+for more details.
+
+If `principal_sort_spec` is given, it has to be of the form
+`principal-sort <sortname>` (or `p-sort <sortname>`). The principal
+sort of the module is specified, which allows more concise `view`s from
+single-sort modules as the sort mapping needs not be given.
+
+## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
+
+Alias: `mod`
+
+defines a module, the basic building block of _cafeobj. Possible elements
+are declarations of 
+
+  - import - see `protecting`, `extending`, `including`, `using`
+  - sorts - see `sort declaration`
+  - variable - see `var`
+  - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
+  - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
+  
+`modname` is an arbitrary string.
+
+`module*` introduces a loose semantic based module.
+
+`module!` introduces a strict semantic based module.
+
+`module` introduces a module without specified semantic type.
+
+If `params` are given, it is a parametrized module. See `parametrized module`
+for more details.
+
+If `principal_sort_spec` is given, it has to be of the form
+`principal-sort <sortname>` (or `p-sort <sortname>`). The principal
+sort of the module is specified, which allows more concise `view`s from
+single-sort modules as the sort mapping needs not be given.
+
+## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
+
+Alias: `mod`
+
+defines a module, the basic building block of _cafeobj. Possible elements
+are declarations of 
+
+  - import - see `protecting`, `extending`, `including`, `using`
+  - sorts - see `sort declaration`
+  - variable - see `var`
+  - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
+  - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
+  
+`modname` is an arbitrary string.
+
+`module*` introduces a loose semantic based module.
+
+`module!` introduces a strict semantic based module.
+
+`module` introduces a module without specified semantic type.
+
+If `params` are given, it is a parametrized module. See `parametrized module`
+for more details.
+
+If `principal_sort_spec` is given, it has to be of the form
+`principal-sort <sortname>` (or `p-sort <sortname>`). The principal
+sort of the module is specified, which allows more concise `view`s from
+single-sort modules as the sort mapping needs not be given.
+
+## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
+
+Alias: `mod`
+
+defines a module, the basic building block of _cafeobj. Possible elements
+are declarations of 
+
+  - import - see `protecting`, `extending`, `including`, `using`
+  - sorts - see `sort declaration`
+  - variable - see `var`
+  - equation - see `op`, `eq`, `ceq`, `bop`, `beq`, `bceq`
+  - transition - see `trans`, `ctrans`, `btrans`, `bctrans`
+  
+`modname` is an arbitrary string.
+
+`module*` introduces a loose semantic based module.
+
+`module!` introduces a strict semantic based module.
+
+`module` introduces a module without specified semantic type.
+
+If `params` are given, it is a parametrized module. See `parametrized module`
+for more details.
+
+If `principal_sort_spec` is given, it has to be of the form
+`principal-sort <sortname>` (or `p-sort <sortname>`). The principal
+sort of the module is specified, which allows more concise `view`s from
+single-sort modules as the sort mapping needs not be given.
 
 ## `trace [whole]` switch ## {#switch-trace}
 
@@ -1347,6 +2841,13 @@ result in the resultant term of each rewrite step being
 printed. Setting the switch `trace` will result in the display of
 which rule, substitution, and replacement are used.
 
+## `trace [whole]` switch ## {#switch-trace}
+
+During evaluation, it is sometimes desirable to see the rewrite
+sequences, not just the results. Setting the switch `trace whole` will
+result in the resultant term of each rewrite step being
+printed. Setting the switch `trace` will result in the display of
+which rule, substitution, and replacement are used.
 
 ## `trans [ <label-exp> ] <term> => <term> .` ## {#trans}
 
@@ -1363,6 +2864,25 @@ transitions. On the other hand, the built-in
 [search predicate](#searchpredicate) searches all possible transitions
 from a given term.
 
+
+## `match <term_spec> to <pattern> .` ## {#match}
+
+Matches the term denoted by `<term_spec>` to the
+pattern. `<term_spec>` is either `top` or `term` for the term set by
+the `start` command; `subterm` for the term selected by the `choose`
+command; `it` has the same meaning as `subterm` if `choose` was used,
+otherwise the same meaning as `top`, or a normal term expression.
+
+The given `<pattern>` is either `rules`, `-rules`, `+rules`, one of
+these three prefixed by `all`, or a term. If one of the `rules` are
+given, all the rules where the left side (for `+rules`), the right
+side (for `-rules`), or any side (for `rules`) matches. If the `all`
+(with separating space) is given all rules in the current context,
+including those declared in built-in modules, are inspected.
+
+If a term is given, then the two terms are matched, and if successful,
+the matching substitution is printed.
+
 ## `unprotect <module-name>` ## {#unprotect}
 
 Remove overwrite protection from a module that has been protected
@@ -1370,7 +2890,6 @@ with the `protect` call. Some modules vital for the system
 are initially protected.
 
 Related: [`protect`](#protect)
-
 
 ## `using ( <modexp> )` ## {#using}
 
@@ -1383,6 +2902,28 @@ See `module expression` for format of `modexp`.
 Related: [`extending`](#extending) [`including`](#including) 
 	 [`protecting`](#protecting)
 
+## `using ( <modexp> )` ## {#using}
+
+Alias: `us`
+
+imports the object specified by `modexp` into the current
+module without any restrictions on the models.
+See `module expression` for format of `modexp`.
+
+Related: [`extending`](#extending) [`including`](#including) 
+	 [`protecting`](#protecting)
+
+## `var <var-name> : <sort-name>` ## {#var}
+
+Declares a variable `<var-name>` to be of sort `<sort-name>`.
+The scope of the variable is the current module.
+Redeclarations of variable names are not allowed.
+Several variable of the same sort can be declared at the same time
+using the `vars` construct:
+
+`vars <var-name> ... : <sort-name>`
+
+Related: [`op`](#op) [qualified term](#qualified) [on-the-fly](#onthefly)
 
 ## `var <var-name> : <sort-name>` ## {#var}
 
@@ -1454,7 +2995,3 @@ In specifying views some rules can be omitted:
 
 3. If the source module has a single sort and the target has a 
   principal sort, the single sort is mapped to the principal sort.
-
-
-Related: [instantiation](#instantiation)
-

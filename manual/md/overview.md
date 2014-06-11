@@ -2,7 +2,7 @@ Overview of the system
 ======================
 
 Let us start with a simple definition of a module, which are the basic
-building blocks of any \_cafeobj program:
+building blocks of any CafeOBJ program:
 `````
 mod NATPAIR {
   pr(NAT)
@@ -15,7 +15,7 @@ mod NATPAIR {
   eq snd( < A:Nat , B:Nat > ) = B .
 }
 `````
-This example already presents most of the core concepts of \_cafeobj:
+This example already presents most of the core concepts of CafeOBJ:
 
 * modules as the basic building blocks
 * import of other modules `pr(NAT)`
@@ -28,7 +28,7 @@ Sorts
 -----
 
 Most programming languages allow for different sorts, or types of
-objects. In this respect \_cafeobj is not different and allows to have
+objects. In this respect CafeOBJ is not different and allows to have
 arbitrary sorts. In addition, these sorts can be ordered, more
 specific one sort can be declared a sub-sort of another. In the above
 example 
@@ -55,7 +55,7 @@ For more details concerning sorts, see [`sort declaration`](#sort).
 Imports {#intro-imports}
 -------
 
-\_cafeobj allows for importing and reusing of already defined
+CafeOBJ allows for importing and reusing of already defined
 modules:
 `````
 pr(NAT)
@@ -91,11 +91,11 @@ We have seen already a different way to specify operators, namely
 `````
 op <_,_> : Nat Nat -> Pair {constr}
 `````
-which introduces an infix operator. \_cafeobj is very flexible and
+which introduces an infix operator. CafeOBJ is very flexible and
 allows to freely specify the syntax. In an operator declaration as the
 above, the underscores `_` represent arguments to the operator. That
 also means that the number of underscores must match the number of
-sorts given before the `->`. After the above declaration \_cafeobj
+sorts given before the `->`. After the above declaration CafeOBJ
 will be able to parse terms like `< 3 , 4 >` and correctly type them
 as pair.
 
@@ -108,7 +108,7 @@ Using sorts, variables, and operators we have specified the terms that
 we want to speak about. In the following equations, or sometimes
 called axioms, will equate different terms.  Equating here is meant in
 the algebraic sense, but also in the term-rewriting sense, as
-equations form the basis of rewrite rules which provide \_cafeobj with
+equations form the basis of rewrite rules which provide CafeOBJ with
 the executable semantics:
 `````
 eq fst( < A:Nat , B:Nat > ) = A .

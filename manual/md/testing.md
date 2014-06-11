@@ -3,8 +3,8 @@ Testing
 
 Macros
 ------
-Usage of macros in the code can be used like `\_cafeobj` and produces
-\_cafeobj, depending on the definitions in `latex.gpp` and `html.gpp`.
+Usage of macros in the code can be used like `CafeOBJ` and produces
+CafeOBJ, depending on the definitions in `latex.gpp` and `html.gpp`.
 
 References
 ----------

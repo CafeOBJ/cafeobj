@@ -16,31 +16,29 @@ PDOPTS=-f markdown -V biblio-files=manual.bib --biblatex	\
 	--latex-engine=$(ENGINE)
 
 
-#
-# included md files, order is important!!!
-MDFILES=reference-manual.md introduction.md overview.md cloudsync.md \
-	reference.md
+MDFILES=reference-manual.md introduction.md overview.md \
+	reference.md cloudsync.md
 
-MDFILESORIG=reference-manual.md introduction.md overview.md cloudsync.md \
-        reference-backup.md
+#
+# we cannot use -T for gpp, as the @ would function as escape marker which
+# destroys references in pandoc.
+# For now we do *not* specify an escape marker, last argument to -U
+GPPOPTS=-U "\\" "" "{" "}{" "}" "{" "}" "\#" ""
 
 manuals: reference-manual.odt reference-manual.epub reference-manual.html reference-manual.pdf
 
 
-reference-manual.odt: $(MDFILES) makefile
-	pandoc ${PDOPTS} -t odt -s -o reference-manual.odt ${MDFILES}
+reference-manual.odt: $(MDFILES) odt.gpp makefile
+	gpp $(GPPOPTS) -DODT=1 reference-manual.md | pandoc ${PDOPTS} -t odt -s -o reference-manual.odt
 
-reference-manual.epub: $(MDFILES) makefile
-	pandoc ${PDOPTS} -t epub -s -o reference-manual.epub ${MDFILES}
+reference-manual.epub: $(MDFILES) epub.gpp makefile
+	gpp $(GPPOPTS) -DEPUB=1 reference-manual.md | pandoc ${PDOPTS} -t epub -s -o reference-manual.epub
 
-reference-manual.tex: $(MDFILES) makefile manual.bib template.tex
-	pandoc ${PDOPTS} -t latex -s -o reference-manual.tex ${MDFILES}
+reference-manual.tex: $(MDFILES) latex.gpp makefile manual.bib template.tex
+	gpp $(GPPOPTS) -DLATEX=1 reference-manual.md | pandoc ${PDOPTS} -t latex -s -o reference-manual.tex
 
-reference-manual-orig.tex: $(MDFILESORIG) makefile manual.bib template.tex
-	pandoc ${PDOPTS} -t latex -s -o reference-manual-orig.tex ${MDFILESORIG}
-
-reference-manual.html: $(MDFILES) makefile
-	pandoc ${PDOPTS} -t html -s -o reference-manual.html ${MDFILES}
+reference-manual.html: $(MDFILES) html.gpp makefile
+	gpp $(GPPOPTS) -DHTML=1 reference-manual.md | pandoc ${PDOPTS} -t html -s -o reference-manual.html
 
 reference-manual.bbl: reference-manual.tex manual.bib
 	$(ENGINE) reference-manual.tex
