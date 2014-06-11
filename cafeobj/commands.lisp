@@ -37,7 +37,7 @@
 Gory Details {#gorydetails}
 ============
 
-This chapter presents all syntactic elements of \_cafeobj as
+This chapter presents all syntactic elements of CafeOBJ as
 well as several meta-concepts in alphabetic order. Concepts are
 cross-linked for easy accessibility.
 ")
@@ -143,7 +143,7 @@ TODO: old manual very unclear ... both about `=*=` and
 (define ("=(n)=>" "=(n,m)=>" "=()=>" "search" "search predicate")
     :type :doc-only
     :doc "
-\_cafeobj provides a whole set of search predicates `=(n,m)=>` for
+CafeOBJ provides a whole set of search predicates `=(n,m)=>` for
 searching transitions starting from a given term. The first value `n`
 specifies the maximum number of solutions searched, and can be either
 a natural number of `*`, in which case all solutions are searched. The
@@ -750,7 +750,7 @@ Related: [`signature`](#signature) [`axioms`](#axioms)
   [`protecting`](#protecting) [`using`](#using)
 ")
 
-(define ("include BOO")
+(define ("include BOOL")
     :type :doc-only
     :doc "
 ## `include BOOL` switch ## {#switch-include-bool}
@@ -803,7 +803,7 @@ Related: [`extending`](#including) [`protecting`](#protecting)
 
 requests the system to read the file specified by the
 pathname. The file itself may contain `input` commands.
-\_cafeobj reads the file up to the end, or until it encounters
+CafeOBJ reads the file up to the end, or until it encounters
 a line that only contains (the literal) `eof`.
 
 ")
@@ -887,14 +887,14 @@ shorthands, they are not. The right hand side `<term>` needs to
 be a fully parsable expression.
 ")
 
-(define ("libpath" "libarary path")
+(define ("libpath" "library path")
     :type :doc-only
     :doc "
 ## `libpath` switch ## {#switch-libpath}
 
 Possible values: list of strings.
 
-The switch `libpath` contains a list of directories where \_cafeobj
+The switch `libpath` contains a list of directories where CafeOBJ
 searches for include files. Addition and removal of directories can be
 done with
 
@@ -974,7 +974,7 @@ the matching substitution is printed.
 
 Alias: `mod`
 
-defines a module, the basic building block of \_cafeobj. Possible elements
+defines a module, the basic building block of CafeOBJ. Possible elements
 are declarations of 
 
   - import - see `protecting`, `extending`, `including`, `using`
@@ -1209,7 +1209,7 @@ Related: [`bop`](#bop)
     :doc "
 ## operator precedence ## {#opprec}
 
-\_cafeobj allows for complete freedom of syntax, in particular infix
+CafeOBJ allows for complete freedom of syntax, in particular infix
 operators and overloading. To correctly parse terms that are ambigous,
 all operators have precedence values. These values can be adjusted
 manually during definition of the operator 
@@ -1350,7 +1350,7 @@ Related: [`cd`](#cd) [`ls`](#ls)
     :doc "
 ## qualified sort/operator/parameter ## {#qualifiedother}
 
-\_cafeobj allows for using the same name for different sorts,
+CafeOBJ allows for using the same name for different sorts,
 operators, and parameters. One example is declaring the same sort in
 different modules. In case it is necessary to qualify the sort,
 operator, or parameter, the intended module name can be affixed after
@@ -1558,7 +1558,7 @@ Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
     :doc "
 ## search predicates ## {#searchpredicate}
 
-\_cafeobj provides a whole set of search predicates `=(n,m)=>` for
+CafeOBJ provides a whole set of search predicates `=(n,m)=>` for
 searching transitions starting from a given term. The first value `n`
 specifies the maximum number of solutions searched, and can be either
 a natural number of `*`, in which case all solutions are searched. The
@@ -1612,7 +1612,7 @@ Related: [`show`](#show) [`switches`](#switches)
 ## `show <something>` ## {#show}
 
 The `show` command provides various ways to inspect all kind of objects
-of the \_cafeobj language. For a full list call `show ?`.
+of the CafeOBJ language. For a full list call `show ?`.
 
 Some of the more important (but far from complete list) ways to call
 the `show` command are:
@@ -1658,7 +1658,7 @@ Related: [`axioms`](#axioms) [`imports`](#imports)
     :doc "
 ## sort declaration ## {#sort}
 
-\_cafeobj supports two kind of sorts, visible and hidden sorts. Visible 
+CafeOBJ supports two kind of sorts, visible and hidden sorts. Visible 
 sorts are introduced between `[` and `]`, while hidden sorts are introduced
 between `*[` and `]*`.
 
@@ -1669,7 +1669,7 @@ between `*[` and `]*`.
 
 Several sorts can be declared at the same time, as in `[ Nat Int ]`.
 
-Since \_cafeobj is based on order sorting, sorts can form a partial order.
+Since CafeOBJ is based on order sorting, sorts can form a partial order.
 Definition of the partial order can be interleaved by giving
 
 ~~~~
@@ -1753,7 +1753,7 @@ given to the stepper (with our without leading colon `:`):
 `rwt [<number>] .`
 :   set (or unset) max number of rewrite
 
-Other standard \_cafeobj commands that can be used are [`show`](#show),
+Other standard CafeOBJ commands that can be used are [`show`](#show),
 [`describe`](#describe), [`set`](#set), [`cd`](#cd), [`ls`](#ls),
 [`pwd`](#pwd), [`lisp`](#lisp), [`lispq`](#lisp), and (on Unix only)
 [`!`](#commandexec).
@@ -1796,7 +1796,7 @@ Related: [`step` switch](#switch-step)
 ## switches ## {#switches}
 
 Switches control various aspects of the computations and behaviour
-of \_cafeobj. The current list of switches and their values can be
+of CafeOBJ. The current list of switches and their values can be
 shown with 
 
 `````

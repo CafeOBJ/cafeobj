@@ -82,18 +82,16 @@
 (defparameter .md-remove-link. #~s/{#.*}//)
 (defparameter .md-remove-link2. #~s/\(#.+\)//)
 (defparameter .md-remove-code-sign. #~s/~~//)
-(defparameter .md-cafeobj. #~s/_cafeobj/CafeOBJ/)
 (defparameter .md-replace-tilde. #~s/~/*/)
 (defparameter .md-replace-bq. #~s/`/'/)
 
 (defun format-description (doc)
   (funcall .md-replace-bq.
 	   (funcall .md-replace-tilde.
-		    (funcall .md-cafeobj.
-			     (funcall .md-remove-code-sign.
-				      (funcall .md-remove-link2.
-					       (funcall .md-remove-link.
-							(funcall .md-remove-hash-hash. doc))))))))
+		    (funcall .md-remove-code-sign.
+			     (funcall .md-remove-link2.
+				      (funcall .md-remove-link.
+					       (funcall .md-remove-hash-hash. doc)))))))
 
 ;;; ******
 ;;; DEFINE : define command or declaration
