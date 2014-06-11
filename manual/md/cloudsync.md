@@ -7,7 +7,7 @@ specification, as well as parts of the verification proof score will
 be included and discussed.
 
 Besides giving an example of a specification and verification, we also
-try to explain several of the most important concepts in \_cafeobj
+try to explain several of the most important concepts in CafeOBJ
 using rather simple examples.
 
 Protocoll
@@ -137,7 +137,7 @@ mod! CLSTATE {
 `````
 
 The PC state is now very similar, only that we have to have a triple
-(`3TUPLE` is a builtin predicate of \_cafeobj), since we need one
+(`3TUPLE` is a builtin predicate of CafeOBJ), since we need one
 additional place for the temporary value. In the same way as above we
 rename the `Elt` to `PcLabel` and the outcome back to `PcState`.
 `````
@@ -404,7 +404,7 @@ described the cloud protocol using a _state system_ and
 transitions. This is just one way of implementation. There are other
 approaches to specification using purely term-based expressions that
 do not use transitions, but equational theory only. 
-One of the strength of \_cafeobj is that it does not require any
+One of the strength of CafeOBJ is that it does not require any
 specific approach to modeling, but allows for freedom in choosing
 methodology.
 
