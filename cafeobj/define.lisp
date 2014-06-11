@@ -16,6 +16,7 @@
 ;;; *****************************************************
 
 (defvar *cafeobj-doc-db* (make-hash-table :test #'equal))
+(defvar *cafeobj-alias-db* (make-hash-table :test #'equal))
 
 (defstruct (oldoc (:print-function print-online-document))
   (key        ""  :type string)		; 
@@ -32,7 +33,7 @@
   (format stream "~&cache      : ~a" (oldoc-cache doc)))
 
 (defun get-document-string (key &optional (raw nil))
-  (let ((doc (gethash key *cafeobj-doc-db*)))
+  (let ((doc (gethash (gethash key *cafeobj-alias-db*) *cafeobj-doc-db*)))
     (if doc
 	(if (not raw)
 	    (or (oldoc-cache doc)
@@ -61,22 +62,26 @@
 	(push (reduce #'(lambda (x y) (concatenate 'string x y)) keyl) keys)))
     keys))
 
-(defun register-online-help (names doc)
+(defun register-online-help (mainname aliasnames doc)
   (unless doc (return-from register-online-help nil))
+  ; for each key generated from any name we generate an entry
+  ; from that key to each key generated from the mainname
+  ; (although there should be only one mainname and mainkey (?)
+  (dolist (mainkey (make-doc-key-from-string mainname))
+    (dolist (name (cons mainname aliasnames))
+      (dolist (key (make-doc-key-from-string name))
+	(setf (gethash key *cafeobj-alias-db*) mainkey))))
   (cond ((stringp doc)
-	 (dolist (name names)
-	   (dolist (key (make-doc-key-from-string name))
-	     (setf (gethash key *cafeobj-doc-db*) (make-oldoc :key key
-							      :doc-string doc
-							      :names name)))))
+	 (dolist (key (make-doc-key-from-string mainname))
+	   (setf (gethash key *cafeobj-doc-db*) (make-oldoc :key key
+							    :doc-string doc
+							    :names mainname))))
+	; currently only for full reset as we do not want to have "full"
+	; alone in the reference manual - but maybe we should?
 	(t (dolist (a-doc doc)
 	     (let ((key-parts (butlast a-doc))
 		   (doc-string (car (last a-doc))))
-	       (dolist (keyp key-parts)
-		 (dolist (key (make-doc-key-from-string keyp))
-		   (setf (gethash key *cafeobj-doc-db*) (make-oldoc :key key
-								    :doc-string doc-string
-								    :names keyp)))))))))
+	       (register-online-help (car key-parts) (cdr key-parts) doc-string))))))
 
 (defparameter .md-remove-hash-hash. #~s/##//)
 (defparameter .md-remove-link. #~s/{#.*}//)
@@ -203,7 +208,7 @@
 						  :parser ',parser
 						  :evaluator ',evaluator)))))
        ;; set online help
-       (register-online-help ',keys ',doc)))
+       (register-online-help (car ',keys) (cdr ',keys) ',doc)))
 
 (defun print-comde-usage (com)
   (format t "~&[Usage] ~s, not yet" com))

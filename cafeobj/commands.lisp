@@ -710,7 +710,6 @@ TODO missing documentation
 
 
 (define ("full" "full-reset" "full reset") 
-    :doc ((("full reset" "full-reset") "reset system to initial status."))
     :category :system
     :parser parse-full-reset-command
     :evaluator eval-ast
