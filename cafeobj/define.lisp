@@ -79,7 +79,7 @@
 	; currently only for full reset as we do not want to have "full"
 	; alone in the reference manual - but maybe we should?
 	(t (dolist (a-doc doc)
-	     (let ((key-parts (butlast a-doc))
+	     (let ((key-parts (car (butlast a-doc)))
 		   (doc-string (car (last a-doc))))
 	       (register-online-help (car key-parts) (cdr key-parts) doc-string))))))
 
