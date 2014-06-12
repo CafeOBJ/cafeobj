@@ -19,7 +19,7 @@ PDOPTS=-f markdown -V biblio-files=manual.bib --biblatex	\
 #
 # included md files, order is important!!!
 MDFILES=reference-manual.md introduction.md overview.md cloudsync.md \
-	reference.md
+	reference-head.md reference.md
 
 MDFILESORIG=reference-manual.md introduction.md overview.md cloudsync.md \
         reference-backup.md
