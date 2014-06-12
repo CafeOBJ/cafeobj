@@ -309,7 +309,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
     (case ask
       (|?| (setq description (get-document-string key)))
       ;; (|??| (setq description (get-detailed-document key)))
-      ;; ((|?ex| |?example|) (setq description (get-example key)))
+      ((|?ex| |?example|) (setq description (get-example-string key)))
       (otherwise
        ;; this cannot happen
        (with-output-chaos-error ('internal-error)
