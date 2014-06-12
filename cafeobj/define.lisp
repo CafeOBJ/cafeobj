@@ -22,6 +22,7 @@
   (key        ""  :type string)		; 
   (doc-string ""  :type string)		; document string of commad/declaration
   (doc-title  ""  :type string)         ; title 
+  (doc-ex     ""  :type string)         ; examples
   (mdkey      ""  :type string)         ; key written to reference manual
   (names      nil :type list)		;
   (cache nil)				; formatted doc cache
@@ -33,6 +34,7 @@
   (format stream "~&doc-title  : ~a" (oldoc-doc-title doc))
   (format stream "~&mdkey      : ~a" (oldoc-mdkey doc))
   (format stream "~&doc-string : ~a" (oldoc-doc-string doc))
+  (format stream "~&doc-ex     : ~a" (oldoc-doc-ex doc))
   (format stream "~&names      : ~a" (oldoc-names doc))
   (format stream "~&cache      : ~a" (oldoc-cache doc)))
 
@@ -44,6 +46,21 @@
 		(setf (oldoc-cache doc) (format-description (oldoc-doc-title doc) (oldoc-doc-string doc))))
 	  (format nil "## ~a ## {#~a}~2%~a~2%"
 		  (oldoc-doc-title doc) (oldoc-mdkey doc) (oldoc-doc-string doc)))
+      nil)))
+
+(defun get-example-string (key &optional (raw nil))
+  (let ((doc (gethash (gethash key *cafeobj-alias-db*) *cafeobj-doc-db*)))
+    (if doc
+	(let ((exstr (oldoc-doc-ex doc)))
+	  (if (not (string-equal exstr ""))
+	      (if (not raw)
+		  (format-description 
+		    (concatenate 'string "Example(s) for " (oldoc-doc-title doc)) 
+		    exstr)
+		(format nil "### Example ###~2%~a~2%" exstr))
+	    (if (not raw)
+	        "no examples available" 
+	      nil)))
       nil)))
 
 (defun show-doc-entries ()
@@ -67,7 +84,7 @@
 	(push (reduce #'(lambda (x y) (concatenate 'string x y)) keyl) keys)))
     keys))
 
-(defun register-online-help (mainname aliasnames title mdkey doc)
+(defun register-online-help (mainname aliasnames title mdkey doc example)
   (unless doc (return-from register-online-help nil))
   (unless (stringp doc) (return-from register-online-help nil))
   ; for each key generated from any name we generate an entry
@@ -86,6 +103,7 @@
 		      :doc-title (or title
 				     (concatenate 'string "`" mainname "`"))
 		      :mdkey (or mdkey mainname)
+		      :doc-ex (or example "")
 		      :names aliasnames))))
 
 (defparameter .md-remove-hash-hash. #~s/##//)
@@ -191,6 +209,7 @@
 				    (evaluator 'eval-ast)
 				    (doc nil)
 				    (title nil)
+				    (example nil)
 				    (mdkey nil))
     (case type
       (:top (unless (member category .valid-com-categories.)
@@ -216,7 +235,7 @@
 						  :parser ',parser
 						  :evaluator ',evaluator)))))
        ;; set online help
-       (register-online-help (car ',keys) (cdr ',keys) ',title ',mdkey ',doc)))
+       (register-online-help (car ',keys) (cdr ',keys) ',title ',mdkey ',doc ',example)))
 
 (defun print-comde-usage (com)
   (format t "~&[Usage] ~s, not yet" com))

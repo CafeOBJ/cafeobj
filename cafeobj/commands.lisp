@@ -150,13 +150,16 @@ TODO: old manual very unclear ... both about `=*=` and
 difficult - see TODO for [`=*=`](#bequality)
 ")
 
-(define ("?")
+(define ("?" "?ex")
     :category :help
     :parser identity
     :evaluator cafeobj-top-level-help
+    :title "`? [<term>]`"
     :mdkey "help" 
-    :doc "lists all top-level commands. The `?` can be used after many of the
-top-level commands to obtain help.
+    :doc "Without any argument, lists all top-level commands.
+With argument gives the reference manual description of `term`.
+In addition to this, many commands allow for passing `?` as argument
+to obtain further help.
 ")
 
 (define ("all axioms")
