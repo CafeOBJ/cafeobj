@@ -115,7 +115,15 @@ reduce to a common term. This is different from the equational `=`
 which specifies the equality of the theory.
 ")
 
-(define ("=>")
+(define ("=/=")
+    :type :doc-only
+    :doc "
+## `=/=` ##
+
+Negation of the predicate `==`.
+")
+
+(define ("==>")
     :type :doc-only
     :doc
     "
@@ -125,6 +133,7 @@ This binary predicate is defined on each visible sort, and defines the
 transition relation, which is reflexive, transitive, and closed under
 operator application. It expresses the fact that two states (terms)
 are connected via transitions.
+
 Related: [`trans`](#trans) [`=(*)=>`](#transsearch)
 ")
 
@@ -140,22 +149,19 @@ TODO: old manual very unclear ... both about `=*=` and
 `accept =*= proof` ??? (page 46 of old manual)
 ")
 
-(define ("=(n)=>" "=(n,m)=>" "=()=>" "search" "search predicate")
+(define ("=(n)=>" "=(n,m)=>" "=()=>")
     :type :doc-only
     :doc "
-CafeOBJ provides a whole set of search predicates `=(n,m)=>` for
-searching transitions starting from a given term. The first value `n`
-specifies the maximum number of solutions searched, and can be either
-a natural number of `*`, in which case all solutions are searched. The
-second value `m` is the maximum depth, and can be a natural number
-(but not `*`).
+## `=(n)=>`, `=(n,m)=>`, `=()=>` ##
 
-TODO: `=(n,m)=>+` ??? other specifiers?
+See [`search predicates`](#searchpredicate)
 ")
 
 (define ("accept" "accept =*=" "accept =*= proof")
     :type :doc-only
     :doc "
+## `accept =*= proof` switch ## {#switch-accept}
+
 TODO missing documentation
 difficult - see TODO for [`=*=`](#bequality)
 ")
@@ -174,6 +180,8 @@ top-level commands to obtain help.
 (define ("all axioms")
     :type :doc-only
     :doc "
+## `all axioms` switch ## {#switch-all-axioms}
+
 Controls whether axioms from included modules are shown
 during a `show` invocation.
 
@@ -183,6 +191,8 @@ Related: [`show`](#show)
 (define ("always" "always memo")
     :type :doc-only
     :doc "
+## `always memo` switch ## {#switch-always-memo}
+
 Turns on memorization of computation also for operators without
 the [`memo`](#opattr) operator attribute.
 
@@ -309,7 +319,7 @@ Related: [`signature`](#signature)
          [`trans`](#trans)
 ")
 
-(define ("beq" "bceq" "bcq")
+(define ("bceq" "bcq")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -397,7 +407,7 @@ into account for reduction.
 Related: [`execute`](#execute) [`reduce`](#reduce)
 ")
 
-(define ("btrans" "bctrans")
+(define ("btrans")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -476,6 +486,29 @@ operators.
 Related: [`regularize`](#regularize)
 ")
 
+(define ("check switch")
+    :type :doc-only
+    :doc "
+## `check <something>` switch ## {#switch-check}
+
+These switches turn on automatic checking of certain properties:
+
+`check coherency`
+  ~ TODO
+
+`check compatibility`
+  ~ see the [`check`](#check) command
+
+`check import`
+  ~ TODO
+
+`check regularity`
+  ~ see the [`check`](#check) command
+
+`check sensible`
+  ~ TODO
+")
+
 (define  ("choose") 
     :category :proof
     :parser parse-choose-command
@@ -501,6 +534,16 @@ Resets (clears) the memo storages of the system. Memorized computations
 are forgotten. 
 
 Related: [`clean memo` switch](#switch-clean-memo)
+")
+
+(define ("clean memo switch")
+    :type :doc-only
+    :doc "
+## `clean memo` switch ## {#switch-clean-memo}
+
+Possible values: `on`, `off`, default `off`.
+
+tells the system to be forgetful.
 ")
 
 (define ("close")
@@ -1039,6 +1082,41 @@ Related: [qualified sort etc](#qualifiedother)
 controls the memorization of computations. The system memorizes 
 evaluations of operators declared with the [`memo`](#opattr) operator
 attribute. Turning this switch off disables all memorization.
+")
+
+(define ("module expression")
+    :type :doc-only
+    :doc "
+## module expression ## {#moduleexpression}
+
+In various syntax elements not only module names itself, but whole
+module expressions can appear. A typical example is
+
+`open <mod_exp> .`
+
+which opens a module expression. The following constructs are
+supported:
+
+module name
+  ~ using the name of a module
+
+renaming
+  ~ `<mod_exp> * { <mappings> }`
+
+    This expressions describes a new module where sort and/or
+    operators are renamed. 
+    `<mappings>` are like in the case of [`view`](#view) a comma
+    separated list of mappings of either sorts (`sort` and `hsort`) or
+    operators (`op` and `bop`). Source names may be qualified, while
+    target names are not, they are required to be new names. Renaming
+    is often used in combination with [instantiantion](#instantiation).
+
+summation
+  ~ `<mod_exp> + <mod_exp>`
+
+    This expression describes a module consisting of all the module
+    elements of the summands. If a submodule is imported more than
+    once, it is assumed to be shared.
 ")
 
 (define ("on-the-fly" "on the fly")
@@ -2000,6 +2078,13 @@ exec! [in <Modexpr> :] <Term> .
     :parser parse-eval-lisp
     :evaluator cafeobj-eval-lisp-proc
     :doc "
+## `lisp` ## {#eval}
+
+Evaluates the following lisp expression. Example
+`````
+CafeOBJ> lisp (+ 4 5)
+(+ 4 5) -> 9
+`````
 ")
 
 (define ("lispq" "evq")
@@ -2007,6 +2092,9 @@ exec! [in <Modexpr> :] <Term> .
     :parser parse-eval-lisp
     :evaluator cafeobj-eval-lisp-q-proc
     :doc "
+## `lispq` ## {#evalq}
+
+Evaluates the following quoted lisp expression. (TODO ???)
 ")
 
 (define ("make")
@@ -2278,6 +2366,10 @@ show
     :doc "
 ")
 
+;
+; TODO
+; generation of a key for the doc stuff does not work out here
+; it is added to the --, -->
 (define (".")
     :category :misc
     :parser identity
