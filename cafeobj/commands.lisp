@@ -31,25 +31,27 @@
 ;;; --------------------------------------------------------------------------
 ;;; all of the declarations/commands in alphabetical order.
 ;;; --------------------------------------------------------------------------
-(define ("!refman")
-     :type :doc-only
-     :doc "
-Gory Details {#gorydetails}
-============
 
-This chapter presents all syntactic elements of CafeOBJ as
-well as several meta-concepts in alphabetic order. Concepts are
-cross-linked for easy accessibility.
-")
+;;; Remarks concerning :title :mdkey :doc and the order of the keys
+;;; If :title is not given, the *first* entry of the keys is used
+;;; between surrounding backticks. That means that a simple command 
+;;; like version will have :title set to `version`
+;;; If :mdkey is not given, the *first* entry of the keys is used.
+;;; The :mdkey value is used when shipping out to markdown as label
+;;; for the title
+;;;
+;;; Output to markdown is formatted as follows:
+;;;   "## ~a ## {#~a}~2%~a~2%" :title :mdkey :doc
+;;;
+;;; Note: entries *without* a :doc key will not be handled by the doc system
   
 (define ("!")
     :category :misc
     :parser parse-shell-command
     :evaluator eval-ast
-        :doc "
-## `! <command>` ## {#commandexec}
-
-TODO Currently not working!! 
+    :title "`! <command>`"
+    :mdkey "commandexec"
+    :doc "TODO Currently not working!! 
 
 On Unix only, forks a shell and executes the given `<command>`.
 ")
@@ -58,18 +60,16 @@ On Unix only, forks a shell and executes the given `<command>`.
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-")
+)
   
 
 (define ("--" "**")
     :category :decl-toplevel
     :parser parse-comment-command
     :evaluator identity
-    :doc "
-## `**`, `**>` ## {#starstar}
-
-Starts a comment which extends to the end of the line. 
+    :title "`**`, `**>`"
+    :mdkey "starstar"
+    :doc "Starts a comment which extends to the end of the line. 
 With the additional `>` the comment is displayed while
 evaluated by the interpreter.
 
@@ -78,25 +78,22 @@ Related: [`--`](#dashdash) [comments](#comments)
 
 
 (define ("-->" "**>")
-    :doc "
-## `--`, `-->` ## {#dashdash}
-
-Starts a comment which extends to the end of the line. 
+    :category :decl-toplevel
+    :parser parse-comment-command
+    :evaluator eval-ast
+    :title "`--`, `-->`"
+    :mdkey "dashdash"
+    :doc "Starts a comment which extends to the end of the line. 
 With the additional `>` the comment is displayed while
 evaluated by the interpreter.
 
 Related: [`**`](#starstar) [comments](#comments)
-"
-    :category :decl-toplevel
-    :parser parse-comment-command
-    :evaluator eval-ast)
+")
 
 (define ("=")
     :type :doc-only
-    :doc "
-## `=` ## {#axeq}
-
-The syntax element `=` introduces an axiom of the equational theory,
+    :mdkey "axeq"
+    :doc "The syntax element `=` introduces an axiom of the equational theory,
 and is different from `==` which specifies an equality based on
 rewriting. 
 
@@ -105,10 +102,8 @@ Related: [`==`](#equality) [`eq`](#eq)
 
 (define ("==")
     :type :doc-only
-    :doc "
-## `==` ## {#equality}
-
-The predicate `==` is a binary operator defined for each visible sort
+    :mdkey "equality"
+    :doc "The predicate `==` is a binary operator defined for each visible sort
 and is defined in terms of evaluation. That is, for ground terms `t`
 and `t'` of the same sort, `t == t'` evaluates to `true` iff terms
 reduce to a common term. This is different from the equational `=`
@@ -117,32 +112,24 @@ which specifies the equality of the theory.
 
 (define ("=/=")
     :type :doc-only
-    :doc "
-## `=/=` ##
-
-Negation of the predicate `==`.
+    :doc "Negation of the predicate `==`.
 ")
 
 (define ("==>")
     :type :doc-only
-    :doc
-    "
-## `==>` ## {#transrel}
-
-This binary predicate is defined on each visible sort, and defines the
+    :mdkey "transrel"
+    :doc "This binary predicate is defined on each visible sort, and defines the
 transition relation, which is reflexive, transitive, and closed under
 operator application. It expresses the fact that two states (terms)
 are connected via transitions.
 
-Related: [`trans`](#trans) [`=(*)=>`](#transsearch)
+Related: [`trans`](#trans) [search predicates](#searchpredicate)
 ")
 
 (define ("=*=")
     :type :doc-only
-    :doc "
-## `=*=` ## {#bequality}
-
-The predicate for behavioural equivalence, written `=*=`, is a binary
+    :mdkey "bequality"
+    :doc "The predicate for behavioural equivalence, written `=*=`, is a binary
 operator defined on each hidden sort. 
 
 TODO: old manual very unclear ... both about `=*=` and 
@@ -151,18 +138,15 @@ TODO: old manual very unclear ... both about `=*=` and
 
 (define ("=(n)=>" "=(n,m)=>" "=()=>")
     :type :doc-only
-    :doc "
-## `=(n)=>`, `=(n,m)=>`, `=()=>` ##
-
-See [`search predicates`](#searchpredicate)
+    :title "`=(n)=>`, `=(n,m)=>`, `=()=>`"
+    :doc "See [`search predicates`](#searchpredicate)
 ")
 
 (define ("accept" "accept =*=" "accept =*= proof")
     :type :doc-only
-    :doc "
-## `accept =*= proof` switch ## {#switch-accept}
-
-TODO missing documentation
+    :title "`accept =*= proof` switch"
+    :mdkey "switch-accept"
+    :doc "TODO missing documentation
 difficult - see TODO for [`=*=`](#bequality)
 ")
 
@@ -170,19 +154,16 @@ difficult - see TODO for [`=*=`](#bequality)
     :category :help
     :parser identity
     :evaluator cafeobj-top-level-help
-        :doc "
-## `?` ## {#help}
-
-lists all top-level commands. The `?` can be used after many of the
+    :mdkey "help" 
+    :doc "lists all top-level commands. The `?` can be used after many of the
 top-level commands to obtain help.
 ")
 
 (define ("all axioms")
     :type :doc-only
-    :doc "
-## `all axioms` switch ## {#switch-all-axioms}
-
-Controls whether axioms from included modules are shown
+    :title "`all axioms` switch" 
+    :mdkey "switch-all-axioms" 
+    :doc "Controls whether axioms from included modules are shown
 during a `show` invocation.
 
 Related: [`show`](#show)
@@ -190,10 +171,9 @@ Related: [`show`](#show)
 
 (define ("always" "always memo")
     :type :doc-only
-    :doc "
-## `always memo` switch ## {#switch-always-memo}
-
-Turns on memorization of computation also for operators without
+    :title "`always memo` switch" 
+    :mdkey "switch-always-memo" 
+    :doc "Turns on memorization of computation also for operators without
 the [`memo`](#opattr) operator attribute.
 
 Related: [`memo` switch](#switch-memo) [operator attributes](#opattr)
@@ -203,10 +183,8 @@ Related: [`memo` switch](#switch-memo) [operator attributes](#opattr)
     :category :proof
     :parser parse-apply-command
     :evaluator eval-ast
-    :doc "
-## `apply <action> [ <subst> ] <range> <selection>` ## {#apply}
-
-Applies one of the following actions `reduce`, `exec`, `print`, or a
+    :title "`apply <action> [ <subst> ] <range> <selection>`"
+    :doc "Applies one of the following actions `reduce`, `exec`, `print`, or a
 rewrite rule to the term in focus. 
 
 `reduce`, `exec`, `print`
@@ -280,10 +258,9 @@ Related: [`choose`](#choose)
 
 (define ("auto" "auto context")
     :type :doc-only
-    :doc "
-## `auto context` switch ## {#switch-auto-context}
-
-Possible values: `on` or `off`, default is `off`.
+    :title "`auto context` switch"
+    :mdkey "switch-auto-context"
+    :doc "Possible values: `on` or `off`, default is `off`.
 
 If this switch is `on`, the context will automatically switch to
 the most recent module, i.e., defining a module or inspecting 
@@ -294,20 +271,15 @@ a module's content will switch the current module.
     :category :library
     :parser parse-autoload-command
     :evaluator eval-ast
-    :doc "
-## `autoload` ## {#autoload}
-
-TODO No documentation in original manual, no idea!
+    :doc "TODO No documentation in original manual, no idea!
 ")
 
 (define ("axioms" "axiom" "axs")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `axioms { <decls> }` ## {#axioms}
-
-Block enclosing declarations of variables, equations, and 
+    :title "`axioms { <decls> }`"
+    :doc "Block enclosing declarations of variables, equations, and 
 transitions.
 Other statements are not allowed within the `axioms` block.
 Optional structuring of the statements in a module.
@@ -323,12 +295,8 @@ Related: [`signature`](#signature)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `bceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#bceq}
-
-Alias: `bcq`
-
-Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
+    :title "`bceq [ <op-exp> ] <term> = <term> if <boolterm> .`"
+    :doc "Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
 
 Related: [`eq`](#eq) [`ceq`](#ceq) [`beq`](#beq)
 ")
@@ -337,10 +305,8 @@ Related: [`eq`](#eq) [`ceq`](#ceq) [`beq`](#beq)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `beq [ <op-exp> ] <term> = <term> .` ## {#beq}
-
-Defines a behaviour equation. For details see [`eq`](#eq).
+    :title "`beq [ <op-exp> ] <term> = <term> .`"
+    :doc "Defines a behaviour equation. For details see [`eq`](#eq).
 
 Related: [`eq`](#eq) [`ceq`](#ceq) [`bceq`](#bceq)
 ")
@@ -349,10 +315,8 @@ Related: [`eq`](#eq) [`ceq`](#ceq) [`bceq`](#bceq)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `bctrans [ <label-exp> ] <term> => <term> if <bool> .` ## {#bctrans}
-
-Defines a behaviour conditional transition. 
+    :title "`bctrans [ <label-exp> ] <term> => <term> if <bool> .`"
+    :doc "Defines a behaviour conditional transition. 
 For details see [`ctrans`](#ctrans).
 
 Related [`trans`](#trans) [`ctrans`](#ctrans) [`btrans`](#btrans)
@@ -362,10 +326,8 @@ Related [`trans`](#trans) [`ctrans`](#ctrans) [`btrans`](#btrans)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `bop <op-spec> : <sorts> -> <sort>` ## {#bop}
-
-Defines a behavioural operator by its domain, codomain, and the term 
+    :title "`bop <op-spec> : <sorts> -> <sort>`"
+    :doc "Defines a behavioural operator by its domain, codomain, and the term 
 construct. `<sorts>` is a space separated list of sort names containing
 *exactely* one hidden sort. `<sort>` is a single sort name.
 
@@ -378,10 +340,8 @@ Related: [`op`](#op)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `bpred <op-spec> : <sorts>` ## {#bpred}
-
-Short hand for `op <op-spec> : <sorts> -> Bool` defining a
+    :title "`bpred <op-spec> : <sorts>`"
+    :doc "Short hand for `op <op-spec> : <sorts> -> Bool` defining a
 behavioural predicate.
 
 Related: [`op`](#op)
@@ -389,16 +349,12 @@ Related: [`op`](#op)
          [`pred`](#bpred)
 ")
 
-(define ("bred" "breduce")
+(define ("breduce" "bred")
     :category :rewrite
     :parser parse-bred-command
     :evaluator eval-ast
-    :doc "
-## `breduce [ in <mod-exp> : ] <term> .` ## {#breduce}
-
-Alias: `bred`
-
-Reduce the given term in the given module, if `<mod-exp>` is given, 
+    :title "`breduce [ in <mod-exp> : ] <term> .`"
+    :doc "Reduce the given term in the given module, if `<mod-exp>` is given, 
 otherwise in the current module. 
 
 For `breduce` equations, possibly conditional, possibly behavioural, are taken
@@ -411,10 +367,8 @@ Related: [`execute`](#execute) [`reduce`](#reduce)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `btrans [ <label-exp> ] <term> => <term> .` ## {#btrans}
-
-Defines a behaviour transition. For details see [`trans`](#trans).
+    :title "`btrans [ <label-exp> ] <term> => <term> .`"
+    :doc "Defines a behaviour transition. For details see [`trans`](#trans).
 
 Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
 ")
@@ -423,21 +377,15 @@ Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
     :category :rewrite
     :parser parse-cbred-command
     :evaluator eval-ast
-    :doc "
-## `cbred` ## {#cbred}
-
-TODO no documentation
-
+    :doc "TODO no documentation
 ")
 
 (define  ("cd") 
     :category :misc
     :parser parse-cd-command
     :evaluator eval-ast
-    :doc "
-## `cd <dirname>` ## {#cd}
-
-Change the current working directory, like the Unix counterpart.
+    :title "`cd <dirname>`"
+    :doc "Change the current working directory, like the Unix counterpart.
 The argument is necessary. No kind of expansion or substitution is done.
 
 Related: [`pwd`](#pwd) [`ls`](#ls)
@@ -447,10 +395,8 @@ Related: [`pwd`](#pwd) [`ls`](#ls)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `ceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#ceq}
-
-Defines a conditional equation. Spaces around the `if` are obligatory.
+    :title "`ceq [ <op-exp> ] <term> = <term> if <boolterm> .`"
+    :doc "Defines a conditional equation. Spaces around the `if` are obligatory.
 `<boolterm>` needs to be a Boolean term. For other requirements
 see [`eq`](#eq).
 
@@ -461,10 +407,8 @@ Related: [`eq`](#eq) [`beq`](#beq) [`bceq`](#bceq)
     :category :checker
     :parser   parse-check-command
     :evaluator eval-ast
-    :doc "
-## `check <options>` ## {#check}
-
-This command allows for checking of certain properties of modules and
+    :title "`check <options>`"
+    :doc "This command allows for checking of certain properties of modules and
 operators. 
 
 `check regularity <mod_exp>`
@@ -488,10 +432,9 @@ Related: [`regularize`](#regularize)
 
 (define ("check switch")
     :type :doc-only
-    :doc "
-## `check <something>` switch ## {#switch-check}
-
-These switches turn on automatic checking of certain properties:
+    :title "`check <something>` switch"
+    :mdkey "switch-check"
+    :doc "These switches turn on automatic checking of certain properties:
 
 `check coherency`
   ~ TODO
@@ -513,24 +456,21 @@ These switches turn on automatic checking of certain properties:
     :category :proof
     :parser parse-choose-command
     :evaluator eval-ast
-    :doc "
-## `choose <selection>` ## {#choose}
-
-Chooses a subterm by the given `<selection>`. See [`apply`](#apply)
+    :title "`choose <selection>`"
+    :mdkey "choose"
+    :doc "Chooses a subterm by the given `<selection>`. See [`apply`](#apply)
 for details on `<selection>`.
 
 Related: [`apply`](#apply) [`start`](#start)
 	 [`strat` in operator attributes](#opattr)
 ")
 
-(define ("clean" "clean memo")
+(define ("clean memo" "clean")
     :category :rewrite
     :parser identity
     :evaluator cafeobj-eval-clear-memo-proc
-    :doc "
-## `clean memo` ## {#cleanmemo}
-
-Resets (clears) the memo storages of the system. Memorized computations 
+    :mdkey "cleanmemo"
+    :doc "Resets (clears) the memo storages of the system. Memorized computations 
 are forgotten. 
 
 Related: [`clean memo` switch](#switch-clean-memo)
@@ -538,10 +478,9 @@ Related: [`clean memo` switch](#switch-clean-memo)
 
 (define ("clean memo switch")
     :type :doc-only
-    :doc "
-## `clean memo` switch ## {#switch-clean-memo}
-
-Possible values: `on`, `off`, default `off`.
+    :title "`clean memo` switch"
+    :mdkey "switch-clean-memo"
+    :doc "Possible values: `on`, `off`, default `off`.
 
 tells the system to be forgetful.
 ")
@@ -550,20 +489,15 @@ tells the system to be forgetful.
     :category :proof
     :parser parse-close-command
     :evaluator eval-ast
-    :doc "
-## `close` ## {#close}
-
-This command closes a modification of a module started by `open`.
+    :doc "This command closes a modification of a module started by `open`.
 
 Related: [`open`](#open)
 ")
 
 (define ("comments" "comment")
     :type :doc-only
-    :doc "
-## comments ## {#comments}
-
-The interpreter accepts the following strings as start of a comment
+    :title "comments"
+    :doc "The interpreter accepts the following strings as start of a comment
 that extends to the end of the line: `--`, `-->`, `**`, `**>`.
 
 The difference in the variants with `>` is that the comment is
@@ -574,10 +508,9 @@ Related: [`**`](#starstar) [`--`](#dashdash)
 
 (define ("cond" "cond limit")
     :type :doc-only
-    :doc "
-## `cond limit` switch ## {#switch-cond-limit}
-
-TODO missing documentation
+    :title "`cond limit` switch"
+    :mdkey "switch-cond-limit"
+    :doc "TODO missing documentation
 
 ")
 
@@ -585,10 +518,8 @@ TODO missing documentation
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `ctrans [ <label-exp> ] <term> => <term> .` ## {#ctrans}
-
-Defines a conditional transition. For details see [`trans`](#trans)
+    :title "`ctrans [ <label-exp> ] <term> => <term> .`"
+    :doc "Defines a conditional transition. For details see [`trans`](#trans)
 and [`ceq`](#ceq).
 
 Related [`trans`](#trans) [`btrans`](#ctrans) [`bctrans`](#bctrans)
@@ -598,10 +529,8 @@ Related [`trans`](#trans) [`btrans`](#ctrans) [`bctrans`](#bctrans)
     :category :inspect
     :parser parse-show-command
     :evaluator eval-ast
-    :doc "
-## `describe <something>` ## {#describe}
-
-like the `show` command with more details. See `describe ?` for
+    :title "`describe <something>`"
+    :doc "Similar to the `show` command but with more details. See `describe ?` for
 the possible set of invocations.
 
 Related: [`show`](#show)
@@ -609,10 +538,7 @@ Related: [`show`](#show)
 
 (define ("eof")
     :type :doc-only
-    :doc "
-## `eof` ## {#eof}
-
-Terminates reading of the current file. Allows for keeping
+    :doc "Terminates reading of the current file. Allows for keeping
 untested code or documentations below the `eof` mark. Has
 to be on a line by itself without leading spaces.
 ")
@@ -621,10 +547,8 @@ to be on a line by itself without leading spaces.
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `eq [ <op-exp> ] <term> = <term> .` ## {#eq}
-
-Declares an axiom, or equation.
+    :title "`eq [ <op-exp> ] <term> = <term> .`"
+    :doc "Declares an axiom, or equation.
 
 Spaces around the `=` are necessary to separate the left from
 the right hand side. The terms given must belong to the
@@ -673,10 +597,9 @@ Related: [`ceq`](#ceq) [`beq`](#beq) [`bceq`](#bceq)
 
 (define ("exec limit")
     :type :doc-only
-    :doc "
-## `exec limit` switch ## {#switch-exec-limit}
-
-Possible values: integers, default limit 4611686018427387903.
+    :title "`exec limit` switch"
+    :mdkey "switch-exec-limit"
+    :doc "Possible values: integers, default limit 4611686018427387903.
 
 Controls the number of maximal transition steps.
 
@@ -685,10 +608,9 @@ Related: [`reduce`](#reduce)
 
 (define ("exec trace")
     :type :doc-only
-    :doc "
-## `exec trace` switch ## {#switch-exec-trace}
-
-Possible values: `on` `off, default `off`.
+    :title "`exec trace` switch"
+    :mdkey "switch-exec-trace"
+    :doc "Possible values: `on` `off, default `off`.
 
 controls whether further output is provided during reductions.
 
@@ -696,16 +618,12 @@ Related: [`reduce`](#reduce)
 ")
 
 
-(define ("exec" "execute")
+(define ("execute" "exec")
     :category :rewrite
     :parser parse-exec-command
     :evaluator eval-ast
-    :doc "
-## `execute [ in <mod-exp> : ] <term> .` ## {#execute}
-
-Alias: `exec`
-
-Reduce the given term in the given module, if `<mod-exp>` is given, 
+    :title "`execute [ in <mod-exp> : ] <term> .`"
+    :doc "Reduce the given term in the given module, if `<mod-exp>` is given, 
 otherwise in the current module. 
 
 For `execute` equations and transitions, possibly conditional, are taken
@@ -715,16 +633,12 @@ Related: [`breduce`](#breduce) [`reduce`](#reduce)
 ")
 
 
-(define ("ex" "extending")
+(define ("extending" "ex")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `extending ( <modexp> )` ## {#extending}
-
-Alias: `ex`
-
-imports the object specified by `modexp` into the current
+    :title "`extending ( <modexp> )`"
+    :doc "Imports the object specified by `modexp` into the current
 module, allowing models to be inflated, but not collapsing. 
 See [`module expression`](#moduleexpression) for format of `modexp`.
 
@@ -736,43 +650,35 @@ Related: [`including`](#including) [`protecting`](#protecting)
     :category :proof
     :parser parse-find-command
     :evaluator eval-ast
-    :doc "
-## `find` ## {#find}
-
-TODO missing documentation
+    :doc "TODO missing documentation
 ")
 
 (define ("find all" "find all rules")
     :type :doc-only
-    :doc "
-## `find all rules` switch ## {#switch-find-all-rules}
-
-TODO missing documentation
+    :title "`find all rules` switch"
+    :mdkey "switch-find-all-rules"
+    :doc "TODO missing documentation
 ")
 
 
 
-(define ("full" "full-reset" "full reset") 
+(define ("full reset" "full-reset" "full") 
     :category :system
     :parser parse-full-reset-command
     :evaluator eval-ast
-    :doc ((("full reset" "full-reset") "
-## `full reset` ## {#fullreset}
-
-Reinitializes the internal state of the system. All supplied modules
+    :mdkey "fullreset"
+    :doc "Reinitializes the internal state of the system. All supplied modules
 definitions are lost.
 
 Related: [`reset`](#reset)
-")))
+")
 
 (define ("gendoc")
     :category :io
     :parser parse-gendoc-command
     :evaluator eval-ast
-    :doc "
-## `gendoc <pathname>` ## {#gendoc}
-
-generates reference manual from system's on line help documents, 
+    :title "`gendoc <pathname>`"
+    :doc "generates reference manual from system's on line help documents, 
 and save it to `pathname`.
 ")
 
@@ -780,10 +686,8 @@ and save it to `pathname`.
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `imports { <import-decl> }` ## {#imports}
-
-Block enclosing import of other modules (`protecting` etc). 
+    :title "`imports { <import-decl> }`"
+    :doc "Block enclosing import of other modules (`protecting` etc). 
 Other statements are not allowed within the `imports` block.
 Optional structuring of the statements in a module.
 
@@ -794,10 +698,9 @@ Related: [`signature`](#signature) [`axioms`](#axioms)
 
 (define ("include BOOL")
     :type :doc-only
-    :doc "
-## `include BOOL` switch ## {#switch-include-bool}
-
-Possible values: `on` `off`, default `on`.
+    :title "`include BOOL` switch"
+    :mdkey "switch-include-bool"
+    :doc "Possible values: `on` `off`, default `on`.
 
 By default a couple of built-in modules are implicitly imported with
 protecting mode. In particular, BOOL is of practical importance. It
@@ -809,53 +712,43 @@ This switch allows to disable automatic inclusion of BOOL.
 
 (define ("include RWL")
     :type :doc-only
-    :doc "
-## `include RWL` switch ## {#switch-include-rwl}
-
-Possible values: `on` `off`, default `off`.
+    :title "`include RWL` switch"
+    :mdkey "switch-include-rwl"
+    :doc "Possible values: `on` `off`, default `off`.
 
 This switch allows to disable automatic inclusion of RWL.
 ")
 
-(define ("inc" "including")
+(define ("including" "inc")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `including ( <modexp> )` ## {#including}
-
-Alias: `in`
-
-imports the object specified by `modexp` into the current
+    :title "`including ( <modexp> )`"
+    :doc "Imports the object specified by `modexp` into the current
 module. 
 
 See [`module expression`](#moduleexpression) for format of `modexp`.
 
 Related: [`extending`](#including) [`protecting`](#protecting) 
 	 [`using`](#using) [`module expression`](#moduleexpression)
-
 ")
 
-(define  ("in" "input")
+(define  ("input" "in")
     :category :misc
     :parser parse-input-command
     :evaluator cafeobj-eval-input-proc
-    :doc "
-## `input <pathname>` ## {#input}
-
-requests the system to read the file specified by the
+    :title "`input <pathname>`"
+    :doc "Requests the system to read the file specified by the
 pathname. The file itself may contain `input` commands.
 CafeOBJ reads the file up to the end, or until it encounters
 a line that only contains (the literal) `eof`.
 
 ")
 
-(define ("instant" "instatiation")
+(define ("instantiation" "instant")
     :type :doc-only
-    :doc "
-## instantiation of parametrised modules ## {#instantiation}
-
-Parametrized modules allow for instantiation. The process of
+    :title "instantiation of parametrised modules"
+    :doc "Parametrized modules allow for instantiation. The process of
 instantiation binds actual parameters to formal parameters. The result
 of an instantiation is a new module, obtained by replacing occurrences
 of parameter sorts and operators by their actual counterparts. If, as
@@ -917,10 +810,8 @@ module NAT-ILIST {
     :category :decl-toplevel
     :parser process-let-declaration-form
     :evaluator eval-ast
-    :doc "
-## `let <identifier> = <term> .` ## {#let}
-
-Using `let` one can define aliases, or context variables. Bindings
+    :title "`let <identifier> = <term> .`"
+    :doc "Using `let` one can define aliases, or context variables. Bindings
 are local to the current module. Variable defined with `let` can be
 used in various commands like `reduce` and `parse`. 
 
@@ -931,10 +822,9 @@ be a fully parsable expression.
 
 (define ("libpath" "library path")
     :type :doc-only
-    :doc "
-## `libpath` switch ## {#switch-libpath}
-
-Possible values: list of strings.
+    :title "`libpath` switch"
+    :mdkey "switch-libpath"
+    :doc "Possible values: list of strings.
 
 The switch `libpath` contains a list of directories where CafeOBJ
 searches for include files. Addition and removal of directories can be
@@ -956,10 +846,9 @@ first and cannot be suppressed.
     :category :inspect
     :parser parse-look-up-command
     :evaluator eval-ast
-    :doc "
-## `look up <something>` ## {#lookup}
-
-TODO to be written, currently segfaults
+    :title "`look up <something>`"
+    :mdkey "lookup"
+    :doc "TODO to be written, currently segfaults
 
 ")
 
@@ -967,17 +856,16 @@ TODO to be written, currently segfaults
     :category :misc
     :parser parse-ls-command
     :evaluator eval-ast
-    :doc "
-## `ls <pathname>` ## {#ls}
-
-lists the given `pathname`. Argument is obligatory.
+    :title "`ls <pathname>`"
+    :doc "lists the given `pathname`. Argument is obligatory.
 
 Related: [`cd`](#ls) [`pwd`](#pwd)
+")
 
-
-## `make <mod_name> ( <mod_exp> )` ## {#make}
-
-This commands defines a new module `<mod_name>` by evaluating the
+(define ("make")
+    :type :doc-only
+    :title "`make <mod_name> ( <mod_exp> )`"
+    :doc "This commands defines a new module `<mod_name>` by evaluating the
 module expression `<mod_exp>`.
 
 Related: [module expressions](#moduleexpression)
@@ -987,10 +875,8 @@ Related: [module expressions](#moduleexpression)
     :category :inspect
     :parser parse-match-command
     :evaluator eval-ast
-    :doc "
-## `match <term_spec> to <pattern> .` ## {#match}
-
-Matches the term denoted by `<term_spec>` to the
+    :title "`match <term_spec> to <pattern> .`"
+    :doc "Matches the term denoted by `<term_spec>` to the
 pattern. `<term_spec>` is either `top` or `term` for the term set by
 the `start` command; `subterm` for the term selected by the `choose`
 command; `it` has the same meaning as `subterm` if `choose` was used,
@@ -1007,16 +893,12 @@ If a term is given, then the two terms are matched, and if successful,
 the matching substitution is printed.
 ")
 
-(define ("mod" "module" "module*" "mod*" "module!" "mod!" "sys:mod!" "sys:module!" "sys:mod*" "sys:module*")
+(define ("module" "mod" "module*" "mod*" "module!" "mod!" "sys:mod!" "sys:module!" "sys:mod*" "sys:module*")
     :category :decl-toplevel
     :parser process-module-declaration-form
     :evaluator eval-ast
-    :doc "
-## `module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }` ## {#module}
-
-Alias: `mod`
-
-defines a module, the basic building block of CafeOBJ. Possible elements
+    :title "`[sys:]module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }`"
+    :doc "Defines a module, the basic building block of CafeOBJ. Possible elements
 are declarations of 
 
   - import - see `protecting`, `extending`, `including`, `using`
@@ -1042,12 +924,10 @@ sort of the module is specified, which allows more concise `view`s from
 single-sort modules as the sort mapping needs not be given.
 ")
 
-(define ("parameter" "parameterized" "parameterized module")
+(define ("parameterized module" "parameter" "parameterized")
     :type :doc-only
-    :doc "
-## parametrized module ## {#parametrizedmodule}
-
-A module with a parameter list (see `module`) is a parametrized module.
+    :mdkey "parametrizedmodule"
+    :doc "A module with a parameter list (see `module`) is a parametrized module.
 Parameters are given as a comma (`,`) separated list. Each parameter is
 of the form `[ <import_mode> ] <param_name> :: <module_name>` 
 (spaces around `::` are obligatory).
@@ -1076,20 +956,17 @@ Related: [qualified sort etc](#qualifiedother)
 
 (define ("memo")
     :type :doc-only
-    :doc "
-## `memo` switch ## {#switch-memo}
-
-controls the memorization of computations. The system memorizes 
+    :title "`memo` switch"
+    :mdkey "switch-memo"
+    :doc "controls the memorization of computations. The system memorizes 
 evaluations of operators declared with the [`memo`](#opattr) operator
 attribute. Turning this switch off disables all memorization.
 ")
 
 (define ("module expression")
     :type :doc-only
-    :doc "
-## module expression ## {#moduleexpression}
-
-In various syntax elements not only module names itself, but whole
+    :mdkey "moduleexpression"
+    :doc "In various syntax elements not only module names itself, but whole
 module expressions can appear. A typical example is
 
 `open <mod_exp> .`
@@ -1121,10 +998,9 @@ summation
 
 (define ("on-the-fly" "on the fly")
     :type :doc-only
-    :doc "
-## on-the-fly declarations ## {#onthefly}
-
-Variables and constants can be declared *on-the-fly* (or *inline*). If an 
+    :title "on-the-fly declarations"
+    :mdkey "onthefly"
+    :doc "Variables and constants can be declared *on-the-fly* (or *inline*). If an 
 equation contains a qualified variable (see [qualified term](#qualified)),
 i.e., `<name>:<sort-name>`, then from this point on *within* the current
 equation only `<name>` is declared as a variable of sort `<sort-name>`.
@@ -1159,10 +1035,8 @@ Related: [`var`](#var)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `op <op-spec> : <sorts> -> <sort> { <attribute-list> }` ## {#op}
-
-Defines an operator by its domain, codomain, and the term construct.
+    :title "`op <op-spec> : <sorts> -> <sort> { <attribute-list> }`"
+    :doc "Defines an operator by its domain, codomain, and the term construct.
 `<sorts>` is a space separated list of sort names, `<sort>` is a 
 single sort name.
 `<op-spec>` can be of the following forms:
@@ -1191,10 +1065,8 @@ For the description of `<attribute-list>` see the entry for
     :category :proof
     :parser parse-open-command
     :evaluator eval-ast
-    :doc "
-## `open <mod_exp> .` ## {#open}
-
-This command opens the module specified by the module expression
+    :title "`open <mod_exp> .`"
+    :doc "This command opens the module specified by the module expression
 `<mod_exp>` and allows for declaration of new sorts, operators, etc.
 
 Related: [`close`](#close) [module expression](#moduleexpression)
@@ -1203,10 +1075,8 @@ Related: [`close`](#close) [module expression](#moduleexpression)
 
 (define ("operator attributes" "operator attribute" "operator" "assoc" "comm" "id" "idr" "strat" "constr")
     :type :doc-only
-    :doc "
-## operator attributes ## {#opattr}
-
-In the specification of an operator using the [`op`](#op) (and
+    :mdkey "opattr"
+    :doc "In the specification of an operator using the [`op`](#op) (and
 related) keyword, attributes of the operator can be specified.
 An `<attribute-list>` is a space-separate list of single
 attribute definitions. Currently the following attributes are
@@ -1283,10 +1153,8 @@ Related: [`bop`](#bop)
 
 (define ("operator precedence" "prec")
     :type :doc-only
-    :doc "
-## operator precedence ## {#opprec}
-
-CafeOBJ allows for complete freedom of syntax, in particular infix
+    :mdkey "opprec"
+    :doc "CafeOBJ allows for complete freedom of syntax, in particular infix
 operators and overloading. To correctly parse terms that are ambigous,
 all operators have precedence values. These values can be adjusted
 manually during definition of the operator 
@@ -1311,10 +1179,8 @@ Related: [operator attributes](#opattr)
     :category :parse
     :parser parse-parse-command
     :evaluator eval-ast
-    :doc "
-## `parse [ in <mod-exp> : ] <term> .` ## {#parse}
-
-Tries to parse the given term within the module specified by
+    :title "`parse [ in <mod-exp> : ] <term> .`"
+    :doc "Tries to parse the given term within the module specified by
 the module expression `<mod-exp>`, or the current module if not given,
 and returns the parsed and qualified term.
 
@@ -1327,40 +1193,35 @@ Related: [qualified term](#qualified)
 
 (define ("parser normalize")
     :type :doc-only
-    :doc "
-## `parse normalize` switch ## {#switch-parse-normalize}
-
-TODO missing documentation
+    :title "`parse normalize` switch"
+    :mdkey "switch-parse-normalize"
+    :doc "TODO missing documentation
 ")
 
 (define ("pred")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `pred <op-spec> : <sorts>` ## {#pred}
-
-Short hand for `op <op-spec> : <sorts> -> Bool` defining a predicate.
+    :title "`pred <op-spec> : <sorts>`"
+    :doc "Short hand for `op <op-spec> : <sorts> -> Bool` defining a predicate.
 
 Related: [`op`](#op) [`bpred`](#bpred)
 ")
 
 (define ("print depth")
     :type :doc-only
-    :doc "
-## `print depth` switch ## {#switch-print-depth}
-
-Possible values: natural numbers, default `unlimited`.
+    :title "`print depth` switch"
+    :mdkey "switch-print-depth"
+    :doc "Possible values: natural numbers, default `unlimited`.
 
 Controls to which depth terms are printed.
 ")
 
 (define ("print mode")
     :type :doc-only
-    :doc "
-## `print mode` switch ## {#switch-print-mode}
-
-Possible values: `normal` `fancy` `tree` `s-expr`
+    :title "`print mode` switch"
+    :mdkey "switch-print-mode"
+    :doc "Possible values: `normal` `fancy` `tree` `s-expr`
 
 Selects one of the print modes.
 ")
@@ -1369,10 +1230,8 @@ Selects one of the print modes.
     :category :system
     :parser parse-protect-command
     :evaluator eval-ast
-    :doc "
-## `protect <module-name>` ## {#protect}
-
-Protect a module from being overwritten.
+    :title "`protect <module-name>`"
+    :doc "Protect a module from being overwritten.
 Some modules vital for the system are initially protected.
 Can be reversed with `unprotect`.
 
@@ -1383,12 +1242,8 @@ Related: [`unprotect`](#unprotect)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `protecting ( <modexp> )` ## {#protecting}
-
-Alias: `pr`
-
-imports the object specified by `modexp` into the current
+    :title "`protecting ( <modexp> )`"
+    :doc "Imports the object specified by `modexp` into the current
 module, preserving all intended models as they are. See `module expression`
 for format of `modexp`.
 
@@ -1399,10 +1254,8 @@ Related: [`extending`](#extending) [`using`](#using) [`including`](#including)
     :category :library
     :parser parse-provide-command
     :evaluator eval-ast
-    :doc "
-## `provide <feature>` ## {#provide}
-
-discharges a feature requirement: once `provide`d, all the subsequent
+    :title "`provide <feature>`"
+    :doc "Discharges a feature requirement: once `provide`d, all the subsequent
 `require`ments of a feature are assumed to have been fulfilled
 already.
 
@@ -1414,20 +1267,16 @@ Related: [`require`](#require)
     :category :misc
     :parser parse-pwd-command
     :evaluator eval-ast
-    :doc "
-## `pwd` ## {#pwd}
-
-Prints the current working directory.
+    :doc "Prints the current working directory.
 
 Related: [`cd`](#cd) [`ls`](#ls)
 ")
 
 (define ("qualified sort" "qualified operator" "qualified parameter" "qualify")
     :type :doc-only
-    :doc "
-## qualified sort/operator/parameter ## {#qualifiedother}
-
-CafeOBJ allows for using the same name for different sorts,
+    :title "qualified sort/operator/parameter"
+    :mdkey "qualifiedother"
+    :doc "CafeOBJ allows for using the same name for different sorts,
 operators, and parameters. One example is declaring the same sort in
 different modules. In case it is necessary to qualify the sort,
 operator, or parameter, the intended module name can be affixed after
@@ -1449,10 +1298,8 @@ Related: [parametrized module](#parametrizedmodule) [qualified term](#qualified)
 
 (define ("qualified term")
     :type :doc-only
-    :doc "
-## qualified term ## {#qualified}
-
-In case that a term can be parsed into different sort, it is possible to
+    :mdkey "qualified"
+    :doc "In case that a term can be parsed into different sort, it is possible to
 qualify the term to one of the possible sorts by affixing it with 
 `: <sort-name>` (spaces before and after the `:` are optional).
 
@@ -1463,10 +1310,9 @@ Related: [`parse`](#parse)
 
 (define ("quiet")
     :type :doc-only
-    :doc "
-## `quiet` switch ## {#switch-quiet}
-
-Possible values: `on` `off`, default `off`
+    :title "`quiet` switch"
+    :mdkey "switch-quiet"
+    :doc "Possible values: `on` `off`, default `off`
 
 If set to `on`, the system only issues error messages.
 
@@ -1475,22 +1321,16 @@ Related: [`verbose` switch](#switch-verbose)
 
 (define ("quit" "q")
     :type :doc-only
-    :doc "
-## `quit` ## {#quit}
-
-Leaves the CafeOBJ interpreter.
+    :doc "Leaves the CafeOBJ interpreter.
 ")
 
 (define ("red" "reduce")
-  :category :rewrite
-  :parser parse-reduce-command
-  :evaluator eval-ast
-  :doc "
-## `reduce [ in <mod-exp> : ] <term> .` ## {#reduce}
-
-Alias: `red`
-
-Reduce the given term in the given module, if `<mod-exp>` is given, 
+    :category :rewrite
+    :parser parse-reduce-command
+    :evaluator eval-ast
+    :title "`reduce [ in <mod-exp> : ] <term> .`"
+    :mdkey "reduce"
+    :doc "Reduce the given term in the given module, if `<mod-exp>` is given, 
 otherwise in the current module. 
 
 For `reduce` only equations and conditional equations are taken into
@@ -1501,10 +1341,9 @@ Related: [`execute`](#execute) [`breduce`](#breduce)
 
 (define ("reduce conditions" "reduce condition")
     :type :doc-only
-    :doc "
-## `reduce conditions` switch ## {#switch-reduce-conditions}
-
-Possible values: `on` `off`, default `off`.
+    :title "`reduce conditions` switch"
+    :mdkey "switch-reduce-conditions"
+    :doc "Possible values: `on` `off`, default `off`.
 
 When using [`apply`](#apply) to step through a reduction, this switch
 allows to turn on automatic reduction of conditions in conditional
@@ -1518,10 +1357,8 @@ Related: [`apply`](#apply)
     :category :module
     :parser parse-regularize-command
     :evaluator eval-ast
-    :doc "
-## `regularize <mod-name>` ## {#regularize}
-
-Regularizes the signature of the given module, ensuring that every
+    :title "`regularize <mod-name>`"
+    :doc "Regularizes the signature of the given module, ensuring that every
 term has exactely one minimal parse tree. In this process additional
 sorts are generated to ensure unique least sort of all terms.
 
@@ -1533,20 +1370,17 @@ TODO -- should we give more details here -- unclear to me.
 
 (define ("regularize signature" "reg signature")
     :type :doc-only
-    :doc "
-## `regularize signature` switch ## {#switch-regularize-signature}
-
-See [`regularize](#regularize)
+    :title "`regularize signature` switch"
+    :mdkey "switch-regularize-signature"
+    :doc "See [`regularize](#regularize)
 ")
 
 (define  ("require") 
     :category :library
     :parser parse-require-command
     :evaluator eval-ast
-    :doc "
-## `require <feature> [ <pathname> ]` ## {#require}
-
-requires a feature, which usually
+    :title "`require <feature> [ <pathname> ]`"
+    :doc "Requires a feature, which usually
 denotes a set of module definitions. Given this command, the
 system searches for a file named the feature, and read the file
 if found. If a pathname is given, the system searches for a file
@@ -1560,10 +1394,7 @@ Related: [`provide`](#provide)
     :category :system
     :parser parse-reset-command
     :evaluator eval-ast
-    :doc "
-## `reset` ## {#reset}
-
-Restores the definitions of built-in modules and preludes, but does not
+    :doc "Restores the definitions of built-in modules and preludes, but does not
 affect other modules.
 
 Related: [`full reset`](#fullreset)
@@ -1573,10 +1404,8 @@ Related: [`full reset`](#fullreset)
     :category :io
     :parser parse-restore-command
     :evaluator eval-ast
-    :doc "
-## `restore <pathname>` ## {#restore}
-
-restores module definitions from the designated file `pathname` which 
+    :title "`restore <pathname>`"
+    :doc "Restores module definitions from the designated file `pathname` which 
 has been saved with the `save` command. `input` can also be used but
 the effects might be different.
 
@@ -1589,10 +1418,9 @@ Related: [`input`](#input) [`save`](#save)
 
 (define ("rewrite limit" "rew limit")
     :type :doc-only
-    :doc "
-## `rewrite limit` switch ## {#switch-rewrite}
-
-Possible values: positive integers, default not specified.
+    :title "`rewrite limit` switch"
+    :mdkey "switch-rewrite"
+    :doc "Possible values: positive integers, default not specified.
 
 Allows limiting the number of rewrite steps during a stepwise
 execution.
@@ -1605,10 +1433,8 @@ Related: [`step` switch](#switch-step)
     :category :io
     :parser parse-save-command
     :evaluator eval-ast
-    :doc "
-## `save <pathname>` ## {#save}
-
-saves module definitions into the designated file `pathname`.
+    :title "`save <pathname>`"
+    :doc "Saves module definitions into the designated file `pathname`.
 File names should be suffixed with `.bin`. 
 
 `save` also saves the contents of prelude files as well as module definitions
@@ -1620,10 +1446,8 @@ Related: [`input`](#input) [`restore`](#restore) [`save-system`](#save-system)
 
 (define ("save-system" "save system")	; NOTE. this is obsolete.
     :type :doc-only
-    :doc "
-## `save-system <pathname>` ## {#save-system}
-
-dumps the image of the whole system into a file. This is functionality
+    :title "`save-system <pathname>`"
+    :doc "Dumps the image of the whole system into a file. This is functionality
 provided by the underlying Common Lisp system and might carry some 
 restrictons.
 
@@ -1632,10 +1456,8 @@ Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
 
 (define ("search predicates" "search predicate" "search")
     :type :doc-only
-    :doc "
-## search predicates ## {#searchpredicate}
-
-CafeOBJ provides a whole set of search predicates `=(n,m)=>` for
+    :mdkey "searchpredicate"
+    :doc "CafeOBJ provides a whole set of search predicates `=(n,m)=>` for
 searching transitions starting from a given term. The first value `n`
 specifies the maximum number of solutions searched, and can be either
 a natural number of `*`, in which case all solutions are searched. The
@@ -1650,10 +1472,8 @@ TODO: `=(n,m)=>+` ??? other specifiers?
     :category :proof
     :parser parse-show-command
     :evaluator eval-ast
-    :doc "
-## `select <mod_exp> . ` ## {#select}
-
-Selects a module given by the module expression `<mod_exp>` as the
+    :title "`select <mod_exp> . `"
+    :doc "Selects a module given by the module expression `<mod_exp>` as the
 current module. All further operations are carried out within the
 given module. In constrast to `open` this does not allow for
 modification of the module, e.g., addition of new sorts etc.
@@ -1666,10 +1486,8 @@ Related: [`open`](#open) [module expression](#moduleexpression)
     :category :switch
     :parser parse-set-command
     :evaluator eval-ast
-    :doc "
-## `set <name> [option] <value>` ## {#set}
-
-Depending on the type of the switch, options and value specification varies.
+    :title "`set <name> [option] <value>`"
+    :doc "Depending on the type of the switch, options and value specification varies.
 Possible value types for switches are boolean (`on`, `off`), string (`\"value\"`),
 integers (5434443), lists (lisp syntax).
 
@@ -1685,10 +1503,8 @@ Related: [`show`](#show) [`switches`](#switches)
     :category :inspect
     :parser parse-show-command
     :evaluator eval-ast
-    :doc "
-## `show <something>` ## {#show}
-
-The `show` command provides various ways to inspect all kind of objects
+    :title "`show <something>`"
+    :doc "The `show` command provides various ways to inspect all kind of objects
 of the CafeOBJ language. For a full list call `show ?`.
 
 Some of the more important (but far from complete list) ways to call
@@ -1706,10 +1522,9 @@ Related: [`switches`](#switches) [`describe`](#describe)
 
 (define ("show mode")
     :type :doc-only
-    :doc "
-## `show mode` switch ## {#switch-show-mode}
-
-Possible values for `set show mode <mode>` are `cafeobj` and `meta`.
+    :title "`show mode` switch"
+    :mdkey "switch-show-mode"
+    :doc "Possible values for `set show mode <mode>` are `cafeobj` and `meta`.
 
 TODO no further information on what this changes
 ")
@@ -1719,10 +1534,8 @@ TODO no further information on what this changes
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `signature { <sig-decl> }` ## {#signature}
-
-Block enclosing declarations of sorts and operators.
+    :title "`signature { <sig-decl> }`"
+    :doc "Block enclosing declarations of sorts and operators.
 Other statements are not allowed within the `signature` block.
 Optional structuring of the statements in a module.
 
@@ -1732,10 +1545,9 @@ Related: [`axioms`](#axioms) [`imports`](#imports)
 
 (define ("sort declaration" "sort" "[" "*[")
     :type :doc-only
-    :doc "
-## sort declaration ## {#sort}
-
-CafeOBJ supports two kind of sorts, visible and hidden sorts. Visible 
+    :title "sort declaration"
+    :mdkey "sort"
+    :doc "CafeOBJ supports two kind of sorts, visible and hidden sorts. Visible 
 sorts are introduced between `[` and `]`, while hidden sorts are introduced
 between `*[` and `]*`.
 
@@ -1770,10 +1582,8 @@ defines five sorts `A`,...,`E`, with the following relations:
     :category :proof
     :parser parse-start-command
     :evaluator eval-ast
-    :doc "
-## `start <term> .` ## {#start}
-
-Sets the focus onto the given term `<term>` of the currently opened
+    :title "`start <term> .`"
+    :doc "Sets the focus onto the given term `<term>` of the currently opened
 module or context. Commands like `apply`, `choose`, or `match` will
 then operate on this term.
 
@@ -1783,10 +1593,9 @@ Related: [`apply`](#apply) [`choose`](#choose) [`match`](#match)
 
 (define ("statistics" "stat")
     :type :doc-only
-    :doc "
-## `statistics` switch ## {#switch-statistics}
-
-Possible values: `on` `off`, default `on`.
+    :title "`statistics` switch"
+    :mdkey "switch-statistics"
+    :doc "Possible values: `on` `off`, default `on`.
 
 After each reduction details about the reduction are
 shown. Information shown are the time for parsing the expression, the
@@ -1798,10 +1607,9 @@ TODO: verify
 
 (define ("step")
     :type :doc-only
-    :doc "
-## `step` switch ## {#switch-step}
-
-Possible values: `on` `off`, default `off`.
+    :title "`step` switch"
+    :mdkey "switch-step"
+    :doc "Possible values: `on` `off`, default `off`.
 
 With this switch turned on, rewriting proceeds in steps and prompts
 the user interactively. At each prompt the following commands can be
@@ -1838,10 +1646,9 @@ Other standard CafeOBJ commands that can be used are [`show`](#show),
 
 (define ("stop pattern" "stop")
     :type :doc-only
-    :doc "
-## `stop pattern` switch ## {#switch-stop-pattern}
-
-This command causes reductions to stop when the reductants get to
+    :title "`stop pattern` switch"
+    :mdkey "switch-stop-pattern"
+    :doc "This command causes reductions to stop when the reductants get to
 containing subterms that match the given term. If no term is given,
 this restriction is lifted. 
 
@@ -1869,10 +1676,8 @@ Related: [`step` switch](#switch-step)
 
 (define ("switches" "switch")
     :type :doc-only
-    :doc "
-## switches ## {#switches}
-
-Switches control various aspects of the computations and behaviour
+    :title "switches"
+    :doc "Switches control various aspects of the computations and behaviour
 of CafeOBJ. The current list of switches and their values can be
 shown with 
 
@@ -1887,10 +1692,9 @@ Related: [`set`](#set) [`show`](#show)
 
 (define ("trace" "trace whole")
     :type :doc-only
-    :doc "
-## `trace [whole]` switch ## {#switch-trace}
-
-During evaluation, it is sometimes desirable to see the rewrite
+    :title "`trace [whole]` switch"
+    :mdkey "switch-trace"
+    :doc "During evaluation, it is sometimes desirable to see the rewrite
 sequences, not just the results. Setting the switch `trace whole` will
 result in the resultant term of each rewrite step being
 printed. Setting the switch `trace` will result in the display of
@@ -1901,10 +1705,8 @@ which rule, substitution, and replacement are used.
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `trans [ <label-exp> ] <term> => <term> .` ## {#trans}
-
-Defines a transition, which is like an equation but without
+    :title "`trans [ <label-exp> ] <term> => <term> .`"
+    :doc "Defines a transition, which is like an equation but without
 symmetry. 
 
 See [`eq`](#eq) for specification of requirements on `<label-exp>`
@@ -1922,10 +1724,8 @@ from a given term.
     :category :system
     :parser parse-unprotect-command
     :evaluator eval-ast
-    :doc "
-## `unprotect <module-name>` ## {#unprotect}
-
-Remove overwrite protection from a module that has been protected
+    :title "`unprotect <module-name>`"
+    :doc "Remove overwrite protection from a module that has been protected
 with the `protect` call. Some modules vital for the system
 are initially protected.
 
@@ -1936,12 +1736,8 @@ Related: [`protect`](#protect)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `using ( <modexp> )` ## {#using}
-
-Alias: `us`
-
-imports the object specified by `modexp` into the current
+    :title "`using ( <modexp> )`"
+    :doc "Imports the object specified by `modexp` into the current
 module without any restrictions on the models.
 See `module expression` for format of `modexp`.
 
@@ -1953,10 +1749,8 @@ Related: [`extending`](#extending) [`including`](#including)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-## `var <var-name> : <sort-name>` ## {#var}
-
-Declares a variable `<var-name>` to be of sort `<sort-name>`.
+    :title "`var <var-name> : <sort-name>`"
+    :doc "Declares a variable `<var-name>` to be of sort `<sort-name>`.
 The scope of the variable is the current module.
 Redeclarations of variable names are not allowed.
 Several variable of the same sort can be declared at the same time
@@ -1969,10 +1763,9 @@ Related: [`op`](#op) [qualified term](#qualified) [on-the-fly](#onthefly)
 
 (define ("verbose")
     :type :doc-only
-    :doc "
-## `verbose` switch ## {#switch-verbose}
-
-Possible values: `on` `off`, default `off`.
+    :title "`verbose` switch"
+    :mdkey "switch-verbose"
+    :doc "Possible values: `on` `off`, default `off`.
 
 If turn `on`, the system is much more verbose in many commands.
 
@@ -1984,20 +1777,15 @@ Related: [`quiet` switch](#switch-quiet)
     :category :misc
     :parser parse-version-command
     :evaluator princ
-    :doc "
-## `version` ## {#version}
-
-Prints out the version of CafeOBJ.
+    :doc "Prints out the version of CafeOBJ.
 ")
 
 (define ("view")
     :category :decl-toplevel
     :parser process-view-declaration-form
     :evaluator eval-ast
-    :doc "
-## `view <name> from <modname> to <modname> { <viewelems> }` ## {#view}
-
-A view specifies ways to bind actual parameters to formal parameters
+    :title "`view <name> from <modname> to <modname> { <viewelems> }`"
+    :doc "A view specifies ways to bind actual parameters to formal parameters
 (see [parametrized module](#parametrizedmodule)). The view has to
 specify the mapping of the sorts as well as the operators. 
 
@@ -2077,10 +1865,7 @@ exec! [in <Modexpr> :] <Term> .
     :category :system
     :parser parse-eval-lisp
     :evaluator cafeobj-eval-lisp-proc
-    :doc "
-## `lisp` ## {#eval}
-
-Evaluates the following lisp expression. Example
+    :doc "Evaluates the following lisp expression. Example
 `````
 CafeOBJ> lisp (+ 4 5)
 (+ 4 5) -> 9
@@ -2091,10 +1876,7 @@ CafeOBJ> lisp (+ 4 5)
     :category :system
     :parser parse-eval-lisp
     :evaluator cafeobj-eval-lisp-q-proc
-    :doc "
-## `lispq` ## {#evalq}
-
-Evaluates the following quoted lisp expression. (TODO ???)
+    :doc "Evaluates the following quoted lisp expression. (TODO ???)
 ")
 
 (define ("make")
@@ -2122,8 +1904,7 @@ Evaluates the following quoted lisp expression. (TODO ???)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-")
+)
 
 (define ("bsort")
     :category :module-element
@@ -2257,6 +2038,8 @@ Evaluates the following quoted lisp expression. (TODO ???)
     :category :misc
     :parser identity
     :evaluator cafeobj-eval-control-d
+    :title "Ctrl-D"
+    :mdkey "ctrld"
     :doc "
 ")
 
@@ -2374,6 +2157,8 @@ show
     :category :misc
     :parser identity
     :evaluator cafeobj-nop
+    :title "`.`"
+    :mdkey "dotsep"
     :doc "
 Do nothing.
 ")

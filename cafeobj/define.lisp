@@ -21,6 +21,8 @@
 (defstruct (oldoc (:print-function print-online-document))
   (key        ""  :type string)		; 
   (doc-string ""  :type string)		; document string of commad/declaration
+  (doc-title  ""  :type string)         ; title 
+  (mdkey      ""  :type string)         ; key written to reference manual
   (names      nil :type list)		;
   (cache nil)				; formatted doc cache
   )
@@ -28,8 +30,10 @@
 (defun print-online-document (doc &optional (stream *standard-output*) &rest ignore)
   (declare (ignore ignore))
   (format stream "~%*** key    : ~a" (oldoc-key doc))
+  (format stream "~&doc-title  : ~a" (oldoc-doc-title doc))
+  (format stream "~&mdkey      : ~a" (oldoc-mdkey doc))
   (format stream "~&doc-string : ~a" (oldoc-doc-string doc))
-  (format stream "~&name       : ~a" (oldoc-names doc))
+  (format stream "~&names      : ~a" (oldoc-names doc))
   (format stream "~&cache      : ~a" (oldoc-cache doc)))
 
 (defun get-document-string (key &optional (raw nil))
@@ -37,8 +41,9 @@
     (if doc
 	(if (not raw)
 	    (or (oldoc-cache doc)
-		(setf (oldoc-cache doc) (format-description (oldoc-doc-string doc))))
-	  (oldoc-doc-string doc))
+		(setf (oldoc-cache doc) (format-description (oldoc-doc-title doc) (oldoc-doc-string doc))))
+	  (format nil "## ~a ## {#~a}~2%~a~2%"
+		  (oldoc-doc-title doc) (oldoc-mdkey doc) (oldoc-doc-string doc)))
       nil)))
 
 (defun show-doc-entries ()
@@ -62,8 +67,9 @@
 	(push (reduce #'(lambda (x y) (concatenate 'string x y)) keyl) keys)))
     keys))
 
-(defun register-online-help (mainname aliasnames doc)
+(defun register-online-help (mainname aliasnames title mdkey doc)
   (unless doc (return-from register-online-help nil))
+  (unless (stringp doc) (return-from register-online-help nil))
   ; for each key generated from any name we generate an entry
   ; from that key to each key generated from the mainname
   ; (although there should be only one mainname and mainkey (?)
@@ -71,17 +77,16 @@
     (dolist (name (cons mainname aliasnames))
       (dolist (key (make-doc-key-from-string name))
 	(setf (gethash key *cafeobj-alias-db*) mainkey))))
-  (cond ((stringp doc)
-	 (dolist (key (make-doc-key-from-string mainname))
-	   (setf (gethash key *cafeobj-doc-db*) (make-oldoc :key key
-							    :doc-string doc
-							    :names mainname))))
-	; currently only for full reset as we do not want to have "full"
-	; alone in the reference manual - but maybe we should?
-	(t (dolist (a-doc doc)
-	     (let ((key-parts (car (butlast a-doc)))
-		   (doc-string (car (last a-doc))))
-	       (register-online-help (car key-parts) (cdr key-parts) doc-string))))))
+  (dolist (key (make-doc-key-from-string mainname))
+    ; if the tile is not given, we use the mainname enclosed in ` `
+    ; if the mdkey is not given, we use the mainname as is
+    (setf (gethash key *cafeobj-doc-db*) 
+	  (make-oldoc :key key
+		      :doc-string doc
+		      :doc-title (or title
+				     (concatenate 'string "`" mainname "`"))
+		      :mdkey (or mdkey mainname)
+		      :names aliasnames))))
 
 (defparameter .md-remove-hash-hash. #~s/##//)
 (defparameter .md-remove-link. #~s/{#.*}//)
@@ -90,13 +95,14 @@
 (defparameter .md-replace-tilde. #~s/~/*/)
 (defparameter .md-replace-bq. #~s/`/'/)
 
-(defun format-description (doc)
+(defun format-description (title doc)
   (funcall .md-replace-bq.
 	   (funcall .md-replace-tilde.
 		    (funcall .md-remove-code-sign.
 			     (funcall .md-remove-link2.
 				      (funcall .md-remove-link.
-					       (funcall .md-remove-hash-hash. doc)))))))
+					       (funcall .md-remove-hash-hash. 
+							(concatenate 'string title (format nil "~2%") doc))))))))
 
 ;;; ******
 ;;; DEFINE : define command or declaration
@@ -183,7 +189,9 @@
 				    (category :misc)
 				    (parser nil)
 				    (evaluator 'eval-ast)
-				    (doc nil))
+				    (doc nil)
+				    (title nil)
+				    (mdkey nil))
     (case type
       (:top (unless (member category .valid-com-categories.)
 	      (error "Internal error, invalid category ~s" category)))
@@ -208,7 +216,7 @@
 						  :parser ',parser
 						  :evaluator ',evaluator)))))
        ;; set online help
-       (register-online-help (car ',keys) (cdr ',keys) ',doc)))
+       (register-online-help (car ',keys) (cdr ',keys) ',title ',mdkey ',doc)))
 
 (defun print-comde-usage (com)
   (format t "~&[Usage] ~s, not yet" com))
@@ -218,8 +226,6 @@
 ;;; Export
 ;;; export document string to a file.
 ;;;
-(defparameter .md-refman-title. "!refman")
-
 (defvar .out-done. (make-hash-table :test #'equal))
 
 (defun export-refman (&optional (output "manual/md/reference.md"))
@@ -227,9 +233,7 @@
   (let (doc keys)
     (with-open-file (out output :direction :output :if-exists :supersede :if-does-not-exist :create)
       (maphash #'(lambda (k doc) (declare (ignore doc)) (push k keys)) *cafeobj-doc-db*)
-      (setq keys (remove .md-refman-title. keys :test #'string=))
       (setq keys (sort keys #'string<=))
-      (push .md-refman-title. keys)
       (dolist (key keys)
 	(setq doc (get-document-string key t))
 	(unless doc
