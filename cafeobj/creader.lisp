@@ -711,6 +711,7 @@
 	((:+ inspect inspect-term) :args)
 	;; generate reference manual
 	(gendoc :symbol)
+	(?ex :args)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.
