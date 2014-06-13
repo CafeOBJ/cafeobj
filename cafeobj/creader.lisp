@@ -712,6 +712,8 @@
 	;; generate reference manual
 	(gendoc :symbol)
 	(?ex :args)
+	(?apropos :args)
+	(?ap :args)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.
