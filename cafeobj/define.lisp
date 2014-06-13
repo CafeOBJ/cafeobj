@@ -43,7 +43,12 @@
     (if doc
 	(if (not raw)
 	    (or (oldoc-cache doc)
-		(setf (oldoc-cache doc) (format-description (oldoc-doc-title doc) (oldoc-doc-string doc))))
+		(let (outstr (exstr (oldoc-doc-ex doc)))
+		  (setq outstr (format nil "~a~2%~a~2%" (oldoc-doc-title doc) (oldoc-doc-string doc)))
+		  (if (not (string-equal exstr ""))
+		      (setq outstr (format nil "~a(Examples available)~2%" outstr)))
+		  (setf (oldoc-cache doc) 
+			(format-markdown outstr))))
 	  (format nil "## ~a ## {#~a}~2%~a~2%"
 		  (oldoc-doc-title doc) (oldoc-mdkey doc) (oldoc-doc-string doc)))
       nil)))
@@ -54,9 +59,7 @@
 	(let ((exstr (oldoc-doc-ex doc)))
 	  (if (not (string-equal exstr ""))
 	      (if (not raw)
-		  (format-description 
-		    (concatenate 'string "Example(s) for " (oldoc-doc-title doc)) 
-		    exstr)
+		  (format-markdown (format nil "Example(s) for ~a~2%~a~2%" (oldoc-doc-title doc) exstr))
 		(format nil "### Example ###~2%~a~2%" exstr))
 	    (if (not raw)
 	        "no examples available" 
@@ -113,14 +116,13 @@
 (defparameter .md-replace-tilde. #~s/~/*/)
 (defparameter .md-replace-bq. #~s/`/'/)
 
-(defun format-description (title doc)
+(defun format-markdown (str)
   (funcall .md-replace-bq.
 	   (funcall .md-replace-tilde.
 		    (funcall .md-remove-code-sign.
 			     (funcall .md-remove-link2.
 				      (funcall .md-remove-link.
-					       (funcall .md-remove-hash-hash. 
-							(concatenate 'string title (format nil "~2%") doc))))))))
+					       (funcall .md-remove-hash-hash. str)))))))
 
 ;;; ******
 ;;; DEFINE : define command or declaration
@@ -249,7 +251,7 @@
 
 (defun export-refman (&optional (output "manual/md/reference.md"))
   (clrhash .out-done.)
-  (let (doc keys)
+  (let (doc docex keys)
     (with-open-file (out output :direction :output :if-exists :supersede :if-does-not-exist :create)
       (maphash #'(lambda (k doc) (declare (ignore doc)) (push k keys)) *cafeobj-doc-db*)
       (setq keys (sort keys #'string<=))
@@ -257,6 +259,9 @@
 	(setq doc (get-document-string key t))
 	(unless doc
 	  (error "The document string not found for ~s." key))
+	(setq docex (get-example-string key t))
+	(if docex
+	    (setq doc (concatenate 'string doc docex)))
 	(unless (gethash key .out-done.)
 	  (format out "~a" doc)
 	  (setf (gethash key .out-done.) t))))))
