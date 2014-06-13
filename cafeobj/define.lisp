@@ -100,6 +100,30 @@
 	(format t "~s" oldoc)))))
 
 ;;;
+;;; search for an arbitrary regexp in all doc-strings, and return
+;;; string that lists all possible matches
+;;;
+(defun search-all-doc (what)
+  ; what is the list of arguments to the ?apropos command
+  (let ((re (car what))
+	(retstr ""))
+    (if re (let ((re (cl-ppcre:create-scanner re :case-insensitive-mode :multi-line-mode))
+		 (matching-docs nil))
+	     (maphash #'(lambda (key oldoc)
+			  (declare (ignore key))
+			  (let* ((str (oldoc-doc-string oldoc))
+				 (found (cl-ppcre:scan re str)))
+			    (when found
+			      (push (oldoc-doc-title oldoc) matching-docs))))
+		      *cafeobj-doc-db*)
+	     ; create the return string from the list of found keys
+	     (when matching-docs
+	       (setq retstr (format nil "Found the following matches:~%~{~a~^~%~}" matching-docs))))
+      (setq retstr (format nil "No matches found!~%")))
+    retstr))
+
+;;;
+;;;
 ;;; register-online-help : names doc 
 ;;;
 

@@ -167,6 +167,15 @@ using `?ex <term>`. In this case the normal help output will also contain
 an informational message that examples are available.
 ")
 
+(define ("?apropos" "?ap")
+    :category :help
+    :parser identity
+    :evaluator cafeobj-top-level-help
+    :title "`?apropos <regexp>`"
+    :doc "Searches all available online docs for the regular
+expression `<regexp>` and returns the found terms.
+")
+
 (define ("all axioms")
     :type :doc-only
     :title "`all axioms` switch" 

@@ -310,6 +310,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
       (|?| (setq description (get-document-string key)))
       ;; (|??| (setq description (get-detailed-document key)))
       ((|?ex| |?example|) (setq description (get-example-string key)))
+      ((|?ap| |?apropos|) (setq description (search-all-doc question)))
       (otherwise
        ;; this cannot happen
        (with-output-chaos-error ('internal-error)
