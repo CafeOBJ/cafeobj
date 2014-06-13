@@ -922,7 +922,9 @@
                                 (rwl-state-state sub-state))
                         (term-print-with-sort target-whole)
 			(print-next)
-			(print-axiom-brief (rwl-state-rule sub-state)))
+			(print-axiom-brief (rwl-state-rule sub-state))
+			(print-next)
+			(print-substitution (rule-pat-subst rule))) ; ***
                       (flush-all))
                     ;;
                     (push sub-state sub-states)))))
@@ -1153,6 +1155,8 @@
 	  ;;
 	  ;; do the search
 	  ;;
+	  (when *cexec-debug*
+	    (print sch-context))
 	  (loop
 	    (when *chaos-verbose*
 	      (format t "~&** << level ~D >>" (rwl-sch-context-cur-depth sch-context)))
