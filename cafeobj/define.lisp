@@ -38,33 +38,54 @@
   (format stream "~&names      : ~a" (oldoc-names doc))
   (format stream "~&cache      : ~a" (oldoc-cache doc)))
 
+
+(defun find-doc-entry (key)
+  (let ((docref (gethash key *cafeobj-alias-db*)))
+    (if docref
+	(gethash docref *cafeobj-doc-db*)
+      (let ((similar-keys nil) (l (length key)))
+	(maphash #'(lambda (k v)
+		     (dolist (n (oldoc-names v))
+		       (if (and (>= (length n) l)
+				(string-equal key (subseq n 0 l)))
+			   (push (cons k (concatenate 'string "\"" n "\"")) similar-keys)))) *cafeobj-doc-db*)
+	(if (= 1 (length similar-keys))
+	    (gethash (car (car similar-keys)) *cafeobj-doc-db*)
+	  (map 'list 'cdr similar-keys))))))
+
 (defun get-document-string (key &optional (raw nil))
-  (let ((doc (gethash (gethash key *cafeobj-alias-db*) *cafeobj-doc-db*)))
-    (if doc
+  (let ((doc (find-doc-entry key)))
+    (if (not (listp doc))
 	(if (not raw)
 	    (or (oldoc-cache doc)
 		(let (outstr (exstr (oldoc-doc-ex doc)))
-		  (setq outstr (format nil "~a~2%~a~2%" (oldoc-doc-title doc) (oldoc-doc-string doc)))
+		  (setq outstr (format nil "~a~2%~a~%" (oldoc-doc-title doc) (oldoc-doc-string doc)))
 		  (if (not (string-equal exstr ""))
 		      (setq outstr (format nil "~a(Examples available)~2%" outstr)))
 		  (setf (oldoc-cache doc) 
 			(format-markdown outstr))))
 	  (format nil "## ~a ## {#~a}~2%~a~2%"
 		  (oldoc-doc-title doc) (oldoc-mdkey doc) (oldoc-doc-string doc)))
-      nil)))
+      (progn 
+	(if (and doc (not raw))
+	    (format t "Did you mean one of ~a~%" doc))
+	nil))))
 
 (defun get-example-string (key &optional (raw nil))
-  (let ((doc (gethash (gethash key *cafeobj-alias-db*) *cafeobj-doc-db*)))
-    (if doc
+  (let ((doc (find-doc-entry key)))
+    (if (not (listp doc))
 	(let ((exstr (oldoc-doc-ex doc)))
 	  (if (not (string-equal exstr ""))
 	      (if (not raw)
-		  (format-markdown (format nil "Example(s) for ~a~2%~a~2%" (oldoc-doc-title doc) exstr))
+		  (format-markdown (format nil "Example(s) for ~a~2%~a~%" (oldoc-doc-title doc) exstr))
 		(format nil "### Example ###~2%~a~2%" exstr))
 	    (if (not raw)
-	        "no examples available" 
+		"no examples available" 
 	      nil)))
-      nil)))
+      (progn
+	(if (and doc (not raw))
+	    (format t "Did you mean one of ~a~%" doc))
+	nil))))
 
 (defun show-doc-entries ()
   (let ((keys nil))
@@ -107,7 +128,7 @@
 				     (concatenate 'string "`" mainname "`"))
 		      :mdkey (or mdkey mainname)
 		      :doc-ex (or example "")
-		      :names aliasnames))))
+		      :names (cons mainname aliasnames)))))
 
 (defparameter .md-remove-hash-hash. #~s/##//)
 (defparameter .md-remove-link. #~s/{#.*}//)
