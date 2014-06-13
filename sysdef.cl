@@ -6,7 +6,43 @@
 
 (eval-when (eval load)
   (push :bigpink *features*)
-  (push :cltl2 *features*))
+  (push :cltl2 *features*)
+  (require :asdf))
+
+(excl:defsystem :cl-ppcre
+    (:default-pathname
+	#+:mswindows
+	"c:/Users/sawada/prj/CafeOBJ/cl-ppcre/"
+      #-:mswindows
+      "cl-ppcre/"
+      :default-package :cl-ppcre)
+  (:definitions
+      "specials"
+      (:serial
+       "util"
+       "errors"
+       "charset"
+       "charmap"
+       "chartest"
+       #-:use-acl-regexp2-engine
+       "lexer"
+       #-:use-acl-regexp2-engine
+       "parser"
+       #-:use-acl-regexp2-engine
+       "regex-class"
+       #-:use-acl-regexp2-engine
+       "regex-class-util"
+       #-:use-acl-regexp2-engine
+       "convert"
+       #-:use-acl-regexp2-engine
+       "optimize"
+       #-:use-acl-regexp2-engine
+       "closures"
+       #-:use-acl-regexp2-engine
+       "repetition-closures"
+       #-:use-acl-regexp2-engine
+       "scanner"
+       "api")))
 
 (excl:defsystem :comlib
     (:default-pathname 
@@ -158,6 +194,7 @@
       "chaos-package"
       "version"
     (:definitions
+	:cl-ppcre
         :chaos
         (:serial
          (:module-group :thstuff

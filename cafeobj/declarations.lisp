@@ -190,7 +190,7 @@
     :parser process-axioms-declaration
     :evaluator eval-ast)
 
-(define (".")                    ; sole dots
+(define (".")                    ; sole dot
     :type :inner-module
     :category :ignore
     :parser parse-decl-do-nothing
