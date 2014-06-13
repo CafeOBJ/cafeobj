@@ -160,6 +160,10 @@ difficult - see TODO for [`=*=`](#bequality)
 With argument gives the reference manual description of `term`.
 In addition to this, many commands allow for passing `?` as argument
 to obtain further help.
+
+In case examples are provided for the `<term>`, they can be displayed
+using `?ex <term>`. In this case the normal help output will also contain
+an informational message that examples are available.
 ")
 
 (define ("all axioms")
@@ -941,9 +945,10 @@ instantiation.
 Within the module declaration sorts and operators of the parameter
 are qualified with `.<parameter_name>` as seen in the example below.
 
-Example:
 
-~~~~~
+Related: [qualified sort etc](#qualifiedother)
+"
+    :example "~~~~~
 mod* C {
   [A]
   op add : A A -> A .
@@ -953,8 +958,6 @@ mod! TWICE(X :: C) {
   eq twice(E:A.X) = add.X(E,E) .
 }
 ~~~~~
-
-Related: [qualified sort etc](#qualifiedother)
 ")
 
 (define ("memo")
