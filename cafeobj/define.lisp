@@ -118,7 +118,7 @@
 		      *cafeobj-doc-db*)
 	     ; create the return string from the list of found keys
 	     (when matching-docs
-	       (setq retstr (format nil "Found the following matches:~%~{~a~^~%~}" matching-docs))))
+	       (setq retstr (format nil "Found the following matches:~% . ~{~a~^~% . ~}" matching-docs))))
       (setq retstr (format nil "No matches found!~%")))
     retstr))
 
