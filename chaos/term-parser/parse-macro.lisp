@@ -53,7 +53,7 @@
   (labels ((apply-macro-rule (macro term)
 	     (block the-end
 	       (multiple-value-bind (global-state subst no-match E-equal)
-		   (simp-match-e (macro-lhs macro) term)
+		   (first-match (macro-lhs macro) term)
 		 (declare (ignore global-state e-equal))
 		 (when no-match (return-from the-end nil))
 		 (catch 'rule-failure

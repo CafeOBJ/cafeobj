@@ -60,8 +60,9 @@ On Unix only, forks a shell and executes the given `<command>`.
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
+    :doc "
+"
 )
-  
 
 (define ("--" "**")
     :category :decl-toplevel

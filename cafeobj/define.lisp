@@ -25,7 +25,7 @@
   (doc-ex     ""  :type string)         ; examples
   (mdkey      ""  :type string)         ; key written to reference manual
   (names      nil :type list)		;
-  (cache nil)				; formatted doc cache
+  (cache nil)				; formatted doc cache for online help
   )
 
 (defun print-online-document (doc &optional (stream *standard-output*) &rest ignore)
@@ -290,5 +290,30 @@
 	(unless (gethash key .out-done.)
 	  (format out "~a" doc)
 	  (setf (gethash key .out-done.) t))))))
+
+;;;
+;;; show-undocumented
+;;; list up undocumented, i.e. each keyword in *cafeobj-doc-db* which has no doc-string in 
+;;; its oldoc. 
+;;;
+(defparameter .todo. #~m/TODO/)
+
+(defun show-undocumented (&rest ignore)
+  (declare (ignore ignore))
+  (let ((docs nil))
+    (maphash #'(lambda (key oldoc)
+		 (declare (ignore key))
+		 (let* ((str (oldoc-doc-string oldoc))
+			(doc (cl-ppcre:split "\\s+" str)))
+		   (when (or (null doc)
+			     (null (cdr doc))
+			     (funcall .todo. str))
+		     (push oldoc docs))))
+	     *cafeobj-doc-db*)
+    (setq docs (sort docs #'string<= :key #'oldoc-key))
+    (format t "~%The following commands/declarations/concepts are not yet documented.")
+    (dolist (doc docs)
+      (format t "~%** key   : ~s" (oldoc-key doc))
+      (format t "~&   names : ~s" (oldoc-names doc)))))
 
 ;;; EOF
