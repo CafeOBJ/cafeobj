@@ -711,6 +711,7 @@
 	((:+ inspect inspect-term) :args)
 	;; generate reference manual
 	(gendoc :symbol)
+	(?example :args)
 	(?ex :args)
 	(?apropos :args)
 	(?ap :args)
