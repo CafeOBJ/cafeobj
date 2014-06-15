@@ -151,7 +151,7 @@ TODO: old manual very unclear ... both about `=*=` and
 difficult - see TODO for [`=*=`](#bequality)
 ")
 
-(define ("?" "?ex")
+(define ("?" "?ex" "?example")
     :category :help
     :parser identity
     :evaluator cafeobj-top-level-help
