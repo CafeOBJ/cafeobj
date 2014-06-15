@@ -1207,6 +1207,9 @@
                             (show-rwl-sch-path opt))))
 		("state" (let ((opt (cadr dat)))
 			   (show-rwl-sch-path opt nil .rwl-sch-context. t)))
+		;;
+		(("undocumented" "undoc")
+		 (show-undocumented))
                 ;;
                 ("?"    
                  (princ "** general module inspection commands.")
