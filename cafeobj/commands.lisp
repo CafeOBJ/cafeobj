@@ -1089,7 +1089,7 @@ Related: [`close`](#close) [module expression](#moduleexpression)
 	 [`select`](#select)
 ")
 
-(define ("operator attributes" "operator attribute" "operator" "assoc" "comm" "id" "idr" "strat" "constr")
+(define ("operator attributes" "assoc" "comm" "id" "idr" "strat" "constr")
     :type :doc-only
     :mdkey "opattr"
     :doc "In the specification of an operator using the [`op`](#op) (and
@@ -1340,7 +1340,7 @@ Related: [`verbose` switch](#switch-verbose)
     :doc "Leaves the CafeOBJ interpreter.
 ")
 
-(define ("red" "reduce")
+(define ("reduce" "red")
     :category :rewrite
     :parser parse-reduce-command
     :evaluator eval-ast
