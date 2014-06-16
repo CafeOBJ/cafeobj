@@ -45,23 +45,30 @@
 
 
 (defun find-doc-entry (question)
+  ;; first try whether it is already a key
   (let ((docref (gethash question *cafeobj-alias-db*)))
     (if docref
 	(gethash docref *cafeobj-doc-db*)
-      (let* ((nstr (make-oldoc-name question))
-	     (similar-keys nil) (l (length nstr)))
-	(maphash #'(lambda (k v)
-		     (let ((subl nil))
-		       (dolist (n (oldoc-names v))
-			 (if (and (>= (length n) l)
-				  (string-equal nstr (subseq n 0 l)))
-			     (push (concatenate 'string "\"" n "\"") subl)))
-		       (if subl
-			   (push (cons k subl) similar-keys)))) 
-		 *cafeobj-doc-db*)
-	(if (= 1 (length similar-keys))
-	    (gethash (car (car similar-keys)) *cafeobj-doc-db*)
-	  (apply #'append (map 'list 'cdr similar-keys)))))))
+      ;, next make a key from the question and check whether that is found
+      (let* ((key (make-oldoc-key question))
+	     (docref (gethash key *cafeobj-alias-db*)))
+	(if docref (gethash docref *cafeobj-doc-db*)
+	  ;; finally, search for similar names
+	  (let* ((nstr (make-oldoc-name question))
+		 (similar-keys nil) (l (length nstr)))
+	    (maphash #'(lambda (k v)
+			 (let ((subl nil))
+			   (dolist (n (oldoc-names v))
+			     (if (and (>= (length n) l)
+				      (string-equal nstr (subseq n 0 l)))
+				 (push (concatenate 'string "\"" n "\"") subl)))
+			   (if subl
+			       (push (cons k subl) similar-keys)))) 
+		     *cafeobj-doc-db*)
+	    ;; if only one similar name is found, return the entry for it
+	    (if (= 1 (length similar-keys))
+		(gethash (car (car similar-keys)) *cafeobj-doc-db*)
+	      (apply #'append (map 'list 'cdr similar-keys)))))))))
 
 (defun get-document-string (key &optional (raw nil))
   (let ((doc (find-doc-entry key)))
