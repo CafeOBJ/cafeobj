@@ -10,6 +10,11 @@ TODO Currently not working!!
 On Unix only, forks a shell and executes the given `<command>`.
 
 
+## `#define` ## {#sharp-define}
+
+
+
+
 ## `**`, `**>` ## {#starstar}
 
 Starts a comment which extends to the end of the line. 
@@ -43,7 +48,7 @@ rewriting.
 Related: [`==`](#equality) [`eq`](#eq)
 
 
-## `=(n)=>`, `=(n,m)=>`, `=()=>` ## {#=(n)=>}
+## `=(n)=>`, `=(n,m)=>`, `=()=>` ## {#searchpredsymb}
 
 See [`search predicates`](#searchpredicate)
 
@@ -57,7 +62,7 @@ TODO: old manual very unclear ... both about `=*=` and
 `accept =*= proof` ??? (page 46 of old manual)
 
 
-## `=/=` ## {#=/=}
+## `=/=` ## {#notequal}
 
 Negation of the predicate `==`.
 
@@ -81,15 +86,27 @@ are connected via transitions.
 Related: [`trans`](#trans) [search predicates](#searchpredicate)
 
 
-## `?` ## {#help}
+## `? [<term>]` ## {#help}
 
-lists all top-level commands. The `?` can be used after many of the
-top-level commands to obtain help.
+Without any argument, lists all top-level commands.
+With argument gives the reference manual description of `term`.
+In addition to this, many commands allow for passing `?` as argument
+to obtain further help.
+
+In case examples are provided for the `<term>`, they can be displayed
+using `?ex <term>`. In this case the normal help output will also contain
+an informational message that examples are available.
 
 
-## `[` ## {#[}
+## `?apropos <regexp>` ## {#apropos}
+
+Searches all available online docs for the regular
+expression `<regexp>` and returns the found terms.
 
 
+## `[` ## {#sortsymbol}
+
+Starts a sort declaration. See [sort declaration](#sort) for details.
 
 
 ## `accept =*= proof` switch ## {#switch-accept}
@@ -204,7 +221,7 @@ TODO No documentation in original manual, no idea!
 
 ## `ax` ## {#ax}
 
-
+(pignose)
 
 
 ## `axioms { <decls> }` ## {#axioms}
@@ -223,7 +240,7 @@ Related: [`signature`](#signature)
 
 ## `bax` ## {#bax}
 
-
+(pignose)
 
 
 ## `bceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#bceq}
@@ -250,7 +267,7 @@ Related: [`eq`](#eq) [`ceq`](#ceq) [`bceq`](#bceq)
 
 ## `bgoal` ## {#bgoal}
 
-
+(pignose)
 
 
 ## `bop <op-spec> : <sorts> -> <sort>` ## {#bop}
@@ -389,7 +406,7 @@ Related: [`apply`](#apply) [`start`](#start)
 
 ## `clause` ## {#clause}
 
-
+(pignose)
 
 
 ## `clean memo` ## {#cleanmemo}
@@ -446,17 +463,17 @@ Related [`trans`](#trans) [`btrans`](#ctrans) [`bctrans`](#bctrans)
 
 ## `db` ## {#db}
 
-
+(pignose)
 
 
 ## `dbpred` ## {#dbpred}
 
-
+(pignose)
 
 
 ## `demod` ## {#demod}
 
-
+(pignose)
 
 
 ## `describe <something>` ## {#describe}
@@ -474,7 +491,7 @@ Related: [`show`](#show)
 
 ## `dpred` ## {#dpred}
 
-
+(pignose)
 
 
 ## `dribble` ## {#dribble}
@@ -538,7 +555,7 @@ the same term with `or` instead.
 Related: [`ceq`](#ceq) [`beq`](#beq) [`bceq`](#bceq)
 
 
-## `exec!` ## {#exec!}
+## `exec!` ## {#execute-dash}
 
 
 exec! [in <Modexpr> :] <Term> .
@@ -595,7 +612,7 @@ TODO missing documentation
 
 ## `flag` ## {#flag}
 
-
+(pignose)
 
 
 ## `full reset` ## {#fullreset}
@@ -614,7 +631,7 @@ and save it to `pathname`.
 
 ## `goal` ## {#goal}
 
-
+(pignose)
 
 
 ## `imports { <import-decl> }` ## {#imports}
@@ -744,7 +761,7 @@ be a fully parsable expression.
 
 ## `lex` ## {#lex}
 
-
+(pignose)
 
 
 ## `libpath` switch ## {#switch-libpath}
@@ -768,7 +785,10 @@ first and cannot be suppressed.
 
 ## `lisp` ## {#lisp}
 
-Evaluates the following lisp expression. Example
+Evaluates the following lisp expression.
+
+### Example ###
+
 `````
 CafeOBJ> lisp (+ 4 5)
 (+ 4 5) -> 9
@@ -782,7 +802,7 @@ Evaluates the following quoted lisp expression. (TODO ???)
 
 ## `list` ## {#list}
 
-
+(pignose)
 
 
 ## `look up <something>` ## {#lookup}
@@ -1065,12 +1085,12 @@ Related: [operator attributes](#opattr)
 
 ## `option` ## {#option}
 
-
+(pignose)
 
 
 ## `param` ## {#param}
 
-
+(pignose)
 
 
 ## `parameterized module` ## {#parametrizedmodule}
@@ -1086,7 +1106,11 @@ instantiation.
 Within the module declaration sorts and operators of the parameter
 are qualified with `.<parameter_name>` as seen in the example below.
 
-Example:
+
+Related: [qualified sort etc](#qualifiedother)
+
+
+### Example ###
 
 ~~~~~
 mod* C {
@@ -1098,8 +1122,6 @@ mod! TWICE(X :: C) {
   eq twice(E:A.X) = add.X(E,E) .
 }
 ~~~~~
-
-Related: [qualified sort etc](#qualifiedother)
 
 
 ## `parse [ in <mod-exp> : ] <term> .` ## {#parse}
@@ -1185,7 +1207,7 @@ Related: [`require`](#require)
 
 ## `pvar` ## {#pvar}
 
-
+(pignose)
 
 
 ## `pwd` ## {#pwd}
@@ -1303,7 +1325,7 @@ Related: [`full reset`](#fullreset)
 
 ## `resolve` ## {#resolve}
 
-
+(pignose)
 
 
 ## `restore <pathname>` ## {#restore}
@@ -1352,7 +1374,7 @@ Related: [`input`](#input) [`restore`](#restore) [`save-system`](#save-system)
 
 ## `save-option` ## {#save-option}
 
-
+(pignose)
 
 
 ## `save-system <pathname>` ## {#save-system}
@@ -1431,7 +1453,7 @@ TODO no further information on what this changes
 
 ## `sigmatch` ## {#sigmatch}
 
-
+(pignose)
 
 
 ## `signature { <sig-decl> }` ## {#signature}
@@ -1467,7 +1489,8 @@ Definition of the partial order can be interleaved by giving
 Where `sorts` is a list of sort names. This declaration defines an inclusion
 relation between each pair or left and right sorts.
 
-Example:
+
+### Example ###
 
 ~~~~
   [ A B , C D < A < E, B < D ]
@@ -1479,7 +1502,7 @@ defines five sorts `A`,...,`E`, with the following relations:
 
 ## `sos` ## {#sos}
 
-
+(pignose)
 
 
 ## `start <term> .` ## {#start}
@@ -1687,19 +1710,6 @@ Infix operators are represented as terms containing the operator with
 either literal underscores `_`, or variables: `_*_` or `X * Y`.
 The `<opname>` can be qualified.
 
-Example: Assume a module `MONOID` with sort `M` and ops `e` and `*`
-are given, and another `SIMPLE-NAT` with sort `Nat` and operators `0`
-and `+` (with the same arity). Then the following expression
-constitutes a view:
-
-~~~~~
-view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
-  sort M -> Nat,
-  op   e -> 0,
-  op _*_ -> _+_
-}
-~~~~~
-
 In specifying views some rules can be omitted:
 
 1. If the source and target modules have common submodules, all the
@@ -1711,5 +1721,21 @@ In specifying views some rules can be omitted:
 
 3. If the source module has a single sort and the target has a 
   principal sort, the single sort is mapped to the principal sort.
+
+
+### Example ###
+
+Assume a module `MONOID` with sort `M` and ops `e` and `*`
+are given, and another `SIMPLE-NAT` with sort `Nat` and operators `0`
+and `+` (with the same arity). Then the following expression
+constitutes a view:
+
+~~~~~
+view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
+  sort M -> Nat,
+  op   e -> 0,
+  op _*_ -> _+_
+}
+~~~~~
 
 
