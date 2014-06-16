@@ -38,12 +38,17 @@
   (format stream "~&names      : ~a" (oldoc-names doc))
   (format stream "~&cache      : ~a" (oldoc-cache doc)))
 
+(defun make-oldoc-key (question)
+  (reduce #'(lambda (x y) (concatenate 'string x y)) question))
+(defun make-oldoc-name (question)
+  (format nil "~{~a~^ ~}" question))
+
 
 (defun find-doc-entry (question)
   (let ((docref (gethash question *cafeobj-alias-db*)))
     (if docref
 	(gethash docref *cafeobj-doc-db*)
-      (let* ((key (reduce #'(lambda (x y) (concatenate 'string x y)) question))
+      (let* ((key (make-oldoc-key question))
 	     (similar-keys nil) (l (length key)))
 	(maphash #'(lambda (k v)
 		     (let ((subl nil))
@@ -135,7 +140,7 @@
   (let ((keys nil))
     (dolist (s str)
       (let ((keyl (remove "" (parse-with-delimiter s #\space))))
-	(push (reduce #'(lambda (x y) (concatenate 'string x y)) keyl) keys)))
+	(push (make-oldoc-key keyl) keys)))
     keys))
 
 (defun register-online-help (mainname aliasnames title mdkey doc example)
