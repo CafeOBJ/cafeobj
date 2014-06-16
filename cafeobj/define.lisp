@@ -39,11 +39,12 @@
   (format stream "~&cache      : ~a" (oldoc-cache doc)))
 
 
-(defun find-doc-entry (key)
-  (let ((docref (gethash key *cafeobj-alias-db*)))
+(defun find-doc-entry (question)
+  (let ((docref (gethash question *cafeobj-alias-db*)))
     (if docref
 	(gethash docref *cafeobj-doc-db*)
-      (let ((similar-keys nil) (l (length key)))
+      (let* ((key (reduce #'(lambda (x y) (concatenate 'string x y)) question))
+	     (similar-keys nil) (l (length key)))
 	(maphash #'(lambda (k v)
 		     (let ((subl nil))
 		       (dolist (n (oldoc-names v))

@@ -304,12 +304,11 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 (defun cafeobj-what-is (inp)
   (let* ((ask (intern (car inp)))
 	 (question (cdr inp))
-	 (key (reduce #'(lambda (x y) (concatenate 'string x y)) question))
 	 (description nil))
     (case ask
-      (|?| (setq description (get-document-string key)))
-      ;; (|??| (setq description (get-detailed-document key)))
-      ((|?ex| |?example|) (setq description (get-example-string key)))
+      (|?| (setq description (get-document-string question)))
+      ;; (|??| (setq description (get-detailed-document question)))
+      ((|?ex| |?example|) (setq description (get-example-string question)))
       ((|?ap| |?apropos|) (setq description (search-all-doc question)))
       (otherwise
        ;; this cannot happen
