@@ -27,7 +27,7 @@ MDFILESORIG=reference-manual.md introduction.md overview.md cloudsync.md \
 manuals: reference-manual.odt reference-manual.epub reference-manual.html reference-manual.pdf
 
 update-ref:
-	cafeobj update-reference.cafe
+	cafeobj -batch update-reference.cafe
 
 reference-manual.odt: $(MDFILES) makefile
 	pandoc ${PDOPTS} -t odt -s -o reference-manual.odt ${MDFILES}
