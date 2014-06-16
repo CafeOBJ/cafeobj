@@ -59,6 +59,7 @@ On Unix only, forks a shell and executes the given `<command>`.
 (define ("#define")
     :category :module-element
     :parser identity
+    :mdkey "sharp-define"
     :evaluator cafeobj-eval-module-element-proc
     :doc "
 "
@@ -113,6 +114,7 @@ which specifies the equality of the theory.
 
 (define ("=/=")
     :type :doc-only
+    :mdkey "notequal"
     :doc "Negation of the predicate `==`.
 ")
 
@@ -139,6 +141,7 @@ TODO: old manual very unclear ... both about `=*=` and
 
 (define ("=(n)=>" "=(n,m)=>" "=()=>")
     :type :doc-only
+    :mdkey "searchpredsymb"
     :title "`=(n)=>`, `=(n,m)=>`, `=()=>`"
     :doc "See [`search predicates`](#searchpredicate)
 ")
@@ -170,6 +173,7 @@ an informational message that examples are available.
 (define ("?apropos" "?ap")
     :category :help
     :parser identity
+    :mdkey "apropos"
     :evaluator cafeobj-top-level-help
     :title "`?apropos <regexp>`"
     :doc "Searches all available online docs for the regular
@@ -1559,7 +1563,7 @@ Related: [`axioms`](#axioms) [`imports`](#imports)
 	 [`sort`](#sort) [`op`](#op)
 ")
 
-(define ("sort declaration" "sort" "[" "*[")
+(define ("sort declaration" "sort")
     :type :doc-only
     :title "sort declaration"
     :mdkey "sort"
@@ -1583,10 +1587,8 @@ Definition of the partial order can be interleaved by giving
 
 Where `sorts` is a list of sort names. This declaration defines an inclusion
 relation between each pair or left and right sorts.
-
-Example:
-
-~~~~
+"
+    :example "~~~~
   [ A B , C D < A < E, B < D ]
 ~~~~
 
@@ -1821,19 +1823,6 @@ Infix operators are represented as terms containing the operator with
 either literal underscores `_`, or variables: `_*_` or `X * Y`.
 The `<opname>` can be qualified.
 
-Example: Assume a module `MONOID` with sort `M` and ops `e` and `*`
-are given, and another `SIMPLE-NAT` with sort `Nat` and operators `0`
-and `+` (with the same arity). Then the following expression
-constitutes a view:
-
-~~~~~
-view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
-  sort M -> Nat,
-  op   e -> 0,
-  op _*_ -> _+_
-}
-~~~~~
-
 In specifying views some rules can be omitted:
 
 1. If the source and target modules have common submodules, all the
@@ -1845,6 +1834,19 @@ In specifying views some rules can be omitted:
 
 3. If the source module has a single sort and the target has a 
   principal sort, the single sort is mapped to the principal sort.
+"
+    :example "Assume a module `MONOID` with sort `M` and ops `e` and `*`
+are given, and another `SIMPLE-NAT` with sort `Nat` and operators `0`
+and `+` (with the same arity). Then the following expression
+constitutes a view:
+
+~~~~~
+view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
+  sort M -> Nat,
+  op   e -> 0,
+  op _*_ -> _+_
+}
+~~~~~
 ")
 
 
@@ -1865,6 +1867,7 @@ In specifying views some rules can be omitted:
     :category :rewrite
     :parser parse-exec+-command
     :evaluator eval-ast
+    :mdkey "execute-dash"
     :doc "
 exec! [in <Modexpr> :] <Term> .
 ")
@@ -1881,8 +1884,8 @@ exec! [in <Modexpr> :] <Term> .
     :category :system
     :parser parse-eval-lisp
     :evaluator cafeobj-eval-lisp-proc
-    :doc "Evaluates the following lisp expression. Example
-`````
+    :doc "Evaluates the following lisp expression."
+    :example "`````
 CafeOBJ> lisp (+ 4 5)
 (+ 4 5) -> 9
 `````
@@ -1912,8 +1915,9 @@ CafeOBJ> lisp (+ 4 5)
 (define ("[")
     :category :module-element
     :parser identity
+    :mdkey "sortsymbol"
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :doc "Starts a sort declaration. See [sort declaration](#sort) for details.
 ")
 
 (define ("*")
@@ -1933,14 +1937,14 @@ CafeOBJ> lisp (+ 4 5)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("dbpred")		; only for pignose
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :doc "(pignose)
 ")
 
 
@@ -1948,35 +1952,35 @@ CafeOBJ> lisp (+ 4 5)
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("bax")			; pignose
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("goal")		; pignose
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("bgoal")		; pignose
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("pvar" "pvars")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :doc "(pignose)
 ")
   
 (define ("trns" "ctrns")
@@ -2085,90 +2089,86 @@ show
     :category :proof
     :parser pignose-parse-sos
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("db")
     :category :proof
     :parser pignose-parse-db
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define  ("clause")
     :category :proof
     :parser pignose-parse-clause
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define  ("list")
     :category :proof
     :parser pignose-parse-list-command
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("flag")
     :category :proof
     :parser pignose-parse-flag
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define  ("param")
     :category :proof
     :parser pignose-parse-param
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("option")
     :category :proof
     :parser pignose-parse-option
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("resolve")
     :category :proof
     :parser pignose-parse-resolve
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define  ("demod")
     :category :proof
     :parser pignose-parse-demod
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("save-option")
     :category :proof
     :parser pignose-parse-save-option
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
 (define ("sigmatch")
   :category :proof
   :parser pignose-parse-sigmatch
   :evaluator eval-ast
-  :doc "
+  :doc "(pignose)
 ")
 
 (define  ("lex")
     :category :proof
     :parser pignose-parse-lex
     :evaluator eval-ast
-    :doc "
+    :doc "(pignose)
 ")
 
-;
-; TODO
-; generation of a key for the doc stuff does not work out here
-; it is added to the --, -->
 (define (".")
     :category :misc
     :parser identity
