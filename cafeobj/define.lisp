@@ -48,13 +48,13 @@
   (let ((docref (gethash question *cafeobj-alias-db*)))
     (if docref
 	(gethash docref *cafeobj-doc-db*)
-      (let* ((key (make-oldoc-key question))
-	     (similar-keys nil) (l (length key)))
+      (let* ((nstr (make-oldoc-name question))
+	     (similar-keys nil) (l (length nstr)))
 	(maphash #'(lambda (k v)
 		     (let ((subl nil))
 		       (dolist (n (oldoc-names v))
 			 (if (and (>= (length n) l)
-				  (string-equal key (subseq n 0 l)))
+				  (string-equal nstr (subseq n 0 l)))
 			     (push (concatenate 'string "\"" n "\"") subl)))
 		       (if subl
 			   (push (cons k subl) similar-keys)))) 
