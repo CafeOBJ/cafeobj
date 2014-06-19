@@ -69,11 +69,10 @@
     :evaluator identity
     :title "`**`, `**>`"
     :mdkey "starstar"
+    :related ("--" "comments")
     :doc "Starts a comment which extends to the end of the line. 
 With the additional `>` the comment is displayed while
 evaluated by the interpreter.
-
-Related: [`--`](#dashdash) [comments](#comments)
 ")
 
 
@@ -83,21 +82,19 @@ Related: [`--`](#dashdash) [comments](#comments)
     :evaluator eval-ast
     :title "`--`, `-->`"
     :mdkey "dashdash"
+    :related ("**" "comments")
     :doc "Starts a comment which extends to the end of the line. 
 With the additional `>` the comment is displayed while
 evaluated by the interpreter.
-
-Related: [`**`](#starstar) [comments](#comments)
 ")
 
 (define ("=")
     :type :doc-only
     :mdkey "axeq"
+    :related ("==" "eq")
     :doc "The syntax element `=` introduces an axiom of the equational theory,
 and is different from `==` which specifies an equality based on
 rewriting. 
-
-Related: [`==`](#equality) [`eq`](#eq)
 ")
 
 (define ("==")
@@ -119,12 +116,11 @@ which specifies the equality of the theory.
 (define ("==>")
     :type :doc-only
     :mdkey "transrel"
+    :related ("trans" "search predicates")
     :doc "This binary predicate is defined on each visible sort, and defines the
 transition relation, which is reflexive, transitive, and closed under
 operator application. It expresses the fact that two states (terms)
 are connected via transitions.
-
-Related: [`trans`](#trans) [search predicates](#searchpredicate)
 ")
 
 (define ("=*=")
@@ -184,20 +180,18 @@ expression `<regexp>` and returns the found terms.
     :type :doc-only
     :title "`all axioms` switch" 
     :mdkey "switch-all-axioms" 
+    :related ("show")
     :doc "Controls whether axioms from included modules are shown
 during a `show` invocation.
-
-Related: [`show`](#show)
 ")
 
 (define ("always memo switch")
     :type :doc-only
     :title "`always memo` switch" 
     :mdkey "switch-always-memo" 
+    :related ("memo" "operator attributes")
     :doc "Turns on memorization of computation also for operators without
 the [`memo`](#opattr) operator attribute.
-
-Related: [`memo` switch](#switch-memo) [operator attributes](#opattr)
 ")
 
 (define ("apply")
@@ -205,6 +199,7 @@ Related: [`memo` switch](#switch-memo) [operator attributes](#opattr)
     :parser parse-apply-command
     :evaluator eval-ast
     :title "`apply <action> [ <subst> ] <range> <selection>`"
+    :related ("choose" "start")
     :doc "Applies one of the following actions `reduce`, `exec`, `print`, or a
 rewrite rule to the term in focus. 
 
@@ -271,10 +266,6 @@ where each `<selector>` is one of
   Example: If the operator `_*_` is declared as associative and
   commutative, and the current term is `b * c * d * c * e`, then
   then the expression `{2, 4, 5}` selects the subterm `c * c * e`.
-
-
-Related: [`choose`](#choose)
-         [`start`](#start) 
 ")
 
 (define ("auto context switch")
@@ -300,16 +291,11 @@ a module's content will switch the current module.
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`axioms { <decls> }`"
+    :related ("signature" "imports" "var" "eq" "trans")
     :doc "Block enclosing declarations of variables, equations, and 
 transitions.
 Other statements are not allowed within the `axioms` block.
 Optional structuring of the statements in a module.
-
-Related: [`signature`](#signature)
-         [`imports`](#imports)
-	 [`var`](#var)
-         [`eq`](#eq)
-         [`trans`](#trans)
 ")
 
 (define ("bceq" "bcq")
@@ -317,9 +303,8 @@ Related: [`signature`](#signature)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`bceq [ <op-exp> ] <term> = <term> if <boolterm> .`"
+    :related ("eq" "ceq" "beq")
     :doc "Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
-
-Related: [`eq`](#eq) [`ceq`](#ceq) [`beq`](#beq)
 ")
 
 (define ("beq")
@@ -327,9 +312,8 @@ Related: [`eq`](#eq) [`ceq`](#ceq) [`beq`](#beq)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`beq [ <op-exp> ] <term> = <term> .`"
+    :related ("eq" "ceq" "bceq")
     :doc "Defines a behaviour equation. For details see [`eq`](#eq).
-
-Related: [`eq`](#eq) [`ceq`](#ceq) [`bceq`](#bceq)
 ")
 
 (define ("bctrans")
@@ -337,10 +321,9 @@ Related: [`eq`](#eq) [`ceq`](#ceq) [`bceq`](#bceq)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`bctrans [ <label-exp> ] <term> => <term> if <bool> .`"
+    :related ("trans" "ctrans" "btrans")
     :doc "Defines a behaviour conditional transition. 
 For details see [`ctrans`](#ctrans).
-
-Related [`trans`](#trans) [`ctrans`](#ctrans) [`btrans`](#btrans)
 ")
 
 (define ("bop" "bops")
@@ -348,13 +331,12 @@ Related [`trans`](#trans) [`ctrans`](#ctrans) [`btrans`](#btrans)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`bop <op-spec> : <sorts> -> <sort>`"
+    :related ("op")
     :doc "Defines a behavioural operator by its domain, codomain, and the term 
 construct. `<sorts>` is a space separated list of sort names containing
 *exactely* one hidden sort. `<sort>` is a single sort name.
 
 For `<op-spec>` see the explanations of [`op`](#op).
-
-Related: [`op`](#op)
 ")
 
 (define ("bpred")
@@ -362,12 +344,9 @@ Related: [`op`](#op)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`bpred <op-spec> : <sorts>`"
+    :related ("op" "bop" "pred")
     :doc "Short hand for `op <op-spec> : <sorts> -> Bool` defining a
 behavioural predicate.
-
-Related: [`op`](#op)
-         [`bop`](#op)
-         [`pred`](#bpred)
 ")
 
 (define ("breduce" "bred")
@@ -375,13 +354,12 @@ Related: [`op`](#op)
     :parser parse-bred-command
     :evaluator eval-ast
     :title "`breduce [ in <mod-exp> : ] <term> .`"
+    :related ("execute" "reduce")
     :doc "Reduce the given term in the given module, if `<mod-exp>` is given, 
 otherwise in the current module. 
 
 For `breduce` equations, possibly conditional, possibly behavioural, are taken
 into account for reduction.
-
-Related: [`execute`](#execute) [`reduce`](#reduce)
 ")
 
 (define ("btrans")
@@ -389,9 +367,8 @@ Related: [`execute`](#execute) [`reduce`](#reduce)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`btrans [ <label-exp> ] <term> => <term> .`"
+    :related ("trans" "ctrans" "bctrans")
     :doc "Defines a behaviour transition. For details see [`trans`](#trans).
-
-Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
 ")
 
 (define ("cbred")
@@ -406,10 +383,9 @@ Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
     :parser parse-cd-command
     :evaluator eval-ast
     :title "`cd <dirname>`"
+    :realted ("pwd" "ls")
     :doc "Change the current working directory, like the Unix counterpart.
 The argument is necessary. No kind of expansion or substitution is done.
-
-Related: [`pwd`](#pwd) [`ls`](#ls)
 ")
 
 (define ("ceq" "cq")
@@ -417,11 +393,10 @@ Related: [`pwd`](#pwd) [`ls`](#ls)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`ceq [ <op-exp> ] <term> = <term> if <boolterm> .`"
+    :related ("eq" "beq" "bceq")
     :doc "Defines a conditional equation. Spaces around the `if` are obligatory.
 `<boolterm>` needs to be a Boolean term. For other requirements
 see [`eq`](#eq).
-
-Related: [`eq`](#eq) [`beq`](#beq) [`bceq`](#bceq)
 ")
 
 (define ("check")
@@ -429,6 +404,7 @@ Related: [`eq`](#eq) [`beq`](#beq) [`bceq`](#bceq)
     :parser   parse-check-command
     :evaluator eval-ast
     :title "`check <options>`"
+    :related ("regularize")
     :doc "This command allows for checking of certain properties of modules and
 operators. 
 
@@ -447,8 +423,6 @@ operators.
   ~ Checks whether the given operator can be evaluated lazily. If not
     `<op_name>` is given, all operators of the current module are
     checked. 
-
-Related: [`regularize`](#regularize)
 ")
 
 (define ("check switch")
@@ -479,11 +453,9 @@ Related: [`regularize`](#regularize)
     :evaluator eval-ast
     :title "`choose <selection>`"
     :mdkey "choose"
+    :related ("apply" "start" ("`strat` in operator attributes" "operator attributes"))
     :doc "Chooses a subterm by the given `<selection>`. See [`apply`](#apply)
 for details on `<selection>`.
-
-Related: [`apply`](#apply) [`start`](#start)
-	 [`strat` in operator attributes](#opattr)
 ")
 
 (define ("clean memo" "clean")
@@ -491,10 +463,9 @@ Related: [`apply`](#apply) [`start`](#start)
     :parser identity
     :evaluator cafeobj-eval-clear-memo-proc
     :mdkey "cleanmemo"
+    :related ("clean memo switch")
     :doc "Resets (clears) the memo storages of the system. Memorized computations 
 are forgotten. 
-
-Related: [`clean memo` switch](#switch-clean-memo)
 ")
 
 (define ("clean memo switch")
@@ -510,21 +481,19 @@ tells the system to be forgetful.
     :category :proof
     :parser parse-close-command
     :evaluator eval-ast
+    :related ("open")
     :doc "This command closes a modification of a module started by `open`.
-
-Related: [`open`](#open)
 ")
 
 (define ("comments")
     :type :doc-only
     :title "comments"
+    :related ("**" "--")
     :doc "The interpreter accepts the following strings as start of a comment
 that extends to the end of the line: `--`, `-->`, `**`, `**>`.
 
 The difference in the variants with `>` is that the comment is
 displayed when run through the interpreter.
-
-Related: [`**`](#starstar) [`--`](#dashdash)
 ")
 
 (define ("cond limit switch")
@@ -539,10 +508,9 @@ Related: [`**`](#starstar) [`--`](#dashdash)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`ctrans [ <label-exp> ] <term> => <term> .`"
+    :related ("trans" "btrans" "bctrans")
     :doc "Defines a conditional transition. For details see [`trans`](#trans)
 and [`ceq`](#ceq).
-
-Related [`trans`](#trans) [`btrans`](#ctrans) [`bctrans`](#bctrans)
 ")
 
 (define ("describe" "desc")
@@ -550,10 +518,9 @@ Related [`trans`](#trans) [`btrans`](#ctrans) [`bctrans`](#bctrans)
     :parser parse-show-command
     :evaluator eval-ast
     :title "`describe <something>`"
+    :related ("show")
     :doc "Similar to the `show` command but with more details. See `describe ?` for
 the possible set of invocations.
-
-Related: [`show`](#show)
 ")
 
 (define ("eof")
@@ -568,6 +535,7 @@ to be on a line by itself without leading spaces.
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`eq [ <op-exp> ] <term> = <term> .`"
+    :related ("ceq" "beq" "bceq")
     :doc "Declares an axiom, or equation.
 
 Spaces around the `=` are necessary to separate the left from
@@ -611,30 +579,27 @@ a set of natural number, and let
 In this case an expression like `q1(1 2 3)` would reduce to 
 `p1(1) and p1(2) and p1(3)` (modulo AC), and `q2(1 2 3)` into
 the same term with `or` instead.
-
-Related: [`ceq`](#ceq) [`beq`](#beq) [`bceq`](#bceq)
-")
+"
+)
 
 (define ("exec limit switch")
     :type :doc-only
     :title "`exec limit` switch"
     :mdkey "switch-exec-limit"
+    :related ("reduce")
     :doc "Possible values: integers, default limit 4611686018427387903.
 
 Controls the number of maximal transition steps.
-
-Related: [`reduce`](#reduce)
 ")
 
 (define ("exec trace switch")
     :type :doc-only
     :title "`exec trace` switch"
     :mdkey "switch-exec-trace"
+    :related ("reduce")
     :doc "Possible values: `on` `off, default `off`.
 
 controls whether further output is provided during reductions.
-
-Related: [`reduce`](#reduce)
 ")
 
 
@@ -643,13 +608,12 @@ Related: [`reduce`](#reduce)
     :parser parse-exec-command
     :evaluator eval-ast
     :title "`execute [ in <mod-exp> : ] <term> .`"
+    :related ("breduce" "reduce")
     :doc "Reduce the given term in the given module, if `<mod-exp>` is given, 
 otherwise in the current module. 
 
 For `execute` equations and transitions, possibly conditional, are taken
 into account for reduction.
-
-Related: [`breduce`](#breduce) [`reduce`](#reduce)
 ")
 
 
@@ -658,12 +622,10 @@ Related: [`breduce`](#breduce) [`reduce`](#reduce)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`extending ( <modexp> )`"
+    :related ("including" "protecting" "using")
     :doc "Imports the object specified by `modexp` into the current
 module, allowing models to be inflated, but not collapsing. 
 See [`module expression`](#moduleexpression) for format of `modexp`.
-
-Related: [`including`](#including) [`protecting`](#protecting) 
-	 [`using`](#using)
 ")
 
 (define  ("find")
@@ -687,10 +649,9 @@ Related: [`including`](#including) [`protecting`](#protecting)
     :parser parse-full-reset-command
     :evaluator eval-ast
     :mdkey "fullreset"
+    :related ("reset")
     :doc "Reinitializes the internal state of the system. All supplied modules
 definitions are lost.
-
-Related: [`reset`](#reset)
 ")
 
 (define ("gendoc")
@@ -707,13 +668,11 @@ and save it to `pathname`.
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`imports { <import-decl> }`"
+    :related ("signature" "axioms" "extending" "including" "protecting"
+	      "using")
     :doc "Block enclosing import of other modules (`protecting` etc). 
 Other statements are not allowed within the `imports` block.
 Optional structuring of the statements in a module.
-
-Related: [`signature`](#signature) [`axioms`](#axioms)
-  [`extending`](#extending)   [`including`](#including) 
-  [`protecting`](#protecting) [`using`](#using)
 ")
 
 (define ("include BOOL switch")
@@ -744,13 +703,11 @@ This switch allows to disable automatic inclusion of RWL.
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`including ( <modexp> )`"
+    :related ("extending" "protecting" "using" "module expression")
     :doc "Imports the object specified by `modexp` into the current
 module. 
 
 See [`module expression`](#moduleexpression) for format of `modexp`.
-
-Related: [`extending`](#including) [`protecting`](#protecting) 
-	 [`using`](#using) [`module expression`](#moduleexpression)
 ")
 
 (define  ("input" "in")
@@ -762,7 +719,6 @@ Related: [`extending`](#including) [`protecting`](#protecting)
 pathname. The file itself may contain `input` commands.
 CafeOBJ reads the file up to the end, or until it encounters
 a line that only contains (the literal) `eof`.
-
 ")
 
 (define ("instantiation")
@@ -876,18 +832,16 @@ first and cannot be suppressed.
     :parser parse-ls-command
     :evaluator eval-ast
     :title "`ls <pathname>`"
+    :related ("cd" "pwd")
     :doc "lists the given `pathname`. Argument is obligatory.
-
-Related: [`cd`](#ls) [`pwd`](#pwd)
 ")
 
 (define ("make")
     :type :doc-only
     :title "`make <mod_name> ( <mod_exp> )`"
+    :related ("module expression")
     :doc "This commands defines a new module `<mod_name>` by evaluating the
 module expression `<mod_exp>`.
-
-Related: [module expressions](#moduleexpression)
 ")
 
 (define ("match" "unify")
@@ -946,6 +900,7 @@ single-sort modules as the sort mapping needs not be given.
 (define ("parameterized module")
     :type :doc-only
     :mdkey "parametrizedmodule"
+    :related ("qualified sort")
     :doc "A module with a parameter list (see `module`) is a parametrized module.
 Parameters are given as a comma (`,`) separated list. Each parameter is
 of the form `[ <import_mode> ] <param_name> :: <module_name>` 
@@ -956,9 +911,6 @@ instantiation.
 
 Within the module declaration sorts and operators of the parameter
 are qualified with `.<parameter_name>` as seen in the example below.
-
-
-Related: [qualified sort etc](#qualifiedother)
 "
     :example "~~~~~
 mod* C {
@@ -1018,6 +970,7 @@ summation
     :type :doc-only
     :title "on-the-fly declarations"
     :mdkey "onthefly"
+    :related ("var")
     :doc "Variables and constants can be declared *on-the-fly* (or *inline*). If an 
 equation contains a qualified variable (see [qualified term](#qualified)),
 i.e., `<name>:<sort-name>`, then from this point on *within* the current
@@ -1045,8 +998,6 @@ or in the above example, `op a : -> Nat .`, besides that the
 on-the-fly declaration of constants, like to one of variables, is only
 valid in the current context (i.e., term or axiom). These constant
 definitions are quite common in proof scores.
-
-Related: [`var`](#var)
 ")
 
 (define ("op" "ops")
@@ -1084,16 +1035,15 @@ For the description of `<attribute-list>` see the entry for
     :parser parse-open-command
     :evaluator eval-ast
     :title "`open <mod_exp> .`"
+    :related ("close" "module expression" "select")
     :doc "This command opens the module specified by the module expression
 `<mod_exp>` and allows for declaration of new sorts, operators, etc.
-
-Related: [`close`](#close) [module expression](#moduleexpression)
-	 [`select`](#select)
 ")
 
 (define ("operator attributes" "assoc" "comm" "id" "idr" "strat" "constr")
     :type :doc-only
     :mdkey "opattr"
+    :related ("bop")
     :doc "In the specification of an operator using the [`op`](#op) (and
 related) keyword, attributes of the operator can be specified.
 An `<attribute-list>` is a space-separate list of single
@@ -1165,13 +1115,12 @@ Remarks:
   as parsing needs hints.
 
   - A single underbar cannot be an operator name.
-
-Related: [`bop`](#bop)
 ")
 
 (define ("operator precedence" "precedence")
     :type :doc-only
     :mdkey "opprec"
+    :related ("operator attributes")
     :doc "CafeOBJ allows for complete freedom of syntax, in particular infix
 operators and overloading. To correctly parse terms that are ambigous,
 all operators have precedence values. These values can be adjusted
@@ -1189,8 +1138,6 @@ the following rules:
   precedence 41.
 - all other operators (constants, operators of the form `a _ b`, etc.)
   receive precedence 0.
-
-Related: [operator attributes](#opattr)
 ")
 
 (define ("parse")
@@ -1198,14 +1145,13 @@ Related: [operator attributes](#opattr)
     :parser parse-parse-command
     :evaluator eval-ast
     :title "`parse [ in <mod-exp> : ] <term> .`"
+    :related ("qualified term")
     :doc "Tries to parse the given term within the module specified by
 the module expression `<mod-exp>`, or the current module if not given,
 and returns the parsed and qualified term.
 
 In case of ambiguous terms, i.e., different possible parse trees, the
 command will prompt for one of the trees.
-
-Related: [qualified term](#qualified)
 ")
 
 (define ("parser normalize switch")
@@ -1220,9 +1166,8 @@ Related: [qualified term](#qualified)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`pred <op-spec> : <sorts>`"
+    :related ("op" "bpred")
     :doc "Short hand for `op <op-spec> : <sorts> -> Bool` defining a predicate.
-
-Related: [`op`](#op) [`bpred`](#bpred)
 ")
 
 (define ("print depth switch")
@@ -1248,11 +1193,10 @@ Selects one of the print modes.
     :parser parse-protect-command
     :evaluator eval-ast
     :title "`protect <module-name>`"
+    :related ("unprotect")
     :doc "Protect a module from being overwritten.
 Some modules vital for the system are initially protected.
 Can be reversed with `unprotect`.
-
-Related: [`unprotect`](#unprotect)
 ")
 
 (define ("protecting" "pr")
@@ -1260,11 +1204,10 @@ Related: [`unprotect`](#unprotect)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`protecting ( <modexp> )`"
+    :related ("extending" "using" "including")
     :doc "Imports the object specified by `modexp` into the current
 module, preserving all intended models as they are. See `module expression`
 for format of `modexp`.
-
-Related: [`extending`](#extending) [`using`](#using) [`including`](#including)
 ")
 
 (define  ("provide") 
@@ -1272,11 +1215,10 @@ Related: [`extending`](#extending) [`using`](#using) [`including`](#including)
     :parser parse-provide-command
     :evaluator eval-ast
     :title "`provide <feature>`"
+    :related ("require")
     :doc "Discharges a feature requirement: once `provide`d, all the subsequent
 `require`ments of a feature are assumed to have been fulfilled
 already.
-
-Related: [`require`](#require)
 ")
 
 
@@ -1284,15 +1226,15 @@ Related: [`require`](#require)
     :category :misc
     :parser parse-pwd-command
     :evaluator eval-ast
+    :related ("cd" "ls")
     :doc "Prints the current working directory.
-
-Related: [`cd`](#cd) [`ls`](#ls)
 ")
 
 (define ("qualified sort" "qualified operator" "qualified parameter" "qualify")
     :type :doc-only
     :title "qualified sort/operator/parameter"
     :mdkey "qualifiedother"
+    :related ("parametrized module" "qualified term")
     :doc "CafeOBJ allows for using the same name for different sorts,
 operators, and parameters. One example is declaring the same sort in
 different modules. In case it is necessary to qualify the sort,
@@ -1309,30 +1251,26 @@ renaming (see [view](#view)) the need
 for qualification of the number of parameters might arise. In this
 case the number can be specified after an affixed `/`: 
 `<opname>/<argnr>`
-
-Related: [parametrized module](#parametrizedmodule) [qualified term](#qualified) 
 ")
 
 (define ("qualified term")
     :type :doc-only
     :mdkey "qualified"
     :example "`1:NzNat` `2:Nat`"
+    :related ("parse")
     :doc "In case that a term can be parsed into different sort, it is possible to
 qualify the term to one of the possible sorts by affixing it with 
 `: <sort-name>` (spaces before and after the `:` are optional).
-
-Related: [`parse`](#parse)
 ")
 
 (define ("quiet switch")
     :type :doc-only
     :title "`quiet` switch"
     :mdkey "switch-quiet"
+    :related ("verbose")
     :doc "Possible values: `on` `off`, default `off`
 
 If set to `on`, the system only issues error messages.
-
-Related: [`verbose` switch](#switch-verbose)
 ")
 
 (define ("quit")
@@ -1346,26 +1284,24 @@ Related: [`verbose` switch](#switch-verbose)
     :evaluator eval-ast
     :title "`reduce [ in <mod-exp> : ] <term> .`"
     :mdkey "reduce"
+    :related ("execute" "breduce")
     :doc "Reduce the given term in the given module, if `<mod-exp>` is given, 
 otherwise in the current module. 
 
 For `reduce` only equations and conditional equations are taken into
 account for reduction.
-
-Related: [`execute`](#execute) [`breduce`](#breduce)
 ")
 
 (define ("reduce conditions")
     :type :doc-only
     :title "`reduce conditions` switch"
     :mdkey "switch-reduce-conditions"
+    :related ("apply")
     :doc "Possible values: `on` `off`, default `off`.
 
 When using [`apply`](#apply) to step through a reduction, this switch
 allows to turn on automatic reduction of conditions in conditional
 equations. 
-
-Related: [`apply`](#apply)
 ")
 
 (define ("regularize")
@@ -1393,13 +1329,12 @@ Modules can be automatically regularized by the interpreter if the
     :parser parse-require-command
     :evaluator eval-ast
     :title "`require <feature> [ <pathname> ]`"
+    :related ("provide")
     :doc "Requires a feature, which usually
 denotes a set of module definitions. Given this command, the
 system searches for a file named the feature, and read the file
 if found. If a pathname is given, the system searches for a file
 named the pathname instead.
-
-Related: [`provide`](#provide)
 ")
 
 
@@ -1407,10 +1342,9 @@ Related: [`provide`](#provide)
     :category :system
     :parser parse-reset-command
     :evaluator eval-ast
+    :related ("full reset")
     :doc "Restores the definitions of built-in modules and preludes,  but does not
 affect other modules.
-
-Related: [`full reset`](#fullreset)
 ")
 
 (define ("restore")
@@ -1418,27 +1352,23 @@ Related: [`full reset`](#fullreset)
     :parser parse-restore-command
     :evaluator eval-ast
     :title "`restore <pathname>`"
+    :related ("input" "save" "save-system")
     :doc "Restores module definitions from the designated file `pathname` which 
 has been saved with the `save` command. `input` can also be used but
 the effects might be different.
 
 TODO -- should we keep the different effects? What is the real difference?
-
-Related: [`input`](#input) [`save`](#save) 
-	 [`save-system`](#save-system)
-
 ")
 
 (define ("rewrite limit switch" "rew limit")
     :type :doc-only
     :title "`rewrite limit` switch"
     :mdkey "switch-rewrite"
+    :related ("step switch")
     :doc "Possible values: positive integers, default not specified.
 
 Allows limiting the number of rewrite steps during a stepwise
 execution.
-
-Related: [`step` switch](#switch-step)
 ")
 
 
@@ -1447,24 +1377,22 @@ Related: [`step` switch](#switch-step)
     :parser parse-save-command
     :evaluator eval-ast
     :title "`save <pathname>`"
+    :related ("input" "restore" "save-system")
     :doc "Saves module definitions into the designated file `pathname`.
 File names should be suffixed with `.bin`. 
 
 `save` also saves the contents of prelude files as well as module definitions
 given in the current session.
-
-Related: [`input`](#input) [`restore`](#restore) [`save-system`](#save-system)
 ")
 
 
 (define ("save-system" "save system")	; NOTE. this is obsolete.
     :type :doc-only
     :title "`save-system <pathname>`"
+    :related ("input" "save" "restore")
     :doc "Dumps the image of the whole system into a file. This is functionality
 provided by the underlying Common Lisp system and might carry some 
 restrictons.
-
-Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
 ")
 
 (define ("search predicates")
@@ -1514,12 +1442,11 @@ These two cases can also be combined into
     :parser parse-show-command
     :evaluator eval-ast
     :title "`select <mod_exp> . `"
+    :related ("open" "module expression")
     :doc "Selects a module given by the module expression `<mod_exp>` as the
 current module. All further operations are carried out within the
 given module. In constrast to `open` this does not allow for
 modification of the module, e.g., addition of new sorts etc.
-
-Related: [`open`](#open) [module expression](#moduleexpression)
 ")
 
 
@@ -1528,6 +1455,7 @@ Related: [`open`](#open) [module expression](#moduleexpression)
     :parser parse-set-command
     :evaluator eval-ast
     :title "`set <name> [option] <value>`"
+    :related ("show" "switches")
     :doc "Depending on the type of the switch, options and value specification varies.
 Possible value types for switches are boolean (`on`, `off`), string (`\"value\"`),
 integers (5434443), lists (lisp syntax).
@@ -1535,8 +1463,6 @@ integers (5434443), lists (lisp syntax).
 For a list of all available switches, use `set ?`. To see the current
 values, use `show switches`. To single out two general purpose switches,
 `verbose` and `quiet` tell the system to behave in the respective way.
-
-Related: [`show`](#show) [`switches`](#switches)
 ")
 
 
@@ -1545,6 +1471,7 @@ Related: [`show`](#show) [`switches`](#switches)
     :parser parse-show-command
     :evaluator eval-ast
     :title "`show <something>`"
+    :related ("switches" "describe")
     :doc "The `show` command provides various ways to inspect all kind of objects
 of the CafeOBJ language. For a full list call `show ?`.
 
@@ -1557,8 +1484,6 @@ the `show` command are:
   - `show <term>` - displays a term, posible in tree format
 
 See the entry for `switches` for a full list.
-
-Related: [`switches`](#switches) [`describe`](#describe)
 ")
 
 (define ("show mode switch")
@@ -1576,12 +1501,10 @@ TODO no further information on what this changes
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`signature { <sig-decl> }`"
+    :related ("axioms" "imports" "sort" "op")
     :doc "Block enclosing declarations of sorts and operators.
 Other statements are not allowed within the `signature` block.
 Optional structuring of the statements in a module.
-
-Related: [`axioms`](#axioms) [`imports`](#imports)
-	 [`sort`](#sort) [`op`](#op)
 ")
 
 (define ("sort declaration")
@@ -1622,11 +1545,10 @@ defines five sorts `A`,...,`E`, with the following relations:
     :parser parse-start-command
     :evaluator eval-ast
     :title "`start <term> .`"
+    :related ("apply" "choose" "match")
     :doc "Sets the focus onto the given term `<term>` of the currently opened
 module or context. Commands like `apply`, `choose`, or `match` will
 then operate on this term.
-
-Related: [`apply`](#apply) [`choose`](#choose) [`match`](#match)
 ")
 
 (define ("statistics")
@@ -1684,6 +1606,7 @@ Other standard CafeOBJ commands that can be used are [`show`](#show),
     :type :doc-only
     :title "`stop pattern` switch"
     :mdkey "switch-stop-pattern"
+    :related ("step switch")
     :doc "This command causes reductions to stop when the reductants get to
 containing subterms that match the given term. If no term is given,
 this restriction is lifted. 
@@ -1706,13 +1629,12 @@ CafeOBJ> open NAT .
 
 %NAT> 
 `````
-
-Related: [`step` switch](#switch-step)
 ")
 
 (define ("switches")
     :type :doc-only
     :title "switches"
+    :related ("set" "show")
     :doc "Switches control various aspects of the computations and behaviour
 of CafeOBJ. The current list of switches and their values can be
 shown with 
@@ -1722,8 +1644,6 @@ show switches
 `````
 
 The single switches are described separately in this manual.
-
-Related: [`set`](#set) [`show`](#show)
 ")
 
 (define ("trace whole switch")
@@ -1761,11 +1681,10 @@ from a given term.
     :parser parse-unprotect-command
     :evaluator eval-ast
     :title "`unprotect <module-name>`"
+    :related ("protect")
     :doc "Remove overwrite protection from a module that has been protected
 with the `protect` call. Some modules vital for the system
 are initially protected.
-
-Related: [`protect`](#protect)
 ")
 
 (define ("using" "us")
@@ -1773,12 +1692,10 @@ Related: [`protect`](#protect)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`using ( <modexp> )`"
+    :related ("extending" "including" "protecting")
     :doc "Imports the object specified by `modexp` into the current
 module without any restrictions on the models.
 See `module expression` for format of `modexp`.
-
-Related: [`extending`](#extending) [`including`](#including) 
-	 [`protecting`](#protecting)
 ")
 
 (define ("var" "vars")
@@ -1786,6 +1703,7 @@ Related: [`extending`](#extending) [`including`](#including)
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`var <var-name> : <sort-name>`"
+    :related ("op" "qualified term" "on-the-fly")
     :doc "Declares a variable `<var-name>` to be of sort `<sort-name>`.
 The scope of the variable is the current module.
 Redeclarations of variable names are not allowed.
@@ -1793,19 +1711,16 @@ Several variable of the same sort can be declared at the same time
 using the `vars` construct:
 
 `vars <var-name> ... : <sort-name>`
-
-Related: [`op`](#op) [qualified term](#qualified) [on-the-fly](#onthefly)
 ")
 
 (define ("verbose switch")
     :type :doc-only
     :title "`verbose` switch"
     :mdkey "switch-verbose"
+    :related ("quiet switch")
     :doc "Possible values: `on` `off`, default `off`.
 
 If turn `on`, the system is much more verbose in many commands.
-
-Related: [`quiet` switch](#switch-quiet)
 ")
 
 
