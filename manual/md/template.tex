@@ -27,6 +27,12 @@
  language=cafeobj,columns=fullflexible,%
  breaklines,prebreak={\Righttorque},postbreak={\Lefttorque}}
 
+%
+% fix overlap of subsubsections
+\AtBeginDocument{
+ \addtolength{\cftsectionnumwidth}{.5em}
+ \addtolength{\cftsubsectionnumwidth}{.5em}
+}
 
 %%%%%%%%%%%
 % chapter heads from http://texblog.org/2012/07/03/fancy-latex-chapter-styles/
@@ -116,7 +122,7 @@
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
 $if(numbersections)$
-\setcounter{secnumdepth}{5}
+\setcounter{secnumdepth}{4}
 $else$
 \setcounter{secnumdepth}{0}
 $endif$

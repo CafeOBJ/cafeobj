@@ -8,6 +8,7 @@ ENGINE=xelatex
 PDOPTS=-f markdown -V biblio-files=manual.bib --biblatex	\
 	--template=template.tex				\
 	--table-of-contents				\
+	--toc-depth=1					\
 	-V papersize=a4paper				\
 	-V mainfont='Lucida Bright OT'			\
 	-V sansfont='Lucida Sans OT'			\
