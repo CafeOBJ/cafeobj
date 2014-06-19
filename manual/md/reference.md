@@ -5,8 +5,6 @@
 
 ## `! <command>` ## {#commandexec}
 
-TODO Currently not working!! 
-
 On Unix only, forks a shell and executes the given `<command>`.
 
 
@@ -216,7 +214,7 @@ a module's content will switch the current module.
 
 ## `autoload` ## {#autoload}
 
-TODO No documentation in original manual, no idea!
+
 
 
 ## `ax` ## {#ax}
@@ -331,7 +329,7 @@ Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
 
 ## `cbred` ## {#cbred}
 
-TODO no documentation
+
 
 
 ## `cd <dirname>` ## {#cd}
@@ -444,7 +442,6 @@ Related: [`**`](#starstar) [`--`](#dashdash)
 
 ## `cond limit` switch ## {#switch-cond-limit}
 
-TODO missing documentation
 
 
 
@@ -602,12 +599,12 @@ Related: [`including`](#including) [`protecting`](#protecting)
 
 ## `find` ## {#find}
 
-TODO missing documentation
+
 
 
 ## `find all rules` switch ## {#switch-find-all-rules}
 
-TODO missing documentation
+
 
 
 ## `flag` ## {#flag}
@@ -807,8 +804,7 @@ Evaluates the following quoted lisp expression. (TODO ???)
 
 ## `look up <something>` ## {#lookup}
 
-TODO to be written, currently segfaults
-
+TODO (memory-fault on sbcl)
 
 
 ## `ls <pathname>` ## {#ls}
@@ -1136,10 +1132,9 @@ command will prompt for one of the trees.
 Related: [qualified term](#qualified)
 
 
-
 ## `parse normalize` switch ## {#switch-parse-normalize}
 
-TODO missing documentation
+
 
 
 ## `popd` ## {#popd}
@@ -1245,10 +1240,12 @@ In case that a term can be parsed into different sort, it is possible to
 qualify the term to one of the possible sorts by affixing it with 
 `: <sort-name>` (spaces before and after the `:` are optional).
 
-Example: `1:NzNat` `2:Nat`
-
 Related: [`parse`](#parse)
 
+
+### Example ###
+
+`1:NzNat` `2:Nat`
 
 ## `quiet` switch ## {#switch-quiet}
 
@@ -1286,7 +1283,6 @@ equations.
 Related: [`apply`](#apply)
 
 
-
 ## `regularize <mod-name>` ## {#regularize}
 
 Regularizes the signature of the given module, ensuring that every
@@ -1295,8 +1291,6 @@ sorts are generated to ensure unique least sort of all terms.
 
 Modules can be automatically regularized by the interpreter if the
 `regularize signature` switch is turn to `on`.
-
-TODO -- should we give more details here -- unclear to me.
 
 
 ## `regularize signature` switch ## {#switch-regularize-signature}
@@ -1317,7 +1311,7 @@ Related: [`provide`](#provide)
 
 ## `reset` ## {#reset}
 
-Restores the definitions of built-in modules and preludes, but does not
+Restores the definitions of built-in modules and preludes,  but does not
 affect other modules.
 
 Related: [`full reset`](#fullreset)
@@ -1393,14 +1387,42 @@ Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
 
 ## `search predicates` ## {#searchpredicate}
 
-CafeOBJ provides a whole set of search predicates `=(n,m)=>` for
-searching transitions starting from a given term. The first value `n`
-specifies the maximum number of solutions searched, and can be either
-a natural number of `*`, in which case all solutions are searched. The
-second value `m` is the maximum depth, and can be a natural number
-(but not `*`).
+CafeOBJ provides a whole set of search predicates, that searches
+the reachable states starting from a given state, optionally checking
+additional conditions. All of them based on the following three basic ones:
 
-TODO: `=(n,m)=>+` ??? other specifiers?
+  - `S =(n,m)=>* SS` search states reachable by 0 or more transitions;
+  - `S =(n,m)=>+ SS` search states reachable by 1 or more transitions;
+  - `S =(n,m)=>! SS` search states reachable by 0 or more transitions, and
+    require that the reached state is a final state, i.e., no further
+    transitions can be applied.
+
+The parameters `n` and `m` in these search predicates:
+
+  - `n`, a natural number of `*`, gives the maximal number of solutions
+     to be searched. If `*` is given all solutions are searched
+     exhaustively.
+  - `m`, a natural number but not `*`, gives the maximal depth up to
+     which search is performed.
+
+The predicates return true if there is a (chain of) transitions
+that fits the parameters (`n`,`m`, and `*`, `+`, `!`) and connects `S`
+with `SS`.
+
+There are two orthogonal extension to this search perdicate, one
+adds a `suchThat` clause, one adds a `withStateEq` clause.
+
+`S =(n,m)=>* SS suchThat Pred`
+  ~ (and similar for `!` and `+`) In this case not only the existence,
+    of a transition sequence is tested, but also whether the predicate
+    `Pred`, which normally takes `S` and `SS` as arguments, holds.
+
+`S =(n,m)=>* SS withStateEq Pred`
+  ~ (and similar for `!` and `+`) TODO
+
+These two cases can also be combined into 
+
+`S =(n,m)=>* SS suchThat Pred1 withStateEq Pred2`
 
 
 ## `select <mod_exp> . ` ## {#select}
@@ -1514,7 +1536,6 @@ then operate on this term.
 Related: [`apply`](#apply) [`choose`](#choose) [`match`](#match)
 
 
-
 ## `statistics` switch ## {#switch-statistics}
 
 Possible values: `on` `off`, default `on`.
@@ -1523,8 +1544,6 @@ After each reduction details about the reduction are
 shown. Information shown are the time for parsing the expression, the
 number of rewrites and run time during rewriting, and the number of
 total matches performed during the reduce.
-
-TODO: verify
 
 
 ## `step` switch ## {#switch-step}
