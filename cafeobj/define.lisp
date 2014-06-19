@@ -116,15 +116,18 @@
 ;;; search for an arbitrary regexp in all doc-strings, and return
 ;;; string that lists all possible matches
 ;;;
-(defun search-all-doc (what)
+;;; TODO search also the "reduce title string"
+;;; where (at least) back ticks are removed
+;;; that should help searching for "clean memo switch"
+(defun search-all-doc (question)
   ; what is the list of arguments to the ?apropos command
-  (let ((re (car what))
+  (let ((re (make-oldoc-name question))
 	(retstr ""))
     (if re (let ((re (cl-ppcre:create-scanner re :case-insensitive-mode :multi-line-mode))
 		 (matching-docs nil))
 	     (maphash #'(lambda (key oldoc)
 			  (declare (ignore key))
-			  (let* ((str (oldoc-doc-string oldoc))
+			  (let* ((str (concatenate 'string (oldoc-doc-title oldoc) " " (oldoc-doc-string oldoc)))
 				 (found (cl-ppcre:scan re str)))
 			    (when found
 			      (push (oldoc-doc-title oldoc) matching-docs))))
