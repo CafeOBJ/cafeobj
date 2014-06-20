@@ -144,7 +144,7 @@ TODO: old manual very unclear ... both about `=*=` and
     :doc "See [`search predicates`](#searchpredicate)
 ")
 
-(define ("accept" "accept =*=" "accept =*= proof")
+(define ("accept =*= proof switch")
     :type :doc-only
     :title "`accept =*= proof` switch"
     :mdkey "switch-accept"
@@ -178,7 +178,7 @@ an informational message that examples are available.
 expression `<regexp>` and returns the found terms.
 ")
 
-(define ("all axioms")
+(define ("all axioms switch")
     :type :doc-only
     :title "`all axioms` switch" 
     :mdkey "switch-all-axioms" 
@@ -188,7 +188,7 @@ during a `show` invocation.
 Related: [`show`](#show)
 ")
 
-(define ("always" "always memo")
+(define ("always memo switch")
     :type :doc-only
     :title "`always memo` switch" 
     :mdkey "switch-always-memo" 
@@ -275,7 +275,7 @@ Related: [`choose`](#choose)
          [`start`](#start) 
 ")
 
-(define ("auto" "auto context")
+(define ("auto context switch")
     :type :doc-only
     :title "`auto context` switch"
     :mdkey "switch-auto-context"
@@ -513,7 +513,7 @@ tells the system to be forgetful.
 Related: [`open`](#open)
 ")
 
-(define ("comments" "comment")
+(define ("comments")
     :type :doc-only
     :title "comments"
     :doc "The interpreter accepts the following strings as start of a comment
@@ -525,7 +525,7 @@ displayed when run through the interpreter.
 Related: [`**`](#starstar) [`--`](#dashdash)
 ")
 
-(define ("cond" "cond limit")
+(define ("cond limit switch")
     :type :doc-only
     :title "`cond limit` switch"
     :mdkey "switch-cond-limit"
@@ -613,7 +613,7 @@ the same term with `or` instead.
 Related: [`ceq`](#ceq) [`beq`](#beq) [`bceq`](#bceq)
 ")
 
-(define ("exec limit")
+(define ("exec limit switch")
     :type :doc-only
     :title "`exec limit` switch"
     :mdkey "switch-exec-limit"
@@ -624,7 +624,7 @@ Controls the number of maximal transition steps.
 Related: [`reduce`](#reduce)
 ")
 
-(define ("exec trace")
+(define ("exec trace switch")
     :type :doc-only
     :title "`exec trace` switch"
     :mdkey "switch-exec-trace"
@@ -671,7 +671,7 @@ Related: [`including`](#including) [`protecting`](#protecting)
     :doc "
 ")
 
-(define ("find all" "find all rules")
+(define ("find all rules switch")
     :type :doc-only
     :title "`find all rules` switch"
     :mdkey "switch-find-all-rules"
@@ -714,7 +714,7 @@ Related: [`signature`](#signature) [`axioms`](#axioms)
   [`protecting`](#protecting) [`using`](#using)
 ")
 
-(define ("include BOOL")
+(define ("include BOOL switch")
     :type :doc-only
     :title "`include BOOL` switch"
     :mdkey "switch-include-bool"
@@ -728,7 +728,7 @@ axioms.
 This switch allows to disable automatic inclusion of BOOL.
 ")
 
-(define ("include RWL")
+(define ("include RWL switch")
     :type :doc-only
     :title "`include RWL` switch"
     :mdkey "switch-include-rwl"
@@ -763,7 +763,7 @@ a line that only contains (the literal) `eof`.
 
 ")
 
-(define ("instantiation" "instant")
+(define ("instantiation")
     :type :doc-only
     :title "instantiation of parametrised modules"
     :doc "Parametrized modules allow for instantiation. The process of
@@ -838,7 +838,7 @@ shorthands, they are not. The right hand side `<term>` needs to
 be a fully parsable expression.
 ")
 
-(define ("libpath" "library path")
+(define ("libpath switch" "library path")
     :type :doc-only
     :title "`libpath` switch"
     :mdkey "switch-libpath"
@@ -941,7 +941,7 @@ sort of the module is specified, which allows more concise `view`s from
 single-sort modules as the sort mapping needs not be given.
 ")
 
-(define ("parameterized module" "parameter" "parameterized")
+(define ("parameterized module")
     :type :doc-only
     :mdkey "parametrizedmodule"
     :doc "A module with a parameter list (see `module`) is a parametrized module.
@@ -970,7 +970,7 @@ mod! TWICE(X :: C) {
 ~~~~~
 ")
 
-(define ("memo")
+(define ("memo switch")
     :type :doc-only
     :title "`memo` switch"
     :mdkey "switch-memo"
@@ -1167,7 +1167,7 @@ Remarks:
 Related: [`bop`](#bop)
 ")
 
-(define ("operator precedence" "prec")
+(define ("operator precedence" "precedence")
     :type :doc-only
     :mdkey "opprec"
     :doc "CafeOBJ allows for complete freedom of syntax, in particular infix
@@ -1206,7 +1206,7 @@ command will prompt for one of the trees.
 Related: [qualified term](#qualified)
 ")
 
-(define ("parser normalize")
+(define ("parser normalize switch")
     :type :doc-only
     :title "`parse normalize` switch"
     :mdkey "switch-parse-normalize"
@@ -1223,7 +1223,7 @@ Related: [qualified term](#qualified)
 Related: [`op`](#op) [`bpred`](#bpred)
 ")
 
-(define ("print depth")
+(define ("print depth switch")
     :type :doc-only
     :title "`print depth` switch"
     :mdkey "switch-print-depth"
@@ -1232,7 +1232,7 @@ Related: [`op`](#op) [`bpred`](#bpred)
 Controls to which depth terms are printed.
 ")
 
-(define ("print mode")
+(define ("print mode switch")
     :type :doc-only
     :title "`print mode` switch"
     :mdkey "switch-print-mode"
@@ -1322,7 +1322,7 @@ qualify the term to one of the possible sorts by affixing it with
 Related: [`parse`](#parse)
 ")
 
-(define ("quiet")
+(define ("quiet switch")
     :type :doc-only
     :title "`quiet` switch"
     :mdkey "switch-quiet"
@@ -1333,7 +1333,7 @@ If set to `on`, the system only issues error messages.
 Related: [`verbose` switch](#switch-verbose)
 ")
 
-(define ("quit" "q")
+(define ("quit")
     :type :doc-only
     :doc "Leaves the CafeOBJ interpreter.
 ")
@@ -1353,7 +1353,7 @@ account for reduction.
 Related: [`execute`](#execute) [`breduce`](#breduce)
 ")
 
-(define ("reduce conditions" "reduce condition")
+(define ("reduce conditions")
     :type :doc-only
     :title "`reduce conditions` switch"
     :mdkey "switch-reduce-conditions"
@@ -1379,7 +1379,7 @@ Modules can be automatically regularized by the interpreter if the
 `regularize signature` switch is turn to `on`.
 ")
 
-(define ("regularize signature" "reg signature")
+(define ("regularize signature switch" "reg signature")
     :type :doc-only
     :title "`regularize signature` switch"
     :mdkey "switch-regularize-signature"
@@ -1427,7 +1427,7 @@ Related: [`input`](#input) [`save`](#save)
 
 ")
 
-(define ("rewrite limit" "rew limit")
+(define ("rewrite limit switch" "rew limit")
     :type :doc-only
     :title "`rewrite limit` switch"
     :mdkey "switch-rewrite"
@@ -1465,7 +1465,7 @@ restrictons.
 Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
 ")
 
-(define ("search predicates" "search predicate" "search")
+(define ("search predicates")
     :type :doc-only
     :mdkey "searchpredicate"
     :doc "CafeOBJ provides a whole set of search predicates, that searches
@@ -1559,7 +1559,7 @@ See the entry for `switches` for a full list.
 Related: [`switches`](#switches) [`describe`](#describe)
 ")
 
-(define ("show mode")
+(define ("show mode switch")
     :type :doc-only
     :title "`show mode` switch"
     :mdkey "switch-show-mode"
@@ -1582,7 +1582,7 @@ Related: [`axioms`](#axioms) [`imports`](#imports)
 	 [`sort`](#sort) [`op`](#op)
 ")
 
-(define ("sort declaration" "sort")
+(define ("sort declaration")
     :type :doc-only
     :title "sort declaration"
     :mdkey "sort"
@@ -1627,7 +1627,7 @@ then operate on this term.
 Related: [`apply`](#apply) [`choose`](#choose) [`match`](#match)
 ")
 
-(define ("statistics" "stat")
+(define ("statistics")
     :type :doc-only
     :title "`statistics` switch"
     :mdkey "switch-statistics"
@@ -1639,7 +1639,7 @@ number of rewrites and run time during rewriting, and the number of
 total matches performed during the reduce.
 ")
 
-(define ("step")
+(define ("step switch")
     :type :doc-only
     :title "`step` switch"
     :mdkey "switch-step"
@@ -1678,7 +1678,7 @@ Other standard CafeOBJ commands that can be used are [`show`](#show),
 [`!`](#commandexec).
 ")
 
-(define ("stop pattern" "stop")
+(define ("stop pattern switch")
     :type :doc-only
     :title "`stop pattern` switch"
     :mdkey "switch-stop-pattern"
@@ -1708,7 +1708,7 @@ CafeOBJ> open NAT .
 Related: [`step` switch](#switch-step)
 ")
 
-(define ("switches" "switch")
+(define ("switches")
     :type :doc-only
     :title "switches"
     :doc "Switches control various aspects of the computations and behaviour
@@ -1724,7 +1724,7 @@ The single switches are described separately in this manual.
 Related: [`set`](#set) [`show`](#show)
 ")
 
-(define ("trace" "trace whole")
+(define ("trace whole switch")
     :type :doc-only
     :title "`trace [whole]` switch"
     :mdkey "switch-trace"
@@ -1795,7 +1795,7 @@ using the `vars` construct:
 Related: [`op`](#op) [qualified term](#qualified) [on-the-fly](#onthefly)
 ")
 
-(define ("verbose")
+(define ("verbose switch")
     :type :doc-only
     :title "`verbose` switch"
     :mdkey "switch-verbose"
