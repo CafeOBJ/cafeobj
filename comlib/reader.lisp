@@ -777,12 +777,15 @@
 	(cond ((= 1 (length (the list inp)))
 	       (setq inv (car (the list inp))))
 	      (t (setq inv *reader-void*)))
+	(when (and (consp inv) (eq (car inv) .String-token.))
+	  (setq res (append res inp))
+	  (setq *reader-input* *reader-void*)
+	  (return))
 	(when (lex-string-match inv 'return)
 	  (setq *reader-input* *reader-void*)
 	  (return))
 	(setq res (append res inp)))
-      res
-      )))
+      res)))
 
 ;;; READ-SEQ-OF-OPNAME
 ;;;

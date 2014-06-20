@@ -39,7 +39,9 @@
   (format stream "~&cache      : ~a" (oldoc-cache doc)))
 
 (defun make-oldoc-key (question)
-  (reduce #'(lambda (x y) (concatenate 'string x y)) question))
+  (reduce #'(lambda (x y) (concatenate 'string
+			    (if (stringp x) x "")
+			    (if (stringp y) y) "")) question))
 (defun make-oldoc-name (question)
   (format nil "~{~a~^ ~}" question))
 
