@@ -702,7 +702,7 @@
         (|.|)
         ;; (chaos :args)
 	;; new commands as of 2011/Q1
-        (? :args)                       ; help/messege description
+        (? :args)			; help/messege description
         (?? :args)                      ; detailed help
 	;; new commands as of 2012/Q1
 	((:+ names name) :modexp |.|)
