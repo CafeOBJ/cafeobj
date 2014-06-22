@@ -133,8 +133,8 @@ mod! META-TERM {
   protecting (QID)
 
   ** Sort
-  bsort Sort (is-sort-token create-sort-object print-meta-sort-object is-sort-object nil)
-  [ Sort < Qid ]
+  ** bsort Sort (is-sort-token create-sort-object print-meta-sort-object is-sort-object nil)
+  [ SortId < Qid ]
 
   ** terms
   bsort Constant (is-constant-token create-constant-object print-constant-object is-constant-object nil)
@@ -164,13 +164,13 @@ mod! META-TERM {
 
   ** extraction of names and types
   op getName : Constant -> Qid 
-  op getType : Constant -> Sort
+  op getType : Constant -> SortId
   var C : Constant 
   eq getName(C) = qid(substring(string(C), 0, rfind('.', string(C), 0))) .
   eq getType(C) = qid(substring(string(C), rfind('.', string(C), 0) + 1)) .
 
   op getName : Variable -> Qid 
-  op getType : Variable -> Sort 
+  op getType : Variable -> SortId 
   var V : Variable 
   eq getName(V) = qid(substring(string(V), 0, rfind(':', string(V), 0))) .
   eq getType(V) = qid(substring(string(V), rfind(':', string(V), 0) + 1)) .
@@ -191,14 +191,14 @@ mod! META-MODULE {
 
   ** subsort declarations
   [ SubsortDecl < SubsortDeclSet ]
-  op [_<_] : Sort Sort -> SubsortDecl {ctor}
+  op [_<_] : SortId SortId -> SubsortDecl {ctor}
   op none : -> SubsortDeclSet {ctor}
   op __ : SubsortDeclSet SubsortDeclSet -> SubsortDeclSet {ctor assoc comm id: none}
   eq S:SubsortDecl S:SubsortDecl = S:SubsortDecl .
 
   ** sort set
   [ EmptySortSet < SortSet < QidSet]
-  [ Sort < NeSortSet < SortSet ]
+  [ SortId < NeSortSet < SortSet ]
   [ NeSortSet < NeQidSet ]
   op none : -> EmptySortSet {ctor}
   op _;_ : SortSet SortSet -> SortSet {ctor assoc comm id: none prec: 43}
@@ -207,7 +207,7 @@ mod! META-MODULE {
 
   ** sort lists
   [ NeSortList SortList ]
-  [ Sort < NeSortList < SortList < QidList ]
+  [ SortId < NeSortList < SortList < QidList ]
 
   op nil : -> SortList {ctor}
   op __ : SortList SortList -> SortList {ctor assoc comm id: nil}
@@ -230,7 +230,7 @@ mod! META-MODULE {
   [ Renaming < RenamingSet ]
   op (sort_->_) : Qid Qid -> Renaming {ctor}
   op (op_->_) : Qid Qid -> Renaming {ctor}
-  op (op_:_->_to_) : Qid SortList Sort Qid -> Renaming {ctor}
+  op (op_:_->_to_) : Qid SortList SortId Qid -> Renaming {ctor}
   op label_->_ : Qid Qid -> Renaming {ctor}
   op _,_ : RenamingSet RenamingSet -> RenamingSet {ctor assoc comm prec: 43}
 
