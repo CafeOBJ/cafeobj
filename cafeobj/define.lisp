@@ -98,6 +98,7 @@
 				    (doc nil)
 				    (title nil)
 				    (example nil)
+				    (related nil)
 				    (mdkey nil))
     (case type
       (:top (unless (member category .valid-com-categories.)
@@ -123,7 +124,7 @@
 						  :parser ',parser
 						  :evaluator ',evaluator)))))
        ;; set online help
-       (register-online-help (car ',keys) (cdr ',keys) ',title ',mdkey ',doc ',example)))
+       (register-online-help (car ',keys) (cdr ',keys) ',title ',mdkey ',doc ',example ',related)))
 
 (defun print-comde-usage (com)
   (format t "~&[Usage] ~s, not yet" com))

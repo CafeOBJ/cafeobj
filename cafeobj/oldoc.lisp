@@ -25,7 +25,7 @@
 ;; * mdkey - the key used in the markdown version as anchor (\label)
 ;; * example - if present will be shown in the markdown version (print)
 ;;             and shown by ?ex
-;; * related - (not implemented by now)
+;; * related - a list of related concepts
 ;; * names - list of strings that where passed in during generation time
 ;; and one more, that is the
 ;; * key - a key into a hash table
@@ -124,12 +124,12 @@
 ; oldoc-get-documentation
 ; returns the formatted string for display on the console
 ; returns nil if nothing found
-(defun oldoc-get-documentation (question &key (main t) (example nil) (apropos nil))
+(defun oldoc-get-documentation (question &key (main t) (example nil) (apropos nil) (related t))
   (if apropos
       (oldoc-search-all question)
     (let ((doc (oldoc-find-doc-entry question)))
       (if (not (listp doc))
-	  (oldoc-format-documentation doc :raw nil :main main :example example)
+	  (oldoc-format-documentation doc :raw nil :main main :example example :related related)
 	(progn 
 	  (if doc
 	      (format t "Did you mean one of ~a~%" doc))
@@ -154,6 +154,7 @@
   (example    ""  :type string)         ; examples
   (mdkey      ""  :type string)         ; key written to reference manual
   (names      nil :type list)		;
+  (related    nil :type list)           ; related commands
   (cache nil)				; formatted doc cache for online help
   )
 
@@ -166,6 +167,7 @@
   (format stream "~&main       : ~a" (oldoc-main doc))
   (format stream "~&example    : ~a" (oldoc-example doc))
   (format stream "~&names      : ~a" (oldoc-names doc))
+  (format stream "~&related    : ~a" (oldoc-related doc))
   (format stream "~&cache      : ~a" (oldoc-cache doc)))
 
 (defun oldoc-make-key (whatever)
@@ -203,18 +205,49 @@
 	  (map 'list #'(lambda (x) (concatenate 'string "\"" x "\""))
 	       (apply #'append (map 'list 'cdr similar-keys))))))))
 
+(defun oldoc-format-related (doc &key (raw nil))
+  (let (outlist targetdoc targettitle)
+    (dolist (r (oldoc-related doc))
+      (if (atom r)
+	  (progn
+	    (setq targettitle (format nil "`~a`" r))
+	    (setq targetdoc (oldoc-find-doc-entry (list r))))
+	(progn
+	  (setq targettitle (car r))
+	  (if (cdr r)
+	      (setq targetdoc (oldoc-find-doc-entry (cdr r)))
+	    (setq targetdoc (oldoc-find-doc-entry (list (car r)))))))
+      (if (listp targetdoc)
+					; problem - found several entries
+	  (if targetdoc
+	      (if raw
+		  (push (format nil "\[~a\]\(\#~a\)" targettitle "multiple_targets") outlist)
+		(push (format nil "~a" targettitle) outlist))
+	    (if raw
+		(push (format nil "\[~a\]\(\#~a\)" targettitle "target_not_found") outlist)
+	      (push (format nil "~a" targettitle) outlist)))
+	(if raw
+	    (push (format nil "\[~a\]\(\#~a\)" targettitle (oldoc-mdkey targetdoc)) outlist)
+	  (push (format nil "~a" targettitle) outlist))))
+    (if outlist
+	(format nil "~{~a~^, ~}" outlist)
+	"")))
 
-(defun oldoc-format-documentation (doc  &key (raw nil) (main t) (example nil))
+(defun oldoc-format-documentation (doc  &key (raw nil) (main t) (example nil) (related t))
   (let ((outstr "")
 	(title (oldoc-title doc))
 	(mainstr (oldoc-main doc))
 	(exstr (oldoc-example doc))
-	(usecache (and main (not raw) (not example))))
+	(relstr (oldoc-format-related doc :raw raw))
+	(usecache (and main related (not raw) (not example))))
     (if (not raw)
 	(or (and usecache (oldoc-cache doc))
 	    (progn
 	      (if main
 		  (setq outstr (format nil "~a~2%~a~2%" title mainstr)))
+					; related dealing
+	      (if (and related (not (string-equal relstr "")))
+		  (setq outstr (format nil "~aRelated: ~a~2%" outstr relstr)))
 					; example dealing
 	      (if (not (string-equal exstr ""))
 					; we have examples available
@@ -236,6 +269,8 @@
 	  (setq outstr (format nil "## ~a ## {#~a}~2%" title (oldoc-mdkey doc)))
 	  (if main
 	      (setq outstr (format nil "~a~a~2%" outstr mainstr)))
+	  (if (and related (not (string-equal relstr "")))
+	      (setq outstr (format nil "~aRelated: ~a~2%" outstr relstr)))
 	  (if (and example (not (string-equal exstr "")))
 	      (setq outstr (format nil "~a### Example ###~2%~a~2%" outstr exstr)))
 	  outstr))))
@@ -284,7 +319,7 @@
 ;;;
 
   
-(defun register-online-help (mainname aliasnames title mdkey doc example)
+(defun register-online-help (mainname aliasnames title mdkey doc example related)
   (unless doc (return-from register-online-help nil))
   (unless (stringp doc) (return-from register-online-help nil))
   ; for each key generated from any name we generate an entry
@@ -305,6 +340,7 @@
 			:rtitle rt
 			:mdkey (or mdkey mainname)
 			:example (or example "")
+			:related related
 			:names (cons mainname aliasnames))))))
 
 (defparameter .md-remove-hash-hash. #~s/##//)
