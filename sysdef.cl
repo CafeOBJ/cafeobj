@@ -234,6 +234,7 @@
                             (:serial
                              "cafeobj/creader"
 			     "cafeobj/define"
+			     "cafeobj/oldoc"
                              "cafeobj/trans-com"
                              "cafeobj/trans-decl"
                              ;; "cafeobj/command-proc"

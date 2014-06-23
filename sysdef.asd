@@ -192,6 +192,7 @@
 	      :components ((:file "cafeobjvar")
 			   (:file "creader")
 			   (:file "define")
+			   (:file "oldoc")
 			   (:file "trans-com")
 			   (:file "trans-decl")
 			   (:file "trans-form")
