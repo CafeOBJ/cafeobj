@@ -69,7 +69,7 @@
     :evaluator identity
     :title "`**`, `**>`"
     :mdkey "starstar"
-    :related ("--" "comments")
+    :related ("--" ("comments"))
     :doc "Starts a comment which extends to the end of the line. 
 With the additional `>` the comment is displayed while
 evaluated by the interpreter.
@@ -82,7 +82,7 @@ evaluated by the interpreter.
     :evaluator eval-ast
     :title "`--`, `-->`"
     :mdkey "dashdash"
-    :related ("**" "comments")
+    :related ("**" ("comments"))
     :doc "Starts a comment which extends to the end of the line. 
 With the additional `>` the comment is displayed while
 evaluated by the interpreter.
@@ -116,7 +116,7 @@ which specifies the equality of the theory.
 (define ("==>")
     :type :doc-only
     :mdkey "transrel"
-    :related ("trans" "search predicates")
+    :related ("trans" ("search predicates"))
     :doc "This binary predicate is defined on each visible sort, and defines the
 transition relation, which is reflexive, transitive, and closed under
 operator application. It expresses the fact that two states (terms)
@@ -189,7 +189,7 @@ during a `show` invocation.
     :type :doc-only
     :title "`always memo` switch" 
     :mdkey "switch-always-memo" 
-    :related ("memo" "operator attributes")
+    :related ("memo" ("operator attributes"))
     :doc "Turns on memorization of computation also for operators without
 the [`memo`](#opattr) operator attribute.
 ")
@@ -383,7 +383,7 @@ into account for reduction.
     :parser parse-cd-command
     :evaluator eval-ast
     :title "`cd <dirname>`"
-    :realted ("pwd" "ls")
+    :related ("pwd" "ls")
     :doc "Change the current working directory, like the Unix counterpart.
 The argument is necessary. No kind of expansion or substitution is done.
 ")
@@ -463,7 +463,7 @@ for details on `<selection>`.
     :parser identity
     :evaluator cafeobj-eval-clear-memo-proc
     :mdkey "cleanmemo"
-    :related ("clean memo switch")
+    :related (("clean memo switch" "`clean memo` switch"))
     :doc "Resets (clears) the memo storages of the system. Memorized computations 
 are forgotten. 
 ")
@@ -703,7 +703,7 @@ This switch allows to disable automatic inclusion of RWL.
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`including ( <modexp> )`"
-    :related ("extending" "protecting" "using" "module expression")
+    :related ("extending" "protecting" "using" ("module expression"))
     :doc "Imports the object specified by `modexp` into the current
 module. 
 
@@ -723,8 +723,8 @@ a line that only contains (the literal) `eof`.
 
 (define ("instantiation")
     :type :doc-only
-    :title "instantiation of parametrised modules"
-    :doc "Parametrized modules allow for instantiation. The process of
+    :title "instantiation of parameterized modules"
+    :doc "Parameterized modules allow for instantiation. The process of
 instantiation binds actual parameters to formal parameters. The result
 of an instantiation is a new module, obtained by replacing occurrences
 of parameter sorts and operators by their actual counterparts. If, as
@@ -735,7 +735,7 @@ Instantiation is done by
 
 `<module_name> ( <bindings> )`
 
-where `<module_name>` is the name of a parametrized module, and
+where `<module_name>` is the name of a parameterized module, and
 `<bindings>` is a comma-separated list of binding constructs.
 
 using declared views
@@ -767,7 +767,7 @@ position instead of names as in
 `<mod_name> ( <view_name>, <view_name> )`
 
 which would bind the `<view_name>`s to the respective parameters
-of the parametrized module `<mod_name>`.
+of the parameterized module `<mod_name>`.
 
 This can be combined with the ephemeral defintion of a view like in
 the following example (assume `ILIST` has two parameters):
@@ -888,7 +888,7 @@ are declarations of
 
 `module` introduces a module without specified semantic type.
 
-If `params` are given, it is a parametrized module. See `parametrized module`
+If `params` are given, it is a parameterized module. See `parameterized module`
 for more details.
 
 If `principal_sort_spec` is given, it has to be of the form
@@ -899,9 +899,9 @@ single-sort modules as the sort mapping needs not be given.
 
 (define ("parameterized module")
     :type :doc-only
-    :mdkey "parametrizedmodule"
-    :related ("qualified sort")
-    :doc "A module with a parameter list (see `module`) is a parametrized module.
+    :mdkey "parameterizedmodule"
+    :related (("qualified sort"))
+    :doc "A module with a parameter list (see `module`) is a parameterized module.
 Parameters are given as a comma (`,`) separated list. Each parameter is
 of the form `[ <import_mode> ] <param_name> :: <module_name>` 
 (spaces around `::` are obligatory).
@@ -1120,7 +1120,7 @@ Remarks:
 (define ("operator precedence" "precedence")
     :type :doc-only
     :mdkey "opprec"
-    :related ("operator attributes")
+    :related (("operator attributes"))
     :doc "CafeOBJ allows for complete freedom of syntax, in particular infix
 operators and overloading. To correctly parse terms that are ambigous,
 all operators have precedence values. These values can be adjusted
@@ -1234,7 +1234,7 @@ already.
     :type :doc-only
     :title "qualified sort/operator/parameter"
     :mdkey "qualifiedother"
-    :related ("parametrized module" "qualified term")
+    :related ("parameterized module" "qualified term")
     :doc "CafeOBJ allows for using the same name for different sorts,
 operators, and parameters. One example is declaring the same sort in
 different modules. In case it is necessary to qualify the sort,
@@ -1737,7 +1737,7 @@ If turn `on`, the system is much more verbose in many commands.
     :evaluator eval-ast
     :title "`view <name> from <modname> to <modname> { <viewelems> }`"
     :doc "A view specifies ways to bind actual parameters to formal parameters
-(see [parametrized module](#parametrizedmodule)). The view has to
+(see [parameterized module](#parameterizedmodule)). The view has to
 specify the mapping of the sorts as well as the operators. 
 
 The `<viewelems>` is a comma-separated list of expressions specifying
