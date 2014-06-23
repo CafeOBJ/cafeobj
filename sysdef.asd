@@ -191,8 +191,8 @@
 	      :serial t
 	      :components ((:file "cafeobjvar")
 			   (:file "creader")
-			   (:file "define")
 			   (:file "oldoc")
+			   (:file "define")
 			   (:file "trans-com")
 			   (:file "trans-decl")
 			   (:file "trans-form")
