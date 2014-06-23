@@ -165,6 +165,9 @@ sys:mod! RWL
     pred _=(,_)=>!_suchThat_withStateEq_ : *Cosmos* NzNat* *Cosmos* Bool *Cosmos*
       { strat: (0) prec: 51 }
 
+    ** new experimental search predicate
+    pred _=(_,_)=>+_if_suchThat_{_} : *Cosmos* NzNat* NzNat* *Cosmos* Bool Bool *Cosmos*
+
   }
   axioms {
     var CXU : *Cosmos*
@@ -312,6 +315,10 @@ sys:mod! RWL
       #!! (rwl-sch-set-result
 	     (rwl-search :term cxu :pattern cyu :max-result MAX-R
 		:max-depth MAX-D :cond cond :pred PRED)) .
+    eq (S:*Cosmos* =(MR:NzNat* ,MD:NzNat)=>+ SS:*Cosmos* if CC:Bool suchThat P:Bool { B:*Cosmos* }) =
+      #!! (rwl-sch-set-result
+	     (rwl-search :term S :pattern SS :max-result MR :max-depth MD :zero? nil
+		:final? nil :cond P :if CC :bind B)) .
   }
 }
 
