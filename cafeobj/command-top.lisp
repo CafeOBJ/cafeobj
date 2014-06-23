@@ -306,10 +306,10 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 	 (question (cdr inp))
 	 (description nil))
     (case ask
-      (|?| (setq description (get-document-string question)))
-      ;; (|??| (setq description (get-detailed-document question)))
-      ((|?ex| |?example|) (setq description (get-example-string question)))
-      ((|?ap| |?apropos|) (setq description (search-all-doc question)))
+      (|?| (setq description (oldoc-get-documentation question :main t :example nil)))
+      (|??| (setq description (oldoc-get-documentation question :main t :example t)))
+      ((|?ex| |?example|) (setq description (oldoc-get-documentation question :main nil :example t)))
+      ((|?ap| |?apropos|) (setq description (oldoc-get-documentation question :apropos t)))
       (otherwise
        ;; this cannot happen
        (with-output-chaos-error ('internal-error)
