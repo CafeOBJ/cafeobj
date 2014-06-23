@@ -152,7 +152,7 @@ TODO: old manual very unclear ... both about `=*=` and
 difficult - see TODO for [`=*=`](#bequality)
 ")
 
-(define ("?" "?ex" "?example")
+(define ("?" "??" "?ex" "?example")
     :category :help
     :parser identity
     :evaluator cafeobj-top-level-help
@@ -166,6 +166,8 @@ to obtain further help.
 In case examples are provided for the `<term>`, they can be displayed
 using `?ex <term>`. In this case the normal help output will also contain
 an informational message that examples are available.
+
+When called as ?? both documentation and examples are shown.
 ")
 
 (define ("?apropos" "?ap")
