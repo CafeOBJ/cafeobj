@@ -233,8 +233,8 @@
                             "cafeobj/cafeobjvar"
                             (:serial
                              "cafeobj/creader"
-			     "cafeobj/define"
 			     "cafeobj/oldoc"
+			     "cafeobj/define"
                              "cafeobj/trans-com"
                              "cafeobj/trans-decl"
                              ;; "cafeobj/command-proc"
