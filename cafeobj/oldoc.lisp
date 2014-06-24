@@ -302,7 +302,7 @@
                         )  
                     )"
 				     :extended-mode t)))
-    (map 'list #'(lambda (x) (if (not (string-equal x "")) (push x outlst))) 
+    (map 'list #'(lambda (x) (if (not (string-equal x "")) (push (string-trim "\"'" x) outlst))) 
 	 (cl-ppcre:all-matches-as-strings re str))
     outlst))
 
