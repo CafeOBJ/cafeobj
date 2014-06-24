@@ -167,7 +167,7 @@ sys:mod! RWL
 
     ** new experimental search predicate
     pred _=(_,_)=>+_if_suchThat_{_} : *Cosmos* NzNat* NzNat* *Cosmos* Bool Bool *Cosmos*
-
+      { strat: (0) prec: 51 }
   }
   axioms {
     var CXU : *Cosmos*
