@@ -309,7 +309,20 @@
 (defun oldoc-search-all (question)
   ; oldoc is special as ?ap is using the :comment reader, which means we
   ; get one string till the end of line as argument.
-  (let ((retstr "") (matching-docs nil))
+  (let ((retstr "") (matching-docs nil)
+	(matchers (map 'list #'(lambda (x)
+				 (if (oldoc-is-regex x)
+				     (handler-case
+					 ; we might get a string that is not a proper regexp, 
+					 ; in this case fall back to use it as substring search
+					 (let ((re (cl-ppcre:create-scanner x :case-insensitive-mode :multi-line-mode)))
+					   (lambda (y) (cl-ppcre:scan re y)))
+				       (cl-ppcre:ppcre-syntax-error (condition)
+					 (format t "[Error] Cannot parse as regexp: ~S~%Treating it as normal string!~%"
+						 (cl-ppcre:ppcre-syntax-error-string condition))
+					 (lambda (y) (search x y))))
+				   (lambda (y) (search x y))))
+		       (oldoc-parse-to-words (car question)))))
     (maphash #'(lambda (key oldoc)
 		 (declare (ignore key))
 		 (let* ((fullss (oldoc-reduce-string (format nil "~a~%~{~a~^~%~}~a~%~a"
@@ -318,16 +331,8 @@
 							     (oldoc-main oldoc)
 							     (oldoc-example oldoc))))
 			(found (every #'identity
-				      (map 'list #'(lambda (x)
-						     (if (oldoc-is-regex x)
-							 (progn
-							   ; (format t "testing via regex ~a~%" x)
-							   (let ((re (cl-ppcre:create-scanner x :case-insensitive-mode :multi-line-mode)))
-							     (cl-ppcre:scan re fullss)))
-						       (progn 
-							 ; (format t "testing simple ~a~%" x)
-						         (search x fullss))))
-					   (oldoc-parse-to-words (car question))))))
+				      (map 'list #'(lambda (x) 
+						     (apply x (list fullss))) matchers))))
 		   (when found
 		     (push (oldoc-title oldoc) matching-docs))))
 	     *cafeobj-doc-db*)
