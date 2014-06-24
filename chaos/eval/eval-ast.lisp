@@ -604,6 +604,8 @@
 			     (when (term-is-builtin-constant? lhs-result)
 			       (with-output-chaos-error ('invlaid-lhs)
 				 (format t "sole built-in constant on LHS is not allowed, sorry!")
+				 (format t "~& - LHS :")
+				 (term-print-with-sort lhs-result)
 				 (print-ast ast)
 				 ))
 			     ;;
