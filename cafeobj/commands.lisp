@@ -187,7 +187,8 @@ either the string `atte` or `attr`."
 Terms are separated by white space. Each term is tested independently 
 and all terms have to match. Testing is done either by simple sub-string 
 search, or, if the term looks like a regular expression (Perl style), 
-by regex mathing.
+by regex matching. In case a regex-like term cannot be parsed as regular
+expression, it is used in normal sub-string search mode.
 
 Note: Fancy quoting with single and double quotes might lead to unexpected problems.
 ")
