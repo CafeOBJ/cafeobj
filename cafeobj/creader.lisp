@@ -713,8 +713,8 @@
 	(gendoc :symbol)
 	(?example :args)
 	(?ex :args)
-	(?apropos :args)
-	(?ap :args)
+	(?apropos :comment)
+	(?ap :comment)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.
