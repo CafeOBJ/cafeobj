@@ -102,17 +102,11 @@
 ;;     Call the resulting string full search string "fullss"
 ;;     procedure see below
 ;;   - how search is performed
-;;     . (TODO) if the arguments to the search function only are made
-;;       up from characters a-zA-Z0-9 (not special symbols), then 
-;;       consider this a search for "str1" and "str2"
-;;       serach function uses substr for both strings
-;;     . otherwise we do a regexp search:
-;;       . format question argument into one string with one space speparation
-;;         ("clean" "a?") -> "clean a?" (call this "ss")
-;;         (do NOT! reduce this string as it is a regexp!)
-;; 
-;;     . for each entry in the main table
-;;       . if the search function applied to fullss gives true, flag it
+;;     . for each entry in the main table do
+;;       . for each element x in the question list do
+;;         . if x looks like a regex, do regex matching
+;;         . otherwise do substring matching
+;;       . if all the matches in the previous loop returned true, flag it
 ;;     . list all the flagged functions, or say no match
 
 ;;
@@ -176,7 +170,8 @@
 (defun oldoc-question-to-string (question)
   (format nil "~{~a~^ ~}" question))
 (defun oldoc-reduce-string (str)
-  (funcall #~s/`// str))
+  (format-markdown str))
+;  (funcall #~s/`// str))
 
 
 (defun oldoc-find-doc-entry (question)
@@ -288,27 +283,57 @@
 ;;; search for an arbitrary regexp in all main strs, and return
 ;;; string that lists all possible matches
 ;;;
+(defun oldoc-is-regex (re)
+  (not (cl-ppcre:scan "^[\\w\\s]*$" re)))
+(defun oldoc-parse-to-words (str)
+  (let ((outlst nil) (re (cl-ppcre:create-scanner "
+                    (?: 
+                        (\")  
+                        ((?>[^\\\"]*(?:\\.[^\\\"]*)*))\" 
+                    |  
+                        (')                           
+                        ((?>[^\\']*(?:\\.[^\\']*)*))' 
+                    |   
+                        (
+                            (?:\\.|[^\\\"'])*?           
+                        )               
+                        (                          
+                            \\z | (?=([\\s]+)) | (?!^)(?=[\"']) 
+                        )  
+                    )"
+				     :extended-mode t)))
+    (map 'list #'(lambda (x) (if (not (string-equal x "")) (push x outlst))) 
+	 (cl-ppcre:all-matches-as-strings re str))
+    outlst))
+
 (defun oldoc-search-all (question)
-  ; what is the list of arguments to the ?apropos command
-  (let ((re (oldoc-question-to-string question))
-	(retstr ""))
-    (if re (let ((re (cl-ppcre:create-scanner re :case-insensitive-mode :multi-line-mode))
-		 (matching-docs nil))
-	     (maphash #'(lambda (key oldoc)
-			  (declare (ignore key))
-			  (let* ((fullss (format nil "~a~%~a~%~{~a~^~%~}~a~%~a"
-						 (oldoc-title oldoc)
-						 (oldoc-rtitle oldoc)
-						 (oldoc-names oldoc)
-						 (oldoc-main oldoc)
-						 (oldoc-example oldoc)))
-				 (found (cl-ppcre:scan re fullss)))
-			    (when found
-			      (push (oldoc-title oldoc) matching-docs))))
-		      *cafeobj-doc-db*)
-	     ; create the return string from the list of found keys
-	     (when matching-docs
-	       (setq retstr (format nil "Found the following matches:~% . ~{~a~^~% . ~}" matching-docs)))))
+  ; oldoc is special as ?ap is using the :comment reader, which means we
+  ; get one string till the end of line as argument.
+  (let ((retstr "") (matching-docs nil))
+    (maphash #'(lambda (key oldoc)
+		 (declare (ignore key))
+		 (let* ((fullss (oldoc-reduce-string (format nil "~a~%~{~a~^~%~}~a~%~a"
+							     (oldoc-title oldoc)
+							     (oldoc-names oldoc)
+							     (oldoc-main oldoc)
+							     (oldoc-example oldoc))))
+			(found (every #'identity
+				      (map 'list #'(lambda (x)
+						     (if (oldoc-is-regex x)
+							 (progn
+							   ; (format t "testing via regex ~a~%" x)
+							   (let ((re (cl-ppcre:create-scanner x :case-insensitive-mode :multi-line-mode)))
+							     (cl-ppcre:scan re fullss)))
+						       (progn 
+							 ; (format t "testing simple ~a~%" x)
+						         (search x fullss))))
+					   (oldoc-parse-to-words (car question))))))
+		   (when found
+		     (push (oldoc-title oldoc) matching-docs))))
+	     *cafeobj-doc-db*)
+					; create the return string from the list of found keys
+    (when matching-docs
+      (setq retstr (format nil "Found the following matches:~% . ~{~a~^~% . ~}" matching-docs)))
     (if (string= retstr "")
 	(setq retstr (format nil "No matches found!~%")))
     retstr))

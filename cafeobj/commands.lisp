@@ -171,9 +171,25 @@ When called as ?? both documentation and examples are shown.
     :parser identity
     :mdkey "apropos"
     :evaluator cafeobj-top-level-help
-    :title "`?apropos <regexp>`"
-    :doc "Searches all available online docs for the regular
-expression `<regexp>` and returns the found terms.
+    :title "`?apropos <term> [<term> ...]`"
+    :example "`````
+CafeOBJ> ?ap prec oper
+`````
+will search for all entries that contain both `prec` and `oper` as
+substrings. Matching is done as simple sub-string match.
+
+`````
+CafeOBJ> ?ap foo att[er]
+`````
+will search for entries that contain the string `foo` as well as
+either the string `atte` or `attr`."
+    :doc "Searches all available online docs for the terms passed.
+Terms are separated by white space. Each term is tested independently 
+and all terms have to match. Testing is done either by simple sub-string 
+search, or, if the term looks like a regular expression (Perl style), 
+by regex mathing.
+
+Note: Fancy quoting with single and double quotes might lead to unexpected problems.
 ")
 
 (define ("all axioms switch")
