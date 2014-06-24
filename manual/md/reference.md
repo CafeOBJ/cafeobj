@@ -19,8 +19,8 @@ Starts a comment which extends to the end of the line.
 With the additional `>` the comment is displayed while
 evaluated by the interpreter.
 
-Related: [`--`](#dashdash) [comments](#comments)
 
+Related: [comments](#comments), [`--`](#starstar)
 
 ## `--`, `-->` ## {#dashdash}
 
@@ -28,8 +28,8 @@ Starts a comment which extends to the end of the line.
 With the additional `>` the comment is displayed while
 evaluated by the interpreter.
 
-Related: [`**`](#starstar) [comments](#comments)
 
+Related: [comments](#comments), [`**`](#starstar)
 
 ## `.` ## {#dotsep}
 
@@ -43,8 +43,8 @@ The syntax element `=` introduces an axiom of the equational theory,
 and is different from `==` which specifies an equality based on
 rewriting. 
 
-Related: [`==`](#equality) [`eq`](#eq)
 
+Related: [`eq`](#eq), [`==`](#equality)
 
 ## `=(n)=>`, `=(n,m)=>`, `=()=>` ## {#searchpredsymb}
 
@@ -81,8 +81,8 @@ transition relation, which is reflexive, transitive, and closed under
 operator application. It expresses the fact that two states (terms)
 are connected via transitions.
 
-Related: [`trans`](#trans) [search predicates](#searchpredicate)
 
+Related: [search predicates](#searchpredicate), [`trans`](#trans)
 
 ## `? [<term>]` ## {#help}
 
@@ -95,12 +95,34 @@ In case examples are provided for the `<term>`, they can be displayed
 using `?ex <term>`. In this case the normal help output will also contain
 an informational message that examples are available.
 
+When called as ?? both documentation and examples are shown.
 
-## `?apropos <regexp>` ## {#apropos}
 
-Searches all available online docs for the regular
-expression `<regexp>` and returns the found terms.
+## `?apropos <term> [<term> ...]` ## {#apropos}
 
+Searches all available online docs for the terms passed.
+Terms are separated by white space. Each term is tested independently 
+and all terms have to match. Testing is done either by simple sub-string 
+search, or, if the term looks like a regular expression (Perl style), 
+by regex matching. In case a regex-like term cannot be parsed as regular
+expression, it is used in normal sub-string search mode.
+
+Note: Fancy quoting with single and double quotes might lead to unexpected problems.
+
+
+### Example ###
+
+`````
+CafeOBJ> ?ap prec oper
+`````
+will search for all entries that contain both `prec` and `oper` as
+substrings. Matching is done as simple sub-string match.
+
+`````
+CafeOBJ> ?ap foo att[er]
+`````
+will search for entries that contain the string `foo` as well as
+either the string `atte` or `attr`.
 
 ## `[` ## {#sortsymbol}
 
@@ -118,16 +140,16 @@ difficult - see TODO for [`=*=`](#bequality)
 Controls whether axioms from included modules are shown
 during a `show` invocation.
 
-Related: [`show`](#show)
 
+Related: [`show`](#show)
 
 ## `always memo` switch ## {#switch-always-memo}
 
 Turns on memorization of computation also for operators without
 the [`memo`](#opattr) operator attribute.
 
-Related: [`memo` switch](#switch-memo) [operator attributes](#opattr)
 
+Related: [operator attributes](#opattr), [`memo`](#switch-memo)
 
 ## `apply <action> [ <subst> ] <range> <selection>` ## {#apply}
 
@@ -199,9 +221,7 @@ where each `<selector>` is one of
   then the expression `{2, 4, 5}` selects the subterm `c * c * e`.
 
 
-Related: [`choose`](#choose)
-         [`start`](#start) 
-
+Related: [`start`](#start), [`choose`](#choose)
 
 ## `auto context` switch ## {#switch-auto-context}
 
@@ -229,12 +249,8 @@ transitions.
 Other statements are not allowed within the `axioms` block.
 Optional structuring of the statements in a module.
 
-Related: [`signature`](#signature)
-         [`imports`](#imports)
-	 [`var`](#var)
-         [`eq`](#eq)
-         [`trans`](#trans)
 
+Related: [`trans`](#trans), [`eq`](#eq), [`var`](#var), [`imports`](#imports), [`signature`](#signature)
 
 ## `bax` ## {#bax}
 
@@ -245,23 +261,23 @@ Related: [`signature`](#signature)
 
 Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
 
-Related: [`eq`](#eq) [`ceq`](#ceq) [`beq`](#beq)
 
+Related: [`beq`](#beq), [`ceq`](#ceq), [`eq`](#eq)
 
 ## `bctrans [ <label-exp> ] <term> => <term> if <bool> .` ## {#bctrans}
 
 Defines a behaviour conditional transition. 
 For details see [`ctrans`](#ctrans).
 
-Related [`trans`](#trans) [`ctrans`](#ctrans) [`btrans`](#btrans)
 
+Related: [`btrans`](#btrans), [`ctrans`](#ctrans), [`trans`](#trans)
 
 ## `beq [ <op-exp> ] <term> = <term> .` ## {#beq}
 
 Defines a behaviour equation. For details see [`eq`](#eq).
 
-Related: [`eq`](#eq) [`ceq`](#ceq) [`bceq`](#bceq)
 
+Related: [`bceq`](#bceq), [`ceq`](#ceq), [`eq`](#eq)
 
 ## `bgoal` ## {#bgoal}
 
@@ -276,18 +292,16 @@ construct. `<sorts>` is a space separated list of sort names containing
 
 For `<op-spec>` see the explanations of [`op`](#op).
 
-Related: [`op`](#op)
 
+Related: [`op`](#op)
 
 ## `bpred <op-spec> : <sorts>` ## {#bpred}
 
 Short hand for `op <op-spec> : <sorts> -> Bool` defining a
 behavioural predicate.
 
-Related: [`op`](#op)
-         [`bop`](#op)
-         [`pred`](#bpred)
 
+Related: [`pred`](#pred), [`bop`](#bop), [`op`](#op)
 
 ## `breduce [ in <mod-exp> : ] <term> .` ## {#breduce}
 
@@ -297,8 +311,8 @@ otherwise in the current module.
 For `breduce` equations, possibly conditional, possibly behavioural, are taken
 into account for reduction.
 
-Related: [`execute`](#execute) [`reduce`](#reduce)
 
+Related: [`reduce`](#reduce), [`execute`](#execute)
 
 ## `brl` ## {#brl}
 
@@ -319,8 +333,8 @@ Related: [`execute`](#execute) [`reduce`](#reduce)
 
 Defines a behaviour transition. For details see [`trans`](#trans).
 
-Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
 
+Related: [`bctrans`](#bctrans), [`ctrans`](#ctrans), [`trans`](#trans)
 
 ## `btrns` ## {#btrns}
 
@@ -337,8 +351,8 @@ Related [`trans`](#trans) [`ctrans`](#ctrans) [`bctrans`](#bctrans)
 Change the current working directory, like the Unix counterpart.
 The argument is necessary. No kind of expansion or substitution is done.
 
-Related: [`pwd`](#pwd) [`ls`](#ls)
 
+Related: [`ls`](#ls), [`pwd`](#pwd)
 
 ## `ceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#ceq}
 
@@ -346,8 +360,8 @@ Defines a conditional equation. Spaces around the `if` are obligatory.
 `<boolterm>` needs to be a Boolean term. For other requirements
 see [`eq`](#eq).
 
-Related: [`eq`](#eq) [`beq`](#beq) [`bceq`](#bceq)
 
+Related: [`bceq`](#bceq), [`beq`](#beq), [`eq`](#eq)
 
 ## `check <options>` ## {#check}
 
@@ -370,8 +384,8 @@ operators.
     `<op_name>` is given, all operators of the current module are
     checked. 
 
-Related: [`regularize`](#regularize)
 
+Related: [`regularize`](#regularize)
 
 ## `check <something>` switch ## {#switch-check}
 
@@ -398,9 +412,8 @@ These switches turn on automatic checking of certain properties:
 Chooses a subterm by the given `<selection>`. See [`apply`](#apply)
 for details on `<selection>`.
 
-Related: [`apply`](#apply) [`start`](#start)
-	 [`strat` in operator attributes](#opattr)
 
+Related: [`strat` in operator attributes](#opattr), [`start`](#start), [`apply`](#apply)
 
 ## `clause` ## {#clause}
 
@@ -412,8 +425,8 @@ Related: [`apply`](#apply) [`start`](#start)
 Resets (clears) the memo storages of the system. Memorized computations 
 are forgotten. 
 
-Related: [`clean memo` switch](#switch-clean-memo)
 
+Related: [clean memo switch](#switch-clean-memo)
 
 ## `clean memo` switch ## {#switch-clean-memo}
 
@@ -426,8 +439,8 @@ tells the system to be forgetful.
 
 This command closes a modification of a module started by `open`.
 
-Related: [`open`](#open)
 
+Related: [`open`](#open)
 
 ## comments ## {#comments}
 
@@ -437,8 +450,8 @@ that extends to the end of the line: `--`, `-->`, `**`, `**>`.
 The difference in the variants with `>` is that the comment is
 displayed when run through the interpreter.
 
-Related: [`**`](#starstar) [`--`](#dashdash)
 
+Related: [`--`](#starstar), [`**`](#starstar)
 
 ## `cond limit` switch ## {#switch-cond-limit}
 
@@ -455,8 +468,8 @@ Related: [`**`](#starstar) [`--`](#dashdash)
 Defines a conditional transition. For details see [`trans`](#trans)
 and [`ceq`](#ceq).
 
-Related [`trans`](#trans) [`btrans`](#ctrans) [`bctrans`](#bctrans)
 
+Related: [`bctrans`](#bctrans), [`btrans`](#btrans), [`trans`](#trans)
 
 ## `db` ## {#db}
 
@@ -478,8 +491,8 @@ Related [`trans`](#trans) [`btrans`](#ctrans) [`bctrans`](#bctrans)
 Similar to the `show` command but with more details. See `describe ?` for
 the possible set of invocations.
 
-Related: [`show`](#show)
 
+Related: [`show`](#show)
 
 ## `dirs` ## {#dirs}
 
@@ -549,14 +562,8 @@ In this case an expression like `q1(1 2 3)` would reduce to
 `p1(1) and p1(2) and p1(3)` (modulo AC), and `q2(1 2 3)` into
 the same term with `or` instead.
 
-Related: [`ceq`](#ceq) [`beq`](#beq) [`bceq`](#bceq)
 
-
-## `exec!` ## {#execute-dash}
-
-
-exec! [in <Modexpr> :] <Term> .
-
+Related: [`bceq`](#bceq), [`beq`](#beq), [`ceq`](#ceq)
 
 ## `exec limit` switch ## {#switch-exec-limit}
 
@@ -564,8 +571,8 @@ Possible values: integers, default limit 4611686018427387903.
 
 Controls the number of maximal transition steps.
 
-Related: [`reduce`](#reduce)
 
+Related: [`reduce`](#reduce)
 
 ## `exec trace` switch ## {#switch-exec-trace}
 
@@ -573,7 +580,13 @@ Possible values: `on` `off, default `off`.
 
 controls whether further output is provided during reductions.
 
+
 Related: [`reduce`](#reduce)
+
+## `exec!` ## {#execute-dash}
+
+
+exec! [in <Modexpr> :] <Term> .
 
 
 ## `execute [ in <mod-exp> : ] <term> .` ## {#execute}
@@ -584,8 +597,8 @@ otherwise in the current module.
 For `execute` equations and transitions, possibly conditional, are taken
 into account for reduction.
 
-Related: [`breduce`](#breduce) [`reduce`](#reduce)
 
+Related: [`reduce`](#reduce), [`breduce`](#breduce)
 
 ## `extending ( <modexp> )` ## {#extending}
 
@@ -593,9 +606,8 @@ Imports the object specified by `modexp` into the current
 module, allowing models to be inflated, but not collapsing. 
 See [`module expression`](#moduleexpression) for format of `modexp`.
 
-Related: [`including`](#including) [`protecting`](#protecting) 
-	 [`using`](#using)
 
+Related: [`using`](#using), [`protecting`](#protecting), [`including`](#including)
 
 ## `find` ## {#find}
 
@@ -617,8 +629,8 @@ Related: [`including`](#including) [`protecting`](#protecting)
 Reinitializes the internal state of the system. All supplied modules
 definitions are lost.
 
-Related: [`reset`](#reset)
 
+Related: [`reset`](#reset)
 
 ## `gendoc <pathname>` ## {#gendoc}
 
@@ -637,10 +649,8 @@ Block enclosing import of other modules (`protecting` etc).
 Other statements are not allowed within the `imports` block.
 Optional structuring of the statements in a module.
 
-Related: [`signature`](#signature) [`axioms`](#axioms)
-  [`extending`](#extending)   [`including`](#including) 
-  [`protecting`](#protecting) [`using`](#using)
 
+Related: [`using`](#using), [`protecting`](#protecting), [`including`](#including), [`extending`](#extending), [`axioms`](#axioms), [`signature`](#signature)
 
 ## `include BOOL` switch ## {#switch-include-bool}
 
@@ -668,9 +678,8 @@ module.
 
 See [`module expression`](#moduleexpression) for format of `modexp`.
 
-Related: [`extending`](#including) [`protecting`](#protecting) 
-	 [`using`](#using) [`module expression`](#moduleexpression)
 
+Related: [module expression](#moduleexpression), [`using`](#using), [`protecting`](#protecting), [`extending`](#extending)
 
 ## `input <pathname>` ## {#input}
 
@@ -680,15 +689,14 @@ CafeOBJ reads the file up to the end, or until it encounters
 a line that only contains (the literal) `eof`.
 
 
-
 ## `inspect` ## {#inspect}
 
 
 
 
-## instantiation of parametrised modules ## {#instantiation}
+## instantiation of parameterized modules ## {#instantiation}
 
-Parametrized modules allow for instantiation. The process of
+Parameterized modules allow for instantiation. The process of
 instantiation binds actual parameters to formal parameters. The result
 of an instantiation is a new module, obtained by replacing occurrences
 of parameter sorts and operators by their actual counterparts. If, as
@@ -699,7 +707,7 @@ Instantiation is done by
 
 `<module_name> ( <bindings> )`
 
-where `<module_name>` is the name of a parametrized module, and
+where `<module_name>` is the name of a parameterized module, and
 `<bindings>` is a comma-separated list of binding constructs.
 
 using declared views
@@ -731,7 +739,7 @@ position instead of names as in
 `<mod_name> ( <view_name>, <view_name> )`
 
 which would bind the `<view_name>`s to the respective parameters
-of the parametrized module `<mod_name>`.
+of the parameterized module `<mod_name>`.
 
 This can be combined with the ephemeral defintion of a view like in
 the following example (assume `ILIST` has two parameters):
@@ -811,8 +819,8 @@ TODO (memory-fault on sbcl)
 
 lists the given `pathname`. Argument is obligatory.
 
-Related: [`cd`](#ls) [`pwd`](#pwd)
 
+Related: [`pwd`](#pwd), [`cd`](#cd)
 
 ## `make` ## {#make}
 
@@ -864,7 +872,7 @@ are declarations of
 
 `module` introduces a module without specified semantic type.
 
-If `params` are given, it is a parametrized module. See `parametrized module`
+If `params` are given, it is a parameterized module. See `parameterized module`
 for more details.
 
 If `principal_sort_spec` is given, it has to be of the form
@@ -941,8 +949,8 @@ on-the-fly declaration of constants, like to one of variables, is only
 valid in the current context (i.e., term or axiom). These constant
 definitions are quite common in proof scores.
 
-Related: [`var`](#var)
 
+Related: [`var`](#var)
 
 ## `op <op-spec> : <sorts> -> <sort> { <attribute-list> }` ## {#op}
 
@@ -975,9 +983,8 @@ For the description of `<attribute-list>` see the entry for
 This command opens the module specified by the module expression
 `<mod_exp>` and allows for declaration of new sorts, operators, etc.
 
-Related: [`close`](#close) [module expression](#moduleexpression)
-	 [`select`](#select)
 
+Related: [`select`](#select), [`module expression`](#moduleexpression), [`close`](#close)
 
 ## `operator attributes` ## {#opattr}
 
@@ -1053,8 +1060,8 @@ Remarks:
 
   - A single underbar cannot be an operator name.
 
-Related: [`bop`](#bop)
 
+Related: [`bop`](#bop)
 
 ## `operator precedence` ## {#opprec}
 
@@ -1076,8 +1083,8 @@ the following rules:
 - all other operators (constants, operators of the form `a _ b`, etc.)
   receive precedence 0.
 
-Related: [operator attributes](#opattr)
 
+Related: [operator attributes](#opattr)
 
 ## `option` ## {#option}
 
@@ -1089,9 +1096,9 @@ Related: [operator attributes](#opattr)
 (pignose)
 
 
-## `parameterized module` ## {#parametrizedmodule}
+## `parameterized module` ## {#parameterizedmodule}
 
-A module with a parameter list (see `module`) is a parametrized module.
+A module with a parameter list (see `module`) is a parameterized module.
 Parameters are given as a comma (`,`) separated list. Each parameter is
 of the form `[ <import_mode> ] <param_name> :: <module_name>` 
 (spaces around `::` are obligatory).
@@ -1103,8 +1110,7 @@ Within the module declaration sorts and operators of the parameter
 are qualified with `.<parameter_name>` as seen in the example below.
 
 
-Related: [qualified sort etc](#qualifiedother)
-
+Related: [qualified sort](#qualifiedother)
 
 ### Example ###
 
@@ -1129,8 +1135,8 @@ and returns the parsed and qualified term.
 In case of ambiguous terms, i.e., different possible parse trees, the
 command will prompt for one of the trees.
 
-Related: [qualified term](#qualified)
 
+Related: [`qualified term`](#qualified)
 
 ## `parse normalize` switch ## {#switch-parse-normalize}
 
@@ -1146,8 +1152,8 @@ Related: [qualified term](#qualified)
 
 Short hand for `op <op-spec> : <sorts> -> Bool` defining a predicate.
 
-Related: [`op`](#op) [`bpred`](#bpred)
 
+Related: [`bpred`](#bpred), [`op`](#op)
 
 ## `prelude` ## {#prelude}
 
@@ -1174,8 +1180,8 @@ Protect a module from being overwritten.
 Some modules vital for the system are initially protected.
 Can be reversed with `unprotect`.
 
-Related: [`unprotect`](#unprotect)
 
+Related: [`unprotect`](#unprotect)
 
 ## `protecting ( <modexp> )` ## {#protecting}
 
@@ -1183,8 +1189,8 @@ Imports the object specified by `modexp` into the current
 module, preserving all intended models as they are. See `module expression`
 for format of `modexp`.
 
-Related: [`extending`](#extending) [`using`](#using) [`including`](#including)
 
+Related: [`including`](#including), [`using`](#using), [`extending`](#extending)
 
 ## `provide <feature>` ## {#provide}
 
@@ -1192,8 +1198,8 @@ Discharges a feature requirement: once `provide`d, all the subsequent
 `require`ments of a feature are assumed to have been fulfilled
 already.
 
-Related: [`require`](#require)
 
+Related: [`require`](#require)
 
 ## `pushd` ## {#pushd}
 
@@ -1209,8 +1215,8 @@ Related: [`require`](#require)
 
 Prints the current working directory.
 
-Related: [`cd`](#cd) [`ls`](#ls)
 
+Related: [`ls`](#ls), [`cd`](#cd)
 
 ## qualified sort/operator/parameter ## {#qualifiedother}
 
@@ -1231,8 +1237,8 @@ for qualification of the number of parameters might arise. In this
 case the number can be specified after an affixed `/`: 
 `<opname>/<argnr>`
 
-Related: [parametrized module](#parametrizedmodule) [qualified term](#qualified) 
 
+Related: [`qualified term`](#qualified), [`parameterized module`](#parameterizedmodule)
 
 ## `qualified term` ## {#qualified}
 
@@ -1240,8 +1246,8 @@ In case that a term can be parsed into different sort, it is possible to
 qualify the term to one of the possible sorts by affixing it with 
 `: <sort-name>` (spaces before and after the `:` are optional).
 
-Related: [`parse`](#parse)
 
+Related: [`parse`](#parse)
 
 ### Example ###
 
@@ -1253,8 +1259,8 @@ Possible values: `on` `off`, default `off`
 
 If set to `on`, the system only issues error messages.
 
-Related: [`verbose` switch](#switch-verbose)
 
+Related: [`verbose`](#switch-verbose)
 
 ## `quit` ## {#quit}
 
@@ -1269,8 +1275,8 @@ otherwise in the current module.
 For `reduce` only equations and conditional equations are taken into
 account for reduction.
 
-Related: [`execute`](#execute) [`breduce`](#breduce)
 
+Related: [`breduce`](#breduce), [`execute`](#execute)
 
 ## `reduce conditions` switch ## {#switch-reduce-conditions}
 
@@ -1280,8 +1286,8 @@ When using [`apply`](#apply) to step through a reduction, this switch
 allows to turn on automatic reduction of conditions in conditional
 equations. 
 
-Related: [`apply`](#apply)
 
+Related: [`apply`](#apply)
 
 ## `regularize <mod-name>` ## {#regularize}
 
@@ -1306,16 +1312,16 @@ system searches for a file named the feature, and read the file
 if found. If a pathname is given, the system searches for a file
 named the pathname instead.
 
-Related: [`provide`](#provide)
 
+Related: [`provide`](#provide)
 
 ## `reset` ## {#reset}
 
 Restores the definitions of built-in modules and preludes,  but does not
 affect other modules.
 
-Related: [`full reset`](#fullreset)
 
+Related: [`full reset`](#fullreset)
 
 ## `resolve` ## {#resolve}
 
@@ -1330,10 +1336,8 @@ the effects might be different.
 
 TODO -- should we keep the different effects? What is the real difference?
 
-Related: [`input`](#input) [`save`](#save) 
-	 [`save-system`](#save-system)
 
-
+Related: [`save-system`](#save-system), [`save`](#save), [`input`](#input)
 
 ## `rewrite limit` switch ## {#switch-rewrite}
 
@@ -1342,8 +1346,8 @@ Possible values: positive integers, default not specified.
 Allows limiting the number of rewrite steps during a stepwise
 execution.
 
-Related: [`step` switch](#switch-step)
 
+Related: [`step switch`](#switch-step)
 
 ## `rl` ## {#rl}
 
@@ -1363,8 +1367,8 @@ File names should be suffixed with `.bin`.
 `save` also saves the contents of prelude files as well as module definitions
 given in the current session.
 
-Related: [`input`](#input) [`restore`](#restore) [`save-system`](#save-system)
 
+Related: [`save-system`](#save-system), [`restore`](#restore), [`input`](#input)
 
 ## `save-option` ## {#save-option}
 
@@ -1377,8 +1381,8 @@ Dumps the image of the whole system into a file. This is functionality
 provided by the underlying Common Lisp system and might carry some 
 restrictons.
 
-Related: [`input`](#input) [`save`](#save) [`restore`](#restore)
 
+Related: [`restore`](#restore), [`save`](#save), [`input`](#input)
 
 ## `scase` ## {#scase}
 
@@ -1432,8 +1436,8 @@ current module. All further operations are carried out within the
 given module. In constrast to `open` this does not allow for
 modification of the module, e.g., addition of new sorts etc.
 
-Related: [`open`](#open) [module expression](#moduleexpression)
 
+Related: [`module expression`](#moduleexpression), [`open`](#open)
 
 ## `set <name> [option] <value>` ## {#set}
 
@@ -1445,8 +1449,8 @@ For a list of all available switches, use `set ?`. To see the current
 values, use `show switches`. To single out two general purpose switches,
 `verbose` and `quiet` tell the system to behave in the respective way.
 
-Related: [`show`](#show) [`switches`](#switches)
 
+Related: [`switches`](#switches), [`show`](#show)
 
 ## `show <something>` ## {#show}
 
@@ -1463,8 +1467,8 @@ the `show` command are:
 
 See the entry for `switches` for a full list.
 
-Related: [`switches`](#switches) [`describe`](#describe)
 
+Related: [`describe`](#describe), [`switches`](#switches)
 
 ## `show mode` switch ## {#switch-show-mode}
 
@@ -1484,9 +1488,8 @@ Block enclosing declarations of sorts and operators.
 Other statements are not allowed within the `signature` block.
 Optional structuring of the statements in a module.
 
-Related: [`axioms`](#axioms) [`imports`](#imports)
-	 [`sort`](#sort) [`op`](#op)
 
+Related: [`op`](#op), [`sort`](#sort), [`imports`](#imports), [`axioms`](#axioms)
 
 ## sort declaration ## {#sort}
 
@@ -1533,8 +1536,8 @@ Sets the focus onto the given term `<term>` of the currently opened
 module or context. Commands like `apply`, `choose`, or `match` will
 then operate on this term.
 
-Related: [`apply`](#apply) [`choose`](#choose) [`match`](#match)
 
+Related: [`match`](#match), [`choose`](#choose), [`apply`](#apply)
 
 ## `statistics` switch ## {#switch-statistics}
 
@@ -1613,8 +1616,8 @@ CafeOBJ> open NAT .
 %NAT> 
 `````
 
-Related: [`step` switch](#switch-step)
 
+Related: [`step switch`](#switch-step)
 
 ## switches ## {#switches}
 
@@ -1628,8 +1631,8 @@ show switches
 
 The single switches are described separately in this manual.
 
-Related: [`set`](#set) [`show`](#show)
 
+Related: [`show`](#show), [`set`](#set)
 
 ## `trace [whole]` switch ## {#switch-trace}
 
@@ -1667,8 +1670,8 @@ Remove overwrite protection from a module that has been protected
 with the `protect` call. Some modules vital for the system
 are initially protected.
 
-Related: [`protect`](#protect)
 
+Related: [`protect`](#protect)
 
 ## `using ( <modexp> )` ## {#using}
 
@@ -1676,9 +1679,8 @@ Imports the object specified by `modexp` into the current
 module without any restrictions on the models.
 See `module expression` for format of `modexp`.
 
-Related: [`extending`](#extending) [`including`](#including) 
-	 [`protecting`](#protecting)
 
+Related: [`protecting`](#protecting), [`including`](#including), [`extending`](#extending)
 
 ## `var <var-name> : <sort-name>` ## {#var}
 
@@ -1690,8 +1692,8 @@ using the `vars` construct:
 
 `vars <var-name> ... : <sort-name>`
 
-Related: [`op`](#op) [qualified term](#qualified) [on-the-fly](#onthefly)
 
+Related: [`on-the-fly`](#onthefly), [`qualified term`](#qualified), [`op`](#op)
 
 ## `verbose` switch ## {#switch-verbose}
 
@@ -1699,8 +1701,8 @@ Possible values: `on` `off`, default `off`.
 
 If turn `on`, the system is much more verbose in many commands.
 
-Related: [`quiet` switch](#switch-quiet)
 
+Related: [`quiet switch`](#switch-quiet)
 
 ## `version` ## {#version}
 
@@ -1710,7 +1712,7 @@ Prints out the version of CafeOBJ.
 ## `view <name> from <modname> to <modname> { <viewelems> }` ## {#view}
 
 A view specifies ways to bind actual parameters to formal parameters
-(see [parametrized module](#parametrizedmodule)). The view has to
+(see [parameterized module](#parameterizedmodule)). The view has to
 specify the mapping of the sorts as well as the operators. 
 
 The `<viewelems>` is a comma-separated list of expressions specifying
