@@ -678,7 +678,8 @@
 
 (defun term-replace-dd-dbg (old new)
   (declare (type term old new)
-           (values term))
+           ;;(values term)
+	   )
   ;;
   (incf *rule-count*)
 
