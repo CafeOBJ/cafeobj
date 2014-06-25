@@ -169,9 +169,6 @@
 ;  (sxhash whatever))
 (defun oldoc-question-to-string (question)
   (format nil "~{~a~^ ~}" question))
-(defun oldoc-reduce-string (str)
-  (format-markdown str))
-;  (funcall #~s/`// str))
 
 
 (defun oldoc-find-doc-entry (question)
@@ -373,12 +370,21 @@
 			:related related
 			:names (cons mainname aliasnames))))))
 
+;;
+;; format-markdown and oldoc-reduce-string are similar, but serve different
+;; purpose:
+;; * format-markdown is used when formattting a markdown string for
+;;   online display
+;; * oldoc-reduce-string is used as search basis of strings
+
 (defparameter .md-remove-hash-hash. #~s/##//)
 (defparameter .md-remove-link. #~s/{#.*}//)
 (defparameter .md-remove-link2. #~s/\(#.+\)//)
 (defparameter .md-remove-code-sign. #~s/~~//)
 (defparameter .md-replace-tilde. #~s/~/*/)
 (defparameter .md-replace-bq. #~s/`/'/)
+(defparameter .md-remove-bq. #~s/`//)
+
 
 (defun format-markdown (str)
   (funcall .md-replace-bq.
@@ -388,6 +394,11 @@
 				      (funcall .md-remove-link.
 					       (funcall .md-remove-hash-hash. str)))))))
 
+(defun oldoc-reduce-string (str)
+  (funcall .md-remove-bq.
+           (funcall .md-remove-link2.
+                    (funcall .md-remove-link.
+	                     (funcall .md-remove-hash-hash. str)))))
 
 
 
