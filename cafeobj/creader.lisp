@@ -136,7 +136,7 @@
                 |{| |}| |.| -- ** --> **> class record eq rule rl ceq crule crl
                 bq bcq beq bceq brule brl bcrule bcrl trans tr btrans btr
                 bctrans bctr fax bfax
-                var vars parse ev evq lisp lispq let)
+                var vars parse ev evq lisp lispq let |#define|)
          :sorts)
         (:if-present
          |{| (:many-of
@@ -166,7 +166,7 @@
                 |{| |}| |.| -- ** --> **> class record eq rule rl ceq crule crl
                 bq bcq beq bceq brule brl bcrule bcrl trans trns btrans btrns
                 bctrans bctrns fax bfax
-                var vars parse ev evq lisp lispq let)
+                var vars parse ev evq lisp lispq let |#define|)
          :sorts)
         (:if-present
          |{| (:many-of
