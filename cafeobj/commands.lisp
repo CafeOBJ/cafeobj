@@ -1205,6 +1205,18 @@ Controls to which depth terms are printed.
 Selects one of the print modes.
 ")
 
+(define ("print trs switch")
+    :type :doc-only
+    :title "`print trs` switch"
+    :mdkey "switch-print-trs"
+    :related ("search predicates")
+    :doc "Possible values: `on` `off`, default `off`
+
+If set to `on`, print the rules used during reduction of 
+`=(_,_)=>+_if_suchThat_{_}`.
+")
+
+
 (define ("protect")
     :category :system
     :parser parse-protect-command
