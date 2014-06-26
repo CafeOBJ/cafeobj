@@ -115,6 +115,9 @@
        chaos-set-show-mode)
       ("show" ("var" "sorts") parity *print-with-sort* 
        "if on, variables are printed with their sorts.")
+      ;;
+      ("show" ("trans") parity *print-exec-rule*
+       "if on, print out (c)trans rules in reduction of '_=(,)=>+_if_suchThat_{_}'. default off.")
       ("print" ("mode") general *print-xmode*
        "set term print form, one of :normal, :fancy, :tree or :s-expr."
        chaos-set-print-mode)
