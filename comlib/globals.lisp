@@ -234,6 +234,7 @@
 (defvar *print-line-limit* 2000)
 (defvar *print-mode* nil)
 (defvar *print-all-eqns* nil)
+(defvar *print-exec-rule* nil)
 (defvar *print-ignore-mods* nil)
 (defvar *chaos-print-level* 5)
 (defvar *chaos-print-length* 100)

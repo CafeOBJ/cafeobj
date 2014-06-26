@@ -117,8 +117,9 @@
 
 (defun state-is-valid-transition (state)
   (let ((cond (rwl-state-condition state)))
-    (or (null cond)
-	(is-true? cond))))
+    (and (not (rwl-state-loop state))
+	 (or (null cond)
+	     (is-true? cond)))))
 
 (defun pr-rwl-state (state &optional (stream *standard-output*) &rest ignore)
   (declare (ignore ignore))
@@ -566,7 +567,7 @@
 			       (format t "~& = ~s" (is-true? $$cond)))
 			     $$cond))))))
     ;; if checked already, we return immediately as non.
-    (when (sch-node-done node)
+    (when (and (sch-node-done node) (null (rwl-sch-context-if sch-context)))
       (return-from rwl-sch-check-conditions nil))
     ;;
     (when *cexec-debug* 
@@ -617,7 +618,8 @@
 	    (print-substitution sub)))
 	(when (condition-check-ok sub)
 	  (when (and if-var (rwl-state-rule-pat state))
-	    (format t "~%=> ") (print-axiom-brief (rule-pat-rule (rwl-state-rule-pat state))))
+	    (when *print-exec-rule* 
+	      (format t "~%=> ") (print-axiom-brief (rule-pat-rule (rwl-state-rule-pat state)))))
 	  (print-subst-if-binding-result state sub sch-context)
 	  (when (state-is-valid-transition state)
 	    (push sub (rwl-state-subst state))))
@@ -633,7 +635,8 @@
 						       *bool-true*))))
 	  (when (condition-check-ok sub)
 	    (when if-var
-	      (format t "~%=> ") (print-axiom-brief (rule-pat-rule (rwl-state-rule-pat state))))
+	      (when *print-exec-rule* 
+		(format t "~%=> ") (print-axiom-brief (rule-pat-rule (rwl-state-rule-pat state)))))
 	    (print-subst-if-binding-result state sub sch-context)
 	    (when (state-is-valid-transition state)
 	      (push sub (rwl-state-subst state))))))
@@ -782,7 +785,7 @@
                                                :subst  nil
 					       :condition condition))
                (when (or *cexec-trace* *chaos-verbose*)
-                 (format t "~&*")
+                 (format t "~&* loop")
                  #||
                  (with-output-msg ()
                    (princ "transition loop is detected."))
@@ -998,13 +1001,9 @@
                       (flush-all)
                       (let ((*fancy-print* nil)
                             (*print-indent* (+ 4 *print-indent*)))
-                        (format t "@[~{~d~^ ~}]"
-                                (mapcar #'1+ (rule-pat-pos rule-pat)))
-                        ;; (term-print-with-sort xterm)
-                        ;; (print-next)
+                        (format t "@[~{~d~^ ~}]" (mapcar #'1+ (rule-pat-pos rule-pat)))
                         (exec-trace-form)
-                        (format t " [state ~D] "
-                                (rwl-state-state sub-state))
+                        (format t " [state ~D] " (rwl-state-state sub-state))
                         (term-print-with-sort target-whole)
 			(print-next)
 			(print-axiom-brief (rule-pat-rule rule-pat))
@@ -1017,7 +1016,6 @@
           ;;
           (if sub-states
               (progn
-                ;; (nreverse sub-states)
                 (when *chaos-verbose*
                   (format t " => ~D (new) states."
                           (length sub-states) ))
@@ -1109,7 +1107,12 @@
               (if (rwl-state-loop state)
                   ;; mark `done' if the state is already
                   ;; visited before..
-                  (setf (sch-node-done dag) t)
+		  (progn
+		    (setf (sch-node-done dag) t)
+		    (when (rwl-sch-context-if sch-context)
+		      (when *cexec-debug*
+			(format t "~%** calling check condition for reporting only."))
+		      (rwl-sch-check-conditions dag sch-context))) ; for reporting only
                 (push dag nexts))))
           ;; (format t "~&nexts=~a" nexts)
           (setq next-subs (nconc next-subs nexts))))
