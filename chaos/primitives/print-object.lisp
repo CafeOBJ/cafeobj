@@ -1905,7 +1905,7 @@
     (if (or (substitution-is-empty subst)
 	    (null (car subst)))
 	(princ "{}" stream)
-      (let ((s (reverse (substitution-list-of-pairs subst))))
+      (let ((s (substitution-list-of-pairs subst)))
 	(princ "{ " stream)
 	(setq .file-col. (file-column stream))
 	(term-print (caar s) stream)
@@ -1920,8 +1920,7 @@
 	    (print-check .file-col. 0 stream)
 	    (princ " |-> " stream)
 	    (term-print (cdr m) stream)))
-	(princ " }" stream))
-      )))
+	(princ " }" stream)))))
 
 ;;; PARSE DICTIONARY
 

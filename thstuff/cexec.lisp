@@ -538,6 +538,10 @@
 ;;; SOLUTION CHECKER
 ;;; ****************
 
+(defun if-binding-should-be-printed (sch-context)
+  (and (rwl-sch-context-if sch-context)
+       (<= (rwl-sch-context-cur-depth sch-context) (rwl-sch-context-max-depth sch-context))))
+
 ;;; rwl-sch-check-conditions (node rwl-sch-context)
 ;;; check if the given state matches to the target pattern.
 ;;; return t iff matches, otherwise nil.
@@ -557,8 +561,8 @@
 	       (setq $$cond (set-term-color
 			     (substitution-image-cp subst cond))))
 	     (when *cexec-debug*
-	       (format t "~&   subst: ") (print-substitution subst)
-	       (format t "~&   cond : ") (term-print $$cond))
+	       (format t "~&   subst:    ") (print-substitution subst)
+	       (format t "~&   suchThat: ") (term-print $$cond))
 	     (or (is-true? $$cond)
 		 (is-true? (progn
 			     (normalize-term $$cond)
@@ -612,15 +616,11 @@
 	;; additionaly expand subst 'if' part bindings
 	(when if-var
 	  (setq sub (substitution-add sub if-var (or (rwl-state-condition state)
-						     *bool-true*)))
-	  (when *cexec-debug*
-	    (format t "~% total sub: ")
-	    (print-substitution sub)))
+						     *bool-true*))))
 	(when (condition-check-ok sub)
-	  (when (and if-var (rwl-state-rule-pat state))
-	    (when *print-exec-rule* 
-	      (format t "~%=> ") (print-axiom-brief (rule-pat-rule (rwl-state-rule-pat state)))))
-	  (print-subst-if-binding-result state sub sch-context)
+	  (when	(if-binding-should-be-printed sch-context) ; if-var
+	    (pr-used-rule state)
+	    (print-subst-if-binding-result state sub sch-context))
 	  (when (state-is-valid-transition state)
 	    (push sub (rwl-state-subst state))))
         ;; try other patterns untill there's no hope
@@ -634,20 +634,30 @@
 	    (setq sub (substitution-add sub if-var (or (rwl-state-condition state)
 						       *bool-true*))))
 	  (when (condition-check-ok sub)
-	    (when if-var
-	      (when *print-exec-rule* 
-		(format t "~%=> ") (print-axiom-brief (rule-pat-rule (rwl-state-rule-pat state)))))
-	    (print-subst-if-binding-result state sub sch-context)
+	    (when (if-binding-should-be-printed sch-context) ; if-var
+	      (when (pr-used-rule state)
+		(print-subst-if-binding-result state sub sch-context)))
 	    (when (state-is-valid-transition state)
 	      (push sub (rwl-state-subst state))))))
       (not (null (rwl-state-subst state))))))
 
+(defun pr-used-rule (state)
+  (let ((rule-pat (rwl-state-rule-pat state))
+	(rule nil))
+    (unless rule-pat (return-from pr-used-rule nil))
+    (setq rule (rule-pat-rule rule-pat))
+    (unless *print-exec-rule*
+      (when (member (axiom-kind rule) .ext-rule-kinds.)
+	(return-from pr-used-rule nil)))
+    (format t "~%=> ")
+    (print-axiom-brief rule)
+    t))
+
 (defun print-subst-if-binding-result (state sub sch-context)
   (declare (ignore state))
-  ;;
+  (setf (rwl-sch-context-pr-out? sch-context) t)
   (format t "~%    ") (print-substitution sub)
   (when (rwl-sch-context-bind sch-context)
-    (setf (rwl-sch-context-pr-out? sch-context) t)
     (let ((bimg (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
       (normalize-term bimg)
       (format t "~%    --> ")
@@ -864,8 +874,7 @@
           (return-from apply-rule-cexec t))
         ))
     ;; failure
-    nil
-    ))
+    nil))
 
 ;;; CEXEC-TERM-1 (state-as-dag)
 ;;;
@@ -902,7 +911,13 @@
                          "!"
                        (if (rwl-sch-context-zero-trans-allowed sch-context)
                            "*"
-                         "+")))))
+                         "+"))))
+	   (state-is-valid? (state)
+	     (let ((cond (rwl-state-condition state)))
+	       (or (null cond) (is-true? cond)))))
+      ;;
+      (unless (state-is-valid? state)
+	(return-from cexec-term-1 nil))
       ;;
       (let ((xterm term)
             (ptrans? (dag-node-subnodes dag)))
