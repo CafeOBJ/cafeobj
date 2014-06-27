@@ -1715,12 +1715,14 @@
         (modexp (%look-up-module ast))
 	(mod nil))
     (setf mod (if (null modexp)
-		  *last-module*
+		  (or *last-module*
+		      (with-output-chaos-error ('no-context)
+			(format t "~%No context module is set.")))
 		(eval-modexp modexp)))
     (when (modexp-is-error mod)
-      (with-output-chaos-error ('no-such-module))
-      (princ "incorrect module expression or unknown module: ")
-      (print-modexp modexp))
+      (with-output-chaos-error ('no-such-module)
+	(princ "incorrect module expression or unknown module: ")
+	(print-modexp modexp)))
     ;;
     (!look-up name mod)))
 
