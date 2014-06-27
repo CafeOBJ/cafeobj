@@ -24,7 +24,7 @@
 
 (defun describe-name (mod name tbl &optional (stream *standard-output*))
   (unless tbl
-    (format stream "~&No object with name ~A found." (string name))
+    (format stream "~&No object with name ~A found." name)
     (return-from describe-name nil))
   (let ((*print-indent* 2)
 	(print-name (if (symbolp name)
@@ -187,21 +187,24 @@
 ;;; LOOK-UP
 ;;; *******
 (defun inspect-canon-name (name)
-  (if (symbolp name)
-      (let ((sname (parse-with-delimiter2 (string name) #\_)))
+  (if (stringp name)
+      (let ((sname (parse-with-delimiter2 name #\_)))
 	(if (stringp sname)
 	    sname
 	  (remove "" sname :test #'equal)))
-    (remove ")" (remove "(" name :test #'equal) :test #'equal)))
+    (mapcan #'inspect-canon-name 
+	    (remove ")" (remove "(" name :test #'equal) :test #'equal))))
 
-(defun !look-up (name mod)
-  (with-in-module (mod)
+(defun !look-up (name module)
+  (declare (ignore ignore))
+  (unless (module-p module)
+    (with-output-chaos-error ('ivalid-module)
+      (format t "~%internal error, look up processor is given illegal module object.")))
+  (with-in-module (module)
     (let ((nm (inspect-canon-name name)))
-    (describe-name mod
-		   (canonicalize-object-name nm)
-		   (symbol-table-get nm mod)
-		   *standard-output*))))
+      (describe-name module
+		     (canonicalize-object-name nm)
+		     (symbol-table-get nm module)
+		     *standard-output*))))
 
 ;;; EOF
-
-	   
