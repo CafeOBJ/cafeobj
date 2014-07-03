@@ -1,0 +1,127 @@
+-- 仕様を変更して（TR1とTR２を見てください）同じテストをしましたが，同じ問
+-- 題が起こります．その結果を変更した仕様と一緒に添付します．
+
+-- ６つのprint outの後半の３つは先に送ったもの同じ間違ったマッチを示してい
+-- るようです．
+
+-- 今回は
+-- [ ((c(1) `c1) (c(3) `c1)) ]
+-- を
+-- [ (S1:Seq (C1:Cmp (S2:Seq (C2:Cmp S3:Seq)))) ]
+-- とマッチするはずですので，部分項へのマッチということは起こらないはずです
+-- が，同じ現象が起きています．
+
+-- まずは報告まで．
+
+-- =====================================================
+
+-- generic sequence
+mod! SEQ(X :: TRIV) {pr(NAT)
+[Elt.X < Seq]
+-- empty set
+op empty : -> Seq {constr} .
+op (_ _) : Seq Seq -> Seq {constr assoc id: empty} .
+-- length
+op len_ : Seq -> Nat .
+eq len empty = 0 .
+eq len (E:Elt SQ:Seq) = 1 + (len SQ) .
+}
+
+-- components
+mod! CMP {pr(NAT)
+[Cmp]
+op c : Nat -> Cmp {constr} .
+eq (c(N1:Nat) = c(N2:Nat)) = (N1 == N2) .
+}
+
+-- states
+mod! STATE {pr(SEQ(CMP)) [State] op [_] : Seq -> State {constr} }
+
+
+mod TEST {pr(STATE) inc(RWL)
+-- for constructing information term at the fourth argument
+[Info]
+op i : State State Bool -> Info .
+
+pred (_then _) : Bool Bool .
+eq (true  then B:Bool) = B .
+eq (false then B:Bool) = true .
+
+pred q : State State
+eq q([S:Seq],[SS:Seq]) = ((len S) = (len SS) + 2) .
+
+pred test : State State Bool .
+eq test(S:State,SS:State,CC:Bool) =
+    not(S =(*,1)=>+ SS if CC suchThat
+        not((CC then q(S,SS)) == true) {i(S,SS,CC)}) .
+pred test2 : State State Bool
+eq test2(S:State,SS:State,CC:Bool) =
+    not(S =(*,2)=>+ SS if CC suchThat
+        not((CC then q(S,SS)) == true) {i(S,SS,CC)}) .
+}
+
+-- transition rule 1
+mod! TR1 {pr(STATE)
+ctrans[tr1]: [S1:Seq C1:Cmp C2:Cmp S2:Seq] => [S1 S2] if (C1 = C2) .
+}
+
+-- transition rule 2
+mod! TR2 {pr(STATE)
+ctrans[tr2]: [S1:Seq C1:Cmp S2:Seq C2:Cmp S3:Seq] => [S1 S2 S3]
+       if (C1 = C2) .
+}
+
+-- test2
+open (TEST + TR2) .
+red test([c(1) `c1:Cmp c(3) `c1],SS:State,CC:Bool) .
+red test([c(1) c(2) c(2) c(1)],SS:State,CC:Bool) .
+-- close
+
+eof
+
+-- =====================================================
+
+-- reduce in %TR2 + TEST : (test(([ ((c(1) `c1) (c(3) `c1)) ]),SS,CC)):Bool
+=> ctrans [tr2]: ([ (S1:Seq (C1:Cmp (S2:Seq (C2:Cmp S3:Seq)))) ]) => ([
+(S1 (S2 S3)) ]) if (C1 = C2)
+    { S3:Seq |-> (c(3) `c1:Cmp), C2:Cmp |-> `c1:Cmp, S2:Seq |-> empty,
+C1:Cmp |-> c(1), S1:Seq |-> empty, SS:State |-> ([ (c(3) `c1:Cmp) ]),
+CC:Bool |-> (c(1) = `c1:Cmp) }
+    --> (i(([ ((c(1) `c1) (c(3) `c1)) ]),([ (c(3) `c1) ]),(c(1) =
+`c1))):Info
+=> ctrans [tr2]: ([ (S1:Seq (C1:Cmp (S2:Seq (C2:Cmp S3:Seq)))) ]) => ([
+(S1 (S2 S3)) ]) if (C1 = C2)
+    { S3:Seq |-> empty, C2:Cmp |-> `c1:Cmp, S2:Seq |-> (`c1:Cmp c(3)),
+C1:Cmp |-> c(1), S1:Seq |-> empty, SS:State |-> ([ (`c1:Cmp c(3)) ]),
+CC:Bool |-> (c(1) = `c1:Cmp) }
+    --> (i(([ ((c(1) `c1) (c(3) `c1)) ]),([ (`c1 c(3)) ]),(c(1) =
+`c1))):Info
+=> ctrans [tr2]: ([ (S1:Seq (C1:Cmp (S2:Seq (C2:Cmp S3:Seq)))) ]) => ([
+(S1 (S2 S3)) ]) if (C1 = C2)
+    { S3:Seq |-> `c1:Cmp, C2:Cmp |-> c(3), S2:Seq |-> empty, C1:Cmp |->
+`c1:Cmp, S1:Seq |-> c(1), SS:State |-> ([ (c(1) `c1:Cmp) ]), CC:Bool |->
+(`c1:Cmp = c(3)) }
+    --> (i(([ ((c(1) `c1) (c(3) `c1)) ]),([ (c(1) `c1) ]),(`c1 =
+c(3)))):Info
+=> ctrans [tr2]: ([ (S1:Seq (C1:Cmp (S2:Seq (C2:Cmp S3:Seq)))) ]) => ([
+(S1 (S2 S3)) ]) if (C1 = C2)
+    { S3:Seq |-> empty, C2:Cmp |-> `c1:Cmp, S2:Seq |-> empty, C1:Cmp |->
+`c1:Cmp, S1:Seq |-> empty, SS:State |-> ([ empty ]), CC:Bool |-> true }
+    --> (i(([ ((c(1) `c1) (c(3) `c1)) ]),([ empty ]),true)):Info
+=> ctrans [tr2]: ([ (S1:Seq (C1:Cmp (S2:Seq (C2:Cmp S3:Seq)))) ]) => ([
+(S1 (S2 S3)) ]) if (C1 = C2)
+    { S3:Seq |-> empty, C2:Cmp |-> c(3), S2:Seq |-> empty, C1:Cmp |->
+`c1:Cmp, S1:Seq |-> empty, SS:State |-> ([ empty ]), CC:Bool |->
+(`c1:Cmp = c(3)) }
+    --> (i(([ ((c(1) `c1) (c(3) `c1)) ]),([ empty ]),(`c1 = c(3)))):Info
+=> ctrans [tr2]: ([ (S1:Seq (C1:Cmp (S2:Seq (C2:Cmp S3:Seq)))) ]) => ([
+(S1 (S2 S3)) ]) if (C1 = C2)
+    { S3:Seq |-> empty, C2:Cmp |-> `c1:Cmp, S2:Seq |-> empty, C1:Cmp |->
+c(1), S1:Seq |-> empty, SS:State |-> ([ empty ]), CC:Bool |-> (c(1) =
+`c1:Cmp) }
+    --> (i(([ ((c(1) `c1) (c(3) `c1)) ]),([ empty ]),(c(1) = `c1))):Info
+-- reached to the specified search depth 1.
+(false):Bool
+(0.000 sec for parse, 156 rewrites(0.110 sec), 658 matches, 5 memo hits)
+
+-- =====================================================
