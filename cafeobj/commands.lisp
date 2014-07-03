@@ -1431,11 +1431,14 @@ restrictons.
 the reachable states starting from a given state, optionally checking
 additional conditions. All of them based on the following three basic ones:
 
-  - `S =(n,m)=>* SS` search states reachable by 0 or more transitions;
-  - `S =(n,m)=>+ SS` search states reachable by 1 or more transitions;
-  - `S =(n,m)=>! SS` search states reachable by 0 or more transitions, and
+  - `S =(n,m)=>* SS [if Pred]` search states reachable by 0 or more transitions;
+  - `S =(n,m)=>+ SS [if Pred]` search states reachable by 1 or more transitions;
+  - `S =(n,m)=>! SS [if Pred]` search states reachable by 0 or more transitions, and
     require that the reached state is a final state, i.e., no further
     transitions can be applied.
+
+To allow for conditional transitions, a transition is only considered
+in the search if `Pred` holds.
 
 The parameters `n` and `m` in these search predicates:
 
@@ -1452,17 +1455,17 @@ with `SS`.
 There are two orthogonal extension to this search perdicate, one
 adds a `suchThat` clause, one adds a `withStateEq` clause.
 
-`S =(n,m)=>* SS suchThat Pred`
+`S =(n,m)=>* SS [if Pred1] suchThat Pred2`
   ~ (and similar for `!` and `+`) In this case not only the existence,
     of a transition sequence is tested, but also whether the predicate
-    `Pred`, which normally takes `S` and `SS` as arguments, holds.
+    `Pred2`, which normally takes `S` and `SS` as arguments, holds.
 
-`S =(n,m)=>* SS withStateEq Pred`
+`S =(n,m)=>* SS [if Pred1] withStateEq Pred2`
   ~ (and similar for `!` and `+`) TODO
 
 These two cases can also be combined into 
 
-`S =(n,m)=>* SS suchThat Pred1 withStateEq Pred2`
+`S =(n,m)=>* SS [if Pred1] suchThat Pred2 withStateEq Pred3`
 ")
 
 
