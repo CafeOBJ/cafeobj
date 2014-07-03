@@ -3,7 +3,7 @@ mod! PAIR (X :: TRIV, Y :: TRIV) {
  op _,_ : Elt.X Elt.Y -> Pair {constr} .
 }
 make P1 (PAIR(NAT, INT))
-open P1
+open P1 .
 --
 var 3 : Pair.P1 .
 --> (1)
