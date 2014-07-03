@@ -47,7 +47,7 @@ mod! PATH (X :: GRAPH) {
   ceq t(E ; ?P) = t(?P) if (E ; ?P) :is Path .
 }
 
-open PATH
+open PATH .
   ops n1 n2 n3 :  -> Node .
   ops e1 e2 e3 :  -> Edge .
   eq s e1 = n1 .

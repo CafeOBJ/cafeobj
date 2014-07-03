@@ -37,25 +37,29 @@
 (defentry filecol (object) (object filecol))
 
 #+LUCID
-(defun filecol (x) (lucid::calculate-output-column x))
+(defun filecol (x) (declare (values fixnum)) (lucid::calculate-output-column x))
 
 #+CMU
 (defun filecol (x)
+  (declare (values fixnum))
   (let ((val (lisp::charpos x)))
     (if val val
 	0)))
 
 #+EXCL
 (defun filecol (x)
+  (declare (values fixnum))
   (let ((val (excl::charpos x)))
     (if val val 0)))
 
 #+:openmcl
 (defun filecol (x)
+  (declare (values fixnum))
   (stream-line-column x))
 
 #+:SBCL
 (defun filecol (x)
+  (declare (values fixnum))
   (let ((val (sb-kernel::charpos x)))
     (if val val
       0)))
@@ -72,7 +76,8 @@
 ||#
 
 (defun file-column (strm)
-  (declare (inline filecol))
+  (declare (inline filecol)
+	   (values fixnum))
   (filecol strm))
 
 ;;; print-check
@@ -80,6 +85,7 @@
 ;;; newline and indent.
 ;;;
 (defun print-check (&optional (indent 0) (fwd 0) (stream *standard-output*))
+  (declare (type fixnum indent fwd))
   (if (<= *print-line-limit* (+ (file-column stream) fwd))
       (progn
 	(terpri stream)
