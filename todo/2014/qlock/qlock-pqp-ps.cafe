@@ -1,0 +1,315 @@
+** ===============================================================
+** ===== Proof Score for a leads-to property of QLOCK  ===========
+** ==== (An example of proof score for a liveness property) ======
+** ===============================================================
+
+require QLOCKsys qlock-sys.cafe
+require QLOCKprop qlock-prop.cafe
+require STATEfuns-a qlock-prop.cafe
+require CONSTandLITL constAndLitl.cafe
+require VALIDq validQ.cafe
+require GENcasesNp genCasesNp.cafe
+require FACTtbu factTbu.cafe
+
+--> ==============================================================
+--> A Verification scheme for (p leads-to q) properties 
+--> ==============================================================
+-- (p Leads-to q) proerties of a transition system M is formalized 
+-- as follows.  
+--
+-- Let 'p' and 'q' be 
+--      ops p q : State Data -> Bool
+-- then a transition system M is defined to lead to 'q' 
+-- from 'start' if for each data d and each reachable state s 
+-- with (p(s,d) = true), the system M will get into a state t 
+-- with (q(t,d) = true) no matter what transition sequence is 
+-- taken.  In UNITY logic it is denoted as:
+--                    (p leads-to_M q) .
+-- A (p leads-to q) property is a typical liveness property. 
+--
+-- Let 
+--   pred inv : State
+-- be an an invariant on State, that is
+--   (for-all reachable state s) (inv(s)) .
+-- Also let
+--   op m : State Data -> Nat
+-- be a function for measuring decreasing natural numbers.
+--
+-- Then the following 4 conditions are sufficient 
+-- for (p leads-to q) .
+-- ==============================================================
+-- (1) 
+-- (for-all one-step-transition (s->s'):(State,State))
+--  ((inv(s) and p(s,d) and not(q(s,d))) implies 
+--   (p(s,d) or q(s',d)))
+-- (2)
+-- (for-all one-step-transition (s->s'):(State,State))
+-- (for-all data d:Data):
+--   (inv(s) and p(s,d) and not(q(s,d))) 
+--    implies (m(s,d) > m(s',d))
+-- (3)
+-- (for-all state s:State and data d:Data):
+--  (inv(s) and p(s,d) and not(q(s,d))) 
+--  implies
+-- (there-exits transition (s->s'):(State,State))
+-- (4)
+-- (for-all state s:State and data d:Data):
+--  ((inv(s) and (p(s,d) or q(s,d)) 
+--           and (m(s) = 0))
+--   implies q(s,d))
+-- ==============================================================
+-- If we assume
+-- p:
+-- eq p(S:State,A:Aid) = (lags(S,A) = ws) .
+-- q:
+-- eq q(S:State,A:Aid) = (lags(S,A) = cs) .
+-- inv:
+-- eq inv(S:State) = cj((wfs mx qep rs ws cs),S) .
+-- m:
+-- eq m(S:State,A:Aid) = 
+--    ((s s s 0) * #daq(qu(S),A)) + #ls(S,rs) + #ccs(S) .
+-- then we can prove
+--        (p leads-to_QLOCK q) .
+-- ==============================================================
+
+--> ==============================================================
+--> A Verification of the conditions (1) and (2)
+-->    using GENERATE&CHECK-T2
+-->   with combinatorial generation of cases
+-->        and case splitting with eqs
+--> (for-all One-Step-Transition (S->S'):State->State)
+-->   ((inv(S) and (lags(S,A) = ws) and not(lags(S,A) = cs))
+-->     implies
+-->    ((#dms(S,A) > #dms(SS,A)) and 
+-->    ((lags(SS,A) = cs) or (lags(SS,A) = ws))))
+--> ==============================================================
+
+mod 1+2q {inc(QLOCKprop + STATEfuns-a)
+[ExState] 
+op _$_ : State Aid -> ExState {constr}
+--
+pred q : ExState ExState 
+eq q((S:State $ A:Aid),(SS:State $ A)) =  
+      ((inv(S) and (lags(S,A) = ws) and not(lags(S,A) = cs))
+       implies
+      ((#dms(S,A) > #dms(SS,A)) and 
+       ((lags(SS,A) = cs) or (lags(SS,A) = ws)))) .}
+
+-- verification consition for 1+2
+mod 1+2cond {inc(VALIDq(1+2q{sort Ste -> ExState}))
+op i : State State Bool -> Info {constr}
+pred 1+2-c : ExState ExState Bool .
+eq 1+2-c((S:State $ A:Aid),(SS:State $ A),CC:Bool) = 
+       not(S =(*,1)=>+ SS if CC suchThat 
+           not((CC then q((S $ A),(SS $ A))) == true) 
+           {i(S,SS,q((S $ A),(SS $ A)))}) .
+}
+
+-- generate & check for 1+2cond
+mod GEN&CHECK1+2 {inc(1+2cond + GENcasesNp)
+-- declaring sub-sorts of Val for combinatorial generation
+[Bool Qu Aid Label Aobs State < Val]
+
+-- predicate v_ used in GENcasesNp for checking validity
+-- is defined to be inv-c
+eq v(S:State,A:Aid,SS:State,CC:Bool) = 
+     1+2-c((S:State $ A:Aid),(SS:State $ A),CC:Bool) .
+}
+
+--> checking for [wt]
+open (GEN&CHECK1+2 + CONSTandLITL + FACTtbu + WT) .
+var SS : State . var CC : Bool .
+red check-for-all (
+  [(empQ $ (as1 (lb[b1]: rs) as2)),
+   (b1;b2),
+   (SS),
+   (CC)]
+   ||
+  [(tg(2)[(b1 & q),tg(1)[as1,(b1;b2),rs,as2]]),
+   (b1;b2;b3),
+   (SS),
+   (CC)]) .
+close
+
+--> checking for [ty]
+--> no need to use FACTtbu
+--> case: eq #lss((as1 as2),cs) = 0 .
+open (GEN&CHECK1+2 + CONSTandLITL + TY) .
+eq #lss((as1 as2),cs) = 0 .
+red check-for-all (
+   [(tg(2)[(b1 & q),tg(1)[as1,b1,ws,as2]]),
+    (b1;b2),
+    (SS:State),
+    (CC:Bool)]) .
+close
+--> case: (eq #lss((as1 as2),cs) > 0) = true .
+open (GEN&CHECK1+2 + CONSTandLITL + TY) .
+eq (#lss((as1 as2),cs) > 0) = true .
+red check-for-all (
+   [(tg(2)[(b1 & q),tg(1)[as1,b1,ws,as2]]),
+    (b1;b2),
+    (SS:State),
+    (CC:Bool)]) .
+close
+
+--> checking for [ex]
+--> case: eq #lss((as1 as2),cs) = 0 .
+open (GEN&CHECK1+2 + CONSTandLITL + FACTtbu + EX) .
+eq #lss((as1 as2),cs) = 0 .
+red check-for-all (
+   [(tg(2)[(b1 & q),tg(1)[as1,(b1;b2),cs,as2]]),
+     (b1;b2;b3),
+     (SS:State),
+     (CC:Bool)]) .
+close
+--> case: eq (#lss((as1 as2),cs) > 0) = true .
+open (GEN&CHECK1+2 + CONSTandLITL + FACTtbu + EX) .
+eq (#lss((as1 as2),cs) > 0) = true .
+red check-for-all (
+  [(tg(2)[(b1 & q),tg(1)[as1,(b1;b2),cs,as2]]),
+   (b1;b2;b3),
+   (SS:State),
+   (CC:Bool)]) .
+close
+
+--> ==============================================================
+--> A Verification of the conditions (1) and (2)
+-->    using GENERATE&CHECK-T1
+-->    *** check all rules together ***
+-->   with combinatorial generation of cases
+-->        and case splitting with eqs
+--> (for-all One-Step-Transition (S->S'):State->State)
+-->   ((inv(S) and (lags(S,A) = ws) and not(lags(S,A) = cs))
+-->     implies
+-->    ((#dms(S,A) > #dms(SS,A)) and 
+-->    ((lags(SS,A) = cs) or (lags(SS,A) = ws))))
+--> ==============================================================
+
+--> case: eq #lss((as1 as2),cs) = 0 .
+open (GEN&CHECK1+2 + CONSTandLITL + FACTtbu + QLOCKsys) .
+eq #lss((as1 as2),cs) = 0 .
+red check-for-all (
+  [(tg(2)[q,empty]),b1,SS:State,CC:Bool] 
+        ||
+  [(tg(2)[(empQ),(tg(1)[as1,b1,(rs;ws;cs),as2])]),(b1;b2),SS:State,CC:Bool]
+        || 
+  [(tg(2)[(b1 & q),(tg(1)[as1,(b1;b2),(rs;ws;cs),as2])]),(b1;b2;b3),SS:State,CC:Bool]) .
+close
+--> case: eq (#lss((as1 as2),cs) > 0) = true .
+open (GEN&CHECK1+2 + CONSTandLITL + FACTtbu + QLOCKsys) .
+eq #lss((as1 as2),cs) = s 0 .
+red check-for-all (
+  [(tg(2)[q,empty]),b1,SS:State,CC:Bool] 
+        ||
+  [(tg(2)[(empQ),(tg(1)[as1,b1,(rs;ws;cs),as2])]),(b1;b2),SS:State,CC:Bool]
+        || 
+  [(tg(2)[(b1 & q),(tg(1)[as1,(b1;b2),(rs;ws;cs),as2])]),(b1;b2;b3),SS:State,CC:Bool]) .
+close
+
+--> ==============================================================
+--> A Verification of the conditions (3)
+-->    using GENERATE&CHECK-T1
+-->   with combinatorial generation of cases
+--> (for-all state s:State and data d:Data):
+-->  (inv(s) and p(s,d) and not(q(s,d))) 
+-->  implies
+--> (there-exits transition (s->s'):(State,State))
+--> ==============================================================
+
+--> Function to be Checked for verifying the condition (3)
+mod 3cond {pr(QLOCKprop + STATEfuns-a + RWL)
+-- 3-c
+pred 3-c : State Aid State .
+eq 3-c(S:State,A:Aid,SS:State) =
+    (inv(S) and (lags(S,A) = ws) and not(lags(S,A) = cs))
+     implies
+    (S =(*,1)=>+ SS) .
+}
+
+mod GEN&CHECK3 {inc(3cond + GENcasesNp)
+-- declaring sub-sorts of Val
+[Qu Aid Label Aobs State < Val]
+-- predicate to be checked
+eq v(S:State,A:Aid,SS:State) = 3-c(S,A,SS) .
+}
+
+--> &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+--> generate & check for the condition (3)
+--> &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+--  a state is constructed with
+--      op _$_ : Qu Aobs -> State {constr} .
+--  and if the Qu part of a state is (A:Aid & Q:Qu) then
+--  the Aobs part contains (lb[A]: L:Labe)
+--  hence any state with (A:Aid & Q:Qu) is an instance of
+--   ((A:Aid & Q:Qu) $ (AS1:Aobs ((lb[A]: L:Label) AS2:Aobs)))
+--  for checking existance of next state
+--     (this argumentation should be justified more precisely!!)
+--  the following cover set (i.e. the argument of mmi_)
+--  is defined based on the above observation
+ open (GEN&CHECK3 + CONSTandLITL + QLOCKsys) .
+red check-for-all(
+   [(tg(2)[q,empty]),b1,SS:State] 
+      ||
+   [(tg(2)[empQ,(tg(1)[as1,b1,(rs;ws;cs),as2])]),
+              (b1;b2),SS:State]
+      || 
+   [(tg(2)[(b1 & q),(tg(1)[as1,b1,(rs;ws;cs),as2])]),
+              (b1;b2),SS:State]) .
+close
+
+-- ===============================================================
+
+--> ==============================================================
+--> A Verification of the conditions (4)
+-->    using GENERATE&CHECK-T1
+-->   with combinatorial generation of cases
+-->        and case splitting with eqs
+--> (for-all state s:State and data d:Data):
+-->  ((inv(s) and (p(s,d) or q(s,d)) 
+-->           and (m(s,d) = 0))
+-->   implies q(s,d))
+--> ==============================================================
+
+--> Function to be Checked for verifying the condition (3)
+mod 4cond {pr(QLOCKprop + STATEfuns-a + RWL)
+-- 4-c
+pred 4-c : State Aid .
+eq 4-c(S:State,A:Aid) =
+   (inv(S) and ((lags(S,A) = ws) or (lags(S,A) = cs))
+           and (#dms(S,A) = 0))
+   implies (lags(S,A) = cs) .
+}
+
+mod GEN&CHECK4 {inc(4cond + GENcasesNp)
+-- declaring sub-sorts of Val
+[Qu Aid Label Aobs State < Val]
+-- predicate to be checked
+eq v(S:State,A:Aid) = 4-c(S,A) .
+}
+
+--> gen&check
+--> case: eq #lss((as1 as2),cs) = 0 .
+open (GEN&CHECK4 + CONSTandLITL) .
+eq #lss((as1 as2),cs) = 0 .
+red check-for-all(
+  [(tg(2)[q,empty]),b1] 
+        ||
+  [(tg(2)[(empQ),(tg(1)[as1,b1,(rs;ws;cs),as2])]),(b1;b2)]
+        || 
+  [(tg(2)[(b1 & q),(tg(1)[as1,(b1;b2),(rs;ws;cs),as2])]),(b1;b2;b3)]) .
+close
+--> case: eq (#lss((as1 as2),cs) > 0) true .
+open (GEN&CHECK4 + CONSTandLITL + FACTtbu) .
+eq (#lss((as1 as2),cs) > 0) = true .
+red check-for-all(
+  [(tg(2)[q,empty]),b1] 
+        ||
+  [(tg(2)[(empQ),(tg(1)[as1,b1,(rs;ws;cs),as2])]),(b1;b2)]
+        || 
+  [(tg(2)[(b1 & q),(tg(1)[as1,(b1;b2),(rs;ws;cs),as2])]),(b1;b2;b3)]) .
+close
+-- ===============================================================
+
+eof
+
+
