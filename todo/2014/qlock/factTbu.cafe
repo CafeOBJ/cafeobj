@@ -1,0 +1,24 @@
+require QLOCKprop qlock-prop.cafe
+require STATEfuns-a qlock-prop.cafe
+
+-- facts to be used
+mod FACTtbu {pr(QLOCKprop + STATEfuns-a)
+
+-- necessary fact about #aq
+eq #aq(Q:Qu & A1:Aid,A2:Aid) = if (A1 = A2) then (s 0) + #aq(Q,A2) 
+                               else #aq(Q,A2) fi .
+-- about #daq
+ceq #daq((Q:Qu & A1:Aid),A2:Aid) = #daq(Q,A2) if not(A1 = A2) .
+
+-- for Nat
+eq [NatGt1]: ((N:Nat.PNAT = 0) and (N > 0)) = false .
+ceq [NatGt2]: (s N1:Nat.PNAT > N2:Nat.PNAT) = true
+              if N1 > N2 .
+
+-- about laga
+ceq ((laga(AS:Aobs,A:Aid) = L1:Label) and 
+     (laga(AS,A) = L2:Label)) = false
+    if not(L1 = L2) .
+}
+
+provide FACTtbu
