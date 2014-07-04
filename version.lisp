@@ -9,7 +9,7 @@
 (eval-when (:execute :load-toplevel :compile-toplevel)
   (setq cafeobj-version-major "1.4")
   (setq cafeobj-version-memo (format nil "~a" "PigNose0.99"))
-  (setq patch-level (format nil "~a" "b6"))
+  (setq patch-level (format nil "~a" ""))
   (if (not (equal "" cafeobj-version-memo))
       (if (not (equal "" patch-level))
           (setq cafeobj-version-minor
