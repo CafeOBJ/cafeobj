@@ -581,7 +581,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 PACKAGE_URL=
 
-ac_unique_file="./chaosx.system"
+ac_unique_file="./sysdef.asd"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 exec_bin

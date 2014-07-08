@@ -2,7 +2,7 @@ dnl configure.in for Chaos(CafeOBJ)
 dnl $Id: configure.in,v 1.49 2010-08-09 01:43:54 sawada Exp $
 dnl apply autoconf to this file for producing a configure script.
 
-AC_INIT(./chaosx.system)
+AC_INIT(./sysdef.asd)
 AC_PREREQ(2.4)dnl Required Autoconf version.
 PACKAGE=cafeobj
 VERSION=1.4
