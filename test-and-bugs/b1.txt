@@ -1,6 +1,0 @@
-1. ADD-ASSOC-B> sh 
-
-
-	Type-error in kernel::object-not-type-error-handler:
-	   nil is not of type base-string
-2. knapp.mod

@@ -1,7 +1,0 @@
-module NAT+ {
-  ex(NAT)
-  op xmatch : Nat -> Bool {strat: (0)}
-  eq [:m-and]: xmatch(X:NzNat + Y:NzNat + Z:NzNat) =
-    (X < Y) or (Y < Z) or (Z < X) .
-}
-

@@ -1,8 +1,0 @@
-mod AT {
-  [S]
-  op _a_ : S S -> S {prec: 0 l-assoc} 
-  op _b_ : S S -> S {prec: 2 r-assoc} 
-  op P : S -> S {prec: 3}
-  ops x y z : -> S
-}
-

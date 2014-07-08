@@ -1,6 +1,0 @@
-module SS {
-  [ A B C D ]
-  op 0 : -> A
-  op 0 : -> B
-  op 0 : -> C
-}

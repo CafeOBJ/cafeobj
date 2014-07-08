@@ -1,6 +1,0 @@
-module M {
-  [ S1 < S2 ]
-  op s1 : -> S1
-  op s2 : -> S2
-  var s1 : S2
-}

@@ -1,9 +1,0 @@
-`coherency':
-
-`coherent' attribute is not allowed to be declared 
- to an operator which is imported from other modules.
-
-   comment: i don't know what the semantics will be, i.e.,
-            how can we treat imported axioms having an operator
-            which was declared as non coherent in the importing module.
-            is the module `protected'? 

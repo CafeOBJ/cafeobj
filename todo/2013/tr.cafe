@@ -1,4 +1,0 @@
-module TR (X :: TRIV) {
-  protecting(RWL)
-}
-
