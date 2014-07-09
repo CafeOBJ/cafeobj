@@ -56,8 +56,8 @@ lispq
       (let* ((iff (find-operator '("_" "iff" "_") 2 *bool-module*))
 	     (iff-meth (lowest-method* (car (opinfo-methods iff)))))
 	(setq *bool-iff* iff-meth))
-      (setq *m-and-op* *bool-and*)
-      (setq *m-or-op* *bool-or*))))
+      (setq *m-and-op* *bool-and-also*)
+      (setq *m-or-op* *bool-or-else*))))
 
 -- **
 -- ** MODULE BOOL

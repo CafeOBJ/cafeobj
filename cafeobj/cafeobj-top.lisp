@@ -113,10 +113,13 @@
               (with-chaos-top-error ()
                 (with-chaos-error ()
                   (cafeobj-init-files)))))
-          (loop (catch *top-level-tag*
-                  (process-cafeobj-input)
-                  (setq quit-flag t))
-            (when quit-flag (return))))
+	  (with-simple-restart (nil "Exit CafeOBJ.")
+	    (loop
+	      (with-simple-restart (abort "Return to CafeOBJ Top level.")
+		(catch *top-level-tag*
+		  (process-cafeobj-input)
+		  (setq quit-flag t))
+		(when quit-flag (return :ok-exit))))))
         (format t "[Leaving CafeOBJ]~%")))
   (finish-output))
 
@@ -156,14 +159,15 @@
                 (with-chaos-top-error ()
                   (with-chaos-error ()
                     (cafeobj-init-files)))))
-            (loop (catch *top-level-tag*
-                    (process-cafeobj-input)
-                    (setq quit-flag t))
-              (when quit-flag (return)))
-            )
-          (format t "[Leaving CafeOBJ]~%")))
-    (finish-output) 
-    ))
+	    (with-simple-restart (nil "Exit CafeOBJ.")
+	      (loop
+		(with-simple-restart (abort "Return to CafeOBJ Top level.")
+		  (catch *top-level-tag*
+		    (process-cafeobj-input)
+		    (setq quit-flag t))
+		  (when quit-flag (return :ok-exit))))))
+	  (format t "[Leaving CafeOBJ]~%")))
+    (finish-output) ))
 
 ;;;=============================================================================
 ;;; MISC TOPLEVEL SUPPORT ROUTINES
@@ -245,14 +249,12 @@
   #+(or CCL allegro)
   (set-cafeobj-standard-library-path)
   ;;
-  (with-simple-restart (continue "Continues ....")
-    (let ((res (catch *top-level-tag* (cafeobj) 'ok-exit)))
-      (if (eq res 'ok-exit)
-	  (bye-bye-bye)
-	(progn
-	  (princ "** ERROR")
-	  (terpri)))))
-  )
+  (let ((res (catch *top-level-tag* (cafeobj) 'ok-exit)))
+    (if (eq res 'ok-exit)
+	(bye-bye-bye)
+      (progn
+	(princ "** ERROR")
+	(terpri)))))
 
 #+EXCL
 (eval-when (:execute :load-toplevel)
