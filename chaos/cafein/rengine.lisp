@@ -458,7 +458,6 @@
   (declare (type axiom rule)
            (type term term)
            (values (or null t)))
-
   ;; check stop pattern
   (when .trace-or-step.
     (check-stop-pattern term))
@@ -1661,6 +1660,8 @@
       (first-match pat term))))
 
 (defun apply-one-rule (rule term)
+  (when (rule-non-exec rule)
+    (return-from apply-one-rule nil))
   (let ((mandor (axiom-meta-and-or rule))
 	(.trace-or-step. (or $$trace-rewrite-whole $$trace-rewrite *rewrite-stepping*)))
     (declare (special .trace-or-step.))

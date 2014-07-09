@@ -23,8 +23,8 @@ mod* POSET {
   vars E1 E2 E3 : Elt
 
   eq E1 <= E1 = true .
-  cq [:nonexec]: E1 = E2  if (E1 <= E2) and (E2 <= E1) .
-  cq [:nonexec]: (E1 <= E3) = true      if (E1 <= E2) and (E2 <= E3) .
+  cq [:non-exec]: E1 = E2  if (E1 <= E2) and (E2 <= E1) .
+  cq [:non-exec]: (E1 <= E3) = true      if (E1 <= E2) and (E2 <= E3) .
 }
 
 -- generic sorting algorithm
@@ -94,11 +94,8 @@ open SORTING-STRG-PROOF .
   eq (e >> s) = (e >> s') .
   eq disorder(s) < disorder(s') = true .
 ** conclusion
---> the reduction causes stack overflow!
---> red disorder(e s) < disorder(e s') .
+red disorder(e s) < disorder(e s') .
 close
-
-eof
 
 -- proof of (generic) local confluence for the sorting algorithm
 ** case 1 for local confluence 

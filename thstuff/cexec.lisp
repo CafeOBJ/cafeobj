@@ -47,6 +47,8 @@
   (format stream "~&  condition :")(term-print (rule-pat-condition rpat)))
 
 (defun make-rule-pat-with-check (pos rule subst sch-context)
+  (when (rule-non-exec rule)
+    (return-from make-rule-pat-with-check nil))
   (let ((condition (rule-condition rule)))
     (unless condition
       (return-from make-rule-pat-with-check (make-rule-pat :pos pos :rule rule :subst subst)))
