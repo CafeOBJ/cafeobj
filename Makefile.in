@@ -50,6 +50,7 @@ LISP = @lisp@
 BIN = @bin_suffix@
 EXEC_SRC = @exec_command@
 EXEC = @exec_bin@
+OPT = @build_option@
 
 #### End of system configuration section. ####
 
@@ -107,7 +108,7 @@ xcafeobj: ycafeobj
 	sed -e 's:XCHAOS_ROOT_DIR:\"$(chaos_root)\":g' \
 	-e 's:XINSTALL_DIR:\"$(libdir)\":g' \
 	-e 's:BIGPINK:nil:g' > foo
-	$(LISP) < foo
+	$(LISP) $(OPT) < foo
 
 ycafeobj:
 	cat $(top_srcdir)/xbin/$(EXEC_SRC) | \

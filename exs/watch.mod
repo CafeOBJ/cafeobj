@@ -4,7 +4,7 @@
 -- AUTHOR: Razvan Diaconescu
 -- DIFFICULTY: ***
 
-set tram path brute
+-- set tram path brute
 
 -- natural numbers with an arbitrary constant
 mod* NATn {
@@ -180,6 +180,8 @@ mod PROOF {
 }
 
 -- tram red in PROOF : RESULT .
+--> this reduction requres much time to perform, please be patient.
+reduce in PROOF : RESULT .
 --
 eof
 --

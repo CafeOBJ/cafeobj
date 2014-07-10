@@ -34,7 +34,7 @@ mod! SORTING-STRG(Y :: POSET) {
   ctrans N:Elt N':Elt => N' N  if (N' <= N) and (N =/= N') .
 }
 
-set exec normalize on
+** set exec normalize on <- now this is an obsolete switch.
 
 open SORTING-STRG(NAT) .
 exec (4 3 5 3 1) .

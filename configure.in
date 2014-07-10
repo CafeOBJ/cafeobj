@@ -8,7 +8,7 @@ PACKAGE=cafeobj
 VERSION=1.4
 VMINOR=.14
 VMEMO=PigNose0.99
-PATCHLEVEL=p1
+PATCHLEVEL=p2
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_SUBST(VMINOR)
@@ -48,7 +48,8 @@ xsbcl)
 	lisp=$sbcl_path ;
 	bin_suffix=".fasl";
 	exec_command="cafeobj.sbcl.in";
-	exec_bin="cafeobj.sbcl"
+	exec_bin="cafeobj.sbcl";
+	build_option="--dynamic-space-size 2048"
 	;;
 xacl)
 	lisp=$acl_path ;
@@ -89,4 +90,5 @@ AC_SUBST(lisp)
 AC_SUBST(bin_suffix)
 AC_SUBST(exec_command) 
 AC_SUBST(exec_bin)
+AC_SUBST(build_option)
 AC_OUTPUT(Makefile)

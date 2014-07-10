@@ -76,8 +76,9 @@ view dint-int from DINT to INT {
   op 0 -> 0 
 }
 
-**> need normalizations, setting `exec normalize on'.
-set exec normalize on
+** need normalizations, setting `exec normalize on'. <- now this is obsolete switch
+** system does normalize always.
+-- set exec normalize on
 
 open DEBT-REDUCE(dint-int) .
 -- -------------------------------

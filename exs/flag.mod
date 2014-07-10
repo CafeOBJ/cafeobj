@@ -11,6 +11,7 @@ mod NAT' {
   op s : Nat -> Nat  
 }
 
+set accept =*= proof on
 -- flag object
 mod* FLAG {
 
@@ -53,7 +54,8 @@ mod* CFLAG {
   eq count dn  C = s (count C) .
   eq count rev C = count C .
 }
-
+--
+set accept =*= proof off
 --
 eof
 --

@@ -74,7 +74,8 @@ red read add(q,c(add(m | n,counter))) ==> read add(q,c(add(m,counter))) .
 --> PROOF BY CO-INDUCTION
 red read add(m | n,counter) ==> read add(m,counter) .
 close
-
+** recover internal switch
+evq (setq *cexec-normalize* t)
 --
 eof
 --

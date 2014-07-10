@@ -584,6 +584,7 @@ PACKAGE_URL=
 ac_unique_file="./sysdef.asd"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+build_option
 exec_bin
 exec_command
 bin_suffix
@@ -1695,7 +1696,7 @@ PACKAGE=cafeobj
 VERSION=1.4
 VMINOR=.14
 VMEMO=PigNose0.99
-PATCHLEVEL=p1
+PATCHLEVEL=p2
 
 
 
@@ -2133,7 +2134,8 @@ xsbcl)
 	lisp=$sbcl_path ;
 	bin_suffix=".fasl";
 	exec_command="cafeobj.sbcl.in";
-	exec_bin="cafeobj.sbcl"
+	exec_bin="cafeobj.sbcl";
+	build_option="--dynamic-space-size 2048"
 	;;
 xacl)
 	lisp=$acl_path ;
@@ -2170,6 +2172,7 @@ xgcl|x)
 	exit 1
 	;;
 esac
+
 
 
 
