@@ -151,6 +151,7 @@
 	    (module-context-$$action-stack context) $$action-stack
 	    (module-context-$$selection-stack context) $$selection-stack
 	    (module-context-$$stop-pattern context) *rewrite-stop-pattern*
+	    ;; (module-context-$$ptree context) *proof-tree*
 	    ))))
 
 (defun new-context (mod)
@@ -163,7 +164,9 @@
 	  *last-module* nil
 	  ;; !!!
 	  *current-module* nil
-	  *rewrite-stop-pattern* nil)
+	  *rewrite-stop-pattern* nil
+	  ;; *proof-tree* nil
+	  )
     (return-from new-context nil))
   ;;
   (let ((context (module-context mod)))
@@ -172,6 +175,7 @@
 	  $$action-stack (module-context-$$action-stack context)
 	  $$selection-stack (module-context-$$selection-stack context)
 	  *rewrite-stop-pattern* (module-context-$$stop-pattern context)
+	  ;;*proof-tree* (module-context-$$ptree context)
 	  )
     (setf $$term-context mod)
     (setq *last-module* mod)
@@ -179,10 +183,6 @@
     (setq *current-module* mod)
     ;; !!!!!
     (clear-method-info-hash)
-    #||
-    (when *running-with-tk*
-      (set-current-module-name *last-module*))
-    ||#
     t))
 
 (defun change-context (from to)

@@ -2144,6 +2144,34 @@ show
 Do nothing.
 ")
 
+;;; CITP commands
+(define (":goal")
+    :category :proof
+    :parser citp-parse-goal
+    :evaluator eval-citp-goal
+    :doc "TODO"
+    )
+
+(define (":apply")
+    :category :proof
+    :parser citp-parse-apply
+    :evaluator eval-citp-apply
+    :doc "TODO"
+    )
+
+(define (":ind")
+    :category :proof
+    :parser citp-parse-ind-on
+    :evaluator eval-citp-ind-on
+    :doc "TODO"
+    )
+
+(define (":auto")
+    :category :proof
+    :parser citp-parse-auto
+    :evaluator eval-citp-apply
+    :doc "TODO"
+    )
 
 ;;;
 )					; end eval-when

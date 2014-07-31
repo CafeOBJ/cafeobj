@@ -105,6 +105,10 @@
 (defvar $$cond nil)
 (defvar $$trace-rewrite nil)		; flag, non-nil -> trace.
 (defvar $$trace-rewrite-whole nil)	; flag, non-nil -> trace whole.
+(defvar $$trace-proof nil)		; flag, non-nil -> trace CITP proof.
+;;; *proof-tree* binds current proof tree structure
+(defvar *proof-tree* nil)
+
 (defvar *rewrite-stepping* nil)		; flag, non-nil -> under stepping.
 (declaim (type (or null fixnum) *rewrite-count-limit*))
 (defvar *rewrite-count-limit* nil)

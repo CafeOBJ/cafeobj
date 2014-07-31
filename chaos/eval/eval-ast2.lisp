@@ -1210,7 +1210,14 @@
 		;;
 		(("undocumented" "undoc")
 		 (show-undocumented))
-                ;;
+                ;; CITP
+		("unproved"
+		 (print-unproved-goals *proof-tree*))
+		("goal" (let ((name (cadr dat)))
+			  (print-named-goal *proof-tree* name)))
+		;;
+		;; helpers
+		;;
                 ("?"    
                  (princ "** general module inspection commands.")
                  (terpri)

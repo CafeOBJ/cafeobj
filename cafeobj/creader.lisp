@@ -715,6 +715,19 @@
 	(?ex :args)
 	(?apropos :comment)
 	(?ap :comment)
+	;; CITP commands
+	(|:goal| |{| (:many-of  #.EqDeclaration
+				#.CeqDeclaration
+				#.RlDeclaration
+				#.CRlDeclaration
+				#.BeqDeclaration
+				#.BCeqDeclaration
+				#.BRLDeclaration
+				#.BCRLDeclaration)
+	       |}|)
+	(|:apply| (|(| (:seq-of :symbol) |)|))
+	(|:auto|)
+	(|:ind| on (:seq-of :term) |.|)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.

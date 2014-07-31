@@ -463,8 +463,8 @@
 
 (defvar .special-meta-rule-labels. '(|:m-and| |:m-or|))
 
-(defun declare-axiom (ast)
-  (I-miss-current-module declare-axiom)
+(defun parse-axiom-declaration (ast)
+  (I-miss-current-module parse-axiom-declaration)
   ;; 
   (let* ((sort *cosmos*)
 	 (*fill-rc-attribute* t)
@@ -656,6 +656,10 @@
     ;; additionaly if condition part contains match-op...
     (when (term-contains-match-op (axiom-condition the-axiom))
       (setf (axiom-contains-match-op the-axiom) t))
+    the-axiom))
+
+(defun declare-axiom (ast)
+  (let ((the-axiom (parse-axiom-declaration ast)))
     ;; add to module: was add-axiom-to-module...
     (adjoin-axiom-to-module *current-module* the-axiom)
     ;; set module status

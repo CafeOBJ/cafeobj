@@ -204,7 +204,10 @@
                          "thstuff/eval-match"
                          "thstuff/eval-apply"
                          "thstuff/cexec"
-			 "thstuff/case"))
+			 "thstuff/case"
+			 "thstuff/proof-struct"
+			 "thstuff/apply-tactic"
+			 "thstuff/citp"))
 	 (:module-group :bigpink
                         (:definitions
                             "BigPink/codes/types"

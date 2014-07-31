@@ -48,9 +48,9 @@
 	(show-selection-stack *current-module*)
 	(print-pending *current-module*)
 	(show-stop-pattern *current-module*)
+	;; (when *proof-tree* (pr-ptree *proof-tree*))
 	))
-    (context-pop-and-recover)
-    ))
+    (context-pop-and-recover)))
 
 ;;; SHOW BINDINGS
 

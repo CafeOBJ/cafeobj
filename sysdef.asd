@@ -162,7 +162,10 @@
 			   (:file "eval-match")
 			   (:file "eval-apply")
 			   (:file "cexec")
-			   (:file "case")))
+			   (:file "case")
+			   (:file "proof-struct")
+			   (:file "apply-tactic")
+			   (:file "citp")))
      (:module "BigPink"
 		 :components ((:module codes
 				       :serial t

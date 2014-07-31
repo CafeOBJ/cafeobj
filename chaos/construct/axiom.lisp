@@ -484,34 +484,33 @@
 (defun rule-copy (rule)
   (declare (type axiom rule)
 	   (values axiom))
-  (multiple-value-bind (new-lhs list-new-var)
-      (term-copy-and-returns-list-variables (axiom-lhs rule))
-    (make-rule
-     :lhs new-lhs
-     :condition (if (is-true? (axiom-condition rule))
-		    *bool-true*
-		    (copy-term-using-variable (axiom-condition rule)
-					      list-new-var))
-     :id-condition (if (null (axiom-id-condition rule))
-		       nil
-		       (if (is-true? (axiom-id-condition rule))
-			   *bool-true*
-			   (term-copy-id-cond
-			    (axiom-id-condition rule) list-new-var)))
-     :rhs (copy-term-using-variable (axiom-rhs rule)
-				    list-new-var)
-     :type (axiom-type rule)
-     :behavioural (axiom-is-behavioural rule)
-     ;; :end-reduction (copy-list (axiom-end-reduction rule))
-     :first-match-method (axiom-first-match-method rule)
-     :next-match-method (axiom-next-match-method rule)
-     :labels (axiom-labels rule)
-     :kind (axiom-kind rule)
-     :meta-and-or (axiom-meta-and-or rule))
-    ;; 
-    (compute-rule-method rule)
-    rule
-    ))
+  (let ((new-rule nil))
+    (multiple-value-bind (new-lhs list-new-var)
+	(term-copy-and-returns-list-variables (axiom-lhs rule))
+      (setq new-rule (make-rule
+		      :lhs new-lhs
+		      :condition (if (is-true? (axiom-condition rule))
+				     *bool-true*
+				   (copy-term-using-variable (axiom-condition rule)
+							     list-new-var))
+		      :id-condition (if (null (axiom-id-condition rule))
+					nil
+				      (if (is-true? (axiom-id-condition rule))
+					  *bool-true*
+					(term-copy-id-cond
+					 (axiom-id-condition rule) list-new-var)))
+		      :rhs (copy-term-using-variable (axiom-rhs rule)
+						     list-new-var)
+		      :type (axiom-type rule)
+		      :behavioural (axiom-is-behavioural rule)
+		      ;; :end-reduction (copy-list (axiom-end-reduction rule))
+		      :first-match-method (axiom-first-match-method rule)
+		      :next-match-method (axiom-next-match-method rule)
+		      :labels (axiom-labels rule)
+		      :kind (axiom-kind rule)
+		      :meta-and-or (axiom-meta-and-or rule)))
+      (compute-rule-method new-rule)
+      new-rule)))
 
 (defun term-copy-id-cond (tm vars)
   (declare (type (or null term) tm)

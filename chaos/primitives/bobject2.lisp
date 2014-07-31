@@ -530,6 +530,7 @@
   ($$action-stack nil :type list)	; action stack for apply
   ($$selection-stack nil :type list)	; selection stack for choose
   ($$stop-pattern nil :type list)	; stop pattern
+  ($$ptree nil)				; proof tree
   )
 
 ;;;
