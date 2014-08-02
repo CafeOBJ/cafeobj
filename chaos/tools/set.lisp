@@ -187,6 +187,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
       ("debug" ("exec") parity *cexec-debug* "" nil nil t)
       ("debug" ("apply") parity *apply-debug* "" nil nil t)
       ("debug" ("meta") parity *debug-meta* "" nil nil t)
+      ("debug" ("citp") parity *debug-citp* "" nil nil t)
       ;;
       ("m-and-also" () general nil "" set-m-and-also nil t)
       ))

@@ -9,16 +9,16 @@
 (eval-when (:execute :load-toplevel :compile-toplevel)
   (setq cafeobj-version-major "1.4")
   (setq cafeobj-version-memo (format nil "~a" "PigNose0.99"))
-  (setq patch-level (format nil "~a" "b6"))
+  (setq patch-level (format nil "~a" ""))
   (if (not (equal "" cafeobj-version-memo))
       (if (not (equal "" patch-level))
           (setq cafeobj-version-minor
-	    (format nil ".14(~a,~A)" 
+	    (format nil ".15a1(~a,~A)" 
 		    cafeobj-version-memo
 		    patch-level))
 	(setq cafeobj-version-minor 
-	  (format nil ".14(~a)" cafeobj-version-memo)))
-    (setq cafeobj-version-minor ".14"))
+	  (format nil ".15a1(~a)" cafeobj-version-memo)))
+    (setq cafeobj-version-minor ".15a1"))
   (setq cafeobj-version (concatenate 'string
 			  cafeobj-version-major
 			  cafeobj-version-minor))

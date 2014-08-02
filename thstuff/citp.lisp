@@ -91,8 +91,7 @@
     (with-output-chaos-error ('no-proof-tree)
       (format t "No goal is specified.")))
   (with-in-module (*current-module*)
-    (set-indvars (ptree-current *proof-tree*) vars)
-    (pr-goal (ptree-node-goal (ptree-current *proof-tree*)))))
+    (set-indvars (ptree-current *proof-tree*) vars)))
 
 ;;; EOF
 

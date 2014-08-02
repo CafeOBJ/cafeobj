@@ -648,6 +648,7 @@
 (defvar *check-import-mode* nil)
 (defvar *cexec-debug* nil)
 (defvar *debug-meta* nil)
+(defvar *debug-citp* nil)
 ;;;
 ;;; ** TO DO for other platforms
 #+SBCL

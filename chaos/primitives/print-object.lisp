@@ -1275,7 +1275,9 @@
 	(equal l (append iota '(0))))))
 
 (defun print-method-brief (meth)
-  (unless (method-p meth) (break))
+  (unless (method-p meth)
+    (format t "[print-method-brief]: Illegal method given ~a" meth)
+    (return-from print-method-brief nil))
   (let* ((*print-indent* (+ 4 *print-indent*))
 	 (.file-col. *print-indent*)
 	 (is-predicate (method-is-predicate meth)))

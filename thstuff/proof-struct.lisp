@@ -55,7 +55,7 @@
 
 (defun pr-tactic (tactic &optional (stream *standard-output*) &rest ignore)
   (declare (ignore ignore))
-  (format stream "tactic[~a]" (tactic-name tactic)))
+  (format stream "[~a]" (tactic-name tactic)))
 
 ;;; get-builtin-tactic : name -> tactic
 ;;; given a name returns a tactic with this name
@@ -137,7 +137,7 @@
 	   (ignore ignore))
   (with-in-module ((goal-context goal))
     (if (goal-tactic goal)
-	(format stream "~%[~a]=> :goal { ** ~a -----------------------------------------" (goal-tactic goal) (goal-name goal))
+	(format stream "~%>>~a=> :goal { ** ~a -----------------------------------------" (goal-tactic goal) (goal-name goal))
       (format stream "~%:goal { ** ~a -----------------------------------------" (goal-name goal)))
     (let ((*print-indent* (+ 2 *print-indent*))
 	  (consts (goal-constants goal))
@@ -268,11 +268,12 @@
 ;;; prepare-next-goal : ptree-node -> goal
 ;;; prepare next goal structure with associated context module
 ;;;
-(defun prepare-next-goal (ptree-node)
+(defun prepare-next-goal (ptree-node &optional (tactic nil))
   (setf (%module-decl-name .next-context-module.) (make-next-context-module-name ptree-node))
   (let ((next-context (eval-ast .next-context-module.))
 	(cur-goal (ptree-node-goal ptree-node))
-	(next-goal (make-goal :name (make-ptree-goal-name ptree-node (incf (ptree-node-num-children ptree-node))))))
+	(next-goal (make-goal :name (make-ptree-goal-name ptree-node (incf (ptree-node-num-children ptree-node)))
+			      :tactic tactic)))
     ;; import original context module
     (import-module next-context :including (goal-context cur-goal))
     ;; inherit current goal
@@ -280,9 +281,7 @@
 	  (goal-constants next-goal) (goal-constants cur-goal)
 	  (goal-indvars next-goal) (goal-indvars cur-goal)
 	  (goal-assumptions next-goal) (goal-assumptions cur-goal))
-    ;; add constants : TODO
-    ;; add assumption axioms : TODO
-    ;; set indvars : TODO
+    (prepare-for-parsing next-context)
     next-goal))
 
 ;;;
