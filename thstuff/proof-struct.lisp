@@ -126,10 +126,14 @@
   (declare (type goal goal))
   (null (goal-targets goal)))
 
+#||
 (defun get-module-simple-name (module)
   (with-output-to-string (s)
     (let ((*standard-output* s))
       (print-simple-mod-name module))))
+||#
+(defun get-module-simple-name (module)
+  (module-print-name module))
 
 (defun pr-goal (goal &optional (stream *standard-output*) &rest ignore)
   (declare (type goal goal)
@@ -137,7 +141,7 @@
 	   (ignore ignore))
   (with-in-module ((goal-context goal))
     (if (goal-tactic goal)
-	(format stream "~%>>~a=> :goal { ** ~a -----------------------------------------" (goal-tactic goal) (goal-name goal))
+	(format stream "~%~a=>~%:goal { ** ~a -----------------------------------------" (goal-tactic goal) (goal-name goal))
       (format stream "~%:goal { ** ~a -----------------------------------------" (goal-name goal)))
     (let ((*print-indent* (+ 2 *print-indent*))
 	  (consts (goal-constants goal))
@@ -155,6 +159,13 @@
 	  (let ((*print-indent* (+ 2 *print-indent*)))
 	    (print-next)
 	    (print-axiom-brief pv) (princ " ."))))
+      (when vs
+	(print-next)
+	(format stream "-- induction variable~p" (length vs))
+	(dolist (v vs)
+	  (let ((*print-indent* (+ 2 *print-indent*)))
+	    (print-next)
+	    (term-print-with-sort v))))
       (when consts
 	(print-next)
 	(format stream "-- introduced constant~p" (length consts))
@@ -169,13 +180,6 @@
 	  (let ((*print-indent* (+ 2 *print-indent*)))
 	    (print-next)
 	    (print-axiom-brief as) (princ " ."))))
-      (when vs
-	(print-next)
-	(format stream "-- induction variable~p" (length vs))
-	(dolist (v vs)
-	  (let ((*print-indent* (+ 2 *print-indent*)))
-	    (print-next)
-	    (term-print-with-sort v))))
       (when axs
 	(print-next)
 	(format stream "-- axiom~p to be proved" (length axs))
@@ -185,8 +189,8 @@
 	    (print-axiom-brief ax) (princ " ."))))
       (format stream "~%}")
       (if discharged
-	  (format t " *** (proved) ***")
-	(format t " *** (unproved) ***")))))
+	  (format t " << proved >>")
+	(format t " >> unproved <<")))))
 
 ;;; -------------------------------------------------------------------------
 ;;; PTREE-NODE
@@ -255,34 +259,30 @@
 ;;;
 (defparameter .next-context-module. (%module-decl* "next-context-dummy" :object :user nil))
 
-(defun make-next-context-module-name (ptree-node)
-  (declare (type ptree-node ptree-node))
-  (let* ((cur-goal (ptree-node-goal ptree-node))
-	 (base (get-module-simple-name (goal-context cur-goal)))
-	 (goal-name (goal-name cur-goal)))
-    (if (equal goal-name "root")
-	(format nil "#~a-~d" base (incf (ptree-node-my-num ptree-node)))
-      (format nil "#~a-~a-~d" base goal-name (incf (ptree-node-my-num ptree-node))))))
+(defun make-next-context-module-name (goal-name)
+  (declare (type string goal-name))
+  (format nil "#Goal-~a" goal-name))
 
 ;;;
 ;;; prepare-next-goal : ptree-node -> goal
 ;;; prepare next goal structure with associated context module
 ;;;
 (defun prepare-next-goal (ptree-node &optional (tactic nil))
-  (setf (%module-decl-name .next-context-module.) (make-next-context-module-name ptree-node))
-  (let ((next-context (eval-ast .next-context-module.))
-	(cur-goal (ptree-node-goal ptree-node))
-	(next-goal (make-goal :name (make-ptree-goal-name ptree-node (incf (ptree-node-num-children ptree-node)))
-			      :tactic tactic)))
-    ;; import original context module
-    (import-module next-context :including (goal-context cur-goal))
-    ;; inherit current goal
-    (setf (goal-context next-goal) next-context
-	  (goal-constants next-goal) (goal-constants cur-goal)
-	  (goal-indvars next-goal) (goal-indvars cur-goal)
-	  (goal-assumptions next-goal) (goal-assumptions cur-goal))
-    (prepare-for-parsing next-context)
-    next-goal))
+  (let ((goal-name (make-ptree-goal-name ptree-node (incf (ptree-node-num-children ptree-node)))))
+    (setf (%module-decl-name .next-context-module.) (make-next-context-module-name goal-name))
+    (let ((next-context (eval-ast .next-context-module.))
+	  (cur-goal (ptree-node-goal ptree-node))
+	  (next-goal (make-goal :name goal-name
+				:tactic tactic)))
+      ;; import original context module
+      (import-module next-context :including (goal-context cur-goal))
+      ;; inherit current goal
+      (setf (goal-context next-goal) next-context
+	    (goal-constants next-goal) (goal-constants cur-goal)
+	    (goal-indvars next-goal) (goal-indvars cur-goal)
+	    (goal-assumptions next-goal) (goal-assumptions cur-goal))
+      (prepare-for-parsing next-context)
+      next-goal)))
 
 ;;;
 ;;; make-ptree-root : module goal -> ptree-node
@@ -432,7 +432,7 @@
   (unless goal-axioms (return-from begin-proof nil))
   (setq *proof-tree* (initialize-proof-tree context-module goal-axioms))
   (pr-goal (ptree-node-goal (ptree-root *proof-tree*)))
-  (format t "~%** Initial goal (root) is generated.")
+  (format t "~%** Initial goal (root) is generated. **")
   *proof-tree*)
 
 ;;; EOF

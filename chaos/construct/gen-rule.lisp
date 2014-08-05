@@ -60,7 +60,7 @@
 	       (return-from variable-occurs-in t))))
       ))
 
-(defparameter non-exec-labels '(|:nonexec| |:non-exec| |:no-ex| |:noex|))
+(defparameter non-exec-labels '(|:nonexec| |:non-exec| |:no-ex| |:noex| |:noexec|))
 
 (defun axiom-is-non-exec? (ax)
   ;; (format t "~&labels=~s" (axiom-labels ax))

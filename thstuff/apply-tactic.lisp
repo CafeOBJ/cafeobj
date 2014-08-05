@@ -28,12 +28,22 @@
 	      (.next-goals. nil))
 	 (unless .cur-targets. (return-from :exit nil))
 	 ,@body))))
+
+(defmacro with-citp-debug (&rest body)
+  `(when *debug-citp*
+     (let ((*print-indent* (+ 2 *print-indent*)))
+       ,@body)))
+
 )
 
 ;;; ==============
 ;;; some utilities
 ;;; ==============
 
+;;;
+;;; rule-copy-cononicalized : rule module -> rule
+;;; copy rule with all variables are renewed and noralized.
+;;;
 (defun rule-copy-canonicalized (rule module)
   (let* ((new-rule (rule-copy rule))
 	 (canon (canonicalize-variables (list (rule-lhs new-rule)
@@ -45,6 +55,11 @@
 	  (rule-condition new-rule) (third canon))
     new-rule))
 
+;;;
+;;; intro-const-returns-subst : module name variable -> (variable . constant-term)
+;;; introduces a new constant of sort(variable) into a module.
+;;; returns a pair (variable . constant-term)
+;;;
 (defun intro-const-returns-subst (module name variable)
   (multiple-value-bind (op meth)
       (declare-operator-in-module (list name)
@@ -58,9 +73,59 @@
     (declare (ignore op))
     (prepare-for-parsing module)
     (cons variable (make-applform-simple (variable-sort variable) meth nil))))
-			  
+
+;;;
+;;; make-tc-const-name : proof-tree prefix -> string
+;;;
 (defun make-tc-const-name (ptree prefix)
   (format nil "~a#C~d" prefix (incf (ptree-num-gen-const ptree))))
+
+;;;
+;;; select-comb-elems : List(List) -> List
+;;; 
+;;;
+(defun select-combs-aux (max-idx list-of-list)
+  (declare (type fixnum max-idx)
+	   (type list list-of-list))
+  (let* ((result nil)
+	 (target (car list-of-list))
+	 (rest (cdr list-of-list))
+	 (len (length target)))
+    (declare (type fixnum len)
+	     (type list result target rest))
+    (if target
+	(let ((idx 0))
+	  (while (< idx max-idx)
+	    (let ((elt (nth (mod idx len) target))
+ 		  (rr (select-combs-aux max-idx rest)))
+ 	      ;; (format t "~%:idx=~d :elt=~s :rr=~s" idx elt rr)
+	      (if rr
+		  (dolist (r rr)
+		    (pushnew (cons elt r) result :test #'equal))
+		(pushnew (list elt) result :test #'equal))
+	      (incf idx)))
+	  (nreverse result))
+      nil)))
+
+(defun select-comb-elems (list-of-list)
+  (declare (type list list-of-list))
+  (unless list-of-list (return-from select-comb-elems nil))
+  (let ((max-idx ;; (reduce #'* (mapcar #'(lambda (x) (length x)) list-of-list))
+	 (apply #'max (mapcar #'(lambda (x) (length x)) list-of-list))))
+    (declare (type fixnum max-idx))
+    (select-combs-aux max-idx list-of-list)))
+
+;;;
+;;; axiom-variables : axiom -> List(variable)
+;;; returns a list of variables contained in the given axiom
+;;;
+(defun axiom-variables (ax)
+  (let ((lhs (axiom-lhs ax))
+	(rhs (axiom-rhs ax))
+	(cond (axiom-condition ax)))
+    (union (term-variables lhs) (union (term-variables rhs)
+				       (if cond (term-variables cond) nil) :test #'variable-equal)
+	   :test #'variable-equal)))
 
 ;;; =======================
 ;;; TACTIC: IMPLICATION[IP]
@@ -71,28 +136,45 @@
   (apply-rd ptree-node)
   ;;
   (with-in-context (ptree-node)
-    (dolist (target .cur-targets.)
-      (let ((cond (rule-condition target)))
-	(unless (or (is-true? cond) (term-variables cond))
-	  (let ((next-goal (prepare-next-goal ptree-node .tactic-ip.)))
-	    (with-in-module ((goal-context next-goal))
-	      (let ((new-ax (make-rule :lhs (term-copy-and-returns-list-variables cond)
-				       :rhs *bool-true*
-				       :id-condition *bool-true*
-				       :type (axiom-type target)
-				       :behavioural (axiom-is-behavioural target)
-				       :first-match-method (axiom-first-match-method target)
-				       :next-match-method (axiom-next-match-method target)
-				       :labels (cons "[ip]" (axiom-labels target))
-				       :kind (axiom-kind target)
-				       :meta-and-or (axiom-meta-and-or target)))
-		    (new-target (rule-copy-canonicalized target *current-module*)))
-		(setf (rule-condition new-target) *bool-true*)
-		(setf (goal-targets next-goal) (list new-target))
-		(push next-goal .next-goals.)
-		(compute-rule-method new-ax)
-		(adjoin-axiom-to-module *current-module* new-ax)
-		(!setup-reduction *current-module*)))))))
+    (let ((inconsistent nil)
+	  (remaining nil))
+      (dolist (target .cur-targets.)
+	(let ((condition (rule-condition target)))
+	  (cond ((equal *bool-false* condition)
+		 ;; IC (inconsistency)
+		 (format t "~%[ip] inconsistent axiom")
+		 (let ((*print-indent* (+ 2 *print-indent*)))
+		   (print-next)
+		   (print-axiom-brief target))
+		 (push target inconsistent)) 
+		((and (not (is-true? condition))
+		      (null (term-variables condition)))
+		 ;; t = t' if C
+		 ;; C is a ground term and is not true.
+		 ;; generate (SP + { C } |- t = t'
+		 (let ((next-goal (prepare-next-goal ptree-node .tactic-ip.)))
+		   (with-in-module ((goal-context next-goal))
+		     (let ((new-ax (make-rule :lhs (term-copy-and-returns-list-variables condition)
+					      :rhs *bool-true*
+					      :condition *bool-true*
+					      :type (axiom-type target)
+					      :behavioural (axiom-is-behavioural target)
+					      :first-match-method (axiom-first-match-method target)
+					      :next-match-method (axiom-next-match-method target)
+					      :labels (cons 'ip (axiom-labels target))
+					      :kind (axiom-kind target)
+					      :meta-and-or (axiom-meta-and-or target)))
+			   (new-target (rule-copy-canonicalized target *current-module*)))
+		       (setf (rule-condition new-target) *bool-true*)
+		       (setf (goal-targets next-goal) (list new-target))
+		       (push next-goal .next-goals.)
+		       (compute-rule-method new-ax)
+		       (adjoin-axiom-to-module *current-module* new-ax)
+		       (!setup-reduction *current-module*)))))
+		(t ;; others
+		 (push target remaining)))))
+      (setf (goal-targets .cur-goal.) (nreverse remaining))
+      (setf (goal-proved .cur-goal.) (nreverse inconsistent)))
     (if .next-goals.
 	(values t .next-goals.)
       (values nil nil))))
@@ -110,13 +192,6 @@
       (push (intro-const-returns-subst module (make-tc-const-name ptree "tc") var)
 	    subst))
     subst))
-
-(defun axiom-variables (ax)
-  (let ((lhs (axiom-lhs ax))
-	(rhs (axiom-rhs ax))
-	(cond (axiom-condition ax)))
-    (union (term-variables lhs) (union (term-variables rhs) (if cond (term-variables cond) nil) :test #'equal)
-	   :test #'equal)))
 
 (defun apply-tc (ptree-node)
   (declare (type ptree-node ptree-node))
@@ -167,7 +242,8 @@
 			     target-variables)))
 	    (if tv (pushnew v ind-vars :test #'equal :key #'(lambda (x) (variable-name x)))
 	      (with-output-chaos-error ('no-such-variable)
-		(format t "Setting induction variable, no such variable ~a:~a in target axiom." (variable-name v) (variable-sort v))))))))
+		(format t "Setting induction variable, no such variable ~a:~a in target axiom."
+			(variable-name v) (variable-sort v))))))))
     (setf (goal-indvars cur-goal) ind-vars)
     (format t "~%>> Induction will be conducted on ")
     (dolist (var ind-vars)
@@ -200,7 +276,7 @@
       (with-output-chaos-error ('internal-error)
 	(format t "Finding constructor of sort ~s, none was found." (sort-name (variable-sort v)))))
     ;; we sort the list of ops by number of arguments
-    ;; this is important for generating step cases.
+    ;; this is important for generating step cases properly.
     (sort ops #'(lambda (x y) (< (length (method-arity x)) (length (method-arity y)))))))
 
 ;;;
@@ -210,7 +286,9 @@
 (defun get-indvar-constructors (indvars constructors)
   (let ((ivar-map nil))
     (dolist (iv indvars)
-      (push (cons iv (get-induction-variable-constructors iv constructors)) ivar-map))
+      (push (mapcar #'(lambda (cts) (cons iv cts))
+		    (get-induction-variable-constructors iv constructors))
+	    ivar-map))
     (nreverse ivar-map)))
 
 ;;;
@@ -229,25 +307,9 @@
 ;;;  ((A . A-2) (B . B-1) (C . C-3)))
 ;;;
 (defun make-indvar-comb-substitutions (indvars constructors)
-  (let ((alist (get-indvar-constructors indvars constructors)))
-    (make-alist-combinations alist)))
-
-(defun make-alist-combinations (alist)
-  (let ((len (reduce #'* (mapcar #'(lambda (x) (length (cdr x))) alist))))
-    (declare (fixnum len))
-    (let ((result (make-array len))
-	  (all-subst nil))
-      (dolist (al alist)
-	(let* ((elist (cdr al))
-	       (l (length elist)))
-	  (loop (when (> l len) (return))
-	    (setq elist (append elist elist))
-	    (incf l))
-	  (dotimes (x len)
-	    (push (cons (car al) (nth x elist)) (aref result x)))))
-      (dotimes (x len)
-	(push (nreverse (aref result x)) all-subst))
-      (nreverse all-subst))))
+  (let ((list-of-alist (get-indvar-constructors indvars constructors)))
+    (declare (type list list-of-alist))
+    (select-comb-elems list-of-alist)))
 
 ;;;
 ;;; get-induction-base-substitutions : List(substitution) -> List(substitution)
@@ -334,14 +396,16 @@
 		   (let ((const (make-applform-simple s meth nil)))
 		     (push const arg-list)
 		     (push const (goal-constants goal)))))))
-      (when *debug-citp*
+      (with-citp-debug
+	  (declare (ignore *print-indent*))
 	(format t "~%>>[args] ")
 	(dolist (x (reverse arg-list))
 	  (term-print-with-sort x)
 	  (princ ", ")))
       (prepare-for-parsing *current-module*)
       (let ((res (make-applform-simple (method-coarity op) op (nreverse arg-list))))
-	(when *debug-citp*
+	(with-citp-debug
+	    (declare (ignore *print-indent*))
 	  (format t "~%>>[step term] ")
 	  (term-print-with-sort res))
 	res))))
@@ -352,7 +416,8 @@
 (defun make-induction-step-subst (goal target v-op-list)
   (let ((h-subst nil)
 	(axiom-vars (axiom-variables target)))
-    (when *debug-citp*
+    (with-citp-debug
+	(declare (ignore *print-indent*))
       (format t "~%>>[mriss] ")
       (print-substitution v-op-list))
     (dolist (sub v-op-list)
@@ -393,21 +458,24 @@
     (dolist (sub hypo-subst)
       (let* ((hypo (rule-copy-canonicalized target *current-module*))
 	     (subst (make-real-induction-step-subst sub (axiom-variables hypo))))
-	(when *debug-citp*
+	(with-citp-debug
+	    (declare (ignore *print-indent*))
 	  (format t "~%>>[applying hypo subst] ")
 	  (print-substitution subst))
 	(setf (rule-lhs hypo) (substitution-image-simplifying subst (rule-lhs hypo))
 	      (rule-rhs hypo) (substitution-image-simplifying subst (rule-rhs hypo))
 	      (rule-condition hypo) (if (is-true? (rule-condition hypo))
 					*bool-true*
-				      (substitution-image-simplifying subst (rule-condition hypo))))
+				      (substitution-image-simplifying subst (rule-condition hypo)))
+	      (rule-labels hypo) (cons 'ind-hypo (rule-labels target)))
 	(compute-rule-method hypo)
 	(adjoin-axiom-to-module *current-module* hypo)
 	(setf (goal-assumptions step-goal) (nconc (goal-assumptions step-goal) (list hypo)))))))
 
 (defun make-real-induction-step-subst (subst variables)
   (let ((rsubst nil))
-    (when *debug-citp*
+    (with-citp-debug
+	(declare (ignore *print-indent*))
       (format t "~%>>[mriss] ")
       (print-substitution subst))
     (dolist (sub subst)
@@ -416,7 +484,8 @@
 	    (rv nil))
 	(when (setq rv (get-induction-target-variable iv variables))
 	  (setq rsubst (acons rv term rsubst)))))
-    (when *debug-citp*
+    (with-citp-debug
+	(declare (ignore *print-indent*))
       (format t "~%>>r[mriss] ")
       (print-substitution rsubst))
     rsubst))
@@ -431,7 +500,8 @@
       (let* ((new-target (rule-copy-canonicalized target *current-module*))
 	     (subst (make-real-induction-step-subst sub (axiom-variables new-target))))
 	(when (car subst)
-	  (when *debug-citp*
+	  (with-citp-debug
+	      (declare (ignore *print-indent*))
 	    (format t "~%>>[applying step subst] ")
 	    (print-substitution subst))
 	  (setf (rule-lhs new-target) (substitution-image-simplifying subst (rule-lhs new-target))
@@ -482,8 +552,8 @@
   (apply-rd ptree-node)
   ;;
   (let ((cur-goal (ptree-node-goal ptree-node)))
-    (unless (goal-indvars cur-goal) (return-from apply-si nil))
-    (unless (goal-targets cur-goal) (return-from apply-si nil))
+    (unless (and (goal-indvars cur-goal) (goal-targets cur-goal))
+      (return-from apply-si nil))
     (multiple-value-bind (applied new-goals)
 	(induction-cases ptree-node)
       (if applied
@@ -506,12 +576,20 @@
       (rewrite condition *current-module*)
       (values (not (= 0 *rule-count*)) target))))
 
+(defun is-contradiction (t1 t2)
+  (or (and (is-true? t1) (is-false? t2))
+      (and (is-false? t1) (is-true? t2))))
+
 (defun sentence-is-satisfied (sentence)
   (let ((lhs (rule-lhs sentence))
 	(rhs (rule-rhs sentence))
 	(condition (rule-condition sentence)))
     (and (is-true? condition)
-	 (term-equational-equal lhs rhs))))
+	 (if (term-equational-equal lhs rhs)
+	     :satisfied
+	   (if (is-contradiction lhs rhs)
+	       :ct
+	    nil)))))
 
 (defun apply-rd (ptree-node)
   (declare (type ptree-node ptree-node))
@@ -520,24 +598,177 @@
 	 (reduced-targets nil)
 	 (discharged nil)
 	 (result nil))
-    (with-in-module ((goal-context cur-goal))
-      (dolist (target cur-targets)
-	(multiple-value-bind (applied sentence)
-	    (reduce-sentence target)
-	  (when applied (setq result t))
-	  (if (sentence-is-satisfied sentence)
-	      (push sentence discharged)
-	    (push sentence reduced-targets))))
-      (setf (goal-targets cur-goal) (nreverse reduced-targets))
-      (setf (goal-proved cur-goal) (nreverse discharged))
-      ;; (unless reduced-targets (discharge ptree-node))
-      (values result nil))))
+    (when cur-targets
+      (with-in-module ((goal-context cur-goal))
+	(dolist (target cur-targets)
+	  (multiple-value-bind (applied sentence)
+	      (reduce-sentence target)
+	    (when applied (setq result t))
+	    (let ((sr (sentence-is-satisfied sentence)))
+	      (if sr
+		  (progn
+		    (push sentence discharged)
+		    (when (eq sr :ct)
+		      (format t "~%[rd] found a contradiction.")))
+		(push sentence reduced-targets)))))
+	(setf (goal-targets cur-goal) (nreverse reduced-targets))
+	(setf (goal-proved cur-goal) (nreverse discharged))
+	(unless reduced-targets
+	  (format t "~%[rd]=> discharged goal ~s." (goal-name cur-goal)))))
+    (values result nil)))
 
 ;;; ==========================
 ;;; TACTIC: Case Analysis [CA]
 ;;; ==========================
+
+;;;
+;;; get-gterms : term -> List(ground-term)
+;;;
+(defun get-gterms (term)
+  (let ((gterms nil))
+    (when (term-is-applform? term)
+      (unless (term-variables term)
+	(push term gterms))
+      (dolist (arg (term-subterms term))
+	(setq gterms (nconc gterms (get-gterms arg)))))
+    gterms))
+
+;;;
+;;; get-gterms-from-axiom : axiom -> List(ground-term)
+;;; 
+(defun get-gterms-from-axiom (axiom)
+  (get-gterms (axiom-lhs axiom)))
+
+(defun gsubterm-has-matching-rule (gterm c-rules)
+  (dolist (term (delete gterm (get-gterms gterm)))
+    (dolist (crule c-rules)
+      (multiple-value-bind (gs sub no-match eeq)
+	  (@matcher (axiom-lhs crule) term :match)
+	(declare (ignore eeq sub gs))
+	(unless no-match
+	  (with-citp-debug
+	      (format t "~%>>[ca] sub has matching rule: ") (print-axiom-brief crule)
+	      (print-next)
+	      (term-print-with-sort term))
+	  (return-from gsubterm-has-matching-rule t)))))
+  nil)
+
+;;;
+;;; find-gterm-matching-conditionals : term List(conditional-rule) -> List(conditional-rule . subst)
+;;; given a ground term in target, returns a list of pair (rule . subst).
+;;;
+(defun find-gterm-matching-conditionals (gterm conditional-rules)
+  (let ((res nil))			; List(rule, subst)
+    (with-citp-debug
+	(declare (ignore *print-indent*))
+      (format t "~%>>[ca] target ")
+      (term-print-with-sort gterm))
+    (dolist (rule conditional-rules)
+      (block next
+	(unless (is-true? (rule-condition rule))
+	  (multiple-value-bind (gs sub no-match eeq)
+	      (@matcher (axiom-lhs rule) gterm :match)
+	    (declare (ignore eeq))
+	    (when no-match (return-from next nil))
+	    ;; every variable in condition should have bounding in subst
+	    ;; this should trivially be satisfied
+	    #||
+	    (unless (every #'(lambda (x) (assoc x sub)) (term-variables (rule-condition rule)))
+	      (return-from next nil))
+	    ||#
+	    ;; 
+	    (when (gsubterm-has-matching-rule gterm conditional-rules)
+	      (return-from next nil))
+	    ;;
+	    (with-citp-debug
+		(format t "~%>>[ca] found rs-pair")
+	      (print-next)
+	      (print-axiom-brief rule)
+	      (print-next)
+	      (print-substitution sub))
+	    (push (cons rule sub) res)
+	    (loop 
+	      (multiple-value-setq (gs sub no-match)
+		(next-match gs))
+	      (when no-match (return-from next))
+	    (with-citp-debug
+		(format t "~%>>[ca] found additional rs-pair")
+	      (print-next)
+	      (print-axiom-brief rule)
+	      (print-next)
+	      (print-substitution sub))
+	      (push (cons rule sub) res))))))
+    res))
+
+;;;
+;;;
+;;;
+(defun generate-case-axioms (next-goal rs-pairs)
+  (with-in-module ((goal-context next-goal))
+    (dolist (rs-pair rs-pairs)
+      (let ((axs nil)
+	    (condition (rule-condition (car rs-pair)))
+	    (subst (cdr rs-pair)))
+	(setq axs (make-rule :lhs (substitution-image-simplifying subst condition)
+			     :rhs *bool-true*
+			     :condition *bool-true*
+			     :type :equation
+			     :behavioural nil
+			     :labels (cons 'ca (rule-labels (car rs-pair)))))
+	(compute-rule-method axs)
+	(with-citp-debug
+	    (format t "~%>>[ca] adding an axiom")
+	  (print-next)
+	  (print-axiom-brief axs))
+	(adjoin-axiom-to-module *current-module* axs)
+	(setf (goal-assumptions next-goal) (nconc (goal-assumptions next-goal) (list axs)))))))
+
+
+(defun generate-cases (ptree-node target conditional-rules)
+  (let ((gterms (get-gterms-from-axiom target))
+	(next-goals nil))
+    ;; g-rs-pairs: ((gterm-1 . rs-pairs) .. (gterm-n . rs-pairs))
+    (let ((g-rs-pairs nil))
+      (dolist (gterm gterms)
+	;; rs-pairs : ((rule-1 . subst-1) ... (rule-m . subst-m))
+	(let ((rs-pairs (find-gterm-matching-conditionals gterm conditional-rules)))
+	  (when rs-pairs
+	    (push (cons gterm rs-pairs) g-rs-pairs))))
+      (with-citp-debug
+	  (dolist (grsp g-rs-pairs)
+	    (format t "~%>>[ca] gterm rs-pairs: ") (term-print-with-sort (car grsp))
+	    (dolist (rs-p (cdr grsp))
+	      (print-next)
+	      (print-axiom-brief (car rs-p))
+	      (print-next)
+	      (print-substitution (cdr rs-p)))))
+      (let ((rv-combs (select-comb-elems (mapcar #'cdr (nreverse g-rs-pairs)))))
+	(dolist (rv-com rv-combs)
+	  (with-citp-debug
+	      (dolist (rr rv-com)
+		(format t "~%>>[ca] gterm rs-pair: ")
+		(print-next)
+		(print-axiom-brief (car rr))
+		(print-next)
+		(print-substitution (cdr rr))))
+	  ;; rv-com ((gterm-1 . rv-pair-1-1) (gterm-2 . rvpair-2-1) .. (gterm-n . rvpair-n-1))
+	  (let ((next-goal (prepare-next-goal ptree-node .tactic-ca.)))
+	    (setf (goal-targets next-goal) (goal-targets (ptree-node-goal ptree-node)))
+	    (generate-case-axioms next-goal rv-com)
+	    (push next-goal next-goals))))
+      (values next-goals (nreverse next-goals)))))
+
 (defun apply-ca (ptree-node)
-  ptree-node)
+  (declare (type ptree-node ptree-node))
+  (with-in-context (ptree-node)
+    (with-in-module ((goal-context .cur-goal.))
+      (let ((crules (remove-if #'(lambda (x) (is-true? (rule-condition x))) (module-all-rules (goal-context .cur-goal.)))))
+	(dolist (target .cur-targets.)
+	  (multiple-value-bind (applied goals)
+	      (generate-cases ptree-node target crules)
+	    (declare (ignore applied))
+	    (when goals (setq .next-goals. (nconc .next-goals. goals)))))
+	(values .next-goals. .next-goals.)))))
 
 ;;; ======================================
 ;;; TACTIC: Case Analysis on Sequence [CS]
