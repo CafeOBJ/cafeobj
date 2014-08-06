@@ -2173,6 +2173,12 @@ Do nothing.
     :doc "TODO"
     )
 
+(define (":roll back")
+    :category :proof
+    :parser citp-parse-roll-back
+    :evaluator eval-citp-roll-back
+    :doc "TODO"
+    )
 ;;;
 )					; end eval-when
 ;;; EOF

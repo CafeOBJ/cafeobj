@@ -728,6 +728,7 @@
 	(|:apply| (|(| (:seq-of :symbol) |)|))
 	(|:auto|)
 	(|:ind| on (:seq-of :term) |.|)
+	(|:roll| back)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.

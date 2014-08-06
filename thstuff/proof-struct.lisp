@@ -189,8 +189,7 @@
 	    (print-axiom-brief ax) (princ " ."))))
       (format stream "~%}")
       (if discharged
-	  (format t " << proved >>")
-	(format t " >> unproved <<")))))
+	  (format t " << proved >>")))))
 
 ;;; -------------------------------------------------------------------------
 ;;; PTREE-NODE

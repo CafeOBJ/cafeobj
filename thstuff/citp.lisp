@@ -16,6 +16,12 @@
     (with-output-chaos-error ('no-context)
       (format t "No context module is specified, please 'select' or 'open' a module."))))
 
+(defun check-context-module-and-ptree ()
+  (check-context-module)
+  (unless *proof-tree*
+    (with-output-chaos-error ('no-proof-tree)
+      (format t "No goal is specified."))))
+
 ;;; ============================
 ;;; CITP related command parsers
 ;;; ============================
@@ -64,11 +70,19 @@
   (declare (ignore args))
   (get-default-tactics))
 
+;;;
+;;; :roll back
+;;;
+(defun citp-parse-roll-back (args)
+  (declare (ignore args))
+  :roll-back)
+
 ;;; ================================
 ;;; CITP related command evaluators
 ;;; ================================
 
 ;;; :goal
+;;;
 (defun eval-citp-goal (goal-ax-decls)
   (check-context-module)
   (with-in-module (*current-module*)
@@ -79,19 +93,23 @@
 
 ;;; :apply/:auto
 (defun eval-citp-apply (list-tactic)
-  (unless *proof-tree*
-    (with-output-chaos-error ('no-proof-tree)
-      (format t "No goal is yet specified.")))
+  (check-context-module-and-ptree)
   (apply-tactics *proof-tree* list-tactic))
 
 ;;; :ind on
+;;;
 (defun eval-citp-ind-on (vars)
-  (check-context-module)
-  (unless *proof-tree*
-    (with-output-chaos-error ('no-proof-tree)
-      (format t "No goal is specified.")))
+  (check-context-module-and-ptree)
   (with-in-module (*current-module*)
-    (set-indvars (ptree-current *proof-tree*) vars)))
+    (set-induction-variables vars)))
+
+;;; :roll back
+;;;
+(defun eval-citp-roll-back (&rest com)
+  (declare (ignore com))
+  (check-context-module-and-ptree)
+  (roll-back *proof-tree*))
+  
 
 ;;; EOF
 
