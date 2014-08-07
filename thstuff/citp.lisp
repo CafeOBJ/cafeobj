@@ -39,11 +39,14 @@
 ;;; :apply (<tactic> ...)
 ;;; (":apply" ("(" ("tc" "rd" "si") ")"))
 (defun citp-parse-apply (args)
-  (let ((tactics nil))
+  (let ((tactics nil)
+	(target nil))
     (dolist (tac (second (second args)))
       (let ((tactic (get-tactic tac)))
 	(setq tactics (nconc tactics tactic))))
-    tactics))
+    (when (third args)
+      (setq target (car (fourth args))))
+    (cons target tactics)))
 
 ;;;
 ;;; :ind on var ... var .
@@ -68,7 +71,7 @@
 ;;;
 (defun citp-parse-auto (args)
   (declare (ignore args))
-  (get-default-tactics))
+  (cons nil (get-default-tactics)))
 
 ;;;
 ;;; :roll back
@@ -94,7 +97,12 @@
 ;;; :apply/:auto
 (defun eval-citp-apply (list-tactic)
   (check-context-module-and-ptree)
-  (apply-tactics *proof-tree* list-tactic))
+  (let ((target (car list-tactic))
+	(tactics (cdr list-tactic)))
+    (print target)
+    (if target
+	(apply-tactics-to-goal *proof-tree* target tactics)
+      (apply-tactics *proof-tree* tactics))))
 
 ;;; :ind on
 ;;;

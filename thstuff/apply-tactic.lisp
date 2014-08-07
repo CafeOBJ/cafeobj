@@ -114,23 +114,6 @@
     (declare (type fixnum max-idx))
     (select-combs-aux max-idx list-of-list)))
 
-(defun make-alist-combinations (alist)
-  (let ((len (reduce #'* (mapcar #'(lambda (x) (length (cdr x))) alist))))
-    (declare (fixnum len))
-    (let ((result (make-array len))
-	  (all-subst nil))
-      (dolist (al alist)
-	(let* ((elist (cdr al))
-	       (l (length elist)))
-	  (loop (when (> l len) (return))
-	    (setq elist (append elist elist))
-	    (incf l))
-	  (dotimes (x len)
-	    (push (cons (car al) (nth x elist)) (aref result x)))))
-      (dotimes (x len)
-	(push (nreverse (aref result x)) all-subst))
-      (nreverse all-subst))))
-
 ;;;
 ;;; axiom-variables : axiom -> List(variable)
 ;;; returns a list of variables contained in the given axiom
@@ -232,8 +215,8 @@
 						   (substitution-image-simplifying subst (rule-condition next-target))))
 	      (compute-rule-method next-target)
 	      (setf (goal-targets next-goal) (list next-target))
-	      (dolist (op new-ops)
-		(push op (goal-constants next-goal))))))))
+	      (setf (goal-constants next-goal) (append (goal-constants next-goal)
+						       new-ops)))))))
     (if .next-goals.
 	(values t (nreverse .next-goals.))
       (values nil nil))))
@@ -260,9 +243,9 @@
 	      (with-output-chaos-error ('no-such-variable)
 		(format t "Setting induction variable, no such variable ~a:~a in target axiom."
 			(variable-name v) (variable-sort v))))))))
-    (setf (goal-indvars cur-goal) ind-vars)
+    (setf (goal-indvars cur-goal) (nreverse ind-vars))
     (format t "~%>> Induction will be conducted on ")
-    (dolist (var ind-vars)
+    (dolist (var (goal-indvars cur-goal))
       (term-print-with-sort var) (princ " "))
     ind-vars))
 
@@ -426,19 +409,23 @@
 		   (declare (ignore op))
 		   (let ((const (make-applform-simple s meth nil)))
 		     (push const arg-list)
-		     (push const (goal-constants goal)))))))
+		     (setf (goal-constants goal) (append (goal-constants goal) (list const))))))))
+      #||
       (with-citp-debug
 	  (declare (ignore *print-indent*))
 	(format t "~%>>[args] ")
 	(dolist (x (reverse arg-list))
 	  (term-print-with-sort x)
 	  (princ ", ")))
+      ||#
       (prepare-for-parsing *current-module*)
       (let ((res (make-applform-simple (method-coarity op) op (nreverse arg-list))))
+	#||
 	(with-citp-debug
 	    (declare (ignore *print-indent*))
 	  (format t "~%>>[step term] ")
 	  (term-print-with-sort res))
+	||#
 	res))))
 
 ;;;
@@ -455,6 +442,7 @@
   ;;
   (let ((hypo-v-op nil) 
 	(step-v-op nil)
+	(new-ops nil)
 	(axiom-vars (axiom-variables target)))
     ;; we generate the following case for each induction variable v:
     ;; 1) (v . <term of constant constructor>)              <-- used for hypothesis 
@@ -467,93 +455,156 @@
 	     (rv nil))        ; real induction variable in target
 	(when (setq rv (get-induction-target-variable iv axiom-vars))
 	  (cond ((null (method-arity op))
-		 ;; operator is constant constructor
-		 (push (list (cons iv (make-applform-simple (method-coarity op) op nil))) hypo-v-op))
+		 (let* ((ct (make-applform-simple (method-coarity op) op nil))
+			(c-subst (cons iv ct)))
+		   ;; operator is constant constructor
+		   (push (list (cons iv (list op ct))) hypo-v-op)
+		   (push c-subst step-v-op)))
 		(t (let* ((c-sub (make-ind-variable-substitution *proof-tree* *current-module* rv))
 			  (const-term (cdr c-sub)))
-		     (push (list (cons rv const-term)) hypo-v-op)
-		     (push (cons rv (make-step-constructor-term goal op (cdr c-sub))) step-v-op)))))))
+		     (push const-term new-ops)
+		     (push (list (cons rv (list op const-term))) hypo-v-op)
+		     (push (cons rv (make-step-constructor-term goal op const-term)) step-v-op)))))))
+    ;;
+    (setf (goal-constants goal) (append (goal-constants goal) (nreverse new-ops)))
     (values (select-comb-elems (nreverse hypo-v-op))
-	    (list (nreverse step-v-op)))))
-
-(defun get-hypothesis-subst (all-subst)
-  (let ((res nil))
-    (dolist (subst all-subst)
-      (unless (every #'(lambda (sub) (term-subterms (cdr sub))) subst)
-	(push subst res)))
-    (nreverse res)))
-
-(defun get-step-subst (all-subst)
-  (let ((res nil))
-    (dolist (subst all-subst)
-      (when (every #'(lambda (sub) (term-subterms (cdr sub))) subst)
-	(push subst res)))
-    (nreverse res)))
+	    (nreverse step-v-op))))
 
 (defun make-real-induction-step-subst (subst variables)
   (let ((rsubst nil))
-    (with-citp-debug
-	(declare (ignore *print-indent*))
-      (format t "~%>>[mriss] ")
-      (print-substitution subst))
     (dolist (sub subst)
       (let ((iv (car sub))
 	    (term (cdr sub))
 	    (rv nil))
 	(when (setq rv (get-induction-target-variable iv variables))
 	  (setq rsubst (acons rv term rsubst)))))
-    (with-citp-debug
-	(declare (ignore *print-indent*))
-      (format t "~%>>r[mriss] ")
-      (print-substitution rsubst))
-    rsubst))
+    (nreverse rsubst)))
+
+(defun resolve-induction-subst (goal hypo-v-op step-subst)
+  (declare (ignore goal))
+  (flet ((make-proper-alist (sub)
+	   (mapcar #'(lambda (s) (cons (car s) (cadr s))) sub)))
+    (unless hypo-v-op 
+      (with-output-chaos-warning ()
+	(format t "No subst given.")
+	(return-from resolve-induction-subst nil)))
+    (let ((rsubsts (mapcar #'(lambda (sub)
+			       (cons (car sub) (list (third sub))))
+			   hypo-v-op))
+	  (all-subst nil))
+    ;; return if there are no possible combinations
+    (unless (cdr hypo-v-op)
+      (with-citp-debug ()
+	(format t "~%resolve subst: no possible combinations"))
+      (return-from resolve-induction-subst (list (make-proper-alist rsubsts))))
+
+      #||
+      (dolist (v-op hypo-v-op)
+	(let ((m (term-head (third v-op))))
+	  (with-citp-debug ()
+	    (let ((*print-indent* (+ 2 *print-indent*)))
+	      (print-next)
+	      (format t "(~a ~a " (variable-name (first v-op)) (car (method-name (second v-op))))
+	      (term-print-with-sort (third v-op))
+	      (princ ")")))
+	  (when (and (null (method-arity m))
+		     (not (method-is-constructor? m)))
+	    (push v-op c-subst))))
+      ||#
+      ;;
+      (with-citp-debug ()
+	(format t "~%resolve subst: given"))
+      (with-citp-debug ()
+	(dolist (v-op hypo-v-op)
+	  (let ((*print-indent* (+ 2 *print-indent*)))
+	    (print-next)
+	    (format t "(~a ~a " (variable-name (first v-op)) (car (method-name (second v-op))))
+	    (term-print-with-sort (third v-op))
+	    (princ ")"))))
+
+      ;; make all possible hypothesis substitutions
+      (let ((vop-hash (make-hash-table :test #'eq))
+	    (vcombs nil))
+	(dolist (v-op hypo-v-op)
+	  (let ((v (first v-op))
+		(as nil))
+	    (unless (setq as (assoc v rsubsts))
+	      (with-output-chaos-error ('internal-err)
+		(format t "!! cannot find variable subst ~s" (variable-name v))))
+	    (setf (gethash v vop-hash) (list as))
+	    (let ((st (assoc v step-subst :test #'equal))
+		  (hentry (gethash v vop-hash))
+		  (new-element nil))
+	      (unless st (with-output-chaos-error ('no-step-term)
+			   (format t "No step term found for variable ~a" (variable-name v))))
+	      (setq new-element (cons v (list (cdr st))))
+	      (unless (member new-element hentry :test #'equal)
+		(setf (gethash v vop-hash) (append hentry (list new-element)))))))
+	(maphash #'(lambda (x vl) (declare (ignore x)) (push vl vcombs)) vop-hash)
+	(setq all-subst (select-comb-elems vcombs))
+	(with-citp-debug ()
+	  (format t "~%resolve subt: all possibilities")
+	  (let ((*print-indent* (+ 2 *print-indent*))
+		(num 0))
+	    (dolist (vcom all-subst)
+	      (print-next)
+	      (format t "=== (#~d) " (incf num))
+	      (dolist (rs vcom)
+		(format t "~a |-> " (variable-name (car rs)))
+		(term-print-with-sort (cadr rs)) (princ " ")))))
+	;;
+	(mapcar #'make-proper-alist all-subst)))))
 
 ;;;
 ;;; add-hypothesis
 ;;; Note: assumes computing module context is established.
 ;;;
-(defun add-hypothesis (step-goal target hypo-subst)
-  (with-citp-debug 
-      (format t "~%[si] hypo subst:")
-    (dolist (s hypo-subst)
-      (print-next)
-      (print-substitution s)))
-  (dolist (sub hypo-subst)
-    (let* ((hypo (rule-copy-canonicalized target *current-module*))
-	   (subst (make-real-induction-step-subst sub (axiom-variables hypo))))
-      (with-citp-debug
-	  (declare (ignore *print-indent*))
-	(format t "~%>>[applying hypo subst] ")
-	(print-substitution subst))
-      (setf (rule-lhs hypo) (substitution-image-simplifying subst (rule-lhs hypo))
-	    (rule-rhs hypo) (substitution-image-simplifying subst (rule-rhs hypo))
-	    (rule-condition hypo) (if (is-true? (rule-condition hypo))
-				      *bool-true*
-				    (substitution-image-simplifying subst (rule-condition hypo)))
-	    (rule-labels hypo) (cons 'ind-hypo (rule-labels target)))
-      (compute-rule-method hypo)
-      (adjoin-axiom-to-module *current-module* hypo)
-      (setf (goal-assumptions step-goal) (append (goal-assumptions step-goal) (list hypo))))))
+(defun subst-is-equal (sub1 sub2)
+  (dolist (entry sub1)
+    (let ((entry2 (assoc (car entry) sub2 :test #'equal)))
+      (unless entry2 (return-from subst-is-equal nil))
+      (unless (equal (cdr entry) (cdr entry2))
+	(return-from subst-is-equal nil))))
+  t)
+
+(defun add-hypothesis (step-goal target hypo-subst step-subst)
+  (dolist (osub hypo-subst)
+    (dolist (sub (resolve-induction-subst step-goal osub step-subst))
+      (unless (subst-is-equal sub step-subst)
+	(let* ((hypo (rule-copy-canonicalized target *current-module*))
+	       (subst (make-real-induction-step-subst sub (axiom-variables hypo))))
+	  (with-citp-debug
+	      (declare (ignore *print-indent*))
+	    (format t "~%>>[applying hypo subst] ")
+	    (print-substitution subst))
+	  (setf (rule-lhs hypo) (substitution-image-simplifying subst (rule-lhs hypo))
+		(rule-rhs hypo) (substitution-image-simplifying subst (rule-rhs hypo))
+		(rule-condition hypo) (if (is-true? (rule-condition hypo))
+					  *bool-true*
+					(substitution-image-simplifying subst (rule-condition hypo)))
+		(rule-labels hypo) (cons 'ind-hypo (rule-labels target)))
+	  (compute-rule-method hypo)
+	  (adjoin-axiom-to-module *current-module* hypo)
+	  (setf (goal-assumptions step-goal) (append (goal-assumptions step-goal) (list hypo))))))))
 
 ;;;
 ;;; add-step-cases
 ;;; Note: assumes computing module context is established.
 ;;;
 (defun add-step-cases (step-goal target step-subst)
-  (dolist (sub step-subst)
-    (let* ((new-target (rule-copy-canonicalized target *current-module*))
-	   (subst (make-real-induction-step-subst sub (axiom-variables new-target))))
-      (when (car subst)
-	(with-citp-debug
-	    (declare (ignore *print-indent*))
-	  (format t "~%>>[applying step subst] ")
-	  (print-substitution subst))
-	(setf (rule-lhs new-target) (substitution-image-simplifying subst (rule-lhs new-target))
-	      (rule-rhs new-target) (substitution-image-simplifying subst (rule-rhs new-target))
-	      (rule-condition new-target) (if (is-true? (rule-condition new-target))
-					      *bool-true*
-					    (substitution-image-simplifying subst (rule-condition new-target))))
-	(setf (goal-targets step-goal) (nconc (goal-targets step-goal) (list new-target)))))))
+  (let* ((new-target (rule-copy-canonicalized target *current-module*))
+	 (subst (make-real-induction-step-subst step-subst (axiom-variables new-target))))
+    (when (car subst)
+      (with-citp-debug
+	  (declare (ignore *print-indent*))
+	(format t "~%>>[applying step subst] ")
+	(print-substitution subst))
+      (setf (rule-lhs new-target) (substitution-image-simplifying subst (rule-lhs new-target))
+	    (rule-rhs new-target) (substitution-image-simplifying subst (rule-rhs new-target))
+	    (rule-condition new-target) (if (is-true? (rule-condition new-target))
+					    *bool-true*
+					  (substitution-image-simplifying subst (rule-condition new-target))))
+      (setf (goal-targets step-goal) (nconc (goal-targets step-goal) (list new-target))))))
 				
 ;;;
 ;;; induction-cases
@@ -568,6 +619,15 @@
 						    (gather-constructor-ops (goal-context cur-goal))))
 	 (base-goal (prepare-next-goal parent-node .tactic-si.))
 	 (step-goals nil))
+    ;;
+    (with-citp-debug ()
+      (let ((num 0))
+	(dolist (subs all-subst)
+	  (format t "~%subst #~d" (incf num))
+	  (let ((*print-indent* (+ 2 *print-indent*)))
+	    (print-next)
+	    ;; (dolist (s subs) (print-substitution s))
+	    (print-substitution subs)))))
 
     ;; generate base cases
     ;;
@@ -583,9 +643,9 @@
 	(with-in-module ((goal-context step-goal))
 	  ;; following functions and their callies can assume the computing context is established.
 	  (dolist (target cur-targets)
-	    (multiple-value-bind (hypo-subst step-subst)
+	    (multiple-value-bind (hypo-subst-list step-subst)
 		(make-induction-step-subst step-goal target subst)
-	      (add-hypothesis step-goal target hypo-subst)
+	      (add-hypothesis step-goal target hypo-subst-list step-subst)
 	      (add-step-cases step-goal target step-subst)))
 	  (!setup-reduction (goal-context step-goal))
 	  (push step-goal step-goals))))
@@ -653,9 +713,12 @@
 	    (let ((sr (sentence-is-satisfied sentence)))
 	      (if sr
 		  (progn
-		    (push sentence discharged)
-		    (when (eq sr :ct)
-		      (format t "~%>>[rd]=> found a contradiction!")))
+		    (push target discharged)
+		    (if (eq sr :ct)
+			(format t "~%  [rd]=> found a contradiction!")
+		      (progn
+			(format t "~%  [rd]=> discharged~%    ")
+			(print-axiom-brief target))))
 		(push sentence reduced-targets)))))
 	(setf (goal-targets cur-goal) (nreverse reduced-targets))
 	(setf (goal-proved cur-goal) (nreverse discharged))
@@ -917,18 +980,19 @@
       (if *apply-in-automatic*
 	  (dolist (target-node (get-unproved-nodes ptree))
 	    (apply-tactic target-node tactic))
-	(apply-tactic (car (get-unproved-nodes ptree)) tactic)))
+	(apply-tactic (car target-nodes) tactic)))
     (check-success ptree)))
 
 ;;;
-;;; apply-tactic-to-goal
+;;; apply-tactics-to-goal
 ;;;
-(defun apply-tactic-to-goal (ptree name tactic)
+(defun apply-tactics-to-goal (ptree name tactics)
   (let ((target-node (find-goal-node ptree name)))
     (unless target-node
       (with-output-chaos-error ('no-named-goal)
 	(format t "There is no goal with name ~s." name)))
-    (apply-tactic target-node tactic)
+    (dolist (tactic tactics)
+      (apply-tactic target-node tactic))
     (check-success ptree)))
 
 ;;; EOF

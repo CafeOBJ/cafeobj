@@ -725,7 +725,7 @@
 				#.BRLDeclaration
 				#.BCRLDeclaration)
 	       |}|)
-	(|:apply| (|(| (:seq-of :symbol) |)|))
+	(|:apply| (|(| (:seq-of :symbol) |)|) :if-present to (:symbol))
 	(|:auto|)
 	(|:ind| on (:seq-of :term) |.|)
 	(|:roll| back)

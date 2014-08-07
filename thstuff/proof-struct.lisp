@@ -215,30 +215,11 @@
 (defmacro ptree-node-goal (ptree-node)
   `(ptree-node-datum ,ptree-node))
 
-#||
-;;;
-;;; set-next-target : ptree-node -> { ptree-node | nil }
-;;;
-(defun set-next-target (node)
-  (declare (type ptree-node node))
-  (let ((n (incf (ptree-node-next-child node))))
-    (if (< n (ptree-node-num-children node))
-	(nth n (ptree-node-subnodes node))
-      nil)))				; done current level
-
-;;; 
-;;; discharge-node : ptree-node -> { ptree-node | nil }
-;;; discharge the current goal and set next target
-;;;
-(defun discharge-node (node)
-  (declare (type ptree-node node))
-  (setf (goal-discharged (ptree-node-goal node)) t)
-  (let ((parent (ptree-node-parent node)))
-    (if parent
-	(or (set-next-target parent)
-	    (discharge-node parent))
-      nil)))				; no more
-||#
+(defun node-is-discharged? (node)
+  (let ((goal (ptree-node-goal node)))
+    (or (null (goal-targets goal))
+	(and (ptree-node-subnodes node)
+	     (every #'(lambda (x) (node-is-discharged? x)) (ptree-node-subnodes node))))))
 
 ;;; make-ptree-goal-name : ptree-node fixnum -> string
 ;;; goal has a name. 
@@ -418,6 +399,8 @@
   (dolist (goal (get-unproved-goals ptree))
     (pr-goal goal stream)))
 
+
+
 ;;; ====================
 ;;; TOP LEVEL FUNCTIONS
 ;;; ====================
@@ -433,5 +416,33 @@
   (pr-goal (ptree-node-goal (ptree-root *proof-tree*)))
   (format t "~%** Initial goal (root) is generated. **")
   *proof-tree*)
+
+;;;
+;;; print-proof-tree
+;;;
+(defun print-proof-tree ()
+  (unless *proof-tree*
+    (with-output-chaos-warning ()
+      (format t "There is no proof tree.")
+      (return-from print-proof-tree nil)))
+  (!print-proof-tree (ptree-root *proof-tree*)))
+
+(defun !print-proof-tree (root-node &optional (stream *standard-output*))
+  (let* ((leaf? #'(lambda (node) (null (dag-node-subnodes node))))
+	 (leaf-name #'(lambda (node)
+			(with-output-to-string (s)
+			  (let ((goal (ptree-node-goal node)))
+			    (if (goal-tactic goal)
+				(format s "~a ~a" (goal-tactic goal) (goal-name goal))
+			      (princ (goal-name goal) s))
+			    (when (node-is-discharged? node)
+			      (princ "*" s)))
+			  s)))
+	 (leaf-info #'(lambda (node) (declare (ignore node)) t))
+	 (int-node-name #'(lambda (node) (funcall leaf-name node)))
+	 (int-node-children #'(lambda (node) (ptree-node-subnodes node))))
+    (force-output stream)
+    (print-next nil *print-indent* stream)
+    (print-trees (list (augment-tree root-node)) stream)))
 
 ;;; EOF

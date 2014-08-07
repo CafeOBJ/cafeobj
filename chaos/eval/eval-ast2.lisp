@@ -1215,6 +1215,13 @@
 		 (print-unproved-goals *proof-tree*))
 		("goal" (let ((name (cadr dat)))
 			  (print-named-goal *proof-tree* name)))
+		("proof" (let ((target (second dat)))
+			   (if (and target (equal target "tree"))
+			       (print-proof-tree)
+			     (if target
+				 (with-output-chaos-error ('unknown-option)
+				   (format t "'show proof' unknown option ~s." target))
+			       (print-proof-tree)))))
 		;;
 		;; helpers
 		;;
