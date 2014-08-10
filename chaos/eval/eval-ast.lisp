@@ -524,6 +524,11 @@
 		   nil)
 		 (if (not error-p)
 		     (let ((canon (canonicalize-variables (list parsed-lhs parsed-rhs parsed-cnd) *current-module*)))
+		       (unless (sort<= (term-sort (third canon)) *condition-sort* *current-sort-order*)
+			 (with-output-chaos-error ('invalid-condition)
+			   (format t "Illegal condition part of conditional axiom:")
+			   (print-next)
+			   (term-print-with-sort (third canon))))
 		       (setq the-axiom
 			 (make-rule :lhs (first canon)
 				    :rhs (second canon)
@@ -626,6 +631,12 @@
 				   (format t "RHS must be a term of sort Bool for :m-and/:m-or axiom."))))
 			     ;;
 			     (let ((canon (canonicalize-variables (list lhs-result rhs-result parsed-cnd) *current-module*)))
+			       (unless (sort<= (term-sort (third canon)) *condition-sort* *current-sort-order*)
+				 (with-output-chaos-error ('invalid-condition)
+				   (format t "Illegal condition part of conditional axiom:")
+				   (print-next)
+				   (term-print-with-sort (third canon))))
+			       ;;
 			       (setq the-axiom
 				 (make-rule :lhs (first canon)
 					    :rhs (second canon)

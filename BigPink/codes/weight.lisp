@@ -368,6 +368,7 @@
 
 ;;; op-lex-precedence : op1 op2 -> {:greater, :less, :same, nil}
 ;;;
+#||
 (defun op-lex-precedence (meth1 meth2)
   (declare (type method meth1 meth2)
 	   (values symbol))
@@ -379,9 +380,9 @@
     (if (and (not (method-is-constructor? meth1))
 	     (method-is-constructor? meth2))
 	:greater
-      (if (op-lex< meth1 meth2)
+      (if (op-lex-compare meth1 meth2)
 	  :less
-	(if (op-lex< meth2 meth1)
+	(if (op-lex-compare  meth2 meth1)
 	    :greater
 	  (let ((p1 (method-lex-prec meth1))
 		(p2 (method-lex-prec meth2)))
@@ -392,6 +393,20 @@
 		  :less
 		:same)))))))
   )
+||#
+
+(defun op-lex-precedence (meth1 meth2)
+  (declare (type method meth1 meth2)
+	   (values symbol))
+  (when (method-w= meth1 meth2)
+    (return-from op-lex-precedence :same))
+  (if (and (method-is-constructor? meth1)
+	   (not (method-is-constructor? meth2)))
+      :less
+    (if (and (not (method-is-constructor? meth1))
+	     (method-is-constructor? meth2))
+	:greater
+      (op-lex-compare meth1 meth2))))
 
 ;;; TERM-WEIGHT
 ;;;

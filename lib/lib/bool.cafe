@@ -52,11 +52,11 @@ lispq
 	(setq *bool-and-also* and-also-meth))
       (let* ((or-else (find-operator '("_" "or-else" "_") 2 *bool-module*))
 	     (or-else-meth (lowest-method* (car (opinfo-methods or-else)))))
-	(setq *bool-or-else* or-else-meth))
+	(setq *bool-or-else* or-else-meth)) 
       (let* ((iff (find-operator '("_" "iff" "_") 2 *bool-module*))
 	     (iff-meth (lowest-method* (car (opinfo-methods iff)))))
 	(setq *bool-iff* iff-meth))
-      (setq *m-and-op* *bool-and-also*)
+     (setq *m-and-op* *bool-and-also*)
       (setq *m-or-op* *bool-or-else*))))
 
 -- **

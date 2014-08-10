@@ -2149,6 +2149,7 @@ Do nothing.
     :category :proof
     :parser citp-parse-goal
     :evaluator eval-citp-goal
+    :title "`:goal { <axiom> . ... }`"
     :doc "TODO"
     )
 
@@ -2156,6 +2157,7 @@ Do nothing.
     :category :proof
     :parser citp-parse-apply
     :evaluator eval-citp-apply
+    :title "`:apply (<tactic> ...) [to <goal-name>]`"
     :doc "TODO"
     )
 
@@ -2163,6 +2165,7 @@ Do nothing.
     :category :proof
     :parser citp-parse-ind-on
     :evaluator eval-citp-ind-on
+    :title "`:ind on <variable> ... .`"
     :doc "TODO"
     )
 
@@ -2170,15 +2173,58 @@ Do nothing.
     :category :proof
     :parser citp-parse-auto
     :evaluator eval-citp-apply
+    :title "`:auto`"
     :doc "TODO"
     )
 
-(define (":roll back")
+(define (":roll")
     :category :proof
     :parser citp-parse-roll-back
     :evaluator eval-citp-roll-back
+    :title "`:roll back`"
     :doc "TODO"
     )
+
+(define (":init")
+    :category :proof
+    :parser citp-parse-init
+    :evaluator eval-citp-init
+    :title "`:init { \"[\" <label> \"]\" | \"(\" <axiom> \"\")} \"{\" <variable> <- <term>; ... \"}\"`"
+    :doc "TODO"
+    )
+
+(define (":cp")
+    :category :proof
+    :parser citp-parse-critical-pair
+    :evaluator eval-citp-critical-pair
+    :title "`:cp { \"[\" <label> \"]\" | \"(\" <axiom> . \")\" } >< { \"[\" <label> \"]\" | \"(\" <axiom> .\")\" }`"
+    :doc "TODO"
+    )
+
+(define (":equation")
+    :category :proof
+    :parser citp-parse-equation
+    :evaluator eval-citp-equation
+    :title "`:equation`"
+    :doc "TODO"
+    )
+
+(define (":rule")
+    :category :proof
+    :parser citp-parse-equation
+    :evaluator eval-citp-equation
+    :title "`:rule`"
+    :doc "TODO"
+    )
+
+(define (":backward")
+    :category :proof
+    :parser citp-parse-backward
+    :evaluator eval-citp-backward
+    :title "`:backward equation`"
+    :doc "TODO"
+    )
+
 ;;;
 )					; end eval-when
 ;;; EOF

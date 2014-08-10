@@ -724,38 +724,68 @@
 				#.BCeqDeclaration
 				#.BRLDeclaration
 				#.BCRLDeclaration)
-	       |}|)
-	(|:apply| (|(| (:seq-of :symbol) |)|) :if-present to (:symbol))
+		 |}|)
+	(|:apply| (:if-present to (:symbol)) (|(| (:seq-of :symbol) |)|))
 	(|:auto|)
-	(|:ind| on (:seq-of :term) |.|)
-	(|:roll| back)
-        ))                              ; end Top-Form
+	(|:ind| (:+ on |:on|) |(| (:seq-of :term) |)|)
+	(|:roll| (:+ back |:back|))
+	(|:init| (:one-of (|(| (:one-of #.EqDeclaration
+					#.CeqDeclaration
+					#.RlDeclaration
+					#.CRlDeclaration
+					#.BeqDeclaration
+					#.BCeqDeclaration
+					#.BRLDeclaration
+					#.BCRLDeclaration)
+			       |)|)
+			  (\[ (:symbol) \]))
+		 |by| |{| ((:! SubstList)) |}|)
+	(|:cp| (:one-of (|(| (:one-of #.EqDeclaration
+				      #.CeqDeclaration
+				      #.RlDeclaration
+				      #.CRlDeclaration
+				      #.BeqDeclaration
+				      #.BCeqDeclaration
+				      #.BRLDeclaration
+				      #.BCRLDeclaration)
+			     |)|)
+			(\[ (:symbol) \]))
+	       ><
+	       (:one-of (|(| (:one-of #.EqDeclaration
+				      #.CeqDeclaration
+				      #.RlDeclaration
+				      #.CRlDeclaration
+				      #.BeqDeclaration
+				      #.BCeqDeclaration
+				      #.BRLDeclaration
+				      #.BCRLDeclaration)
+			     |)|)
+			(\[ (:symbol) \])))
+	((:+ |:equation| |:rule|))
+	(|:backward| (:+ equation rule |:equation| |:rule|))
+        ))				; end Top-Form
 
       ;; some separated definitions of non-terminals.
       ;; --------------------------------------------------
       ;; subterm specifier
       
-      (Selector
-       (:one-of
-        ;; (term) (top) (subterm)
-        (|{| :int :append (:seq-of |,| :int) |}|)
-        (|(| (:seq-of :int) |)|)
-        (\[ :int (:optional |..| :int) \])))
+      (Selector (:one-of 
+		 (|{| :int :append (:seq-of |,| :int) |}|)
+		 (|(| (:seq-of :int) |)|)
+		 (\[ :int (:optional |..| :int) \])))
 
       ;; parameter part
       ;; (Params (\[ (:! Param) :append (:seq-of |,| (:! Param)) \]))
-      (Param 
-       (:one-of-default
-        (:symbols |::| (:upto (|,| \] \)) :modexp))
-        ((:+ ex extending us using pr protecting inc including)
-         :symbols |::| (:upto (|,| \] \)) :modexp))))
+      (Param  (:one-of-default
+	       (:symbols |::| (:upto (|,| \] \)) :modexp))
+	       ((:+ ex extending us using pr protecting inc including)
+		:symbols |::| (:upto (|,| \] \)) :modexp))))
 
       ;; importation modexp
-      #||
-      (ImportModexp
-       (:symbol :modexp))
+      #|| not used
+      (ImportModexp (:symbol :modexp))
       (IM (:one-of-default
-           (:modexp)
+	   (:modexp)
            (|::| :modexp)))
       ||#
       ;; (sortConst
@@ -763,23 +793,26 @@
       ;;   (:sorts)
       ;;  (:symbol = { :term |:| :sorts })))
 
+      #|| obsolete
       ;; super reference.
       (Supers (\[ (:! Super) :append (:seq-of |,| (:! Super)) \]))
       (Super ((:upto (|,| \]) :super)))
       ;; slot/value pairs
-      (SV-Pairs
-       ((:! Sv-pair) :append  (:seq-of (:! Sv-pair)) ;(:seq-of |,| (:! Sv-pair))
-        ))
-      (Sv-Pair
-       (:one-of-default
-        (:symbol (:upto (|}|))
-         (:one-of (|:| :sort)
-                  (= |(| :term |)| |:| :sort)))
-        ((:+ -- **) :comment)
-        ((:+ --> **>) :comment))
-       )
-      ))
-  )
+      (SV-Pairs ((:! Sv-pair) :append  (:seq-of (:! Sv-pair))))
+      (Sv-Pair (:one-of-default
+		(:symbol (:upto (|}|))  (:one-of (|:| :sort)
+						 (= |(| :term |)| |:| :sort)))
+		((:+ -- **) :comment)
+		((:+ --> **>) :comment)))
+      ||#
+      ;; Substitution
+      ;;  variable-1 <- term-1; ... variable-n <- term-n;
+      ;; (SubstList ((:! Subst) :append (:seq-of (:! Subst) (:upto (|}|)))))
+      (SubstList ((:! Subst) :append (:seq-of (:! Subst))))
+      ;; (Subst ((:term <- :term) |;|))
+      (Subst ((:symbol <- :term) |;|))
+      ))				; end of *cafeobj-scheme*
+  )					; end eval-when
 
 
 ;;; EOF

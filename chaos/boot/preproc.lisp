@@ -293,6 +293,8 @@
   (with-in-module (*truth-value-module*)
     (setq *bool-sort*
 	  (find-sort-in *truth-value-module* "Bool"))
+    (setq *condition-sort*
+      (find-sort-in *truth-value-module* "*Condition*"))
     (let* ((t-opinfo (find-operator '("true") 0 *truth-value-module*))
 	   (f-opinfo (find-operator '("false") 0 *truth-value-module*))
 	   (t-meth (lowest-method* (car (opinfo-methods t-opinfo))))

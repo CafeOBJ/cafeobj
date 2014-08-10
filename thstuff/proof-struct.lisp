@@ -106,6 +106,18 @@
     (setq .user-defined-tactics.
       (acons name (nreverse tactics) .user-defined-tactics.))))
 
+;;; 
+;;; for debugging
+;;;
+(eval-when (:compile-toplevel :execute :load-toplevel)
+
+(defmacro with-citp-debug (&rest body)
+  `(when *debug-citp*
+     (let ((*print-indent* (+ 2 *print-indent*)))
+       ,@body)))
+
+)
+
 ;;;---------------------------------------------------------------------------
 ;;; GOAL
 ;;; a goal is a set of conditional axioms to be proved.
@@ -120,18 +132,13 @@
   (tactic nil :type (or null tactic))	; tactic which derived this goal
   (targets nil :type list)		; axioms to be proved
   (proved nil :type list)		; proved targets
+  (critical-pairs nil :type list)	; list of critical pairs not yet axiomatized
   )
 
 (defun goal-is-discharged (goal)
   (declare (type goal goal))
   (null (goal-targets goal)))
 
-#||
-(defun get-module-simple-name (module)
-  (with-output-to-string (s)
-    (let ((*standard-output* s))
-      (print-simple-mod-name module))))
-||#
 (defun get-module-simple-name (module)
   (module-print-name module))
 
@@ -154,7 +161,7 @@
       (format stream "-- context module: ~a" (get-module-simple-name (goal-context goal)))
       (when proved
 	(print-next)
-	(format stream "-- proved axiom~p" (length proved))
+	(format stream "-- discharged axiom~p" (length proved))
 	(dolist (pv proved)
 	  (let ((*print-indent* (+ 2 *print-indent*)))
 	    (print-next)
@@ -262,6 +269,7 @@
 	    (goal-indvars next-goal) (goal-indvars cur-goal)
 	    (goal-assumptions next-goal) (goal-assumptions cur-goal))
       (prepare-for-parsing next-context)
+      (setq *next-default-proof-node* nil) ; we reset the next default target
       next-goal)))
 
 ;;;
@@ -322,15 +330,17 @@
     (make-ptree :root root
 		:current root)))
 
-#||
 ;;;
-;;; discharge : ptree -> Bool
-;;; discharget current goal. returns nil iff all targets are discharged.
+;;; check-success : ptree -> Bool
 ;;;
-(defun discharge (ptree)
-  (declare (type ptree ptree))
-  (setf (ptree-current ptree) (discharge-node (ptree-current ptree))))
-||#
+(defun check-success (ptree)
+  (let ((unp (get-unproved-nodes ptree)))
+    (when unp
+      (format t "~%>> Next target goal is ~s." (goal-name (ptree-node-goal (car unp))))
+      (setq *next-default-proof-node* (car unp))
+      (return-from check-success nil))
+    (format t "~%>> All goals are successfully discharged.")
+    t))
 
 ;;;
 ;;; roll-back : ptree -> Bool
@@ -338,13 +348,19 @@
 ;;;
 (defun roll-back (ptree)
   (declare (type ptree ptree))
-  (let* ((current-target (ptree-current ptree))
+  (let* ((current-target (get-next-proof-context ptree))
 	 (parent (and current-target (ptree-node-parent current-target))))
-    (unless parent (return-from roll-back nil))
+    (unless parent
+      (format t "~%**> :roll back, already at root.")
+      (return-from roll-back nil))
     (setf (ptree-node-subnodes parent) nil
 	  (ptree-node-num-children parent) 0
 	  (ptree-node-next-child parent) 0)
-    (setf (ptree-current ptree) parent)))
+    (format t "~%**> :roll back")
+    (setq current-target (get-next-proof-context ptree))
+    (when current-target
+      (format t "~%    next default target is ~s" (goal-name (ptree-node-goal current-target))))
+    current-target))
 
 ;;;
 ;;; find-goal-node
@@ -399,7 +415,28 @@
   (dolist (goal (get-unproved-goals ptree))
     (pr-goal goal stream)))
 
+;;;
+;;; get-next-pfoof-context : ptree -> ptree-node
+;;;
+(defun get-next-proof-context (ptree)
+  (or *next-default-proof-node*
+      (car (get-unproved-nodes ptree))))
 
+;;;
+;;; select-next-goal : goal-name
+;;;
+(defun select-next-goal (goal-name)
+  (declare (type string goal-name))
+  (unless *proof-tree*
+    (with-output-chaos-error ('no-proof-tree)
+      (format t "No proof is ongoing.")))
+  (let ((node (find-goal-node *proof-tree* goal-name)))
+    (when (node-is-discharged? node)
+      (with-output-chaos-error ('already-discharged)
+	(format t "The goal ~s is alreday discharged." (goal-name (ptree-node-goal node)))))
+    (setq *next-default-proof-node* node)
+    (format t "~%>> next default goal is ~s" (goal-name (ptree-node-goal node)))
+    node))
 
 ;;; ====================
 ;;; TOP LEVEL FUNCTIONS

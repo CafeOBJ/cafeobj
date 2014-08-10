@@ -36,26 +36,33 @@
     (nreverse ax-decls)))
 
 ;;;
-;;; :apply (<tactic> ...)
+;;; :apply [to <goal-name>] (<tactic> ...)
+;;;
 ;;; (":apply" ("(" ("tc" "rd" "si") ")"))
+;;; (":apply" ("to" ("1-1-1")) ("(" ("RD") ")"))
+;;;
 (defun citp-parse-apply (args)
-  (let ((tactics nil)
+  (let ((tactic-forms nil)
+	(tactics nil)
 	(target nil))
-    (dolist (tac (second (second args)))
+    (cond ((string-equal (car (second args)) "to")
+	   (setq target (car (second (second args))))
+	   (setq tactic-forms (second (third args))))
+	  (t (setq tactic-forms (second (second args)))))
+    (dolist (tac tactic-forms)
       (let ((tactic (get-tactic tac)))
 	(setq tactics (nconc tactics tactic))))
-    (when (third args)
-      (setq target (car (fourth args))))
     (cons target tactics)))
 
-;;;
-;;; :ind on var ... var .
+;;; citp-parse-ind-on
+;;; :ind on (var ... var)
+;;; (":ind" "on" "(" ("M:S-1" ... "N:S-N") ")")
 ;;;
 (defun citp-parse-ind-on (args)
   (check-context-module)
   (with-in-module (*current-module*)
     (let ((vars nil))
-      (dolist (var-decl (third args))
+      (dolist (var-decl (fourth args))
 	(let ((var (simple-parse-from-string var-decl)))
 	  (when (term-ill-defined var)
 	    (with-output-chaos-error ('no-parse)
@@ -80,6 +87,53 @@
   (declare (ignore args))
   :roll-back)
 
+;;;
+;;; :init {[<label>] | (<axiom>)} by { <var> <- <term>; ...<var> <- <term>; }
+;;;
+(defun make-axiom-pattern (target)
+  (if (equal (first target) "[")
+      (cons :label (second target))
+    (cons :axiom (second target))))
+
+(defun citp-parse-init (args)
+  (let ((target-form (make-axiom-pattern (second args)))
+	(subst-list (fifth args))
+	(subst-pairs nil))
+    (dolist (subst-form subst-list)
+      (unless (atom subst-form)
+	(push (cons (first subst-form) (third subst-form)) subst-pairs)))
+    (with-citp-debug ()
+      (format t "~%[:init] target = ~s" target-form)
+      (format t "~%        subst  = ~s" subst-pairs))
+    (list target-form subst-pairs)))
+
+;;; :cp
+;;; (":cp" ("[" ("label-1") "]") "><" ("[" ("label-2") "]")) 
+;;; (":cp" ("(" ("ceq" ("LHS") "=" ("RHS") "if" ("C") ".") ")")
+;;; "><" ("(" ("ceq" ("LHS-2") "=" ("RHS-2") "if" ("C-2") ".") ")")) 
+;;;
+(defun citp-parse-critical-pair (args)
+  (let ((pat-1 (make-axiom-pattern (second args)))
+	(pat-2 (make-axiom-pattern (fourth args))))
+    (with-citp-debug ()
+      (format t "~%[cp] ~s" pat-1)
+      (format t "~%     ~s" pat-2))
+    (list pat-1 pat-2)))
+
+;;; :equation/:rule
+;;;
+(defun citp-parse-equation (args)
+  (if (member (car args) '(":equation" "equation") :test #'equal)
+      :equation
+    :rule))
+
+;;; :backward equation/rule
+;;;
+(defun citp-parse-backward (args)
+  (if (member (second args) '(":equation" "equation") :test #'equal)
+      :equation
+    :rule))
+
 ;;; ================================
 ;;; CITP related command evaluators
 ;;; ================================
@@ -99,7 +153,6 @@
   (check-context-module-and-ptree)
   (let ((target (car list-tactic))
 	(tactics (cdr list-tactic)))
-    (print target)
     (if target
 	(apply-tactics-to-goal *proof-tree* target tactics)
       (apply-tactics *proof-tree* tactics))))
@@ -116,10 +169,31 @@
 (defun eval-citp-roll-back (&rest com)
   (declare (ignore com))
   (check-context-module-and-ptree)
-  (roll-back *proof-tree*))
+  (with-in-module (*current-module*)
+    (roll-back *proof-tree*)))
   
+;;; :init
+;;;
+(defun eval-citp-init (args)
+  (check-context-module-and-ptree)
+  (with-in-module (*current-module*)
+    (instanciate-axiom (first args)	; target
+		       (second args))))	; variable-term pairs
+
+;;; :cp
+(defun eval-citp-critical-pair (args)
+  (check-context-module-and-ptree)
+  (with-in-module (*current-module*)
+    (apply-cp (first args) (second args))))
+
+;;; :equation : {:equation| :rule} -> void
+(defun eval-citp-equation (arg)
+  (check-context-module-and-ptree)
+  (add-critical-pairs arg :forward))
+
+;;; :backward
+(defun eval-citp-backward (arg)
+  (check-context-module-and-ptree)
+  (add-critical-pairs arg :backward))
 
 ;;; EOF
-
-
-

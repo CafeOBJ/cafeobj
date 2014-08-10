@@ -108,6 +108,7 @@
 (defvar $$trace-proof nil)		; flag, non-nil -> trace CITP proof.
 ;;; *proof-tree* binds current proof tree structure
 (defvar *proof-tree* nil)
+(defvar *next-default-proof-node* nil)
 
 (defvar *rewrite-stepping* nil)		; flag, non-nil -> under stepping.
 (declaim (type (or null fixnum) *rewrite-count-limit*))
@@ -376,7 +377,7 @@
 (defvar *subst-sort* 'void)
 (defvar *sort_builtin* 'void)
 (defvar *parameter-sort* 'void)
-
+(defvar *condition-sort* 'void)
 (defvar sup-universal-sort-name nil)
 (defvar sup-huniversal-sort-name nil)
 
@@ -463,6 +464,7 @@
 (defvar *bool-and-also* 'void)
 (defvar *bool-or-else* 'void)
 (defvar *bool-iff* 'void)
+(defvar *bool-cond-op* 'void)
 (defvar *eql-op* 'void)
 (defvar *m-and-op* nil)
 (defvar *m-or-op* nil)

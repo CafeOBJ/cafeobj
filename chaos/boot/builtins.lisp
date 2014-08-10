@@ -173,6 +173,8 @@
   (eval-ast-if-need '(%module-decl "TRUTH-VALUE" :object :hard
                       ((%psort-decl (%sort-ref "Bool" nil))
                        (%sort-decl (%sort-ref "Bool" nil) nil)
+		       (%sort-decl (%sort-ref "*Condition*" nil) nil)
+		       (%subsort-decl (nil (%sort-ref "Bool" nil) :< (%sort-ref "*Condition*" nil)))
                        (%op-decl ("false") nil (%sort-ref "Bool" nil)
                         (%opattrs nil nil nil nil nil t nil nil)
                         nil)

@@ -37,7 +37,9 @@ lispq
 	     (n-equal-op-info (find-operator '("_" "=/=" "_") 2 *truth-module*))
 	     (n-equal-meth (lowest-method* (car (opinfo-methods n-equal-op-info))))
 	     (beh-eq-info (find-operator '("_" "=b=" "_") 2 *truth-module*))
-	     (beh-eq-meth (lowest-method* (car (opinfo-methods beh-eq-info)))))
+	     (beh-eq-meth (lowest-method* (car (opinfo-methods beh-eq-info))))
+	     (cond-op (find-operator '("_" "/\\" "_") 2 *truth-module*))
+	     (cond-meth (lowest-method* (car (opinfo-methods cond-op)))))
         ;; also these operators are needed to be accessed globaly
         ;; for TRAM(BRUTE) interface and PigNose
 	(setq *bool-equal* equal-meth)
@@ -45,7 +47,7 @@ lispq
 	(setq *beh-equal* beq-meth)
 	(setq *bool-nonequal* n-equal-meth)
 	(setq *beh-eq-pred* beh-eq-meth)
-	))))
+	(setq *bool-cond-op* cond-meth)))))
 
 ** allow using universal sorts
 set sys universal-sort on
@@ -72,6 +74,7 @@ sys:mod! TRUTH
     pred _=b=_ : *Cosmos* *Cosmos* { prec: 51 }
     pred _=/=_ : *Cosmos* *Cosmos* { prec: 51 }
     pred _:=_  : *Cosmos* *Cosmos* { prec: 51 }
+    op _/\_ : *Condition* *Condition* -> *Condition* { strat: (1 0 2) prec: 65 r-assoc }
   }
   axioms {
     var XU : *Universal*
@@ -87,6 +90,10 @@ sys:mod! TRUTH
     eq CXU =b= CYU = #!! (coerce-to-bool (term-equational-equal cxu cyu)) .
     eq CXU =/= CYU = #!! (coerce-to-bool (not (term-equational-equal cxu cyu))) .
     eq CXU := CYU = #!! (coerce-to-bool (match-m-pattern CXU CYU)) .
+    eq X:Bool /\ true = X .
+    eq true /\ X:Bool = X .
+    eq X:Bool /\ false = false .
+    eq false /\ X:Bool = false .
   }
 }  
 
