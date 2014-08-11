@@ -39,7 +39,7 @@
   (defparameter .all-builtin-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-cs. .tactic-rd.))
 
   ;; default tatics is a seriase of SI CA CS TC IP.
-  (defparameter .default-tactics. (list .tactic-si. .tactic-ca. .tactic-cs. .tactic-tc. .tactic-ip.))
+  (defparameter .default-tactics. (list .tactic-si. .tactic-ca. .tactic-cs. .tactic-tc. .tactic-ip. .tactic-rd.))
 
   ;; user defiled tactics: assoc list of (name . list-of-tactics)
   ;;
@@ -327,6 +327,7 @@
 ;;;
 (defun initialize-proof-tree (context-module initial-goals)
   (let ((root (make-ptree-root context-module initial-goals)))
+    (setq *next-default-proof-node* nil)
     (make-ptree :root root
 		:current root)))
 
@@ -340,6 +341,7 @@
       (setq *next-default-proof-node* (car unp))
       (return-from check-success nil))
     (format t "~%>> All goals are successfully discharged.")
+    (setq *next-default-proof-node* nil)
     t))
 
 ;;;
@@ -363,7 +365,7 @@
     current-target))
 
 ;;;
-;;; find-goal-node
+;;; find-goal-node : ptree string -> { ptree-node | nil }
 ;;;
 (defun find-goal-node (ptree name)
   (declare (type ptree ptree)
@@ -377,12 +379,13 @@
 ;;; print-named-goal : name -> void
 ;;;
 (defun print-named-goal (ptree name)
-  (declare (type string name))
   (unless ptree
     (with-output-chaos-warning ()
       (format t "There is no proof tree.")
       (return-from print-named-goal nil)))
-  (let ((goal-node (find-goal-node ptree name)))
+  (let ((goal-node (if name
+		       (find-goal-node ptree name)
+		     (get-next-proof-context ptree))))
     (unless goal-node
       (with-output-chaos-error ('no-such-goal)
 	(format t "No such goal with the name ~s" name)))
@@ -422,6 +425,9 @@
   (or *next-default-proof-node*
       (car (get-unproved-nodes ptree))))
 
+(defun next-proof-target-is-specified? ()
+  *next-default-proof-node*)
+
 ;;;
 ;;; select-next-goal : goal-name
 ;;;
@@ -430,13 +436,22 @@
   (unless *proof-tree*
     (with-output-chaos-error ('no-proof-tree)
       (format t "No proof is ongoing.")))
-  (let ((node (find-goal-node *proof-tree* goal-name)))
-    (when (node-is-discharged? node)
-      (with-output-chaos-error ('already-discharged)
-	(format t "The goal ~s is alreday discharged." (goal-name (ptree-node-goal node)))))
-    (setq *next-default-proof-node* node)
-    (format t "~%>> next default goal is ~s" (goal-name (ptree-node-goal node)))
-    node))
+  (cond ((string= goal-name ".")
+	 (setq *next-default-proof-node* nil)
+	 (let ((next (get-next-proof-context *proof-tree*)))
+	   (format t "~%:select resetting next default target ...")
+	   (unless next
+	     (with-output-chaos-warning ('no-node)
+	       (format t "There is no unproved goal.")
+	       (return-from select-next-goal nil)))
+	   (format t "~%>> next default-goal is ~s" (goal-name (ptree-node-goal next)))))
+	(t (let ((node (find-goal-node *proof-tree* goal-name)))
+	     (when (node-is-discharged? node)
+	       (with-output-chaos-error ('already-discharged)
+		 (format t "The goal ~s is alreday discharged." (goal-name (ptree-node-goal node)))))
+	     (setq *next-default-proof-node* node)
+	     (format t "~%>> setting next default goal to ~s" (goal-name (ptree-node-goal node)))
+	     node))))
 
 ;;; ====================
 ;;; TOP LEVEL FUNCTIONS
@@ -450,6 +465,7 @@
 	   (type list goal-axioms))
   (unless goal-axioms (return-from begin-proof nil))
   (setq *proof-tree* (initialize-proof-tree context-module goal-axioms))
+  ;; (setq *next-default-proof-node* (ptree-root *proof-tree*))
   (pr-goal (ptree-node-goal (ptree-root *proof-tree*)))
   (format t "~%** Initial goal (root) is generated. **")
   *proof-tree*)
@@ -462,13 +478,15 @@
     (with-output-chaos-warning ()
       (format t "There is no proof tree.")
       (return-from print-proof-tree nil)))
-  (!print-proof-tree (ptree-root *proof-tree*)))
+  (!print-proof-tree (ptree-root *proof-tree*) (get-next-proof-context *proof-tree*)))
 
-(defun !print-proof-tree (root-node &optional (stream *standard-output*))
+(defun !print-proof-tree (root-node next-target &optional (stream *standard-output*))
   (let* ((leaf? #'(lambda (node) (null (dag-node-subnodes node))))
 	 (leaf-name #'(lambda (node)
 			(with-output-to-string (s)
 			  (let ((goal (ptree-node-goal node)))
+			    (when (eq node next-target)
+			      (princ ">" s))
 			    (if (goal-tactic goal)
 				(format s "~a ~a" (goal-tactic goal) (goal-name goal))
 			      (princ (goal-name goal) s))

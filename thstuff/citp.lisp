@@ -78,7 +78,7 @@
 ;;;
 (defun citp-parse-auto (args)
   (declare (ignore args))
-  (cons nil (get-default-tactics)))
+  (cons :auto (get-default-tactics)))
 
 ;;;
 ;;; :roll back
@@ -134,6 +134,12 @@
       :equation
     :rule))
 
+;;; :select <GoalName>
+;;;
+(defun citp-parse-select (args)
+  (let ((goal-name (car (second args))))
+    goal-name))
+
 ;;; ================================
 ;;; CITP related command evaluators
 ;;; ================================
@@ -154,7 +160,10 @@
   (let ((target (car list-tactic))
 	(tactics (cdr list-tactic)))
     (if target
-	(apply-tactics-to-goal *proof-tree* target tactics)
+	(case target
+	  (:auto (apply-auto *proof-tree*))
+	  (otherwise
+	   (apply-tactics-to-goal *proof-tree* target tactics)))
       (apply-tactics *proof-tree* tactics))))
 
 ;;; :ind on
@@ -195,5 +204,10 @@
 (defun eval-citp-backward (arg)
   (check-context-module-and-ptree)
   (add-critical-pairs arg :backward))
+
+;;; :select
+(defun eval-citp-select (goal-name)
+  (check-context-module-and-ptree)
+  (select-next-goal goal-name))
 
 ;;; EOF

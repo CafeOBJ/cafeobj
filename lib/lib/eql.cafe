@@ -22,7 +22,7 @@ lispq
 
 sys:mod! EQL {
   protecting (TRUTH)
-  pred _=_ : *Cosmos* *Cosmos* { comm prec: 51 }
+  pred _=_ : *Cosmos* *Cosmos* { comm strat:(1 2 0) prec: 51 }
   eq (CUX:*Cosmos* = CUX) = true .
   ceq [:nonexec]: CUX:*Cosmos* = CUY:*Cosmos* if (CUX = CUY) .
 **  ceq (CUX:*Cosmos* = CUY:*Cosmos*) = #!! (coerce-to-bool (!term-eq CUX CUY))

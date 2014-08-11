@@ -763,6 +763,7 @@
 			(\[ (:symbol) \])))
 	((:+ |:equation| |:rule|))
 	(|:backward| (:+ equation rule |:equation| |:rule|))
+	(|:select| (:symbol))
         ))				; end Top-Form
 
       ;; some separated definitions of non-terminals.

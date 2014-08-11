@@ -21,8 +21,10 @@
   ;; halds systems toplevel commands, declarations accepted by top level
   (clrhash *cafeobj-top-commands*)
 
-  ;; holds all of the declaration forms
-  (clrhash *cafeobj-declarations*)
+  ;; holds all of the declaration forms 
+  ;; this is moved to 'declarations.lisp', because every time we add a new command
+  ;; we needed to re-load whole system. 
+  ;; (clrhash *cafeobj-declarations*)
 
   ;; this holds each commands/language constructs document strings.
   ;; systems' doc-generator refers to this hash table.
@@ -2224,7 +2226,13 @@ Do nothing.
     :title "`:backward equation`"
     :doc "TODO"
     )
-
+(define (":select")
+    :category :proof
+    :parser citp-parse-select
+    :evaluator eval-citp-select
+    :title "`:select <goal-name>`"
+    :doc "TODO"
+    )
 ;;;
 )					; end eval-when
 ;;; EOF
