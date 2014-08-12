@@ -6,7 +6,7 @@ AC_INIT(./sysdef.asd)
 AC_PREREQ(2.4)dnl Required Autoconf version.
 PACKAGE=cafeobj
 VERSION=1.4
-VMINOR=.15a1
+VMINOR=.15b1
 VMEMO=PigNose0.99
 PATCHLEVEL=
 AC_SUBST(PACKAGE)
