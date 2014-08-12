@@ -354,11 +354,13 @@
 	 (parent (and current-target (ptree-node-parent current-target))))
     (unless parent
       (format t "~%**> :roll back, already at root.")
+      (setq *next-default-proof-node* nil)
       (return-from roll-back nil))
     (setf (ptree-node-subnodes parent) nil
 	  (ptree-node-num-children parent) 0
 	  (ptree-node-next-child parent) 0)
     (format t "~%**> :roll back")
+    (setq *next-default-proof-node* nil)
     (setq current-target (get-next-proof-context ptree))
     (when current-target
       (format t "~%    next default target is ~s" (goal-name (ptree-node-goal current-target))))

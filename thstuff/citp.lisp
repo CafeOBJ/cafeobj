@@ -140,6 +140,12 @@
   (let ((goal-name (car (second args))))
     goal-name))
 
+;;;
+;;; citp-parse-lred
+;;;
+(defun citp-parse-lred (args)
+  (second args))
+
 ;;; ================================
 ;;; CITP related command evaluators
 ;;; ================================
@@ -209,5 +215,10 @@
 (defun eval-citp-select (goal-name)
   (check-context-module-and-ptree)
   (select-next-goal goal-name))
+
+;;; :lred
+(defun eval-citp-lred (token-sec)
+  (check-context-module-and-ptree)
+  (reduce-in-current-goal token-sec))
 
 ;;; EOF

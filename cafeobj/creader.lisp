@@ -764,6 +764,8 @@
 	((:+ |:equation| |:rule|))
 	(|:backward| (:+ equation rule |:equation| |:rule|))
 	(|:select| (:symbol))
+	((:+ |:lred| lred)
+         (:rdr #..term-delimiting-chars. (:seq-of :term) |.|))
         ))				; end Top-Form
 
       ;; some separated definitions of non-terminals.

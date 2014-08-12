@@ -2226,11 +2226,20 @@ Do nothing.
     :title "`:backward equation`"
     :doc "TODO"
     )
+
 (define (":select")
     :category :proof
     :parser citp-parse-select
     :evaluator eval-citp-select
     :title "`:select <goal-name>`"
+    :doc "TODO"
+    )
+
+(define (":lred" "lred")
+    :category :proof
+    :parser citp-parse-lred
+    :evaluator eval-citp-lred
+    :title "`:lred <term> .`"
     :doc "TODO"
     )
 ;;;

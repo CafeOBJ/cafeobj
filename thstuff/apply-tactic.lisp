@@ -536,7 +536,7 @@
 	(push op ops)))
     (unless ops
       (with-output-chaos-error ('internal-error)
-	(format t "Finding constructor of sort ~s, none was found." (sort-name (variable-sort v)))))
+	(format t "Finding constructor of sort ~a, none was found." (string (sort-name (variable-sort v))))))
     ;; we sort the list of ops by number of arguments
     ;; this is important for generating step cases properly.
     (sort ops #'(lambda (x y) (< (length (method-arity x)) (length (method-arity y)))))))
@@ -1501,6 +1501,19 @@
 	  (format t "~%[cp]: added cp ~a~p" type (length applied))
 	  (pr-goal goal))))))
 
+;;; ==============
+;;; :lred <term> .
+;;; ==============
+;;; reduce-in-current-goal : List(token) -> result
+;;;
+(defun reduce-in-current-goal (token-seq)
+  (let ((next-goal-node (get-next-proof-context *proof-tree*)))
+    (unless next-goal-node
+      (with-output-chaos-error ('no-target)
+	(format t ":lred could not find the context.")))
+    (perform-reduction* token-seq (goal-context (ptree-node-goal next-goal-node)) :red)))
+
+
 ;;; *****************************************************
 ;;; APPLY-TACTIC
 ;;; apply-tactic : ptree-node tactic -> List(ptree-node)
@@ -1567,14 +1580,16 @@
 ;;; apply-auto
 ;;;
 (defun apply-auto (ptree &optional (tactics .default-tactics.))
-  (let ((target-nodes (get-unproved-nodes ptree)))
-    (unless target-nodes
-      (format t "~%**> All goals have been proved!")
-      (return-from apply-auto nil))
-    (dolist (tactic tactics)
-      (dolist (target-node (get-unproved-nodes ptree))
-	(apply-tactic target-node tactic)))
-    (check-success ptree)))
+  (if (next-proof-target-is-specified?)
+      (apply-tactics-to-node (get-next-proof-context ptree) tactics)
+    (let ((target-nodes (get-unproved-nodes ptree)))
+      (unless target-nodes
+	(format t "~%**> All goals have been proved!")
+	(return-from apply-auto nil))
+      (dolist (tactic tactics)
+	(dolist (target-node (get-unproved-nodes ptree))
+	  (apply-tactic target-node tactic)))
+      (check-success ptree))))
 
 ;;;
 ;;; apply-tactics-to-goal
