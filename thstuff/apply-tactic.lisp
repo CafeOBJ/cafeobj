@@ -175,10 +175,16 @@
 (defun axiom-variables (ax)
   (let ((lhs (axiom-lhs ax))
 	(rhs (axiom-rhs ax))
-	(cond (axiom-condition ax)))
-    (union (term-variables lhs) (union (term-variables rhs)
-				       (if cond (term-variables cond) nil) :test #'variable-equal)
-	   :test #'variable-equal)))
+	(cond (axiom-condition ax))
+	(result nil))
+    (declare (type list result))
+    (setq result (append (term-variables lhs)
+			 (append (term-variables rhs)
+				 (term-variables cond))))
+    (with-citp-debug ()
+      (dolist (v result)
+	(print-next) (term-print-with-sort v)))
+    (delete-duplicates result :test #'variable-equal)))
 
 ;;;
 ;;; make-new-assumption
@@ -738,7 +744,7 @@
 	     (rv nil))        ; real induction variable in target
 	(when (setq rv (get-real-target-variable iv axiom-vars))
 	  (cond ((null (method-arity op))
-		 (let* ((ct (variable->constructor goal rv op))
+		 (let* ((ct (variable->constructor goal rv :op op))
 			(c-subst (cons iv ct)))
 		   ;; operator is constant constructor
 		   (push (list (cons iv (list op ct))) hypo-v-op)
