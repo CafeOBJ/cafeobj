@@ -126,7 +126,8 @@
   (name "" :type string)		; the name of the goal, we will refer 
 					; this goal by this name
   (context nil :type (or null module))	; context module
-  (constants nil :type list)		; list of constants introduced
+  (constants nil :type list)		; list of (var . constant) introduced for TC/CA/SI
+  (ind-constants nil :type list)	; list of constants introduced for induction
   (indvars nil :type list)		; list of induction variables
   (assumptions nil :type list)		; list of hypothesis
   (tactic nil :type (or null tactic))	; tactic which derived this goal
@@ -151,7 +152,8 @@
 	(format stream "~%~a=>~%:goal { ** ~a -----------------------------------------" (goal-tactic goal) (goal-name goal))
       (format stream "~%:goal { ** ~a -----------------------------------------" (goal-name goal)))
     (let ((*print-indent* (+ 2 *print-indent*))
-	  (consts (goal-constants goal))
+	  (v-consts (goal-constants goal))
+	  (i-consts (goal-ind-constants goal))
 	  (ass (goal-assumptions goal))
 	  (vs (goal-indvars goal))
 	  (axs (goal-targets goal))
@@ -173,13 +175,20 @@
 	  (let ((*print-indent* (+ 2 *print-indent*)))
 	    (print-next)
 	    (term-print-with-sort v))))
-      (when consts
+      (when v-consts
 	(print-next)
-	(format stream "-- introduced constant~p" (length consts))
-	(dolist (const consts)
+	(format stream "-- introduced constant~p" (length v-consts))
+	(dolist (const (reverse v-consts))
 	  (let ((*print-indent* (+ 2 *print-indent*)))
 	    (print-next)
-	    (print-method-brief (term-head const)))))
+	    (print-method-brief (term-head (cdr const))))))
+      (when i-consts
+	(print-next)
+	(format stream "-- constant~p for induction" (length i-consts))
+	(dolist (ic (reverse i-consts))
+	  (let ((*print-indent* (+ 2 *print-indent*)))
+	    (print-next)
+	    (print-method-brief (term-head (cdr ic))))))
       (when ass
 	(print-next)
 	(format stream "-- introduced axiom~p" (length ass))
@@ -266,6 +275,7 @@
       ;; inherit current goal
       (setf (goal-context next-goal) next-context
 	    (goal-constants next-goal) (goal-constants cur-goal)
+	    (goal-ind-constants next-goal) (goal-ind-constants cur-goal)
 	    (goal-indvars next-goal) (goal-indvars cur-goal)
 	    (goal-assumptions next-goal) (goal-assumptions cur-goal))
       (prepare-for-parsing next-context)
@@ -340,7 +350,7 @@
       (format t "~%>> Next target goal is ~s." (goal-name (ptree-node-goal (car unp))))
       (setq *next-default-proof-node* (car unp))
       (return-from check-success nil))
-    (format t "~%>> All goals are successfully discharged.")
+    (format t "~%** All goals are successfully discharged.")
     (setq *next-default-proof-node* nil)
     t))
 
@@ -387,7 +397,10 @@
       (return-from print-named-goal nil)))
   (let ((goal-node (if name
 		       (find-goal-node ptree name)
-		     (get-next-proof-context ptree))))
+		     (if (next-proof-target-is-specified?)
+			 (get-next-proof-context ptree)
+		       (with-output-chaos-error ('no-goal)
+			 (format t "No default goal is specified."))))))
     (unless goal-node
       (with-output-chaos-error ('no-such-goal)
 	(format t "No such goal with the name ~s" name)))
@@ -443,7 +456,7 @@
 	 (let ((next (get-next-proof-context *proof-tree*)))
 	   (format t "~%:select resetting next default target ...")
 	   (unless next
-	     (with-output-chaos-warning ('no-node)
+	     (with-output-chaos-warning ()
 	       (format t "There is no unproved goal.")
 	       (return-from select-next-goal nil)))
 	   (format t "~%>> next default-goal is ~s" (goal-name (ptree-node-goal next)))))

@@ -50,7 +50,6 @@
 	  (rule-condition new-rule) (third canon))
     new-rule))
 
-;;;
 ;;; intro-const-returns-subst : module name variable -> (variable . constant-term)
 ;;; introduces a new constant of sort(variable) into a module.
 ;;; returns a pair (variable . constant-term)
@@ -58,22 +57,82 @@
 (defun intro-const-returns-subst (module name variable)
   (multiple-value-bind (op meth)
       (declare-operator-in-module (list name)
-				  nil	; we make constant
-				  (variable-sort variable)
-				  module
+				  nil	; arity
+				  (variable-sort variable) ; coarity
+				  module ; 
 				  nil	; constructor?
 				  nil	; behavioural? always nil.
 				  nil   ; not coherent
 				  )
     (declare (ignore op))
-    (prepare-for-parsing module)
+    (prepare-for-parsing module t t)	; force 
     (cons variable (make-applform-simple (variable-sort variable) meth nil))))
 
 ;;;
 ;;; make-tc-const-name : proof-tree prefix -> string
 ;;;
-(defun make-tc-const-name (ptree prefix)
-  (format nil "~a#~d" prefix (incf (ptree-num-gen-const ptree))))
+(defun make-tc-const-name (variable)
+  (format nil "~a@~a-~d" (variable-name variable) (sort-name (variable-sort variable))
+	  (incf (ptree-num-gen-const *proof-tree*))))
+
+;;;
+;;; copy-constant-term
+;;;
+(defun copy-constant-term (constant)
+  (make-applform-simple (term-sort constant) (term-head constant) nil))
+
+;;; 
+;;; variable->constant : goal variable -> term
+;;;
+(defun find-variable-subst-in (alist variable)
+  (assoc variable alist :test #'variable-equal))
+
+#||
+(defun variable->constant (goal variable)
+  (let ((vc-assoc (find-variable-subst-in (goal-constants goal) variable)))
+    (if (cdr vc-assoc)
+	(copy-constant-term (cdr vc-assoc))
+      (let ((as (intro-const-returns-subst (goal-context goal)
+					   (make-tc-const-name variable)
+					   variable)))
+	(push as (goal-constants goal))
+	(copy-constant-term (cdr as))))))
+||#
+
+(defun variable->constant (goal variable)
+  (let ((vc-assoc (find-variable-subst-in (goal-constants goal) variable)))
+    (or (cdr vc-assoc)
+	(let ((as (intro-const-returns-subst (goal-context goal)
+					     (make-tc-const-name variable)
+					     variable)))
+	  (push as (goal-constants goal))
+	  (cdr as)))))
+
+;;;
+;;; variable->constructor : goal variable op -> term
+;;;
+(defun make-ind-const-name (name-prefix)
+  (format nil "~a#~d" name-prefix (incf (ptree-num-gen-const *proof-tree*))))
+
+(defun variable->constructor (goal variable &key (sort nil) (op nil))
+  (let ((svar (if sort
+		  (make-variable-term sort (intern (format nil "~a_~a" (variable-name variable) (sort-name sort))))
+		variable)))
+    (let ((v-assoc (find-variable-subst-in (goal-ind-constants goal) svar)))
+      (or (cdr v-assoc)
+	  (if op
+	      (let ((constant (make-applform-simple (method-coarity op) op nil)))
+		(push (cons variable constant) (goal-ind-constants goal))
+		constant)
+	    (let ((con (intro-const-returns-subst (goal-context goal)
+						  (make-ind-const-name (if sort
+									  (sort-name sort)
+									 (sort-name (variable-sort variable))))
+						  (if sort 
+						      svar
+						    variable))))
+	      (push con (goal-ind-constants goal))
+	      (cdr con)))))))
 
 ;;;
 ;;; select-comb-elems : List(List) -> List
@@ -168,7 +227,7 @@
       ;;
       (multiple-value-bind (result applied)
 	  (normalize-term-in module lhs)
-	(declare (ignore result))
+	;; (declare (ignore result))
 	(or app? (setq app? applied))
 	(multiple-value-setq (result applied) (normalize-term-in module rhs))
 	(or app? (setq app? applied))
@@ -423,14 +482,16 @@
 ;;; TACTIC: Theorem of Constants [TC]
 ;;; =================================
 
-(defun make-tc-variable-substitutions (ptree module vars)
-  (declare (type ptree ptree)
-	   (module module)
-	   (list vars))
+(defun make-tc-variable-substitutions (goal vars)
+  (declare (type goal goal)
+	   (type list vars))
   (let ((subst nil))
     (dolist (var vars)
-      (push (intro-const-returns-subst module (make-tc-const-name ptree (variable-name var)) var)
-	    subst))
+      (push (cons var (variable->constant goal var)) subst))
+    (with-citp-debug ()
+      (format t "~%[tc] variable substitution:")
+      (print-next)
+      (print-substitution subst))
     subst))
 
 (defun apply-tc (ptree-node)
@@ -450,8 +511,9 @@
 		   (with-in-module ((goal-context next-goal))
 		     (let* ((next-target (rule-copy-canonicalized cur-target *current-module*))
 			    (vars (axiom-variables next-target))
-			    (subst (make-tc-variable-substitutions *proof-tree* *current-module* vars))
-			    (new-constants (mapcar #'cdr subst)))
+			    (subst (make-tc-variable-substitutions next-goal vars))
+			    ;; (new-constants (mapcar #'cdr subst))
+			    )
 		       (push next-goal .next-goals.)
 		       (setf (rule-lhs next-target) (substitution-image-simplifying subst (rule-lhs next-target))
 			     (rule-rhs next-target) (substitution-image-simplifying subst (rule-rhs next-target))
@@ -459,9 +521,7 @@
 							      *bool-true*
 							    (substitution-image-simplifying subst (rule-condition next-target))))
 		       (compute-rule-method next-target)
-		       (setf (goal-targets next-goal) (list next-target))
-		       (setf (goal-constants next-goal) (append (goal-constants next-goal)
-								(nreverse new-constants)))))))
+		       (setf (goal-targets next-goal) (list next-target))))))
 		(t (push target remaining)))))
       (setf (goal-proved .cur-goal.) (nreverse discharged))
       (setf (goal-targets .cur-goal.) (nreverse remaining))
@@ -635,34 +695,19 @@
 	  (push new-target all-targets)))
       (setf (goal-targets goal) (nconc (goal-targets goal) all-targets)))))
 
-
-(defun make-ind-variable-substitution (ptree module var)
-  (declare (type ptree ptree)
-	   (module module))
-  (intro-const-returns-subst module (make-tc-const-name ptree (variable-name var)) var))
-
-(defun make-step-constructor-term (goal op one-arg)
+;;;
+;;; make-step-constructor-term
+;;;
+(defun make-step-constructor-term (goal op one-arg variable)
   (with-in-module ((goal-context goal))
     (let ((arity (method-arity op))
 	  (arg-list nil))
       (dolist (s arity)
 	(cond ((sort<= (term-sort one-arg) s *current-sort-order*)
 	       (push one-arg arg-list)
-	       (setq one-arg (make-variable-term *cosmos* 'dummy)))
-	      (t (multiple-value-bind (op meth)
-		     (declare-operator-in-module (list (format nil "X#C~d" (incf (ptree-num-gen-const *proof-tree*))))
-						 nil
-						 s
-						 *current-module*
-						 nil ; constructor?
-						 nil ; behavioural?
-						 nil ; not coherent
-						 )
-		   (declare (ignore op))
-		   (let ((const (make-applform-simple s meth nil)))
-		     (push const arg-list)
-		     (setf (goal-constants goal) (append (goal-constants goal) (list const))))))))
-      (prepare-for-parsing *current-module*)
+	       (setq one-arg (make-variable-term *cosmos* 'dummy))) ; make ......
+	      (t (let ((constant (variable->constructor goal variable :sort s)))
+		   (push constant arg-list)))))
       (let ((res (make-applform-simple (method-coarity op) op (nreverse arg-list))))
 	res))))
 
@@ -680,12 +725,12 @@
   ;;
   (let ((hypo-v-op nil) 
 	(step-v-op nil)
-	(new-ops nil)
+	;; (new-ops nil)
 	(axiom-vars (axiom-variables target)))
     ;; we generate the following case for each induction variable v:
-    ;; 1) (v . <term of constant constructor>)              <-- used for hypothesis 
-    ;; 2) (v . <constant term of non-constant-constructor>) <-- used for hypothesis
-    ;; 3) (v . <application form of non-constant-constructor>) <-- used for new axiom to be proved
+    ;; 1) (v . <term of constant constructor>)
+    ;; 2) (v . <constant term of non-constant-constructor>)
+    ;; 3) (v . <application form of non-constant-constructor>)
     ;;
     (dolist (sub v-op-list)
       (let* ((iv (car sub))   ; induction variable
@@ -693,18 +738,15 @@
 	     (rv nil))        ; real induction variable in target
 	(when (setq rv (get-real-target-variable iv axiom-vars))
 	  (cond ((null (method-arity op))
-		 (let* ((ct (make-applform-simple (method-coarity op) op nil))
+		 (let* ((ct (variable->constructor goal rv op))
 			(c-subst (cons iv ct)))
 		   ;; operator is constant constructor
 		   (push (list (cons iv (list op ct))) hypo-v-op)
 		   (push c-subst step-v-op)))
-		(t (let* ((c-sub (make-ind-variable-substitution *proof-tree* *current-module* rv))
-			  (const-term (cdr c-sub)))
-		     (push const-term new-ops)
-		     (push (list (cons rv (list op const-term))) hypo-v-op)
-		     (push (cons rv (make-step-constructor-term goal op const-term)) step-v-op)))))))
-    ;;
-    (setf (goal-constants goal) (append (goal-constants goal) (nreverse new-ops)))
+		(t ;; operator is non-constant constructor
+		 (let ((const-term (variable->constructor goal rv)))
+		   (push (list (cons rv (list op const-term))) hypo-v-op)
+		   (push (cons rv (make-step-constructor-term goal op const-term rv)) step-v-op)))))))
     (values (select-comb-elems (nreverse hypo-v-op))
 	    (nreverse step-v-op))))
 
@@ -769,6 +811,7 @@
 	  (format t "~%resolve subt: all possibilities")
 	  (let ((*print-indent* (+ 2 *print-indent*))
 		(num 0))
+	    (declare (type fixnum num))
 	    (dolist (vcom all-subst)
 	      (print-next)
 	      (format t "=== (#~d) " (incf num))
@@ -797,8 +840,7 @@
 	(let* ((hypo (rule-copy-canonicalized target *current-module*))
 	       (subst (make-real-induction-step-subst sub (axiom-variables hypo))))
 	  (with-citp-debug
-	      (declare (ignore *print-indent*))
-	    (format t "~%>>[applying hypo subst] ")
+	      (format t "~%>>[applying hypo subst] ")
 	    (print-substitution subst))
 	  (setf (rule-lhs hypo) (substitution-image-simplifying subst (rule-lhs hypo))
 		(rule-rhs hypo) (substitution-image-simplifying subst (rule-rhs hypo))
@@ -821,7 +863,6 @@
 	 (subst (make-real-induction-step-subst step-subst (axiom-variables new-target))))
     (when (car subst)
       (with-citp-debug
-	  (declare (ignore *print-indent*))
 	(format t "~%>>[applying step subst] ")
 	(print-substitution subst))
       (setf (rule-lhs new-target) (substitution-image-simplifying subst (rule-lhs new-target))
@@ -847,6 +888,7 @@
     ;;
     (with-citp-debug ()
       (let ((num 0))
+	(declare (type fixnum num))
 	(dolist (subs all-subst)
 	  (format t "~%subst #~d" (incf num))
 	  (let ((*print-indent* (+ 2 *print-indent*)))
@@ -1007,8 +1049,7 @@
 
 (defun find-gterm-matching-conditionals (gterm conditional-rules)
   (with-citp-debug
-      (declare (ignore *print-indent*))
-    (format t "~%>>[ca] target ")
+      (format t "~%>>[ca] target ")
     (term-print-with-sort gterm))
   (let ((res nil))
     (dolist (rule conditional-rules)
@@ -1081,13 +1122,9 @@
 		    (subst nil))
 		(when vars
 		  (dolist (v vars)
-		    (push (intro-const-returns-subst *current-module*
-						     (make-tc-const-name *proof-tree* (variable-name v))
-						     v)
+		    (push (cons v (variable->constant next-goal v))
 			  subst))
 		  (setq r-lhs (substitution-image-simplifying subst r-lhs))
-		  (setf (goal-constants next-goal) (append (goal-constants next-goal)
-							   (mapcar #'cdr subst)))
 		  ;; exchange L <=> R
 		  (psetf r-lhs r-rhs r-rhs r-lhs))))
 	    (let ((axs (make-new-assumption r-lhs r-rhs *bool-true* 'ca))
@@ -1289,6 +1326,7 @@
 	(setf (variable-name var) (intern (format nil "~a~a" (variable-name var) suffix)))))))
 
 (let ((*renamed-variable-number* 0))
+  (declare (type fixnum *renamed-variable-number*))
 
 (defun citp-rename-axiom-variables (axiom)
   (citp-rename-term-variables (incf *renamed-variable-number*) (axiom-variables axiom))
@@ -1300,7 +1338,7 @@
   (t2 nil :type term)			; sigma(lhs)
   (pos nil :type list)			; occurence of t1 in root term
   (subst nil :type list)		; mgu
-  (cpairs nil))				; generated critical pairs in a form of axiom
+  (cpairs nil :type list))		; generated critical pairs in a form of axiom
 
 (defun pr-cpp (cpp &optional (stream *standard-output*) &rest ignore)
   (declare (ignore ignore))
@@ -1334,6 +1372,7 @@
 			       :subst subst
 			       :pos occur) cpps))
 	     (let ((pos 0))
+	       (declare (type fixnum pos))
 	       (dolist (sub (term-subterms t1))
 		 (setq cpps (append cpps (compute-overwraps sub t2 (append occur (cons pos occur)))))
 		 (incf pos)))))
@@ -1485,7 +1524,6 @@
 	  (applied nil))
       (with-in-module ((goal-context goal))
 	(dolist (cps (goal-critical-pairs goal))
-	  (setq applied t)
 	  (setf (rule-type cps) type)
 	  (when (eq direction :backward)
 	    (let ((rhs (rule-lhs cps))
