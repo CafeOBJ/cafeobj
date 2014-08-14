@@ -546,8 +546,8 @@
 	  (*print-xmode* :fancy))
       (with-in-module ((goal-context goal))
 	(if (goal-tactic goal)
-	    (format t "~a=> GOAL(~a) ~a" (goal-tactic goal) (goal-name goal) (proved? node))
-	  (format t "=> GOAL(~a) ~a" (goal-name goal) (proved? node)))
+	    (format t "~a=> GOAL(~a) ~a" (goal-tactic goal) (goal-name goal) (proved?))
+	  (format t "=> GOAL(~a) ~a" (goal-name goal) (proved?)))
 	(princ " ------------------------")
 	(let ((*print-indent* (+ 4 *print-indent*)))
 	  (print-next)
@@ -575,12 +575,12 @@
 	      (let ((*print-indent* (+ 2 *print-indent*)))
 		(dolist (target targets)
 		  (print-next)
-		  (print-axiom-brief target))))))
-	(let ((subnodes (ptree-node-subnodes node)))
-	  (when subnodes
-	    (let ((*print-indent* (+ 2 *print-indent*)))
-	      (dolist (sub subnodes)
-		(print-next)
-		(describe-proof-tree sub)))))))))
+		  (print-axiom-brief target)))))))
+      (let ((subnodes (ptree-node-subnodes node)))
+	(when subnodes
+	  (let ((*print-indent* (+ 2 *print-indent*)))
+	    (dolist (sub subnodes)
+	      (print-next)
+	      (describe-proof-tree sub))))))))
 
 ;;; EOF
