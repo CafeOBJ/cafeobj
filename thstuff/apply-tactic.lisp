@@ -515,7 +515,7 @@
 	  (cond (c-result		; satisfied or contradiction
 		 (push original-sentence discharged))
 		((axiom-variables cur-target)
-		 (push target remaining)
+		 ;; (push target remaining)
 		 (let ((next-goal (prepare-next-goal ptree-node .tactic-tc.)))
 		   (with-in-module ((goal-context next-goal))
 		     (let* ((next-target (rule-copy-canonicalized cur-target *current-module*))

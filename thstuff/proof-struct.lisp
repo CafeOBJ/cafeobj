@@ -571,7 +571,9 @@
 	  (let ((targets (goal-targets goal)))
 	    (when targets
 	      (print-next)
-	      (format t "** axiom~p to be proved:" (length targets))
+	      (if (node-is-discharged? node)
+		  (format t "** targeted axiom~p:" (length targets))
+		(format t "** axiom~p to be proved:" (length targets)))
 	      (let ((*print-indent* (+ 2 *print-indent*)))
 		(dolist (target targets)
 		  (print-next)
