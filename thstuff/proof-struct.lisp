@@ -231,6 +231,26 @@
 (defmacro ptree-node-goal (ptree-node)
   `(ptree-node-datum ,ptree-node))
 
+;;;
+;;; initialize-ptree-node : ptree-node -> ptree-node
+;;; discard existing child nodes. 
+;;; 
+(defun initialize-ptree-node (node)
+  (when (ptree-node-subnodes node)
+    (with-output-chaos-warning ()
+      (format t "Discarding exsisting ~d node~p"
+	      (ptree-node-num-children node)
+	      (length (ptree-node-subnodes node))))
+    (setf (ptree-node-num-children node) 0
+	  (ptree-node-subnodes node) nil)
+    node))
+
+;;;
+;;; node-is-discharged? : ptree-node -> Bool
+;;; returns if the node's goal is discharged,
+;;; i.e., own goal has no target axioms to be proved,
+;;;       or every subnodes are discharged.
+;;;
 (defun node-is-discharged? (node)
   (let ((goal (ptree-node-goal node)))
     (or (null (goal-targets goal))
@@ -488,12 +508,14 @@
 ;;;
 ;;; print-proof-tree
 ;;;
-(defun print-proof-tree ()
+(defun print-proof-tree (&optional (describe nil))
   (unless *proof-tree*
     (with-output-chaos-warning ()
       (format t "There is no proof tree.")
       (return-from print-proof-tree nil)))
-  (!print-proof-tree (ptree-root *proof-tree*) (get-next-proof-context *proof-tree*)))
+  (if describe
+      (describe-proof-tree (ptree-root *proof-tree*))
+    (!print-proof-tree (ptree-root *proof-tree*) (get-next-proof-context *proof-tree*))))
 
 (defun !print-proof-tree (root-node next-target &optional (stream *standard-output*))
   (let* ((leaf? #'(lambda (node) (null (dag-node-subnodes node))))
@@ -514,5 +536,51 @@
     (force-output stream)
     (print-next nil *print-indent* stream)
     (print-trees (list (augment-tree root-node)) stream)))
+
+(defun describe-proof-tree (node)
+  (declare (type ptree-node node))
+  (flet ((proved? ()
+	   (format nil "~:[unproved~;proved~]" (node-is-discharged? node))))
+    (let ((goal (ptree-node-goal node))
+	  (*print-line-limit* 80)
+	  (*print-xmode* :fancy))
+      (with-in-module ((goal-context goal))
+	(if (goal-tactic goal)
+	    (format t "~a=> GOAL(~a) ~a" (goal-tactic goal) (goal-name goal) (proved? node))
+	  (format t "=> GOAL(~a) ~a" (goal-name goal) (proved? node)))
+	(princ " ------------------------")
+	(let ((*print-indent* (+ 4 *print-indent*)))
+	  (print-next)
+	  (format t "** context module: ~a" (get-module-simple-name *current-module*))
+	  (let ((assumptions (goal-assumptions goal)))
+	    (when assumptions
+	      (print-next)
+	      (format t "** assumption~p" (length assumptions))
+	      (let ((*print-indent* (+ 2 *print-indent*)))
+		(dolist (as assumptions)
+		  (print-next)
+		  (print-axiom-brief as)))))
+	  (let ((proved (goal-proved goal)))
+	    (when proved
+	      (print-next)
+	      (format t "** discharged axiom~p:" (length proved))
+	      (let ((*print-indent* (+ 2 *print-indent*)))
+		(dolist (ax proved)
+		  (print-next)
+		  (print-axiom-brief ax)))))
+	  (let ((targets (goal-targets goal)))
+	    (when targets
+	      (print-next)
+	      (format t "** axiom~p to be proved:" (length targets))
+	      (let ((*print-indent* (+ 2 *print-indent*)))
+		(dolist (target targets)
+		  (print-next)
+		  (print-axiom-brief target))))))
+	(let ((subnodes (ptree-node-subnodes node)))
+	  (when subnodes
+	    (let ((*print-indent* (+ 2 *print-indent*)))
+	      (dolist (sub subnodes)
+		(print-next)
+		(describe-proof-tree sub)))))))))
 
 ;;; EOF

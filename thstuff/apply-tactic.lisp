@@ -311,18 +311,21 @@
 	(progn
 	  (setq target (normalize-sentence target *current-module*))
 	  (setq res (sentence-is-satisfied target))))
+      (when res
+	;; discharged by certain reson
+	(setq sentence (rule-copy-canonicalized sentence *current-module*)))
       (case res
 	(:satisfied (when report-header
 		      (format t "~%[~a]: discharged " report-header)
 		      (print-axiom-brief sentence))
-		    (setf (rule-labels sentence) (cons 'st (rule-labels sentence)))
-		    (values :st target))
+		    (setf (rule-labels sentence) (cons report-header (rule-labels sentence)))
+		    (values :st target sentence))
 	(:ct (when report-header
 	       (format t "~%[~a]: discharged " report-header)
 	       (print-axiom-brief sentence))
 	     (setf (rule-labels sentence) (cons 'ct (rule-labels sentence)))
-	     (values :ct target))
-	(otherwise (values nil target))))))
+	     (values :ct target sentence))
+	(otherwise (values nil target sentence))))))
 
 ;;;
 ;;; try-prove-with-axioms : module List(axiom) axiom : -> { :satisfied | :ct | nil }
@@ -507,19 +510,17 @@
 	  (remaining nil))
       ;; for each target sentence do TC
       (dolist (target .cur-targets.)
-	(multiple-value-bind (c-result cur-target)
-	    (check-sentence&mark-label target (goal-context .cur-goal.) "tc")
+	(multiple-value-bind (c-result cur-target original-sentence)
+	    (check-sentence&mark-label target (goal-context .cur-goal.) 'tc)
 	  (cond (c-result		; satisfied or contradiction
-		 (push target discharged))
+		 (push original-sentence discharged))
 		((axiom-variables cur-target)
 		 (push target remaining)
 		 (let ((next-goal (prepare-next-goal ptree-node .tactic-tc.)))
 		   (with-in-module ((goal-context next-goal))
 		     (let* ((next-target (rule-copy-canonicalized cur-target *current-module*))
 			    (vars (axiom-variables next-target))
-			    (subst (make-tc-variable-substitutions next-goal vars))
-			    ;; (new-constants (mapcar #'cdr subst))
-			    )
+			    (subst (make-tc-variable-substitutions next-goal vars)))
 		       (push next-goal .next-goals.)
 		       (setf (rule-lhs next-target) (substitution-image-simplifying subst (rule-lhs next-target))
 			     (rule-rhs next-target) (substitution-image-simplifying subst (rule-rhs next-target))
@@ -957,11 +958,11 @@
       (with-in-module ((goal-context cur-goal))
 	(compile-module *current-module* t)
 	(dolist (target cur-targets)
-	  (multiple-value-bind (c-result cur-target)
-	      (check-sentence&mark-label target *current-module* "rd")
+	  (multiple-value-bind (c-result cur-target original-sentence)
+	      (check-sentence&mark-label target *current-module* 'rd)
 	    (cond (c-result		; satisfied or contradition
 		   (setq result t)
-		   (push target discharged))
+		   (push original-sentence discharged))
 		  (t (push cur-target reduced-targets)))))
 	(setf (goal-targets cur-goal) (nreverse reduced-targets))
 	(setf (goal-proved cur-goal) (nreverse discharged))
@@ -1574,6 +1575,7 @@
 	(return-from apply-tactic nil)))
     ;; 
     (format t "~%>> Applying ~a to goal ~s" tactic (goal-name (ptree-node-goal ptree-node)))
+    (initialize-ptree-node ptree-node)
     (compile-module (goal-context (ptree-node-goal ptree-node)) t)
     (multiple-value-bind (applied next-goals)
 	(funcall (tactic-executor tactic) ptree-node)

@@ -506,7 +506,7 @@
 		      ;; :end-reduction (copy-list (axiom-end-reduction rule))
 		      :first-match-method (axiom-first-match-method rule)
 		      :next-match-method (axiom-next-match-method rule)
-		      :labels (axiom-labels rule)
+		      :labels (copy-list (axiom-labels rule))
 		      :kind (axiom-kind rule)
 		      :meta-and-or (axiom-meta-and-or rule)))
       (compute-rule-method new-rule)

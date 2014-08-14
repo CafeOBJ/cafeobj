@@ -1217,11 +1217,11 @@
 			  (print-named-goal *proof-tree* name)))
 		("proof" (let ((target (second dat)))
 			   (if (and target (equal target "tree"))
-			       (print-proof-tree)
+			       (print-proof-tree describe)
 			     (if target
 				 (with-output-chaos-error ('unknown-option)
 				   (format t "'show proof' unknown option ~s." target))
-			       (print-proof-tree)))))
+			       (print-proof-tree describe)))))
 		;;
 		;; helpers
 		;;
