@@ -4,40 +4,6 @@
 ** module: library
 ** file: rwl.mod
 ** -------------------------------------------------------------
-require bool
---
--- NOTE: You may need to modify `setup-rwl' if you change
---       the definition of module TRUTH
---
-lispq
-(defun setup-rwl ()
-  (setq *rwl-module* (eval-modexp "RWL"))
-  (final-setup *rwl-module*)
-  (with-in-module (*rwl-module*)
-    (let* ((nat-star (find-sort-in *rwl-module* "NzNat*"))
-	   (rwl-op-info (find-operator '("_" "==>" "_") 2 *rwl-module*))
-	   (rwl-pred (lowest-method* (car (opinfo-methods rwl-op-info))))
-	   (rwl-op-info2 (find-operator '("_" "=" "(" "_" ")" "=>" "_")
-					3
-					*rwl-module*))
-	   (rwl-pred2 (lowest-method* (car (opinfo-methods rwl-op-info2)))))
-      (unless nat-star
-	(with-output-panic-message ()
-	  (princ "could not find sort NzNat*...")
-	  (break)))
-      (unless rwl-pred
-	(with-output-panic-message ()
-	  (princ "could not find ==> operaotr....")
-	  (break)))
-      (unless rwl-pred2
-	(with-output-panic-message ()
-	  (print "could not find =(?)=> operator ....")
-	  (break)))
-      ;;
-      (setq *rwl-nat-star-sort* nat-star)
-      (setq *rwl-predicate* rwl-pred)
-      (setq *rwl-predicate2* rwl-pred2))
-    ))
 
 **
 ** RWL
@@ -46,10 +12,7 @@ lispq
 set sys universal-sort on
 
 ** we want to be very explicit here
-lispq
-(progn 
-  (setq *include-bool-save* *include-bool*)
-  (setq *include-bool* nil))
+set include BOOL off
 
 sys:mod! RWL
       principal-sort Bool
@@ -66,8 +29,7 @@ sys:mod! RWL
     -- op ! : -> Nat* { constr }
     pred _==>_ : *Cosmos* *Cosmos* { strat: (0) prec: 51 }
 
-    ** NOTE: these two predicates are almost obsolate.
-    -- kept for backward compatibility.
+    ** NOTE: these two predicates are obsolate.
     -- _=(N:NzNat*)=>_ is equivalent to _=(1,N)=>*_
     -- pred _=(_)=>_ : *Cosmos* NzNat* *Cosmos* { strat: (0) prec: 51 }
     -- pred _=(_)=>_ suchThat _ : *Cosmos* NzNat* *Cosmos* Bool { strat: (0) prec: 51 }
@@ -168,6 +130,9 @@ sys:mod! RWL
     ** new experimental search predicate
     pred _=(_,_)=>+_if_suchThat_{_} : *Cosmos* NzNat* NzNat* *Cosmos* Bool Bool *Cosmos*
       { strat: (0) prec: 51 }
+
+    ** _=>_ : 
+    pred _=>_ : *Cosmos* *Cosmos* { strat: (0) prec: 51 }
   }
   axioms {
     var CXU : *Cosmos*
@@ -188,8 +153,7 @@ sys:mod! RWL
     ** eq (CXU =( N:NzNat* )=> CYU suchThat COND)
     **  = #!! (rwl-sch-set-result (term-pattern-included-in-cexec cxu cyu n cond)) .
     **
-    ** 
-    **
+
     -- ==>
     eq (CXU ==>1 CYU) = (CXU =(1,*)=>+ CYU) .
     eq (CXU ==>* CYU) = (CXU =(*,*)=>* CYU) .
@@ -315,24 +279,27 @@ sys:mod! RWL
       #!! (rwl-sch-set-result
 	     (rwl-search :term cxu :pattern cyu :max-result MAX-R
 		:max-depth MAX-D :cond cond :pred PRED)) .
+    ** if
     eq (S:*Cosmos* =(MR:NzNat* ,MD:NzNat)=>+ SS:*Cosmos* if CC:Bool suchThat P:Bool { B:*Cosmos* }) =
       #!! (rwl-sch-set-result
 	     (rwl-search :term S :pattern SS :max-result MR :max-depth MD :zero? nil
 		:final? nil :cond P :if CC :bind B)) .
+
+    ** =>
+    eq (CXU => CYU) = #!! (rwl-sch-set-result (rwl-check-one-step-reachability CYU CYU)) .
   }
 }
 
-** setup truth module
-lispq
-(setup-rwl)
-lispq
-(setup-tram-bool-modules)
+** setup 
+-- lispq
+-- (setup-rwl)
+-- lispq
+-- (setup-tram-bool-modules)
 lispq
 (init-builtin-universal)
 **
 set sys universal-sort off
-lispq
-(setq *include-bool* *include-bool-save*)
+set include BOOL on
 **
 protect RWL
 provide rwl
