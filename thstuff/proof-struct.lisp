@@ -229,7 +229,7 @@
   (declare (type ptree-node ptree-node)
 	   (type stream stream)
 	   (ignore ignore))
-  (format stream "[Node]: sub nodes = ~d, discharged? = ~a ---------------"
+  (format stream "[Node] sub nodes = ~d, discharged? = ~a ---------------"
 	  (ptree-node-num-children ptree-node)
 	  (ptree-node-done ptree-node))
   (pr-goal (ptree-node-datum ptree-node) stream))
