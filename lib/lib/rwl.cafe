@@ -69,8 +69,8 @@ sys:mod! RWL
     ** NOTE: these two predicates are almost obsolate.
     -- kept for backward compatibility.
     -- _=(N:NzNat*)=>_ is equivalent to _=(1,N)=>*_
-    pred _=(_)=>_ : *Cosmos* NzNat* *Cosmos* { strat: (0) prec: 51 }
-    pred _=(_)=>_ suchThat _ : *Cosmos* NzNat* *Cosmos* Bool { strat: (0) prec: 51 }
+    -- pred _=(_)=>_ : *Cosmos* NzNat* *Cosmos* { strat: (0) prec: 51 }
+    -- pred _=(_)=>_ suchThat _ : *Cosmos* NzNat* *Cosmos* Bool { strat: (0) prec: 51 }
 
     ** new search operators
     pred _=(_,_)=>*_ : *Cosmos* NzNat* NzNat* *Cosmos* { strat: (0) prec: 51 }
@@ -183,10 +183,10 @@ sys:mod! RWL
 
     ** older version of `search', for backward compatibiliy
     **
-    eq (CXU =( N:NzNat* )=> CYU)
-      = #!! (rwl-sch-set-result (term-pattern-included-in-cexec cxu cyu n)) .
-    eq (CXU =( N:NzNat* )=> CYU suchThat COND)
-      = #!! (rwl-sch-set-result (term-pattern-included-in-cexec cxu cyu n cond)) .
+    ** eq (CXU =( N:NzNat* )=> CYU)
+    **  = #!! (rwl-sch-set-result (term-pattern-included-in-cexec cxu cyu n)) .
+    ** eq (CXU =( N:NzNat* )=> CYU suchThat COND)
+    **  = #!! (rwl-sch-set-result (term-pattern-included-in-cexec cxu cyu n cond)) .
     **
     ** 
     **

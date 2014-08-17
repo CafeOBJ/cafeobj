@@ -427,6 +427,7 @@
 		      op)
 		(trs$op-rev-table trs))))
       ;; other optional built-ins.
+      #|| TODO: 
       (when (module-includes-rwl module)
 	(push (cons (make-trs-op-name *rwl-predicate* module)
 		    *rwl-predicate*)
@@ -434,6 +435,7 @@
 	(push (cons (make-trs-op-name *rwl-predicate2* module)
 		    *rwl-predicate2*)
 	      (trs$op-rev-table trs)))
+      ||#
       ;;
       (setf (trs$op-info-map trs)
 	    (nreverse res)))))
@@ -686,8 +688,8 @@
 	(setq rel-infos infos)
 	(setq if-then-axs axs))
       )
-    (when (or (eq *rwl-module* mod)
-	      (assq *rwl-module* (module-all-submodules mod)))
+    (when nil				; (or (eq *rwl-module* mod)
+					;     (assq *rwl-module* (module-all-submodules mod)))
       ;; _==>_
       (dolist (sort top-sorts)
 	(unless (sort-is-hidden sort)

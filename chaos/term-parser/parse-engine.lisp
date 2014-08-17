@@ -1919,11 +1919,13 @@
 	       (parser-in-same-connected-component (second sort-list)
 						   (third sort-list)
 						   so))
+	      #||
 	      ((eq method *rwl-predicate2*)
 	       ;; _=()=>_
 	       (parser-in-same-connected-component (first sort-list)
 						   (third sort-list)
 						   so))
+	      ||#
 	      ((eq method *sort-membership*)
 	       ;; _:is_, the first argument is a term and the second
 	       ;; argument is built-in constant of SortId.

@@ -301,8 +301,8 @@
   (and *bool-equal* (push *bool-equal* *bi-universal-operators*))
   (and *bool-nonequal* (push *bool-nonequal* *bi-universal-operators*))
   (and *beh-eq-pred* (push *beh-eq-pred* *bi-universal-operators*))
-  (and *rwl-predicate* (push *rwl-predicate* *bi-universal-operators*))
-  (and *rwl-predicate2* (push *rwl-predicate2* *bi-universal-operators*))
+  ;; (and *rwl-predicate* (push *rwl-predicate* *bi-universal-operators*))
+  ;; (and *rwl-predicate2* (push *rwl-predicate2* *bi-universal-operators*))
   )
 
 ;;;

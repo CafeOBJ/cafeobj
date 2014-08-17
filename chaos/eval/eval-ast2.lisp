@@ -1216,12 +1216,10 @@
 		("goal" (let ((name (cadr dat)))
 			  (print-named-goal *proof-tree* name)))
 		("proof" (let ((target (second dat)))
-			   (if (and target (equal target "tree"))
-			       (print-proof-tree describe)
-			     (if target
-				 (with-output-chaos-error ('unknown-option)
-				   (format t "'show proof' unknown option ~s." target))
-			       (print-proof-tree describe)))))
+			   (when (or (null target) (equal target "."))
+			     (setq target "root"))
+			   (print-proof-tree target describe)))
+
 		;;
 		;; helpers
 		;;

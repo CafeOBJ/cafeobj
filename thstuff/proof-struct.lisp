@@ -36,6 +36,9 @@
   (defparameter .tactic-rd. (make-tactic :name :rd
 					 :executor 'apply-rd)) ; Reduction
 
+  (defparameter .tactic-nil. (make-tactic :name :nop
+					  :executor 'apply-nil)) ; Do nothing, used internally.
+
   (defparameter .all-builtin-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-cs. .tactic-rd.))
 
   ;; default tatics is a seriase of SI CA CS TC IP.
@@ -147,65 +150,68 @@
   (declare (type goal goal)
 	   (type stream stream)
 	   (ignore ignore))
-  (with-in-module ((goal-context goal))
-    (if (goal-tactic goal)
-	(format stream "~%~a=>~%:goal { ** ~a -----------------------------------------" (goal-tactic goal) (goal-name goal))
-      (format stream "~%:goal { ** ~a -----------------------------------------" (goal-name goal)))
-    (let ((*print-indent* (+ 2 *print-indent*))
-	  (v-consts (goal-constants goal))
-	  (i-consts (goal-ind-constants goal))
-	  (ass (goal-assumptions goal))
-	  (vs (goal-indvars goal))
-	  (axs (goal-targets goal))
-	  (proved (goal-proved goal))
-	  (discharged (goal-is-discharged goal)))
-      (print-next)
-      (format stream "-- context module: ~a" (get-module-simple-name (goal-context goal)))
-      (when proved
+  (let ((*print-line-limit* 80)
+	(*print-xmode* :fancy)
+	)
+    (with-in-module ((goal-context goal))
+      (if (goal-tactic goal)
+	  (format stream "~%~a=>~%:goal { ** ~a -----------------------------------------" (goal-tactic goal) (goal-name goal))
+	(format stream "~%:goal { ** ~a -----------------------------------------" (goal-name goal)))
+      (let ((*print-indent* (+ 2 *print-indent*))
+	    (v-consts (goal-constants goal))
+	    (i-consts (goal-ind-constants goal))
+	    (ass (goal-assumptions goal))
+	    (vs (goal-indvars goal))
+	    (axs (goal-targets goal))
+	    (proved (goal-proved goal))
+	    (discharged (goal-is-discharged goal)))
 	(print-next)
-	(format stream "-- discharged axiom~p" (length proved))
-	(dolist (pv proved)
-	  (let ((*print-indent* (+ 2 *print-indent*)))
-	    (print-next)
-	    (print-axiom-brief pv) (princ " ."))))
-      (when vs
-	(print-next)
-	(format stream "-- induction variable~p" (length vs))
-	(dolist (v vs)
-	  (let ((*print-indent* (+ 2 *print-indent*)))
-	    (print-next)
-	    (term-print-with-sort v))))
-      (when v-consts
-	(print-next)
-	(format stream "-- introduced constant~p" (length v-consts))
-	(dolist (const (reverse v-consts))
-	  (let ((*print-indent* (+ 2 *print-indent*)))
-	    (print-next)
-	    (print-method-brief (term-head (cdr const))))))
-      (when i-consts
-	(print-next)
-	(format stream "-- constant~p for induction" (length i-consts))
-	(dolist (ic (reverse i-consts))
-	  (let ((*print-indent* (+ 2 *print-indent*)))
-	    (print-next)
-	    (print-method-brief (term-head (cdr ic))))))
-      (when ass
-	(print-next)
-	(format stream "-- introduced axiom~p" (length ass))
-	(dolist (as ass)
-	  (let ((*print-indent* (+ 2 *print-indent*)))
-	    (print-next)
-	    (print-axiom-brief as) (princ " ."))))
-      (when axs
-	(print-next)
-	(format stream "-- axiom~p to be proved" (length axs))
-	(dolist (ax axs)
-	  (let ((*print-indent* (+ 2 *print-indent*)))
-	    (print-next)
-	    (print-axiom-brief ax) (princ " ."))))
-      (format stream "~%}")
-      (if discharged
-	  (format t " << proved >>")))))
+	(format stream "-- context module: ~a" (get-module-simple-name (goal-context goal)))
+	(when proved
+	  (print-next)
+	  (format stream "-- discharged axiom~p" (length proved))
+	  (dolist (pv proved)
+	    (let ((*print-indent* (+ 2 *print-indent*)))
+	      (print-next)
+	      (print-axiom-brief pv) (princ " ."))))
+	(when vs
+	  (print-next)
+	  (format stream "-- induction variable~p" (length vs))
+	  (dolist (v vs)
+	    (let ((*print-indent* (+ 2 *print-indent*)))
+	      (print-next)
+	      (term-print-with-sort v))))
+	(when v-consts
+	  (print-next)
+	  (format stream "-- introduced constant~p" (length v-consts))
+	  (dolist (const (reverse v-consts))
+	    (let ((*print-indent* (+ 2 *print-indent*)))
+	      (print-next)
+	      (print-method-brief (term-head (cdr const))))))
+	(when i-consts
+	  (print-next)
+	  (format stream "-- constant~p for induction" (length i-consts))
+	  (dolist (ic (reverse i-consts))
+	    (let ((*print-indent* (+ 2 *print-indent*)))
+	      (print-next)
+	      (print-method-brief (term-head (cdr ic))))))
+	(when ass
+	  (print-next)
+	  (format stream "-- introduced axiom~p" (length ass))
+	  (dolist (as ass)
+	    (let ((*print-indent* (+ 2 *print-indent*)))
+	      (print-next)
+	      (print-axiom-brief as) (princ " ."))))
+	(when axs
+	  (print-next)
+	  (format stream "-- axiom~p to be proved" (length axs))
+	  (dolist (ax axs)
+	    (let ((*print-indent* (+ 2 *print-indent*)))
+	      (print-next)
+	      (print-axiom-brief ax) (princ " ."))))
+	(format stream "~%}")
+	(if discharged
+	    (format t " << proved >>"))))))
 
 ;;; -------------------------------------------------------------------------
 ;;; PTREE-NODE
@@ -235,15 +241,16 @@
 ;;; initialize-ptree-node : ptree-node -> ptree-node
 ;;; discard existing child nodes. 
 ;;; 
-(defun initialize-ptree-node (node)
-  (when (ptree-node-subnodes node)
-    (with-output-chaos-warning ()
-      (format t "Discarding exsisting ~d node~p"
-	      (ptree-node-num-children node)
-	      (length (ptree-node-subnodes node))))
-    (setf (ptree-node-num-children node) 0
-	  (ptree-node-subnodes node) nil)
-    node))
+(defun initialize-ptree-node (node &optional (no-warn nil))
+  (unless no-warn
+    (when (ptree-node-subnodes node)
+      (with-output-chaos-warning ()
+	(format t "Discarding exsisting ~d node~p"
+		(ptree-node-num-children node)
+		(length (ptree-node-subnodes node))))))
+  (setf (ptree-node-num-children node) 0
+	(ptree-node-subnodes node) nil)
+  node)
 
 ;;;
 ;;; node-is-discharged? : ptree-node -> Bool
@@ -256,6 +263,12 @@
     (or (null (goal-targets goal))
 	(and (ptree-node-subnodes node)
 	     (every #'(lambda (x) (node-is-discharged? x)) (ptree-node-subnodes node))))))
+
+;;; make-it-unproved : ptree-node -> ptree-node'
+;;;
+(defun make-it-unproved (ptree-node)
+  (let ((goal (ptree-node-goal ptree-node)))
+    (setf (goal-targets goal) (append (goal-targets goal) (goal-proved goal)))))
 
 ;;; make-ptree-goal-name : ptree-node fixnum -> string
 ;;; goal has a name. 
@@ -303,6 +316,18 @@
       next-goal)))
 
 ;;;
+;;; give-goal-name-each-in-order : ptree-node List(goal) -> void
+;;; this is used for renaming goals and their context modules
+;;; after applied a tactic.
+;;;
+(defun give-goal-name-each-in-order (parent-node list-goals)
+  (dolist (goal list-goals)
+    (let* ((gname (make-ptree-goal-name parent-node (incf (ptree-node-num-children parent-node))))
+	   (mod-name (make-next-context-module-name gname)))
+      (setf (goal-name goal) gname)
+      (setf (module-name (goal-context goal)) mod-name))))
+
+;;;
 ;;; make-ptree-root : module goal -> ptree-node
 ;;;
 (defun make-ptree-root (context-module initial-goals)
@@ -320,7 +345,6 @@
 (defun add-ptree-child (parent-node child-goal)
   (declare (type ptree-node parent-node)
 	   (type goal child-goal))
-  ;; (incf (ptree-node-num-children parent-node)) ; this is done in prepare-next-goal
   (setf (ptree-node-subnodes parent-node)
     (nconc (ptree-node-subnodes parent-node)
 	   (list (make-ptree-node :datum child-goal
@@ -328,7 +352,21 @@
 				  :subnodes nil
 				  :parent parent-node)))))
 
+;;; add-ptree-children : ptree-node List(goal) -> ptree-node'
+;;; add node of given goals as a child of the node.
+;;; before adding goal nodes, initialize the node and
+;;; give each goal a name.
 ;;;
+(defun add-ptree-children (parent-node list-goals)
+  (declare (type ptree-node parent-node)
+	   (type list list-goals))
+  (initialize-ptree-node parent-node t)
+  ;; give names to goals
+  (give-goal-name-each-in-order parent-node list-goals)
+  (dolist (goal list-goals)
+    (add-ptree-child parent-node goal))
+  parent-node)
+
 ;;; get-ptree-root : ptree-node -> ptree-node
 ;;;
 (defun get-ptree-root (ptree-node)
@@ -369,6 +407,7 @@
     (when unp
       (format t "~%>> Next target goal is ~s." (goal-name (ptree-node-goal (car unp))))
       (setq *next-default-proof-node* (car unp))
+      (format t "~%>> Remaining ~d goal~p." (length unp) (length unp))
       (return-from check-success nil))
     (format t "~%** All goals are successfully discharged.")
     (setq *next-default-proof-node* nil)
@@ -482,8 +521,11 @@
 	   (format t "~%>> next default-goal is ~s" (goal-name (ptree-node-goal next)))))
 	(t (let ((node (find-goal-node *proof-tree* goal-name)))
 	     (when (node-is-discharged? node)
-	       (with-output-chaos-error ('already-discharged)
-		 (format t "The goal ~s is alreday discharged." (goal-name (ptree-node-goal node)))))
+	       (with-output-chaos-warning ()
+		 (format t "The goal ~s is alreday discharged." (goal-name (ptree-node-goal node)))
+		 (print-next)
+		 (format t "This will discard the current result of the goal."))
+	       (make-it-unproved node))
 	     (setq *next-default-proof-node* node)
 	     (format t "~%>> setting next default goal to ~s" (goal-name (ptree-node-goal node)))
 	     node))))
@@ -508,14 +550,19 @@
 ;;;
 ;;; print-proof-tree
 ;;;
-(defun print-proof-tree (&optional (describe nil))
+(defun print-proof-tree (goal-name &optional (describe nil))
   (unless *proof-tree*
     (with-output-chaos-warning ()
       (format t "There is no proof tree.")
       (return-from print-proof-tree nil)))
-  (if describe
-      (describe-proof-tree (ptree-root *proof-tree*))
-    (!print-proof-tree (ptree-root *proof-tree*) (get-next-proof-context *proof-tree*))))
+  (let ((target-node (if goal-name
+			 (or (find-goal-node *proof-tree* goal-name)
+			     (with-output-chaos-error ('no-such-goal)
+			       (format t "No goal with the name ~s." goal-name)))
+		       (ptree-root *proof-tree*))))
+    (if describe
+	(describe-proof-tree target-node)
+      (!print-proof-tree target-node (get-next-proof-context *proof-tree*)))))
 
 (defun !print-proof-tree (root-node next-target &optional (stream *standard-output*))
   (let* ((leaf? #'(lambda (node) (null (dag-node-subnodes node))))

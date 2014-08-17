@@ -856,22 +856,22 @@
 				    (sort= (method-coarity x)
 					   (method-coarity y))))))
 	(method-info-table (module-opinfo-table module)))
-    (if (or (eq pmeth method)
-	    ;; dirty kludge!
-	    (and pmeth (method-is-of-same-operator-safe method *rwl-predicate*)))
+    (if nil				; (or (eq pmeth method)
+					;     ;; dirty kludge!
+					; (and pmeth (method-is-of-same-operator-safe method *rwl-predicate*)))
 	nil
-	(progn
-	  (setf (get-method-info method method-info-table)
-		(make-method-info method
-				  module
-				  (opinfo-operator opinfo)))
-	  (pushnew method (opinfo-methods opinfo))
-	  (setf (opinfo-method-table opinfo) nil)
-	  (when (method-is-behavioural method)
-	    (if (sort-is-hidden (method-coarity method))
-		(pushnew method (module-beh-methods module))
-		(pushnew method (module-beh-attributes module))))
-	  t))))
+      (progn
+	(setf (get-method-info method method-info-table)
+	  (make-method-info method
+			    module
+			    (opinfo-operator opinfo)))
+	(pushnew method (opinfo-methods opinfo))
+	(setf (opinfo-method-table opinfo) nil)
+	(when (method-is-behavioural method)
+	  (if (sort-is-hidden (method-coarity method))
+	      (pushnew method (module-beh-methods module))
+	    (pushnew method (module-beh-attributes module))))
+	t))))
 
 (defun transfer-operator-attributes (method to-module from-module
 					    &optional theory-mod)

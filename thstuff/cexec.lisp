@@ -1433,6 +1433,15 @@
       (report-rwl-result 
        (rwl-search* term pattern max-r max-d zero? final? cond pred module bind if)))))
 
+;;; rwl-check-one-step-reachability 
+;;;
+(defun rwl-check-one-step-reachability (X Y)
+  (declare (type term X Y))
+  (let ((*clean-memo-in-normalize* nil)
+	(*chaos-quiet* t))
+    (report-rwl-result
+     (rwl-search* X Y 1 1 t nil nil nil *current-module* nil nil))))
+
 ;;; rwl-sch-set-result
 ;;;
 (defun rwl-sch-set-result (raw-res)

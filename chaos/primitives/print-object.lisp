@@ -1646,7 +1646,9 @@
 	;; CONDITION
 	(when (or cnd
 		  (and *chaos-verbose* (axiom-id-condition  rul)))
-	  (print-check .file-col.)
+	  ;; (print-check .file-col.)
+	  (print-next)
+	  (princ "  ")
 	  (if meta
 	      (princ " :if ")
 	    (princ " if "))

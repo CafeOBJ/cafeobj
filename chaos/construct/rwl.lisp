@@ -11,6 +11,9 @@
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
+;;; NOTE: these stuff are obsolate =============================================
+;;;       not used now.
+
 ;;; == DESCRIPTION =============================================================
 ;;; stuff supporting proof in rewriting logic.
 ;;;
