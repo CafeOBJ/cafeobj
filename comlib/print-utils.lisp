@@ -103,11 +103,11 @@
 ;;; print-indent
 ;;; indentation.
 ;;;
-(defun print-indent (&optional (n *print-indent*) (stream *standard-output*))
+(defun print-indent (indent-char &optional (n *print-indent*) (stream *standard-output*))
   (declare (type fixnum n))
   (dotimes (i (the fixnum (* n *print-indent-increment*)))
     (declare (type fixnum i))
-    (princ #\space stream)))
+    (princ indent-char stream)))
 
 ;;; print-centering
 ;;; print the given string centering
@@ -181,7 +181,15 @@
   (declare (type fixnum n)
 	   (type stream stream))
   (if (fresh-line stream)
-      (print-indent n stream))
+      (print-indent #\space n stream))
+  (when prefix (princ prefix stream)))
+
+(defun print-next-prefix (prefix-char &optional (prefix nil) (n *print-indent*) (stream *standard-output*))
+  (declare (type fixnum n)
+	   (type stream stream)
+	   (type character prefix-char))
+  (when (fresh-line stream)
+    (print-indent prefix-char n stream))
   (when prefix (princ prefix stream)))
 
 ;;; print-simple

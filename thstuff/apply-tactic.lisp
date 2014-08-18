@@ -225,37 +225,51 @@
 
 ;;; make-new-assumption
 ;;;
-(defun make-new-assumption (lhs rhs condition &optional (label-prefix nil))
+(defun make-new-assumption (lhs &optional (label-prefix nil))
   (let ((r-lhs lhs)
-	(r-rhs rhs))
-    (when (and (is-true? rhs)
-	       (method= *eql-op* (term-method lhs)))
+	(r-rhs *bool-true*)
+	(type :equation))
+    (when (method= *eql-op* (term-method lhs))
+      ;; (T1 = T2) = true  ==> T1 = T2
       (setf r-lhs (term-arg-1 lhs)
 	    r-rhs (term-arg-2 lhs)))
     (when (method= *bool-match* (term-method lhs))
+      ;; (T1 := T2) = true  ==> T2 = T1
       (setf r-lhs (term-arg-2 lhs)
 	    r-rhs (term-arg-1 lhs)))
+    (when (method= *rwl-predicate* (term-method lhs))
+      ;; (T1 => T2) = true ==> T1 => T2
+      (setf r-lhs (term-arg-1 lhs)
+	    r-rhs (term-arg-2 lhs))
+      (setq type :rule))
     (make-rule :lhs r-lhs
 	       :rhs r-rhs
-	       :condition condition
-	       :type :equation
+	       :condition *bool-true*
+	       :type type
 	       :behavioural nil
 	       :labels (if label-prefix (list label-prefix) nil))))
 
 ;;; normalize-term-in : module term -> term applied
 ;;;
 (defun normalize-term-in (module term &optional (reduction-mode :red))
-  (let ((gterms (get-gterms term))
-	(applied? nil))
-    (if gterms
+  (let ((applied? nil)
+	(targets nil))
+    (if (term-variables term)
+	(setq targets (get-gterms term))
+      (setq targets (list term)))
+    (if targets
 	(with-in-module (module)
-	  (dolist (gt gterms)
-	    (setq $$matches 0)
-	    (let ((*perform-on-demand-reduction* t)
-		  (*rule-count* 0))
-	      (rewrite gt *current-module* reduction-mode)
-	      (unless (= 0 *rule-count*)
-		(setq applied? t))))
+	  (dolist (gt targets)
+	    (block next
+	      (when (term-is-reduced? gt) 
+		(return-from next nil))
+	      (setq $$matches 0)
+	      (let ((*perform-on-demand-reduction* t)
+		    (*rewrite-exec-mode* (eq reduction-mode :exec))
+		    (*rule-count* 0))
+		(rewrite gt *current-module* reduction-mode)
+		(unless (= 0 *rule-count*)
+		  (setq applied? t)))))
 	  (values term applied?))
       (values term nil))))
 
@@ -283,16 +297,16 @@
 	    (print-axiom-brief target)))
 	;;
 	(multiple-value-bind (result applied)
-	    (normalize-term-in module lhs :red)
+	    (normalize-term-in module (reset-reduced-flag lhs) :red)
 	  (set-applied applied)
 	  (when (eq reduction-mode :exec)
-	    (multiple-value-setq (result applied) (normalize-term-in module lhs :exec))
+	    (multiple-value-setq (result applied) (normalize-term-in module (reset-reduced-flag lhs) :exec))
 	    (set-applied applied))
-	  (multiple-value-setq (result applied) (normalize-term-in module rhs))
+	  (multiple-value-setq (result applied) (normalize-term-in module (reset-reduced-flag rhs)))
 	  (set-applied applied)
 	  (unless (is-true? condition)
 	    (multiple-value-setq (result applied)
-	      (normalize-term-in module condition :red))
+	      (normalize-term-in module (reset-reduced-flag condition) :red))
 	    (set-applied  applied))
 	  ;; 
 	  (with-citp-debug ()
@@ -313,8 +327,9 @@
       (and (is-false? t1) (is-true? t2))))
 
 ;;;
-;;; sentence-is-satisfied : axiom -> { :satisfied | :ct | nil }
+;;; sentence-is-satisfied : axiom module -> { :satisfied | :ct | nil }
 ;;;
+#||
 (defun sentence-is-satisfied (sentence)
   (let ((lhs (rule-lhs sentence))
 	(rhs (rule-rhs sentence))
@@ -323,10 +338,30 @@
 	 (if (term-equational-equal lhs rhs)
 	     :satisfied
 	   (if (is-false? condition)
-	       :ct
+	       :ic
 	     (if (is-contradiction lhs rhs)
 		 :ct
-	     nil))))))
+	       nil))))))
+||#
+
+(defun sentence-is-satisfied (sentence module)
+  (let ((lhs (rule-lhs sentence))
+	(rhs (rule-rhs sentence))
+	(condition (rule-condition sentence)))
+    (cond ((is-true? condition)
+	   (if (term-equational-equal lhs rhs)
+	       :satisfied
+	     nil))
+	  ((is-false? condition)
+	   :ic)
+	  ((null (term-variables condition))
+	   (if (is-true? (normalize-term-in module
+					    (reset-reduced-flag (term-copy-and-returns-list-variables condition))))
+	       :satisfied
+	     nil))
+	  ((is-contradiction lhs rhs)
+	   :ct)
+	  (t nil))))
 
 ;;; check-contradiction : module -> Bool
 ;;; check if 'true => false' or 'false => true'
@@ -335,17 +370,19 @@
   (with-in-module (module)
     (let ((t-rules (method-rules-with-different-top *bool-true-meth*))
 	  (f-rules (method-rules-with-different-top *bool-false-meth*))
-	  (ct-rules nil))
+	  (ct-rule nil))
       (dolist (rule (append t-rules f-rules))
-	(when (is-true? (rule-condition rule))
-	  (push rule ct-rules)))
-      (when (and ct-rules report-header)
+	(when (is-true? (normalize-term-in module
+					   (reset-reduced-flag (term-copy-and-returns-list-variables
+								(rule-condition rule)))))
+	  (setq ct-rule rule)
+	  (return nil)))
+      (when (and ct-rule report-header)
 	(format t "~%[~a] contradiction: " report-header)
 	(let ((*print-indent* (+ 2 *print-indent*)))
-	  (dolist (ax (reverse ct-rules))
-	    (print-next)
-	    (print-axiom-brief ax))))
-      (nreverse ct-rules))))
+	  (print-next)
+	  (print-axiom-brief ct-rule)))
+      ct-rule)))
 
 (defun check-contradiction (module &optional (report-header nil))
   (or (check-true<=>false module report-header)
@@ -363,6 +400,88 @@
 		(return-from check-contradiction t))))))
       nil))
 
+(defun condition->axioms (module condition &optional (rule-label nil))
+  (with-in-module (module)
+    (let ((axs nil)
+	  (cps nil))
+      (if (method= *bool-cond-op* (term-head condition))
+	  (let ((subs (list-assoc-subterms condition *bool-cond-op*)))
+	    (dolist (sub subs)
+	      (push (term-copy-and-returns-list-variables sub) cps)))
+	(setq cps (list (term-copy-and-returns-list-variables condition))))
+      (dolist (c cps)
+	(let ((new-ax (make-new-assumption c rule-label)))
+	  (compute-rule-method new-ax)
+	  (push new-ax axs)))
+      (with-citp-debug ()
+	(format t "~%[~a] generated axioms:" rule-label)
+	(dolist (ax axs)
+	  (print-next)
+	  (print-axiom-brief ax)))
+      axs)))
+
+(defparameter .ct-trial-context-module. (%module-decl* "ct-trial-dummy" :object :user nil))
+
+(defun axiom-is-an-instance-of (ax cx module)
+  (with-in-module (module)
+    (with-citp-debug ()
+      (print-next)
+      (format t "* ax: ") (print-axiom-brief ax)
+      (print-next)
+      (format t "* cx: ") (print-axiom-brief cx))
+    (multiple-value-bind (gs subst no-match E-equal)
+	(funcall (rule-first-match-method cx) (rule-lhs cx) (rule-lhs ax))
+      (when no-match (return-from axiom-is-an-instance-of nil))
+      (when e-equal (setq subst nil))
+      (let ((pat-instance (substitution-image-simplifying subst (rule-rhs cx)))
+	    (t-instance (rule-rhs ax))
+	    (next-match-method nil))
+	(with-citp-debug ()
+	  (format t "~%* matched: ")
+	  (print-substitution subst)
+	  (print-next)
+	  (format t "pat: ") (term-print-with-sort pat-instance)
+	  (print-next)
+	  (format t "rhs: ") (term-print-with-sort t-instance))
+
+	(when (term-equational-equal t-instance pat-instance)
+	  (return-from axiom-is-an-instance-of t))
+	;; try other match
+	(setq next-match-method (rule-next-match-method cx))
+	(loop
+	  (multiple-value-setq (gs subst no-match)
+	    (funcall next-match-method gs))
+	  (when no-match (return-from axiom-is-an-instance-of nil))
+	  (setq pat-instance (substitution-image-simplifying subst (rule-rhs cx)))
+	  (when (term-equational-equal t-instance pat-instance)
+	    (return-from axiom-is-an-instance-of t))))
+      nil)))
+
+(defun check-ct-with-axioms (goal axioms &optional report-header)
+    (declare (type goal goal)
+	     (type list axioms))
+    (with-in-module ((goal-context goal))
+      (let ((tf-rules (append (method-rules-with-different-top *bool-true-meth*)
+			      (method-rules-with-different-top *bool-false-meth*))))
+	;; first do light weight check
+	(dolist (rule tf-rules)
+	  (when (is-true? (rule-condition rule))
+	    ;; already CT
+	    (when report-header
+	      (format t "~%[~a] found contradiction: ")
+	      (print-axiom-brief rule))
+	    (return-from check-ct-with-axioms :ct)))
+	(dolist (rule tf-rules)
+	  (let ((cond-axioms (condition->axioms *current-module* (rule-condition rule))))
+	    (dolist (ax axioms)
+	      (dolist (cx cond-axioms)
+		(when (axiom-is-an-instance-of ax cx *current-module*)
+		  (when report-header
+		    (format t "~%[~a] found contradiction: "report-header)
+		    (print-axiom-brief rule))
+		  (return-from check-ct-with-axioms :ct))))))
+	nil)))
+
 ;;; check-sentence&mark-label : sentence module -> (<result> <normalized-sentence> <origina-sentence>)
 ;;; 
 (defun check-sentence&mark-label (sentence module &optional (report-header nil))
@@ -374,15 +493,18 @@
 	     (let ((lbl (if report-header
 			    (intern (format nil "CT-~A" report-header))
 			  'ct)))
+	       (cons lbl (rule-labels sentence))))
+	   (make-ic-label ()
+	     (let ((lbl (if report-header
+			    (intern (format nil "IC-~A" report-header))
+			  'ic)))
 	       (cons lbl (rule-labels sentence)))))
       ;;
       (let ((target sentence)
 	    (res nil))
 	(if (check-contradiction module report-header)
 	    (setq res :ct)
-	  (progn
-	    (setq target (normalize-sentence target *current-module*))
-	    (setq res (sentence-is-satisfied target))))
+	  (setq res (sentence-is-satisfied target *current-module*)))
 	(when res
 	  ;; discharged by certain reson
 	  (setq sentence (rule-copy-canonicalized sentence *current-module*)))
@@ -397,6 +519,11 @@
 		 (print-axiom-brief sentence))
 	       (setf (rule-labels sentence) (make-ct-label))
 	       (values :ct target sentence))
+	  (:ic (when report-header
+		 (format t "~%[~a] discharged: " report-header)
+		 (print-axiom-brief sentence))
+	       (setf (rule-labels sentence) (make-ic-label))
+	       (values :ic target sentence))
 	  (otherwise (values nil target sentence)))))))
 
 ;;;
@@ -457,11 +584,7 @@
 	(if (check-contradiction tmodule report-header)
 	    :ct
 	  ;; the module is consistent, try
-	  (multiple-value-bind (res applied)
-	      (normalize-sentence target tmodule)
-	    (if applied
-		(sentence-is-satisfied res)
-	      nil)))))))
+	  (sentence-is-satisfied target tmodule))))))
 
 ;;; ****************************************************************************
 ;;; Tactic executors
@@ -497,25 +620,7 @@
 ;;; =======================
 
 (defun generate-ip-derived-axioms (module axiom)
-  (with-in-module (module)
-    (let ((condition (axiom-condition axiom))
-	  (cps nil)
-	  (axs nil))
-      (if (method= *bool-cond-op* (term-head condition))
-	  (let ((subs (list-assoc-subterms condition *bool-cond-op*)))
-	    (dolist (sub subs)
-	      (push (term-copy-and-returns-list-variables sub) cps)))
-	(setq cps (list (term-copy-and-returns-list-variables condition))))
-      (dolist (c cps)
-	(let ((new-ax (make-new-assumption c *bool-true* *bool-true* 'ip)))
-	  (compute-rule-method new-ax)
-	  (push new-ax axs)))
-      (with-citp-debug ()
-	(format t "~%[ip] generated axioms:")
-	(dolist (ax axs)
-	  (print-next)
-	  (print-axiom-brief ax)))
-      axs)))
+  (condition->axioms module (axiom-condition axiom) 'ip))
 
 (defun apply-ip (ptree-node)
   (declare (type ptree-node ptree-node))
@@ -530,35 +635,52 @@
 	      (declare (ignore otarget))
 	      (if result
 		  ;; discharged by som reason
-		  (push-next-goal .cur-goal.))
-	      (cond ((and (not (is-true? (rule-condition target)))
-			  (null (term-variables (rule-condition target))))
-		     ;; t = t' if C
-		     ;; C is a ground term and is not true.
-		     ;; try if (SP + { C } |- t = t') or not..
-		     ;; if this is satisfied, discharge it.
-		     (let ((ngoal (if (eq .cur-goal. original-goal)
-				      (prepare-next-goal ptree-node .tactic-ip.)
-				    .cur-goal.)))
-		       (with-in-module ((goal-context ngoal))
-			 (let ((new-axs (generate-ip-derived-axioms *current-module* target))
-			       (next-target (rule-copy-canonicalized target *current-module*)))
-			   ;; make the target
-			   (setf (rule-condition next-target) *bool-true*)
-			   (setf (goal-targets ngoal)
-			     (list (normalize-sentence next-target *current-module*)))
-			   ;; add [ip] axioms 
-			   (dolist (ax new-axs)
-			     (adjoin-axiom-to-module *current-module* ax)
-			     (set-operator-rewrite-rule *current-module* ax))
-			   (setf (goal-assumptions ngoal) (reverse new-axs))
-			   ;; compile & check 
-			   (compile-module *current-module* t)
-			   ;; check-goal-isa-satisfied do all the neccessary things for us.
-			   (check-goal-is-satisfied ngoal 'ip)
-			   (push-next-goal ngoal)))))
-		    ;; nothig todo. remain the goal as is
-		    (t ))))
+		  (push-next-goal .cur-goal.)
+		(cond ((and (not (is-true? (rule-condition target)))
+			    (null (term-variables (rule-condition target))))
+		       ;; t = t' if C
+		       ;; C is a ground term and is not true.
+		       ;; try if (SP + { C } |- t = t') or not..
+		       ;; if this is satisfied, discharge it.
+		       (let ((ngoal (if (eq .cur-goal. original-goal)
+					(prepare-next-goal ptree-node .tactic-ip.)
+				      .cur-goal.)))
+			 (with-in-module ((goal-context ngoal))
+			   (let ((new-axs (generate-ip-derived-axioms *current-module* target))
+				 (next-target (rule-copy-canonicalized target *current-module*)))
+			     ;; make the target
+			     (setf (rule-condition next-target) *bool-true*)
+			     (setf (goal-targets ngoal) (list next-target))
+			     
+			     ;; add [ip] axioms 
+			     (dolist (ax new-axs)
+			       (adjoin-axiom-to-module *current-module* ax)
+			       (set-operator-rewrite-rule *current-module* ax))
+			     (setf (goal-assumptions ngoal) (append (goal-assumptions ngoal) (reverse new-axs)))
+			     ;; compile & check 
+			     (compile-module *current-module* t)
+			     ;; check if introduced axioms can cause true <=> false:
+			     (cond ((null (axiom-variables next-target))
+				    ;; dischaged
+				    (let ((dscd (rule-copy-canonicalized target *current-module*)))
+				      (format t "~%[ip] discharged: ")
+				      (print-axiom-brief dscd)
+				      (setf (goal-targets ngoal) nil)
+				      (setf (rule-labels dscd) (list 'ip))
+				      (setf (goal-proved ngoal) (list dscd))))
+				   ((check-ct-with-axioms ngoal new-axs 'ip)
+				    (let ((dscd (rule-copy-canonicalized target *current-module*)))
+				      (setf (goal-targets ngoal) nil)
+				      (setf (rule-labels dscd) (list '|CT-ip|))
+				      (setf (goal-proved ngoal) (list dscd))))
+				   (t   ;; check-goal-is-satisfied do all the neccessary things for us.
+				    (check-goal-is-satisfied ngoal 'ip)))
+			     (push-next-goal ngoal)))))
+		      ((is-true? (rule-condition target))
+		       ;; discharged.
+		       (push-next-goal .cur-goal.))
+		      ;; nothig todo. remain the goal as is
+		      (t )))))
 	  ;; done for all goals
 	  (values .next-goals. (nreverse .next-goals.)))))))
 
@@ -1230,32 +1352,21 @@
 	;;
 	(dolist (lhs list-lhs)
 	  (let ((r-lhs lhs)
-		(r-rhs *bool-true*))
-	    (when (method= *bool-match* (term-method lhs))
-	      ;; case matching equation T1 := T2
-	      ;; we generate equation of the form eq T2 = T1 .
-	      (setq r-lhs (term-arg-1 lhs))
-	      (setq r-rhs (term-arg-2 lhs))
-	      ;; r-rhs (T1) might contain variables, we replace them by 
-	      ;; introducing new constants.
-	      (let ((vars (term-variables r-lhs))
-		    (subst nil))
-		(when vars
-		  (dolist (v vars)
-		    (push (cons v (variable->constant next-goal v))
-			  subst))
-		  (setq r-lhs (substitution-image-simplifying subst r-lhs))
-		  ;; exchange L <=> R
-		  (psetf r-lhs r-rhs r-rhs r-lhs))))
-	    (let ((axs (make-new-assumption r-lhs r-rhs *bool-true* 'ca)))
-	      (compute-rule-method axs)
-	      (with-citp-debug ()
-		(format t "~%>>[ca] adding an axiom to module ~s" (get-module-simple-name (goal-context next-goal)))
-		(print-next)
-		(print-axiom-brief axs))
-	      (set-operator-rewrite-rule *current-module* axs)
-	      (adjoin-axiom-to-module *current-module* axs)
-	      (push axs case-axioms))))
+		(subst nil))
+	    (let ((vars (term-variables lhs)))
+	      (when vars
+		(dolist (v vars)
+		  (push (cons v (variable->constant next-goal v)) subst))
+		(setq r-lhs (substitution-image-simplifying subst lhs)))
+	      (let ((axs (make-new-assumption r-lhs 'ca)))
+		(compute-rule-method axs)
+		(with-citp-debug ()
+		  (format t "~%>>[ca] adding an axiom to module ~s" (get-module-simple-name (goal-context next-goal)))
+		  (print-next)
+		  (print-axiom-brief axs))
+		(set-operator-rewrite-rule *current-module* axs)
+		(adjoin-axiom-to-module *current-module* axs)
+		(push axs case-axioms)))))
 	(setf (goal-assumptions next-goal) (append (goal-assumptions next-goal)
 						   (nreverse case-axioms)))))))
 						   
@@ -1299,7 +1410,7 @@
 		       (print-substitution (cdr rr))))
 		   ;; rv-com ((gterm-1 . rv-pair-1-1) (gterm-2 . rvpair-2-1) .. (gterm-n . rvpair-n-1))
 		   (setq next-goal (prepare-next-goal ptree-node .tactic-ca.))
-		   (setf (goal-targets next-goal) (goal-targets (ptree-node-goal ptree-node)))
+		   (setf (goal-targets next-goal) (list target))
 		   (generate-case-axioms next-goal rv-com)
 		   (push next-goal next-goals)))
 		(t (push target remainings)))))

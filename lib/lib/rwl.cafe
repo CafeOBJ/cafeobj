@@ -286,13 +286,26 @@ sys:mod! RWL
 		:final? nil :cond P :if CC :bind B)) .
 
     ** =>
-    eq (CXU => CYU) = #!! (rwl-sch-set-result (rwl-check-one-step-reachability CYU CYU)) .
+    eq (CXU => CYU) = #!! (rwl-sch-set-result (rwl-check-one-step-reachability CXU CYU)) .
   }
 }
 
 ** setup 
--- lispq
--- (setup-rwl)
+lispq
+(defun setup-rwl ()
+  (setq *rwl-module* (eval-modexp "RWL"))
+  (final-setup *rwl-module*)
+  (with-in-module (*rwl-module*)
+    (let* ((rwl-op-info (find-operator '("_" "=>" "_") 2 *rwl-module*))
+	   (rwl-pred (and rwl-op-info (lowest-method* (car (opinfo-methods rwl-op-info))))))
+      (unless rwl-pred
+	(with-output-panic-message ()
+	  (print "could not find _=>_")
+	  (break)))
+      (setq *rwl-predicate* rwl-pred))))
+
+lispq
+(setup-rwl)
 -- lispq
 -- (setup-tram-bool-modules)
 lispq

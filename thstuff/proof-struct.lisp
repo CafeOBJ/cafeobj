@@ -629,7 +629,7 @@
 	(when subnodes
 	  (let ((*print-indent* (+ 2 *print-indent*)))
 	    (dolist (sub subnodes)
-	      (print-next)
+	      (print-next-prefix #\.)
 	      (describe-proof-tree sub))))))))
 
 ;;; EOF

@@ -66,15 +66,15 @@
 ;;; RESET-REDUCED-FLAG
 ;;; ******************
 (defun reset-reduced-flag (term)
-  (declare (type term term)
-	   (values t))
+  (declare (type term term))
   (when (or (term-is-builtin-constant? term)
 	    (term-is-variable? term))
-    (return-from reset-reduced-flag nil))
+    (return-from reset-reduced-flag term))
   (mark-term-as-not-reduced term)
   (when (term-is-application-form? term)
     (dolist (sub (term-subterms term))
-      (reset-reduced-flag sub))))
+      (reset-reduced-flag sub)))
+  term)
 
 
 ;;; ****************
