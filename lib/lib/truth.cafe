@@ -74,7 +74,7 @@ sys:mod! TRUTH
     pred _=b=_ : *Cosmos* *Cosmos* { prec: 51 }
     pred _=/=_ : *Cosmos* *Cosmos* { prec: 51 }
     pred _:=_  : *Cosmos* *Cosmos* { prec: 51 }
-    op _/\_ : *Condition* *Condition* -> *Condition* { strat: (1 2 0) prec: 67 r-assoc }
+    op _/\_ : *Condition* *Condition* -> *Condition* { strat: (1 0 2 0) prec: 67 r-assoc }
   }
   axioms {
     var XU : *Universal*

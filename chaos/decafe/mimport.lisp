@@ -856,7 +856,7 @@
 				    (sort= (method-coarity x)
 					   (method-coarity y))))))
 	(method-info-table (module-opinfo-table module)))
-    (if nil				; (or (eq pmeth method)
+    (if (eq pmeth method)    ; (or (eq pmeth method)
 					;     ;; dirty kludge!
 					; (and pmeth (method-is-of-same-operator-safe method *rwl-predicate*)))
 	nil

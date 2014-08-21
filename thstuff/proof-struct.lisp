@@ -382,13 +382,125 @@
 (defstruct (ptree (:print-function pr-ptree))
   (num-gen-const 0 :type fixnum)	   ; number of generated constants so far
   (root    nil :type (or null ptree-node)) ; root goal
-  (current nil :type (or null ptree-node)) ; current target
+  (indvar-subst nil :type list)
+  (var-subst nil :type list)
   )
 
 (defun pr-ptree (ptree &optional (stream *standard-output*) &rest ignore)
-  (format stream "~%Proof Tree ===================================")
-  (format stream "~%-- root node")
-  (pr-goal (ptree-node-goal (ptree-root ptree))))
+  (declare (type ptree ptree)
+	   (type stream stream)
+	   (ignore ignore))
+  (let ((*standard-output* stream))
+    (format t "~%Proof Tree ===================================")
+    (format t "~%-- number of generated constants: ~d" (ptree-num-gen-const ptree))
+    (format t "~%-- induction variable bases:")
+    (with-in-module ((goal-context (ptree-node-goal (ptree-root ptree))))
+      (let ((indvar-subst (ptree-indvar-subst ptree))
+	    (*print-indent* (+ 2 *print-indent*)))
+	(if indvar-subst
+	    (dolist (is indvar-subst)
+	      (print-next)
+	      (term-print-with-sort (car is))
+	      (princ " => ")
+	      (princ (cdr is)))
+	  (progn (print-next) (princ "none" stream))))
+      (format stream "~%-- introduced constants:")
+      (let ((var-subst (ptree-var-subst ptree))
+	    (*print-indent* (+ 2 *print-indent*)))
+	(if var-subst
+	    (dolist (is var-subst)
+	      (print-next)
+	      (term-print-with-sort (car is))
+	      (princ " => ")
+	      (princ (cdr is)))
+	  (progn (print-next) (princ "none" stream))))
+      (format stream "~%-- root node")
+      (pr-goal (ptree-node-goal (ptree-root ptree))))))
+
+(defun reset-proof (ptree)
+  (setf (ptree-num-gen-const ptree) 0
+	(ptree-indvar-subst ptree) nil
+	(ptree-var-subst ptree) nil))
+
+;;; intro-const-returns-subst : module name variable -> (variable . constant-term)
+;;; introduces a new constant of sort(variable) into a module.
+;;; returns a pair (variable . constant-term)
+;;;
+(defun intro-const-returns-subst (module name variable)
+  (multiple-value-bind (op meth)
+      (declare-operator-in-module (list name)
+				  nil	; arity
+				  (variable-sort variable) ; coarity
+				  module ; 
+				  nil	; constructor?
+				  nil	; behavioural? always nil.
+				  nil   ; not coherent
+				  )
+    (declare (ignore op))
+    (prepare-for-parsing module t t)	; force 
+    (cons variable (make-applform-simple (variable-sort variable) meth nil))))
+
+;;;
+;;; make-tc-const-name : proof-tree prefix -> string
+;;;
+(defun make-tc-const-name (variable)
+  (format nil "~:@(~a~)@~a-~d" (variable-name variable) (sort-name (variable-sort variable))
+	  (incf (ptree-num-gen-const *proof-tree*))))
+
+;;; 
+;;; variable->constant : goal variable -> term
+;;;
+(defun find-variable-subst-in (alist variable)
+  (assoc variable alist :test #'variable-equal))
+
+(defun list-submodules (module)
+  (mapcar #'car (module-all-submodules module)))
+
+(defun variable->constant (goal variable)
+  (let ((vc-assoc (find-variable-subst-in (goal-constants goal) variable)))
+    (or (cdr vc-assoc)
+	(let ((name (cdr (find-variable-subst-in (ptree-var-subst *proof-tree*) variable)))
+	      (v-const nil))
+	  (unless name
+	    (setq name (make-tc-const-name variable))
+	    (push (cons variable name) (ptree-var-subst *proof-tree*)))
+	  (setq v-const (intro-const-returns-subst (goal-context goal)
+						   name
+						   variable))
+	  (push v-const (goal-constants goal))
+	  (cdr v-const)))))
+
+;;;
+;;; variable->constructor : goal variable op -> term
+;;;
+(defun make-ind-const-name (name-prefix)
+  (format nil "~a#~d" name-prefix (incf (ptree-num-gen-const *proof-tree*))))
+
+(defun variable->constructor (goal variable &key (sort nil) (op nil))
+    (let ((svar (if sort
+		  (make-variable-term sort (intern (format nil "~a_~a" (variable-name variable) (sort-name sort))))
+		variable)))
+      (flet ((make-iv-const (name)
+	       (if op
+		   (let ((constant (make-applform-simple (method-coarity op) op nil)))
+		     (push (cons variable constant) (goal-ind-constants goal))
+		     constant)
+		 (let ((con (intro-const-returns-subst (goal-context goal)
+						       name
+						       svar)))
+		   (push con (goal-ind-constants goal))
+		   (cdr con)))))
+	(let ((v-assoc (find-variable-subst-in (goal-ind-constants goal) svar)))
+	  (or (cdr v-assoc)
+	      (let ((v-name (cdr (find-variable-subst-in (ptree-indvar-subst *proof-tree*) svar)))
+		    (vconst nil))
+		(unless v-name 
+		  (setq v-name (make-ind-const-name (if sort
+							(sort-name sort)
+						      (sort-name (variable-sort svar))))))
+		(setq vconst (make-iv-const v-name))
+		(pushnew (cons svar v-name) (ptree-indvar-subst *proof-tree*) :test #'equal)
+		vconst))))))
 
 ;;;
 ;;; initialize-proof-tree : module goal -> ptree
@@ -396,8 +508,7 @@
 (defun initialize-proof-tree (context-module initial-goals)
   (let ((root (make-ptree-root context-module initial-goals)))
     (setq *next-default-proof-node* nil)
-    (make-ptree :root root
-		:current root)))
+    (make-ptree :root root)))
 
 ;;;
 ;;; check-success : ptree -> Bool
@@ -409,11 +520,11 @@
       (setq *next-default-proof-node* (car unp))
       (format t "~%>> Remaining ~d goal~p." (length unp) (length unp))
       (return-from check-success nil))
-    (format t "~%** All goals are successfully discharged.")
+    (format t "~%** All goals are successfully discharged.~%")
     (setq *next-default-proof-node* nil)
     t))
 
-;;;
+;;; ------------------------------------------------------------------
 ;;; roll-back : ptree -> Bool
 ;;; roll back to parent. returns true (non-nil) iff roll back is done.
 ;;;
@@ -520,6 +631,9 @@
 	       (return-from select-next-goal nil)))
 	   (format t "~%>> next default-goal is ~s" (goal-name (ptree-node-goal next)))))
 	(t (let ((node (find-goal-node *proof-tree* goal-name)))
+	     (unless node
+	       (with-output-chaos-error ('no-goal)
+		 (format t "No such goal ~s" goal-name)))
 	     (when (node-is-discharged? node)
 	       (with-output-chaos-warning ()
 		 (format t "The goal ~s is alreday discharged." (goal-name (ptree-node-goal node)))
@@ -527,6 +641,8 @@
 		 (format t "This will discard the current result of the goal."))
 	       (make-it-unproved node))
 	     (setq *next-default-proof-node* node)
+	     (when (eq node (ptree-root *proof-tree*))
+	       (reset-proof *proof-tree*))
 	     (format t "~%>> setting next default goal to ~s" (goal-name (ptree-node-goal node)))
 	     node))))
 
@@ -537,15 +653,18 @@
 ;;;
 ;;; begin-proof
 ;;;
+(defparameter .root-context-module. (%module-decl* "#Goal-root" :object :user nil))
+
 (defun begin-proof (context-module goal-axioms)
   (declare (type module context-module)
 	   (type list goal-axioms))
   (unless goal-axioms (return-from begin-proof nil))
-  (setq *proof-tree* (initialize-proof-tree context-module goal-axioms))
-  ;; (setq *next-default-proof-node* (ptree-root *proof-tree*))
-  (pr-goal (ptree-node-goal (ptree-root *proof-tree*)))
-  (format t "~%** Initial goal (root) is generated. **")
-  *proof-tree*)
+  (let ((root-module (eval-ast .root-context-module.)))
+    (import-module root-module :protecting context-module)
+    (setq *proof-tree* (initialize-proof-tree context-module goal-axioms))
+    (pr-goal (ptree-node-goal (ptree-root *proof-tree*)))
+    (format t "~%** Initial goal (root) is generated. **")
+    *proof-tree*))
 
 ;;;
 ;;; print-proof-tree

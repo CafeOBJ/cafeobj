@@ -1433,8 +1433,7 @@
   (let ((strat (let ((val (operator-strategy op)))
 		 (if (print-check-bu op val) nil val)))
 	(thy (operator-theory op))
-	(prec (operator-precedence op))
-	)
+	(prec (operator-precedence op)))
     (when (and (eql (car (last strat)) 0)
 	       (member 0 (butlast strat)))
       (setq strat (butlast strat)))
@@ -1456,8 +1455,7 @@
 	  (if flag (princ " ") (setq flag t))
 	  (princ "prec: ") (print-simple prec))
 	;; (print-check)
-	(princ " }"))
-      )))
+	(princ " }")))))
 
 (defun print-method-attrs (method &optional header)
   (let ((strat (let ((val (method-rewrite-strategy method)))
@@ -1469,54 +1467,60 @@
 		  (get-method-precedence method)))
 	(memo (method-has-memo method))
 	(meta-demod (method-is-meta-demod method))
-	(assoc (method-associativity method)))
+	(assoc (method-associativity method))
+	(*print-line-limit* 100))
     (when (and (eql 0 (car (last strat)))
 	       (member 0 (butlast strat)))
       (setq strat (butlast strat)))
     (when (or constr coherent
 	      strat prec memo meta-demod assoc thy)
-      (let ((flag nil))
-	(when header (print-next) (princ header))
-	(print-check 0 3)
-	(princ " { ")
-	(setq .file-col. (1- (file-column *standard-output*)))
-	(when (and thy (not (eq (theory-info thy) the-e-property)))
-	  (setq flag t)
-	  (print-theory-brief thy)
-	  (print-check .file-col. 7))
-	(when constr
-	  (if flag (princ " ") (setq flag t))
-	  (princ "constr")
-	  (print-check .file-col. 7))
-	(when coherent
-	  (if flag (princ " ") (setq flag t))
-	  (princ "coherent")
-	  (print-check .file-col. 7))
-	(when strat
-	  (if flag (princ " ") (setq flag t))
-	  (princ "strat: ") (print-simple strat)
-	  (print-check .file-col. 7))
-	(when memo
-	  (if flag (princ " ") (setq flag t))
-	  (princ "memo")
-	  (print-check .file-col. 7))
-	(when meta-demod
-	  (if flag (princ " ") (setq flag t))
-	  (princ "demod")
-	  (print-check .file-col. 7))
-	(when prec
-	  (if flag (princ " ") (setq flag t))
-	  (princ "prec: ") (print-simple prec)
-	  (print-check .file-col. 7))
-	(when assoc
-	  ;; (format t "!!~s" assoc)
-	  (if flag (princ " ") (setq flag t))
-	  (if (eq :left assoc)
-	      (princ "l-assoc")
-	      (princ "r-assoc")))
-	;; (print-check .file-col.)
-	(princ " }"))
-      )))
+      (let ((flag nil)
+	    (outstr (make-array '(0) :element-type 'base-char
+				:fill-pointer 0 :adjustable t)))
+	(with-output-to-string (fs outstr)
+	  (let ((*standard-output* fs))
+	    (when header (print-next) (princ header))
+	    ;; (print-check 0 3)
+	    (princ " { ")
+	    (setq .file-col. (1- (file-column *standard-output*)))
+	    (when (and thy (not (eq (theory-info thy) the-e-property)))
+	      (setq flag t)
+	      (print-theory-brief thy)
+	      (print-check .file-col. 7))
+	    (when constr
+	      (if flag (princ " ") (setq flag t))
+	      (princ "constr")
+	      (print-check .file-col. 7))
+	    (when coherent
+	      (if flag (princ " ") (setq flag t))
+	      (princ "coherent")
+	      (print-check .file-col. 7))
+	    (when strat
+	      (if flag (princ " ") (setq flag t))
+	      (princ "strat: ") (print-simple strat)
+	      (print-check .file-col. 7))
+	    (when memo
+	      (if flag (princ " ") (setq flag t))
+	      (princ "memo")
+	      (print-check .file-col. 7))
+	    (when meta-demod
+	      (if flag (princ " ") (setq flag t))
+	      (princ "demod")
+	      (print-check .file-col. 7))
+	    (when prec
+	      (if flag (princ " ") (setq flag t))
+	      (princ "prec: ") (print-simple prec)
+	      (print-check .file-col. 7))
+	    (when assoc
+	      ;; (format t "!!~s" assoc)
+	      (if flag (princ " ") (setq flag t))
+	      (if (eq :left assoc)
+		  (princ "l-assoc")
+		(princ "r-assoc")))
+	    ;; (print-check .file-col.)
+	    (princ " }")))
+	(print-check 0 (length outstr))
+	(princ outstr)))))
 
 ;;; AXIOMS, RULES
 ;;;-----------------------------------------------------------------------------
@@ -1579,61 +1583,72 @@
 					(no-type nil)
 					(no-label nil)
 					(meta nil))
+  (declare (type axiom rul)
+	   (type stream stream)
+	   (type (or null t) no-type no-label meta))
   (let ((type (axiom-type rul))
 	(cnd (not (term-is-similar? *BOOL-true* (axiom-condition rul))))
 	(.printed-vars-so-far. nil)
-	(*standard-output* stream))
+	(*standard-output* stream)
+	(axiom-header ""))
+    (declare (type symbol type)
+	     (type (or t null) cnd)
+	     (type list .printed-vars-so-far.)
+	     (type string axiom-header))
     (unless no-type
       (case type
 	(:equation
 	 (if cnd
 	     (if (axiom-is-behavioural rul)
 		 (if meta
-		     (princ ":bceq[")
-		   (princ "bceq "))
+		     (setq axiom-header ":bceq[")
+		   (setq axiom-header "bceq "))
 	       (if meta
-		   (princ ":ceq[")
-		 (princ "ceq ")))
+		   (setq axiom-header ":ceq[")
+		 (setq axiom-header "ceq ")))
 	   (if (axiom-is-behavioural rul)
 	       (if meta
-		   (princ ":beq[")
-		 (princ "beq "))
+		   (setq axiom-header ":beq[")
+		 (setq axiom-header "beq "))
 	     (if meta
-		 (princ ":eq[ ")
-	       (princ "eq ")))))
+		 (setq axiom-header ":eq[ ")
+	       (setq axiom-header "eq ")))))
 	(:rule
 	 (if cnd
 	     (if (axiom-is-behavioural rul)
 		 (if meta
-		     (princ ":bctrans[")
-		   (princ "bctrans "))
+		     (setq axiom-header ":bctrans[")
+		   (setq axiom-header "bctrans "))
 	       (if meta
-		   (princ ":ctrans[")
-		 (princ "ctrans ")))
+		   (setq axiom-header ":ctrans[")
+		 (setq axiom-header "ctrans ")))
 	   (if (axiom-is-behavioural rul)
 	       (if meta
-		   (princ ":btrans[")
-		 (princ "btrans "))
+		   (setq axiom-header ":btrans[")
+		 (setq axiom-header "btrans "))
 	     (if meta
-		 (princ ":trans[")
-	       (princ "trans ")))))
+		 (setq axiom-header ":trans[")
+	       (setq axiom-header "trans ")))))
 	(:pignose-axiom
 	 (if (axiom-is-behavioural rul)
-	     (princ "bax ")
-	   (princ "ax ")))
+	     (setq axiom-header "bax ")
+	   (setq axiom-header "ax ")))
 	(:pignose-goal
 	 (if (axiom-is-behavioural rul)
-	     (princ "bgoal ")
-	   (princ "goal ")))
-	))
+	     (setq axiom-header "bgoal ")
+	   (setq axiom-header "goal ")))))
     ;;
+    (princ axiom-header)
     (when (and (axiom-labels rul) (not no-label))
       (print-rule-labels rul)
       (princ " "))
-    (let ((.file-col. (file-column *standard-output*)))
+    (let ((.file-col. (file-column *standard-output*))
+	  (*print-indent* (+ *print-indent* (length axiom-header))))
       ;; LHS
+      (princ "(")
       (setq .printed-vars-so-far.
 	(term-print (axiom-lhs rul)))
+      (princ ")")
       (unless (memq type '(:pignose-axiom :pignose-goal))
 	(setq .file-col. (file-column *standard-output*))
 	(print-check 0 .file-col.)
@@ -1642,17 +1657,18 @@
 	  (princ " = "))
 	(setq .file-col. (file-column *standard-output*))
 	;; RHS
-	(term-print (axiom-rhs rul))
-	;; CONDITION
-	(when (or cnd
-		  (and *chaos-verbose* (axiom-id-condition  rul)))
-	  ;; (print-check .file-col.)
-	  (print-next)
-	  (princ "  ")
-	  (if meta
-	      (princ " :if ")
-	    (princ " if "))
-	  (setq .file-col. (+ 4 .file-col.))
+	(term-print (axiom-rhs rul))))
+    (let ((.file-col. (file-column *standard-output*)))
+      ;; CONDITION
+      (when (or cnd
+		(and *chaos-verbose* (axiom-id-condition  rul)))
+	(print-next)
+	(princ "  ")
+	(if meta
+	    (princ " :if ")
+	  (princ " if "))
+	(setq .file-col. (+ 4 .file-col.))
+	(let ((*print-indent* (+ 5 *print-indent*)))
 	  (when cnd
 	    (term-print (axiom-condition rul)))
 	  (when meta

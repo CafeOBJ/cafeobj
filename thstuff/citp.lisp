@@ -213,7 +213,10 @@
 
 ;;; :select
 (defun eval-citp-select (goal-name)
-  (check-context-module-and-ptree)
+  ;;(check-context-module-and-ptree)
+  (unless *proof-tree*
+    (with-output-chaos-error ('no-proof)
+      (format t "No proof is ongoing.")))
   (select-next-goal goal-name))
 
 ;;; :lred

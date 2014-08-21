@@ -458,6 +458,8 @@
   (declare (type axiom rule)
            (type term term)
            (values (or null t)))
+  (when (or (is-true? term) (is-false? term))
+    (return-from !apply-one-rule nil))
   ;; check stop pattern
   (when .trace-or-step.
     (check-stop-pattern term))

@@ -63,9 +63,10 @@
 	 (and (symbolp cat)
 	      (getf (symbol-plist cat) :category)))))
 
-;;;
-;;;
-;;;
+;;;====================================================
+;;; TERM PRINTER
+;;;====================================================
+
 (defvar *print-term-color* nil)
 
 (defun variable-print-string (term &optional (print-var-sort nil)
@@ -210,14 +211,12 @@
                   (the fixnum *term-print-depth*)))
       (princ " ... ")
       (return-from term-print1 nil))
+    ;; term color
     (when (and (term-is-red term) *print-term-color*)
       (princ "r::"))
-      
+    ;; 
     (cond ((or (term$is-variable? body) (term$is-psuedo-constant? body))
-           (let ((vstr (variable-print-string
-                        term
-                        print-var-sort
-                        vars-so-far)))
+           (let ((vstr (variable-print-string term print-var-sort vars-so-far)))
              (princ vstr stream)))
 	  ((term$is-system-object? body)
 	   (let ((obj (term-system-object term)))
@@ -227,11 +226,6 @@
 		 (prin1 obj stream)
 	       (progn
 		 (princ ":[" stream)
-		 ;; (unless (listp obj) (break "!!"))
-		 #||
-		 (dolist (x obj)
-		   (term-print1 x stream print-var-sort vars-so-far))
-		 ||#
 		 (format stream "~{~S~^,~}" obj)
 		 (princ "]" stream)))))
           ((term$is-builtin-constant? body)
@@ -240,29 +234,24 @@
            (if (term$is-simple-lisp-form? body)
                (princ "#! " stream)
                (princ "#!! " stream))
-           (format t "~s" (term$lisp-form-original-form body)))
+	   (let ((*print-pretty* t))
+	     (format t "~s" (term$lisp-form-original-form body))))
           ((term$is-applform? body)
            (let* ((hd (term$head body))
-                  (op nil))
-             (setq op (method-operator hd))
+                  (op (method-operator hd)))
              (cond ((not (operator-is-mixfix op))
-                    ;; patch. 
-                    ;; (princ (car (operator-symbol op)))
-                    (let ((opname 
-                           (format nil "~{~a~^ ~}" (operator-symbol op))))
-                      (princ opname))
+		    (princ (format nil "~{~a~^ ~}" (operator-symbol op)) stream)
                     (let ((subs (term$subterms body)))
                       (when subs
                         (princ "(")
-                        ;; (setq .file-col. (file-column stream))
                         (let ((flg nil))
                           (dolist (i subs)
                             (if flg
                                 (progn (princ ","))
-                                (setq flg t))
+			      (setq flg t))
                             (term-print1 i stream print-var-sort vars-so-far)))
                         (princ ")"))))
-                   ;; mix fix 
+		   ;; mix fix 
                    (t (let ((subs (term$subterms body))
 			    (token-seq (operator-token-sequence op))
                             (prv nil))
@@ -277,14 +266,13 @@
                                               print-var-sort
                                               vars-so-far)
                                  (setq subs (cdr subs)))
-                                (t ;;(print-check .file-col.
-                                   ;;           (+ 2 (length (string i)))
-                                   ;;           stream)
-                                   (princ i stream)
-                                   )))
+                                (t (print-check .file-col. (+ 2 (length (string i))) stream)
+                                   (princ i stream))))
                         (princ ")" stream))))))
-          (t (format stream "~s" body)) ; what is this?
-          )))
+	  ;; what is this?
+          (t (format stream "~s" body)))))
+
+;;; pretty printer
 
 (defun term-print2 (term prec
                     &optional (stream *standard-output*)
@@ -293,14 +281,12 @@
   (declare (type (or null term) term)
            (type fixnum prec)
            (type stream stream)
-           (type (or null t) print-var-sort)
-           (values t))
+           (type (or null t) print-var-sort))
   (unless (termp term)
     (format stream " ~s " term)
     (return-from term-print2))
   (let ((*standard-output* stream)
         (*current-term-depth* (1+ *current-term-depth*))
-        ;; (*print-indent* *print-indent*)
         (.file-col. .file-col.))
     (when (and *term-print-depth*
                (> *current-term-depth*
@@ -335,11 +321,11 @@
              (princ bstr stream)))
           ;;
           ((term-is-lisp-form? term)
-           (if (term-is-simple-lisp-form? term)
-               (princ "#! ")
+	   (let ((*print-pretty* t))
+	     (if (term-is-simple-lisp-form? term)
+		 (princ "#! ")
                (princ "#!! "))
-           (format t "~s" (lisp-form-original-form term))
-           )
+	     (format t "~s" (lisp-form-original-form term))))
           ;; application form
           ((term-is-applform? term)
            (let* ((hd (term-head term))
@@ -367,21 +353,17 @@
                                            stream print-var-sort
                                            vars-so-far)
                             (setq flg t)))
-                        (princ ")" stream)
-                        ))
-                    )
+                        (princ ")" stream))))
                    ;; mix fix operators
                    (t (let ((prec-test (and (get-method-precedence hd)
                                             (<= prec (get-method-precedence hd))))
                             (assoc-test (method-is-associative hd))
                             (token-seq (operator-token-sequence
-                                        (method-operator hd)))
-                            )
+                                        (method-operator hd))))
                         (setq .file-col. (file-column stream))
                         (when prec-test
                           (princ "(" stream)
-                          (setq .file-col. (1+ .file-col.))
-                          )
+                          (setq .file-col. (1+ .file-col.)))
                         ;;
                         (let ((subs (term-subterms term))
                               (prv nil))
@@ -391,35 +373,26 @@
                             (when prv
                               (princ #\space stream))
                             (setq prv t)
-                            (cond
-                             ((eq i t)
-                              (let ((tm (car subs)))
-                                (term-print2
-                                 tm
-                                 (if (and assoc-test
-                                          tm
-                                          (term-is-application-form? tm)
-                                          (method-is-of-same-operator
-                                           (term-head term)
-                                           (term-head tm)))
-                                     parser-max-precedence
-                                   (or (get-method-precedence hd) 0))
-                                 stream
-                                 print-var-sort
-                                 vars-so-far)
-                                (setq subs (cdr subs))))
-                             (t (let ((name (string i)))
-                                  (princ name stream)
-                                  (print-check .file-col. 20 stream)
-                                  ;; (princ name)
-                                  )
-                                )))
-                          )
-                        (when prec-test (princ ")" stream))
-                        ))
-                   )))
-          (t (format stream "(~s)" (term-body term))))
-    ))
+                            (cond ((eq i t)
+				   (let ((tm (car subs)))
+				     (term-print2 tm
+						  (if (and assoc-test
+							   tm
+							   (term-is-application-form? tm)
+							   (method-is-of-same-operator
+							    (term-head term)
+							    (term-head tm)))
+						      parser-max-precedence
+						    (or (get-method-precedence hd) 0))
+						  stream
+						  print-var-sort
+						  vars-so-far)
+				     (setq subs (cdr subs))))
+				  (t (let ((name (string i)))
+				       (princ name stream)
+				       (print-check .file-col. 20 stream))))))
+                        (when prec-test (princ ")" stream)))))))
+          (t (format stream "(~s)" (term-body term))))))
 
 (defun term-print (term &optional (stream *standard-output*)
                                   (print-var-sort **print-var-sort**))
@@ -432,25 +405,6 @@
   (let* ((vars-so-far (cons nil .printed-vars-so-far.))
          (.file-col. (file-column stream))
          (*print-indent* *print-indent*))
-    #||
-    (cond (*print-term-struct*
-           (let ((*print-pretty* t))
-             (princ (term-to-sexpr term print-var-sort vars-so-far t)
-                    stream)))
-          (*s-expr-print*
-           (let ((*print-pretty* nil))
-             (princ (term-to-sexpr term print-var-sort vars-so-far nil)
-                    stream)))
-          (*fancy-print*
-           (let ((*print-pretty* nil))
-             (term-print2 term
-                          parser-max-precedence stream print-var-sort
-                          vars-so-far)))
-          (t (let ((*print-pretty* nil))
-               (term-print1 term stream print-var-sort vars-so-far)
-               )))
-    ||#
-    ;;
     (case *print-xmode*
       (:tree
        (let ((*print-pretty* t))
@@ -467,27 +421,20 @@
                       vars-so-far)))
       (:normal
        (let ((*print-pretty* nil))
-         (term-print1 term stream print-var-sort vars-so-far)
-         ))
+         (term-print1 term stream print-var-sort vars-so-far)))
       (otherwise
        (with-output-chaos-error ('internal-error)
          (princ "invalid print mode value ~s" *print-xmode*))))
     ;;
-    (cdr vars-so-far))
-  )
+    (cdr vars-so-far)))
 
-(defun term-print-with-sort (term &optional (stream *standard-output*)
-                                  ;; (print-var-sort *print-with-sort*)
-                                  )
+(defun term-print-with-sort (term &optional (stream *standard-output*))
   (declare (type (or null term) term)
            (type stream stream)
-           ;; (type (or null t) print-var-sort)
            (values t))
   (let ((*print-indent* (+ *print-indent* 2))
-        ;; (**print-var-sort** print-var-sort)
         (**print-var-sort** nil)
-        (paren? nil)
-        )
+        (paren? nil))
     (setq paren?
           (case *print-xmode*
             (:fancy
@@ -509,14 +456,10 @@
     (when paren? (princ "(" stream))
     (term-print term stream)
     (when paren? (princ ")" stream))
-    ;; (print-check 0 3)
-    (when term
+      (when term
       (princ ":" stream)
       (print-sort-name (term-sort term) *current-module* stream))
-    ;; (when bcv?
-    ;;  (print-check 0 3))
-    (flush-all)
-    ))
+    (flush-all)))
 
 (defun term-print-with-sort-string (term &optional
                                          (print-var-sort *print-with-sort*))
@@ -526,7 +469,6 @@
                          :fill-pointer 0
                          :adjustable t)))
     (with-output-to-string (s str)
-      ;; (term-print-with-sort term str print-var-sort)
       (term-print-with-sort term str))
     str))
 
@@ -547,8 +489,7 @@
               (setq flg t))
           (princ " ")
           (let ((e (elt x i)))
-            (term-print e)))
-        )))
+            (term-print e))))))
 
 ;;; PRINT-TERM-TREE
 (defvar *show-sort* nil)
@@ -725,8 +666,7 @@
     (when val
       (if flag (princ " " stream))
       (if (null (cdr val)) (princ "id: " stream) (princ "idr: " stream))
-      (term-print (car val) stream))
-    ))
+      (term-print (car val) stream))))
 
 (defun print-theory (th)
   (print-theory-info (theory-info th))
@@ -741,8 +681,7 @@
         (progn
           (term-print (car zs))
           (when (cdr zs) (princ " rule-only")))
-        (princ "NONE"))
-    ))
+        (princ "NONE"))))
 
 (defun print-theory-info (thinf)
   (prin1 (theory-info-name thinf))
@@ -763,11 +702,6 @@
 
 ;;; little helper
 (defun print-simple-princ-flat (x)
-  #||
-  (when (and (fboundp 'filecol)
-             (< *print-line-limit* (filecol *standard-output*)))
-    (print-next))
-  ||#
   (cond ((null x))
         ((stringp x) (princ x))
         ((consp x)
@@ -782,8 +716,7 @@
                   (setq flag t))
               (print-simple-princ-flat (car tail))
               (setq tail (cdr tail)))
-             (when tail (princ " ... ") (prin1 tail))
-             ))
+             (when tail (princ " ... ") (prin1 tail))))
         (t (print-chaos-object x))))
 
 ;;; HASH TABLE

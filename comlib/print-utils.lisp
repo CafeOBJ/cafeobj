@@ -84,6 +84,7 @@
 ;;; checks the current column exceeds the line limit, if so
 ;;; newline and indent.
 ;;;
+#||
 (defun print-check (&optional (indent 0) (fwd 0) (stream *standard-output*))
   (declare (type fixnum indent fwd))
   (if (<= *print-line-limit* (+ (file-column stream) fwd))
@@ -97,6 +98,21 @@
 	      (princ #\space stream))
 	  (dotimes (i indent)
 	    (princ #\space stream)))
+	t)
+    nil))
+||#
+
+(defun print-check (&optional (indent 0) (fwd 0) (stream *standard-output*))
+  (declare (type fixnum indent fwd))
+  (if (<= *print-line-limit* (+ (file-column stream) fwd))
+      (progn
+	(print-next)
+	(when (>= (1+ indent) *print-line-limit*)
+	  (setq .file-col. (* *print-indent* *print-indent-increment*)))
+	#||
+	(dotimes (i indent)
+	  (princ #\space stream))
+	||#
 	t)
     nil))
 

@@ -581,7 +581,8 @@
 (defun rule-is-similar? (r1 r2)
   (declare (type axiom r1 r2)
 	   (values (or null t)))
-  (and (term-is-congruent-2? (axiom-lhs r1) (axiom-lhs r2))
+  (and (eq (axiom-type r1) (axiom-type r2))
+       (term-is-congruent-2? (axiom-lhs r1) (axiom-lhs r2))
        (term-is-congruent-2? (axiom-condition r1) (axiom-condition r2))
        (term-is-congruent-2? (axiom-rhs r1) (axiom-rhs r2))))
 

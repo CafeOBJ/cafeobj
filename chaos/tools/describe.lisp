@@ -44,7 +44,7 @@
   (with-in-module (mod)
     (let ((*print-indent* print-indent))
       (fresh-line)
-      (print-indent)
+      (print-indent #\space)
       ;; ---------- TITLE: name, kind, type, protected mode
       (princ .separator-bold.)
       (print-next)
@@ -437,10 +437,11 @@
 			      (memq (module-type *open-module*)
 				    '(:system :hard))))
 		     *kernel-hard-wired-builtin-modules*
-		   *print-ignore-mods*)))
+		   *print-ignore-mods*))
+	   (*print-line-limit* 80))
       ;;
       (fresh-line)
-      (print-indent)
+      (print-indent #\space)
       (case kind
 	(:object (case type
 		   (:hard (princ "hwd:mod! "))
@@ -488,14 +489,12 @@
 					       :no-param)
 		  )))
 	    ;; (princ "]")
-	    (princ ")")
-	    )))
+	    (princ ")"))))
       ;; principal sort
       (when (module-principal-sort mod)
 	(fresh-line)
 	(format t "      principal-sort ")
-	(print-sort-name (module-principal-sort mod) mod)
-	)
+	(print-sort-name (module-principal-sort mod) mod))
       (fresh-line)
       ;; module body
       (princ "{")
@@ -511,10 +510,8 @@
 		       (if *chaos-verbose*
 			   t
 			 (not (member (car sub) skip :key #'(lambda(x)
-							      (module-name x))
-				      )))
-		       (not (eq (cdr sub) :using))
-		       )
+							      (module-name x)))))
+		       (not (eq (cdr sub) :using)))
 	      (push sub subs)))
 	  (when subs
 	    (print-next)
@@ -526,11 +523,6 @@
 		  (when (not (member (car sb) skip))
 		    (if flg (print-next) (setf flg t))
 		    (print-check)
-		    #||
-		    (if (eq :using (cdr sb))
-			(format t "-- ~a " (string-downcase (string (cdr sb))))
-			(format t "~a " (string-downcase (string (cdr sb)))))
-		    ||#
 		    ;; importation-mode
 		    (format t "~a " (string-downcase (string (cdr sb))))
 		    ;; alias
@@ -543,8 +535,7 @@
 						  *standard-output*
 						  t
 						  t)
-		      (princ ")"))
-		    ))))
+		      (princ ")"))))))
 	    (print-next)
 	    (princ "}")))
 	;; SIGNATURE
@@ -587,8 +578,7 @@
 		(dolist (op-meth opinfos)
 		  (print-op-meth op-meth mod *chaos-verbose*))))
 	    (print-next)
-	    (princ "}")
-	    ))
+	    (princ "}")))
 	;; AXIOMS
 	(when (or *chaos-verbose*
 		  *print-all-eqns*
@@ -605,8 +595,7 @@
 		  (princ "pvar "))
 		(princ (string (variable-name (cdr v))))
 		(princ " : ")
-		(print-sort-name (variable-sort (cdr v)) mod))
-	      )
+		(print-sort-name (variable-sort (cdr v)) mod)))
 	    (if (module-is-ready-for-rewriting mod)
 		(if (not (or *chaos-verbose* *print-all-eqns*))
 		    (dolist (r (append (reverse (module-equations mod))
@@ -636,22 +625,19 @@
 			(when er (print-next) (print-axiom-brief er) (princ " .")))
 		      ))))
 	  (print-next)
-	  (princ "}")
-	  )
+	  (princ "}"))
 	;; done
 	)
       (print-next)
       (princ "}")
       (fresh-line)
       (flush-all)
-      (values)
-      )))
+      (values))))
 	 
 (defun show-module-in-chaos-syntax (mod)
   (with-in-module (mod)
     (let ((*print-pretty* t))
-      (format t "~&~s" (object-decl-form mod))))
-  )
+      (format t "~&~s" (object-decl-form mod)))))
 
 ;;; PRINT-MODULE-SORTS
 ;;;-----------------------------------------------------------------------------
