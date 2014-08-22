@@ -39,8 +39,7 @@
 			   (:file "tree-display")
 			   (:file "lex")
 			   (:file "reader")
-			   (:file "lol")
-			   (:file "lol2")
+			   (:file "let-over-lambda")
 			   ))
      (:module "chaos"
 	      :components ((:module primitives

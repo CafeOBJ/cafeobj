@@ -66,8 +66,8 @@
      "tree-display"
      "lex"
      "reader"
-     "lol"
-     "lol2"))
+     "let-over-lambda"
+     ))
   )
 
 (excl:defsystem :chaos

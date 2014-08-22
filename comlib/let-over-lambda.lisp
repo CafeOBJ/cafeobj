@@ -1,6 +1,7 @@
-;;;-*- Mode:Lisp; Syntax:Common-Lisp; Package:CHAOS -*-
-(in-package :CHAOS)
-;;;
+;;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: LET-OVER-LAMBDA; Base: 10 -*- file: let-over-lambda.lisp
+
+;; (in-package #:let-over-lambda)
+(in-package :chaos)
 
 ;; Antiweb (C) Doug Hoyte
 
@@ -24,6 +25,153 @@
 ;; code useful, or would like documentation,
 ;; please consider buying the book!
 
+;; Safety feature for SBCL>=v1.2.2
+#+sbcl
+(if (string-lessp (lisp-implementation-version) "1.2.2")
+    (pushnew :safe-sbcl *features*)
+    (setq *features* (remove :safe-sbcl *features*)))
+
+(defun group (source n)
+  (if (zerop n) (error "zero length"))
+  (labels ((rec (source acc)
+             (let ((rest (nthcdr n source)))
+               (if (consp rest)
+                   (rec rest (cons
+                               (subseq source 0 n)
+                               acc))
+                   (nreverse
+                     (cons source acc))))))
+    (if source (rec source nil) nil)))
+
+(eval-when (:compile-toplevel :execute :load-toplevel)
+  (defun mkstr (&rest args)
+    (with-output-to-string (s)
+      (dolist (a args) (princ a s))))
+
+  (defun symb (&rest args)
+    (values (intern (apply #'mkstr args))))
+
+  (defun flatten (x)
+    (labels ((rec (x acc)
+                  (cond ((null x) acc)
+                        #+(and sbcl (not safe-sbcl))
+                        ((typep x 'sb-impl::comma) (rec (sb-impl::comma-expr x) acc))
+                        ((atom x) (cons x acc))
+                        (t (rec
+                             (car x)
+                             (rec (cdr x) acc))))))
+      (rec x nil)))
+
+  (defun g!-symbol-p (s)
+    (and (symbolp s)
+         (> (length (symbol-name s)) 2)
+         (string= (symbol-name s)
+                  "G!"
+                  :start1 0
+                  :end1 2)))
+
+  (defun o!-symbol-p (s)
+    (and (symbolp s)
+         (> (length (symbol-name s)) 2)
+         (string= (symbol-name s)
+                  "O!"
+                  :start1 0
+                  :end1 2)))
+
+  (defun o!-symbol-to-g!-symbol (s)
+    (symb "G!"
+          (subseq (symbol-name s) 2))))
+
+(defmacro defmacro/g! (name args &rest body)
+  (let ((syms (remove-duplicates
+               (remove-if-not #'g!-symbol-p
+                              (flatten body)))))
+    `(defmacro ,name ,args
+       (let ,(mapcar
+              (lambda (s)
+                `(,s (gensym ,(subseq
+                               (symbol-name s)
+                               2))))
+              syms)
+         ,@body))))
+
+(defmacro defmacro! (name args &rest body)
+  (let* ((os (remove-if-not #'o!-symbol-p args))
+         (gs (mapcar #'o!-symbol-to-g!-symbol os)))
+    `(defmacro/g! ,name ,args
+       `(let ,(mapcar #'list (list ,@gs) (list ,@os))
+          ,(progn ,@body)))))
+
+;; Nestable suggestion from Daniel Herring
+(defun |#"-reader| (stream sub-char numarg)
+  (declare (ignore sub-char numarg))
+  (let (chars (state 'normal) (depth 1))
+    (loop do
+      (let ((curr (read-char stream)))
+        (cond ((eq state 'normal)
+                 (cond ((char= curr #\#)
+                          (push #\# chars)
+                          (setq state 'read-sharp))
+                       ((char= curr #\")
+                          (setq state 'read-quote))
+                       (t
+                          (push curr chars))))
+              ((eq state 'read-sharp)
+                 (cond ((char= curr #\")
+                          (push #\" chars)
+                          (incf depth)
+                          (setq state 'normal))
+                       (t
+                          (push curr chars)
+                          (setq state 'normal))))
+              ((eq state 'read-quote)
+                 (cond ((char= curr #\#)
+                          (decf depth)
+                          (if (zerop depth) (return))
+                          (push #\" chars)
+                          (push #\# chars)
+                          (setq state 'normal))
+                       (t
+                          (push #\" chars)
+                          (if (char= curr #\")
+                            (setq state 'read-quote)
+                            (progn
+                              (push curr chars)
+                              (setq state 'normal)))))))))
+   (coerce (nreverse chars) 'string)))
+
+(set-dispatch-macro-character
+  #\# #\" #'|#"-reader|)
+
+; This version is from Martin Dirichs
+(defun |#>-reader| (stream sub-char numarg)
+  (declare (ignore sub-char numarg))
+  (let (chars)
+    (do ((curr (read-char stream)
+               (read-char stream)))
+        ((char= #\newline curr))
+      (push curr chars))
+    (let ((pattern (nreverse chars))
+          output)
+      (labels ((match (pos chars)
+        (if (null chars)
+          pos
+          (if (char= (nth pos pattern) (car chars))
+              (match (1+ pos) (cdr chars))
+              (match 0 (cdr (append (subseq pattern 0 pos) chars)))))))
+        (do (curr
+             (pos 0))
+            ((= pos (length pattern)))
+          (setf curr (read-char stream)
+                pos (match pos (list curr)))
+          (push curr output))
+        (coerce
+          (nreverse
+            (nthcdr (length pattern) output))
+          'string)))))
+
+(set-dispatch-macro-character
+  #\# #\> #'|#>-reader|)
 
 (defun segment-reader (stream ch n)
   (if (> n 0)
@@ -72,7 +220,7 @@
            (segment-reader stream
                            (read-char stream)
                            2)))
-      (t (error "Unknown #~~ mode character ~s" mode-char)))))
+      (t (error "Unknown #~~ mode character")))))
 
 #+cl-ppcre
 (set-dispatch-macro-character #\# #\~ #'|#~-reader|)
@@ -100,6 +248,18 @@
 (defmacro aif (test then &optional else)
   `(let ((it ,test))
      (if it ,then ,else)))
+
+(eval-when (:compile-toplevel :execute :load-toplevel)
+    (defun |#`-reader| (stream sub-char numarg)
+      (declare (ignore sub-char))
+      (unless numarg (setq numarg 1))
+      `(lambda ,(loop for i from 1 to numarg
+                      collect (symb 'a i))
+         ,(funcall
+            (get-macro-character #\`) stream nil)))
+
+    (set-dispatch-macro-character
+      #\# #\` #'|#`-reader|))
 
 (defmacro alet% (letargs &rest body)
   `(let ((this) ,@letargs)
@@ -168,8 +328,6 @@
      (funcall ,box :pandoric-set ,sym ,val)
      ,val))
 
-
-
 (defmacro with-pandoric (syms box &rest body)
   (let ((g!box (gensym "box")))
     `(let ((,g!box ,box))
@@ -179,19 +337,13 @@
                     syms))
          ,@body))))
 
-
-
 (defun pandoric-hotpatch (box new)
   (with-pandoric (this) box
     (setq this new)))
 
-
-
 (defmacro pandoric-recode (vars box new)
   `(with-pandoric (this ,@vars) ,box
      (setq this ,new)))
-
-
 
 (defmacro plambda (largs pargs &rest body)
   (let ((pargs (mapcar #'list pargs)))
@@ -206,8 +358,6 @@
                 (t (&rest args)
                   (apply this args)))))))
 
-
-
 (defvar pandoric-eval-tunnel)
 
 (defmacro pandoric-eval (vars expr)
@@ -217,14 +367,19 @@
               ,',vars pandoric-eval-tunnel
               ,,expr))))
 
-
 ;; Chapter 7
-
+(eval-when (:compile-toplevel :execute :load-toplevel)
+    (set-dispatch-macro-character #\# #\f
+       (lambda (stream sub-char numarg)
+         (declare (ignore stream sub-char))
+         (setq numarg (or numarg 3))
+         (unless (<= numarg 3)
+           (error "Bad value for #f: ~a" numarg))
+         `(declare (optimize (speed ,numarg)
+                             (safety ,(- 3 numarg)))))))
 
 (defmacro fast-progn (&rest body)
   `(locally #f ,@body))
-
-
 
 (defmacro safe-progn (&rest body)
   `(locally #0f ,@body))
@@ -245,8 +400,6 @@
              ,g!stream ,@args))))
     form))
 
-
-
 (declaim (inline make-tlist tlist-left
                  tlist-right tlist-empty-p))
 
@@ -254,8 +407,6 @@
 (defun tlist-left (tl) (caar tl))
 (defun tlist-right (tl) (cadr tl))
 (defun tlist-empty-p (tl) (null (car tl)))
-
-
 
 (declaim (inline tlist-add-left
                  tlist-add-right))
@@ -273,8 +424,6 @@
       (setf (cddr tl) x))
     (setf (cdr tl) x)))
 
-
-
 (declaim (inline tlist-rem-left))
 
 (defun tlist-rem-left (tl)
@@ -286,14 +435,10 @@
         (setf (cdr tl) nil)) ;; For gc
       (car x))))
 
-
-
 (declaim (inline tlist-update))
 
 (defun tlist-update (tl)
   (setf (cdr tl) (last (car tl))))
-
-
 
 (defun build-batcher-sn (n)
   (let* (network
@@ -314,8 +459,6 @@
       (setf p (ash p -1)))
     (nreverse network)))
 
-
-
 (defmacro! sortf (comparator &rest places)
   (if places
     `(tagbody
@@ -327,15 +470,7 @@
                        #2# ,g!a)))
            (build-batcher-sn (length places))))))
 
-
-
-
-
-
 ;;;;;; NEW CODE FOR ANTIWEB
-
-
-
 #+cl-ppcre
 (defun dollar-symbol-p (s)
   (and (symbolp s)
@@ -345,8 +480,6 @@
                 :start1 0
                 :end1 1)
        (ignore-errors (parse-integer (subseq (symbol-name s) 1)))))
-
-
 
 (defun prune-if-match-bodies-from-sub-lexical-scope (tree)
   (if (consp tree)
@@ -381,4 +514,4 @@
   `(if-match (,test ,str)
      (progn ,conseq ,@more-conseq)))
 
-;;; EOF
+;; EOF

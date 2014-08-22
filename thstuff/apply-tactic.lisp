@@ -408,7 +408,7 @@
 	  (when (is-true? (rule-condition rule))
 	    ;; already CT
 	    (when report-header
-	      (format t "~%[~a] found contradiction: ")
+	      (format t "~%[~a] found contradiction: " report-header)
 	      (print-axiom-brief rule))
 	    (return-from check-ct-with-axioms :ct)))
 	(dolist (rule tf-rules)
