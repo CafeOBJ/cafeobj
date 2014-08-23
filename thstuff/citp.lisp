@@ -16,11 +16,14 @@
     (with-output-chaos-error ('no-context)
       (format t "No context module is specified, please 'select' or 'open' a module."))))
 
-(defun check-context-module-and-ptree ()
-  (check-context-module)
+(defun check-ptree ()
   (unless *proof-tree*
     (with-output-chaos-error ('no-proof-tree)
-      (format t "No goal is specified."))))
+      (format t "No proof is ongoing."))))
+
+(defun check-context-module-and-ptree ()
+  (check-context-module)
+  (check-ptree))
 
 ;;; ============================
 ;;; CITP related command parsers
@@ -162,7 +165,7 @@
 
 ;;; :apply/:auto
 (defun eval-citp-apply (list-tactic)
-  (check-context-module-and-ptree)
+  (check-ptree)
   (let ((target (car list-tactic))
 	(tactics (cdr list-tactic)))
     (if target
@@ -175,7 +178,7 @@
 ;;; :ind on
 ;;;
 (defun eval-citp-ind-on (vars)
-  (check-context-module-and-ptree)
+  (check-ptree)
   (with-in-module (*current-module*)
     (set-induction-variables vars)))
 
@@ -183,45 +186,42 @@
 ;;;
 (defun eval-citp-roll-back (&rest com)
   (declare (ignore com))
-  (check-context-module-and-ptree)
+  (check-ptree)
   (with-in-module (*current-module*)
     (roll-back *proof-tree*)))
   
 ;;; :init
 ;;;
 (defun eval-citp-init (args)
-  (check-context-module-and-ptree)
+  (check-ptree)
   (with-in-module (*current-module*)
     (instanciate-axiom (first args)	; target
 		       (second args))))	; variable-term pairs
 
 ;;; :cp
 (defun eval-citp-critical-pair (args)
-  (check-context-module-and-ptree)
+  (check-ptree)
   (with-in-module (*current-module*)
     (apply-cp (first args) (second args))))
 
 ;;; :equation : {:equation| :rule} -> void
 (defun eval-citp-equation (arg)
-  (check-context-module-and-ptree)
+  (check-ptree)
   (add-critical-pairs arg :forward))
 
 ;;; :backward
 (defun eval-citp-backward (arg)
-  (check-context-module-and-ptree)
+  (check-ptree)
   (add-critical-pairs arg :backward))
 
 ;;; :select
 (defun eval-citp-select (goal-name)
-  ;;(check-context-module-and-ptree)
-  (unless *proof-tree*
-    (with-output-chaos-error ('no-proof)
-      (format t "No proof is ongoing.")))
+  (check-ptree)
   (select-next-goal goal-name))
 
 ;;; :lred
 (defun eval-citp-lred (token-sec)
-  (check-context-module-and-ptree)
+  (check-ptree)
   (reduce-in-current-goal token-sec))
 
 ;;; EOF

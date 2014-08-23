@@ -116,7 +116,9 @@
 
 (defmacro with-citp-debug (&rest body)
   `(when *debug-citp*
-     (let ((*print-indent* (+ 2 *print-indent*)))
+     (let ((*print-indent* (+ 2 *print-indent*))
+	   (*print-line-limit* 90))
+       (declare (type fixnum *print-indent* *print-line-limit*))
        ,@body)))
 
 )
