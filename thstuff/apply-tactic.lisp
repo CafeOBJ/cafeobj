@@ -1185,9 +1185,6 @@
 (defun gsubterm-has-matching-rule (gterm c-rules)
   (declare (type term gterm)
 	   (type list c-rules))
-  (with-citp-debug ()
-    (format t "~%[ca] sub ground term check: ")
-    (term-print-with-sort gterm))
   (dolist (term (delete gterm (get-gterms gterm)))
     (with-citp-debug ()
       (format t "~%  check : ")
@@ -1197,12 +1194,12 @@
 	  (@matcher (axiom-lhs crule) term :match)
 	(declare (ignore eeq sub gs))
 	(unless no-match
-	  ;;#||
+	  #||
 	  (with-citp-debug
 	      (format t "~%[ca] sub has matching rule: ") (print-axiom-brief crule)
 	      (print-next)
 	      (term-print-with-sort gterm))
-	  ;;||#
+	  ||#
 	  (return-from gsubterm-has-matching-rule t)))))
   nil)
 
@@ -1253,35 +1250,6 @@
 					      (substitution-image-simplifying n-subst (rule-condition rule))))
 		  (unless (term-equational-equal n-cond-inst cond-instance)
 		    (push n-cond-inst res)))))))))
-    #||
-    (let ((tres nil))
-      (flet ((distribute-cond (term)
-	       (if (method= *bool-cond-op* (term-head term))
-		   (list-assoc-subterms term *bool-cond-op*)
-		 (list term))))
-	(dolist (condition res)
-	  (let ((temp-res nil))
-	    (let ((dcond (distribute-cond condition)))
-	      ;; eliminate duplicated instance of condition among all ground terms.
-	      (dolist (d dcond)
-		(let ((c-g (assoc d .subst-so-far. :test #'term-equational-equal)))
-		  (when (or (null c-g)
-			    (eq gterm (cdr c-g)))
-		    (push (cons d gterm) .subst-so-far.)
-		    (push d temp-res))))
-	      (if temp-res
-		  (if (cdr temp-res)
-		      (push (make-applform-simple (method-coarity *bool-cond-op*)
-						  *bool-cond-op*
-						  (reverse temp-res))
-			    tres)
-		    (push (car temp-res) tres))))))
-	(with-citp-debug ()
-	  (format t "~%[ca] cases for: ") (term-print-with-sort gterm)
-	  (dolist (i res)
-	    (print-next)
-	    (term-print-with-sort i)))))
-    ||#
     ;;
     (with-citp-debug ()
       (format t "~%found cases for ") (term-print-with-sort gterm)
@@ -1316,7 +1284,7 @@
 		    (print-axiom-brief axs))
 		  (set-operator-rewrite-rule *current-module* axs)
 		  (adjoin-axiom-to-module *current-module* axs)
-		  (push axs case-axioms))))))) ;------
+		  (push axs case-axioms)))))))
       (compile-module *current-module* t)
       (setf (goal-assumptions next-goal) (append (goal-assumptions next-goal)
 						 (nreverse case-axioms))))))
@@ -1399,18 +1367,6 @@
 	;; make all combinations and generate cases
 	(let ((rv-combs (select-comb-elems g-conditions))
 	      (next-goal nil))
-	  (with-citp-debug ()
-	    (format t "~%[ca] gterm conditions --before normalization: ")
-	    (if rv-combs
-		(let ((rv-com nil))
-		  (dotimes (x (length rv-combs))
-		    (setq rv-com (nth x rv-combs))
-		    (print-next)
-		    (format t "--(~d)--" (1+ x))
-		    (dolist (rr rv-com)
-		      (print-next)
-		      (term-print-with-sort rr))))
-	      (format t "NONE.")))
 	  ;; distribute /\  and delete duplicated conditions
 	  (setq rv-combs (normalize-cases rv-combs ptree-node))
 	  (with-citp-debug ()
