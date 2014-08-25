@@ -109,6 +109,7 @@
 ;;; *proof-tree* binds current proof tree structure
 (defvar *proof-tree* nil)
 (defvar *next-default-proof-node* nil)
+(defvar *citp-verbose* nil)
 
 (defvar *rewrite-stepping* nil)		; flag, non-nil -> under stepping.
 (declaim (type (or null fixnum) *rewrite-count-limit*))

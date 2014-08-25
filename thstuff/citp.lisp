@@ -144,9 +144,29 @@
     goal-name))
 
 ;;;
-;;; citp-parse-lred
+;;; citp-parse-red
 ;;;
-(defun citp-parse-lred (args)
+(defun citp-parse-red (e)
+  (let (goal-name
+	preterm
+	mode)
+    (case-equal (first e)
+		((":red" ":lred" "lred") (setq mode :red))
+		((":exec") (setq mode :exec))
+		((":bred") (setq mode :bred)))
+    (if (= 4 (length e)) 
+	(progn
+	  (setq goal-name (cadr (cadr e))); (find-goal-node *proof-tree* (cadr (cadr e)))
+	  (setq preterm (nth 2 e)))
+      (progn
+	(setq goal-name nil)
+	(setq preterm (nth 1 e))))
+    (list mode goal-name preterm)))
+
+;;;
+;;; citp-parse-verbose
+;;;
+(defun citp-parse-verbose (args)
   (second args))
 
 ;;; ================================
@@ -168,12 +188,14 @@
   (check-ptree)
   (let ((target (car list-tactic))
 	(tactics (cdr list-tactic)))
-    (if target
-	(case target
-	  (:auto (apply-auto *proof-tree*))
-	  (otherwise
-	   (apply-tactics-to-goal *proof-tree* target tactics)))
-      (apply-tactics *proof-tree* tactics))))
+    (let ((*chaos-verbose* nil)
+	  (*chaos-quiet* t))
+      (if target
+	  (case target
+	    (:auto (apply-auto *proof-tree*))
+	    (otherwise
+	     (apply-tactics-to-goal *proof-tree* target tactics)))
+	(apply-tactics *proof-tree* tactics)))))
 
 ;;; :ind on
 ;;;
@@ -219,9 +241,23 @@
   (check-ptree)
   (select-next-goal goal-name))
 
-;;; :lred
-(defun eval-citp-lred (token-sec)
+;;; :red, :exec, :bred
+(defun eval-citp-red (token-seq)
   (check-ptree)
-  (reduce-in-current-goal token-sec))
+  (let ((mode (first token-seq))
+	(goal-name (second token-seq))
+	(pre-term (third token-seq)))
+    (reduce-in-goal mode goal-name pre-term)))
+
+;;; :verbose
+(defun eval-citp-verbose (token)
+  (check-ptree)
+  (if (string-equal token "on")
+      (setq *citp-verbose* t)
+    (if (string-equal token "off")
+	(setq *citp-verbose* nil)
+      (with-output-chaos-error ('invlid-value)
+	(format t "Unknown parameter ~s." token)))))
+
 
 ;;; EOF

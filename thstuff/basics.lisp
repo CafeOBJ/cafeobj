@@ -100,8 +100,7 @@ File: basics.lisp
 
 (defun !make-right-associative (method subs)
   (if (null (cdr subs)) (car subs)
-    (make-right-assoc-normal-form method subs)
-    ))
+    (make-right-assoc-normal-form method subs)))
 
 ;;; <OccurSelection>
 ;;; ________________
@@ -454,21 +453,11 @@ File: basics.lisp
 ;;; FOR :=
 ;;;
 (defun match-m-pattern (pat term)
-  #||
-  (format t "~&[m-pat]: pattern= ")
-  (term-print pat)
-  (format t "~&         term= ")
-  (term-print term)
-  ||#
   (multiple-value-bind (res subst)
       (@pat-match pat term)
     (when res
       (dolist (sub subst)
 	(push sub *m-pattern-subst*))
-      #||
-      (format t "~&[m-pat-subst]= ")
-      (print-substitution *m-pattern-subst*)
-      ||#
       (return-from match-m-pattern t))
     nil))
 
@@ -482,52 +471,6 @@ File: basics.lisp
           (when (and r (@test-rule-direct r term type))
             (return t)))
       nil)))
-
-#|| moved to construct/axiom.lisp
-
-;;; ***********************
-;;; FINDING SPECIFIED RULES
-;;; ***********************
-
-;;; get-rule-numbered : mdoule number -> rule
-;;;
-(defun get-rule-numbered (mod n)
-  (!setup-reduction mod)
-  (when (<= n 0)
-    (with-output-chaos-error ('invalid-rule-number)
-      (format t "rule number must be greater than 0.")
-      ))
-  (let* ((*module-all-rules-every* t)
-         (res (nth (1- n) (get-module-axioms mod t))))
-    (if (null res)
-        (with-output-chaos-error ('selection-out-of-bound)
-          (format t "selected rule doesn't exist, ~d" n)
-          )
-      res)))
-
-(defun get-all-rules-labelled (mod l)
-  (!setup-reduction mod)
-  (let ((res nil)
-        (*module-all-rules-every* t))
-    (dolist (rul (get-module-axioms mod t))
-      (when (memq (intern l) (axiom-labels rul))
-        (push rul res)))
-    res))
-
-(defun get-rule-labelled (mod l)
-  (let ((val (get-all-rules-labelled mod l)))
-    (if (null val)
-        (with-output-chaos-error ('no-rule-label)
-          (format t "No rule with label: ~a" l)
-          )
-      (if (and val (null (cdr val)))
-          (car val)
-        (progn
-          (princ "no unique rule with label: ") (princ l) (terpri)
-          (chaos-error 'ambiguous-label)))
-      )))
-
-||#
 
 ;;; *********************
 ;;; VARIABLE SUBSTITUTION
@@ -608,8 +551,7 @@ File: basics.lisp
               (format t "~% target was ")
               (term-print term)
               (break "wow!")
-              (chaos-error 'panic)))
-          )))
+              (chaos-error 'panic))))))
     cur))
 
 (defun find-matching-rules-all (what target module &optional (type :match) (start-pos nil))
@@ -630,8 +572,7 @@ File: basics.lisp
                                          (append pos (list (1+ x))))))
         (when r (setq result (nconc result r)))))
     ;;
-    result)
-  )
+    result))
 
 (defun find-matching-rules (what target module &optional (type :match))
   (with-in-module (module)
@@ -669,12 +610,6 @@ File: basics.lisp
                                                 :-rule))
                     res)))))
       (nreverse res))))
-
-;;; not used
-#||
-(defun make-variable-psuedo-constant (var)
-  (make-pvariable-term (variable-sort var) (variable-name var)))
-||#
 
 (defun compute-extra-variables (rule direction)
   (let ((lhs (axiom-lhs rule))

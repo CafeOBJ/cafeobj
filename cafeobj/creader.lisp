@@ -764,8 +764,11 @@
 	((:+ |:equation| |:rule|))
 	(|:backward| (:+ equation rule |:equation| |:rule|))
 	(|:select| (:symbol))
-	((:+ |:lred| lred)
-         (:rdr #..term-delimiting-chars. (:seq-of :term) |.|))
+	((:+ |:red| |lred| |:lred| |:exec| |:bred|)
+	 (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
+	(|:verbose| :symbol)
+	;; blocked comment
+	(|**{| :bcomment)
         ))				; end Top-Form
 
       ;; some separated definitions of non-terminals.

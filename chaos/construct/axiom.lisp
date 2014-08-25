@@ -844,15 +844,12 @@
 	   (type (or symbol simple-string) l))
   (let ((val (get-all-rules-labelled mod l)))
     (if (null val)
-	(with-output-chaos-error ()
-	  (format t "No rule with label: ~a" l)
-	  (chaos-to-top))
+	(with-output-chaos-error ('no-rule)
+	  (format t "No rule with label: ~a" l))
 	(if (and val (null (cdr val)))
 	    (car val)
-	    (progn
-	      (princ "no unique rule with label: ") (princ l) (terpri)
-	      (chaos-to-top)))
-	)))
+	    (with-output-chaos-error ('no-unique-rule)
+	      (format t "No unique rule with label: ~a" l))))))
 
 ;;; ************************
 ;;; COMPUTING RULE SPECIFIER

@@ -2235,13 +2235,22 @@ Do nothing.
     :doc "TODO"
     )
 
-(define (":lred" "lred")
+(define (":red" ":exec" ":bred")
     :category :proof
-    :parser citp-parse-lred
-    :evaluator eval-citp-lred
+    :parser citp-parse-red
+    :evaluator eval-citp-red
     :title "`:lred <term> .`"
     :doc "TODO"
     )
+
+(define (":verbose")
+    :category :proof
+    :parser citp-parse-verbose
+    :evaluator eval-citp-verbose
+    :title "`:verbose { on | off }`"
+    :doc "TODO"
+    )
+
 ;;;
 )					; end eval-when
 ;;; EOF
