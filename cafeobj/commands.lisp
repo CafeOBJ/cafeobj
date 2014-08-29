@@ -46,6 +46,12 @@
 ;;;   "## ~a ## {#~a}~2%~a~2%" :title :mdkey :doc
 ;;;
 ;;; Note: entries *without* a :doc key will not be handled by the doc system
+
+(define (":is")
+    :type :doc-only
+    :doc "Boolean expression: `A :is B` where `A` is a term and
+`B` is a sort. Returns true if `A` is of sort `B`.
+")
   
 (define ("!")
     :category :misc
