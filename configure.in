@@ -1,6 +1,32 @@
 dnl configure.in for Chaos(CafeOBJ)
-dnl $Id: configure.in,v 1.49 2010-08-09 01:43:54 sawada Exp $
 dnl apply autoconf to this file for producing a configure script.
+dnl
+dnl Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+dnl
+dnl Redistribution and use in source and binary forms, with or without
+dnl modification, are permitted provided that the following conditions
+dnl are met:
+dnl
+dnl   * Redistributions of source code must retain the above copyright
+dnl     notice, this list of conditions and the following disclaimer.
+dnl
+dnl   * Redistributions in binary form must reproduce the above
+dnl     copyright notice, this list of conditions and the following
+dnl     disclaimer in the documentation and/or other materials
+dnl     provided with the distribution.
+dnl
+dnl THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+dnl OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+dnl WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+dnl ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+dnl DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+dnl DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+dnl GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+dnl INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+dnl WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+dnl NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+dnl SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+dnl
 
 AC_INIT(./sysdef.asd)
 AC_PREREQ(2.4)dnl Required Autoconf version.
