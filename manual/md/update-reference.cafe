@@ -1,4 +1,0 @@
-ev (load "../../cafeobj/commands.lisp")
-gendoc reference.md
-quit
-

@@ -1,4 +1,0 @@
-\define{\_u{x}}{\x}
-\define{\_color{x}{y}}{\y}
-\define{\_abbr{x}{y}}{\y}
-\define{\_cafeobj}{CafeOBJ}

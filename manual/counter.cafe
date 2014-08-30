@@ -1,7 +1,0 @@
-module* COUNTER {
-  protecting (SIMPLE-NAT)
-  *[ Counter ]*
-  bop read : Counter -> Nat
-  bop add : Nat Counter -> Counter
-  eq read(add(N:Nat, C:Counter)) = N + read(C) .
-}
