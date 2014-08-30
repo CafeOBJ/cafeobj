@@ -1,0 +1,4 @@
+\define{\_u{x}}{\underline{\x}}
+\define{\_color{x}{y}}{\textcolor{\x}{\y}}
+\define{\_abbr{x}{y}}{\y\footnote{\x}}
+\define{\_cafeobj}{\textsf{CafeOBJ}}

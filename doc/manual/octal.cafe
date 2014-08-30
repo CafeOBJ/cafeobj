@@ -1,0 +1,16 @@
+module OCTAL {
+  [ OctalDigit ]
+  ops 0 1 2 3 4 5 6 7 : -> OctalDigit
+}
+
+module HEX {
+  [ HexDigit ]
+  ops 0 1 2 3 4 5 6 7 8 9 : -> HexDigit
+  ops A B C D E F : -> HexDigit
+}
+
+module HEX+OCTAL {
+  protecting (OCTAL)
+  protecting (HEX)
+}
+

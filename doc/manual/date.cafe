@@ -1,0 +1,29 @@
+module DATE {
+  protecting(NAT)
+  record Date {
+    year : Nat
+    month : Nat
+    day : Nat
+  }
+}
+
+module TIME {
+  protecting(DATE)
+  record Time [ Date ] {
+    hour : Nat
+    minute : Nat
+  }
+}
+
+module TIME2 {
+  protecting(DATE)
+  record Week { day : Nat }
+  record Time' 
+   [Date * (day -> day-of-the-month),
+    Week * (day -> day-of-the-week)]
+  { 
+    hour : Nat
+    minute : Nat
+  }
+}
+

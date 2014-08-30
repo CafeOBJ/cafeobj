@@ -1,0 +1,5 @@
+module INTB {
+  [ NonPos Nat < Int ]
+  op 0 : -> NonPos
+  op 0 : -> Nat
+}
