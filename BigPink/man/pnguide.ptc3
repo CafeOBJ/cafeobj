@@ -1,8 +1,0 @@
-{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {20}仕様検証システムの機能}{\reset@font\ptcSfont 48}}
-{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {21}仕様検証システムの新規コマンド}{\reset@font\ptcSfont 49}}
-{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {22}シグニチャマッチング}{\reset@font\ptcSfont 50}}
-{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {22.1}シグニチャマッチングの考え方}{\reset@font\ptcSSfont 50}}
-{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {22.2}シグニチャマッチングの例}{\reset@font\ptcSSfont 51}}
-{\reset@font\ptcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {23}詳細化検証の例}{\reset@font\ptcSfont 52}}
-{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {23.1}QUEUE と STACK}{\reset@font\ptcSSfont 52}}
-{\reset@font\ptcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {23.2}モノイドと自然数上の演算の例}{\reset@font\ptcSSfont 53}}
