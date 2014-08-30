@@ -245,8 +245,10 @@
 		       (x-rhs (normalize-term-in module (reset-reduced-flag rhs))))
 		   (when (term-equational-equal x-lhs x-rhs)
 		     (setq result :st)))))
+	      #||
 	      ((is-false? condition)
 	       (setq result :ic))
+	      ||#
 	      (t (setq result nil)))
 	;;
 	(with-citp-debug ()
@@ -1252,10 +1254,11 @@
 		    (push n-cond-inst res)))))))))
     ;;
     (with-citp-debug ()
-      (format t "~%found cases for ") (term-print-with-sort gterm)
-      (dolist (i res)
-	(print-next)
-	(term-print-with-sort i)))
+      (when res
+	(format t "~%found cases for ") (term-print-with-sort gterm)
+	(dolist (i res)
+	  (print-next)
+	  (term-print-with-sort i))))
     (remove-duplicates res :test #'term-equational-equal)))
 
 ;;;

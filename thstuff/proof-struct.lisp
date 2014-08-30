@@ -444,9 +444,14 @@
 ;;;
 ;;; make-tc-const-name : proof-tree prefix -> string
 ;;;
+#||
 (defun make-tc-const-name (variable)
   (format nil "~:@(~a~)@~a-~d" (variable-name variable) (sort-name (variable-sort variable))
 	  (incf (ptree-num-gen-const *proof-tree*))))
+||#
+
+(defun make-tc-const-name (variable)
+  (format nil "~:@(~a~)@~a" (variable-name variable) (sort-name (variable-sort variable))))
 
 ;;; 
 ;;; variable->constant : goal variable -> term
@@ -474,6 +479,11 @@
 ;;;
 ;;; variable->constructor : goal variable op -> term
 ;;;
+#||
+(defun make-ind-const-name (name-prefix)
+  (format nil "~a#~d" name-prefix (incf (ptree-num-gen-const *proof-tree*))))
+||#
+
 (defun make-ind-const-name (name-prefix)
   (format nil "~a#~d" name-prefix (incf (ptree-num-gen-const *proof-tree*))))
 
