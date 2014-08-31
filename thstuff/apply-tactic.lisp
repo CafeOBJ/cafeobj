@@ -272,17 +272,11 @@
 		       (x-rhs (normalize-term-in module (reset-reduced-flag rhs))))
 		   (when (term-equational-equal x-lhs x-rhs)
 		     (setq result :st)))))
-	      #||
-	      ((is-false? condition)
-	       (setq result :ic))
-	      ||#
 	      (t (setq result nil)))
-	;;
 	(with-citp-debug ()
 	  (format t "~% --> ~a: " result)
 	  (print-next)
 	  (print-axiom-brief norm-sen))
-	;;
 	(values result norm-sen)))))
 
 ;;; check-contradiction : module -> Bool
@@ -367,7 +361,7 @@
 	axiom))))
 
 ;;;
-;;; condition-axioms : 
+;;; condition->axioms : module term -> List(axiom)
 ;;;
 (defun condition->axioms (module condition &optional (rule-label nil))
   (with-in-module (module)
@@ -389,8 +383,6 @@
 	  (print-next)
 	  (print-axiom-brief ax)))
       axs)))
-
-(defparameter .ct-trial-context-module. (%module-decl* "ct-trial-dummy" :object :user nil))
 
 (defun axiom-is-an-instance-of (ax cx module)
   (with-in-module (module)
@@ -516,32 +508,41 @@
   (when (cdr (goal-targets goal))
     (with-output-chaos-error ('invalid-proof-seq)
       (format t "Internal error. more than one target!")))
-  (with-in-module ((goal-context goal))
-    (let ((target (car (goal-targets goal)))
-	  (context (goal-context goal)))
+    (let ((target (car (goal-targets goal))))
+      (multiple-value-bind (discharged normalized-target original-target)
+	  (do-check-sentence target goal report-header)
+	(when discharged
+	  (setf (goal-targets goal) nil
+		(goal-proved goal) (list original-target)))
+	(values discharged normalized-target original-target))))
+	  
+
+(defun do-check-sentence (target goal &optional report-header)
+  (let ((mod (goal-context goal)))
+    (with-in-module (mod)
       (multiple-value-bind (result norm-target marked-target)
-	  (check-sentence&mark-label target context report-header)
+	  (check-sentence&mark-label target *current-module* report-header)
 	(cond (result
-	       ;; dischared by some reason
-	       (setf (goal-targets goal) nil)
-	       (setf (goal-proved goal) (list marked-target)))
+	       ;; goal is dischared by some reason
+	       ;; 
+	       )
 	      ((and (is-true? (rule-condition target))
 		    (eq (rule-type target) :equation))
-	       (setf target (rule-copy-canonicalized target context))
+	       (setf target (rule-copy-canonicalized target *current-module*))
 	       (setf (rule-lhs target) (make-applform-simple *bool-sort*
 							     *eql-op*
 							     (list (rule-lhs target)
 								   (rule-rhs target)))
 		     (rule-rhs target) *bool-true*)
 	       (multiple-value-bind (res-2 norm-target-2 marked-target-2)
-		   (check-sentence&mark-label target context report-header)
+		   (check-sentence&mark-label target *current-module* report-header)
 		 (declare (ignore norm-target-2 marked-target-2))
 		 (when res-2
-		   (setf (goal-targets goal) nil)
-		   (setf (goal-proved goal) (list marked-target)))))
+		   (setf result res-2))))
 	      (t ;; nothing to do
 	       ))
 	(values result norm-target marked-target)))))
+
 ;;;
 ;;; try-prove-with-axioms : module List(axiom) axiom : -> { :satisfied | :ct | nil }
 ;;;
@@ -1148,8 +1149,6 @@
 ;;; =======================
 ;;; TACTIC: REDUCTION [RD]
 ;;; =======================
-
-
 (defun apply-rd (ptree-node)
   (declare (type ptree-node ptree-node))
   (let* ((cur-goal (ptree-node-goal ptree-node))
@@ -1162,7 +1161,7 @@
 	(compile-module *current-module* t)
 	(dolist (target cur-targets)
 	  (multiple-value-bind (c-result cur-target original-sentence)
-	      (check-sentence&mark-label target *current-module* 'rd)
+	      (do-check-sentence target cur-goal 'rd)
 	    (cond (c-result		; satisfied or contradition
 		   (setq result t)
 		   (push original-sentence discharged))
@@ -1417,8 +1416,12 @@
 		     (setq next-goal (prepare-next-goal ptree-node .tactic-ca.))
 		     (setf (goal-targets next-goal) (list target))
 		     (generate-case-axioms next-goal rv-com)
-		     (push next-goal next-goals))))
-		(t (push target remainings)))))
+		     (push next-goal next-goals)))
+		 ;; normalize the target after adding cases
+		 (normalize-sentence target *current-module*))
+		(t
+		 ;; no case is generated for the target
+		 (push target remainings)))))
       ;;
       (when remainings
 	(when (or next-goals app? divide?)
@@ -1426,7 +1429,17 @@
 	      (apply-nil-internal ptree-node (reverse remainings) nil .tactic-ca.)
 	    (declare (ignore app?))
 	    (dolist(ng nop-goals)
-	      (push ng next-goals)))))
+	      (let ((target (car (goal-targets ng))))
+		;; no case is generated: apply normalization & check the result
+		(multiple-value-bind (discharged normalized-target original-target)
+		    (do-check-sentence target ng)
+		  (when discharged
+		    (format t "~%[ca] discharged: ")
+		    (print-axiom-brief normalized-target)
+		    (setf (goal-targets ng) nil
+			  (goal-proved ng) (list original-target))))
+		(push ng next-goals))))))
+      ;;
       (values next-goals (nreverse next-goals)))))
 
 (defun rule-is-for-case (rule)

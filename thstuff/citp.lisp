@@ -277,7 +277,6 @@
 
 ;;; :verbose
 (defun eval-citp-verbose (token)
-  (check-ptree)
   (if (string-equal token "on")
       (setq *citp-verbose* t)
     (if (string-equal token "off")
