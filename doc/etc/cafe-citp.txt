@@ -1,0 +1,129 @@
+;;;
+;;; CafeOBJ CITP like prover =============================================
+;;;
+
+Here is a brief memo about new commands introduced for CITP like prover for CafeOBJ.
+Descriptions are given merged with with the output of '(help me.)' of Maude CITP.
+Please note that syntax of commands are not fixed, they might be changed 
+reflecting feed backs.
+
+** Maude CITP: (goal ModuleName |- Equations/Rules/Memberships)
+
+In CafeOBJ we firstly set a context module by 
+'select <Modexpr> .' or 'open <Modexpr> .', then do
+:goal { <axiom> .  ... <axiom> .}
+
+** Maude CITP: (set ind on Vars .)		-- specify the variables for induction
+
+:ind on ( <variable> ... <variable> )
+  ex. :set ind on (Var1:Sort-1 Var2:Sort2)
+
+** Maude CITP: (init LEMMA by V <- c .)	-- initialize a lemma by substitution.
+'LEMMA' means label of an axiom or axiom form.
+In CafeOBJ, we specify LEMMA by "["<label>"]" or "(" <axiom> "." ")".
+
+:init [<label] by <Substitutions> 
+:init ( <axiom> ) by <Substitutions> { <variable> <- <term> ; ... <variable> <- <term> ;}
+
+<Substitutions> (list of variable substitution) is given by 
+"{" <variable> "<-" <term> ";" ... <variable> <- <term> ";" "}"
+
+** Maude CITP: (auto goal GoalID .)		-- prove a subgoal
+Not directly implemented, but can obtain the same effect by:
+
+:select GoalID
+:auto
+
+NOTE: ':select <goal-name>' is CafeOBJ specific command and 
+      it sets the next default target goal to be proved.
+      :apply or :auto will apply tactic(s) to this goal.
+      If <goal-name> is '.' it reset the default goal to the next unproved
+      goal. Here 'next' is the left-most inner-most unproved leaf of
+      proof tree.
+
+** Maude CITP: (auto .)			-- try to prove the current goal
+:auto
+
+** Maude CITP: (roll back .)		-- go back to the previous goal
+:roll back
+
+More specifically, 'previous goal' is the parent goal of the
+current target goal. 
+
+** Maude CITP: (apply RuleName .)		-- apply a given rule to default goal
+:apply ( <rule-name> ... <rule-name>)
+
+  where <rule-name> is one of SI, IP, CA, CS, TC, RD, CS.
+  the tactic CS is not yet implemented, and will not be.
+
+** Maude CITP: (apply RuleName to GoalId .)	-- apply a rule to a goal
+Not implemented directly. By combining with :select command
+we can get the same effect:
+
+:select GoalId
+:apply (RuleName RuleName ... RuleName)
+
+** Maude CITP: (cp EQ >< EQ)		-- check critical pairs
+
+:cp (<axiom> >< <axiom> .)
+
+** Maude CITP: (cp Label >< Label .)	-- check critical pairs
+:cp [<label>] >< [<label>]
+
+In CafeOBJ, :cp can be of a form ':cp [<label>] >< (<axiom> .)' or
+':cp (<axiom> . ) >< [<label>]
+
+** Maude CITP: (rule .)			-- add a critical pair as a rule
+:rule
+
+** Maude CITP: (backward rule .)		-- rule in inverse direction
+:backward rule
+
+** Maude CITP: (equation .)			-- add a critical pair as an equation
+:equation
+
+** Maude CITP: (backward equation .)	-- equation in inverse direction
+:bakward equation
+
+** Maude CITP: (show unproved goals .)	-- show all unproved goals
+show unproved goals
+
+** Maude CITP: (show goal GoalID .)		-- show a goal and set it as default
+show goal <goal-name>
+
+** Maude CITP: (show goal .)		-- show the current goal
+show goal
+
+** Maude CITP: (show tactics .)		-- show all tactics
+NOT YET
+
+** Maude CITP: (set tactic PROOF STRATEGY .) -- specify customized proof strategy
+NOT YET
+If we implement this, it will be of the form
+'set tactic to <strategy-name> ( <rule-name> ... <rule-name>)'
+
+** Maude CITP: (select tactic NAT .)	-- to use customized proof strategy
+NOT YET
+
+** Maude CITP: (set module off .)		-- only show added contents in module
+Will not be implemented.
+Context module can be seen by 'show <Context Module Name>'
+
+** Maude CITP: (set module on .)		-- display all content in modules
+See above.
+
+** Maude CITP: (lred <Term> .)		-- reduce term in current goal
+
+:lred <Term> .
+
+** Maude CITP: (help me .)			-- show all commands
+NOT YET. 
+
+----------
+CafeOBJ also introduced the followings:
+
+'show proof'     : displays the current proof tree. only shows nodes.
+'describe proof' : display the current proof tree with 
+                   assumptions, proved axioms, target axioms.
+
+
