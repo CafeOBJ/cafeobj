@@ -1,7 +1,8 @@
-dnl configure.in for Chaos(CafeOBJ)
+dnl configure.ac for Chaos(CafeOBJ)
 dnl apply autoconf to this file for producing a configure script.
 dnl
 dnl Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+dnl Copyright (c) 2014 Norbert Preining. All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
 dnl modification, are permitted provided that the following conditions
@@ -28,15 +29,13 @@ dnl NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 dnl SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 dnl
 
-AC_INIT(./sysdef.asd)
-AC_PREREQ(2.4)dnl Required Autoconf version.
-PACKAGE=cafeobj
-VERSION=1.4
+AC_INIT([CafeOBJ],[1.4], [], [cafeobj], [http://www.cafeobj.org/])
+AC_CONFIG_SRCDIR([make-cafeobj.lisp.in])
+AM_INIT_AUTOMAKE
+AC_PREREQ(2.6)
 VMINOR=.15b3
 VMEMO=PigNose0.99
 PATCHLEVEL=
-AC_SUBST(PACKAGE)
-AC_SUBST(VERSION)
 AC_SUBST(VMINOR)
 AC_SUBST(VMEMO)
 AC_SUBST(PATCHLEVEL)
@@ -53,6 +52,7 @@ dnl AC_PATH_PROG(openmcl_path,openmcl,no)
 AC_PATH_PROG(clozurecl_32path,ccl,no)
 AC_PATH_PROG(clozurecl_64path,ccl64,no)
 AC_PROG_MAKE_SET
+AC_PROG_MKDIR_P
 AC_ARG_WITH(lisp,
 [  --with-lisp[=lisp]	specify the path of Lisp interpter to be used 
 			for building CafeOBJ (defaulted to gcl).],
@@ -113,8 +113,16 @@ xgcl|x)
 	;;
 esac
 AC_SUBST(lisp)
-AC_SUBST(bin_suffix)
 AC_SUBST(exec_command) 
 AC_SUBST(exec_bin)
 AC_SUBST(build_option)
-AC_OUTPUT(Makefile)
+AC_SUBST(bin_suffix)
+enable_doc=yes
+AC_ARG_ENABLE([doc],
+  AS_HELP_STRING([--disable-doc],[Disable rebuilding the docs]))
+AM_CONDITIONAL([COND_DOC], [test "x$enable_doc" = xyes])
+AC_CONFIG_FILES([
+  Makefile 
+  doc/Makefile
+])
+AC_OUTPUT()
