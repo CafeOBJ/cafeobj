@@ -1669,12 +1669,24 @@
       (print-rule-labels rul)
       (princ " "))
     (let ((.file-col. (file-column *standard-output*))
-	  (*print-indent* (+ *print-indent* (length axiom-header))))
+	  (*print-indent* (+ *print-indent* (length axiom-header)))
+	  #||
+	  (mml (mapcan #'(lambda (x) (copy-list (car (method-name x))))
+		       (term-methods (axiom-lhs rul))))
+	  ||#
+	  )
+
       ;; LHS
-      (princ "(")
+      #||
+      (when (member "=" mml :test #'equal) 
+	(princ "("))
+      ||#
       (setq .printed-vars-so-far.
 	(term-print (axiom-lhs rul)))
-      (princ ")")
+      #||
+      (when (member "=" mml :test #'equal)
+	(princ ")"))
+      ||#
       (unless (memq type '(:pignose-axiom :pignose-goal))
 	(setq .file-col. (file-column *standard-output*))
 	(print-check 0 .file-col.)

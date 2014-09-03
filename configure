@@ -1694,7 +1694,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 PACKAGE=cafeobj
 VERSION=1.4
-VMINOR=.15b3
+VMINOR=19b6
 VMEMO=PigNose0.99
 PATCHLEVEL=
 

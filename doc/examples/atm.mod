@@ -6,7 +6,7 @@
 -- AUTHORS: Shuusaku Iida & Razvan Diaconescu
 -- DIFFICULTY: ****
 
-set tram path brute .
+-- set tram path brute . <-- obsolete. now, we don't have tram.
 
 -- we trust system's =*= proof
 set accept =*= proof on

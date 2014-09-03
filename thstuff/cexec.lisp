@@ -1459,7 +1459,9 @@
       (report-rwl-result 
        (rwl-search* term pattern max-r max-d zero? final? cond pred module bind if)))))
 
-;;; rwl-check-one-step-reachability 
+;;; 
+;;; rwl-check-one-step-reachability : term term -> { t | nil }
+;;; working hourse of =>
 ;;;
 (defun rwl-check-one-step-reachability (X Y)
   (declare (type term X Y))

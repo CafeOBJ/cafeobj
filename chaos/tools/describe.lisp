@@ -438,7 +438,7 @@
 (defun show-module (mod &optional (syntax *show-mode*))
   (when (module-is-inconsistent mod)
     (with-output-chaos-warning ()
-      (format t "module is inconsisted and cannot be shown, please redefine it!")
+      (format t "module is inconsistent and cannot be shown, please redefine it!")
       (return-from show-module nil)))
   (compile-module mod)
   (case syntax

@@ -39,12 +39,12 @@
   (if (not (equal "" cafeobj-version-memo))
       (if (not (equal "" patch-level))
           (setq cafeobj-version-minor
-	    (format nil ".15b3(~a,~A)" 
+	    (format nil "19b6(~a,~A)" 
 		    cafeobj-version-memo
 		    patch-level))
 	(setq cafeobj-version-minor 
-	  (format nil ".15b3(~a)" cafeobj-version-memo)))
-    (setq cafeobj-version-minor ".15b3"))
+	  (format nil "19b6(~a)" cafeobj-version-memo)))
+    (setq cafeobj-version-minor "19b6"))
   (setq cafeobj-version (concatenate 'string
 			  cafeobj-version-major
 			  cafeobj-version-minor))

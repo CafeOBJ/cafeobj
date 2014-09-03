@@ -128,7 +128,6 @@
 	  (while (< idx max-idx)
 	    (let ((elt (nth (mod idx len) target))
  		  (rr (select-combs-aux max-idx rest)))
- 	      ;; (format t "~%:idx=~d :elt=~s :rr=~s" idx elt rr)
 	      (if rr
 		  (dolist (r rr)
 		    (pushnew (cons elt r) result :test #'equal))
@@ -137,13 +136,37 @@
 	  (nreverse result))
       nil)))
 
-(defun select-comb-elems (list-of-list)
+(defun select-combs-aux-indexed (max-idx list-of-list index)
+  (declare (type fixnum max-idx index)
+	   (type list list-of-list))
+  (let* ((result nil)
+	 (target (car list-of-list))
+	 (rest (cdr list-of-list))
+	 (len (length target)))
+    (declare (type fixnum len)
+	     (type list result target rest))
+    (if target
+	(let ((idx 0))
+	  (declare (type fixnum idx))
+	  (while (< idx max-idx)
+	    (let ((elt (nth (mod idx len) target))
+ 		  (rr (select-combs-aux-indexed max-idx rest (1+ index))))
+	      (if rr
+		  (dolist (r rr)
+		    (pushnew (cons (cons index elt) r) result :test #'equal))
+		(pushnew (list (cons index elt)) result :test #'equal))
+	      (incf idx)))
+	  (nreverse result))
+      nil)))
+
+(defun select-comb-elems (list-of-list &optional (indexed nil))
   (declare (type list list-of-list))
   (unless list-of-list (return-from select-comb-elems nil))
-  (let ((max-idx ;; (reduce #'* (mapcar #'(lambda (x) (length x)) list-of-list))
-	 (apply #'max (mapcar #'(lambda (x) (length x)) list-of-list))))
+  (let ((max-idx (apply #'max (mapcar #'(lambda (x) (length x)) list-of-list))))
     (declare (type fixnum max-idx))
-    (select-combs-aux max-idx list-of-list)))
+    (if indexed
+	(select-combs-aux-indexed max-idx list-of-list 0)
+      (select-combs-aux max-idx list-of-list))))
 
 ;;;
 ;;; axiom-variables : axiom -> List(variable)
@@ -325,6 +348,73 @@
       nil))
 
 ;;;
+;;; check-le : goal -> goal'
+;;;
+(defun check-le (goal)
+  (let ((mod (goal-context goal)))
+    (with-in-module (mod)
+      (let ((axs (module-equations mod))
+	    (ls-pats nil)
+	    (le-pats nil))
+	(dolist (ax axs)
+	  (block next
+	    (unless (is-true? (rule-condition ax)) (return-from next))
+	    (when (axiom-variables ax) (return-from next))
+	    (let ((lhs (rule-lhs ax)))
+	      (multiple-value-bind (match? subst)
+		  (@pat-match .ls-pat. lhs)
+		(declare (ignore subst))
+		(cond (match? (push (cons (term-arg-1 lhs) (term-arg-2 lhs)) ls-pats))
+		      (t (multiple-value-setq (match? subst)
+			   (@pat-match .le-pat. lhs))
+			 (when match? (push (cons (term-arg-1 lhs) (term-arg-2 lhs)) le-pats))))))))
+	(let ((ls-r nil)
+	      (le-r nil))
+	  (dolist (ls ls-pats)
+	    (let ((ls-pair (find (cdr ls) ls-pats :key #'car :test #'term-equational-equal))
+		  (le-pair (find (cdr ls) le-pats :key #'car :test #'term-equational-equal)))
+	      ;; G1 < G2 < G3 
+	      (when ls-pair (push (cons (car ls) (cdr ls-pair)) ls-r)) ; < check G3 < G1
+	      ;; G1 < G2 <= G3
+	      (when le-pair (push (cons (car ls) (cdr le-pair)) le-r)))) ; <= check G3 <= G1
+	  (dolist (le le-pats)
+	    (let ((ls-pair (find (cdr le) ls-pats :key #'car :test #'term-equational-equal))
+		  (le-pair (find (cdr le) le-pats :key #'car :test #'term-equational-equal)))
+	      ;; G1 <= G2 < G3
+	      (when ls-pair (push (cons (car le) (cdr ls-pair)) le-r)) ; check G3 <= G1
+	      (when le-pair (push (cons (car le) (cdr le-pair)) ls-r)))) ; check G3 < G1
+	  ;;
+	  (with-citp-debug ()
+	    (format t "~%[le] check in goal ~s: " (goal-name goal))
+	    (dolist (ls ls-r)
+	      (print-next)
+	      (term-print (cdr ls)) (princ " < ")
+	      (term-print (car ls)))
+	    (dolist (le le-r)
+	      (print-next)
+	      (term-print (cdr le)) (princ " <= ")
+	      (term-print (car le))))
+	  (flet ((do-check (pat op)
+		   (dolist (ls pat)
+		     (let ((rg (make-applform-simple *bool-sort* 
+						     op
+						     (list (cdr ls) (car ls)))))
+		       (with-citp-debug ()
+			 (format t "~% target term : ")
+			 (term-print-with-sort rg))
+		       (when (is-true? (normalize-term-in *current-module* rg))
+			 ;; discharge the goal
+			 (let ((target (rule-copy-canonicalized (car (goal-targets goal))
+								*current-module*)))
+			   (setf (rule-labels target) (cons 'le (rule-labels target)))
+			   (setf (goal-targets goal) nil)
+			   (setf (goal-proved goal) (list target))
+			   (format t "~%[le] discharged the goal ~s" (goal-name goal)))
+			 (return nil))))))
+	    (do-check ls-r (term-head .ls-pat.))
+	    (do-check le-r (term-head .le-pat.))))))))
+
+;;;
 ;;; make-new-assumption : module term [label] -> axiom
 ;;;
 (defun make-new-assumption (module lhs &optional (label-prefix nil))
@@ -467,8 +557,11 @@
 			  'ic)))
 	       (cons lbl (rule-labels sentence)))))
       ;;
-      (let ((target nil)
-	    (res nil))
+      (let ((target sentence)
+	    (res nil)
+	    (*print-indent* (+ 2 *print-indent*))
+	    (*print-line-limit* 80)
+	    (*print-xmode* :fancy))
 	(if (check-contradiction module report-header)
 	    (setq res :ct)
 	  (multiple-value-setq (res target)
@@ -479,16 +572,19 @@
 	(case res
 	  (:st (when report-header
 		 (format t "~%[~a] discharged: " report-header)
+		 (print-next)
 		 (print-axiom-brief sentence))
 	       (setf (rule-labels sentence) (make-st-label))
 	       (values :st target sentence))
 	  (:ct (when report-header
 		 (format t "~%[~a] discharged: " report-header)
+		 (print-next)
 		 (print-axiom-brief sentence))
 	       (setf (rule-labels sentence) (make-ct-label))
 	       (values :ct target sentence))
 	  (:ic (when report-header
 		 (format t "~%[~a] discharged: " report-header)
+		 (print-next)
 		 (print-axiom-brief sentence))
 	       (setf (rule-labels sentence) (make-ic-label))
 	       (values :ic target sentence))
@@ -599,6 +695,7 @@
 (defun generate-ip-derived-axioms (module axiom)
   (condition->axioms module (axiom-condition axiom) 'ip))
 
+#||
 (defun apply-ip (ptree-node)
   (declare (type ptree-node ptree-node))
   (with-in-context (ptree-node)
@@ -652,6 +749,53 @@
 		      (t )))))
 	  ;; done for all goals
 	  (values .next-goals. (nreverse .next-goals.)))))))
+||#
+
+(defun apply-ip (ptree-node)
+  (declare (type ptree-node ptree-node))
+  (with-in-context (ptree-node)
+    (let ((original-goal (ptree-node-goal ptree-node)))
+      (flet ((push-next-goal (goal)
+	       (unless (eq goal original-goal) (push goal .next-goals.))))
+	(let ((target-goals (distribute-sentences ptree-node .cur-targets. .tactic-ip.)))
+	  (dolist (.cur-goal. target-goals)
+	    (let ((target (normalize-sentence (car (goal-targets .cur-goal.)) (goal-context .cur-goal.))))
+	      (cond ((and (not (is-true? (rule-condition target)))
+			  (null (term-variables (rule-condition target))))
+		     ;; t = t' if C
+		     ;; C is a ground term and is not true.
+		     ;; try if (SP + { C } |- t = t') or not..
+		     ;; if this is satisfied, discharge it.
+		     (let ((ngoal (if (eq .cur-goal. original-goal)
+				      (prepare-next-goal ptree-node .tactic-ip.)
+				    .cur-goal.)))
+		       (with-in-module ((goal-context ngoal))
+			 (let ((new-axs (generate-ip-derived-axioms *current-module* target))
+			       (next-target (rule-copy-canonicalized target *current-module*)))
+			   ;; make the target
+			   (setf (rule-condition next-target) *bool-true*)
+			   (setf (goal-targets ngoal) (list next-target))
+			   ;; add [ip] axioms 
+			   (dolist (ax new-axs)
+			     (adjoin-axiom-to-module *current-module* ax)
+			     (set-operator-rewrite-rule *current-module* ax))
+			   (setf (goal-assumptions ngoal) (append (goal-assumptions ngoal) (reverse new-axs)))
+			   ;; compile
+			   (compile-module *current-module* t)
+			   (push-next-goal ngoal)))))
+		      (t 
+		       ;; nothing to do
+		       (push-next-goal .cur-goal.)))))
+	  ;; done for all goals
+	  (setq .next-goals. (nreverse .next-goals.))
+	  (dolist (ngoal .next-goals.)
+	    (multiple-value-bind (discharged norm-sentence org-sentence)
+		(check-goal-is-satisfied ngoal 'ip)
+	      (declare (ignore norm-sentence org-sentence))
+	      (when discharged
+		(format t "~%[ip] discharged the goal ~s" (goal-name ngoal)))))
+	  ;;
+	  (values .next-goals. (nreverse .next-goals.)))))))
 
 ;;; =================================
 ;;; TACTIC: Theorem of Constants [TC]
@@ -671,20 +815,15 @@
 
 (defun apply-tc (ptree-node)
   (declare (type ptree-node ptree-node))
-  ;; 
   (with-in-context (ptree-node)
     (let ((original-goal .cur-goal.))
 	(flet ((push-next-goal (goal)
 		 (unless (eq goal original-goal) (push goal .next-goals.))))
 	  (let ((target-goals (distribute-sentences ptree-node .cur-targets. .tactic-tc.)))
 	    (dolist (cgoal target-goals)
-	      (multiple-value-bind (res sentence osentence)
-		  (check-goal-is-satisfied cgoal 'rd)
-		(declare (ignore osentence))
-		(cond (res
-		       ;; discharged 
-		       (push-next-goal cgoal))
-		      ((axiom-variables sentence)
+	      ;; variables --> constants
+	      (let ((sentence (car (goal-targets cgoal))))
+		(cond ((axiom-variables sentence)
 		       (when (eq cgoal original-goal)
 			 (setq cgoal (prepare-next-goal ptree-node .tactic-tc.)))
 		       (push-next-goal cgoal)
@@ -694,10 +833,21 @@
 				(subst (make-tc-variable-substitutions cgoal vars)))
 			   (apply-substitution-to-axiom subst next-target '(tc) t)
 			   (compute-rule-method next-target)
+			   (compile-module *current-module* t)
 			   (setf (goal-targets cgoal)
 			     (list (normalize-sentence next-target *current-module*))))))
-		      (t ))))
-	    (values .next-goals. (nreverse .next-goals.)))))))
+		      (t
+		       ;; the sentence does not contain any variables.
+		       (push-next-goal cgoal)))))
+	    (setq .next-goals. (nreverse .next-goals.))
+	    ;; check goal is satisfied or not
+	    (dolist (cgoal .next-goals.)
+	      (multiple-value-bind (res sentence osentence)
+		  (check-goal-is-satisfied cgoal 'rd)
+		(declare (ignore osentence sentence))
+		(when res
+		  (format t "~%[tc] discharged the goal ~s" (goal-name cgoal)))))
+	    (values .next-goals. .next-goals.))))))
 
 ;;; ===================================
 ;;; TACTIC: Simultaneous Induction [SI]
@@ -1193,17 +1343,19 @@
 ;;; get-gterms-from-axiom : axiom -> List(ground-term)
 ;;; returns the list of ground terms contained in the given axiom.
 ;;;
-(defun get-gterms-from-axiom (axiom)
+(defun get-gterms-from-axiom (axiom &optional (condition-only nil))
   (declare (type axiom axiom))
-  (let ((gterms (delete-duplicates (nconc (get-gterms (axiom-lhs axiom))
-					; (get-gterms (axiom-rhs axiom))
-					  nil)
-				   :test #'equal)))
+  (let ((gterms nil))
     (declare (type list gterms))
-    (unless (is-true? (axiom-condition axiom))
-      (setq gterms (delete-duplicates (nconc gterms
-					     (get-gterms (axiom-condition axiom)))
-				      :test #'equal)))
+    (cond (condition-only
+	   (unless (is-true? (axiom-condition axiom))
+	     (setq gterms (remove-duplicates (get-gterms (axiom-condition axiom))
+					     :test #'equal))))
+	  (t (setq gterms (delete-duplicates (append (get-gterms (axiom-lhs axiom))
+						     (append (get-gterms (axiom-rhs axiom))
+							     (get-gterms-from-axiom axiom t)))
+				   :test #'equal))))
+
     gterms))
 
 ;;; gsubterm-has-matching-rule : term List(axiom) -> Bool
@@ -1250,10 +1402,16 @@
 ;;;                                    -> List(<subst, axiom, condition>)
 ;;; returns all possible cases for a given ground term.
 ;;;
+(defvar .duplicated. nil)
 (defvar .subst-so-far. nil)
 
-(defun find-gterm-matching-conditionals (goal gterm conditional-rules)
-  (let ((res nil))
+(defun find-gterm-matching-conditionals (goal gterm conditional-rules idx)
+  (declare (type goal goal)
+	   (type term gterm)
+	   (type list conditional-rules)
+	   (type fixnum idx))
+  (let ((res nil)
+	(rejected nil))
     (dolist (rule conditional-rules)
       (block next
 	(unless (is-true? (rule-condition rule))
@@ -1264,7 +1422,12 @@
 	    (let ((cond-instance
 		   (ca-instantiate-condition goal
 					     (substitution-image-simplifying sub (rule-condition rule)))))
-	      (push cond-instance res)
+	      (cond ((not (member cond-instance .subst-so-far. :test #'term-equational-equal))
+		     (push cond-instance .subst-so-far.)
+		     (push cond-instance res))
+		    (t 
+		     ;; (push cond-instance res) ; ***
+		     (push cond-instance rejected)))
 	      (loop 
 		(let ((n-subst nil)
 		      (n-cond-inst nil))
@@ -1276,15 +1439,28 @@
 		  (setq n-cond-inst
 		    (ca-instantiate-condition goal
 					      (substitution-image-simplifying n-subst (rule-condition rule))))
-		  (unless (term-equational-equal n-cond-inst cond-instance)
-		    (push n-cond-inst res)))))))))
+		  (cond ((not (member n-cond-inst .subst-so-far. :test #'term-equational-equal))
+			 (unless (term-equational-equal n-cond-inst cond-instance)
+			   (push n-cond-inst .subst-so-far.)
+			   (push n-cond-inst res)))
+			(t 
+			 ;; (push cond-instance res) ; ***
+			 (push cond-instance rejected))))))))))
     ;;
     (with-citp-debug ()
       (when res
 	(format t "~%found cases for ") (term-print-with-sort gterm)
 	(dolist (i res)
 	  (print-next)
+	  (term-print-with-sort i)))
+      (when rejected
+	(format t "~%rejected cases")
+	(dolist (i rejected)
+	  (print-next)
 	  (term-print-with-sort i))))
+    (when rejected
+      (setf (aref .duplicated. idx) (remove-duplicates rejected :test #'term-equational-equal)))
+    ;;
     (remove-duplicates res :test #'term-equational-equal)))
 
 ;;;
@@ -1318,9 +1494,8 @@
       (setf (goal-assumptions next-goal) (append (goal-assumptions next-goal)
 						 (nreverse case-axioms))))))
 						   
-;;; remove-duplicated-cases : List(List(term)) -> List(List(term))'
+;;; normalize-cases : List(List(term)) -> List(List(term))'
 ;;;
-
 (defun find-same-case-in (case l-case)
   (declare (type list case l-case))
   (let ((size (length case)))
@@ -1331,7 +1506,29 @@
       (return-from find-same-case-in xc)))
   nil))
 
-(defun normalize-cases (l-case ptree-node)
+(defun case-is-valid (idxs term)
+  (dolist (idx idxs)
+    (when (member term (aref .duplicated. idx) :test #'term-equational-equal)
+      (with-citp-debug ()
+	(format t "~% ... rejected."))
+      (return-from case-is-valid nil)))
+  term)
+
+(defun remove-exclusive-cases (case)
+  (let ((idxs (mapcar #'(lambda (x) (car x)) case)))
+    (with-citp-debug ()
+      (format t "~%-- check these combination")
+      (dolist (c case)
+	(print-next)
+	(format t "~idx ~d: " (car c))
+	(term-print-with-sort (cdr c))))
+    (dolist (c case)
+      (let ((term (cdr c)))
+	(unless (case-is-valid idxs term)
+	  (return-from remove-exclusive-cases nil))))
+    (mapcar #'(lambda (x) (cdr x)) case)))
+
+(defun normalize-cases (l-case ptree-node all-cases)
   (declare (type list l-case)
 	   (type ptree-node ptree-node))
   (let ((mod (goal-context (ptree-node-goal ptree-node)))
@@ -1341,20 +1538,40 @@
 	       (if (method= *bool-cond-op* (term-head term))
 		   (list-assoc-subterms term *bool-cond-op*)
 		 (list term))))
-	;; first we divide /\ in each cases
+	(with-citp-debug ()
+	  (when .duplicated.
+	    (format t "~%== .duplicated. === ")
+	    (dotimes (x (1- (length .duplicated.)))
+	      (format t "~%(~d)" x)
+	      (dolist (trm (aref .duplicated. x))
+		(print-next)
+		(term-print-with-sort trm)))))
 	(dolist (case l-case)
-	  (let ((dcase nil))
+	  (block next
+	    ;; case ::= (t0 t1 ... tn)
+	    ;; first we remove exclusive cases
+	    (setq case (remove-exclusive-cases case))
+	    (unless case (return-from next nil))
 	    (dolist (c case)
-	      (setq dcase (nconc dcase (distribute-cond c))))
-	    (push (delete-duplicates dcase :test #'term-equational-equal) dist-cases)))
-	(setq dist-cases (nreverse dist-cases))
+	      (setq all-cases (delete c all-cases :test #'term-equational-equal)))
+	    ;; then divende /\ in each cases
+	    (let ((dcase nil))
+	      (dolist (c case)
+		(setq dcase (nconc dcase (distribute-cond c))))
+	      (push (delete-duplicates dcase :test #'term-equational-equal) dist-cases)))
+	  (setq dist-cases (nreverse dist-cases)))
 	;; 
 	(let ((result nil))
 	  ;; for each case
 	  (dolist (case dist-cases)
 	    (unless (find-same-case-in case result)
-	      (push case result)))
-	  (nreverse result))))))
+	      (setq result (nconc result (list case)))))
+	  (when all-cases
+	    ;; remaining sole cases
+	    (dolist (c all-cases)
+	      (push (list c) result)))
+	  ;;
+	  result)))))
 
 ;;; generate-cases : ptree-node term List(conditional-axiom)
 ;;;
@@ -1373,33 +1590,61 @@
     (let ((gterms (get-gterms-from-axiom target))
 	  (next-goals nil)
 	  (remainings nil)
-	  (.subst-so-far. nil))
+	  (all-cases nil)
+	  (gt-idx 0)
+	  (.subst-so-far. nil)
+	  (.duplicated. nil))
+      (declare (type fixnum gt-idx)
+	       (type list gterms next-goals remainings .subst-so-far.))
+      (setf .duplicated. (make-array (length gterms) :initial-element nil))
       ;; 
       (let ((g-conditions nil))
 	(dolist (gterm gterms)
 	  (unless (gsubterm-has-matching-rule gterm conditional-rules)
 	    (let ((conds (find-gterm-matching-conditionals (ptree-node-goal ptree-node)
 							   gterm
-							   conditional-rules)))
+							   conditional-rules
+							   gt-idx)))
 	      (when conds
+		(incf gt-idx)
 		(push conds g-conditions)))))
 	(setq g-conditions (nreverse g-conditions))
 	(with-citp-debug ()
 	  (format t "~%All the conditions")
 	  (print-next)
 	  (dolist (gc g-conditions)
-	    (princ "====")
+	    (princ "====") 
 	    (print-next)
-	    (dolist (cond gc)
+	    (dolist (cond  gc)
 	      (term-print-with-sort cond))))
+	;;
+	(dolist (gc g-conditions)
+	  (dolist (c gc)
+	    (pushnew c all-cases :test #'term-equational-equal)))
 
 	;; make all combinations and generate cases
-	(let ((rv-combs (select-comb-elems g-conditions))
+	(let ((rv-combs (select-comb-elems g-conditions t))
 	      (next-goal nil))
 	  ;; distribute /\  and delete duplicated conditions
-	  (setq rv-combs (normalize-cases rv-combs ptree-node))
 	  (with-citp-debug ()
-	    (format t "~%[ca] gterm conditions --after normalization: ")
+	    (format t "~%[ca] gterm conditions --BEFORE normalization: ")
+	    (if rv-combs
+		(let ((rv-com nil))
+		  (dotimes (x (length rv-combs))
+		    (setq rv-com (nth x rv-combs))
+		    (print-next)
+		    (format t "--(~d)--" (1+ x))
+		    (dolist (rr rv-com)
+		      (print-next)
+		      (format t "~d:" (car rr))
+		      (term-print-with-sort (cdr rr)))))
+	      (format t "NONE.")))
+	  ;; eliminate exclusive combinations and dupulicated cases.
+	  ;;
+	  (setq rv-combs (normalize-cases rv-combs ptree-node all-cases))
+	  
+	  (with-citp-debug ()
+	    (format t "~%[ca] gterm conditions --AFTER normalization: ")
 	    (if rv-combs
 		(let ((rv-com nil))
 		  (dotimes (x (length rv-combs))
@@ -1439,8 +1684,12 @@
 		    (setf (goal-targets ng) nil
 			  (goal-proved ng) (list original-target))))
 		(push ng next-goals))))))
+      ;; check LE
+      (setq next-goals (nreverse next-goals))
+      (dolist (goal next-goals)
+	(check-le goal))
       ;;
-      (values next-goals (nreverse next-goals)))))
+      (values next-goals next-goals))))
 
 (defun rule-is-for-case (rule)
   (and (not (is-true? (rule-condition rule)))
@@ -1606,7 +1855,9 @@
 	(let ((goal (ptree-node-goal context)))
 	  (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))
 	  (format t "~%**> initialized the axiom in goal ~s" (goal-name (ptree-node-goal context)))
-	  (let ((*print-indent* (+ 2 *print-indent*)))
+	  (let ((*print-indent* (+ 2 *print-indent*))
+		(*print-line-limit* 80)
+		(*print-xmode* :fancy))
 	    (print-next)
 	    (print-axiom-brief instance))
 	  (when *citp-verbose* 
@@ -1879,7 +2130,7 @@
 	(format t "** The goal ~s has been proved!." (goal-name (ptree-node-goal ptree-node)))
 	(return-from apply-tactic nil)))
     ;; 
-    (format t "~%>> Applying ~a to goal ~s" tactic (goal-name (ptree-node-goal ptree-node)))
+    (format t "~%~a=> :goal{~a}" tactic (goal-name (ptree-node-goal ptree-node)))
     (initialize-ptree-node ptree-node)
     (compile-module (goal-context (ptree-node-goal ptree-node)) t)
     (multiple-value-bind (applied next-goals)
@@ -1892,7 +2143,7 @@
 	;; i.e., cancel side effects
 	(initialize-ptree-node ptree-node)
 	(return-from apply-tactic nil))
-      (format t "~%>> Generated ~d goal~p" (length next-goals) (length next-goals))
+      (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
       (add-ptree-children ptree-node next-goals)
       (when verbose
 	(dolist (gn (ptree-node-subnodes ptree-node))
@@ -1918,7 +2169,7 @@
 	   (type list tactics))
   (let ((target (get-next-proof-context ptree)))
     (unless target
-      (format t "~%**> All goals have been discharged!")
+      (format t "~%**> All goals have been proved!")
       (return-from apply-tactics nil))
     (apply-tactics-to-node target tactics verbose))
     (check-success ptree))

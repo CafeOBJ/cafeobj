@@ -323,13 +323,17 @@
 ;;; prepare-next-goal : ptree-node -> goal
 ;;; prepare next goal structure with associated context module
 ;;;
+(defvar .goals-so-far. nil)
+
 (defun prepare-next-goal (ptree-node &optional (tactic nil))
-  (let ((goal-name (make-ptree-goal-name ptree-node (incf (ptree-node-num-children ptree-node)))))
-    (setf (%module-decl-name .next-context-module.) (make-next-context-module-name goal-name))
-    (let ((next-context (eval-ast .next-context-module.))
+  (let ((goal-name (make-ptree-goal-name ptree-node (incf (ptree-node-num-children ptree-node))))
+	(decl-form (copy-tree .next-context-module.)))
+    (setf (%module-decl-name decl-form) (make-next-context-module-name goal-name))
+    (let ((next-context (eval-ast decl-form))
 	  (cur-goal (ptree-node-goal ptree-node))
 	  (next-goal (make-goal :name goal-name
 				:tactic tactic)))
+      (push next-context .goals-so-far.)
       ;; import original context module
       (import-module next-context :including (goal-context cur-goal))
       ;; inherit current goal
@@ -477,7 +481,8 @@
 ||#
 
 (defun make-tc-const-name (variable)
-  (format nil "~:@(~a~)@~a" (variable-name variable) (sort-name (variable-sort variable))))
+  (format nil "~:@(~a~)@~a" (variable-name variable)
+	  (string (sort-name (variable-sort variable)))))
 
 ;;; 
 ;;; variable->constant : goal variable -> term
@@ -510,8 +515,8 @@
   (format nil "~a#~d" name-prefix (incf (ptree-num-gen-const *proof-tree*))))
 ||#
 
-(defun make-ind-const-name (name-prefix)
-  (format nil "~a#~d" name-prefix (incf (ptree-num-gen-const *proof-tree*))))
+(defun make-ind-const-name (name-prefix sort)
+  (format nil "~a#~a" (string name-prefix) (string (sort-name sort))))
 
 (defun variable->constructor (goal variable &key (sort nil) (op nil))
     (let ((svar (if sort
@@ -532,9 +537,8 @@
 	      (let ((v-name (cdr (find-variable-subst-in (ptree-indvar-subst *proof-tree*) svar)))
 		    (vconst nil))
 		(unless v-name 
-		  (setq v-name (make-ind-const-name (if sort
-							(sort-name sort)
-						      (sort-name (variable-sort svar))))))
+		  (setq v-name (make-ind-const-name (variable-name variable)
+						    (or sort (variable-sort svar)))))
 		(setq vconst (make-iv-const v-name))
 		(pushnew (cons svar v-name) (ptree-indvar-subst *proof-tree*) :test #'equal)
 		vconst))))))
@@ -692,13 +696,42 @@
 ;;;
 (defparameter .root-context-module. (%module-decl* "#Goal-root" :object :user nil))
 
+;;; for LE check
+(defvar .int-module. nil)
+(defvar .ls-pat. nil)			; X < Y
+(defvar .le-pat. nil)			; X <= Y
+
+(defun prepare-root-context (root-module context-module)
+  (unless .int-module.
+    (setq .int-module. (eval-modexp "INT"))
+    (with-in-module (.int-module.)
+      (let ((less (find-operator '("_" "<" "_") 2 .int-module.))
+	    (le (find-operator '("_" "<=" "_") 2 .int-module.))
+	    (less-m nil)
+	    (le-m nil)
+	    (var-x nil)
+	    (var-y nil)
+	    (int-sort (find-sort-in .int-module. '|Int|)))
+	(setq less-m (lowest-method* (car (opinfo-methods less))))
+	(setq le-m (lowest-method* (car (opinfo-methods le))))
+	(setq var-x (make-variable-term int-sort 'X))
+	(setq var-y (make-variable-term int-sort 'Y))
+	(setq .ls-pat. (make-applform-simple *bool-sort* less-m (list var-x var-y)))
+	(setq .le-pat. (make-applform-simple *bool-sort* le-m (list var-x var-y))))))
+  (import-module root-module :protecting context-module)
+  (import-module root-module :protecting .int-module.)
+  (compile-module root-module t))
+
 (defun begin-proof (context-module goal-axioms)
   (declare (type module context-module)
 	   (type list goal-axioms))
   (unless goal-axioms (return-from begin-proof nil))
   (let* ((*chaos-quiet* t)
 	 (root-module (eval-ast .root-context-module.)))
-    (import-module root-module :protecting context-module)
+    (prepare-root-context root-module context-module)
+    (when .goals-so-far. 
+      (setq *modules-so-far-table* (set-difference *modules-so-far-table*
+						   .goals-so-far.)))
     (setq *proof-tree* (initialize-proof-tree root-module goal-axioms))
     (pr-goal (ptree-node-goal (ptree-root *proof-tree*)))
     (format t "~%** Initial goal (root) is generated. **")
