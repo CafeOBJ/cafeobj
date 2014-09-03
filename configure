@@ -586,8 +586,8 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 COND_TRADITIONAL_FALSE
 COND_TRADITIONAL_TRUE
-COND_DOC_FALSE
-COND_DOC_TRUE
+COND_REBUILD_DOC_FALSE
+COND_REBUILD_DOC_TRUE
 bin_suffix
 build_option
 exec_bin
@@ -672,7 +672,7 @@ ac_user_opts='
 enable_option_checking
 enable_silent_rules
 with_lisp
-enable_doc
+enable_rebuild_doc
 enable_traditional_layout
 '
       ac_precious_vars='build_alias
@@ -1294,7 +1294,8 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-silent-rules   less verbose build output (undo: "make V=1")
   --disable-silent-rules  verbose build output (undo: "make V=0")
-  --disable-doc           Disable rebuilding the docs
+  --enable-rebuild-doc    Enable the rebuilding of documentation (not
+                          implemented) [default=no]
   --enable-traditional-layout
                           Enable traditional layout [default=no]
 
@@ -2724,18 +2725,19 @@ $as_echo "$as_me: Lisp interpreter used: $saved_lisp" >&6;}
 
 
 
-enable_doc=yes
-# Check whether --enable-doc was given.
-if test "${enable_doc+set}" = set; then :
-  enableval=$enable_doc;
+# Check whether --enable-rebuild_doc was given.
+if test "${enable_rebuild_doc+set}" = set; then :
+  enableval=$enable_rebuild_doc; enable_rebuild_doc="${enableval}"
+else
+  enable_rebuild_doc=no
 fi
 
- if test "x$enable_doc" = xyes; then
-  COND_DOC_TRUE=
-  COND_DOC_FALSE='#'
+ if test x"$enable_rebuild_doc" = x"yes"; then
+  COND_REBUILD_DOC_TRUE=
+  COND_REBUILD_DOC_FALSE='#'
 else
-  COND_DOC_TRUE='#'
-  COND_DOC_FALSE=
+  COND_REBUILD_DOC_TRUE='#'
+  COND_REBUILD_DOC_FALSE=
 fi
 
 
@@ -2912,8 +2914,8 @@ $as_echo_n "checking that generated files are newer than configure... " >&6; }
    { $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }
 
-if test -z "${COND_DOC_TRUE}" && test -z "${COND_DOC_FALSE}"; then
-  as_fn_error $? "conditional \"COND_DOC\" was never defined.
+if test -z "${COND_REBUILD_DOC_TRUE}" && test -z "${COND_REBUILD_DOC_FALSE}"; then
+  as_fn_error $? "conditional \"COND_REBUILD_DOC\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${COND_TRADITIONAL_TRUE}" && test -z "${COND_TRADITIONAL_FALSE}"; then

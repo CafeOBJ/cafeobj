@@ -27,11 +27,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-SUBDIRS =
+SUBDIRS = doc
 DIST_SUBDIRS = doc
-if COND_DOC
-  SUBDIRS += doc
-endif
 
 #
 # specifying the files that go into the distribution is a pain,

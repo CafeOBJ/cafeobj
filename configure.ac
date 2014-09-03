@@ -145,10 +145,12 @@ AC_SUBST(exec_bin)
 AC_SUBST(build_option)
 AC_SUBST(bin_suffix)
 
-enable_doc=yes
-AC_ARG_ENABLE([doc],
-  AS_HELP_STRING([--disable-doc],[Disable rebuilding the docs]))
-AM_CONDITIONAL([COND_DOC], [test "x$enable_doc" = xyes])
+AC_ARG_ENABLE([rebuild_doc],
+       [AS_HELP_STRING([--enable-rebuild-doc],
+               [Enable the rebuilding of documentation (not implemented) @<:@default=no@:>@])],
+       [enable_rebuild_doc="${enableval}"],
+       [enable_rebuild_doc=no])
+AM_CONDITIONAL([COND_REBUILD_DOC], [test x"$enable_rebuild_doc" = x"yes"])
 
 AC_ARG_ENABLE(traditional_layout,
        [AS_HELP_STRING([--enable-traditional-layout],
