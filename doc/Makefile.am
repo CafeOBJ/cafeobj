@@ -1,11 +1,18 @@
 
 # SUBDIRS = refman manual RefCard BigPink
 
-examplesdir = $(docdir)/examples
-examples_DATA = examples/*.mod
+if COND_TRADITIONAL
+  cafeobjdir = $(prefix)/$(PACKAGE)-$(VERSION)
+  examplesdir = $(cafeobjdir)/exs
+  pdfdocdir = $(cafeobjdir)/doc
+else
+  examplesdir = $(docdir)/examples
+  pdfdocdir = $(docdir)
+endif
 
-pdfdocdir = $(docdir)
+examples_DATA = examples/*.mod
 pdfdoc_DATA = manual/manual.pdf PigNose/pnguide.pdf \
 	refman/reference-manual.pdf RefCard/*.pdf
+
 
 

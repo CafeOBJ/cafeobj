@@ -144,10 +144,20 @@ AC_SUBST(exec_command)
 AC_SUBST(exec_bin)
 AC_SUBST(build_option)
 AC_SUBST(bin_suffix)
+
 enable_doc=yes
 AC_ARG_ENABLE([doc],
   AS_HELP_STRING([--disable-doc],[Disable rebuilding the docs]))
 AM_CONDITIONAL([COND_DOC], [test "x$enable_doc" = xyes])
+
+AC_ARG_ENABLE(traditional_layout,
+       [AS_HELP_STRING([--enable-traditional-layout],
+               [Enable traditional layout @<:@default=no@:>@])],
+       [enable_traditional_layout="${enableval}"],
+       [enable_traditional_layout=no])
+AM_CONDITIONAL([COND_TRADITIONAL], [test x"$enable_traditional_layout" = x"yes"])
+
+
 AC_CONFIG_FILES([
   Makefile 
   doc/Makefile

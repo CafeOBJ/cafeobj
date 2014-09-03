@@ -44,17 +44,29 @@ CLEANFILES =
 
 dist_bin_SCRIPTS = xbin/cafeobj
 
-# libraries and preludes that get installed
-cafeobjdir = $(libdir)/$(PACKAGE)-$(VERSION)
-cafeobjlibdir = $(cafeobjdir)/lib
-cafeobjdumpdir = $(cafeobjdir)
-cafeobjpreludedir = $(libdir)/$(PACKAGE)-$(VERSION)/prelude
+#
+# traditional layout means
+# /usr/local/bin/cafeobj
+# /usr/local/cafeobj-N.M/bin/DUMP
+# /usr/local/cafeobj-N.M/{lib,prelude}
+if COND_TRADITIONAL
+  cafeobjdir = $(prefix)/$(PACKAGE)-$(VERSION)
+  cafeobjdumpdir = $(cafeobjdir)/bin
+  cafeobjpreludedir = $(cafeobjdir)/prelude
+  cafeobjlibdir = $(cafeobjdir)/lib
+else
+  cafeobjdir = $(libdir)/$(PACKAGE)-$(VERSION)
+  cafeobjlibdir = $(cafeobjdir)/lib
+  cafeobjdumpdir = $(cafeobjdir)
+  cafeobjpreludedir = $(libdir)/$(PACKAGE)-$(VERSION)/prelude
+endif
 dist_cafeobjlib_DATA =  $(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.bin		\
 			$(srcdir)/lib/lib/*.desc
 dist_cafeobjprelude_DATA = $(srcdir)/lib/prelude/*.bin
 cafeobjdump_SCRIPTS = xbin/$(exec_bin)
 
+#
 # for dumping the image the lisp interpreter needs to know
 # where the input files are during building
 # used only in creating make-cafeobj.lisp script

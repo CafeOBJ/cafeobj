@@ -224,9 +224,12 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-examplesdir = $(docdir)/examples
+@COND_TRADITIONAL_TRUE@cafeobjdir = $(prefix)/$(PACKAGE)-$(VERSION)
+@COND_TRADITIONAL_FALSE@examplesdir = $(docdir)/examples
+@COND_TRADITIONAL_TRUE@examplesdir = $(cafeobjdir)/exs
+@COND_TRADITIONAL_FALSE@pdfdocdir = $(docdir)
+@COND_TRADITIONAL_TRUE@pdfdocdir = $(cafeobjdir)/doc
 examples_DATA = examples/*.mod
-pdfdocdir = $(docdir)
 pdfdoc_DATA = manual/manual.pdf PigNose/pnguide.pdf \
 	refman/reference-manual.pdf RefCard/*.pdf
 
