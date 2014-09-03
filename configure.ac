@@ -150,7 +150,24 @@ AC_ARG_ENABLE([rebuild_doc],
                [Enable the rebuilding of documentation (not implemented) @<:@default=no@:>@])],
        [enable_rebuild_doc="${enableval}"],
        [enable_rebuild_doc=no])
+if test x"$enable_rebuild_doc" = x"yes"
+then
+  dnl check for documentation building programs
+  AC_CHECK_PROG(xelatex_avail, [xelatex], [yes], [no])
+  AC_CHECK_PROG(biber_avail, [biber], [yes], [no])
+  AC_CHECK_PROG(pandoc_avail, [pandoc], [yes], [no])
+  AC_CHECK_PROG(pdflatex_avail, [pdflatex], [yes], [no])
+  if test $xelatex_avail = no \
+     -o $biber_avail = no   \
+     -o $pandoc_avail = no  \
+     -o $pdflatex_avail = no
+  then
+	AC_MSG_NOTICE([Not all TeX related programs are found, disabling rebuild of documentation.])
+	enable_rebuild_doc=no
+  fi
+fi
 AM_CONDITIONAL([COND_REBUILD_DOC], [test x"$enable_rebuild_doc" = x"yes"])
+
 
 AC_ARG_ENABLE(traditional_layout,
        [AS_HELP_STRING([--enable-traditional-layout],
