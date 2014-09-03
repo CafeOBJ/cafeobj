@@ -57,6 +57,25 @@ AC_ARG_WITH(lisp,
 [  --with-lisp[=lisp]	specify the path of Lisp interpter to be used 
 			for building CafeOBJ (defaulted to gcl).],
 	lisp=$withval)
+
+
+if test "x$lisp" = "x" 
+then
+	# no lisp specified, select one by default
+	if   test -n "$acl_path" ; then lisp=acl ; 
+	elif test -n "$sbcl_path" ; then lisp=sbcl ;
+	elif test -n "$clisp_path" ; then lisp=clisp ;
+	elif test -n "$gcl_path" ; then lisp=gcl ;
+	elif test -n "$cmu_path" ; then lisp=cmu ;
+	elif test -n "clozurecl_32path" ; then lisp=ccl ;
+	elif test -n "clozurecl_64path" ; then lisp=ccl64 ;
+	else
+		AC_MSG_ERROR([no supported lisp interpreter found])
+	fi
+fi
+
+
+saved_lisp=$lisp
 case "x$lisp" in
 xcmu)
 	lisp=$cmu_path ;
@@ -112,6 +131,14 @@ xgcl|x)
 	exit 1
 	;;
 esac
+
+if test -z "$lisp"
+then
+	AC_MSG_ERROR([selected lisp interpreter $saved_lisp is not available])
+fi
+
+AC_MSG_NOTICE([Lisp interpreter used: $saved_lisp])
+
 AC_SUBST(lisp)
 AC_SUBST(exec_command) 
 AC_SUBST(exec_bin)

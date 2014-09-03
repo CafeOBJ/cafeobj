@@ -2630,6 +2630,25 @@ if test "${with_lisp+set}" = set; then :
   withval=$with_lisp; lisp=$withval
 fi
 
+
+
+if test "x$lisp" = "x"
+then
+	# no lisp specified, select one by default
+	if   test -n "$acl_path" ; then lisp=acl ;
+	elif test -n "$sbcl_path" ; then lisp=sbcl ;
+	elif test -n "$clisp_path" ; then lisp=clisp ;
+	elif test -n "$gcl_path" ; then lisp=gcl ;
+	elif test -n "$cmu_path" ; then lisp=cmu ;
+	elif test -n "clozurecl_32path" ; then lisp=ccl ;
+	elif test -n "clozurecl_64path" ; then lisp=ccl64 ;
+	else
+		as_fn_error $? "no supported lisp interpreter found" "$LINENO" 5
+	fi
+fi
+
+
+saved_lisp=$lisp
 case "x$lisp" in
 xcmu)
 	lisp=$cmu_path ;
@@ -2685,6 +2704,15 @@ xgcl|x)
 	exit 1
 	;;
 esac
+
+if test -z "$lisp"
+then
+	as_fn_error $? "selected lisp interpreter $saved_lisp is not available" "$LINENO" 5
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: Lisp interpreter used: $saved_lisp" >&5
+$as_echo "$as_me: Lisp interpreter used: $saved_lisp" >&6;}
+
 
 
 

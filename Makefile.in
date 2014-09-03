@@ -338,7 +338,13 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = $(am__append_1)
 DIST_SUBDIRS = doc
-EXTRA_DIST = *
+
+#
+# specifying the files that go into the distribution is a pain,
+# because we cannot simply include * as this would include the
+# to be build dist dir, too.
+# for now, let us simply not suport make dist ;-)
+# EXTRA_DIST = *
 CLEANFILES = version.lisp make-cafeobj.lisp xbin/$(exec_bin) \
 	xbin/cafeobj
 dist_bin_SCRIPTS = xbin/cafeobj
@@ -937,6 +943,11 @@ uninstall-am: uninstall-cafeobjdumpSCRIPTS uninstall-dist_binSCRIPTS \
 	uninstall-dist_cafeobjpreludeDATA
 
 
+#
+# TODO
+# besides the trivial BIGPINK substitution, this could be
+# generated from configure.ac by including version.lisp
+# in the output files, and changing the strings to include @..@
 version.lisp: $(srcdir)/version.lisp.in
 	cat $(srcdir)/version.lisp.in | \
 	sed -e 's:VERSION:$(VERSION):g' \
@@ -951,6 +962,7 @@ make-cafeobj.lisp: $(srcdir)/make-cafeobj.lisp.in
 	-e 's:XINSTALL_DIR:\"$(cafeobjdir)\":g' \
 	-e 's:BIGPINK:nil:g' > make-cafeobj.lisp
 
+# this is the dump of the lisp process
 xbin/$(exec_bin): make-cafeobj.lisp xbin/cafeobj version.lisp
 	$(lisp) $(build_option) < make-cafeobj.lisp
 	chmod +x xbin/$(exec_bin)
