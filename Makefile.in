@@ -110,7 +110,8 @@ subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
 	$(dist_bin_SCRIPTS) $(dist_cafeobjlib_DATA) \
-	$(dist_cafeobjprelude_DATA) COPYING INSTALL install-sh missing
+	$(dist_cafeobjprelude_DATA) COPYING INSTALL TODO install-sh \
+	missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -318,6 +319,8 @@ install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
 lisp = @lisp@
+lisp_path = @lisp_path@
+lisp_prog = @lisp_prog@
 localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
@@ -351,20 +354,22 @@ DIST_SUBDIRS = doc
 CLEANFILES = version.lisp make-cafeobj.lisp xbin/$(exec_bin) \
 	xbin/cafeobj
 dist_bin_SCRIPTS = xbin/cafeobj
-@COND_TRADITIONAL_FALSE@cafeobjdir = $(libdir)/$(PACKAGE)-$(VERSION)
+@COND_TRADITIONAL_FALSE@cafeobj_share = $(datadir)/$(PACKAGE)-$(VERSION)
 
 #
 # traditional layout means
 # /usr/local/bin/cafeobj
 # /usr/local/cafeobj-N.M/bin/DUMP
 # /usr/local/cafeobj-N.M/{lib,prelude}
-@COND_TRADITIONAL_TRUE@cafeobjdir = $(prefix)/$(PACKAGE)-$(VERSION)
-@COND_TRADITIONAL_FALSE@cafeobjdumpdir = $(cafeobjdir)
-@COND_TRADITIONAL_TRUE@cafeobjdumpdir = $(cafeobjdir)/bin
-@COND_TRADITIONAL_FALSE@cafeobjpreludedir = $(libdir)/$(PACKAGE)-$(VERSION)/prelude
-@COND_TRADITIONAL_TRUE@cafeobjpreludedir = $(cafeobjdir)/prelude
-@COND_TRADITIONAL_FALSE@cafeobjlibdir = $(cafeobjdir)/lib
-@COND_TRADITIONAL_TRUE@cafeobjlibdir = $(cafeobjdir)/lib
+@COND_TRADITIONAL_TRUE@cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)
+@COND_TRADITIONAL_FALSE@cafeobj_lib = $(libdir)/$(PACKAGE)-$(VERSION)
+@COND_TRADITIONAL_TRUE@cafeobj_lib = $(prefix)/$(PACKAGE)-$(VERSION)
+@COND_TRADITIONAL_FALSE@cafeobjdumpdir = $(cafeobj_lib)/$(lisp)
+@COND_TRADITIONAL_TRUE@cafeobjdumpdir = $(cafeobj_lib)/bin
+@COND_TRADITIONAL_FALSE@cafeobjlibdir = $(cafeobj_share)/lib
+@COND_TRADITIONAL_TRUE@cafeobjlibdir = $(cafeobj_share)/lib
+@COND_TRADITIONAL_FALSE@cafeobjpreludedir = $(cafeobj_share)/prelude
+@COND_TRADITIONAL_TRUE@cafeobjpreludedir = $(cafeobj_share)/prelude
 dist_cafeobjlib_DATA = $(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.bin		\
 			$(srcdir)/lib/lib/*.desc
@@ -971,19 +976,19 @@ version.lisp: $(srcdir)/version.lisp.in
 make-cafeobj.lisp: $(srcdir)/make-cafeobj.lisp.in
 	cat $(srcdir)/make-cafeobj.lisp.in | \
 	sed -e 's:XCHAOS_ROOT_DIR:\"$(chaos_root)\":g' \
-	-e 's:XINSTALL_DIR:\"$(cafeobjdir)\":g' \
+	-e 's:XINSTALL_DIR:\"$(cafeobj_share)\":g' \
 	-e 's:BIGPINK:nil:g' > make-cafeobj.lisp
 
 # this is the dump of the lisp process
 xbin/$(exec_bin): make-cafeobj.lisp xbin/cafeobj version.lisp
-	$(lisp) $(build_option) < make-cafeobj.lisp
+	$(lisp_prog) $(build_option) < make-cafeobj.lisp
 	chmod +x xbin/$(exec_bin)
 
 xbin/cafeobj:
 	cat $(srcdir)/xbin/$(exec_command) | \
-	sed -e 's:LISP:$(lisp):g' \
+	sed -e 's:LISP:$(lisp_prog):g' \
 	-e 's:CAFEOBJPATH:$(cafeobjdumpdir)/$(exec_bin):g' \
-	-e 's:CAFEROOT:$(cafeobjdir):g' >$(srcdir)/xbin/cafeobj 
+	-e 's:CAFEROOT:$(cafeobj_share):g' >$(srcdir)/xbin/cafeobj 
 	chmod +x $(srcdir)/xbin/cafeobj
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

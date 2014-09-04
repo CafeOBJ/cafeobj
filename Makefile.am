@@ -47,15 +47,17 @@ dist_bin_SCRIPTS = xbin/cafeobj
 # /usr/local/cafeobj-N.M/bin/DUMP
 # /usr/local/cafeobj-N.M/{lib,prelude}
 if COND_TRADITIONAL
-  cafeobjdir = $(prefix)/$(PACKAGE)-$(VERSION)
-  cafeobjdumpdir = $(cafeobjdir)/bin
-  cafeobjpreludedir = $(cafeobjdir)/prelude
-  cafeobjlibdir = $(cafeobjdir)/lib
+  cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(prefix)/$(PACKAGE)-$(VERSION)
+  cafeobjdumpdir = $(cafeobj_lib)/bin
+  cafeobjlibdir  = $(cafeobj_share)/lib
+  cafeobjpreludedir = $(cafeobj_share)/prelude
 else
-  cafeobjdir = $(libdir)/$(PACKAGE)-$(VERSION)
-  cafeobjlibdir = $(cafeobjdir)/lib
-  cafeobjdumpdir = $(cafeobjdir)
-  cafeobjpreludedir = $(libdir)/$(PACKAGE)-$(VERSION)/prelude
+  cafeobj_share = $(datadir)/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(libdir)/$(PACKAGE)-$(VERSION)
+  cafeobjdumpdir = $(cafeobj_lib)/$(lisp)
+  cafeobjlibdir  = $(cafeobj_share)/lib
+  cafeobjpreludedir = $(cafeobj_share)/prelude
 endif
 dist_cafeobjlib_DATA =  $(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.bin		\
@@ -86,21 +88,21 @@ CLEANFILES += version.lisp
 make-cafeobj.lisp: $(srcdir)/make-cafeobj.lisp.in
 	cat $(srcdir)/make-cafeobj.lisp.in | \
 	sed -e 's:XCHAOS_ROOT_DIR:\"$(chaos_root)\":g' \
-	-e 's:XINSTALL_DIR:\"$(cafeobjdir)\":g' \
+	-e 's:XINSTALL_DIR:\"$(cafeobj_share)\":g' \
 	-e 's:BIGPINK:nil:g' > make-cafeobj.lisp
 CLEANFILES += make-cafeobj.lisp
 
 # this is the dump of the lisp process
 xbin/$(exec_bin): make-cafeobj.lisp xbin/cafeobj version.lisp
-	$(lisp) $(build_option) < make-cafeobj.lisp
+	$(lisp_prog) $(build_option) < make-cafeobj.lisp
 	chmod +x xbin/$(exec_bin)
 CLEANFILES += xbin/$(exec_bin)
 
 xbin/cafeobj:
 	cat $(srcdir)/xbin/$(exec_command) | \
-	sed -e 's:LISP:$(lisp):g' \
+	sed -e 's:LISP:$(lisp_prog):g' \
 	-e 's:CAFEOBJPATH:$(cafeobjdumpdir)/$(exec_bin):g' \
-	-e 's:CAFEROOT:$(cafeobjdir):g' >$(srcdir)/xbin/cafeobj 
+	-e 's:CAFEROOT:$(cafeobj_share):g' >$(srcdir)/xbin/cafeobj 
 	chmod +x $(srcdir)/xbin/cafeobj
 CLEANFILES += xbin/cafeobj
 

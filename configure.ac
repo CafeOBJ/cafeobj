@@ -75,53 +75,60 @@ then
 fi
 
 
-saved_lisp=$lisp
 case "x$lisp" in
 xcmu)
-	lisp=$cmu_path ;
+	lisp_path=$cmu_path ;
+	lisp_prog="lisp" ;
 	bin_suffix=".x86f" ;
 	exec_command="cafeobj.cmu.in";
 	exec_bin="cafeobj.core"
 	;;
 xcmu-pc)
-	lisp=$cmu_path ;
+	lisp_path=$cmu_path ;
+	lisp_prog="lisp" ;
 	bin_suffix=".x86f" ;
 	exec_command="cafeobj.cmu.in";
 	exec_bin="cafeobj.core"
 	;;
 xsbcl)
-	lisp=$sbcl_path ;
+	lisp_path=$sbcl_path ;
+	lisp_prog="sbcl" ;
 	bin_suffix=".fasl";
 	exec_command="cafeobj.sbcl.in";
 	exec_bin="cafeobj.sbcl";
 	build_option="--dynamic-space-size 2048"
 	;;
 xacl)
-	lisp=$acl_path ;
+	lisp_path=$acl_path ;
+	lisp_prog="alisp" ;
 	bin_suffix=".fasl";
 	exec_command="cafeobj.acl.in";
 	exec_bin="cafeobj.acl"
 	;;
 xclisp)
-	lisp=$clisp_path ;
+	lisp_path=$clisp_path ;
+	lisp_prog="clisp" ;
 	bin_suffix=".fas";
 	exec_command="cafeobj.clisp.in";
 	exec_bin="cafeobj.mem"
 	;;
 xccl)
-	lisp=$clozurecl_32path ;
+	lisp_path=$clozurecl_32path ;
+	lisp_prog="ccl";
 	bin_suffix=".dfsl";
 	exec_command="cafeobj.openmcl.in";
 	exec_bin="cafeobj.img"
 	;;
 xccl64)
-	lisp=$clozurecl_64path ;
+	lisp_path=$clozurecl_64path ;
+	lisp_prog="ccl64";
 	bin_suffix=".dx64fsl";
 	exec_command="cafeobj.openmcl.in";
 	exec_bin="cafeobj.img"
 	;;
 xgcl|x)
-	lisp=$gcl_path ;
+	lisp_path=$gcl_path ;
+	lisp_prog="gcl";
 	bin_suffix=".o";
 	exec_command="cafeobj.gcl.in"
 	exec_bin="cafeobj.exe"
@@ -132,14 +139,16 @@ xgcl|x)
 	;;
 esac
 
-if test -z "$lisp"
+if test -z "$lisp_path"
 then
-	AC_MSG_ERROR([selected lisp interpreter $saved_lisp is not available])
+	AC_MSG_ERROR([selected lisp interpreter $lisp is not available])
 fi
 
-AC_MSG_NOTICE([Lisp interpreter used: $saved_lisp])
+AC_MSG_NOTICE([Lisp interpreter used: $lisp from $lisp_path])
 
 AC_SUBST(lisp)
+AC_SUBST(lisp_path)
+AC_SUBST(lisp_prog)
 AC_SUBST(exec_command) 
 AC_SUBST(exec_bin)
 AC_SUBST(build_option)
