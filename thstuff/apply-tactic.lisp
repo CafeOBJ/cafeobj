@@ -1496,6 +1496,8 @@
 						   
 ;;; normalize-cases : List(List(term)) -> List(List(term))'
 ;;;
+
+#||
 (defun find-same-case-in (case l-case)
   (declare (type list case l-case))
   (let ((size (length case)))
@@ -1504,6 +1506,17 @@
     (when (and (= size (length xc))
 	       (every #'(lambda (x) (find x xc :test #'term-equational-equal)) case))
       (return-from find-same-case-in xc)))
+  nil))
+||#
+
+(defun find-sub-case-in (case l-case)
+  (declare (type list case l-case))
+  (let ((size (length case)))
+    (declare (type fixnum size))
+  (dolist (xc l-case)
+    (when (and (<= size (length xc))
+	       (every #'(lambda (x) (find x xc :test #'term-equational-equal)) case))
+      (return-from find-sub-case-in xc)))
   nil))
 
 (defun case-is-valid (idxs term)
@@ -1515,7 +1528,9 @@
   term)
 
 (defun remove-exclusive-cases (case)
-  (let ((idxs (mapcar #'(lambda (x) (car x)) case)))
+  (let ((idxs (mapcar #'(lambda (x) (car x)) case))
+	(result nil))
+    (declare (type list idxs result))
     (with-citp-debug ()
       (format t "~%-- check these combination")
       (dolist (c case)
@@ -1524,9 +1539,9 @@
 	(term-print-with-sort (cdr c))))
     (dolist (c case)
       (let ((term (cdr c)))
-	(unless (case-is-valid idxs term)
-	  (return-from remove-exclusive-cases nil))))
-    (mapcar #'(lambda (x) (cdr x)) case)))
+	(when (case-is-valid idxs term)
+	  (push term result))))
+    result))
 
 (defun normalize-cases (l-case ptree-node all-cases)
   (declare (type list l-case)
@@ -1554,7 +1569,7 @@
 	    (unless case (return-from next nil))
 	    (dolist (c case)
 	      (setq all-cases (delete c all-cases :test #'term-equational-equal)))
-	    ;; then divende /\ in each cases
+	    ;; then divide /\ in each cases
 	    (let ((dcase nil))
 	      (dolist (c case)
 		(setq dcase (nconc dcase (distribute-cond c))))
@@ -1564,7 +1579,7 @@
 	(let ((result nil))
 	  ;; for each case
 	  (dolist (case dist-cases)
-	    (unless (find-same-case-in case result)
+	    (unless (find-sub-case-in case result)
 	      (setq result (nconc result (list case)))))
 	  (when all-cases
 	    ;; remaining sole cases
