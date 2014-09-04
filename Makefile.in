@@ -209,6 +209,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
+DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -338,8 +339,31 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 xelatex_avail = @xelatex_avail@
+
+# Engine definitions
+ACL_DUMP = acl/cafeobj.acl
+ACL_INTERPRETER = alisp
+ACL_BUILDOPTS = 
+SBCL_DUMP = sbcl/cafeobj.sbcl
+SBCL_INTERPRETER = sbcl
+SBCL_BUILDOPTS = --dynamic-space-size 2048
+CMU_DUMP = cmu/cafeobj.core
+CMU_INTERPRETER = lisp
+CMU_BUILDOPTION = 
+CCL_DUMP = ccl/cafeobj.img
+CCL_INTERPRETER = ccl
+CCL_BUILDOPTS = 
+CCL64_DUMP = ccl64/cafeobj.img
+CCL64_INTERPRETER = ccl64
+CCL64_BUILDOPTS = 
+CLISP_DUMP = clisp/cafeobj.mem
+CLISP_INTERPRETER = clisp
+CLISP_BUILDOPTS = 
+GCL_DUMP = gcl/cafeobj.exe
+GCL_INTERPRETER = gcl
+GCL_BUILDOPTS = 
+# End of engine definitions
 SUBDIRS = doc
-DIST_SUBDIRS = doc
 
 #
 # specifying the files that go into the distribution is a pain,
@@ -347,7 +371,8 @@ DIST_SUBDIRS = doc
 # to be build dist dir, too.
 # for now, let us simply not suport make dist ;-)
 # EXTRA_DIST = *
-CLEANFILES = version.lisp make-cafeobj.lisp xbin/cafeobj
+CLEANFILES = version.lisp make-cafeobj.lisp $(engine_dumps) \
+	xbin/cafeobj
 dist_bin_SCRIPTS = xbin/cafeobj
 @COND_TRADITIONAL_FALSE@cafeobj_share = $(datadir)/$(PACKAGE)-$(VERSION)
 
@@ -370,12 +395,13 @@ dist_cafeobjlib_DATA = $(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.desc
 
 dist_cafeobjprelude_DATA = $(srcdir)/lib/prelude/*.bin
-engine_dumps = $(patsubst acl,acl/cafeobj.acl,\
-               $(patsubst sbcl,sbcl/cafeobj.sbcl,\
-	       $(patsubst cmu,cmu/cafeobj.core,\
-	       $(patsubst ccl,ccl/cafeobj.img,\
-	       $(patsubst ccl64,ccl64/cafeobj.img,\
-	       $(patsubst gcl,gcl/cafeobj.exe,$(lisp)))))))
+engine_dumps = $(patsubst acl,$(ACL_DUMP),\
+               $(patsubst sbcl,$(SBCL_DUMP),\
+	       $(patsubst cmu,$(CMU_DUMP),\
+	       $(patsubst ccl,$(CCL_DUMP),\
+	       $(patsubst ccl64,$(CCL64_DUMP),\
+	       $(patsubst clisp,$(CLISP_DUMP),\
+	       $(patsubst gcl,$(GCL_DUMP),$(lisp))))))))
 
 @COND_TRADITIONAL_TRUE@cafeobjdump_SCRIPTS = $(engine_dumps)
 @COND_TRADITIONAL_FALSE@nobase_cafeobjdump_SCRIPTS = $(engine_dumps)
@@ -912,7 +938,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-recursive
 
-clean-am: clean-generic mostlyclean-am
+clean-am: clean-generic clean-local mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -988,9 +1014,9 @@ uninstall-am: uninstall-cafeobjdumpSCRIPTS uninstall-dist_binSCRIPTS \
 
 .PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am \
 	am--refresh check check-am clean clean-cscope clean-generic \
-	cscope cscopelist-am ctags ctags-am dist dist-all dist-bzip2 \
-	dist-gzip dist-lzip dist-shar dist-tarZ dist-xz dist-zip \
-	distcheck distclean distclean-generic distclean-tags \
+	clean-local cscope cscopelist-am ctags ctags-am dist dist-all \
+	dist-bzip2 dist-gzip dist-lzip dist-shar dist-tarZ dist-xz \
+	dist-zip distcheck distclean distclean-generic distclean-tags \
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am info info-am install install-am \
 	install-cafeobjdumpSCRIPTS install-data install-data-am \
@@ -1026,20 +1052,36 @@ make-cafeobj.lisp: $(srcdir)/make-cafeobj.lisp.in
 	cat $(srcdir)/make-cafeobj.lisp.in | \
 	sed -e 's:XCHAOS_ROOT_DIR:\"$(chaos_root)\":g' \
 	-e 's:XINSTALL_DIR:\"$(cafeobj_share)\":g' \
+	-e 's:ACL_DUMP:$(ACL_DUMP):g' \
+	-e 's:SBCL_DUMP:$(SBCL_DUMP):g' \
+	-e 's:CMU_DUMP:$(CMU_DUMP):g' \
+	-e 's:CCL_DUMP:$(CCL_DUMP):g' \
+	-e 's:CCL64_DUMP:$(CCL64_DUMP):g' \
+	-e 's:CLISP_DUMP:$(CLISP_DUMP):g' \
+	-e 's:GCL_DUMP:$(GCL_DUMP):g' \
 	-e 's:BIGPINK:nil:g' > make-cafeobj.lisp
 
-acl/cafeobj.acl : interp=alisp 
-sbcl/cafeobj.sbcl : interp=sbcl buildopts="--dynamic-space-size 2048"
-cmu/cafeobj.core : interp=lisp
-clisp/cafeobj.mem : interp=clisp
-ccl/cafeobj.img : interp=ccl
-ccl64/cafeobj.img : interp=ccl64
-gcl/cafeobj.exe : interp=gcl
+$(ACL_DUMP) : interp = $(ACL_INTERPRETER) 
+$(ACL_DUMP) : buildopts = $(ACL_BUILDOPTS)
+$(SBCL_DUMP) : interp = $(SBCL_INTERPRETER)
+$(SBCL_DUMP) : buildopts = $(SBCL_BUILDOPTS)
+$(CMU_DUMP) : interp = $(CMU_INTERPRETER)
+$(CMU_DUMP) : buildopts = $(CMU_BUILDOPTS)
+$(CLISP_DUMP) : interp = $(CLISP_INTERPRETER)
+$(CLISP_DUMP) : buildopts = $(CLISP_BUILDOPTS)
+$(CCL_DUMP) : interp = $(CCL_INTERPRETER)
+$(CCL_DUMP) : buildopts = $(CCL_BUILDOPTS)
+$(CCL64_DUMP) : interp = $(CCL64_INTERPRETER)
+$(CCL64_DUMP) : buildopts = $(CCL64_BUILDOPTS)
+$(GCL_DUMP) : interp = $(GCL_INTERPRETER)
+$(GCL_DUMP) : buildopts = $(GCL_BUILDOPTS)
 
 $(engine_dumps): %: make-cafeobj.lisp version.lisp
 	mkdir -p $(dir $@)
 	$(interp) $(buildopts) < make-cafeobj.lisp
 	chmod +x $@
+clean-local:
+	-rm -rf acl sbcl cmu clisp ccl ccl64 gcl
 
 xbin/cafeobj:
 	cat $(srcdir)/xbin/cafeobj.in | \
