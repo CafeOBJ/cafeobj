@@ -41,16 +41,16 @@ AC_SUBST(VMEMO)
 AC_SUBST(PATCHLEVEL)
 AC_ARG_PROGRAM
 AC_PROG_INSTALL
-dnl AC_PATH_PROG(gcl_path,gcl, no)   ... no more gcl..
-AC_PATH_PROG(cmu_path,lisp, no)
-AC_PATH_PROG(sbcl_path,sbcl,no)
-AC_PATH_PROG(acl_path,alisp, no)
-AC_PATH_PROG(clisp_path,clisp, no)
-dnl AC_PATH_PROG(acl8_path,alisp,no)
-dnl AC_PATH_PROG(acl9_path,alisp,no)
-dnl AC_PATH_PROG(openmcl_path,openmcl,no)
-AC_PATH_PROG(clozurecl_32path,ccl,no)
-AC_PATH_PROG(clozurecl_64path,ccl64,no)
+dnl AC_PATH_PROG(gcl_path,gcl)   ... no more gcl..
+AC_PATH_PROG(cmu_path,lisp)
+AC_PATH_PROG(sbcl_path,sbcl)
+AC_PATH_PROG(acl_path,alisp)
+AC_PATH_PROG(clisp_path,clisp)
+dnl AC_PATH_PROG(acl8_path,alisp)
+dnl AC_PATH_PROG(acl9_path,alisp)
+dnl AC_PATH_PROG(openmcl_path,openmcl)
+AC_PATH_PROG(clozurecl_32path,ccl)
+AC_PATH_PROG(clozurecl_64path,ccl64)
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AC_ARG_WITH(lisp,
@@ -74,6 +74,15 @@ then
 	fi
 fi
 
+
+dnl support building for all interpreters
+do_all=0
+if test "x$lisp" = "xall"
+then
+  do_all=1
+  lisp=acl,sbcl,clisp,gcl,cmu,ccl,ccl64
+fi
+
 dnl convert comma serparated list to space separated list
 lisp=$(echo $lisp | sed -e 's/,/ /g')
 
@@ -84,14 +93,16 @@ do
     xcmu|xcmu-pc) 
           if test -z "$cmu_path"
           then
+	     test $do_all = 1 || \
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
 	  fi
 	  ;;
     xsbcl)
-          if test -z "$cmu_path"
+          if test -z "$sbcl_path"
           then
+	     test $do_all = 1 || \
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
@@ -100,6 +111,7 @@ do
     xacl)
           if test -z "$acl_path"
           then
+	     test $do_all = 1 || \
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
@@ -108,6 +120,7 @@ do
     xclisp)
           if test -z "$clisp_path"
           then
+	     test $do_all = 1 || \
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
@@ -116,6 +129,7 @@ do
     xccl)
           if test -z "$clozurecl_32path"
           then
+	     test $do_all = 1 || \
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
@@ -124,6 +138,7 @@ do
     xccl64)
           if test -z "$clozurecl_64path"
           then
+	     test $do_all = 1 || \
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
@@ -132,6 +147,7 @@ do
     xgcl)
           if test -z "$gcl_path"
           then
+	     test $do_all = 1 || \
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"

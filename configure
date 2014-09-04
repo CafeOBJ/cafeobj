@@ -2379,7 +2379,6 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_cmu_path" && ac_cv_path_cmu_path="no"
   ;;
 esac
 fi
@@ -2420,7 +2419,6 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_sbcl_path" && ac_cv_path_sbcl_path="no"
   ;;
 esac
 fi
@@ -2461,7 +2459,6 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_acl_path" && ac_cv_path_acl_path="no"
   ;;
 esac
 fi
@@ -2502,7 +2499,6 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_clisp_path" && ac_cv_path_clisp_path="no"
   ;;
 esac
 fi
@@ -2543,7 +2539,6 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_clozurecl_32path" && ac_cv_path_clozurecl_32path="no"
   ;;
 esac
 fi
@@ -2584,7 +2579,6 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_clozurecl_64path" && ac_cv_path_clozurecl_64path="no"
   ;;
 esac
 fi
@@ -2653,6 +2647,14 @@ then
 	fi
 fi
 
+
+do_all=0
+if test "x$lisp" = "xall"
+then
+  do_all=1
+  lisp=acl,sbcl,clisp,gcl,cmu,ccl,ccl64
+fi
+
 lisp=$(echo $lisp | sed -e 's/,/ /g')
 
 goodlisp=
@@ -2662,14 +2664,16 @@ do
     xcmu|xcmu-pc)
           if test -z "$cmu_path"
           then
+	     test $do_all = 1 || \
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
 	  fi
 	  ;;
     xsbcl)
-          if test -z "$cmu_path"
+          if test -z "$sbcl_path"
           then
+	     test $do_all = 1 || \
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
@@ -2678,6 +2682,7 @@ do
     xacl)
           if test -z "$acl_path"
           then
+	     test $do_all = 1 || \
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
@@ -2686,6 +2691,7 @@ do
     xclisp)
           if test -z "$clisp_path"
           then
+	     test $do_all = 1 || \
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
@@ -2694,6 +2700,7 @@ do
     xccl)
           if test -z "$clozurecl_32path"
           then
+	     test $do_all = 1 || \
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
@@ -2702,6 +2709,7 @@ do
     xccl64)
           if test -z "$clozurecl_64path"
           then
+	     test $do_all = 1 || \
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
@@ -2710,6 +2718,7 @@ do
     xgcl)
           if test -z "$gcl_path"
           then
+	     test $do_all = 1 || \
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
