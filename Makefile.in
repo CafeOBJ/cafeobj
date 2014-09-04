@@ -149,8 +149,10 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(cafeobjdumpdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(cafeobjlibdir)" "$(DESTDIR)$(cafeobjpreludedir)"
-SCRIPTS = $(cafeobjdump_SCRIPTS) $(dist_bin_SCRIPTS)
+	"$(DESTDIR)$(cafeobjdumpdir)" "$(DESTDIR)$(cafeobjlibdir)" \
+	"$(DESTDIR)$(cafeobjpreludedir)"
+SCRIPTS = $(cafeobjdump_SCRIPTS) $(dist_bin_SCRIPTS) \
+	$(nobase_cafeobjdump_SCRIPTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -295,10 +297,8 @@ am__leading_dot = @am__leading_dot@
 am__tar = @am__tar@
 am__untar = @am__untar@
 biber_avail = @biber_avail@
-bin_suffix = @bin_suffix@
 bindir = @bindir@
 build_alias = @build_alias@
-build_option = @build_option@
 builddir = @builddir@
 clisp_path = @clisp_path@
 clozurecl_32path = @clozurecl_32path@
@@ -308,8 +308,6 @@ datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
-exec_bin = @exec_bin@
-exec_command = @exec_command@
 exec_prefix = @exec_prefix@
 host_alias = @host_alias@
 htmldir = @htmldir@
@@ -319,8 +317,6 @@ install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
 lisp = @lisp@
-lisp_path = @lisp_path@
-lisp_prog = @lisp_prog@
 localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
@@ -351,8 +347,7 @@ DIST_SUBDIRS = doc
 # to be build dist dir, too.
 # for now, let us simply not suport make dist ;-)
 # EXTRA_DIST = *
-CLEANFILES = version.lisp make-cafeobj.lisp xbin/$(exec_bin) \
-	xbin/cafeobj
+CLEANFILES = version.lisp make-cafeobj.lisp xbin/cafeobj
 dist_bin_SCRIPTS = xbin/cafeobj
 @COND_TRADITIONAL_FALSE@cafeobj_share = $(datadir)/$(PACKAGE)-$(VERSION)
 
@@ -364,7 +359,7 @@ dist_bin_SCRIPTS = xbin/cafeobj
 @COND_TRADITIONAL_TRUE@cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)
 @COND_TRADITIONAL_FALSE@cafeobj_lib = $(libdir)/$(PACKAGE)-$(VERSION)
 @COND_TRADITIONAL_TRUE@cafeobj_lib = $(prefix)/$(PACKAGE)-$(VERSION)
-@COND_TRADITIONAL_FALSE@cafeobjdumpdir = $(cafeobj_lib)/$(lisp)
+@COND_TRADITIONAL_FALSE@cafeobjdumpdir = $(cafeobj_lib)/
 @COND_TRADITIONAL_TRUE@cafeobjdumpdir = $(cafeobj_lib)/bin
 @COND_TRADITIONAL_FALSE@cafeobjlibdir = $(cafeobj_share)/lib
 @COND_TRADITIONAL_TRUE@cafeobjlibdir = $(cafeobj_share)/lib
@@ -375,7 +370,15 @@ dist_cafeobjlib_DATA = $(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.desc
 
 dist_cafeobjprelude_DATA = $(srcdir)/lib/prelude/*.bin
-cafeobjdump_SCRIPTS = xbin/$(exec_bin)
+engine_dumps = $(patsubst acl,acl/cafeobj.acl,\
+               $(patsubst sbcl,sbcl/cafeobj.sbcl,\
+	       $(patsubst cmu,cmu/cafeobj.core,\
+	       $(patsubst ccl,ccl/cafeobj.img,\
+	       $(patsubst ccl64,ccl64/cafeobj.img,\
+	       $(patsubst gcl,gcl/cafeobj.exe,$(lisp)))))))
+
+@COND_TRADITIONAL_TRUE@cafeobjdump_SCRIPTS = $(engine_dumps)
+@COND_TRADITIONAL_FALSE@nobase_cafeobjdump_SCRIPTS = $(engine_dumps)
 
 #
 # for dumping the image the lisp interpreter needs to know
@@ -489,6 +492,48 @@ uninstall-dist_binSCRIPTS:
 	files=`for p in $$list; do echo "$$p"; done | \
 	       sed -e 's,.*/,,;$(transform)'`; \
 	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
+install-nobase_cafeobjdumpSCRIPTS: $(nobase_cafeobjdump_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	@list='$(nobase_cafeobjdump_SCRIPTS)'; test -n "$(cafeobjdumpdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(cafeobjdumpdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(cafeobjdumpdir)" || exit 1; \
+	fi; \
+	$(am__nobase_strip_setup); \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n' \
+	    -e "s|$$srcdirstrip/||" -e 'h;s|[^/]*$$||; s|^$$|.|' \
+	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
+	      if (++n[d] == $(am__install_max)) { \
+		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
+	    else { print "f", d "/" $$4, $$1 } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	  case $$type in \
+	  d) echo " $(MKDIR_P) '$(DESTDIR)$(cafeobjdumpdir)/$$dir'"; \
+	     $(MKDIR_P) "$(DESTDIR)$(cafeobjdumpdir)/$$dir" || exit $$?;; \
+	  f) \
+	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	     test -z "$$files" || { \
+	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(cafeobjdumpdir)$$dir'"; \
+	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(cafeobjdumpdir)$$dir" || exit $$?; \
+	     } \
+	  ;; esac \
+	; done
+
+uninstall-nobase_cafeobjdumpSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nobase_cafeobjdump_SCRIPTS)'; test -n "$(cafeobjdumpdir)" || exit 0; \
+	$(am__nobase_strip_setup); \
+	files=`$(am__nobase_strip) \
+	       -e 'h;s,.*/,,;$(transform);x;s|[^/]*$$||;G;s,\n,,'`; \
+	dir='$(DESTDIR)$(cafeobjdumpdir)'; $(am__uninstall_files_from_dir)
 install-dist_cafeobjlibDATA: $(dist_cafeobjlib_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(dist_cafeobjlib_DATA)'; test -n "$(cafeobjlibdir)" || list=; \
@@ -831,7 +876,7 @@ check: check-recursive
 all-am: Makefile $(SCRIPTS) $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(cafeobjdumpdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(cafeobjlibdir)" "$(DESTDIR)$(cafeobjpreludedir)"; do \
+	for dir in "$(DESTDIR)$(cafeobjdumpdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(cafeobjdumpdir)" "$(DESTDIR)$(cafeobjlibdir)" "$(DESTDIR)$(cafeobjpreludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -887,7 +932,8 @@ info: info-recursive
 info-am:
 
 install-data-am: install-cafeobjdumpSCRIPTS \
-	install-dist_cafeobjlibDATA install-dist_cafeobjpreludeDATA
+	install-dist_cafeobjlibDATA install-dist_cafeobjpreludeDATA \
+	install-nobase_cafeobjdumpSCRIPTS
 
 install-dvi: install-dvi-recursive
 
@@ -935,7 +981,8 @@ ps-am:
 
 uninstall-am: uninstall-cafeobjdumpSCRIPTS uninstall-dist_binSCRIPTS \
 	uninstall-dist_cafeobjlibDATA \
-	uninstall-dist_cafeobjpreludeDATA
+	uninstall-dist_cafeobjpreludeDATA \
+	uninstall-nobase_cafeobjdumpSCRIPTS
 
 .MAKE: $(am__recursive_targets) install-am install-strip
 
@@ -950,14 +997,16 @@ uninstall-am: uninstall-cafeobjdumpSCRIPTS uninstall-dist_binSCRIPTS \
 	install-dist_binSCRIPTS install-dist_cafeobjlibDATA \
 	install-dist_cafeobjpreludeDATA install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs installdirs-am \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-cafeobjdumpSCRIPTS \
-	uninstall-dist_binSCRIPTS uninstall-dist_cafeobjlibDATA \
-	uninstall-dist_cafeobjpreludeDATA
+	install-info install-info-am install-man \
+	install-nobase_cafeobjdumpSCRIPTS install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
+	pdf-am ps ps-am tags tags-am uninstall uninstall-am \
+	uninstall-cafeobjdumpSCRIPTS uninstall-dist_binSCRIPTS \
+	uninstall-dist_cafeobjlibDATA \
+	uninstall-dist_cafeobjpreludeDATA \
+	uninstall-nobase_cafeobjdumpSCRIPTS
 
 
 #
@@ -979,16 +1028,24 @@ make-cafeobj.lisp: $(srcdir)/make-cafeobj.lisp.in
 	-e 's:XINSTALL_DIR:\"$(cafeobj_share)\":g' \
 	-e 's:BIGPINK:nil:g' > make-cafeobj.lisp
 
-# this is the dump of the lisp process
-xbin/$(exec_bin): make-cafeobj.lisp xbin/cafeobj version.lisp
-	$(lisp_prog) $(build_option) < make-cafeobj.lisp
-	chmod +x xbin/$(exec_bin)
+acl/cafeobj.acl : interp=alisp 
+sbcl/cafeobj.sbcl : interp=sbcl buildopts="--dynamic-space-size 2048"
+cmu/cafeobj.core : interp=lisp
+clisp/cafeobj.mem : interp=clisp
+ccl/cafeobj.img : interp=ccl
+ccl64/cafeobj.img : interp=ccl64
+gcl/cafeobj.exe : interp=gcl
+
+$(engine_dumps): %: make-cafeobj.lisp version.lisp
+	mkdir -p $(dir $@)
+	$(interp) $(buildopts) < make-cafeobj.lisp
+	chmod +x $@
 
 xbin/cafeobj:
-	cat $(srcdir)/xbin/$(exec_command) | \
-	sed -e 's:LISP:$(lisp_prog):g' \
-	-e 's:CAFEOBJPATH:$(cafeobjdumpdir)/$(exec_bin):g' \
-	-e 's:CAFEROOT:$(cafeobj_share):g' >$(srcdir)/xbin/cafeobj 
+	cat $(srcdir)/xbin/cafeobj.in | \
+	sed -e 's:CHOICES:$(lisp):g' \
+	-e 's:LIBPATH:$(cafeobj_lib):g' \
+	-e 's:SHAREPATH:$(cafeobj_share):g' >$(srcdir)/xbin/cafeobj 
 	chmod +x $(srcdir)/xbin/cafeobj
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

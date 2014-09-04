@@ -74,85 +74,84 @@ then
 	fi
 fi
 
+dnl convert comma serparated list to space separated list
+lisp=$(echo $lisp | sed -e 's/,/ /g')
 
-case "x$lisp" in
-xcmu)
-	lisp_path=$cmu_path ;
-	lisp_prog="lisp" ;
-	bin_suffix=".x86f" ;
-	exec_command="cafeobj.cmu.in";
-	exec_bin="cafeobj.core"
-	;;
-xcmu-pc)
-	lisp_path=$cmu_path ;
-	lisp_prog="lisp" ;
-	bin_suffix=".x86f" ;
-	exec_command="cafeobj.cmu.in";
-	exec_bin="cafeobj.core"
-	;;
-xsbcl)
-	lisp_path=$sbcl_path ;
-	lisp_prog="sbcl" ;
-	bin_suffix=".fasl";
-	exec_command="cafeobj.sbcl.in";
-	exec_bin="cafeobj.sbcl";
-	build_option="--dynamic-space-size 2048"
-	;;
-xacl)
-	lisp_path=$acl_path ;
-	lisp_prog="alisp" ;
-	bin_suffix=".fasl";
-	exec_command="cafeobj.acl.in";
-	exec_bin="cafeobj.acl"
-	;;
-xclisp)
-	lisp_path=$clisp_path ;
-	lisp_prog="clisp" ;
-	bin_suffix=".fas";
-	exec_command="cafeobj.clisp.in";
-	exec_bin="cafeobj.mem"
-	;;
-xccl)
-	lisp_path=$clozurecl_32path ;
-	lisp_prog="ccl";
-	bin_suffix=".dfsl";
-	exec_command="cafeobj.openmcl.in";
-	exec_bin="cafeobj.img"
-	;;
-xccl64)
-	lisp_path=$clozurecl_64path ;
-	lisp_prog="ccl64";
-	bin_suffix=".dx64fsl";
-	exec_command="cafeobj.openmcl.in";
-	exec_bin="cafeobj.img"
-	;;
-xgcl|x)
-	lisp_path=$gcl_path ;
-	lisp_prog="gcl";
-	bin_suffix=".o";
-	exec_command="cafeobj.gcl.in"
-	exec_bin="cafeobj.exe"
-	;;
-*)
-	echo "unknown lisp platform";
-	exit 1
-	;;
-esac
+goodlisp=
+for i in $lisp
+do
+  case "x$i" in
+    xcmu|xcmu-pc) 
+          if test -z "$cmu_path"
+          then
+	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
+	  else
+	     goodlisp="$goodlisp $i"
+	  fi
+	  ;;
+    xsbcl)
+          if test -z "$cmu_path"
+          then
+	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
+	  else
+	     goodlisp="$goodlisp $i"
+	  fi
+	  ;;
+    xacl)
+          if test -z "$acl_path"
+          then
+	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
+	  else
+	     goodlisp="$goodlisp $i"
+	  fi
+	  ;;
+    xclisp)
+          if test -z "$clisp_path"
+          then
+	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
+	  else
+	     goodlisp="$goodlisp $i"
+	  fi
+	  ;;
+    xccl)
+          if test -z "$clozurecl_32path"
+          then
+	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
+	  else
+	     goodlisp="$goodlisp $i"
+	  fi
+	  ;;
+    xccl64)
+          if test -z "$clozurecl_64path"
+          then
+	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
+	  else
+	     goodlisp="$goodlisp $i"
+	  fi
+	  ;;
+    xgcl)
+          if test -z "$gcl_path"
+          then
+	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
+	  else
+	     goodlisp="$goodlisp $i"
+	  fi
+	  ;;
+    *)
+          AC_MSG_ERROR([unknown lisp interpreter $i])
+	  ;;
+  esac
+done
 
-if test -z "$lisp_path"
+lisp="$goodlisp"
+
+if test -z "$lisp"
 then
-	AC_MSG_ERROR([selected lisp interpreter $lisp is not available])
+	AC_MSG_ERROR([no usable lisp interpreter])
 fi
 
-AC_MSG_NOTICE([Lisp interpreter used: $lisp from $lisp_path])
-
+AC_MSG_NOTICE([Building for the following lisp interpreters: $lisp])
 AC_SUBST(lisp)
-AC_SUBST(lisp_path)
-AC_SUBST(lisp_prog)
-AC_SUBST(exec_command) 
-AC_SUBST(exec_bin)
-AC_SUBST(build_option)
-AC_SUBST(bin_suffix)
 
 AC_ARG_ENABLE([rebuild_doc],
        [AS_HELP_STRING([--enable-rebuild-doc],

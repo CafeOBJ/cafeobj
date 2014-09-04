@@ -223,16 +223,16 @@
   (asdf:oos 'asdf:load-op 'chaosx)
   (make-exec-image
    (concatenate 'string *chaos-root*
-		#+GCL "/xbin/cafeobj.exe"
+		#+GCL "/gcl/cafeobj.exe"
 		#+microsoft "/xbin/cafeobj.dxl"
-		#+(and unix Allegro) "/xbin/cafeobj.acl"
-		#+CMU "/xbin/cafeobj.core"
-		#+SBCL "/xbin/cafeobj.sbcl"
-		#+CLISP "/xbin/cafeobj.mem"
-		#+:openmcl "/xbin/cafeobj.img"
+		#+(and unix Allegro) "/acl/cafeobj.acl"
+		#+CMU "/cmu/cafeobj.core"
+		#+SBCL "/sbcl/cafeobj.sbcl"
+		#+CLISP "/clisp/cafeobj.mem"
+		#+:openmcl "/ccl/cafeobj.img"
 		;; patch by t-seino@jaist.ac.jp
 		;; patch by sawada@sra.co.jp
-		#+(and CCL (not :openmcl)) ":xbin:cafeobj.exe"
+		#+(and CCL (not :openmcl)) ":ccl:cafeobj.exe"
 		))
   )
 

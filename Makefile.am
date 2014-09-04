@@ -55,7 +55,7 @@ if COND_TRADITIONAL
 else
   cafeobj_share = $(datadir)/$(PACKAGE)-$(VERSION)
   cafeobj_lib   = $(libdir)/$(PACKAGE)-$(VERSION)
-  cafeobjdumpdir = $(cafeobj_lib)/$(lisp)
+  cafeobjdumpdir = $(cafeobj_lib)/
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
 endif
@@ -63,7 +63,19 @@ dist_cafeobjlib_DATA =  $(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.bin		\
 			$(srcdir)/lib/lib/*.desc
 dist_cafeobjprelude_DATA = $(srcdir)/lib/prelude/*.bin
-cafeobjdump_SCRIPTS = xbin/$(exec_bin)
+
+engine_dumps = $(patsubst acl,acl/cafeobj.acl,\
+               $(patsubst sbcl,sbcl/cafeobj.sbcl,\
+	       $(patsubst cmu,cmu/cafeobj.core,\
+	       $(patsubst ccl,ccl/cafeobj.img,\
+	       $(patsubst ccl64,ccl64/cafeobj.img,\
+	       $(patsubst gcl,gcl/cafeobj.exe,$(lisp)))))))
+
+if COND_TRADITIONAL
+cafeobjdump_SCRIPTS = $(engine_dumps)
+else
+nobase_cafeobjdump_SCRIPTS = $(engine_dumps)
+endif
 
 #
 # for dumping the image the lisp interpreter needs to know
@@ -92,19 +104,25 @@ make-cafeobj.lisp: $(srcdir)/make-cafeobj.lisp.in
 	-e 's:BIGPINK:nil:g' > make-cafeobj.lisp
 CLEANFILES += make-cafeobj.lisp
 
-# this is the dump of the lisp process
-xbin/$(exec_bin): make-cafeobj.lisp xbin/cafeobj version.lisp
-	$(lisp_prog) $(build_option) < make-cafeobj.lisp
-	chmod +x xbin/$(exec_bin)
-CLEANFILES += xbin/$(exec_bin)
+acl/cafeobj.acl : interp=alisp 
+sbcl/cafeobj.sbcl : interp=sbcl buildopts="--dynamic-space-size 2048"
+cmu/cafeobj.core : interp=lisp
+clisp/cafeobj.mem : interp=clisp
+ccl/cafeobj.img : interp=ccl
+ccl64/cafeobj.img : interp=ccl64
+gcl/cafeobj.exe : interp=gcl
+
+$(engine_dumps): %: make-cafeobj.lisp version.lisp
+	mkdir -p $(dir $@)
+	$(interp) $(buildopts) < make-cafeobj.lisp
+	chmod +x $@
+CLEANFILES += $(engine_dumps)
 
 xbin/cafeobj:
-	cat $(srcdir)/xbin/$(exec_command) | \
-	sed -e 's:LISP:$(lisp_prog):g' \
-	-e 's:CAFEOBJPATH:$(cafeobjdumpdir)/$(exec_bin):g' \
-	-e 's:CAFEROOT:$(cafeobj_share):g' >$(srcdir)/xbin/cafeobj 
+	cat $(srcdir)/xbin/cafeobj.in | \
+	sed -e 's:CHOICES:$(lisp):g' \
+	-e 's:LIBPATH:$(cafeobj_lib):g' \
+	-e 's:SHAREPATH:$(cafeobj_share):g' >$(srcdir)/xbin/cafeobj 
 	chmod +x $(srcdir)/xbin/cafeobj
 CLEANFILES += xbin/cafeobj
-
-
 
