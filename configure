@@ -592,6 +592,10 @@ pdflatex_avail
 pandoc_avail
 biber_avail
 xelatex_avail
+cmu_interp
+clisp_interp
+sbcl_interp
+acl_interp
 lisp
 clozurecl_64path
 clozurecl_32path
@@ -671,6 +675,10 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_silent_rules
+with_cmu
+with_sbcl
+with_acl
+with_clisp
 with_lisp
 enable_rebuild_doc
 enable_traditional_layout
@@ -1302,9 +1310,14 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-cmu=<cmd>        specify the CMU interpreter [default: lisp]
+  --with-sbcl=<cmd>       specify the SBCL interpreter [default: sbcl]
+  --with-acl=<cmd>        specify the ACL interpreter [default: alisp]
+  --with-clisp=<cmd>      specify the CLISP interpreter [default: clisp]
   --with-lisp=all|<interp>[,<interp>]
-                          specify a list of lisp interpreters to build with,
-                          or all for all found
+                          specify a list of lisp interpreters from "acl",
+                          "sbcl", "cmu", or "clisp". Alternatively "all" can
+                          be specified to select all available.
 
 Report bugs to the package provider.
 CafeOBJ home page: <http://www.cafeobj.org/>.
@@ -2353,8 +2366,42 @@ PATCHLEVEL=
 
 
 
-# Extract the first word of "lisp", so it can be a program name with args.
-set dummy lisp; ac_word=$2
+
+
+# Check whether --with-cmu was given.
+if test "${with_cmu+set}" = set; then :
+  withval=$with_cmu; cmu_interp=$withval
+else
+  cmu_interp=lisp
+fi
+
+
+# Check whether --with-sbcl was given.
+if test "${with_sbcl+set}" = set; then :
+  withval=$with_sbcl; sbcl_interp=$withval
+else
+  sbcl_interp=sbcl
+fi
+
+
+# Check whether --with-acl was given.
+if test "${with_acl+set}" = set; then :
+  withval=$with_acl; acl_interp=$withval
+else
+  acl_interp=alisp
+fi
+
+
+# Check whether --with-clisp was given.
+if test "${with_clisp+set}" = set; then :
+  withval=$with_clisp; clisp_interp=$withval
+else
+  clisp_interp=lisp
+fi
+
+
+# Extract the first word of "$cmu_interp", so it can be a program name with args.
+set dummy $cmu_interp; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_path_cmu_path+:} false; then :
@@ -2393,8 +2440,8 @@ $as_echo "no" >&6; }
 fi
 
 
-# Extract the first word of "sbcl", so it can be a program name with args.
-set dummy sbcl; ac_word=$2
+# Extract the first word of "$sbcl_interp", so it can be a program name with args.
+set dummy $sbcl_interp; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_path_sbcl_path+:} false; then :
@@ -2433,8 +2480,8 @@ $as_echo "no" >&6; }
 fi
 
 
-# Extract the first word of "alisp", so it can be a program name with args.
-set dummy alisp; ac_word=$2
+# Extract the first word of "$acl_interp", so it can be a program name with args.
+set dummy $acl_interp; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_path_acl_path+:} false; then :
@@ -2473,8 +2520,8 @@ $as_echo "no" >&6; }
 fi
 
 
-# Extract the first word of "clisp", so it can be a program name with args.
-set dummy clisp; ac_word=$2
+# Extract the first word of "$clisp_interp", so it can be a program name with args.
+set dummy $clisp_interp; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_path_clisp_path+:} false; then :
@@ -2740,6 +2787,12 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: Building for the following lisp interpreters: $lisp" >&5
 $as_echo "$as_me: Building for the following lisp interpreters: $lisp" >&6;}
+
+
+
+
+
+
 
 
 # Check whether --enable-rebuild_doc was given.

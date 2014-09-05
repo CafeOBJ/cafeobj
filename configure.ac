@@ -41,11 +41,30 @@ AC_SUBST(VMEMO)
 AC_SUBST(PATCHLEVEL)
 AC_ARG_PROGRAM
 AC_PROG_INSTALL
+
+dnl allow for specifying different names for cmd line interpreter
+AC_ARG_WITH(cmu,
+   [AS_HELP_STRING([--with-cmu=<cmd>],
+      [specify the CMU interpreter @<:@default: lisp@:>@])],
+   cmu_interp=$withval,cmu_interp=lisp)
+AC_ARG_WITH(sbcl,
+   [AS_HELP_STRING([--with-sbcl=<cmd>],
+      [specify the SBCL interpreter @<:@default: sbcl@:>@])],
+   sbcl_interp=$withval,sbcl_interp=sbcl)
+AC_ARG_WITH(acl,
+   [AS_HELP_STRING([--with-acl=<cmd>],
+      [specify the ACL interpreter @<:@default: alisp@:>@])],
+   acl_interp=$withval,acl_interp=alisp)
+AC_ARG_WITH(clisp,
+   [AS_HELP_STRING([--with-clisp=<cmd>],
+      [specify the CLISP interpreter @<:@default: clisp@:>@])],
+   clisp_interp=$withval,clisp_interp=lisp)
+
 dnl AC_PATH_PROG(gcl_path,gcl)   ... no more gcl..
-AC_PATH_PROG(cmu_path,lisp)
-AC_PATH_PROG(sbcl_path,sbcl)
-AC_PATH_PROG(acl_path,alisp)
-AC_PATH_PROG(clisp_path,clisp)
+AC_PATH_PROG(cmu_path,$cmu_interp)
+AC_PATH_PROG(sbcl_path,$sbcl_interp)
+AC_PATH_PROG(acl_path,$acl_interp)
+AC_PATH_PROG(clisp_path,$clisp_interp)
 dnl AC_PATH_PROG(acl8_path,alisp)
 dnl AC_PATH_PROG(acl9_path,alisp)
 dnl AC_PATH_PROG(openmcl_path,openmcl)
@@ -55,8 +74,7 @@ AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AC_ARG_WITH(lisp,
    [AS_HELP_STRING([--with-lisp=all|<interp>@<:@,<interp>@:>@],
-      [specify a list of lisp interpreters to build with, or all for all found])],
-
+      [specify a list of lisp interpreters from "acl", "sbcl", "cmu", or "clisp". Alternatively "all" can be specified to select all available.])],
 	lisp=$withval)
 
 
@@ -168,7 +186,13 @@ then
 fi
 
 AC_MSG_NOTICE([Building for the following lisp interpreters: $lisp])
+
+
 AC_SUBST(lisp)
+AC_SUBST(acl_interp)
+AC_SUBST(sbcl_interp)
+AC_SUBST(clisp_interp)
+AC_SUBST(cmu_interp)
 
 AC_ARG_ENABLE([rebuild_doc],
        [AS_HELP_STRING([--enable-rebuild-doc],

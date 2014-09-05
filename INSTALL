@@ -65,6 +65,13 @@ Finally, one can use
 	-with-lisp=all
 which builds for all found Common Lisp platforms.
 
+In case your interpreter is named different than the above, you
+can override it with
+	--with-cmu=<cmu-name>
+	--with-sbcl=<sbcl-name>
+	--with-acl=<acl-name>
+	--with-clisp=<clisp-name>
+
 
 b) Installation location
 ------------------------

@@ -27,17 +27,19 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-# Engine definitions
+# Engine definitions 
+# interpreter cmd names can be configured, so are coming from
+# configure(.ac)
 ACL_DUMP          = acl/cafeobj.acl
-ACL_INTERPRETER   = alisp
+ACL_INTERPRETER   = $(acl_interp)
 ACL_BUILDOPTS     =
 
 SBCL_DUMP         = sbcl/cafeobj.sbcl
-SBCL_INTERPRETER  = sbcl
+SBCL_INTERPRETER  = $(sbcl_interp)
 SBCL_BUILDOPTS    = --dynamic-space-size 2048
 
 CMU_DUMP          = cmu/cafeobj.core
-CMU_INTERPRETER   = lisp
+CMU_INTERPRETER   = $(cmu_interp)
 CMU_BUILDOPTION   =
 
 CCL_DUMP          = ccl/cafeobj.img
@@ -49,7 +51,7 @@ CCL64_INTERPRETER = ccl64
 CCL64_BUILDOPTS   =
 
 CLISP_DUMP        = clisp/cafeobj.mem
-CLISP_INTERPRETER = clisp
+CLISP_INTERPRETER = $(clisp_interp)
 CLISP_BUILDOPTS   =
 
 GCL_DUMP          = gcl/cafeobj.exe
