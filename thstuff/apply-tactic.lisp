@@ -1731,7 +1731,7 @@
 	    (when goals (setq .next-goals. (nconc .next-goals. goals)))))
 	(values .next-goals. .next-goals.)))))
 
-;;;
+;;; for debug
 (defun rule-is-case-generated (rule)
   (and (is-true? (rule-condition rule))
        (let ((labels (rule-labels rule)))
