@@ -151,8 +151,10 @@
 
 ;;;---------------------------------------------------------------------------
 ;;; GOAL
-;;; a goal is a set of conditional axioms to be proved.
-;;; 
+;;; a goal is a set of conditional sentences (in a form of CafeOBJ axiom) to be proved
+;;; with context module, introduced constants, introduced axioms (hypothesis), e.t.c.
+;;; it holds all the information about a goal.
+;;;
 (defstruct (goal (:print-function pr-goal))
   (name "" :type string)		; the name of the goal, we will refer 
 					; this goal by this name
@@ -242,7 +244,7 @@
 
 ;;; -------------------------------------------------------------------------
 ;;; PTREE-NODE
-;;; A node of a proof tree. Contains a goal.
+;;; A node of a proof tree. Contains a goal as its datum.
 ;;; 
 (defstruct (ptree-node (:include bdag)
 	    (:print-function pr-ptree-node))
@@ -677,9 +679,9 @@
 		 (format t "No such goal ~s" goal-name)))
 	     (when (node-is-discharged? node)
 	       (with-output-chaos-warning ()
-		 (format t "The goal ~s is alreday discharged." (goal-name (ptree-node-goal node)))
+		 (format t "The goal ~s is alreaday discharged." (goal-name (ptree-node-goal node)))
 		 (print-next)
-		 (format t "This will discard the current result of the goal."))
+		 (format t "This will discard the current status of the goal."))
 	       (make-it-unproved node))
 	     (setq *next-default-proof-node* node)
 	     (when (eq node (ptree-root *proof-tree*))
