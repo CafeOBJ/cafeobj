@@ -1302,8 +1302,9 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-lisp=lisp	specify the path of Lisp interpter to be used
-			for building CafeOBJ (defaulted to gcl).
+  --with-lisp=all|<interp>[,<interp>]
+                          specify a list of lisp interpreters to build with,
+                          or all for all found
 
 Report bugs to the package provider.
 CafeOBJ home page: <http://www.cafeobj.org/>.

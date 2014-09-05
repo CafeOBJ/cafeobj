@@ -54,8 +54,9 @@ AC_PATH_PROG(clozurecl_64path,ccl64)
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AC_ARG_WITH(lisp,
-[  --with-lisp[=lisp]	specify the path of Lisp interpter to be used 
-			for building CafeOBJ (defaulted to gcl).],
+   [AS_HELP_STRING([--with-lisp=all|<interp>@<:@,<interp>@:>@],
+      [specify a list of lisp interpreters to build with, or all for all found])],
+
 	lisp=$withval)
 
 
