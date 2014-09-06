@@ -584,6 +584,8 @@ PACKAGE_URL='http://www.cafeobj.org/'
 ac_unique_file="make-cafeobj.lisp.in"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+COND_WINDOWS_FALSE
+COND_WINDOWS_TRUE
 COND_TRADITIONAL_FALSE
 COND_TRADITIONAL_TRUE
 COND_REBUILD_DOC_FALSE
@@ -682,6 +684,7 @@ with_clisp
 with_lisp
 enable_rebuild_doc
 enable_traditional_layout
+enable_windows
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1306,6 +1309,7 @@ Optional Features:
                           implemented) [default=no]
   --enable-traditional-layout
                           Enable traditional layout [default=no]
+  --enable-windows        Prepare for Windows building
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2992,6 +2996,21 @@ else
 fi
 
 
+# Check whether --enable-windows was given.
+if test "${enable_windows+set}" = set; then :
+  enableval=$enable_windows; enable_windows="${enableval}"
+else
+  enable_windows=no
+fi
+
+ if test x"$enable_windows" = x"yes"; then
+  COND_WINDOWS_TRUE=
+  COND_WINDOWS_FALSE='#'
+else
+  COND_WINDOWS_TRUE='#'
+  COND_WINDOWS_FALSE=
+fi
+
 
 ac_config_files="$ac_config_files Makefile doc/Makefile"
 
@@ -3155,6 +3174,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${COND_TRADITIONAL_TRUE}" && test -z "${COND_TRADITIONAL_FALSE}"; then
   as_fn_error $? "conditional \"COND_TRADITIONAL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${COND_WINDOWS_TRUE}" && test -z "${COND_WINDOWS_FALSE}"; then
+  as_fn_error $? "conditional \"COND_WINDOWS\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

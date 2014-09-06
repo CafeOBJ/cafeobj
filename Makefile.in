@@ -106,6 +106,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+@COND_WINDOWS_TRUE@am__append_1 = stamp-windows-prepare stamp-windows-build
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
@@ -352,7 +353,9 @@ ACL_INTERPRETER = $(acl_interp)
 ACL_BUILDOPTS = 
 SBCL_DUMP = sbcl/cafeobj.sbcl
 SBCL_INTERPRETER = $(sbcl_interp)
-SBCL_BUILDOPTS = --dynamic-space-size 2048
+@COND_WINDOWS_FALSE@SBCL_BUILDOPTS = --dynamic-space-size 2048
+# it seems that windows sbcl does not like this cmd line args
+@COND_WINDOWS_TRUE@SBCL_BUILDOPTS = 
 CMU_DUMP = cmu/cafeobj.core
 CMU_INTERPRETER = $(cmu_interp)
 CMU_BUILDOPTION = 
@@ -377,8 +380,8 @@ SUBDIRS = doc
 # to be build dist dir, too.
 # for now, let us simply not suport make dist ;-)
 # EXTRA_DIST = *
-CLEANFILES = version.lisp make-cafeobj.lisp $(engine_dumps) \
-	xbin/cafeobj
+CLEANFILES = $(am__append_1) version.lisp make-cafeobj.lisp \
+	$(engine_dumps) xbin/cafeobj
 dist_bin_SCRIPTS = xbin/cafeobj
 @COND_TRADITIONAL_FALSE@cafeobj_share = $(datadir)/$(PACKAGE)-$(VERSION)
 
@@ -388,14 +391,19 @@ dist_bin_SCRIPTS = xbin/cafeobj
 # /usr/local/cafeobj-N.M/bin/DUMP
 # /usr/local/cafeobj-N.M/{lib,prelude}
 @COND_TRADITIONAL_TRUE@cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)
+@COND_WINDOWS_TRUE@cafeobj_share = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)
 @COND_TRADITIONAL_FALSE@cafeobj_lib = $(libdir)/$(PACKAGE)-$(VERSION)
 @COND_TRADITIONAL_TRUE@cafeobj_lib = $(prefix)/$(PACKAGE)-$(VERSION)
+@COND_WINDOWS_TRUE@cafeobj_lib = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)
 @COND_TRADITIONAL_FALSE@cafeobjdumpdir = $(cafeobj_lib)/
 @COND_TRADITIONAL_TRUE@cafeobjdumpdir = $(cafeobj_lib)/bin
+@COND_WINDOWS_TRUE@cafeobjdumpdir = $(cafeobj_lib)/bin
 @COND_TRADITIONAL_FALSE@cafeobjlibdir = $(cafeobj_share)/lib
 @COND_TRADITIONAL_TRUE@cafeobjlibdir = $(cafeobj_share)/lib
+@COND_WINDOWS_TRUE@cafeobjlibdir = $(cafeobj_share)/lib
 @COND_TRADITIONAL_FALSE@cafeobjpreludedir = $(cafeobj_share)/prelude
 @COND_TRADITIONAL_TRUE@cafeobjpreludedir = $(cafeobj_share)/prelude
+@COND_WINDOWS_TRUE@cafeobjpreludedir = $(cafeobj_share)/prelude
 dist_cafeobjlib_DATA = $(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.bin		\
 			$(srcdir)/lib/lib/*.desc
@@ -1041,6 +1049,11 @@ uninstall-am: uninstall-cafeobjdumpSCRIPTS uninstall-dist_binSCRIPTS \
 	uninstall-nobase_cafeobjdumpSCRIPTS
 
 
+@COND_WINDOWS_TRUE@windows-prepare: version.lisp make-cafeobj.lisp $(dist_bin_SCRIPTS)
+@COND_WINDOWS_TRUE@	touch stamp-windows-prepare
+@COND_WINDOWS_TRUE@windows-build: stamp-windows-prepare $(engine_dumps)
+@COND_WINDOWS_TRUE@	touch stamp-windows-build
+
 #
 # TODO
 # besides the trivial BIGPINK substitution, this could be
@@ -1083,9 +1096,10 @@ $(GCL_DUMP) : interp = $(GCL_INTERPRETER)
 $(GCL_DUMP) : buildopts = $(GCL_BUILDOPTS)
 
 $(engine_dumps): %: make-cafeobj.lisp version.lisp
-	mkdir -p $(dir $@)
+@COND_WINDOWS_TRUE@	mkdir $(lisp)
+@COND_WINDOWS_FALSE@	mkdir -p $(dir $@)
 	$(interp) $(buildopts) < make-cafeobj.lisp
-	chmod +x $@
+@COND_WINDOWS_FALSE@	chmod +x $@
 clean-local:
 	-rm -rf acl sbcl cmu clisp ccl ccl64 gcl
 

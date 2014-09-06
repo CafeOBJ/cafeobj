@@ -225,6 +225,12 @@ AC_ARG_ENABLE(traditional_layout,
        [enable_traditional_layout=no])
 AM_CONDITIONAL([COND_TRADITIONAL], [test x"$enable_traditional_layout" = x"yes"])
 
+AC_ARG_ENABLE(windows,
+       [AS_HELP_STRING([--enable-windows],
+          [Prepare for Windows building])],
+       [enable_windows="${enableval}"],
+       [enable_windows=no])
+AM_CONDITIONAL([COND_WINDOWS], [test x"$enable_windows" = x"yes"])
 
 AC_CONFIG_FILES([
   Makefile 

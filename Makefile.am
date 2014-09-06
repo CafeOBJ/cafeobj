@@ -36,7 +36,12 @@ ACL_BUILDOPTS     =
 
 SBCL_DUMP         = sbcl/cafeobj.sbcl
 SBCL_INTERPRETER  = $(sbcl_interp)
+# it seems that windows sbcl does not like this cmd line args
+if COND_WINDOWS
+SBCL_BUILDOPTS    =
+else
 SBCL_BUILDOPTS    = --dynamic-space-size 2048
+endif
 
 CMU_DUMP          = cmu/cafeobj.core
 CMU_INTERPRETER   = $(cmu_interp)
@@ -90,6 +95,15 @@ else
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
 endif
+
+if COND_WINDOWS
+  cafeobj_share = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)
+  cafeobjdumpdir = $(cafeobj_lib)/bin
+  cafeobjlibdir  = $(cafeobj_share)/lib
+  cafeobjpreludedir = $(cafeobj_share)/prelude
+endif
+
 dist_cafeobjlib_DATA =  $(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.bin		\
 			$(srcdir)/lib/lib/*.desc
@@ -114,6 +128,16 @@ endif
 # where the input files are during building
 # used only in creating make-cafeobj.lisp script
 chaos_root = @srcdir@
+
+
+if COND_WINDOWS
+windows-prepare: version.lisp make-cafeobj.lisp $(dist_bin_SCRIPTS)
+	touch stamp-windows-prepare
+windows-build: stamp-windows-prepare $(engine_dumps)
+	touch stamp-windows-build
+CLEANFILES += stamp-windows-prepare stamp-windows-build
+endif
+	
 
 #
 # TODO
@@ -158,11 +182,18 @@ $(CCL64_DUMP) : buildopts = $(CCL64_BUILDOPTS)
 $(GCL_DUMP) : interp = $(GCL_INTERPRETER)
 $(GCL_DUMP) : buildopts = $(GCL_BUILDOPTS)
 
-
 $(engine_dumps): %: make-cafeobj.lisp version.lisp
+if COND_WINDOWS
+	mkdir $(lisp)
+else
 	mkdir -p $(dir $@)
+endif
 	$(interp) $(buildopts) < make-cafeobj.lisp
+if COND_WINDOWS
+else
 	chmod +x $@
+endif
+
 CLEANFILES += $(engine_dumps)
 clean-local:
 	-rm -rf acl sbcl cmu clisp ccl ccl64 gcl
