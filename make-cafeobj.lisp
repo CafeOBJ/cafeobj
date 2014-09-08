@@ -52,9 +52,6 @@
 #+CLISP (in-package :common-lisp-user)
 
 ;;; BEGIN SITE SPECIFIC ------------------------------------------------------
-;;; NOTE: users of ACL on windows or MCL should edit the files
-;;;       win/win-site-specific.lisp  -- for ACL on windows
-;;;       mac/mac-site-specific.lisp  -- for MCL on Machintosh
 ;;;
 (defvar *chaos-root*)
 
@@ -66,19 +63,6 @@
 (eval-when (:execute :load-toplevel)
   (setq *chaos-root* (namestring (car (directory (concatenate 'string
 						   *chaos-root* "/"))))))
-
-#+microsoft
-(load "win/win-site-specific.lisp")
-
-;; patched by t-seino@jaist.ac.jp (2000/02/09)
-;; patch by swada@sra.co.jp (2002/12/3)
-#+(and ccl (not :openmcl))
-(eval-when (:execute :load-toplevel)
- (setq *chaos-root* (string-right-trim ":"
-        (mac-directory-namestring *loading-file-source-file*))))
-#+(and ccl (not :openmcl))
-(load (concatenate 'string *chaos-root* ":mac:mac-site-specific.lisp"))
-;;
 
 (defvar chaos::*cafeobj-install-dir*)
 #-(or microsoft (and ccl (not :openmcl)))
