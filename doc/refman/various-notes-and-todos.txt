@@ -1,4 +1,91 @@
 
+OGATA
+=====
+
+Pat(rick) Brown - Ireland, Dublin, CafeOBJ in discrete math - 
+	logical approach to discrete math
+
+
+MIT Scheme
+
+
+* p.2: description of rewriting logic should be improved
+  rewriting logic is used for 
+ 
+  rewriting logic != rewriting engine
+
+  rewriting engine is used in all areas (also order logic rewriting)
+  rewriting logic is used only for transitions
+
+  We need to describe what is "rewriting logic" and have a separate
+  point on "rewriting" as engine.
+
+* behavioral logic - mention what which connection to co-algebra
+
+* chpater 2 - start with mod!
+	metnion that ! tight semantics ... some short comment
+
+* p.5: use "mixfix" instead of "infix"
+
+* p.8: "the last equation in each models" -> model ...
+
+* p.8: == is not about behaviour, but about "equal by rewriting"
+  remove the "behavioral" ... just remove what is written before
+
+* p.8: make clear that it is normally *NOT* recommendable to use ==
+  especially =/= which is dangerous
+  Here we have to made clear that this is only a very restricted usage
+  for literals
+
+
+open PNAT .
+  op a : -> Nat .
+  red not ( a == 0 ) .
+close.
+
+reduces to true ... because it is only equivalence via rewriting.
+
+
+* p.8 parametrized modules: mention templates in C++ ????
+
+* p.8 before after :: is not "sort" but "module" !!!
+
+* p.10 bottom:
+	mixing protecting(STATE)
+	with State => State transitions
+  we actually have two "interpretations":
+  - trans are on the "meta" level and we do not use rewriting logic
+  	we are protecting STATE
+  - trans are part of a new algebra with trans (rewriting logic)
+  	we should use "extending"
+
+
+* p.10 bottom:
+	if _ then _ else _ fi
+  instead of ....
+
+* difference between == and =
+  == reduction of terms to syntactical smae term => true else false
+  = .. if no eq eqaution then the term is returned "as"is"
+  	(a = b)
+
+
+* new commands -> ask Sawada ...
+
+
+
+
+SAWADA
+======
+p 10 renaming fst -> fst.clstate
+
+currently this is *ignored* but *no* warning/error!!!
+
+two things to be fixed: 
+- if ignored then still a warning should be given
+- support dots in names
+
+
 -------------
 
 DONE
