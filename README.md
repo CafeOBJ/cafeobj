@@ -1,13 +1,15 @@
 CafeOBJ Interpreter
-===============
+===================
 *Version 1.4.12*  
 2014/3/5
 
-CafeOBJ is a new generation algebraic specification and programming language. As a direct successor
-of OBJ, it inherits all its features(flexible mix-fix syntax, powerful typing system with sub-types,
-and sophisticated module composition system featuring various kinds of imports, parameterised
-modules, views for instantiating the parameters, module expressions, etc.) but it also implements
-new paradigms such as rewriting logic and hidden algebra, as well as their combination.
+CafeOBJ is a new generation algebraic specification and programming language.
+As a direct successor of OBJ, it inherits all its features (flexible mix-fix
+syntax, powerful typing system with sub-types, and sophisticated module
+composition system featuring various kinds of imports, parameterised
+modules, views for instantiating the parameters, module expressions, etc.)
+but it also implements new paradigms such as rewriting logic and hidden
+algebra, as well as their combination.
 
 ----------------------------------------------------------------------
 
@@ -31,16 +33,17 @@ language, and can be built on one of the following platforms:
 
 1. Allegro CL version 8.0 or later
 2. SBCL version 1.1.7 or later (<http://www.sbcl.org/platform-table.html>)
-3. CMUCL version 20D or later (<http://www.cons.org/cmucl/download.html>)
-4. CLISP 2.4.9 or later (<http://www.clisp.org>)
+3. CLISP 2.4.9 or later (<http://www.clisp.org>)
 
 All of these Lisp systems are freely available except Allegro CL.
 Franz inc. provides free version, please refer to Franz's [download site](http://www.franz.com/downloads/clp/survey).
 
+For more information on building see INSTALL
+
 ----------------------------------------------------------------------
 
 OBTAINING THE SOURCES
------------------
+---------------------
 
 Source files are available from Bitbucket.
 ```bash
@@ -67,7 +70,6 @@ Here's a brief summary:
 where, 
 ``````
 YOUR-LISP ::= acl       ; Allegro CL
-           |  cmu-pc    ; CMUCL on X86, CMUCL on Sparcs are not supported.
            |  sbcl      ; SBCL
            |  clisp     ; CLISP
 ``````
