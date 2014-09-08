@@ -49,6 +49,7 @@ VERSION = @PACKAGE_VERSION@
 VMINOR  = @VMINOR@
 PATCHLEVEL = @PATCHLEVEL@
 
+INSTALL = @INSTALL@
 
 # Engine definitions 
 # interpreter cmd names can be configured, so are coming from
@@ -103,6 +104,7 @@ ifeq ($(enable_traditional_layout),yes)
   cafeobjdumpdir = $(cafeobj_lib)/bin
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
+  cafeobjdocdir = $(cafeobj_share)/doc/
 else
   cafeobj_share ?= $(prefix)/share/$(PACKAGE)-$(VERSION)
   cafeobj_lib   ?= $(prefix)/lib/$(PACKAGE)-$(VERSION)
@@ -110,6 +112,7 @@ else
   cafeobjdumpdir = $(cafeobj_lib)/
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
+  cafeobjdocdir = $(prefix)/share/doc/$(PACKAGE)
 endif
 
 ifeq ($(enable_windows),yes)
@@ -124,6 +127,7 @@ ifeq ($(enable_windows),yes)
   cafeobjdumpdir = $(cafeobj_lib)/bin
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
+  cafeobjdocdir = $(cafeobj_share)/doc
 endif
 
 
@@ -177,22 +181,29 @@ $(engine_dumps): %: make-cafeobj.lisp version.lisp
 	chmod +x $@
 
 
-# INSTALLATION ROUTINES
 install: build-stamp
-	mkdir -p $(DESTDIR)$(cafeobjlibdir)
-	install -m 0644 		\
+	$(INSTALL) -d $(DESTDIR)$(cafeobjlibdir)
+	$(INSTALL) -m 0644 		\
 			$(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.bin		\
 			$(srcdir)/lib/lib/*.desc	\
 			$(DESTDIR)$(cafeobjlibdir)
-	mkdir -p $(DESTDIR)$(cafeobjpreludedir)
-	install -m 0644 $(srcdir)/lib/prelude/*.bin 	\
+	$(INSTALL) -d $(DESTDIR)$(cafeobjpreludedir)
+	$(INSTALL) -m 0644 $(srcdir)/lib/prelude/*.bin 	\
 			$(DESTDIR)$(cafeobjpreludedir)
-	mkdir -p $(DESTDIR)$(cafeobjdumpdir)
+	$(INSTALL) -d $(DESTDIR)$(cafeobjdumpdir)
 	cp -a dumps/* $(DESTDIR)$(cafeobjdumpdir)
 	chmod 0755 $(DESTDIR)$(cafeobjdumpdir)/*/*
-	mkdir -p $(DESTDIR)$(cafeobj_bin)
-	install -m 0755 xbin/cafeobj $(DESTDIR)$(cafeobj_bin)
+	$(INSTALL) -d $(DESTDIR)$(cafeobj_bin)
+	$(INSTALL) -m 0755 xbin/cafeobj $(DESTDIR)$(cafeobj_bin)
+	# doc files
+	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)
+	$(INSTALL) -m 0644 				\
+		doc/manual/manual.pdf			\
+		doc/PigNose/pnguide.pdf			\
+		doc/RefCard/*.pdf			\
+		doc/refman/reference-manual.pdf		\
+		$(DESTDIR)$(cafeobjdocdir)
 	
 clean:
 	-rm -rf dumps
