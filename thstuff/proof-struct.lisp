@@ -195,7 +195,8 @@
 	    (proved (goal-proved goal))
 	    (discharged (goal-is-discharged goal)))
 	(print-next)
-	(format stream "-- context module: ~a" (get-module-simple-name (goal-context goal)))
+	(format stream "-- context module: ~a"
+		(get-module-simple-name (ptree-context *proof-tree*)))
 	(when proved
 	  (print-next)
 	  (format stream "-- discharged axiom~p" (length proved))
@@ -335,7 +336,8 @@
 	  (cur-goal (ptree-node-goal ptree-node))
 	  (next-goal (make-goal :name goal-name
 				:tactic tactic)))
-      (push next-context .goals-so-far.)
+      ;; (clean-up-module next-context)
+      (push (%module-decl-name decl-form) .goals-so-far.)
       ;; import original context module
       (import-module next-context :including (goal-context cur-goal))
       ;; inherit current goal
@@ -413,6 +415,7 @@
 ;;; whole proof tree structure.
 ;;;
 (defstruct (ptree (:print-function pr-ptree))
+  (context nil :type (or null module))	; context module
   (num-gen-const 0 :type fixnum)	   ; number of generated constants so far
   (root    nil :type (or null ptree-node)) ; root goal
   (indvar-subst nil :type list)
@@ -548,10 +551,10 @@
 ;;;
 ;;; initialize-proof-tree : module goal -> ptree
 ;;;
-(defun initialize-proof-tree (context-module initial-goals)
-  (let ((root (make-ptree-root context-module initial-goals)))
+(defun initialize-proof-tree (context-module goal-module initial-goals)
+  (let ((root (make-ptree-root goal-module initial-goals)))
     (setq *next-default-proof-node* nil)
-    (make-ptree :root root)))
+    (make-ptree :root root :context context-module)))
 
 ;;;
 ;;; check-success : ptree -> Bool
@@ -699,7 +702,7 @@
 (defparameter .root-context-module. (%module-decl* "#Goal-root" :object :user nil))
 
 ;;; for LE check
-(defvar .int-module. nil)
+;; (defvar .int-module. nil)
 (defvar .ls-pat. nil)			; X < Y
 (defvar .le-pat. nil)			; X <= Y
 
@@ -732,9 +735,11 @@
 	 (root-module (eval-ast .root-context-module.)))
     (prepare-root-context root-module context-module)
     (when .goals-so-far. 
-      (setq *modules-so-far-table* (set-difference *modules-so-far-table*
-						   .goals-so-far.)))
-    (setq *proof-tree* (initialize-proof-tree root-module goal-axioms))
+      (setq *modules-so-far-table* (remove-if #'(lambda (x) 
+						  (member (car x) .goals-so-far. :test #'equal))
+					      *modules-so-far-table*))
+      (setq .goals-so-far. nil))
+    (setq *proof-tree* (initialize-proof-tree context-module root-module goal-axioms))
     (pr-goal (ptree-node-goal (ptree-root *proof-tree*)))
     (format t "~%** Initial goal (root) is generated. **")
     *proof-tree*))

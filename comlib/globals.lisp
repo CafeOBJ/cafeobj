@@ -445,6 +445,7 @@
 (defvar *parser-module* nil)
 (defvar *qid-module* nil)
 (defvar *id-module* nil)
+(defvar .int-module. nil)
 
 ;;; Some operators & methods of CHAOS module.
 ;;; these are used for representing builtin constant and ill-formed terms

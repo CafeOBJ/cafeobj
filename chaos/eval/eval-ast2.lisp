@@ -904,6 +904,7 @@
     (setq *current-opinfo-table* nil)
     (setq *old-context* nil)
     (setq *bootstrapping-bool* nil)
+    (setq .int-module. nil)
     ;;
     (when msg?
       (with-output-simple-msg ()
