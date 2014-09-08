@@ -87,8 +87,9 @@ clean:
 	rm -f reference-manual-orig-blx.bib
 	rm -f reference-manual.{aux,bbl,bcf,blg,log,out,run.xml,toc}
 	rm -f reference-manual-blx.bib
-
-realclean: clean
-	rm -f reference-manual.pdf reference-manual.html
 	rm -f reference-manual.tex
 
+distclean: clean
+	rm -f reference-manual.html
+
+.PHONY: clean distclean

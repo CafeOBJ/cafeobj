@@ -1,0 +1,17 @@
+
+
+manual.pdf: manual.tex
+	pdflatex manual
+	makeindex manual.idx
+	makeindex lines.idx
+	pdflatex manual
+	pdflatex manual
+
+clean:
+	rm -f manual.aux manual.log manual.glo manual.idx manual.ild
+	rm -f manual.ind manual.out manual.toc linex.idx lines.ilg
+	rm -f lines.ind manual.ilg lines.idx
+
+distclean:
+
+.PHONY: clean

@@ -83,8 +83,6 @@ GCL_INTERPRETER   = @gcl_interp@
 GCL_BUILDOPTS     =
 # End of engine definitions
 
-SUBDIRS = doc
-
 #
 # specifying the files that go into the distribution is a pain,
 # because we cannot simply include * as this would include the
@@ -149,7 +147,7 @@ chaos_root = $(srcdir)
 # first target on Unix!
 build: build-stamp
 
-build-stamp: version.lisp make-cafeobj.lisp $(engine_dumps) xbin/cafeobj
+build-stamp: version.lisp make-cafeobj.lisp $(engine_dumps) xbin/cafeobj $(doc_targets)
 	touch build-stamp
 
 #
@@ -204,7 +202,16 @@ install: build-stamp
 		doc/RefCard/*.pdf			\
 		doc/refman/reference-manual.pdf		\
 		$(DESTDIR)$(cafeobjdocdir)
-	
+
+# documentation rebuilding
+doc-targets =
+ifeq ($(enable_rebuild_doc),yes)
+	doc_targets += doc/refman/reference-manual.pdf
+endif
+
+doc/refman/reference-manual.pdf:
+	$(MAKE) -C doc/refman reference-manual.pdf
+
 clean:
 	-rm -rf dumps
 	rm -f stamp-windows-prepare stamp-windows-build

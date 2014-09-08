@@ -2634,7 +2634,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile doc/Makefile make-cafeobj.lisp version.lisp xbin/cafeobj.in"
+ac_config_files="$ac_config_files Makefile make-cafeobj.lisp version.lisp xbin/cafeobj.in doc/refman/Makefile doc/manual/Makefile doc/RefCard/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -3345,10 +3345,12 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "make-cafeobj.lisp") CONFIG_FILES="$CONFIG_FILES make-cafeobj.lisp" ;;
     "version.lisp") CONFIG_FILES="$CONFIG_FILES version.lisp" ;;
     "xbin/cafeobj.in") CONFIG_FILES="$CONFIG_FILES xbin/cafeobj.in" ;;
+    "doc/refman/Makefile") CONFIG_FILES="$CONFIG_FILES doc/refman/Makefile" ;;
+    "doc/manual/Makefile") CONFIG_FILES="$CONFIG_FILES doc/manual/Makefile" ;;
+    "doc/RefCard/Makefile") CONFIG_FILES="$CONFIG_FILES doc/RefCard/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

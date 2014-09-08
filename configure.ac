@@ -343,6 +343,8 @@ AC_CONFIG_FILES([
   make-cafeobj.lisp
   version.lisp
   xbin/cafeobj.in
-  doc/refman/Makefile.in
+  doc/refman/Makefile
+  doc/manual/Makefile
+  doc/RefCard/Makefile
 ])
 AC_OUTPUT()

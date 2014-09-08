@@ -1,0 +1,13 @@
+
+interp.pdf: interp.tex
+	pdftex interp.tex
+
+syntax.pdf: syntax.tex
+	xelatex syntax
+	xelatex syntax
+	xelatex syntax
+
+clean:
+	rm -f interp.log interp.aux
+	rm -f syntax.log syntax.aux syntax.out syntax.toc
+	rm -f interp-todo.log interp-todo.aux
