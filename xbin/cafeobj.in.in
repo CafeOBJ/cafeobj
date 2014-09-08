@@ -1,0 +1,150 @@
+#!/bin/sh
+#
+# cafeobj wrapper script
+#
+# Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+# Copyright (c) 2014, Norbert Preining. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#   * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#
+#   * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials
+#     provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+# TODO
+# - cmd line for ignoring choices, or extending it with
+#   imagine dist install with local alisp!!!
+
+acl_interp=@acl_interp@
+sbcl_interp=@sbcl_interp@
+cmu_interp=@cmu_interp@
+clisp_interp=@clisp_interp@
+gcl_interp=@gcl_interp@
+ccl32_interp=@ccl32_interp@
+ccl64_interp=@ccl64_interp@
+
+# support traditional layout
+traditional_layout=@enable_traditional_layout@
+extra=
+if test "x@enable_traditional_layout@" = "xyes" ; then
+  extra=bin/
+fi
+acl_dump=${extra}acl/@acl_dump@
+sbcl_dump=${extra}sbcl/@sbcl_dump@
+cmu_dump=${extra}cmu/@cmu_dump@
+clisp_dump=${extra}clisp/@clisp_dump@
+gcl_dump=${extra}gcl/@gcl_dump@
+ccl32_dump=${extra}ccl/@ccl32_dump@
+ccl64_dump=${extra}ccl64/@ccl64_dump@
+
+libpath=@LIBPATH@
+sharepath=@SHAREPATH@
+
+engine=@FIRSTCHOICE@
+
+while [ $# -gt 0 ]
+do
+  key="$1"
+  shift
+  case $key in
+    -e|--engine) engine="$1" ; shift ;;
+    -l|--libpath) libpath="$1" ; shift ;;
+    -s|--sharepath) sharepath="$1" ; shift ;;
+    --list-engines)
+      engines=""
+      if [ -r "$libpath/$ccl32_dump" ] ; then engines="ccl $engines" ; fi
+      if [ -r "$libpath/$ccl64_dump" ] ; then engines="ccl64 $engines" ; fi
+      if [ -r "$libpath/$gcl_dump" ] ; then engines="gcl $engines" ; fi
+      if [ -r "$libpath/$cmu_dump" ] ; then engines="cmu $engines" ; fi
+      if [ -r "$libpath/$clisp_dump" ] ; then engines="clisp $engines" ; fi
+      if [ -r "$libpath/$sbcl_dump" ] ; then engines="sbcl $engines" ; fi
+      if [ -r "$libpath/$acl_dump" ] ; then engines="acl $engines" ; fi
+      echo "Available engine dumps: $engines"
+      exit 0 ;;
+    --) break ;;
+    *) break ;;
+  esac
+done
+
+case "x$engine" in
+xacl)
+	if [ -r "$libpath/$acl_dump" ] ; then
+	  exec $acl_interp -I $libpath/$acl_dump -- -prefix $sharepath $*
+	else
+	  echo "ACL dump file not found: $libpath/$acl_dump" 2>&1
+	  exit 1
+	fi
+	;;
+xclisp)
+	if [ -r "$libpath/$clisp_dump" ] ; then
+	  exec $clisp_interp -M $libpath/$clisp_dump $*
+	else
+	  echo "CLISP dump file not found: $libpath/$clisp_dump" 2>&1
+	  exit 1
+	fi
+	;;
+xcmu)
+	if [ -r "$libpath/$cmu_dump" ] ; then
+	  exec $cmu_interp -core $libpath/$cmu_dump $*
+	else
+	  echo "CMU dump file not found: $libpath/$cmu_dump" 2>&1
+	  exit 1
+	fi
+	;;
+xgcl)
+	if [ -r "$libpath/$gcl_dump" ] ; then
+	  exec $libpath/$gcl_dump $*
+	else
+	  echo "GCL dump file not found: $libpath/$gcl_dump" 2>&1
+	  exit 1
+	fi
+	;;
+xccl)
+	if [ -r "$libpath/$ccl_dump" ] ; then
+	  exec $ccl_interp $libpath/$ccl_dump $*
+	else
+	  echo "CCL dump file not found: $libpath/$ccl_dump" 2>&1
+	  exit 1
+	fi
+	;;
+xccl64)
+	if [ -r "$libpath/$ccl64_dump" ] ; then
+	  exec $ccl64_interp $libpath/$ccl64_dump $*
+	else
+	  echo "CCL64 dump file not found: $libpath/$ccl64_dump" 2>&1
+	  exit 1
+	fi
+	;;
+xsbcl)
+	if [ -r "$libpath/$sbcl_dump" ] ; then
+	  exec $libpath/$sbcl_dump -prefix $sharepath $*
+	else
+	  echo "SBCL dump file not found: $libpath/$sbcl_dump" 2>&1
+	  exit 1
+	fi
+	;;
+*)
+	echo "CafeOBJ: unknown engine selection $engine" >&2
+	exit 1
+	;;
+esac
+
