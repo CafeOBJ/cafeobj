@@ -812,13 +812,13 @@
 	    (princ "opening module ")
 	    (print-mod-name *open-module*)
 	    (force-output))
-	  (unless (modexp-is-parameter-theory name)
-	      (format t "~&-- defining ~(~a~) ~a" (case kind
-						    (:object "module!")
-						    (:theory "module*")
-						    (otherwise "module"))
-		      name)
-	      (force-output))))
+	(unless (modexp-is-parameter-theory name)
+	  (format t "~&-- defining ~(~a~) ~a" (case kind
+						(:object "module!")
+						(:theory "module*")
+						(otherwise "module"))
+		  name)
+	  (force-output))))
     ;;
     (let ((modval (eval-modexp name nil nil))
 	  (recover-same-context nil))
