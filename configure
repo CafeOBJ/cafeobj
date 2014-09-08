@@ -584,57 +584,44 @@ PACKAGE_URL='http://www.cafeobj.org/'
 ac_unique_file="make-cafeobj.lisp.in"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-COND_WINDOWS_FALSE
-COND_WINDOWS_TRUE
-COND_TRADITIONAL_FALSE
-COND_TRADITIONAL_TRUE
-COND_REBUILD_DOC_FALSE
-COND_REBUILD_DOC_TRUE
+enable_windows
+enable_traditional_layout
+enable_rebuild_doc
 pdflatex_avail
 pandoc_avail
 biber_avail
 xelatex_avail
+gcl_dump
+ccl64_dump
+ccl32_dump
+cmu_dump
+clisp_dump
+sbcl_dump
+acl_dump
+gcl_interp
+ccl64_interp
+ccl32_interp
 cmu_interp
 clisp_interp
 sbcl_interp
 acl_interp
+firstchoice
 lisp
-clozurecl_64path
-clozurecl_32path
+MKDIR_P
+SET_MAKE
+ccl64_path
+ccl32_path
 clisp_path
 acl_path
 sbcl_path
 cmu_path
-PATCHLEVEL
-VMEMO
-VMINOR
-AM_BACKSLASH
-AM_DEFAULT_VERBOSITY
-AM_DEFAULT_V
-AM_V
-am__untar
-am__tar
-AMTAR
-am__leading_dot
-SET_MAKE
-AWK
-mkdir_p
-MKDIR_P
-INSTALL_STRIP_PROGRAM
-STRIP
-install_sh
-MAKEINFO
-AUTOHEADER
-AUTOMAKE
-AUTOCONF
-ACLOCAL
-VERSION
-PACKAGE
-CYGPATH_W
-am__isrc
+gcl_path
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
+PATCHLEVEL
+VMEMO
+VMINOR
 target_alias
 host_alias
 build_alias
@@ -676,8 +663,6 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-enable_silent_rules
-with_cmu
 with_sbcl
 with_acl
 with_clisp
@@ -1303,8 +1288,6 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-silent-rules   less verbose build output (undo: "make V=1")
-  --disable-silent-rules  verbose build output (undo: "make V=0")
   --enable-rebuild-doc    Enable the rebuilding of documentation (not
                           implemented) [default=no]
   --enable-traditional-layout
@@ -1314,14 +1297,13 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-cmu=<cmd>        specify the CMU interpreter [default: lisp]
   --with-sbcl=<cmd>       specify the SBCL interpreter [default: sbcl]
   --with-acl=<cmd>        specify the ACL interpreter [default: alisp]
   --with-clisp=<cmd>      specify the CLISP interpreter [default: clisp]
   --with-lisp=all|<interp>[,<interp>]
                           specify a list of lisp interpreters from "acl",
-                          "sbcl", "cmu", or "clisp". Alternatively "all" can
-                          be specified to select all available.
+                          "sbcl", or "clisp". Alternatively "all" can be
+                          specified to select all available.
 
 Report bugs to the package provider.
 CafeOBJ home page: <http://www.cafeobj.org/>.
@@ -1753,7 +1735,22 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-am__api_version='1.14'
+
+VMINOR=.15b3
+VMEMO=PigNose0.99
+PATCHLEVEL=
+
+
+
+test "$program_prefix" != NONE &&
+  program_transform_name="s&^&$program_prefix&;$program_transform_name"
+# Use a double $ so make ignores it.
+test "$program_suffix" != NONE &&
+  program_transform_name="s&\$&$program_suffix&;$program_transform_name"
+# Double any \ or $.
+# By default was `s,x,x', remove it if useless.
+ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
+program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -1877,507 +1874,8 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether build environment is sane" >&5
-$as_echo_n "checking whether build environment is sane... " >&6; }
-# Reject unsafe characters in $srcdir or the absolute working directory
-# name.  Accept space and tab only in the latter.
-am_lf='
-'
-case `pwd` in
-  *[\\\"\#\$\&\'\`$am_lf]*)
-    as_fn_error $? "unsafe absolute working directory name" "$LINENO" 5;;
-esac
-case $srcdir in
-  *[\\\"\#\$\&\'\`$am_lf\ \	]*)
-    as_fn_error $? "unsafe srcdir value: '$srcdir'" "$LINENO" 5;;
-esac
 
-# Do 'set' in a subshell so we don't clobber the current shell's
-# arguments.  Must try -L first in case configure is actually a
-# symlink; some systems play weird games with the mod time of symlinks
-# (eg FreeBSD returns the mod time of the symlink's containing
-# directory).
-if (
-   am_has_slept=no
-   for am_try in 1 2; do
-     echo "timestamp, slept: $am_has_slept" > conftest.file
-     set X `ls -Lt "$srcdir/configure" conftest.file 2> /dev/null`
-     if test "$*" = "X"; then
-	# -L didn't work.
-	set X `ls -t "$srcdir/configure" conftest.file`
-     fi
-     if test "$*" != "X $srcdir/configure conftest.file" \
-	&& test "$*" != "X conftest.file $srcdir/configure"; then
 
-	# If neither matched, then we have a broken ls.  This can happen
-	# if, for instance, CONFIG_SHELL is bash and it inherits a
-	# broken ls alias from the environment.  This has actually
-	# happened.  Such a system could not be considered "sane".
-	as_fn_error $? "ls -t appears to fail.  Make sure there is not a broken
-  alias in your environment" "$LINENO" 5
-     fi
-     if test "$2" = conftest.file || test $am_try -eq 2; then
-       break
-     fi
-     # Just in case.
-     sleep 1
-     am_has_slept=yes
-   done
-   test "$2" = conftest.file
-   )
-then
-   # Ok.
-   :
-else
-   as_fn_error $? "newly created file is older than distributed files!
-Check your system clock" "$LINENO" 5
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-# If we didn't sleep, we still need to ensure time stamps of config.status and
-# generated files are strictly newer.
-am_sleep_pid=
-if grep 'slept: no' conftest.file >/dev/null 2>&1; then
-  ( sleep 1 ) &
-  am_sleep_pid=$!
-fi
-
-rm -f conftest.file
-
-test "$program_prefix" != NONE &&
-  program_transform_name="s&^&$program_prefix&;$program_transform_name"
-# Use a double $ so make ignores it.
-test "$program_suffix" != NONE &&
-  program_transform_name="s&\$&$program_suffix&;$program_transform_name"
-# Double any \ or $.
-# By default was `s,x,x', remove it if useless.
-ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
-program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
-
-# expand $ac_aux_dir to an absolute path
-am_aux_dir=`cd $ac_aux_dir && pwd`
-
-if test x"${MISSING+set}" != xset; then
-  case $am_aux_dir in
-  *\ * | *\	*)
-    MISSING="\${SHELL} \"$am_aux_dir/missing\"" ;;
-  *)
-    MISSING="\${SHELL} $am_aux_dir/missing" ;;
-  esac
-fi
-# Use eval to expand $SHELL
-if eval "$MISSING --is-lightweight"; then
-  am_missing_run="$MISSING "
-else
-  am_missing_run=
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: 'missing' script is too old or missing" >&5
-$as_echo "$as_me: WARNING: 'missing' script is too old or missing" >&2;}
-fi
-
-if test x"${install_sh}" != xset; then
-  case $am_aux_dir in
-  *\ * | *\	*)
-    install_sh="\${SHELL} '$am_aux_dir/install-sh'" ;;
-  *)
-    install_sh="\${SHELL} $am_aux_dir/install-sh"
-  esac
-fi
-
-# Installed binaries are usually stripped using 'strip' when the user
-# run "make install-strip".  However 'strip' might not be the right
-# tool to use in cross-compilation environments, therefore Automake
-# will honor the 'STRIP' environment variable to overrule this program.
-if test "$cross_compiling" != no; then
-  if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}strip", so it can be a program name with args.
-set dummy ${ac_tool_prefix}strip; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_STRIP+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$STRIP"; then
-  ac_cv_prog_STRIP="$STRIP" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_STRIP="${ac_tool_prefix}strip"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-STRIP=$ac_cv_prog_STRIP
-if test -n "$STRIP"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $STRIP" >&5
-$as_echo "$STRIP" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-fi
-if test -z "$ac_cv_prog_STRIP"; then
-  ac_ct_STRIP=$STRIP
-  # Extract the first word of "strip", so it can be a program name with args.
-set dummy strip; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_ac_ct_STRIP+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$ac_ct_STRIP"; then
-  ac_cv_prog_ac_ct_STRIP="$ac_ct_STRIP" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_STRIP="strip"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-ac_ct_STRIP=$ac_cv_prog_ac_ct_STRIP
-if test -n "$ac_ct_STRIP"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_STRIP" >&5
-$as_echo "$ac_ct_STRIP" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-  if test "x$ac_ct_STRIP" = x; then
-    STRIP=":"
-  else
-    case $cross_compiling:$ac_tool_warned in
-yes:)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
-$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
-ac_tool_warned=yes ;;
-esac
-    STRIP=$ac_ct_STRIP
-  fi
-else
-  STRIP="$ac_cv_prog_STRIP"
-fi
-
-fi
-INSTALL_STRIP_PROGRAM="\$(install_sh) -c -s"
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for a thread-safe mkdir -p" >&5
-$as_echo_n "checking for a thread-safe mkdir -p... " >&6; }
-if test -z "$MKDIR_P"; then
-  if ${ac_cv_path_mkdir+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH$PATH_SEPARATOR/opt/sfw/bin
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_prog in mkdir gmkdir; do
-	 for ac_exec_ext in '' $ac_executable_extensions; do
-	   as_fn_executable_p "$as_dir/$ac_prog$ac_exec_ext" || continue
-	   case `"$as_dir/$ac_prog$ac_exec_ext" --version 2>&1` in #(
-	     'mkdir (GNU coreutils) '* | \
-	     'mkdir (coreutils) '* | \
-	     'mkdir (fileutils) '4.1*)
-	       ac_cv_path_mkdir=$as_dir/$ac_prog$ac_exec_ext
-	       break 3;;
-	   esac
-	 done
-       done
-  done
-IFS=$as_save_IFS
-
-fi
-
-  test -d ./--version && rmdir ./--version
-  if test "${ac_cv_path_mkdir+set}" = set; then
-    MKDIR_P="$ac_cv_path_mkdir -p"
-  else
-    # As a last resort, use the slow shell script.  Don't cache a
-    # value for MKDIR_P within a source directory, because that will
-    # break other packages using the cache if that directory is
-    # removed, or if the value is a relative name.
-    MKDIR_P="$ac_install_sh -d"
-  fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $MKDIR_P" >&5
-$as_echo "$MKDIR_P" >&6; }
-
-for ac_prog in gawk mawk nawk awk
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_AWK+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$AWK"; then
-  ac_cv_prog_AWK="$AWK" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_AWK="$ac_prog"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-AWK=$ac_cv_prog_AWK
-if test -n "$AWK"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $AWK" >&5
-$as_echo "$AWK" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-  test -n "$AWK" && break
-done
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ${MAKE-make} sets \$(MAKE)" >&5
-$as_echo_n "checking whether ${MAKE-make} sets \$(MAKE)... " >&6; }
-set x ${MAKE-make}
-ac_make=`$as_echo "$2" | sed 's/+/p/g; s/[^a-zA-Z0-9_]/_/g'`
-if eval \${ac_cv_prog_make_${ac_make}_set+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat >conftest.make <<\_ACEOF
-SHELL = /bin/sh
-all:
-	@echo '@@@%%%=$(MAKE)=@@@%%%'
-_ACEOF
-# GNU make sometimes prints "make[1]: Entering ...", which would confuse us.
-case `${MAKE-make} -f conftest.make 2>/dev/null` in
-  *@@@%%%=?*=@@@%%%*)
-    eval ac_cv_prog_make_${ac_make}_set=yes;;
-  *)
-    eval ac_cv_prog_make_${ac_make}_set=no;;
-esac
-rm -f conftest.make
-fi
-if eval test \$ac_cv_prog_make_${ac_make}_set = yes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-  SET_MAKE=
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-  SET_MAKE="MAKE=${MAKE-make}"
-fi
-
-rm -rf .tst 2>/dev/null
-mkdir .tst 2>/dev/null
-if test -d .tst; then
-  am__leading_dot=.
-else
-  am__leading_dot=_
-fi
-rmdir .tst 2>/dev/null
-
-# Check whether --enable-silent-rules was given.
-if test "${enable_silent_rules+set}" = set; then :
-  enableval=$enable_silent_rules;
-fi
-
-case $enable_silent_rules in # (((
-  yes) AM_DEFAULT_VERBOSITY=0;;
-   no) AM_DEFAULT_VERBOSITY=1;;
-    *) AM_DEFAULT_VERBOSITY=1;;
-esac
-am_make=${MAKE-make}
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $am_make supports nested variables" >&5
-$as_echo_n "checking whether $am_make supports nested variables... " >&6; }
-if ${am_cv_make_support_nested_variables+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if $as_echo 'TRUE=$(BAR$(V))
-BAR0=false
-BAR1=true
-V=1
-am__doit:
-	@$(TRUE)
-.PHONY: am__doit' | $am_make -f - >/dev/null 2>&1; then
-  am_cv_make_support_nested_variables=yes
-else
-  am_cv_make_support_nested_variables=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_make_support_nested_variables" >&5
-$as_echo "$am_cv_make_support_nested_variables" >&6; }
-if test $am_cv_make_support_nested_variables = yes; then
-    AM_V='$(V)'
-  AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
-else
-  AM_V=$AM_DEFAULT_VERBOSITY
-  AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY
-fi
-AM_BACKSLASH='\'
-
-if test "`cd $srcdir && pwd`" != "`pwd`"; then
-  # Use -I$(srcdir) only when $(srcdir) != ., so that make's output
-  # is not polluted with repeated "-I."
-  am__isrc=' -I$(srcdir)'
-  # test to see if srcdir already configured
-  if test -f $srcdir/config.status; then
-    as_fn_error $? "source directory already configured; run \"make distclean\" there first" "$LINENO" 5
-  fi
-fi
-
-# test whether we have cygpath
-if test -z "$CYGPATH_W"; then
-  if (cygpath --version) >/dev/null 2>/dev/null; then
-    CYGPATH_W='cygpath -w'
-  else
-    CYGPATH_W=echo
-  fi
-fi
-
-
-# Define the identity of the package.
- PACKAGE='cafeobj'
- VERSION='1.4'
-
-
-cat >>confdefs.h <<_ACEOF
-#define PACKAGE "$PACKAGE"
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define VERSION "$VERSION"
-_ACEOF
-
-# Some tools Automake needs.
-
-ACLOCAL=${ACLOCAL-"${am_missing_run}aclocal-${am__api_version}"}
-
-
-AUTOCONF=${AUTOCONF-"${am_missing_run}autoconf"}
-
-
-AUTOMAKE=${AUTOMAKE-"${am_missing_run}automake-${am__api_version}"}
-
-
-AUTOHEADER=${AUTOHEADER-"${am_missing_run}autoheader"}
-
-
-MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
-
-# For better backward compatibility.  To be removed once Automake 1.9.x
-# dies out for good.  For more background, see:
-# <http://lists.gnu.org/archive/html/automake/2012-07/msg00001.html>
-# <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
-mkdir_p='$(MKDIR_P)'
-
-# We need awk for the "check" target.  The system "awk" is bad on
-# some platforms.
-# Always define AMTAR for backward compatibility.  Yes, it's still used
-# in the wild :-(  We should find a proper way to deprecate it ...
-AMTAR='$${TAR-tar}'
-
-
-# We'll loop over all known methods to create a tar archive until one works.
-_am_tools='gnutar  pax cpio none'
-
-am__tar='$${TAR-tar} chof - "$$tardir"' am__untar='$${TAR-tar} xf -'
-
-
-
-
-
-
-# POSIX will say in a future version that running "rm -f" with no argument
-# is OK; and we want to be able to make that assumption in our Makefile
-# recipes.  So use an aggressive probe to check that the usage we want is
-# actually supported "in the wild" to an acceptable degree.
-# See automake bug#10828.
-# To make any issue more visible, cause the running configure to be aborted
-# by default if the 'rm' program in use doesn't match our expectations; the
-# user can still override this though.
-if rm -f && rm -fr && rm -rf; then : OK; else
-  cat >&2 <<'END'
-Oops!
-
-Your 'rm' program seems unable to run without file operands specified
-on the command line, even when the '-f' option is present.  This is contrary
-to the behaviour of most rm programs out there, and not conforming with
-the upcoming POSIX standard: <http://austingroupbugs.net/view.php?id=542>
-
-Please tell bug-automake@gnu.org about your system, including the value
-of your $PATH and any error possibly output before this message.  This
-can help us improve future automake versions.
-
-END
-  if test x"$ACCEPT_INFERIOR_RM_PROGRAM" = x"yes"; then
-    echo 'Configuration will proceed anyway, since you have set the' >&2
-    echo 'ACCEPT_INFERIOR_RM_PROGRAM variable to "yes"' >&2
-    echo >&2
-  else
-    cat >&2 <<'END'
-Aborting the configuration process, to ensure you take notice of the issue.
-
-You can download and install GNU coreutils to get an 'rm' implementation
-that behaves properly: <http://www.gnu.org/software/coreutils/>.
-
-If you want to complete the configuration process using your problematic
-'rm' anyway, export the environment variable ACCEPT_INFERIOR_RM_PROGRAM
-to "yes", and re-run configure.
-
-END
-    as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
-  fi
-fi
-
-
-VMINOR=.15b3
-VMEMO=PigNose0.99
-PATCHLEVEL=
-
-
-
-
-
-
-
-# Check whether --with-cmu was given.
-if test "${with_cmu+set}" = set; then :
-  withval=$with_cmu; cmu_interp=$withval
-else
-  cmu_interp=lisp
-fi
 
 
 # Check whether --with-sbcl was given.
@@ -2387,6 +1885,8 @@ else
   sbcl_interp=sbcl
 fi
 
+sbcl_dump=cafeobj.sbcl
+
 
 # Check whether --with-acl was given.
 if test "${with_acl+set}" = set; then :
@@ -2395,12 +1895,68 @@ else
   acl_interp=alisp
 fi
 
+acl_dump=cafeobj.acl
+
 
 # Check whether --with-clisp was given.
 if test "${with_clisp+set}" = set; then :
   withval=$with_clisp; clisp_interp=$withval
 else
-  clisp_interp=lisp
+  clisp_interp=clisp
+fi
+
+clisp_dump=cafeobj.mem
+
+ccl32_interp=ccl
+ccl32_dump=cafeobj.img
+
+ccl64_interp=ccl64
+ccl64_dump=cafeobj.img
+
+gcl_interp=gcl
+gcl_dump=cafeobj.exe
+
+cmu_interp=lisp
+cmu_dump=cafeobj.core
+
+
+# Extract the first word of "gcl", so it can be a program name with args.
+set dummy gcl; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_gcl_path+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $gcl_path in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_gcl_path="$gcl_path" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_gcl_path="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+gcl_path=$ac_cv_path_gcl_path
+if test -n "$gcl_path"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gcl_path" >&5
+$as_echo "$gcl_path" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 
 
@@ -2564,16 +2120,16 @@ $as_echo "no" >&6; }
 fi
 
 
-# Extract the first word of "ccl", so it can be a program name with args.
-set dummy ccl; ac_word=$2
+# Extract the first word of "$ccl32_interp", so it can be a program name with args.
+set dummy $ccl32_interp; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_clozurecl_32path+:} false; then :
+if ${ac_cv_path_ccl32_path+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $clozurecl_32path in
+  case $ccl32_path in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_clozurecl_32path="$clozurecl_32path" # Let the user override the test with a path.
+  ac_cv_path_ccl32_path="$ccl32_path" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -2583,7 +2139,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_clozurecl_32path="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_ccl32_path="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -2594,26 +2150,26 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-clozurecl_32path=$ac_cv_path_clozurecl_32path
-if test -n "$clozurecl_32path"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $clozurecl_32path" >&5
-$as_echo "$clozurecl_32path" >&6; }
+ccl32_path=$ac_cv_path_ccl32_path
+if test -n "$ccl32_path"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ccl32_path" >&5
+$as_echo "$ccl32_path" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-# Extract the first word of "ccl64", so it can be a program name with args.
-set dummy ccl64; ac_word=$2
+# Extract the first word of "$ccl64_interp", so it can be a program name with args.
+set dummy $ccl64_interp; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_clozurecl_64path+:} false; then :
+if ${ac_cv_path_ccl64_path+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $clozurecl_64path in
+  case $ccl64_path in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_clozurecl_64path="$clozurecl_64path" # Let the user override the test with a path.
+  ac_cv_path_ccl64_path="$ccl64_path" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -2623,7 +2179,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_clozurecl_64path="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_ccl64_path="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -2634,14 +2190,15 @@ IFS=$as_save_IFS
   ;;
 esac
 fi
-clozurecl_64path=$ac_cv_path_clozurecl_64path
-if test -n "$clozurecl_64path"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $clozurecl_64path" >&5
-$as_echo "$clozurecl_64path" >&6; }
+ccl64_path=$ac_cv_path_ccl64_path
+if test -n "$ccl64_path"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ccl64_path" >&5
+$as_echo "$ccl64_path" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
+
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ${MAKE-make} sets \$(MAKE)" >&5
@@ -2675,6 +2232,47 @@ $as_echo "no" >&6; }
   SET_MAKE="MAKE=${MAKE-make}"
 fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for a thread-safe mkdir -p" >&5
+$as_echo_n "checking for a thread-safe mkdir -p... " >&6; }
+if test -z "$MKDIR_P"; then
+  if ${ac_cv_path_mkdir+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH$PATH_SEPARATOR/opt/sfw/bin
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_prog in mkdir gmkdir; do
+	 for ac_exec_ext in '' $ac_executable_extensions; do
+	   as_fn_executable_p "$as_dir/$ac_prog$ac_exec_ext" || continue
+	   case `"$as_dir/$ac_prog$ac_exec_ext" --version 2>&1` in #(
+	     'mkdir (GNU coreutils) '* | \
+	     'mkdir (coreutils) '* | \
+	     'mkdir (fileutils) '4.1*)
+	       ac_cv_path_mkdir=$as_dir/$ac_prog$ac_exec_ext
+	       break 3;;
+	   esac
+	 done
+       done
+  done
+IFS=$as_save_IFS
+
+fi
+
+  test -d ./--version && rmdir ./--version
+  if test "${ac_cv_path_mkdir+set}" = set; then
+    MKDIR_P="$ac_cv_path_mkdir -p"
+  else
+    # As a last resort, use the slow shell script.  Don't cache a
+    # value for MKDIR_P within a source directory, because that will
+    # break other packages using the cache if that directory is
+    # removed, or if the value is a relative name.
+    MKDIR_P="$ac_install_sh -d"
+  fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $MKDIR_P" >&5
+$as_echo "$MKDIR_P" >&6; }
 
 
 # Check whether --with-lisp was given.
@@ -2687,13 +2285,14 @@ fi
 if test "x$lisp" = "x"
 then
 	# no lisp specified, select one by default
+	# we disable the currently not building ones!!!
 	if   test -n "$acl_path" ; then lisp=acl ;
 	elif test -n "$sbcl_path" ; then lisp=sbcl ;
 	elif test -n "$clisp_path" ; then lisp=clisp ;
-	elif test -n "$gcl_path" ; then lisp=gcl ;
-	elif test -n "$cmu_path" ; then lisp=cmu ;
-	elif test -n "clozurecl_32path" ; then lisp=ccl ;
-	elif test -n "clozurecl_64path" ; then lisp=ccl64 ;
+	# elif test -n "$gcl_path" ; then lisp=gcl ;
+	# elif test -n "$cmu_path" ; then lisp=cmu ;
+	# elif test -n "$ccl32_path" ; then lisp=ccl ;
+	# elif test -n "$ccl64_path" ; then lisp=ccl64 ;
 	else
 		as_fn_error $? "no supported lisp interpreter found" "$LINENO" 5
 	fi
@@ -2704,12 +2303,17 @@ do_all=0
 if test "x$lisp" = "xall"
 then
   do_all=1
-  lisp=acl,sbcl,clisp,gcl,cmu,ccl,ccl64
+  # this is the preferred order of interpreters!!
+  # if nothing is specified, the first one found will be used!
+  #lisp=acl,sbcl,clisp,gcl,cmu,ccl,ccl64
+  # use only currently supported ones
+  lisp=acl,sbcl,clisp
 fi
 
 lisp=$(echo $lisp | sed -e 's/,/ /g')
 
 goodlisp=
+firstchoice=
 for i in $lisp
 do
   case "x$i" in
@@ -2720,6 +2324,10 @@ do
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xsbcl)
@@ -2729,6 +2337,10 @@ do
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xacl)
@@ -2738,6 +2350,10 @@ do
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xclisp)
@@ -2747,24 +2363,36 @@ do
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xccl)
-          if test -z "$clozurecl_32path"
+          if test -z "$ccl32_path"
           then
 	     test $do_all = 1 || \
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xccl64)
-          if test -z "$clozurecl_64path"
+          if test -z "$ccl64_path"
           then
 	     test $do_all = 1 || \
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xgcl)
@@ -2774,6 +2402,10 @@ do
 	     as_fn_error $? "selected lisp interpreter $i is not available" "$LINENO" 5
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     *)
@@ -2791,6 +2423,17 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: Building for the following lisp interpreters: $lisp" >&5
 $as_echo "$as_me: Building for the following lisp interpreters: $lisp" >&6;}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2970,13 +2613,6 @@ $as_echo "$as_me: Not all TeX related programs are found, disabling rebuild of d
 	enable_rebuild_doc=no
   fi
 fi
- if test x"$enable_rebuild_doc" = x"yes"; then
-  COND_REBUILD_DOC_TRUE=
-  COND_REBUILD_DOC_FALSE='#'
-else
-  COND_REBUILD_DOC_TRUE='#'
-  COND_REBUILD_DOC_FALSE=
-fi
 
 
 
@@ -2987,13 +2623,6 @@ else
   enable_traditional_layout=no
 fi
 
- if test x"$enable_traditional_layout" = x"yes"; then
-  COND_TRADITIONAL_TRUE=
-  COND_TRADITIONAL_FALSE='#'
-else
-  COND_TRADITIONAL_TRUE='#'
-  COND_TRADITIONAL_FALSE=
-fi
 
 
 # Check whether --enable-windows was given.
@@ -3003,16 +2632,9 @@ else
   enable_windows=no
 fi
 
- if test x"$enable_windows" = x"yes"; then
-  COND_WINDOWS_TRUE=
-  COND_WINDOWS_FALSE='#'
-else
-  COND_WINDOWS_TRUE='#'
-  COND_WINDOWS_FALSE=
-fi
 
 
-ac_config_files="$ac_config_files Makefile doc/Makefile"
+ac_config_files="$ac_config_files Makefile doc/Makefile make-cafeobj.lisp version.lisp xbin/cafeobj.in"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -3159,27 +2781,6 @@ LIBOBJS=$ac_libobjs
 LTLIBOBJS=$ac_ltlibobjs
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking that generated files are newer than configure" >&5
-$as_echo_n "checking that generated files are newer than configure... " >&6; }
-   if test -n "$am_sleep_pid"; then
-     # Hide warnings about reused PIDs.
-     wait $am_sleep_pid 2>/dev/null
-   fi
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
-$as_echo "done" >&6; }
-
-if test -z "${COND_REBUILD_DOC_TRUE}" && test -z "${COND_REBUILD_DOC_FALSE}"; then
-  as_fn_error $? "conditional \"COND_REBUILD_DOC\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${COND_TRADITIONAL_TRUE}" && test -z "${COND_TRADITIONAL_FALSE}"; then
-  as_fn_error $? "conditional \"COND_TRADITIONAL\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${COND_WINDOWS_TRUE}" && test -z "${COND_WINDOWS_FALSE}"; then
-  as_fn_error $? "conditional \"COND_WINDOWS\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
 
 : "${CONFIG_STATUS=./config.status}"
 ac_write_fail=0
@@ -3643,7 +3244,6 @@ ac_pwd='$ac_pwd'
 srcdir='$srcdir'
 INSTALL='$INSTALL'
 MKDIR_P='$MKDIR_P'
-AWK='$AWK'
 test -n "\$AWK" || AWK=awk
 _ACEOF
 
@@ -3746,6 +3346,9 @@ do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
+    "make-cafeobj.lisp") CONFIG_FILES="$CONFIG_FILES make-cafeobj.lisp" ;;
+    "version.lisp") CONFIG_FILES="$CONFIG_FILES version.lisp" ;;
+    "xbin/cafeobj.in") CONFIG_FILES="$CONFIG_FILES xbin/cafeobj.in" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

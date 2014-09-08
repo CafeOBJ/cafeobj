@@ -31,7 +31,6 @@ dnl
 
 AC_INIT([CafeOBJ],[1.4], [], [cafeobj], [http://www.cafeobj.org/])
 AC_CONFIG_SRCDIR([make-cafeobj.lisp.in])
-AM_INIT_AUTOMAKE
 AC_PREREQ(2.6)
 VMINOR=.15b3
 VMEMO=PigNose0.99
@@ -43,51 +42,114 @@ AC_ARG_PROGRAM
 AC_PROG_INSTALL
 
 dnl allow for specifying different names for cmd line interpreter
-AC_ARG_WITH(cmu,
-   [AS_HELP_STRING([--with-cmu=<cmd>],
-      [specify the CMU interpreter @<:@default: lisp@:>@])],
-   cmu_interp=$withval,cmu_interp=lisp)
+dnl
+dnl disable currently not supported interpreter
+dnl but make them available on request!
+
+
 AC_ARG_WITH(sbcl,
    [AS_HELP_STRING([--with-sbcl=<cmd>],
       [specify the SBCL interpreter @<:@default: sbcl@:>@])],
    sbcl_interp=$withval,sbcl_interp=sbcl)
+dnl don't allow configuration of the dump file names
+dnl AC_ARG_WITH(sbcl_dump,
+dnl    [AS_HELP_STRING([--with-sbcl-dump=<cmd>],
+dnl       [specify the SBCL dump file  @<:@default: cafeobj.sbcl@:>@])],
+dnl    sbcl_dump=$withval,sbcl_dump=cafeobj.sbcl)
+sbcl_dump=cafeobj.sbcl
+
 AC_ARG_WITH(acl,
    [AS_HELP_STRING([--with-acl=<cmd>],
       [specify the ACL interpreter @<:@default: alisp@:>@])],
    acl_interp=$withval,acl_interp=alisp)
+dnl AC_ARG_WITH(acl_dump,
+dnl    [AS_HELP_STRING([--with-acl-dump=<cmd>],
+dnl       [specify the ACL dump file  @<:@default: cafeobj.acl@:>@])],
+dnl    acl_dump=$withval,acl_dump=cafeobj.acl)
+acl_dump=cafeobj.acl
+
 AC_ARG_WITH(clisp,
    [AS_HELP_STRING([--with-clisp=<cmd>],
       [specify the CLISP interpreter @<:@default: clisp@:>@])],
-   clisp_interp=$withval,clisp_interp=lisp)
+   clisp_interp=$withval,clisp_interp=clisp)
+dnl AC_ARG_WITH(clisp_dump,
+dnl    [AS_HELP_STRING([--with-clisp-dump=<cmd>],
+dnl       [specify the CLISP dump file  @<:@default: cafeobj.mem@:>@])],
+dnl    clisp_dump=$withval,clisp_dump=cafeobj.mem)
+clisp_dump=cafeobj.mem
 
-dnl AC_PATH_PROG(gcl_path,gcl)   ... no more gcl..
+dnl AC_ARG_WITH(ccl32,
+dnl    [AS_HELP_STRING([--with-ccl32=<cmd>],
+dnl      [specify the CCL(32) interpreter @<:@default: ccl@:>@])],
+dnl    ccl32_interp=$withval,ccl32_interp=ccl)
+dnl AC_ARG_WITH(ccl32_dump,
+dnl    [AS_HELP_STRING([--with-ccl32-dump=<cmd>],
+dnl       [specify the CCL(32) dump file  @<:@default: cafeobj.img@:>@])],
+dnl    ccl32_dump=$withval,ccl32_dump=cafeobj.img)
+ccl32_interp=ccl
+ccl32_dump=cafeobj.img
+
+dnl AC_ARG_WITH(ccl64,
+dnl    [AS_HELP_STRING([--with-ccl64=<cmd>],
+dnl       [specify the CCL64 interpreter @<:@default: ccl64@:>@])],
+dnl    ccl64_interp=$withval,ccl64_interp=ccl64)
+dnl AC_ARG_WITH(ccl64_dump,
+dnl    [AS_HELP_STRING([--with-ccl64-dump=<cmd>],
+dnl       [specify the CCL64 dump file  @<:@default: cafeobj.img@:>@])],
+dnl    ccl64_dump=$withval,ccl64_dump=cafeobj.img)
+ccl64_interp=ccl64
+ccl64_dump=cafeobj.img
+
+dnl AC_ARG_WITH(gcl,
+dnl    [AS_HELP_STRING([--with-gcl=<cmd>],
+dnl       [specify the GCL interpreter @<:@default: gcl@:>@])],
+dnl    gcl_interp=$withval,gcl_interp=gcl)
+dnl AC_ARG_WITH(gcl_dump,
+dnl    [AS_HELP_STRING([--with-gcl-dump=<cmd>],
+dnl       [specify the GCL dump file  @<:@default: cafeobj.exe@:>@])],
+dnl    gcl_dump=$withval,gcl_dump=cafeobj.exe)
+gcl_interp=gcl
+gcl_dump=cafeobj.exe
+
+dnl AC_ARG_WITH(cmu,
+dnl   [AS_HELP_STRING([--with-cmu=<cmd>],
+dnl      [specify the CMU interpreter @<:@default: lisp@:>@])],
+dnl   cmu_interp=$withval,cmu_interp=lisp)
+dnl AC_ARG_WITH(cmu_dump,
+dnl    [AS_HELP_STRING([--with-cmu-dump=<cmd>],
+dnl       [specify the CMU dump file @<:@default: cafeobj.core@:>@])],
+dnl    cmu_dump=$withval,cmu_dump=cafeobj.core)
+cmu_interp=lisp
+cmu_dump=cafeobj.core
+
+
+AC_PATH_PROG(gcl_path,gcl)
 AC_PATH_PROG(cmu_path,$cmu_interp)
 AC_PATH_PROG(sbcl_path,$sbcl_interp)
 AC_PATH_PROG(acl_path,$acl_interp)
 AC_PATH_PROG(clisp_path,$clisp_interp)
-dnl AC_PATH_PROG(acl8_path,alisp)
-dnl AC_PATH_PROG(acl9_path,alisp)
-dnl AC_PATH_PROG(openmcl_path,openmcl)
-AC_PATH_PROG(clozurecl_32path,ccl)
-AC_PATH_PROG(clozurecl_64path,ccl64)
+AC_PATH_PROG(ccl32_path,$ccl32_interp)
+AC_PATH_PROG(ccl64_path,$ccl64_interp)
+
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AC_ARG_WITH(lisp,
    [AS_HELP_STRING([--with-lisp=all|<interp>@<:@,<interp>@:>@],
-      [specify a list of lisp interpreters from "acl", "sbcl", "cmu", or "clisp". Alternatively "all" can be specified to select all available.])],
+      [specify a list of lisp interpreters from "acl", "sbcl", or "clisp". Alternatively "all" can be specified to select all available.])],
 	lisp=$withval)
 
 
 if test "x$lisp" = "x" 
 then
 	# no lisp specified, select one by default
+	# we disable the currently not building ones!!!
 	if   test -n "$acl_path" ; then lisp=acl ; 
 	elif test -n "$sbcl_path" ; then lisp=sbcl ;
 	elif test -n "$clisp_path" ; then lisp=clisp ;
-	elif test -n "$gcl_path" ; then lisp=gcl ;
-	elif test -n "$cmu_path" ; then lisp=cmu ;
-	elif test -n "clozurecl_32path" ; then lisp=ccl ;
-	elif test -n "clozurecl_64path" ; then lisp=ccl64 ;
+	# elif test -n "$gcl_path" ; then lisp=gcl ;
+	# elif test -n "$cmu_path" ; then lisp=cmu ;
+	# elif test -n "$ccl32_path" ; then lisp=ccl ;
+	# elif test -n "$ccl64_path" ; then lisp=ccl64 ;
 	else
 		AC_MSG_ERROR([no supported lisp interpreter found])
 	fi
@@ -99,13 +161,18 @@ do_all=0
 if test "x$lisp" = "xall"
 then
   do_all=1
-  lisp=acl,sbcl,clisp,gcl,cmu,ccl,ccl64
+  # this is the preferred order of interpreters!!
+  # if nothing is specified, the first one found will be used!
+  #lisp=acl,sbcl,clisp,gcl,cmu,ccl,ccl64
+  # use only currently supported ones
+  lisp=acl,sbcl,clisp
 fi
 
 dnl convert comma serparated list to space separated list
 lisp=$(echo $lisp | sed -e 's/,/ /g')
 
 goodlisp=
+firstchoice=
 for i in $lisp
 do
   case "x$i" in
@@ -116,6 +183,10 @@ do
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xsbcl)
@@ -125,6 +196,10 @@ do
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xacl)
@@ -134,6 +209,10 @@ do
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xclisp)
@@ -143,24 +222,36 @@ do
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xccl)
-          if test -z "$clozurecl_32path"
+          if test -z "$ccl32_path"
           then
 	     test $do_all = 1 || \
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xccl64)
-          if test -z "$clozurecl_64path"
+          if test -z "$ccl64_path"
           then
 	     test $do_all = 1 || \
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     xgcl)
@@ -170,6 +261,10 @@ do
 	     AC_MSG_ERROR([selected lisp interpreter $i is not available])
 	  else
 	     goodlisp="$goodlisp $i"
+	     if test "x$firstchoice" = x
+	     then
+	       firstchoice=$i
+	     fi
 	  fi
 	  ;;
     *)
@@ -189,10 +284,21 @@ AC_MSG_NOTICE([Building for the following lisp interpreters: $lisp])
 
 
 AC_SUBST(lisp)
+AC_SUBST(firstchoice)
 AC_SUBST(acl_interp)
 AC_SUBST(sbcl_interp)
 AC_SUBST(clisp_interp)
 AC_SUBST(cmu_interp)
+AC_SUBST(ccl32_interp)
+AC_SUBST(ccl64_interp)
+AC_SUBST(gcl_interp)
+AC_SUBST(acl_dump)
+AC_SUBST(sbcl_dump)
+AC_SUBST(clisp_dump)
+AC_SUBST(cmu_dump)
+AC_SUBST(ccl32_dump)
+AC_SUBST(ccl64_dump)
+AC_SUBST(gcl_dump)
 
 AC_ARG_ENABLE([rebuild_doc],
        [AS_HELP_STRING([--enable-rebuild-doc],
@@ -215,7 +321,7 @@ then
 	enable_rebuild_doc=no
   fi
 fi
-AM_CONDITIONAL([COND_REBUILD_DOC], [test x"$enable_rebuild_doc" = x"yes"])
+AC_SUBST(enable_rebuild_doc)
 
 
 AC_ARG_ENABLE(traditional_layout,
@@ -223,17 +329,20 @@ AC_ARG_ENABLE(traditional_layout,
                [Enable traditional layout @<:@default=no@:>@])],
        [enable_traditional_layout="${enableval}"],
        [enable_traditional_layout=no])
-AM_CONDITIONAL([COND_TRADITIONAL], [test x"$enable_traditional_layout" = x"yes"])
+AC_SUBST(enable_traditional_layout)
 
 AC_ARG_ENABLE(windows,
        [AS_HELP_STRING([--enable-windows],
           [Prepare for Windows building])],
        [enable_windows="${enableval}"],
        [enable_windows=no])
-AM_CONDITIONAL([COND_WINDOWS], [test x"$enable_windows" = x"yes"])
+AC_SUBST(enable_windows)
 
 AC_CONFIG_FILES([
   Makefile 
   doc/Makefile
+  make-cafeobj.lisp
+  version.lisp
+  xbin/cafeobj.in
 ])
 AC_OUTPUT()

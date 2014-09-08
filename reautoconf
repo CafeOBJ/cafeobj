@@ -1,5 +1,0 @@
-
-aclocal
-automake --foreign --add-missing
-autoconf
-

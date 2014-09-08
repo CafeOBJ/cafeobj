@@ -10,9 +10,8 @@ some Common Lisp system to install CafeOBJ. CafeOBJ can be
 built on the following platforms:
 
   (1) SBCL version 1.1.7 (or later)
-  (2) CMU-CL version 20D (or later)
-  (3) Allegro CL version 8.0 (or later)
-  (4) CLISP version 2.4.9 (or later)
+  (2) Allegro CL version 8.0 (or later)
+  (3) CLISP version 2.4.9 (or later)
 
 At least one of these needs to be installed in the users' PATH.
 
@@ -50,7 +49,6 @@ of the underlying interpreters.
 the following command line program name
 
      configure argument     program name        
-	cmu                    lisp        -- CMUCL
 	sbcl                   sbcl        -- SBCL
 	acl                    alisp       -- Allegro CL
         clisp                  clisp       -- CLISP
@@ -59,7 +57,7 @@ You must have one of these command in your PATH environment.
 
 -with-lisp="platform" can be omitted, in this case it selects the
 first interpreter found by testing in the following order:
-	acl, sbcl, clisp, cmu
+	acl, sbcl, clisp
 
 Finally, one can use
 	-with-lisp=all
@@ -67,10 +65,14 @@ which builds for all found Common Lisp platforms.
 
 In case your interpreter is named different than the above, you
 can override it with
-	--with-cmu=<cmu-name>
 	--with-sbcl=<sbcl-name>
 	--with-acl=<acl-name>
 	--with-clisp=<clisp-name>
+
+Using the cafeobj command line argument
+	--engine <engine>
+one can select the engine at run time. By default the one first listed
+in the configure call will be used.
 
 
 b) Installation location
@@ -102,9 +104,11 @@ during the configure run.
 There is also
 	--enable-traditional-layout
 which selects traditional layout of the files, which is
-       $prefix/cafeobj-N.M/bin/    
-                       -- cafeobj - a shell script that invokes the
+       $prefix/bin/    -- cafeobj - a shell script that invokes the
                           necessary programs to start the CafeOBJ interpreter.
+      
+       $prefix/cafeobj-N.M/bin/    
+                       -- necessary programs to start the CafeOBJ interpreter.
 			  and the dump files for the various lisp platforms
       
        $prefix/cafeobj-N.M/lib/
@@ -147,6 +151,15 @@ or, if you don't have permissions, maybe
 	sudo make install
 
 This will install CafeOBJ interpreter (cafeobj).
+
+
+Staged installes are supported in two ways:
+	make install DESTDIR=<path>
+prefix all installations with $DESTDIR.
+
+	make install prefix=<path>
+will override the prefix set during initial configuration. Be warned
+that in this case the cafeobj script might not find the dumps.
 
 
 ===========

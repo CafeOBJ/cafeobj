@@ -60,7 +60,7 @@
 
 #-(or microsoft (and ccl (not :openmcl)))
 (eval-when (:execute :load-toplevel)
-  (setq *chaos-root* XCHAOS_ROOT_DIR))
+  (setq *chaos-root* "@srcdir@"))
 
 #+clisp
 (eval-when (:execute :load-toplevel)
@@ -83,7 +83,7 @@
 (defvar chaos::*cafeobj-install-dir*)
 #-(or microsoft (and ccl (not :openmcl)))
 (eval-when (:execute :load-toplevel)
-  (setq chaos::*cafeobj-install-dir* XINSTALL_DIR)
+  (setq chaos::*cafeobj-install-dir* "@srcdir@")
   )
 #+(or microsoft (and ccl (not :openmcl)))
 (eval-when (:execute :load-toplevel)
@@ -95,7 +95,7 @@
 ;;; END SITE SPECIFIC --------------------------------------------------------
 
 (eval-when (:execute :load-toplevel)
-  (setq chaos::*make-bigpink* :BIGPINK)
+  (setq chaos::*make-bigpink* :nil)
   ;; (push :chaos-debug *features*)
   (push :bigpink *features*))
 
@@ -223,16 +223,16 @@
   (asdf:oos 'asdf:load-op 'chaosx)
   (make-exec-image
    (concatenate 'string *chaos-root*
-		#+GCL "/GCL_DUMP"
-		#+microsoft "/xbin/cafeobj.dxl"
-		#+(and unix Allegro) "/ACL_DUMP"
-		#+CMU "/CMU_DUMP"
-		#+SBCL "/SBCL_DUMP"
-		#+CLISP "/CLISP_DUMP"
-		#+:openmcl "/CCL_DUMP"
+		#+GCL "/dumps/gcl/@gcl_dump@"
+		#+microsoft "/dumps/dxl/cafeobj.dxl"
+		#+(and unix Allegro) "/dumps/acl/@acl_dump@"
+		#+CMU "/dumps/cmu/@cmu_dump@"
+		#+SBCL "/dumps/sbcl/@sbcl_dump@"
+		#+CLISP "/dumps/clisp/@clisp_dump@"
+		#+:openmcl "/dumps/ccl/@ccl_dump@"
 		;; patch by t-seino@jaist.ac.jp
 		;; patch by sawada@sra.co.jp
-		#+(and CCL (not :openmcl)) ":ccl:cafeobj.exe"
+		#+(and CCL (not :openmcl)) ":dumps:ccl:cafeobj.exe"
 		))
   )
 
