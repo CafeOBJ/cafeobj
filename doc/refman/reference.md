@@ -37,6 +37,64 @@ Related: [comments](#comments), [`**`](#starstar)
 Do nothing.
 
 
+## `:apply (<tactic> ...) [to <goal-name>]` ## {#:apply}
+
+TODO
+
+## `:auto` ## {#:auto}
+
+TODO
+
+## `:backward equation` ## {#:backward}
+
+TODO
+
+## `:cp { "[" <label> "]" | "(" <axiom> . ")" } >< { "[" <label> "]" | "(" <axiom> .")" }` ## {#:cp}
+
+TODO
+
+## `:equation` ## {#:equation}
+
+TODO
+
+## `:goal { <axiom> . ... }` ## {#:goal}
+
+TODO
+
+## `:ind on <variable> ... .` ## {#:ind}
+
+TODO
+
+## `:init { "[" <label> "]" | "(" <axiom> "")} "{" <variable> <- <term>; ... "}"` ## {#:init}
+
+TODO
+
+## `:is` ## {#:is}
+
+Boolean expression: `A :is B` where `A` is a term and
+`B` is a sort. Returns true if `A` is of sort `B`.
+
+
+## `:lred <term> .` ## {#:red}
+
+TODO
+
+## `:roll back` ## {#:roll}
+
+TODO
+
+## `:rule` ## {#:rule}
+
+TODO
+
+## `:select <goal-name>` ## {#:select}
+
+TODO
+
+## `:verbose { on | off }` ## {#:verbose}
+
+TODO
+
 ## `=` ## {#axeq}
 
 The syntax element `=` introduces an axiom of the equational theory,
@@ -1174,6 +1232,16 @@ Possible values: `normal` `fancy` `tree` `s-expr`
 Selects one of the print modes.
 
 
+## `print trs` switch ## {#switch-print-trs}
+
+Possible values: `on` `off`, default `off`
+
+If set to `on`, print the rules used during reduction of 
+`=(_,_)=>+_if_suchThat_{_}`.
+
+
+Related: [`search predicates`](#searchpredicate)
+
 ## `protect <module-name>` ## {#protect}
 
 Protect a module from being overwritten.
@@ -1395,11 +1463,14 @@ CafeOBJ provides a whole set of search predicates, that searches
 the reachable states starting from a given state, optionally checking
 additional conditions. All of them based on the following three basic ones:
 
-  - `S =(n,m)=>* SS` search states reachable by 0 or more transitions;
-  - `S =(n,m)=>+ SS` search states reachable by 1 or more transitions;
-  - `S =(n,m)=>! SS` search states reachable by 0 or more transitions, and
+  - `S =(n,m)=>* SS [if Pred]` search states reachable by 0 or more transitions;
+  - `S =(n,m)=>+ SS [if Pred]` search states reachable by 1 or more transitions;
+  - `S =(n,m)=>! SS [if Pred]` search states reachable by 0 or more transitions, and
     require that the reached state is a final state, i.e., no further
     transitions can be applied.
+
+To allow for conditional transitions, a transition is only considered
+in the search if `Pred` holds.
 
 The parameters `n` and `m` in these search predicates:
 
@@ -1416,17 +1487,17 @@ with `SS`.
 There are two orthogonal extension to this search perdicate, one
 adds a `suchThat` clause, one adds a `withStateEq` clause.
 
-`S =(n,m)=>* SS suchThat Pred`
+`S =(n,m)=>* SS [if Pred1] suchThat Pred2`
   ~ (and similar for `!` and `+`) In this case not only the existence,
     of a transition sequence is tested, but also whether the predicate
-    `Pred`, which normally takes `S` and `SS` as arguments, holds.
+    `Pred2`, which normally takes `S` and `SS` as arguments, holds.
 
-`S =(n,m)=>* SS withStateEq Pred`
+`S =(n,m)=>* SS [if Pred1] withStateEq Pred2`
   ~ (and similar for `!` and `+`) TODO
 
 These two cases can also be combined into 
 
-`S =(n,m)=>* SS suchThat Pred1 withStateEq Pred2`
+`S =(n,m)=>* SS [if Pred1] suchThat Pred2 withStateEq Pred3`
 
 
 ## `select <mod_exp> . ` ## {#select}
