@@ -217,7 +217,7 @@ distclean: clean
 	rm -f xbin/cafeobj.in
 	rm -f version.lisp
 	rm -rf autom4te.cache
-	rm -f doc/Makefile
+	rm -f doc/Makefile doc/refman/Makefile
 
 #
 # declare the clean targets as well as the scripts that are

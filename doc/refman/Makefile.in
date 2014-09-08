@@ -1,0 +1,94 @@
+#
+# Copyright (c) 2014, Norbert Preining. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#   * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#
+#   * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials
+#     provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+SHELL=/bin/bash
+
+ENGINE=xelatex
+
+#	-V documentclass=book				\
+
+PDOPTS=-f markdown -V biblio-files=manual.bib --biblatex	\
+	--template=template.tex				\
+	--table-of-contents				\
+	--toc-depth=1					\
+	-V papersize=a4paper				\
+	-V mainfont='Lucida Bright OT'			\
+	-V sansfont='Lucida Sans OT'			\
+	-V monofont='Lucida Sans Typewriter OT'		\
+	-V documentclass=memoir				\
+	--latex-engine=$(ENGINE)
+
+
+#
+# included md files, order is important!!!
+MDFILES=reference-manual.md introduction.md overview.md cloudsync.md \
+	reference-head.md reference.md
+
+MDFILESORIG=reference-manual.md introduction.md overview.md cloudsync.md \
+        reference-backup.md
+
+manuals: reference-manual.odt reference-manual.epub reference-manual.html reference-manual.pdf
+
+update-ref:
+	cafeobj -batch update-reference.cafe
+
+reference-manual.odt: $(MDFILES) Makefile.in
+	pandoc ${PDOPTS} -t odt -s -o reference-manual.odt ${MDFILES}
+
+reference-manual.epub: $(MDFILES) Makefile.in
+	pandoc ${PDOPTS} -t epub -s -o reference-manual.epub ${MDFILES}
+
+reference-manual.tex: $(MDFILES) Makefile.in manual.bib template.tex
+	pandoc ${PDOPTS} -t latex -s -o reference-manual.tex ${MDFILES}
+
+reference-manual-orig.tex: $(MDFILESORIG) Makefile.in manual.bib template.tex
+	pandoc ${PDOPTS} -t latex -s -o reference-manual-orig.tex ${MDFILESORIG}
+
+reference-manual.html: $(MDFILES) Makefile.in
+	pandoc ${PDOPTS} -t html -s -o reference-manual.html ${MDFILES}
+
+reference-manual.bbl: reference-manual.tex manual.bib
+	$(ENGINE) reference-manual.tex
+	biber reference-manual
+
+reference-manual.pdf: reference-manual.tex reference-manual.bbl
+	$(ENGINE) reference-manual.tex
+	$(ENGINE) reference-manual.tex
+
+all: reference-manual.pdf reference-manual.html
+
+clean:
+	rm -f reference-manual-orig.{aux,bbl,bcf,blg,log,out,run.xml,toc}
+	rm -f reference-manual-orig-blx.bib
+	rm -f reference-manual.{aux,bbl,bcf,blg,log,out,run.xml,toc}
+	rm -f reference-manual-blx.bib
+
+realclean: clean
+	rm -f reference-manual.pdf reference-manual.html
+	rm -f reference-manual.tex
+

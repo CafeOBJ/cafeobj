@@ -340,9 +340,9 @@ AC_SUBST(enable_windows)
 
 AC_CONFIG_FILES([
   Makefile 
-  doc/Makefile
   make-cafeobj.lisp
   version.lisp
   xbin/cafeobj.in
+  doc/refman/Makefile.in
 ])
 AC_OUTPUT()
