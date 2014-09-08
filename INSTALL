@@ -178,4 +178,50 @@ want to go back to a clean state  of pre-configuration, use
 	make distclean
 
 
+===========================
+RANDOM NOTEX FOR DEVELOPERS
+===========================
+
+build system
+------------
+configure checks for each lisp interpretor on existence, and
+exports `<NAME>_interp', `<NAME>_dump', and the list of requested 
+in `lisp'.
+
+configure generates the following files:
+	Makefile		<- Makefile.in
+	make-cafeobj.lisp	<- make-cafeobj.lisp.in
+	xbin/cafeobj.in		<- xbin/cafeobj.in.in
+	doc/Makefile.in		<- doc/Makefile
+After that, xbin/cafeobj is created from the Makefile by a sed command.
+
+other lisp interpreters
+-----------------------
+Although by default only acl, sbcl, clisp is checked and build for,
+the following lisp implementations can also be used, but are
+currently not supported. Builds will fail.
+     configure argument     program name        
+	cmu                    lisp        -- CMU-CL
+	gcl                    gcl         -- GNU Common Lisp
+        ccl                    ccl         -- openmcl
+        ccl64                  ccl64       -- openmcl 64 bit
+
+adding a lisp interpreter
+-------------------------
+Adding a new interpreter requires (at least) changes to the following
+files (more or less symmetric to all the others):
+- configure.ac
+- Makefile.in
+- xbin/cafeobj.in.in
+- make-cafeobj.lisp.in
+
+building for windows
+--------------------
+If Wine is installed, and within wine sbcl is installed, one can create
+a dump for Windows with
+	./configure --enable-windows
+	make
+
+  
+
 -- EOF
