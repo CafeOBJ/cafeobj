@@ -1,3 +1,23 @@
+* CafeOBJ 1.5.0
+===============
+
+  Several changes have been done over years, we summarize only a few:
+
+  - introduction of a large family of search predicates for state/transition
+    based specifications (see `search predicates' in the online help or
+    manual)
+  - addition of a (nearly) complete reference manual (reference-manual.pdf)
+  - addition of CITP-like proving tool 
+    (see http://www.jaist.ac.jp/~danielmg/citp.html for the original version)
+  - revised build system, allows for building and running CafeOBJ based
+    on several lisp engines
+  - improved online help system with search functionality (see `?' `?ap' etc)
+  - build support has been stream-lined, currently supported Common Lisp
+    implementations are SBCL, CLISP, Allegro CL
+  - ...
+
+* many unmentioned releases
+
 * CafeOBJ 1.4.3PigNose
 =======================
   a resolution based proof eningine PigNose.
