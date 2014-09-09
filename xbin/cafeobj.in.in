@@ -65,10 +65,10 @@ while [ $# -gt 0 ]
 do
   key="$1"
   case $key in
-    -e|--engine) shift ; engine="$1" ; shift ;;
-    -l|--libpath) shift ; libpath="$1" ; shift ;;
-    -s|--sharepath) shift ; sharepath="$1" ; shift ;;
-    --list-engines)
+    -e|-engine|--engine) shift ; engine="$1" ; shift ;;
+    -l|-libpath|--libpath) shift ; libpath="$1" ; shift ;;
+    -s|-sharepath|--sharepath) shift ; sharepath="$1" ; shift ;;
+    -list-engines|--list-engines)
       shift
       engines=""
       if [ -r "$libpath/$ccl32_dump" ] ; then engines="ccl $engines" ; fi
