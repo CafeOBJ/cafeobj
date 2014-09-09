@@ -1042,7 +1042,8 @@ $$
 前節で反駁エンジンは sos 戦略で推論を行うことを述べたが，
 この方式による推論プロセスの主ループの概要は次のようになる：
 
-\begin{simplev}[fontfamily=helvetica]
+%\begin{simplev}%[fontfamily=helvetica]
+\begin{verbatim}
   while (sos が空でなく，かつ空節が導出されていない)
       (1) sos から`節を一つ選'び，これを given-clause と呼ぶ.
       (2) given-clause を sos から usable に 移す.
@@ -1052,7 +1053,11 @@ $$
       (4) 新たに生成された節に対して，`有用性の検査'を行う．
           これをパスした節は sos へ加え，そうでない節は捨てる．
   end 
-\end{simplev}
+\end{verbatim}
+
+%\end{simplev}
+
+
 この推論プロセスの主ループの詳細は後で説明するが, 次のような冗長性が避け
 られていることに注意されたい：
 例えば, 節 $C$ が 節 $A$ と $B$ から導出することが出来, また $A$ と
