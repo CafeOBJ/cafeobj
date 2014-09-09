@@ -1,0 +1,58 @@
+#!/usr/bin/make -f
+
+export DH_OPTIONS
+
+co := $(CURDIR)/debian/cafeobj
+
+build: build-arch build-indep
+build-arch: build-stamp
+build-indep: build-stamp
+
+build-stamp:
+	dh_testdir
+	./configure --prefix=/usr --with-lisp=sbcl --enable-rebuild-doc
+	# remove prebuild documentation pdf and rebuild them
+	rm -f doc/manual/manual.pdf
+	rm -f doc/refman/reference-manual.pdf
+	rm -f doc/PigNose/pnguide.pdf
+	rm -f doc/RefCard/interp.pdf
+	rm -f doc/RefCard/syntax.pdf
+	make build
+
+clean:
+	dh_testdir
+	dh_testroot
+	[ ! -f Makefile ] || $(MAKE) distclean
+	dh_clean
+	
+install: install-stamp
+
+
+install-stamp: DH_OPTIONS=
+install-stamp: build-stamp
+	dh_testdir
+	dh_testroot
+	dh_prep
+	DESTDIR=$(co) $(MAKE) install
+	touch install-stamp
+
+binary-indep: build install
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installdocs README.md
+	dh_installchangelogs
+	# do NOT strip otherwise the sbcl dump file is broken!
+	#dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+
+.PHONY: config build clean binary-indep binary-arch binary install
+

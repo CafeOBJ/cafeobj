@@ -1,0 +1,33 @@
+Source: cafeobj
+Section: science
+Priority: optional
+Maintainer: Norbert Preining <preining@debian.org>
+Build-Depends: debhelper (>= 8.1.0~), sbcl, fonts-mplus, fonts-freefont-otf, texlive-latex-recommended, texlive-fonts-recommended, texlive-latex-extra, texlive-bibtex-extra, texlive-xetex, lmodern, pandoc, pandoc-citeproc, biber
+Standards-Version: 3.9.5
+Homepage: http://www.cafeobj.org/
+
+
+Package: cafeobj
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: new generation algebraic specification and programming language
+ CafeOBJ is a most advanced formal specification language which 
+ inherits many advanced features (e.g. flexible mix-fix syntax,
+ powerful and clear typing system with ordered sorts, parameteric
+ modules and views for instantiating the parameters, and module
+ expressions, etc.) from OBJ (or more exactly OBJ3) algebraic
+ specification language.
+ .
+ CafeOBJ is a language for writing formal (i.e. mathematical) 
+ specifications of models for wide varieties of software and systems, 
+ and verifying properties of them. CafeOBJ implements equational logic
+ by rewriting and can be used as a powerful interactive theorem proving
+ system. Specifiers can write proof scores also in CafeOBJ and doing
+ proofs by executing the proof scores.
+ .
+ CafeOBJ has state-of-art rigorous logical semantics based on
+ institutions. The CafeOBJ cube shows the structure of the various
+ logics underlying the combination of the various paradigms implemented
+ by the language. Proof scores in CafeOBJ are also based on institution
+ based rigorous semantics, and can be constructed using a complete set 
+ of proof rules. 

@@ -1,0 +1,5 @@
+cafeobj (1.5.0-1) unstable; urgency=low
+
+  * first upload (Closes: #760915)
+
+ -- Norbert Preining <preining@debian.org>  Tue, 09 Sep 2014 19:17:24 +0900

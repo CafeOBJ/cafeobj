@@ -1,0 +1,19 @@
+---
+ doc/refman/Makefile.in |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- cafeobj.git.orig/doc/refman/Makefile.in
++++ cafeobj.git/doc/refman/Makefile.in
+@@ -37,9 +37,9 @@
+ 	--table-of-contents				\
+ 	--toc-depth=1					\
+ 	-V papersize=a4paper				\
+-	-V mainfont='Lucida Bright OT'			\
+-	-V sansfont='Lucida Sans OT'			\
+-	-V monofont='Lucida Sans Typewriter OT'		\
++	-V mainfont='FreeSerif'				\
++	-V sansfont='FreeSans'				\
++	-V monofont='FreeMono'				\
+ 	-V documentclass=memoir				\
+ 	--latex-engine=$(ENGINE)
+ 

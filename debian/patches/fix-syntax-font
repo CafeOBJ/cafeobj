@@ -1,0 +1,19 @@
+---
+ doc/RefCard/syntax.tex |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- cafeobj.git.orig/doc/RefCard/syntax.tex
++++ cafeobj.git/doc/RefCard/syntax.tex
+@@ -18,9 +18,9 @@
+ %%%%% xlatex specific
+ \usepackage{fontspec,xltxtra,xunicode}
+ \defaultfontfeatures{Mapping=tex-text}
+-\setromanfont[Mapping=tex-text]{Times New Roman}
+-\setsansfont[Scale=MatchLowercase,Mapping=tex-text]{Gill Sans}
+-\setmonofont[Scale=MatchLowercase]{Andale Mono}
++\setromanfont[Mapping=tex-text]{FreeSerif}
++\setsansfont[Scale=MatchLowercase,Mapping=tex-text]{FreeSans}
++\setmonofont[Scale=MatchLowercase]{FreeMono}
+ %** begin header
+ \makeatletter
+ \def\cafeobj{\textsf{CafeOBJ}}
