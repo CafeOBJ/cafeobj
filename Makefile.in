@@ -102,7 +102,8 @@ ifeq ($(enable_traditional_layout),yes)
   cafeobjdumpdir = $(cafeobj_lib)/bin
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
-  cafeobjdocdir = $(cafeobj_share)/doc/
+  cafeobjdocdir = $(cafeobj_share)/doc
+  cafeobjmandir = $(cafeobj_share)/man
 else
   cafeobj_share ?= $(prefix)/share/$(PACKAGE)-$(VERSION)
   cafeobj_lib   ?= $(prefix)/lib/$(PACKAGE)-$(VERSION)
@@ -111,6 +112,7 @@ else
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(prefix)/share/doc/$(PACKAGE)
+  cafeobjmandir = $(prefix)/share/man/man1
 endif
 
 ifeq ($(enable_windows),yes)
@@ -126,6 +128,7 @@ ifeq ($(enable_windows),yes)
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(cafeobj_share)/doc
+  cafeobjmandir = $(cafeobj_share)/doc
 endif
 
 
@@ -204,6 +207,9 @@ install: build-stamp
 	chmod 0755 $(DESTDIR)$(cafeobjdumpdir)/*/*
 	$(INSTALL) -d $(DESTDIR)$(cafeobj_bin)
 	$(INSTALL) -m 0755 xbin/cafeobj $(DESTDIR)$(cafeobj_bin)
+	# man page
+	$(INSTALL) -d $(DESTDIR)$(cafeobjmandir)
+	$(INSTALL) -m 0644 doc/etc/cafeobj.1 $(DESTDIR)$(cafeobjmandir)
 	# doc files
 	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)
 	$(INSTALL) -m 0644 				\

@@ -1,0 +1,93 @@
+.TH CAFEOBJ 1 "September 2014" "User Manuals"
+
+.SH NAME
+
+cafeobj \- algebraic specification and programming language
+
+.SH SYNOPSIS
+.B cafeobj
+[\fIOPTION\fR]... [\fIFILES\fR]...
+
+.SH DESCRIPTION
+
+Starts the \fBCafeOBJ\fR interpreter.
+.PP
+\fBCafeOBJ\fR is a most advanced formal specification language which 
+inherits many advanced features (e.g. flexible mix-fix syntax,
+powerful and clear typing system with ordered sorts, parameteric
+modules and views for instantiating the parameters, and module
+expressions, etc.) from OBJ (or more exactly OBJ3) algebraic
+specification language.
+
+CafeOBJ is a language for writing formal (i.e. mathematical) 
+specifications of models for wide varieties of software and systems, 
+and verifying properties of them. CafeOBJ implements equational logic
+by rewriting and can be used as a powerful interactive theorem proving
+system. Specifiers can write proof scores also in CafeOBJ and doing
+proofs by executing the proof scores.
+
+CafeOBJ has state-of-art rigorous logical semantics based on
+institutions. The CafeOBJ cube shows the structure of the various
+logics underlying the combination of the various paradigms implemented
+by the language. Proof scores in CafeOBJ are also based on institution
+based rigorous semantics, and can be constructed using a complete set 
+of proof rules. 
+
+.SH OPTIONS
+
+There are two classes of options. The first are options for the
+\fBcafeobj\fR wrapper script that allows to select the underlying
+Common Lisp interpreter, and to adjust search path parameters.
+.TP
+\fB\-e\fR, \fB\-\-engine\fR \fINAME\fR
+selects the underlying common lisp engine. If not given, the first
+one selected during build time is used.
+.TP
+\fB\-\-list-engines\fR
+lists all available common lisp engines
+.TP
+\fB\-l\fR, \fB\-\-libpath\fR \fIPATH\fR
+sets the path where memory dumps of the lisp interpreters are found
+.TP
+\fB\-s\fR, \fB\-\-sharepath\fR \fIPATH\fR
+sets the path where CafeOBJ initialization files are searched
+.PP
+The following set of options are directed at the CafeOBJ interpreter
+directly:
+.TP
+\fB\-help\fR
+print a help message
+.TP
+\fB\-q\fR
+do not load user's initialization file
+.TP
+\fB\-batch\fR
+run in batch mode
+.TP
+\fB\-p\fR \fIPATH\fR
+gives the standard prelude file defining modules
+.TP
+\fB+p\fR \fIPATH\fR
+load additional prelude file
+.TP
+\fB\-l\fR \fIDIR-LIST\fR
+set list of pathnames for module search path, separated by colons
+.TP
+\fB+l\fR \fIDIR-LIST\fR
+adds a list of pathname for module search path
+.TP
+\fIFILES\fR
+files that are loaded at startup time in order.
+.PP
+.SH AUTHOR
+Toshimi Sawada and Norbert Preining.
+.br
+Contact: info@cafeobj.org
+.SH COPYRIGHT
+Copyright \(co 2000-2014 Toshima Sawada, Norbert Preining.
+License BSD.
+.br
+THIS SOFTWARE IS SUPPLIED COMPLETELY "AS IS". CafeOBJ is distributed
+in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+even the implied warranty of MERCHANT-ABILITY of FITNESS FOR A PARTICULAR
+PURPOSE.
