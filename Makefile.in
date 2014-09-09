@@ -199,7 +199,7 @@ install: build-stamp
 	$(INSTALL) -m 0644 				\
 		doc/manual/manual.pdf			\
 		doc/PigNose/pnguide.pdf			\
-		doc/RefCard/interpf.pdf			\
+		doc/RefCard/interp.pdf			\
 		doc/RefCard/syntax.pdf			\
 		doc/refman/reference-manual.pdf		\
 		doc/etc/cafe-citp.txt			\
