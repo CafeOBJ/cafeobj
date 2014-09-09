@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+# Copyright (c) 2014, Norbert Preining. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -25,248 +26,207 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-SHELL = /bin/sh
 
-#### Start of system configuration section. ####
+# stuff that is determined by configure:
+# automatically
 srcdir = @srcdir@
-datarootdir = @datarootdir@
-top_srcdir = @top_srcdir@
-VPATH = @srcdir@
+# --prefix
 prefix = @prefix@
-exec_prefix = @exec_prefix@
-chaos_root = @top_srcdir@
-objdir = @srcdir@/bin
-mkinstalldirs = $(top_srcdir)/mkinstalldirs
+# --with-lisp
+lisp = @lisp@
+# determined first choice
+firstchoice = @firstchoice@
+# --enable-rebuild-doc
+enable_rebuild_doc = @enable_rebuild_doc@
+# --enable-traditional-layout
+enable_traditional_layout = @enable_traditional_layout@
+# --enable-windows
+enable_windows = @enable_windows@
 
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-VMINOR = @VMINOR@
-VMEMO = @VMEMO@
+# general stuff
+PACKAGE = @PACKAGE_TARNAME@
+VERSION = @PACKAGE_VERSION@
+VMINOR  = @VMINOR@
 PATCHLEVEL = @PATCHLEVEL@
 
-# Where to install the executables.
-bindir = @bindir@
-
-# Where to install the libraries.
-libdir = $(prefix)/$(PACKAGE)-$(VERSION)
-cafeobjlibdir = $(libdir)
-exsdir = $(cafeobjlibdir)/exs
-xlibdir=$(cafeobjlibdir)/lib
-preludedir = $(cafeobjlibdir)/prelude
-cafeobjbindir = $(cafeobjlibdir)/bin
-
-# Where to install the Info files.
-infodir = @infodir@
-
-# Where to install the manuals.
-mandir = @mandir@
-
-top_builddir = .
-
-MAKEINFO = makeinfo
-TEXI2DVI = texi2dvi
 INSTALL = @INSTALL@
-INSTALL_DATA = @INSTALL_DATA@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@
-GCL = @gcl_path@
-CMU = @cmu_path@
-ACL = @acl_path@
-ABCL = @sbcl_path@
-LISP = @lisp@
-BIN = @bin_suffix@
-EXEC_SRC = @exec_command@
-EXEC = @exec_bin@
-OPT = @build_option@
 
-#### End of system configuration section. ####
+# Engine definitions 
+# interpreter cmd names can be configured, so are coming from
+# configure(.ac)
+ACL_DUMP          = dumps/acl/@acl_dump@
+ACL_INTERPRETER   = @acl_interp@
+ACL_BUILDOPTS     =
 
-PROGS = cafeobj
+SBCL_DUMP         = dumps/sbcl/@sbcl_dump@
+SBCL_INTERPRETER  = @sbcl_interp@
+SBCL_BUILDOPTS    = --dynamic-space-size 2048
 
-# DISTFILESTOP = \
-# 	README INSTALL configure configure.in Makefile.in \
-# 	CHANGES \
-# 	mkinstalldirs install-sh make-cafeobj.lisp defsystem.lisp \
-# 	version.in chaosx.system chaos-package.lisp \
-# 	version.lisp
+CMU_DUMP          = dumps/cmu/@cmu_dump@
+CMU_INTERPRETER   = @cmu_interp@
+CMU_BUILDOPTION   =
 
-# DISTDIRTOP = $(PACKAGE)-$(VERSION)$(VMINOR)
+CCL32_DUMP          = dumps/ccl/@ccl32_dump@
+CCL32_INTERPRETER   = @ccl32_interp@
+CCL32_BUILDOPTS     =
 
-# DISTSUBDIRS = cafeobj clII comlib thstuff chaos \
-# 	chaos/boot chaos/cafein chaos/construct chaos/decafe chaos/e-match \
-# 	chaos/eval chaos/primitives chaos/term-parser chaos/tools \
-# 	chaos/tram chaos/psup \
-# 	elisp \
-# 	RefCard BigPink/codes BigPink/test
+CCL64_DUMP        = dumps/ccl64/@ccl64_dump@
+CCL64_INTERPRETER = @ccl64_interp@
+CCL64_BUILDOPTS   =
 
-# DISTBINSUBDIRS = bin/cafeobj bin/clII bin/comlib bin/obj3 bin/thstuff bin/chaos \
-# 	bin/chaos/boot bin/chaos/cafein bin/chaos/construct bin/chaos/decafe bin/chaos/e-match \
-# 	bin/chaos/eval bin/chaos/primitives bin/chaos/term-parser bin/chaos/tools \
-# 	bin/chaos/tram bin/chaos/psup bin/BigPink/codes
+CLISP_DUMP        = dumps/clisp/@clisp_dump@
+CLISP_INTERPRETER = @clisp_interp@
+CLISP_BUILDOPTS   =
 
-DISTLIBDIRS = lib
+GCL_DUMP          = dumps/gcl/@gcl_dump@
+GCL_INTERPRETER   = @gcl_interp@
+GCL_BUILDOPTS     =
+# End of engine definitions
 
-DISTLIBSUBDIRS = lib/prelude lib/lib
+#
+# specifying the files that go into the distribution is a pain,
+# because we cannot simply include * as this would include the
+# to be build dist dir, too.
+# for now, let us simply not suport make dist ;-)
+# EXTRA_DIST = *
 
-DISTEXDIRS = exs
+#
+# traditional layout means
+# /usr/local/bin/cafeobj
+# /usr/local/cafeobj-N.M/bin/DUMP
+# /usr/local/cafeobj-N.M/{lib,prelude}
+ifeq ($(enable_traditional_layout),yes)
+  cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(prefix)/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   = $(prefix)/bin
+  cafeobjdumpdir = $(cafeobj_lib)/bin
+  cafeobjlibdir  = $(cafeobj_share)/lib
+  cafeobjpreludedir = $(cafeobj_share)/prelude
+  cafeobjdocdir = $(cafeobj_share)/doc/
+else
+  cafeobj_share ?= $(prefix)/share/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   ?= $(prefix)/lib/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   ?= $(prefix)/bin
+  cafeobjdumpdir = $(cafeobj_lib)/
+  cafeobjlibdir  = $(cafeobj_share)/lib
+  cafeobjpreludedir = $(cafeobj_share)/prelude
+  cafeobjdocdir = $(prefix)/share/doc/$(PACKAGE)
+endif
 
-DISTXBINDIRS = xbin
-
-# OBJECTS = $(objdir)/*$(BIN) $(objdir)/*/*$(BIN) $(objdir)/*/*$(BIN) $(objdir)/*/*/*$(BIN)
-
-# CLEANFILES = $(OBJECTS) $(srcdir)/.\#* $(srcdir)/*/.\#* $(srcdir)/*/*/.\#* $(srcdir)/*$(BIN) $(srcdir)/xbin/$(EXEC) $(srcdir)/xbin/cafeobj foo *~ */*~ */*/*~ */*/*/*~
-
-DISTCLEANFILES = $(srcdir)/.\#* $(srcdir)/*/.\#* $(srcdir)/*/*/.\#* $(srcdir)/*$(BIN) $(srcdir)/xbin/cafeobj $(srcdir)/xbin/$(EXEC) *~ */*~ */*/*~ */*/*/*~
-
-# Set default target
-# all: Makefile defsystem$(BIN) version.lisp xbigpink
-all: Makefile version.lisp xcafeobj
-
-version.lisp: version.in
-	cat $(top_srcdir)/version.in | \
-	sed -e 's:VERSION:$(VERSION):g' \
-	-e 's:VMINOR:$(VMINOR):g' \
-	-e 's:VMEMO:$(VMEMO):g' \
-	-e 's:PATCHLEVEL:$(PATCHLEVEL):g' \
-	-e 's:BIGPINK:nil:g' > version.lisp
-
-xcafeobj: ycafeobj
-	cat $(top_srcdir)/make-cafeobj.lisp | \
-	sed -e 's:XCHAOS_ROOT_DIR:\"$(chaos_root)\":g' \
-	-e 's:XINSTALL_DIR:\"$(libdir)\":g' \
-	-e 's:BIGPINK:nil:g' > foo
-	$(LISP) $(OPT) < foo
-
-ycafeobj:
-	cat $(top_srcdir)/xbin/$(EXEC_SRC) | \
-	sed -e 's:LISP:$(LISP):g' \
-	-e 's:CAFEOBJPATH:$(cafeobjbindir)/$(EXEC):g' \
-	-e 's:CAFEROOT:$(libdir):g' >$(top_srcdir)/xbin/cafeobj 
-	chmod +x $(top_srcdir)/xbin/cafeobj
-
-.PHONY:	dist
-GZIP=gzip --best
-GZIP_EXT=.gz
-TAR_VERBOSE=
-
-dist: dist-dir
-	tar chf${TAR_VERBOSE} - $(DISTDIRTOP) | ${GZIP} > $(PACKAGE)-$(VERSION)$(VMINOR).tar${GZIP_EXT}
-
-distclean:
-	test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
-	rm -fr $(DISTDIRTOP)
-	rm -f Makefile
-	rm -f config.cache config.log config.status
-
-dist-dir:
-	mkdir $(DISTDIRTOP)
-	for f in $(DISTFILESTOP) ; do \
-	  ln -s `pwd`/$$f $(DISTDIRTOP) ; \
-	done
-	for d in $(DISTSUBDIRS) ; do \
-	  $(mkinstalldirs) $(DISTDIRTOP)/$$d ; \
-	done
-	for d in $(DISTSUBDIRS) ; do \
-	  for f in $$d/*.{lisp,el,mod} ; do \
-	    ln -s `pwd`/$$f $(DISTDIRTOP)/$$d ; \
-	  done ; \
-	done
-	$(mkinstalldirs) $(DISTDIRTOP)/$(DISTEXDIRS)
-	for f in $(DISTEXDIRS)/*.mod $(DISTEXDIRS)/*.lisp ; do \
-	  ln -s `pwd`/$$f $(DISTDIRTOP)/$(DISTEXDIRS) ; \
-	done
-	$(mkinstalldirs) $(DISTDIRTOP)/$(DISTXBINDIRS)
-	for f in $(DISTXBINDIRS)/*.in ; do \
-	  ln -s `pwd`/$$f $(DISTDIRTOP)/$(DISTXBINDIRS) ; \
-	done
-	for d in $(DISTBINSUBDIRS) ; do \
-	  $(mkinstalldirs) $(DISTDIRTOP)/$$d ; \
-	done
-	$(mkinstalldirs) $(DISTDIRTOP)/$(DISTLIBDIR)
-	for d in $(DISTLIBSUBDIRS) ; do \
-	  $(mkinstalldirs) $(DISTDIRTOP)/$$d ; \
-	done
-
-# For an explanation of the following Makefile rules, see node
-# `Automatic Remaking' in GNU Autoconf documentation.
-Makefile: Makefile.in config.status
-	CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
-config.status: configure
-	./config.status --recheck
-$(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
-	cd $(srcdir) && autoconf
-
-tags: TAGS
-TAGS:
-	etags -l lisp *.lisp */*.lisp */*/*.lisp > TAGS
-
-info:
-
-dvi:
-
-check: all
-
-installcheck:
-
-install-exec: 
-	$(mkinstalldirs) $(DESTDIR)$(cafeobjbindir)
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
-	@echo Installing cafeobj in $(DESTDIR)$(cafeobjbindir)
-	$(INSTALL_PROGRAM) $(top_srcdir)/xbin/$(EXEC) $(DESTDIR)$(cafeobjbindir) 
-	rm -f $(DESTDIR)$(bindir)/cafeobj 
-	$(INSTALL_PROGRAM) $(top_srcdir)/xbin/cafeobj $(DESTDIR)$(bindir)/ ; \
+ifeq ($(enable_windows),yes)
+  # we only support building 
+  lisp = sbcl
+  SBCL_INTERPRETER  = wine sbcl
+  # it seems that windows sbcl does not like this cmd line args
+  SBCL_BUILDOPTS    = 
+  cafeobj_share = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   = $(srcdir)/WindowsDist
+  cafeobjdumpdir = $(cafeobj_lib)/bin
+  cafeobjlibdir  = $(cafeobj_share)/lib
+  cafeobjpreludedir = $(cafeobj_share)/prelude
+  cafeobjdocdir = $(cafeobj_share)/doc
+endif
 
 
-# install-data: install-exs install-lib
-install-data: install-exs install-lib
-	@:
-install-exs:
-	$(mkinstalldirs) $(DESTDIR)$(exsdir)
-	@echo Installing example modules in $(exsdir)
-	@for ex in $(top_srcdir)/exs/*.mod ; do \
-	  $(INSTALL_DATA) $$ex $(DESTDIR)$(exsdir) ; \
-	done
+engine_dumps = $(patsubst acl,$(ACL_DUMP),\
+               $(patsubst sbcl,$(SBCL_DUMP),\
+	       $(patsubst cmu,$(CMU_DUMP),\
+	       $(patsubst ccl,$(CCL32_DUMP),\
+	       $(patsubst ccl64,$(CCL64_DUMP),\
+	       $(patsubst clisp,$(CLISP_DUMP),\
+	       $(patsubst gcl,$(GCL_DUMP),$(lisp))))))))
 
-install-lib:
-	$(mkinstalldirs) $(DESTDIR)$(cafeobjlibdir)
-	$(mkinstalldirs) $(DESTDIR)$(preludedir)
-	$(mkinstalldirs) $(DESTDIR)$(xlibdir)
-	@echo Installing preludes and libraries in $(DESTDIR)$(cafeobjlibdir)
-	@for prelude in $(top_srcdir)/lib/prelude/*.bin ; do \
-	  $(INSTALL_DATA) $$prelude $(DESTDIR)$(preludedir) ; \
-	done
-	@cd $(top_srcdir)/lib/lib ; \
-	for f in *.mod *.bin *.cafe *.msg *.desc; do \
-	  if [ -f $$f ] ; then \
-	    $(INSTALL_DATA) $$f $(DESTDIR)$(xlibdir) ; \
-	  fi ; \
-	done
-#	@cd $(top_srcdir)/lib/prelude ; \
 
-install-bigpink: bigpink install-exec install-data
-	@:
+#
+# for dumping the image the lisp interpreter needs to know
+# where the input files are during building
+# used only in creating make-cafeobj.lisp script
+chaos_root = $(srcdir)
 
-install: all install-exec install-data
-	@:
+# first target on Unix!
+build: build-stamp
 
-clean-generic:
-	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+build-stamp: version.lisp make-cafeobj.lisp $(engine_dumps) xbin/cafeobj $(doc_targets)
+	touch build-stamp
 
-maintainer-clean-generic:
-	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
-	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+#
+# cafeobj <- here - cafeobj.in  <- cafeobj.in.in via configure
+xbin/cafeobj: xbin/cafeobj.in
+	cat $(srcdir)/xbin/cafeobj.in | \
+	sed -e 's:@FIRSTCHOICE@:$(firstchoice):g' \
+	-e 's:@LIBPATH@:$(cafeobj_lib):g' \
+	-e 's:@SHAREPATH@:$(cafeobj_share):g' >$(srcdir)/xbin/cafeobj 
 
-clean:  clean-generic
+$(ACL_DUMP) : interp = $(ACL_INTERPRETER) 
+$(ACL_DUMP) : buildopts = $(ACL_BUILDOPTS)
+$(SBCL_DUMP) : interp = $(SBCL_INTERPRETER)
+$(SBCL_DUMP) : buildopts = $(SBCL_BUILDOPTS)
+$(CMU_DUMP) : interp = $(CMU_INTERPRETER)
+$(CMU_DUMP) : buildopts = $(CMU_BUILDOPTS)
+$(CLISP_DUMP) : interp = $(CLISP_INTERPRETER)
+$(CLISP_DUMP) : buildopts = $(CLISP_BUILDOPTS)
+$(CCL32_DUMP) : interp = $(CCL32_INTERPRETER)
+$(CCL32_DUMP) : buildopts = $(CCL32_BUILDOPTS)
+$(CCL64_DUMP) : interp = $(CCL64_INTERPRETER)
+$(CCL64_DUMP) : buildopts = $(CCL64_BUILDOPTS)
+$(GCL_DUMP) : interp = $(GCL_INTERPRETER)
+$(GCL_DUMP) : buildopts = $(GCL_BUILDOPTS)
 
-maintainer-clean:  maintainer-clean-generic distclean 
-	@echo "This command is intended for maintainers to use;"
-	@echo "it deletes files that may require special tools to rebuild."
-	rm -f config.status
+$(engine_dumps): %: make-cafeobj.lisp version.lisp
+	mkdir -p $(dir $@)
+	$(interp) $(buildopts) < make-cafeobj.lisp
+	chmod +x $@
 
-.PHONY: default distclean-generic clean-generic \
-maintainer-clean-generic clean distclean maintainer-clean
 
-.SUFFIXES:
+install: build-stamp
+	$(INSTALL) -d $(DESTDIR)$(cafeobjlibdir)
+	$(INSTALL) -m 0644 		\
+			$(srcdir)/lib/lib/*.cafe	\
+			$(srcdir)/lib/lib/*.bin		\
+			$(srcdir)/lib/lib/*.desc	\
+			$(DESTDIR)$(cafeobjlibdir)
+	$(INSTALL) -d $(DESTDIR)$(cafeobjpreludedir)
+	$(INSTALL) -m 0644 $(srcdir)/lib/prelude/*.bin 	\
+			$(DESTDIR)$(cafeobjpreludedir)
+	$(INSTALL) -d $(DESTDIR)$(cafeobjdumpdir)
+	cp -a dumps/* $(DESTDIR)$(cafeobjdumpdir)
+	chmod 0755 $(DESTDIR)$(cafeobjdumpdir)/*/*
+	$(INSTALL) -d $(DESTDIR)$(cafeobj_bin)
+	$(INSTALL) -m 0755 xbin/cafeobj $(DESTDIR)$(cafeobj_bin)
+	# doc files
+	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)
+	$(INSTALL) -m 0644 				\
+		doc/manual/manual.pdf			\
+		doc/PigNose/pnguide.pdf			\
+		doc/RefCard/*.pdf			\
+		doc/refman/reference-manual.pdf		\
+		$(DESTDIR)$(cafeobjdocdir)
 
-# Tell versions [3.59,3.63) of GNU make to not export all variables.
-# Otherwise a system limit (for SysV at least) may be exceeded.
-.NOEXPORT:
+# documentation rebuilding
+doc-targets =
+ifeq ($(enable_rebuild_doc),yes)
+	doc_targets += doc/refman/reference-manual.pdf
+endif
+
+doc/refman/reference-manual.pdf:
+	$(MAKE) -C doc/refman reference-manual.pdf
+
+clean:
+	-rm -rf dumps
+	rm -f stamp-windows-prepare stamp-windows-build
+	rm -f build-stamp
+	rm -f make-cafeobj.lisp
+	rm -f xbin/cafeobj
+
+distclean: clean
+	rm -f Makefile config.log config.status
+	rm -f xbin/cafeobj.in
+	rm -f version.lisp
+	rm -rf autom4te.cache
+	rm -f doc/Makefile doc/refman/Makefile
+
+#
+# declare the clean targets as well as the scripts that are
+# generated as phony to make sure they are rebuilt at any time.
+.PHONY: clean distclean

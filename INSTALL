@@ -1,6 +1,5 @@
 	    ---------------------------------------------
 	    CafeOBJ Interpreter Installation Instructions
-              version 1.4.11 (with PigNose)
 	    ---------------------------------------------
 
 ============
@@ -10,130 +9,219 @@ Prerequisite
 some Common Lisp system to install CafeOBJ. CafeOBJ can be 
 built on the following platforms:
 
-  (1) SBCL version 1.1.7 (or later)
-  (2) CMU-CL version 20D (or later)
-  (3) Allegro CL version 8.0 (or later)
-  (4) CLISP version 2.4.9 (or later)
+  (1) SBCL version 1.1.7 (or later)     http://www.sbcl.org/
+  (2) Allegro CL version 8.0 (or later) http://franz.com/
+  (3) CLISP version 2.4.9 (or later)    http://www.clisp.org/
 
 At least one of these needs to be installed in the users' PATH.
 
+========
+BUILDING
+========
+
+Building is done in the usual way with running the following commands
+in the source directory:
+
+	./configure <arguments>
+	make
+	(sudo) make install
+
+See below for possible configuration.
+
 ======================
-Obtaining source files
+1) configure arguments
 ======================
-Sources are 
 
-=================
-About `configure'
-=================
- The `configure' shell script attempts to guess correct values for
-various system-dependent variables used during compilation. It uses
-those values to create a `Makefile' of the package. Finally, it
-creates a shell script `config.status' that you can run in the future
-to recreate the current configuration, a file `config.cache' that
-saves the result of its tests to speed up re-configuring, and file
-`config.log' contains compiler output(useful mainly for debugging
-configure').
+a) Selection of a lisp platform
+-------------------------------
 
- If you need to do unusual things to compile the package, please try
-to figure out how `configure' could check whether to do them, and mail
-diff or instructions to the address given in the `README' so they can
-be considered for the next release. If at some point `config.cache'
-contains result you don't want to keep, you may remove or edit it.
+Selection of the Common Lisp platform to build the CafeOBJ interpreter
+is done with the configure option
+	--with-lisp
+as in
+	./configure --with-lisp="platform"[,"platform"]
 
- The file `configure.in' is used to create `configure' by a program
-called `autoconf'. You only need `configure.in' if you want to change
-it or regenerate `configure' using a newer version of `autoconf'.
+You can specify a list of interpreters to be used to build CafeOBJ.
+The wrapper provides the command line option --engine to select one
+of the underlying interpreters.
 
-============
-INSTALLATION
-============
+"platform" should be one of the followings, and should provide
+the following command line program name
 
-First of all, change to the directory in which the cafeobj resources
-are put.  We shall call the directory as $src-dir.
-
-1) Run "configure":
-
-	$ cd $src-dir
-	$ ./configure --with-lisp="platform"
-
-"platform" specifies the Common Lisp plat form you use, and this
-should be one of the followings:
-	cmu-pc              -- CMUCL running on x86
-	cmu-sparc           -- CMUCL running on sparc, now obsolete 
-	sbcl                -- SBCL
-	acl                 -- Allegro CL
-        clisp               -- CLISP
-
--with-lisp="platform" can be omitted, in this case it defaulted
-to `acl'.
-
-`cmu-pc' is for CMU-CL running on PCs, i.e., Intel x386 or Pentium 
-processor family. `cmu-sparc' is for CMU-CL running on Sun sparc
-architecture. `acl' is for Allegro Common Lisp, and clisp is
-for CLISP. With being supplied a "platform", system 
-tries to find the path to the corresponding command. For this,
-the following command names are assumed for each platform:
-	(1) CMU-CL : a command `lisp'
-	(2) SBCL : a command `sbcl'
-	(3) ACL : a command `acl'
-        (4) CLISP : a command `clisp'
+     configure argument     program name        
+	sbcl                   sbcl        -- SBCL
+	acl                    alisp       -- Allegro CL
+        clisp                  clisp       -- CLISP
 
 You must have one of these command in your PATH environment.
 
-You can specify an alternate destination to override the default with
-the --prefix option:
+-with-lisp="platform" can be omitted, in this case it selects the
+first interpreter found by testing in the following order:
+	acl, sbcl, clisp
 
-     	$ ./configure --prefix=/usr/local/cafe
+Finally, one can use
+	-with-lisp=all
+which builds for all found Common Lisp platforms.
 
-   The default value is 
-		--prefix=/usr/local/cafeobj-1.4
+In case your interpreter is named different than the above, you
+can override it with
+	--with-sbcl=<sbcl-name>
+	--with-acl=<acl-name>
+	--with-clisp=<clisp-name>
 
-   We shall refer this value as $prefix.
+Using the cafeobj command line argument
+	--engine <engine>
+one can select the engine at run time. By default the one first listed
+in the configure call will be used.
 
- NOTE: The configure program will cache the result of the previous
-       configure execution. If you need to re-run configure from
-       scratch, you may need to run "make distclean" first to remove
-       the cached configuration information.
 
-2) Try to build it:
+b) Installation location
+------------------------
 
-	$ make
-
- This will make the needed CafeOBJ binaries within the
- sub directories. If something fails for your system, and you want to
- submit a bug report, you may wish to include your "config.status"
- file, your host type, operating system and information about GCL
- (version number), make output, and anything else you think will be
- helpful. 
-
-3) Install the binaries, examples, preludes...
-
-	$ (sudo) make install
-
-   This will install CafeOBJ interpreter (cafeobj).
-   If you not have the permission to write target path,
-   you may supply 'sudo' before 'make' for obtaining the authority.
-
-   Some sub-directory under $prefix will be made iff do not exist, and
-   necessary files are put under them:
-
-       $prefix/bin     -- executables. cafeobj and cafeobj.XX
-		          cafeobj is a shell script which invokes
-                          cafeobj.exe.
-       $prefix/exs     -- example module files.
-       $prefix/lib     -- standard libraries, if you made cafeobj with
+Be default CafeOBJ is installed in GNU standard compliant directories,
+that is
+       $prefix/bin/    -- cafeobj - a shell script that invokes the
+                          necessary programs to start the CafeOBJ interpreter.
+      
+       $prefix/lib/cafeobj-N.M/
+                       -- dump files for the various lisp platforms
+      
+       $prefix/share/cafeobj-N.M/lib/
+                       -- standard libraries, if you made cafeobj with
                           PigNose, fopl.mod will be put here.
-       $prefix/prelude -- cafeobj standard prelude files.
-       /usr/local/bin/cafeobj -- symbolic link to $prefix/bin/cafeobj
-                                 If you need to change the place, please
-                                 edit Makefile.
-       $prefix/prelude/std.bin -- system initialization internal code.
 
-4) Clean up:
+       $prefix/share/cafeobj-N.M/prelude/
+                       -- cafeobj standard prelude files.
+ 
+       $prefix/share/doc/cafeobj/
+                       -- documentation and example files
 
-	$ make clean
-   
-   This removes the program binaries and object files from the object code
-   from $src-dir.
+$prefix is by default /usr/local, but can be selected with
+	--prefix=<PATH>
+during the configure run.
+
+
+There is also
+	--enable-traditional-layout
+which selects traditional layout of the files, which is
+       $prefix/bin/    -- cafeobj - a shell script that invokes the
+                          necessary programs to start the CafeOBJ interpreter.
+      
+       $prefix/cafeobj-N.M/bin/    
+                       -- necessary programs to start the CafeOBJ interpreter.
+			  and the dump files for the various lisp platforms
+      
+       $prefix/cafeobj-N.M/lib/
+                       -- standard libraries, if you made cafeobj with
+                          PigNose, fopl.mod will be put here.
+
+       $prefix/cafeobj-N.M/prelude/
+                       -- cafeobj standard prelude files.
+ 
+       $prefix/cafeobj-N.M/doc/
+                       -- documentation and example files
+
+
+
+===========================
+2) Building the interpreter
+===========================
+
+Try building the CafeOBJ by invoking
+
+	make
+
+This will make the needed CafeOBJ binaries within the
+sub directories. If something fails for your system, and you want to
+submit a bug report, you may wish to include your "config.status"
+file, your host type, operating system and information about the
+used Common Lisp interpreter including version number, make output,
+and anything else you think will be helpful. 
+
+=======================
+3) Installing the files
+=======================
+
+Invoke
+
+	make install
+
+or, if you don't have permissions, maybe
+
+	sudo make install
+
+This will install CafeOBJ interpreter (cafeobj).
+
+
+Staged installes are supported in two ways:
+	make install DESTDIR=<path>
+prefix all installations with $DESTDIR.
+
+	make install prefix=<path>
+will override the prefix set during initial configuration. Be warned
+that in this case the cafeobj script might not find the dumps.
+
+
+===========
+4) Clean up
+===========
+
+(optional)
+
+By invoking 
+
+	make clean
+
+generated files are removed, but configuration remains as is. If you
+want to go back to a clean state  of pre-configuration, use
+
+	make distclean
+
+
+===========================
+RANDOM NOTEX FOR DEVELOPERS
+===========================
+
+build system
+------------
+configure checks for each lisp interpretor on existence, and
+exports `<NAME>_interp', `<NAME>_dump', and the list of requested 
+in `lisp'.
+
+configure generates the following files:
+	Makefile		<- Makefile.in
+	make-cafeobj.lisp	<- make-cafeobj.lisp.in
+	xbin/cafeobj.in		<- xbin/cafeobj.in.in
+	doc/Makefile.in		<- doc/Makefile
+After that, xbin/cafeobj is created from the Makefile by a sed command.
+
+other lisp interpreters
+-----------------------
+Although by default only acl, sbcl, clisp is checked and build for,
+the following lisp implementations can also be used, but are
+currently not supported. Builds will fail.
+     configure argument     program name        
+	cmu                    lisp        -- CMU-CL
+	gcl                    gcl         -- GNU Common Lisp
+        ccl                    ccl         -- openmcl
+        ccl64                  ccl64       -- openmcl 64 bit
+
+adding a lisp interpreter
+-------------------------
+Adding a new interpreter requires (at least) changes to the following
+files (more or less symmetric to all the others):
+- configure.ac
+- Makefile.in
+- xbin/cafeobj.in.in
+- make-cafeobj.lisp.in
+
+building for windows
+--------------------
+If Wine is installed, and within wine sbcl is installed, one can create
+a dump for Windows with
+	./configure --enable-windows
+	make
+
+  
 
 -- EOF
