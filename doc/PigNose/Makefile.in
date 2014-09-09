@@ -1,0 +1,11 @@
+
+pnguide.pdf: pnguide.tex
+	xelatex pnguide
+	xelatex pnguide
+	xelatex pnguide
+
+clean:
+	rm -f *.aux pnguide.log pnguide.toc pnguide.out
+
+distclean:
+
