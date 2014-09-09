@@ -64,12 +64,12 @@ engine=@FIRSTCHOICE@
 while [ $# -gt 0 ]
 do
   key="$1"
-  shift
   case $key in
-    -e|--engine) engine="$1" ; shift ;;
-    -l|--libpath) libpath="$1" ; shift ;;
-    -s|--sharepath) sharepath="$1" ; shift ;;
+    -e|--engine) shift ; engine="$1" ; shift ;;
+    -l|--libpath) shift ; libpath="$1" ; shift ;;
+    -s|--sharepath) shift ; sharepath="$1" ; shift ;;
     --list-engines)
+      shift
       engines=""
       if [ -r "$libpath/$ccl32_dump" ] ; then engines="ccl $engines" ; fi
       if [ -r "$libpath/$ccl64_dump" ] ; then engines="ccl64 $engines" ; fi
