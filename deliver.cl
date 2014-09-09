@@ -33,9 +33,9 @@
 (defun make-app (path)
   (generate-application "CafeOBJ"
 			#-:mswindows
-			"dist/cafeobj-1.4/lisp/"
+			"dist/cafeobj-1.5/lisp/"
 			#+:mswindows
-			"dist/cafeobj-1.4/"
+			"dist/cafeobj-1.5/"
 			'("pignose.fasl"
 			  :emacs
 			  :eli

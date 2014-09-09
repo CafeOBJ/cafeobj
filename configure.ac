@@ -29,10 +29,10 @@ dnl NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 dnl SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 dnl
 
-AC_INIT([CafeOBJ],[1.4], [], [cafeobj], [http://www.cafeobj.org/])
+AC_INIT([CafeOBJ],[1.5], [], [cafeobj], [http://www.cafeobj.org/])
 AC_CONFIG_SRCDIR([make-cafeobj.lisp.in])
 AC_PREREQ(2.6)
-VMINOR=.19b6
+VMINOR=.0
 VMEMO=PigNose0.99
 PATCHLEVEL=
 AC_SUBST(VMINOR)
