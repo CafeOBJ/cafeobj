@@ -65,9 +65,9 @@ while [ $# -gt 0 ]
 do
   key="$1"
   case $key in
-    -e|-engine|--engine) shift ; engine="$1" ; shift ;;
-    -l|-libpath|--libpath) shift ; libpath="$1" ; shift ;;
-    -s|-sharepath|--sharepath) shift ; sharepath="$1" ; shift ;;
+    -engine|--engine) shift ; engine="$1" ; shift ;;
+    -wrapper-libpath|--wrapper-libpath) shift ; libpath="$1" ; shift ;;
+    -wrapper-sharepath|--wrapper-sharepath) shift ; sharepath="$1" ; shift ;;
     -list-engines|--list-engines)
       shift
       engines=""
