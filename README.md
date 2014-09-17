@@ -28,7 +28,7 @@ suggestions, requests, etc.
 BINARY DISTRIBUTION
 ------------------
 You can down load the binary executable of several platforms 
-from [here](https://bitbucket.org/tswd/cafeobj/downloads).
+from [here](http://cafeobj.org/download).
 
 ----------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ OBTAINING THE SOURCES
 
 Source files are available from Bitbucket.
 ```bash
-% git clone https://tswd@bitbucket.org/tswd/cafeobj.git
+% git clone git://git.cafeobj.org/cafeobj.git
 ```
 
 ----------------------------------------------------------------------
