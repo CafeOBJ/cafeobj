@@ -1488,8 +1488,8 @@ Thus, this does not include the CafeOBJ's current directory.")
       (copy-face 'cafeobj-comment-face-2 cafeobj-process-keyword-face))
   (or (face-differs-from-default-p cafeobj-option-face)
       (copy-face 'cafeobj-comment-face-2 cafeobj-option-face))
-  (or (face-differs-from-default-p cafeobj-error-face)
-      (copy-face 'red cafeobj-error-face))
+  ;; (or (face-differs-from-default-p cafeobj-error-face)
+  ;;     (copy-face 'red cafeobj-error-face))
 
   ;; we only need to do this once
   (remove-hook 'font-lock-mode-hook 'cafeobj-process-font-lock-mode-hook))
