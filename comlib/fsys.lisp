@@ -222,20 +222,25 @@
   (setq f-name (expand-file-name f-name))
   (chaos-get-relative-path* f-name))
 
-#+SBCL
-(defun chaos-get-directory (file-path)
-  (let* ((ns (namestring file-path))
-	 (dpos (position #\/ ns :from-end t))
-	 (dir nil))
-    (unless dpos
-      (with-output-chaos-error ('internal-error)
-	(format t ":get-relative-path: could not find proper directory path, ~a" file-path)))
-    (subseq ns 0 (1+ dpos))))
+; #+:SBCL
+; (defun chaos-get-directory (file-path)
+;   (let* ((ns (namestring file-path))
+; 	 (dpos (position #\/ ns :from-end t))
+; 	 (dir nil))
+;     (unless dpos
+;       (with-output-chaos-error ('internal-error)
+; 	(format t ":get-relative-path: could not find proper directory path, ~a" file-path)))
+;     (subseq ns 0 (1+ dpos))))
 
-#+ACL
+#+(or :Allegro :SBCL)
 (defun chaos-get-directory (file-path)
-  file-path
-  )
+  (unless (pathnamep file-path)
+    (setq file-path (pathname file-path)))
+  (let ((dir-path (make-pathname :host (pathname-host file-path)
+				 :device (pathname-host file-path)
+				 :directory (pathname-directory file-path))))
+    ;;(namestring dir-path)
+    dir-path))
 
 (defun chaos-get-relative-path* (f-name)
   (if (null *chaos-input-source*)
@@ -315,17 +320,19 @@
   (format stream "~&~a" *chaos-directory-stack*))
 
 (defun fsys-parse-number (tok)
-  (declare (type simple-string tok))
-  (let ((minusp nil))
-    (if (char= (char tok 0) #\-)
-        (setq minusp t)
-      (unless (char= (char tok 0) #\+)
-        (return-from fsys-parse-number
-          (values tok nil))))
-    (let ((num (read-from-string tok)))
-      (if (numberp num)
-          (values num minusp)
-        (values tok nil)))))
+  (declare (type (or simple-string pathname) tok))
+  (if (stringp tok)
+      (let ((minusp nil))
+	(if (char= (char tok 0) #\-)
+	    (setq minusp t)
+	  (unless (char= (char tok 0) #\+)
+	    (return-from fsys-parse-number
+	      (values tok nil))))
+	(let ((num (read-from-string tok)))
+	  (if (numberp num)
+	      (values num minusp)
+	    (values tok nil))))
+    (values tok nil)))
 
 (defun chaos-pushd (arg &optional (always-return nil))
   (let ((path arg))
