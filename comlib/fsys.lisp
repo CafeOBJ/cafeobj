@@ -222,6 +222,21 @@
   (setq f-name (expand-file-name f-name))
   (chaos-get-relative-path* f-name))
 
+#+SBCL
+(defun chaos-get-directory (file-path)
+  (let* ((ns (namestring file-path))
+	 (dpos (position #\/ ns :from-end t))
+	 (dir nil))
+    (unless dpos
+      (with-output-chaos-error ('internal-error)
+	(format t ":get-relative-path: could not find proper directory path, ~a" file-path)))
+    (subseq ns 0 (1+ dpos))))
+
+#+ACL
+(defun chaos-get-directory (file-path)
+  file-path
+  )
+
 (defun chaos-get-relative-path* (f-name)
   (if (null *chaos-input-source*)
       (pathname f-name)
@@ -233,7 +248,8 @@
 		    (fd (pathname-directory (pathname f-name)))
                     (f (file-namestring (pathname f-name))))
                 ;; #-GCL (declare (ignore fd))
-                (chaos-pushd (directory-namestring *chaos-input-source*))
+		;; (chaos-pushd (directory-namestring *chaos-input-source*))
+		(chaos-pushd (chaos-get-directory *chaos-input-source*))
                 #+GCL
                 (setq f-path (truename (make-pathname :directory fd :name f)))
                 #+:CLISP
