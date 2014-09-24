@@ -102,8 +102,9 @@
     (probe-file (concatenate 'string dpath "/"))
     #+:SBCL
     (let ((directory-delimiter
-	   #+UNIX "/"
-	   #+WINDOWS "\\")
+	   ;; #+UNIX "/"
+	   ;; #+WIN32 "\\"
+	   "/")
 	  (p (probe-file dpath)))
       (if p
 	  (and (string-equal (subseq (namestring p)
@@ -134,7 +135,7 @@
                   (equal '(:relative) dir))
               t
             nil))
-      (error "is-simple-file-name? : given non string arg ~s" path))))
+      (error "is-simple-file-name? : given non string arg ~a" path))))
 
 (defun supply-suffixes (path suffixes)
   (declare (type (or simple-string pathname) path)
@@ -175,13 +176,16 @@
              (unless res
                (dolist (lpath load-path)
                  (let ((libdir (is-directory? lpath)))
+		   (declare (type (or null string pathname) libdir))
                    (when libdir
+		     (unless (pathnamep libdir) (setq libdir (pathname libdir)))
                      (let ((f (make-pathname
-			       :host (pathname-host (pathname libdir))
+			       :host (pathname-host libdir)
+			       :device (pathname-device libdir)
                                :directory
-			       #+:CLISP (pathname libdir)
+			       #+:CLISP libdir
 			       ;; #+:Allegro (namestring libdir)
-			       #-:CLISP (pathname-directory (pathname libdir))
+			       #-:CLISP (pathname-directory libdir)
                                :name (namestring file))))
                        (if (probe-file f)
                            (progn (setq res f) (return))
@@ -227,6 +231,7 @@
         (let ((f-path nil))
           (unwind-protect
               (let ((host (pathname-host (pathname f-name)))
+		    (device (pathname-device (pathname f-name)))
 		    (fd (pathname-directory (pathname f-name)))
                     (f (file-namestring (pathname f-name))))
                 ;; #-GCL (declare (ignore fd))
@@ -236,12 +241,14 @@
                 #+:CLISP
                 (setq f-path (make-pathname
 			      :host host
+			      :device device
                               :directory fd ;; (pathname fd)
                               :name f))
                 #-(or GCL :CLISP)
                 (progn
                   (setq f-path (make-pathname
 				:host host
+				:device device
                                 :directory fd
                                 :name f))))
             (chaos-popd))
