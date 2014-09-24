@@ -177,10 +177,11 @@
                  (let ((libdir (is-directory? lpath)))
                    (when libdir
                      (let ((f (make-pathname
+			       :host (pathname-host (pathname libdir))
                                :directory
 			       #+:CLISP (pathname libdir)
-			       #+:Allegro (namestring libdir)
-			       #-(or :CLISP :Allegro) (pathname-directory (pathname libdir))
+			       ;; #+:Allegro (namestring libdir)
+			       #-:CLISP (pathname-directory (pathname libdir))
                                :name (namestring file))))
                        (if (probe-file f)
                            (progn (setq res f) (return))
@@ -221,11 +222,12 @@
 
 (defun chaos-get-relative-path* (f-name)
   (if (null *chaos-input-source*)
-      f-name
+      (pathname f-name)
     (if (chaos-relative-pathname? f-name)
         (let ((f-path nil))
           (unwind-protect
-              (let ((fd (pathname-directory (pathname f-name)))
+              (let ((host (pathname-host (pathname f-name)))
+		    (fd (pathname-directory (pathname f-name)))
                     (f (file-namestring (pathname f-name))))
                 ;; #-GCL (declare (ignore fd))
                 (chaos-pushd (directory-namestring *chaos-input-source*))
@@ -233,19 +235,19 @@
                 (setq f-path (truename (make-pathname :directory fd :name f)))
                 #+:CLISP
                 (setq f-path (make-pathname
+			      :host host
                               :directory fd ;; (pathname fd)
                               :name f))
                 #-(or GCL :CLISP)
                 (progn
                   (setq f-path (make-pathname
+				:host host
                                 :directory fd
-                                :name f))
-                  )
-                )
+                                :name f))))
             (chaos-popd))
           f-path)
       ;; absolute path or simple filename.
-	  f-name)))
+      (pathname f-name))))
 
 #+(or (and CCL (not :openmcl)) :microsoft)
 (defun chaos-ls (&optional (dir "**"))
