@@ -101,10 +101,9 @@
     #+(or GCL CMU :openmcl)
     (probe-file (concatenate 'string dpath "/"))
     #+:SBCL
-    (let ((directory-delimiter
-	   #+UNIX "/"
-	   #+WINDOWS "\\")
+    (let ((directory-delimiter "/")  ; sbcl uses / on all platforms!
 	  (p (probe-file dpath)))
+      ; (format t "DEBUG is-directory? dpath ~s path ~s p ~s~%" dpath path p)
       (if p
 	  (and (string-equal (subseq (namestring p)
 				     (1- (length (namestring p))))
