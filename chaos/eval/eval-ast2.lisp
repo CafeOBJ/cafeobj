@@ -1111,7 +1111,7 @@
   (if (%popd-num ast)
       (chaos-popd (%popd-num ast))
     (chaos-popd))
-  (format t "~&~a" (chaos-pwd)))
+  (format t "~&~a" (namestring (chaos-pwd))))
 
 ;;; ****
 ;;; DIRS
