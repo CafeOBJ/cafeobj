@@ -389,7 +389,7 @@
   (when (>= (length inp) 3)
     (with-output-chaos-error ('invalid-arg)
       (format t "too many args ~s" (cdr inp))))
-  (let ((num (parse-integer (cadr inp) :junk-allowed t)))
+  (let ((num (and (cadr inp) (parse-integer (cadr inp) :junk-allowed t))))
     (if num
 	(setf (%popd-num _popd-pat) (cadr inp))
       (setf (%popd-num _popd-pat) nil))
