@@ -214,9 +214,10 @@
 
 (defun chaos-relative-pathname? (f-name)
   (let ((fdp (pathname-directory (pathname f-name))))
-    (and fdp                            ; not simple file name.
-         (not (eq (car (pathname-directory (pathname f-name)))
-                  :root)))))
+    (or (null fdp)
+	(and fdp			; not simple file name.
+	     (not (eq (car (pathname-directory (pathname f-name)))
+		      :root))))))
 
 (defun chaos-get-relative-path (f-name)
   (setq f-name (expand-file-name f-name))
@@ -237,7 +238,7 @@
   (unless (pathnamep file-path)
     (setq file-path (pathname file-path)))
   (let ((dir-path (make-pathname :host (pathname-host file-path)
-				 :device (pathname-host file-path)
+				 :device (pathname-device file-path)
 				 :directory (pathname-directory file-path))))
     ;;(namestring dir-path)
     dir-path))
