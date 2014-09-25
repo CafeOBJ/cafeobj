@@ -364,8 +364,12 @@
         (pop *chaos-directory-stack*)
         (setq xd (car *chaos-directory-stack*))
         (chaos-cd xd))
+    ;; do nothig
+    #||
     (with-output-chaos-warning ()
-      (format t "directory stack is empty!"))))
+      (format t "directory stack is empty!"))
+    ||#
+    ))
 
 (defun chaos-cd (path &optional (always-return nil))
   (let ((directory-path nil)
