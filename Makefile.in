@@ -121,10 +121,10 @@ ifeq ($(enable_windows),yes)
   SBCL_INTERPRETER  = wine sbcl
   # it seems that windows sbcl does not like this cmd line args
   SBCL_BUILDOPTS    = 
-  cafeobj_share = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)
-  cafeobj_lib   = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)
-  cafeobj_bin   = $(srcdir)/WindowsDist
-  cafeobjdumpdir = $(cafeobj_lib)/bin
+  cafeobj_share = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)-sbcl
+  cafeobj_lib   = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)-sbcl
+  cafeobj_bin   = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)-sbcl
+  cafeobjdumpdir = $(cafeobj_lib)/
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(cafeobj_share)/doc
@@ -203,10 +203,14 @@ install: build-stamp
 	$(INSTALL) -m 0644 $(srcdir)/lib/prelude/*.bin 	\
 			$(DESTDIR)$(cafeobjpreludedir)
 	$(INSTALL) -d $(DESTDIR)$(cafeobjdumpdir)
+ifeq ($(enable_windows),yes)
+	cp -a $(SBCL_DUMP) $(DESTDIR)$(cafeobjdumpdir)/CafeOBJ.exe
+else
 	cp -a dumps/* $(DESTDIR)$(cafeobjdumpdir)
 	chmod 0755 $(DESTDIR)$(cafeobjdumpdir)/*/*
 	$(INSTALL) -d $(DESTDIR)$(cafeobj_bin)
 	$(INSTALL) -m 0755 xbin/cafeobj $(DESTDIR)$(cafeobj_bin)
+endif
 	# man page
 	$(INSTALL) -d $(DESTDIR)$(cafeobjmandir)
 	$(INSTALL) -m 0644 doc/etc/cafeobj.1 $(DESTDIR)$(cafeobjmandir)
