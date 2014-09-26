@@ -293,8 +293,8 @@
     #+GCL (system comm)
     #+EXCL (excl:shell comm)
     #+SBCL (apply #'sb-ext:run-program
-		  #+win32 "sh" #-win32 "/bin/sh"
-		  (list  "-c" comm)
+		  #+win32 "CMD" #-win32 "/bin/sh"
+		  #+win32 (list "/c" "dir") #-win32 (list  "-c" comm)
 		  :input nil :output *terminal-io*
 		  #+win32 '(:search t) #-win32 nil)
     #+LUCID (lucid::%execute-system-command comm)
