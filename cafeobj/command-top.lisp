@@ -430,7 +430,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
     (pathname (concatenate 'string topdir "/exs/")))
   (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*)))
 
-#-(or (and CCL (not :openmcl)) ALLEGRO)
+#-(or (and CCL (not :openmcl)) ALLEGRO (and SBCL WIN32))
 (defun set-cafeobj-standard-library-path (&optional topdir)
   (when (and (null *cafeobj-install-dir*)
              (null topdir))
@@ -448,36 +448,27 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 #+:allegro
 (defvar cafeobj-sys-dir nil)
 
-#||
-(defun set-cafeobj-standard-library-path (&optional topdir)
-  (if topdir
-      (set-cafeobj-libpath topdir)
-    (progn
-      (setq cafeobj-sys-dir 
-        #+:mswindows (translate-logical-pathname #p"sys:")
-        #-:mswindows (translate-logical-pathname
-                      (merge-pathnames #p"sys:" #p"..")))
-      (setq *cafeobj-install-dir* cafeobj-sys-dir)
-      (setq *system-prelude-dir*
-        (namestring (merge-pathnames *cafeobj-install-dir*
-                                     "prelude/")))
-      (setq *system-lib-dir*
-        (namestring (merge-pathnames *cafeobj-install-dir*
-                                     "lib/")))
-      (setq *system-ex-dir*
-        (namestring (merge-pathnames *cafeobj-install-dir*
-                                     "exs/")))
-      (setq *chaos-libpath*
-        (list *system-lib-dir* *system-ex-dir*)))))
-||#
-
 #+:allegro
 (defun set-cafeobj-standard-library-path (&optional topdir)
   (if topdir
       (set-cafeobj-libpath topdir)
     (let ((*default-pathname-defaults* #p"sys:"))
-      #-:mswindows (setq *default-pathname-defaults* (merge-pathnames #p".."))
+      #-:mswindows (setq *default-pathname-defaults* (merge-pathnames #p"../"))
       (setq *cafeobj-install-dir* (translate-logical-pathname *default-pathname-defaults*))
+      (setq *system-prelude-dir* (translate-logical-pathname (merge-pathnames "prelude/")))
+      (setq *system-lib-dir* (translate-logical-pathname (merge-pathnames "lib/")))
+      (setq *system-ex-dir* (translate-logical-pathname (merge-pathnames "exs/")))
+      (setq *chaos-libpath*
+        (list *system-lib-dir* *system-ex-dir*)))))
+
+#+(and :SBCL :win32)
+(defun set-cafeobj-standard-library-path (&optional topdir)
+  (if topdir
+      (set-cafeobj-libpath topdir)
+    (let* ((*default-pathname-defaults* (make-pathname :host (pathname-host sb-ext:*core-pathname*)
+						       :device (pathname-device sb-ext:*core-pathname*)
+						       :directory (pathname-directory sb-ext:*core-pathname*))))
+      (setq *cafeobj-install-dir* *default-pathname-defaults*)
       (setq *system-prelude-dir* (translate-logical-pathname (merge-pathnames "prelude/")))
       (setq *system-lib-dir* (translate-logical-pathname (merge-pathnames "lib/")))
       (setq *system-ex-dir* (translate-logical-pathname (merge-pathnames "exs/")))
