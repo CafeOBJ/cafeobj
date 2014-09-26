@@ -49,6 +49,7 @@ if test "x@enable_traditional_layout@" = "xyes" ; then
   extra=bin/
 fi
 acl_dump=${extra}acl/@acl_dump@
+acl_standalone_dump=${extra}acl-standalone/@acl_standalone_dump@
 sbcl_dump=${extra}sbcl/@sbcl_dump@
 cmu_dump=${extra}cmu/@cmu_dump@
 clisp_dump=${extra}clisp/@clisp_dump@
@@ -56,8 +57,9 @@ gcl_dump=${extra}gcl/@gcl_dump@
 ccl32_dump=${extra}ccl/@ccl32_dump@
 ccl64_dump=${extra}ccl64/@ccl64_dump@
 
-libpath=@LIBPATH@
-sharepath=@SHAREPATH@
+binpath=`dirname $0`
+libpath=$binpath/../@LIBPATH@
+sharepath=$binpath/../@SHAREPATH@
 
 engine=@FIRSTCHOICE@
 
@@ -77,7 +79,8 @@ do
       if [ -r "$libpath/$cmu_dump" ] ; then engines="cmu $engines" ; fi
       if [ -r "$libpath/$clisp_dump" ] ; then engines="clisp $engines" ; fi
       if [ -r "$libpath/$sbcl_dump" ] ; then engines="sbcl $engines" ; fi
-      if [ -r "$libpath/$acl_dump" ] ; then engines="acl $engines" ; fi
+      if [ -r "$libpath/$acl_standalone_dump" ] ; then engines="acl-standalone $engines" ; fi
+      if [ -r "$libpath/$acl_dump" -o -r "$libpath/$acl_standalone_dump" ] ; then engines="acl $engines" ; fi
       echo "Available engine dumps: $engines"
       exit 0 ;;
     --) break ;;
@@ -89,8 +92,18 @@ case "x$engine" in
 xacl)
 	if [ -r "$libpath/$acl_dump" ] ; then
 	  exec $acl_interp -I $libpath/$acl_dump -- -prefix $sharepath $*
+	elif [ -r "$libpath/$acl_standalone_dump" ] ; then
+	  exec $libpath/$acl_standalone_dump -- -prefix $sharepath $*
 	else
 	  echo "ACL dump file not found: $libpath/$acl_dump" 2>&1
+	  exit 1
+	fi
+	;;
+xacl-standalone)
+	if [ -r "$libpath/$acl_standalone_dump" ] ; then
+	  exec $libpath/$acl_standalone_dump -- -prefix $sharepath $*
+	else
+	  echo "ACL standalone dump file not found: $libpath/$acl_standalone_dump" 2>&1
 	  exit 1
 	fi
 	;;

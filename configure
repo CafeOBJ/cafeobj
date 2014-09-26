@@ -597,6 +597,7 @@ ccl32_dump
 cmu_dump
 clisp_dump
 sbcl_dump
+acl_standalone_dump
 acl_dump
 gcl_interp
 ccl64_interp
@@ -1896,6 +1897,7 @@ else
 fi
 
 acl_dump=cafeobj.acl
+acl_standalone_dump=cafeobj
 
 
 # Check whether --with-clisp was given.
@@ -2307,7 +2309,7 @@ then
   # if nothing is specified, the first one found will be used!
   #lisp=acl,sbcl,clisp,gcl,cmu,ccl,ccl64
   # use only currently supported ones
-  lisp=acl,sbcl,clisp
+  lisp=acl-standalone,acl,sbcl,clisp
 fi
 
 lisp=$(echo $lisp | sed -e 's/,/ /g')
@@ -2343,7 +2345,7 @@ do
 	     fi
 	  fi
 	  ;;
-    xacl)
+    xacl|xacl-standalone)
           if test -z "$acl_path"
           then
 	     test $do_all = 1 || \
@@ -2423,6 +2425,7 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: Building for the following lisp interpreters: $lisp" >&5
 $as_echo "$as_me: Building for the following lisp interpreters: $lisp" >&6;}
+
 
 
 

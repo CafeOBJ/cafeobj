@@ -58,6 +58,10 @@ ACL_DUMP          = dumps/acl/@acl_dump@
 ACL_INTERPRETER   = @acl_interp@
 ACL_BUILDOPTS     =
 
+ACL_STANDALONE_DUMP          = dumps/acl-standalone/@acl_standalone_dump@
+ACL_STANDALONE_INTERPRETER   = @acl_interp@
+ACL_STANDALONE_BUILDOPTS     =
+
 SBCL_DUMP         = dumps/sbcl/@sbcl_dump@
 SBCL_INTERPRETER  = @sbcl_interp@
 SBCL_BUILDOPTS    = --dynamic-space-size 2048
@@ -96,34 +100,38 @@ GCL_BUILDOPTS     =
 # /usr/local/cafeobj-N.M/bin/DUMP
 # /usr/local/cafeobj-N.M/{lib,prelude}
 ifeq ($(enable_traditional_layout),yes)
-  cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)
-  cafeobj_lib   = $(prefix)/$(PACKAGE)-$(VERSION)
-  cafeobj_bin   = $(prefix)/bin
+  # the first three variable will be prefixed with $DESTDIR/$prefix
+  cafeobj_share = $(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(PACKAGE)-$(VERSION)
+  cafeobj_bin   = bin
   cafeobjdumpdir = $(cafeobj_lib)/bin
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(cafeobj_share)/doc
   cafeobjmandir = $(cafeobj_share)/man
 else
-  cafeobj_share ?= $(prefix)/share/$(PACKAGE)-$(VERSION)
-  cafeobj_lib   ?= $(prefix)/lib/$(PACKAGE)-$(VERSION)
-  cafeobj_bin   ?= $(prefix)/bin
+  # the first three variable will be prefixed with $DESTDIR/$prefix
+  cafeobj_share = share/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = lib/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   = bin
   cafeobjdumpdir = $(cafeobj_lib)/
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
-  cafeobjdocdir = $(prefix)/share/doc/$(PACKAGE)
-  cafeobjmandir = $(prefix)/share/man/man1
+  cafeobjdocdir = share/doc/$(PACKAGE)
+  cafeobjmandir = share/man/man1
 endif
 
 ifeq ($(enable_windows),yes)
+  prefix = $(srcdir)
   # we only support building 
   lisp = sbcl
   SBCL_INTERPRETER  = wine sbcl
   # it seems that windows sbcl does not like this cmd line args
   SBCL_BUILDOPTS    = 
-  cafeobj_share = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)-sbcl
-  cafeobj_lib   = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)-sbcl
-  cafeobj_bin   = $(srcdir)/WindowsDist/$(PACKAGE)-$(VERSION)-sbcl
+  # the first three variable will be prefixed with $DESTDIR/$prefix
+  cafeobj_share = $(PACKAGE)-$(VERSION)-sbcl
+  cafeobj_lib   = $(PACKAGE)-$(VERSION)-sbcl
+  cafeobj_bin   = $(PACKAGE)-$(VERSION)-sbcl
   cafeobjdumpdir = $(cafeobj_lib)/
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
@@ -133,12 +141,13 @@ endif
 
 
 engine_dumps = $(patsubst acl,$(ACL_DUMP),\
+               $(patsubst acl-standalone,$(ACL_STANDALONE_DUMP),\
                $(patsubst sbcl,$(SBCL_DUMP),\
 	       $(patsubst cmu,$(CMU_DUMP),\
 	       $(patsubst ccl,$(CCL32_DUMP),\
 	       $(patsubst ccl64,$(CCL64_DUMP),\
 	       $(patsubst clisp,$(CLISP_DUMP),\
-	       $(patsubst gcl,$(GCL_DUMP),$(lisp))))))))
+	       $(patsubst gcl,$(GCL_DUMP),$(lisp)))))))))
 
 # documentation rebuilding
 doc_targets =
@@ -173,6 +182,8 @@ xbin/cafeobj: xbin/cafeobj.in
 
 $(ACL_DUMP) : interp = $(ACL_INTERPRETER) 
 $(ACL_DUMP) : buildopts = $(ACL_BUILDOPTS)
+$(ACL_STANDALONE_DUMP) : interp = $(ACL_INTERPRETER) 
+$(ACL_STANDALONE_DUMP) : buildopts = $(ACL_BUILDOPTS)
 $(SBCL_DUMP) : interp = $(SBCL_INTERPRETER)
 $(SBCL_DUMP) : buildopts = $(SBCL_BUILDOPTS)
 $(CMU_DUMP) : interp = $(CMU_INTERPRETER)
@@ -193,29 +204,29 @@ $(engine_dumps): %: make-cafeobj.lisp version.lisp
 
 
 install: build-stamp
-	$(INSTALL) -d $(DESTDIR)$(cafeobjlibdir)
+	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjlibdir)
 	$(INSTALL) -m 0644 		\
 			$(srcdir)/lib/lib/*.cafe	\
 			$(srcdir)/lib/lib/*.bin		\
 			$(srcdir)/lib/lib/*.desc	\
-			$(DESTDIR)$(cafeobjlibdir)
-	$(INSTALL) -d $(DESTDIR)$(cafeobjpreludedir)
+			$(DESTDIR)$(prefix)/$(cafeobjlibdir)
+	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjpreludedir)
 	$(INSTALL) -m 0644 $(srcdir)/lib/prelude/*.bin 	\
-			$(DESTDIR)$(cafeobjpreludedir)
-	$(INSTALL) -d $(DESTDIR)$(cafeobjdumpdir)
+			$(DESTDIR)$(prefix)/$(cafeobjpreludedir)
+	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjdumpdir)
 ifeq ($(enable_windows),yes)
-	cp -a $(SBCL_DUMP) $(DESTDIR)$(cafeobjdumpdir)/CafeOBJ.exe
+	cp -a $(SBCL_DUMP) $(DESTDIR)$(prefix)/$(cafeobjdumpdir)/CafeOBJ.exe
 else
-	cp -a dumps/* $(DESTDIR)$(cafeobjdumpdir)
-	chmod 0755 $(DESTDIR)$(cafeobjdumpdir)/*/*
-	$(INSTALL) -d $(DESTDIR)$(cafeobj_bin)
-	$(INSTALL) -m 0755 xbin/cafeobj $(DESTDIR)$(cafeobj_bin)
+	cp -a dumps/* $(DESTDIR)$(prefix)/$(cafeobjdumpdir)
+	chmod 0755 $(DESTDIR)$(prefix)/$(cafeobjdumpdir)/*/*
+	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobj_bin)
+	$(INSTALL) -m 0755 xbin/cafeobj $(DESTDIR)$(prefix)/$(cafeobj_bin)
 endif
 	# man page
-	$(INSTALL) -d $(DESTDIR)$(cafeobjmandir)
-	$(INSTALL) -m 0644 doc/etc/cafeobj.1 $(DESTDIR)$(cafeobjmandir)
+	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjmandir)
+	$(INSTALL) -m 0644 doc/etc/cafeobj.1 $(DESTDIR)$(prefix)/$(cafeobjmandir)
 	# doc files
-	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)
+	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjdocdir)
 	$(INSTALL) -m 0644 				\
 		doc/manual/manual.pdf			\
 		doc/PigNose/pnguide.pdf			\
@@ -223,10 +234,10 @@ endif
 		doc/RefCard/syntax.pdf			\
 		doc/refman/reference-manual.pdf		\
 		doc/etc/cafe-citp.txt			\
-		$(DESTDIR)$(cafeobjdocdir)
-	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)/examples
+		$(DESTDIR)$(prefix)/$(cafeobjdocdir)
+	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjdocdir)/examples
 	$(INSTALL) -m 0644 doc/examples/*.mod 		\
-		$(DESTDIR)$(cafeobjdocdir)/examples
+		$(DESTDIR)$(prefix)/$(cafeobjdocdir)/examples
 
 doc/refman/reference-manual.pdf:
 	$(MAKE) -C doc/refman reference-manual.pdf
