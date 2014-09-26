@@ -33,7 +33,7 @@
 (defun make-app (path)
   (generate-application "CafeOBJ"
 			#-:mswindows
-			"dist/cafeobj-1.5/lisp/"
+			"dist/lib/cafeobj-1.5/acl/"
 			#+:mswindows
 			"dist/cafeobj-1.5/"
 			'("pignose.fasl"
