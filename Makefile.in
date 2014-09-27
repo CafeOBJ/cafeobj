@@ -270,6 +270,7 @@ distclean: clean
 	rm -rf autom4te.cache
 	rm -f doc/Makefile doc/refman/Makefile doc/manual/Makefile
 	rm -f doc/PigNose/Makefile doc/RefCard/Makefile
+	rm -f WindowsDist
 
 #
 # declare the clean targets as well as the scripts that are
