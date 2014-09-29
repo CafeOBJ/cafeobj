@@ -42,6 +42,8 @@ enable_rebuild_doc = @enable_rebuild_doc@
 enable_traditional_layout = @enable_traditional_layout@
 # --enable-windows
 enable_windows = @enable_windows@
+# --enable-distribution
+enable_distribution = @enable_distribution@
 
 # general stuff
 PACKAGE = @PACKAGE_TARNAME@
@@ -57,34 +59,42 @@ INSTALL = @INSTALL@
 ACL_DUMP          = dumps/acl/@acl_dump@
 ACL_INTERPRETER   = @acl_interp@
 ACL_BUILDOPTS     =
+ACL_DUMPFILE      = make-cafeobj.lisp
 
 ACL_STANDALONE_DUMP          = dumps/acl-standalone/@acl_standalone_dump@
 ACL_STANDALONE_INTERPRETER   = @acl_interp@
 ACL_STANDALONE_BUILDOPTS     =
+ACL_STANDALONE_DUMPFILE      = deliver.cl
 
 SBCL_DUMP         = dumps/sbcl/@sbcl_dump@
 SBCL_INTERPRETER  = @sbcl_interp@
 SBCL_BUILDOPTS    = --dynamic-space-size 2048
+SBCL_DUMPFILE      = make-cafeobj.lisp
 
 CMU_DUMP          = dumps/cmu/@cmu_dump@
 CMU_INTERPRETER   = @cmu_interp@
 CMU_BUILDOPTION   =
+CMU_DUMPFILE      = make-cafeobj.lisp
 
 CCL32_DUMP          = dumps/ccl/@ccl32_dump@
 CCL32_INTERPRETER   = @ccl32_interp@
 CCL32_BUILDOPTS     =
+CCL32_DUMPFILE      = make-cafeobj.lisp
 
 CCL64_DUMP        = dumps/ccl64/@ccl64_dump@
 CCL64_INTERPRETER = @ccl64_interp@
 CCL64_BUILDOPTS   =
+CCL64_DUMPFILE    = make-cafeobj.lisp
 
 CLISP_DUMP        = dumps/clisp/@clisp_dump@
 CLISP_INTERPRETER = @clisp_interp@
 CLISP_BUILDOPTS   =
+CLISP_DUMPFILE    = make-cafeobj.lisp
 
 GCL_DUMP          = dumps/gcl/@gcl_dump@
 GCL_INTERPRETER   = @gcl_interp@
 GCL_BUILDOPTS     =
+GCL_DUMPFILE      = make-cafeobj.lisp
 # End of engine definitions
 
 #
@@ -139,6 +149,21 @@ ifeq ($(enable_windows),yes)
   cafeobjmandir = $(cafeobj_share)/doc
 endif
 
+ifeq ($(enable_distribution),yes)
+  prefix = $(srcdir)/dist
+  # we only support building 
+  lisp = sbcl acl-standalone
+  # the first three variable will be prefixed with $DESTDIR/$prefix
+  cafeobj_share = share/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = lib/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   = bin
+  cafeobjdumpdir = $(cafeobj_lib)/
+  cafeobjlibdir  = $(cafeobj_share)/lib
+  cafeobjpreludedir = $(cafeobj_share)/prelude
+  cafeobjdocdir = share/doc/$(PACKAGE)
+  cafeobjmandir = share/man/man1
+endif
+
 
 engine_dumps = $(patsubst acl,$(ACL_DUMP),\
                $(patsubst acl-standalone,$(ACL_STANDALONE_DUMP),\
@@ -166,6 +191,12 @@ endif
 # used only in creating make-cafeobj.lisp script
 chaos_root = $(srcdir)
 
+# first target when building binary distributions
+ifeq ($(enable_distribution),yes)
+make-dist: install-stamp
+	bash make-release-tarballs $(VERSION) $(VMINOR)
+endif
+
 # first target on Unix!
 build: build-stamp
 
@@ -182,28 +213,38 @@ xbin/cafeobj: xbin/cafeobj.in
 
 $(ACL_DUMP) : interp = $(ACL_INTERPRETER) 
 $(ACL_DUMP) : buildopts = $(ACL_BUILDOPTS)
-$(ACL_STANDALONE_DUMP) : interp = $(ACL_INTERPRETER) 
-$(ACL_STANDALONE_DUMP) : buildopts = $(ACL_BUILDOPTS)
+$(ACL_DUMP) : dumpfile = $(ACL_DUMPFILE)
+$(ACL_STANDALONE_DUMP) : interp = $(ACL_STANDALONE_INTERPRETER) 
+$(ACL_STANDALONE_DUMP) : buildopts = $(ACL_STANDALONE_BUILDOPTS)
+$(ACL_STANDALONE_DUMP) : dumpfile = $(ACL_STANDALONE_DUMPFILE)
 $(SBCL_DUMP) : interp = $(SBCL_INTERPRETER)
 $(SBCL_DUMP) : buildopts = $(SBCL_BUILDOPTS)
+$(SBCL_DUMP) : dumpfile = $(SBCL_DUMPFILE)
 $(CMU_DUMP) : interp = $(CMU_INTERPRETER)
 $(CMU_DUMP) : buildopts = $(CMU_BUILDOPTS)
+$(CMU_DUMP) : dumpfile = $(CMU_DUMPFILE)
 $(CLISP_DUMP) : interp = $(CLISP_INTERPRETER)
 $(CLISP_DUMP) : buildopts = $(CLISP_BUILDOPTS)
+$(CLISP_DUMP) : dumpfile = $(CLISP_DUMPFILE)
 $(CCL32_DUMP) : interp = $(CCL32_INTERPRETER)
 $(CCL32_DUMP) : buildopts = $(CCL32_BUILDOPTS)
+$(CCL32_DUMP) : dumpfile = $(CCL32_DUMPFILE)
 $(CCL64_DUMP) : interp = $(CCL64_INTERPRETER)
 $(CCL64_DUMP) : buildopts = $(CCL64_BUILDOPTS)
+$(CCL64_DUMP) : dumpfile = $(CCL64_DUMPFILE)
 $(GCL_DUMP) : interp = $(GCL_INTERPRETER)
 $(GCL_DUMP) : buildopts = $(GCL_BUILDOPTS)
+$(GCL_DUMP) : dumpfile = $(GCL_DUMPFILE)
 
 $(engine_dumps): %: make-cafeobj.lisp version.lisp
 	mkdir -p $(dir $@)
-	$(interp) $(buildopts) < make-cafeobj.lisp
+	$(interp) $(buildopts) < $(dumpfile)
 	chmod +x $@
 
 
-install: build-stamp
+install: install-stamp
+
+install-stamp: build-stamp
 	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjlibdir)
 	$(INSTALL) -m 0644 		\
 			$(srcdir)/lib/lib/*.cafe	\
@@ -260,6 +301,7 @@ clean:
 	rm -rf dumps
 	rm -f stamp-windows-prepare stamp-windows-build
 	rm -f build-stamp
+	rm -f install-stamp
 	rm -f make-cafeobj.lisp
 	rm -f xbin/cafeobj
 

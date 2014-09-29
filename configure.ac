@@ -341,6 +341,13 @@ AC_ARG_ENABLE(windows,
        [enable_windows=no])
 AC_SUBST(enable_windows)
 
+AC_ARG_ENABLE(distribution,
+       [AS_HELP_STRING([--enable-distribution],
+          [Configure for binary distribution])],
+       [enable_distribution="${enableval}"],
+       [enable_distribution=no])
+AC_SUBST(enable_distribution)
+
 AC_CONFIG_FILES([
   Makefile 
   make-cafeobj.lisp
