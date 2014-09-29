@@ -151,8 +151,6 @@ endif
 
 ifeq ($(enable_distribution),yes)
   prefix = $(srcdir)/dist
-  # we only support building 
-  lisp = sbcl acl-standalone
   # the first three variable will be prefixed with $DESTDIR/$prefix
   cafeobj_share = share/$(PACKAGE)-$(VERSION)
   cafeobj_lib   = lib/$(PACKAGE)-$(VERSION)
@@ -194,7 +192,7 @@ chaos_root = $(srcdir)
 # first target when building binary distributions
 ifeq ($(enable_distribution),yes)
 make-dist: install-stamp
-	bash make-release-tarballs $(VERSION) $(VMINOR)
+	bash make-release-tarballs $(VERSION) $(VMINOR) $(lisp)
 endif
 
 # first target on Unix!
@@ -279,6 +277,7 @@ endif
 	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjdocdir)/examples
 	$(INSTALL) -m 0644 doc/examples/*.mod 		\
 		$(DESTDIR)$(prefix)/$(cafeobjdocdir)/examples
+	touch install-stamp
 
 doc/refman/reference-manual.pdf:
 	$(MAKE) -C doc/refman reference-manual.pdf
@@ -302,12 +301,12 @@ clean:
 	rm -f stamp-windows-prepare stamp-windows-build
 	rm -f build-stamp
 	rm -f install-stamp
-	rm -f make-cafeobj.lisp
 	rm -f xbin/cafeobj
 
 distclean: clean
 	rm -f Makefile config.log config.status
 	rm -f xbin/cafeobj.in
+	rm -f make-cafeobj.lisp
 	rm -f version.lisp
 	rm -rf autom4te.cache
 	rm -f doc/Makefile doc/refman/Makefile doc/manual/Makefile

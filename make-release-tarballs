@@ -32,11 +32,14 @@
 
 version=$1
 vminor=$2
+shift
+shift
+# remaining components are the lisp interpreters for which we build
 
 default_components="bin share"
 
 if [ x$vminor = x ] ; then
-  echo "Usage: make-dist-tarball VERSION MINOR" >&2
+  echo "Usage: make-dist-tarball VERSION MINOR <lisp-interpreters>" >&2
   exit
 fi
 
@@ -51,31 +54,35 @@ if ! [ -d dist/bin -o -d dist/share ] ; then
   exit 1
 fi
 
+for i in $* ; do
+  case $i in
+  acl-standalone|sbcl) true ;;
+  *) echo "Unsupported standalone lisp interpreter: $i" >&2 ; exit ;;
+  esac
+done
+
 cd dist
 
-if [ -d lib/cafeobj-$version/acl-standalone ] ; then
-  case `file lib/cafeobj-$version/acl-standalone/CafeOBJ` in
+for i in $* ; do
+  distdir=lib/cafeobj-$version/$i
+  case $i in
+  acl-standalone) sname=acl ; dumpfile=$distdir/CafeOBJ ;;
+  sbcl)           sname=sbcl; dumpfile=$distdir/cafeobj.sbcl ;;
+  esac
+  if ! [ -d $distdir ] ; then
+    echo "Cannot find dump for $i, exiting." >&2
+    exit 1
+  fi
+  dump
+  case `file $dumpfile` in
   *32-bit*) arch=x32 ;;
   *64-bit*) arch=x64 ;;
   *) echo "Cannot determine arch of CafeOBJ dump!" >&2 ; exit 1 ;;
   esac
-  echo "Building ACL standalone for $arch`uname` ..."
-  tar -cvzf ../cafeobj-$version$vminor-acl-${arch}`uname`.tar.gz	\
-  	$default_components	\
-	lib/cafeobj-$version/acl-standalone
-fi
-
-if [ -d lib/cafeobj-$version/sbcl ] ; then
-  case `file lib/cafeobj-$version/sbcl/cafeobj.sbcl` in
-  *32-bit*) arch=x32 ;;
-  *64-bit*) arch=x64 ;;
-  *) echo "Cannot determine arch of CafeOBJ dump!" >&2 ; exit 1 ;;
-  esac
-  echo "Building SBCL standalone for $arch`uname` ..."
-  tar -cvzf ../cafeobj-$version$vminor-sbcl-${arch}`uname`.tar.gz	\
-  	$default_components	\
-	lib/cafeobj-$version/sbcl
-fi
+  echo "Building $sname standalone for $arch`uname` ..."
+  tar -cvzf ../cafeobj-$version$vminor-${sname}-${arch}`uname`.tar.gz	\
+  	$default_components $distdir
+done
 
 cd ..
 
