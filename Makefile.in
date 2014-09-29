@@ -64,7 +64,7 @@ ACL_DUMPFILE      = make-cafeobj.lisp
 ACL_STANDALONE_DUMP          = dumps/acl-standalone/@acl_standalone_dump@
 ACL_STANDALONE_INTERPRETER   = @acl_interp@
 ACL_STANDALONE_BUILDOPTS     =
-ACL_STANDALONE_DUMPFILE      = deliver.cl
+ACL_STANDALONE_DUMPFILE      = build-acl-dist.cl
 
 SBCL_DUMP         = dumps/sbcl/@sbcl_dump@
 SBCL_INTERPRETER  = @sbcl_interp@
