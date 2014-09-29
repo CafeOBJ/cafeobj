@@ -273,6 +273,9 @@ endif
 		doc/RefCard/syntax.pdf			\
 		doc/refman/reference-manual.pdf		\
 		doc/etc/cafe-citp.txt			\
+		elisp/cafeobj-mode.el			\
+		lib/icons/cafeobj-logo.png		\
+		lib/icons/cafeobj-logo-small.png		\
 		$(DESTDIR)$(prefix)/$(cafeobjdocdir)
 	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjdocdir)/examples
 	$(INSTALL) -m 0644 doc/examples/*.mod 		\
