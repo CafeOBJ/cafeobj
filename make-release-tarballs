@@ -73,12 +73,15 @@ for i in $* ; do
     echo "Cannot find dump for $i, exiting." >&2
     exit 1
   fi
-  dump
   case `file $dumpfile` in
   *32-bit*) arch=x32 ;;
   *64-bit*) arch=x64 ;;
   *) echo "Cannot determine arch of CafeOBJ dump!" >&2 ; exit 1 ;;
   esac
+  #
+  # we have to make sure that the current engine is the default one
+  # selected in the wrapper script!
+  sed --in-place -e "s/^engine=.*/engine=$i/" bin/cafeobj
   echo "Building $sname standalone for $arch`uname` ..."
   tar -cvzf ../cafeobj-$version$vminor-${sname}-${arch}`uname`.tar.gz	\
   	$default_components $distdir
