@@ -4,7 +4,7 @@
 
 --- cafeobj.git.orig/doc/RefCard/syntax.tex
 +++ cafeobj.git/doc/RefCard/syntax.tex
-@@ -18,9 +18,9 @@
+@@ -16,9 +16,9 @@
  %%%%% xlatex specific
  \usepackage{fontspec,xltxtra,xunicode}
  \defaultfontfeatures{Mapping=tex-text}
