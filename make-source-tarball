@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# make-source-tarball
+# create a source release tarball for CafeOBJ
+#
+# Copyright (c) 2014, Norbert Preining. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#   * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#
+#   * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials
+#     provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+set -e
+
+version=$1
+shift
+
+if [ x$version = x ] ; then
+  echo "Usage: make-source-tarball VERSION" >&2
+  exit
+fi
+
+# consistency checks
+
+# check version numbers
+pver=`grep ^PACKAGE_VERSION= configure | sed -e "s/^.*='//" -e "s/'$//"`
+pmin=`grep ^VMINOR= configure | sed -e "s/^.*=//"`
+
+if [ ! "x$pver$pmin" = "x$version" ] ; then
+  echo "Version mismatch: cmd line: $version, configure: $pver$pmin" >&2
+  exit 1
+fi
+
+# check git status
+if ! git status --ignored | grep -q 'nothing to commit, working directory clean' ; then
+  echo "git repo in unclean state, call git status --ignored!" >&2
+  exit 1
+fi
+
+# the directory cannot exist, since otherwise the above git status would
+# have failed
+mkdir cafeobj-$version
+tar --exclude=cafeobj-$version	\
+	--exclude=.git			\
+	--exclude=.gitignore		\
+	-cvf - . | tar -C cafeobj-$version -xvf - 
+tar -cvzf cafeobj-$version.tar.gz cafeobj-$version
+rm -rf cafeobj-$version
+
+
+
