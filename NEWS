@@ -1,3 +1,14 @@
+* CafeOBJ 1.5.2
+===============
+
+  - Fixes to the wrapper to work with spaces in the path
+  - make 'ls' command work on Windows (but not UNC path)
+
+* CafeOBJ 1.5.1
+===============
+
+  Fixes for Windows packages to be run from UNC paths
+
 * CafeOBJ 1.5.0
 ===============
 
