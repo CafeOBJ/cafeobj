@@ -101,10 +101,9 @@
     #+(or GCL CMU :openmcl)
     (probe-file (concatenate 'string dpath "/"))
     #+:SBCL
-    (let ((directory-delimiter
-	   #+UNIX "/"
-	   #+WINDOWS "\\")
+    (let ((directory-delimiter "/")  ; sbcl uses / on all platforms!
 	  (p (probe-file dpath)))
+      ; (format t "DEBUG is-directory? dpath ~s path ~s p ~s~%" dpath path p)
       (if p
 	  (and (string-equal (subseq (namestring p)
 				     (1- (length (namestring p))))
@@ -134,7 +133,7 @@
                   (equal '(:relative) dir))
               t
             nil))
-      (error "is-simple-file-name? : given non string arg ~s" path))))
+      (error "is-simple-file-name? : given non string arg ~a" path))))
 
 (defun supply-suffixes (path suffixes)
   (declare (type (or simple-string pathname) path)
@@ -175,12 +174,16 @@
              (unless res
                (dolist (lpath load-path)
                  (let ((libdir (is-directory? lpath)))
+		   (declare (type (or null string pathname) libdir))
                    (when libdir
+		     (unless (pathnamep libdir) (setq libdir (pathname libdir)))
                      (let ((f (make-pathname
+			       :host (pathname-host libdir)
+			       :device (pathname-device libdir)
                                :directory
-			       #+:CLISP (pathname libdir)
-			       #+:Allegro (namestring libdir)
-			       #-(or :CLISP :Allegro) (pathname-directory (pathname libdir))
+			       #+:CLISP libdir
+			       ;; #+:Allegro (namestring libdir)
+			       #-:CLISP (pathname-directory libdir)
                                :name (namestring file))))
                        (if (probe-file f)
                            (progn (setq res f) (return))
@@ -211,41 +214,67 @@
 
 (defun chaos-relative-pathname? (f-name)
   (let ((fdp (pathname-directory (pathname f-name))))
-    (and fdp                            ; not simple file name.
-         (not (eq (car (pathname-directory (pathname f-name)))
-                  :root)))))
+    (or (null fdp)
+	(and fdp			; not simple file name.
+	     (not (eq (car (pathname-directory (pathname f-name)))
+		      :root))))))
 
 (defun chaos-get-relative-path (f-name)
   (setq f-name (expand-file-name f-name))
   (chaos-get-relative-path* f-name))
 
+; #+:SBCL
+; (defun chaos-get-directory (file-path)
+;   (let* ((ns (namestring file-path))
+; 	 (dpos (position #\/ ns :from-end t))
+; 	 (dir nil))
+;     (unless dpos
+;       (with-output-chaos-error ('internal-error)
+; 	(format t ":get-relative-path: could not find proper directory path, ~a" file-path)))
+;     (subseq ns 0 (1+ dpos))))
+
+#+(or :Allegro :SBCL)
+(defun chaos-get-directory (file-path)
+  (unless (pathnamep file-path)
+    (setq file-path (pathname file-path)))
+  (let ((dir-path (make-pathname :host (pathname-host file-path)
+				 :device (pathname-device file-path)
+				 :directory (pathname-directory file-path))))
+    ;;(namestring dir-path)
+    dir-path))
+
 (defun chaos-get-relative-path* (f-name)
   (if (null *chaos-input-source*)
-      f-name
+      (pathname f-name)
     (if (chaos-relative-pathname? f-name)
         (let ((f-path nil))
           (unwind-protect
-              (let ((fd (pathname-directory (pathname f-name)))
+              (let ((host (pathname-host (pathname f-name)))
+		    (device (pathname-device (pathname f-name)))
+		    (fd (pathname-directory (pathname f-name)))
                     (f (file-namestring (pathname f-name))))
                 ;; #-GCL (declare (ignore fd))
-                (chaos-pushd (directory-namestring *chaos-input-source*))
+		;; (chaos-pushd (directory-namestring *chaos-input-source*))
+		(chaos-pushd (chaos-get-directory *chaos-input-source*))
                 #+GCL
                 (setq f-path (truename (make-pathname :directory fd :name f)))
                 #+:CLISP
                 (setq f-path (make-pathname
+			      :host host
+			      :device device
                               :directory fd ;; (pathname fd)
                               :name f))
                 #-(or GCL :CLISP)
                 (progn
                   (setq f-path (make-pathname
+				:host host
+				:device device
                                 :directory fd
-                                :name f))
-                  )
-                )
+                                :name f))))
             (chaos-popd))
           f-path)
       ;; absolute path or simple filename.
-	  f-name)))
+      (pathname f-name))))
 
 #+(or (and CCL (not :openmcl)) :microsoft)
 (defun chaos-ls (&optional (dir "**"))
@@ -292,17 +321,19 @@
   (format stream "~&~a" *chaos-directory-stack*))
 
 (defun fsys-parse-number (tok)
-  (declare (type simple-string tok))
-  (let ((minusp nil))
-    (if (char= (char tok 0) #\-)
-        (setq minusp t)
-      (unless (char= (char tok 0) #\+)
-        (return-from fsys-parse-number
-          (values tok nil))))
-    (let ((num (read-from-string tok)))
-      (if (numberp num)
-          (values num minusp)
-        (values tok nil)))))
+  (declare (type (or simple-string pathname) tok))
+  (if (stringp tok)
+      (let ((minusp nil))
+	(if (char= (char tok 0) #\-)
+	    (setq minusp t)
+	  (unless (char= (char tok 0) #\+)
+	    (return-from fsys-parse-number
+	      (values tok nil))))
+	(let ((num (read-from-string tok)))
+	  (if (numberp num)
+	      (values num minusp)
+	    (values tok nil))))
+    (values tok nil)))
 
 (defun chaos-pushd (arg &optional (always-return nil))
   (let ((path arg))
@@ -333,8 +364,12 @@
         (pop *chaos-directory-stack*)
         (setq xd (car *chaos-directory-stack*))
         (chaos-cd xd))
+    ;; do nothig
+    #||
     (with-output-chaos-warning ()
-      (format t "directory stack is empty!"))))
+      (format t "directory stack is empty!"))
+    ||#
+    ))
 
 (defun chaos-cd (path &optional (always-return nil))
   (let ((directory-path nil)

@@ -423,11 +423,11 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 ;;;_____________________________________________________________________________
 (defun set-cafeobj-libpath (topdir)
   (setq *system-prelude-dir*
-    (concatenate 'string topdir "/prelude"))
+    (pathname (concatenate 'string topdir "/prelude/")))
   (setq *system-lib-dir*
-    (concatenate 'string topdir "/lib"))
+    (pathname (concatenate 'string topdir "/lib/")))
   (setq *system-ex-dir*
-    (concatenate 'string topdir "/exs"))
+    (pathname (concatenate 'string topdir "/exs/")))
   (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*)))
 
 #-(or (and CCL (not :openmcl)) ALLEGRO)
@@ -447,7 +447,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 ;;; ACL
 #+:allegro
 (defvar cafeobj-sys-dir nil)
-#+:allegro
+
+#||
 (defun set-cafeobj-standard-library-path (&optional topdir)
   (if topdir
       (set-cafeobj-libpath topdir)
@@ -459,13 +460,27 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
       (setq *cafeobj-install-dir* cafeobj-sys-dir)
       (setq *system-prelude-dir*
         (namestring (merge-pathnames *cafeobj-install-dir*
-                                     "prelude")))
+                                     "prelude/")))
       (setq *system-lib-dir*
         (namestring (merge-pathnames *cafeobj-install-dir*
-                                     "lib")))
+                                     "lib/")))
       (setq *system-ex-dir*
         (namestring (merge-pathnames *cafeobj-install-dir*
-                                     "exs")))
+                                     "exs/")))
+      (setq *chaos-libpath*
+        (list *system-lib-dir* *system-ex-dir*)))))
+||#
+
+#+:allegro
+(defun set-cafeobj-standard-library-path (&optional topdir)
+  (if topdir
+      (set-cafeobj-libpath topdir)
+    (let ((*default-pathname-defaults* #p"sys:"))
+      #-:mswindows (setq *default-pathname-defaults* (merge-pathnames #p".."))
+      (setq *cafeobj-install-dir* (translate-logical-pathname *default-pathname-defaults*))
+      (setq *system-prelude-dir* (translate-logical-pathname (merge-pathnames "prelude/")))
+      (setq *system-lib-dir* (translate-logical-pathname (merge-pathnames "lib/")))
+      (setq *system-ex-dir* (translate-logical-pathname (merge-pathnames "exs/")))
       (setq *chaos-libpath*
         (list *system-lib-dir* *system-ex-dir*)))))
 
@@ -476,11 +491,11 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
   ;; (unless *cafeobj-install-dir*
   ;;    (break "CafeOBJ install directory is not set yet!."))
   (setq *system-prelude-dir*
-    (full-pathname (make-pathname :host "ccl" :directory "prelude")))
+    (full-pathname (make-pathname :host "ccl" :directory "prelude/")))
   (setq *system-lib-dir*
-    (full-pathname (make-pathname :host "ccl" :directory "lib")))
+    (full-pathname (make-pathname :host "ccl" :directory "lib/")))
   (setq *system-ex-dir*
-    (full-pathname (make-pathname :host "ccl" :directory "exs")))
+    (full-pathname (make-pathname :host "ccl" :directory "exs/")))
   (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*)))
 
 ;;; MAIN ROUTINE
