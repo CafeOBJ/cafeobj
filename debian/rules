@@ -4,6 +4,11 @@ export DH_OPTIONS
 
 co := $(CURDIR)/debian/cafeobj
 
+# asdf tries to write compiled files to XDG_CACHE_HOME which might not
+# exists, use a tmp directory
+XDG_CACHE_HOME=$(CURDIR)/tmpcache
+export XDG_CACHE_HOME
+
 build: build-arch build-indep
 build-arch: build-stamp
 build-indep: build-stamp
@@ -23,6 +28,8 @@ clean:
 	dh_testdir
 	dh_testroot
 	[ ! -f Makefile ] || $(MAKE) distclean
+	rm -f install-stamp
+	rm -rf $(XDG_CACHE_HOME)
 	dh_clean
 	
 install: install-stamp
