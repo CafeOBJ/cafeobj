@@ -189,6 +189,12 @@ endif
 # used only in creating make-cafeobj.lisp script
 chaos_root = $(srcdir)
 
+# first target when building windows distribution
+ifeq ($(enable_windows),yes)
+make-dist: install-stamp
+	zip -r cafeobj-$(VERSION)$(VMINOR)-sbcl-win32.zip $(cafeobj_bin)
+endif
+
 # first target when building binary distributions
 ifeq ($(enable_distribution),yes)
 make-dist: install-stamp
