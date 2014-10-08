@@ -32,7 +32,7 @@ dnl
 AC_INIT([CafeOBJ],[1.5], [], [cafeobj], [http://www.cafeobj.org/])
 AC_CONFIG_SRCDIR([make-cafeobj.lisp.in])
 AC_PREREQ(2.6)
-VMINOR=.1
+VMINOR=.2
 VMEMO=PigNose0.99
 PATCHLEVEL=
 AC_SUBST(VMINOR)
@@ -67,6 +67,8 @@ dnl    [AS_HELP_STRING([--with-acl-dump=<cmd>],
 dnl       [specify the ACL dump file  @<:@default: cafeobj.acl@:>@])],
 dnl    acl_dump=$withval,acl_dump=cafeobj.acl)
 acl_dump=cafeobj.acl
+dnl this is the dump file name generated for ACL standalone
+acl_standalone_dump=CafeOBJ
 
 AC_ARG_WITH(clisp,
    [AS_HELP_STRING([--with-clisp=<cmd>],
@@ -165,7 +167,7 @@ then
   # if nothing is specified, the first one found will be used!
   #lisp=acl,sbcl,clisp,gcl,cmu,ccl,ccl64
   # use only currently supported ones
-  lisp=acl,sbcl,clisp
+  lisp=acl-standalone,acl,sbcl,clisp
 fi
 
 dnl convert comma serparated list to space separated list
@@ -202,7 +204,7 @@ do
 	     fi
 	  fi
 	  ;;
-    xacl)
+    xacl|xacl-standalone)
           if test -z "$acl_path"
           then
 	     test $do_all = 1 || \
@@ -293,6 +295,7 @@ AC_SUBST(ccl32_interp)
 AC_SUBST(ccl64_interp)
 AC_SUBST(gcl_interp)
 AC_SUBST(acl_dump)
+AC_SUBST(acl_standalone_dump)
 AC_SUBST(sbcl_dump)
 AC_SUBST(clisp_dump)
 AC_SUBST(cmu_dump)
@@ -337,6 +340,13 @@ AC_ARG_ENABLE(windows,
        [enable_windows="${enableval}"],
        [enable_windows=no])
 AC_SUBST(enable_windows)
+
+AC_ARG_ENABLE(distribution,
+       [AS_HELP_STRING([--enable-distribution],
+          [Configure for binary distribution])],
+       [enable_distribution="${enableval}"],
+       [enable_distribution=no])
+AC_SUBST(enable_distribution)
 
 AC_CONFIG_FILES([
   Makefile 

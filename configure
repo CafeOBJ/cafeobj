@@ -584,6 +584,7 @@ PACKAGE_URL='http://www.cafeobj.org/'
 ac_unique_file="make-cafeobj.lisp.in"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+enable_distribution
 enable_windows
 enable_traditional_layout
 enable_rebuild_doc
@@ -597,6 +598,7 @@ ccl32_dump
 cmu_dump
 clisp_dump
 sbcl_dump
+acl_standalone_dump
 acl_dump
 gcl_interp
 ccl64_interp
@@ -670,6 +672,7 @@ with_lisp
 enable_rebuild_doc
 enable_traditional_layout
 enable_windows
+enable_distribution
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1293,6 +1296,7 @@ Optional Features:
   --enable-traditional-layout
                           Enable traditional layout [default=no]
   --enable-windows        Prepare for Windows building
+  --enable-distribution   Configure for binary distribution
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1736,7 +1740,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-VMINOR=.1
+VMINOR=.2
 VMEMO=PigNose0.99
 PATCHLEVEL=
 
@@ -1896,6 +1900,7 @@ else
 fi
 
 acl_dump=cafeobj.acl
+acl_standalone_dump=CafeOBJ
 
 
 # Check whether --with-clisp was given.
@@ -2307,7 +2312,7 @@ then
   # if nothing is specified, the first one found will be used!
   #lisp=acl,sbcl,clisp,gcl,cmu,ccl,ccl64
   # use only currently supported ones
-  lisp=acl,sbcl,clisp
+  lisp=acl-standalone,acl,sbcl,clisp
 fi
 
 lisp=$(echo $lisp | sed -e 's/,/ /g')
@@ -2343,7 +2348,7 @@ do
 	     fi
 	  fi
 	  ;;
-    xacl)
+    xacl|xacl-standalone)
           if test -z "$acl_path"
           then
 	     test $do_all = 1 || \
@@ -2423,6 +2428,7 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: Building for the following lisp interpreters: $lisp" >&5
 $as_echo "$as_me: Building for the following lisp interpreters: $lisp" >&6;}
+
 
 
 
@@ -2630,6 +2636,15 @@ if test "${enable_windows+set}" = set; then :
   enableval=$enable_windows; enable_windows="${enableval}"
 else
   enable_windows=no
+fi
+
+
+
+# Check whether --enable-distribution was given.
+if test "${enable_distribution+set}" = set; then :
+  enableval=$enable_distribution; enable_distribution="${enableval}"
+else
+  enable_distribution=no
 fi
 
 

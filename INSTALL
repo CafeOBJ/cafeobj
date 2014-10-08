@@ -15,6 +15,19 @@ built on the following platforms:
 
 At least one of these needs to be installed in the users' PATH.
 
+Considerations concering redestribution
+---------------------------------------
+Building the CafeOBJ interpreter with SBCL allows for 
+redistribution without the need for SBCL being installed,
+as the dump itself can be executed.
+
+This is also possible with Allegro CL, but needs a specific
+license obtainable from Franz.
+
+With CLISP the interpreter has to be installed at the target
+system.
+
+
 ========
 BUILDING
 ========

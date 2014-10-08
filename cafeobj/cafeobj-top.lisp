@@ -272,7 +272,7 @@
   ;;
   (in-package :chaos)
   ;; patch by t-seino@jaist.ac.jp
-  #+(or CCL allegro)
+  #+(or CCL allegro (and SBCL win32))
   (set-cafeobj-standard-library-path)
   ;;
   (let ((res (catch *top-level-tag* (cafeobj) 'ok-exit)))
