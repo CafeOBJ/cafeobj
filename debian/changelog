@@ -2,8 +2,9 @@ cafeobj (1.5.2-1) unstable; urgency=medium
 
   * new upstream releases
   * fix building with unavailable $HOME (Closes: #764426)
+  * bump standards version, no changes necessary
 
- -- Norbert Preining <preining@debian.org>  Wed, 08 Oct 2014 10:17:08 +0900
+ -- Norbert Preining <preining@debian.org>  Wed, 08 Oct 2014 10:18:32 +0900
 
 cafeobj (1.5.0-1) unstable; urgency=low
 

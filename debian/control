@@ -3,7 +3,7 @@ Section: science
 Priority: optional
 Maintainer: Norbert Preining <preining@debian.org>
 Build-Depends: debhelper (>= 8.1.0~), sbcl, fonts-mplus, fonts-freefont-otf, texlive-latex-recommended, texlive-fonts-recommended, texlive-latex-extra, texlive-bibtex-extra, texlive-xetex, lmodern, pandoc, pandoc-citeproc, biber
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Homepage: http://www.cafeobj.org/
 
 
