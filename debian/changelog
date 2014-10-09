@@ -1,3 +1,9 @@
+cafeobj (1.5.2-2) unstable; urgency=medium
+
+  * remove build-opts on armhf, something is broken there (FTBFS)
+
+ -- Norbert Preining <preining@debian.org>  Thu, 09 Oct 2014 09:07:46 +0900
+
 cafeobj (1.5.2-1) unstable; urgency=medium
 
   * new upstream releases

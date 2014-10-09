@@ -1,0 +1,18 @@
+---
+ Makefile.in |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- cafeobj.git.orig/Makefile.in
++++ cafeobj.git/Makefile.in
+@@ -68,7 +68,11 @@
+ 
+ SBCL_DUMP         = dumps/sbcl/@sbcl_dump@
+ SBCL_INTERPRETER  = @sbcl_interp@
++ifdef NO_SBCL_BUILDOPTS
++SBCL_BUILDOPTS    =
++else
+ SBCL_BUILDOPTS    = --dynamic-space-size 2048
++endif
+ SBCL_DUMPFILE      = make-cafeobj.lisp
+ 
+ CMU_DUMP          = dumps/cmu/@cmu_dump@
