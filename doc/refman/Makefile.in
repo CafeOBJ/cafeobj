@@ -30,19 +30,19 @@ SHELL=/bin/bash
 
 ENGINE=xelatex
 
-#	-V documentclass=book				\
+PDOPTSALL= -f markdown --table-of-contents --toc-depth=2
 
-PDOPTS=-f markdown -V biblio-files=manual.bib --biblatex	\
-	--template=template.tex				\
-	--table-of-contents				\
-	--toc-depth=1					\
+PDOPTSOTHER=
+PDOPTSLATEX=						\
+	--template=template.tex 			\
+	--biblatex					\
+	-V biblio-files=manual.bib			\
 	-V papersize=a4paper				\
 	-V mainfont='Lucida Bright OT'			\
 	-V sansfont='Lucida Sans OT'			\
 	-V monofont='Lucida Sans Typewriter OT'		\
 	-V documentclass=memoir				\
 	--latex-engine=$(ENGINE)
-
 
 #
 # included md files, order is important!!!
@@ -58,19 +58,19 @@ update-ref:
 	cafeobj -batch update-reference.cafe
 
 reference-manual.odt: $(MDFILES) Makefile.in
-	pandoc ${PDOPTS} -t odt -s -o reference-manual.odt ${MDFILES}
+	pandoc ${PDOPTSALL} ${PDOPTSOTHER} -t odt -s -o reference-manual.odt ${MDFILES}
 
 reference-manual.epub: $(MDFILES) Makefile.in
-	pandoc ${PDOPTS} -t epub -s -o reference-manual.epub ${MDFILES}
+	pandoc ${PDOPTSALL} ${PDOPTSOTHER} -t epub -s -o reference-manual.epub ${MDFILES}
 
 reference-manual.tex: $(MDFILES) Makefile.in manual.bib template.tex
-	pandoc ${PDOPTS} -t latex -s -o reference-manual.tex ${MDFILES}
+	pandoc ${PDOPTSALL} ${PDOPTSLATEX} --template=template.tex -t latex -s -o reference-manual.tex ${MDFILES}
 
 reference-manual-orig.tex: $(MDFILESORIG) Makefile.in manual.bib template.tex
-	pandoc ${PDOPTS} -t latex -s -o reference-manual-orig.tex ${MDFILESORIG}
+	pandoc ${PDOPTSALL} ${PDOPTSLATEX} -t latex -s -o reference-manual-orig.tex ${MDFILESORIG}
 
 reference-manual.html: $(MDFILES) Makefile.in
-	pandoc ${PDOPTS} -t html -s -o reference-manual.html ${MDFILES}
+	pandoc ${PDOPTSALL} ${PDOPTSOTHER} -t html -s -o reference-manual.html ${MDFILES}
 
 reference-manual.bbl: reference-manual.tex manual.bib
 	$(ENGINE) reference-manual.tex
