@@ -161,7 +161,7 @@ are connected via transitions.
 (define ("=*=")
     :type :doc-only
     :mdkey "bequality"
-    :doc "The predicate for behavioural equivalence, written `=*=`, is a binary
+    :doc "The predicate for behavioral equivalence, written `=*=`, is a binary
 operator defined on each hidden sort. 
 
 TODO: old manual very unclear ... both about `=*=` and 
@@ -211,7 +211,7 @@ When called as ?? both documentation and examples are shown.
 CafeOBJ> ?ap prec oper
 `````
 will search for all entries that contain both `prec` and `oper` as
-substrings. Matching is done as simple sub-string match.
+sub-strings. Matching is done as simple sub-string match.
 
 `````
 CafeOBJ> ?ap foo att[er]
@@ -282,7 +282,7 @@ in the rule are bound to the given term.
 
 `<range>` is either `within` or `at`. In the former case the action is
 applied at or inside the (sub)term specified by the following
-selection. In the later case it means exactely at the (sub)term.
+selection. In the later case it means exactly at the (sub)term.
 
 Finally, the `<selection>` is an expression
 
@@ -356,7 +356,7 @@ Optional structuring of the statements in a module.
     :evaluator cafeobj-eval-module-element-proc
     :title "`bceq [ <op-exp> ] <term> = <term> if <boolterm> .`"
     :related ("eq" "ceq" "beq")
-    :doc "Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
+    :doc "Defines a behavioral conditional equation. For details see [`ceq`](#ceq).
 ")
 
 (define ("beq")
@@ -365,7 +365,7 @@ Optional structuring of the statements in a module.
     :evaluator cafeobj-eval-module-element-proc
     :title "`beq [ <op-exp> ] <term> = <term> .`"
     :related ("eq" "ceq" "bceq")
-    :doc "Defines a behaviour equation. For details see [`eq`](#eq).
+    :doc "Defines a behavioral equation. For details see [`eq`](#eq).
 ")
 
 (define ("bctrans")
@@ -374,7 +374,7 @@ Optional structuring of the statements in a module.
     :evaluator cafeobj-eval-module-element-proc
     :title "`bctrans [ <label-exp> ] <term> => <term> if <bool> .`"
     :related ("trans" "ctrans" "btrans")
-    :doc "Defines a behaviour conditional transition. 
+    :doc "Defines a behavioral conditional transition. 
 For details see [`ctrans`](#ctrans).
 ")
 
@@ -384,9 +384,9 @@ For details see [`ctrans`](#ctrans).
     :evaluator cafeobj-eval-module-element-proc
     :title "`bop <op-spec> : <sorts> -> <sort>`"
     :related ("op")
-    :doc "Defines a behavioural operator by its domain, codomain, and the term 
+    :doc "Defines a behavioral operator by its domain, co-domain, and the term 
 construct. `<sorts>` is a space separated list of sort names containing
-*exactely* one hidden sort. `<sort>` is a single sort name.
+*exactly* one hidden sort. `<sort>` is a single sort name.
 
 For `<op-spec>` see the explanations of [`op`](#op).
 ")
@@ -398,7 +398,7 @@ For `<op-spec>` see the explanations of [`op`](#op).
     :title "`bpred <op-spec> : <sorts>`"
     :related ("op" "bop" "pred")
     :doc "Short hand for `op <op-spec> : <sorts> -> Bool` defining a
-behavioural predicate.
+behavioral predicate.
 ")
 
 (define ("breduce" "bred")
@@ -410,7 +410,7 @@ behavioural predicate.
     :doc "Reduce the given term in the given module, if `<mod-exp>` is given, 
 otherwise in the current module. 
 
-For `breduce` equations, possibly conditional, possibly behavioural, are taken
+For `breduce` equations, possibly conditional, possibly behavioral, are taken
 into account for reduction.
 ")
 
@@ -420,7 +420,7 @@ into account for reduction.
     :evaluator cafeobj-eval-module-element-proc
     :title "`btrans [ <label-exp> ] <term> => <term> .`"
     :related ("trans" "ctrans" "bctrans")
-    :doc "Defines a behaviour transition. For details see [`trans`](#trans).
+    :doc "Defines a behavioral transition. For details see [`trans`](#trans).
 ")
 
 (define ("cbred")
@@ -516,7 +516,7 @@ for details on `<selection>`.
     :evaluator cafeobj-eval-clear-memo-proc
     :mdkey "cleanmemo"
     :related (("clean memo switch" "`clean memo` switch"))
-    :doc "Resets (clears) the memo storages of the system. Memorized computations 
+    :doc "Resets (clears) the memo storage of the system. Memorized computations 
 are forgotten. 
 ")
 
@@ -598,7 +598,7 @@ In simple words, the objects determined by the terms must be
 interpretable as of the same sort.
 
 The optional part `<op-exp>` serves two purposes, one is to give
-an axiom an identifier, and one is to modify its behaviour. The
+an axiom an identifier, and one is to modify its behavior. The
 `<op-exp>` is of the form:
 
 ` [ <modifier> <label> ] : `
@@ -609,7 +609,7 @@ can look like:
 
 `eq[foobar] : foo = bar .`
 
-The `<modifier>` part is used to change the rewriting behaviour of
+The `<modifier>` part is used to change the rewriting behavior of
 the axiom.  There are at the moment two possible 
 modifiers, namely `:m-and` and `:m-or`. Both make sense only for
 operators where the arguments come from an associative sort.
@@ -618,7 +618,7 @@ of the arguments and rewrite the original term to the conjunction
 in case of `:m-and` or to the disjunction in case of `:m-or` of all
 the generated terms.
 
-Assume that `NatSet` is a sort with associative constructor modelling
+Assume that `NatSet` is a sort with associative constructor modeling
 a set of natural number, and let
 
 `````
@@ -821,7 +821,7 @@ position instead of names as in
 which would bind the `<view_name>`s to the respective parameters
 of the parameterized module `<mod_name>`.
 
-This can be combined with the ephemeral defintion of a view like in
+This can be combined with the ephemeral definition of a view like in
 the following example (assume `ILIST` has two parameters):
 
 ~~~~~
@@ -1008,7 +1008,7 @@ renaming
     separated list of mappings of either sorts (`sort` and `hsort`) or
     operators (`op` and `bop`). Source names may be qualified, while
     target names are not, they are required to be new names. Renaming
-    is often used in combination with [instantiantion](#instantiation).
+    is often used in combination with [instantiation](#instantiation).
 
 summation
   ~ `<mod_exp> + <mod_exp>`
@@ -1057,7 +1057,7 @@ definitions are quite common in proof scores.
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`op <op-spec> : <sorts> -> <sort> { <attribute-list> }`"
-    :doc "Defines an operator by its domain, codomain, and the term construct.
+    :doc "Defines an operator by its domain, co-domain, and the term construct.
 `<sorts>` is a space separated list of sort names, `<sort>` is a 
 single sort name.
 `<op-spec>` can be of the following forms:
@@ -1065,11 +1065,11 @@ single sort name.
 prefix-spec
   ~ the `<op-spec>` does not contain a literal `_`:
     This defines a normal prefix operator with domain `<sorts>` and
-    codomain `<sort>`
+    co-domain `<sort>`
 
     Example: `op f : S T -> U`
 mixfix-spec
-  ~ the `<op-spec>` contains exactely as many literal `_` as there are
+  ~ the `<op-spec>` contains exactly as many literal `_` as there are
     sort names in `<sorts>`:
     This defines an arbitrary mixfix (including postfix) operator
     where the arguments are inserted into the positions designated 
@@ -1138,9 +1138,9 @@ supported
 
     `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
  
-    In this case the first argument (the boolean term) is tried to
+    In this case the first argument (the Boolean term) is tried to
     be evaluated, and depending on that either the second or third.
-    But if the first (boolean) argument cannot be evaluated, 
+    But if the first (Boolean) argument cannot be evaluated, 
     no evaluation in the subterms will appear.
 
     Using negative values allows for lazy evaluation of the corresponding
@@ -1174,7 +1174,7 @@ Remarks:
     :mdkey "opprec"
     :related (("operator attributes"))
     :doc "CafeOBJ allows for complete freedom of syntax, in particular infix
-operators and overloading. To correctly parse terms that are ambigous,
+operators and overloading. To correctly parse terms that are ambiguous,
 all operators have precedence values. These values can be adjusted
 manually during definition of the operator 
 (see [operator attributes](#opattr)). In absence of manual
@@ -1185,7 +1185,7 @@ the following rules:
   receive operator precedence value 0.
 - unary operators, i.e., those of the form `op u_ : S1 -> S`, receive
   precedence 15.
-- mix-fix operators with forst and last token being arguments, i.e.,
+- mix-fix operators with first and last token being arguments, i.e.,
   those of the form `op _ arg-or-op _ : S1 .. Sk -> S`, receive
   precedence 41.
 - all other operators (constants, operators of the form `a _ b`, etc.)
@@ -1374,7 +1374,7 @@ equations.
     :evaluator eval-ast
     :title "`regularize <mod-name>`"
     :doc "Regularizes the signature of the given module, ensuring that every
-term has exactely one minimal parse tree. In this process additional
+term has exactly one minimal parse tree. In this process additional
 sorts are generated to ensure unique least sort of all terms.
 
 Modules can be automatically regularized by the interpreter if the
@@ -1431,7 +1431,7 @@ TODO -- should we keep the different effects? What is the real difference?
     :related ("step switch")
     :doc "Possible values: positive integers, default not specified.
 
-Allows limiting the number of rewrite steps during a stepwise
+Allows limiting the number of rewrite steps during a step-wise
 execution.
 ")
 
@@ -1456,7 +1456,7 @@ given in the current session.
     :related ("input" "save" "restore")
     :doc "Dumps the image of the whole system into a file. This is functionality
 provided by the underlying Common Lisp system and might carry some 
-restrictons.
+restrictions.
 ")
 
 (define ("search predicates")
@@ -1487,7 +1487,7 @@ The predicates return true if there is a (chain of) transitions
 that fits the parameters (`n`,`m`, and `*`, `+`, `!`) and connects `S`
 with `SS`.
 
-There are two orthogonal extension to this search perdicate, one
+There are two orthogonal extension to this search predicate, one
 adds a `suchThat` clause, one adds a `withStateEq` clause.
 
 `S =(n,m)=>* SS [if Pred1] suchThat Pred2`
@@ -1512,7 +1512,7 @@ These two cases can also be combined into
     :related ("open" "module expression")
     :doc "Selects a module given by the module expression `<mod_exp>` as the
 current module. All further operations are carried out within the
-given module. In constrast to `open` this does not allow for
+given module. In contrast to `open` this does not allow for
 modification of the module, e.g., addition of new sorts etc.
 ")
 
@@ -1524,7 +1524,7 @@ modification of the module, e.g., addition of new sorts etc.
     :title "`set <name> [option] <value>`"
     :related ("show" "switches")
     :doc "Depending on the type of the switch, options and value specification varies.
-Possible value types for switches are boolean (`on`, `off`), string (`\"value\"`),
+Possible value types for switches are Boolean (`on`, `off`), string (`\"value\"`),
 integers (5434443), lists (lisp syntax).
 
 For a list of all available switches, use `set ?`. To see the current
@@ -1548,7 +1548,7 @@ the `show` command are:
   - `show [ <modexp> ]` - describes the current modules of the one specified
 	as argument
   - `show switches` - lists all possible switches
-  - `show <term>` - displays a term, posible in tree format
+  - `show <term>` - displays a term, possible in tree format
 
 See the entry for `switches` for a full list.
 ")
@@ -1702,7 +1702,7 @@ CafeOBJ> open NAT .
     :type :doc-only
     :title "switches"
     :related ("set" "show")
-    :doc "Switches control various aspects of the computations and behaviour
+    :doc "Switches control various aspects of the computations and behavior
 of CafeOBJ. The current list of switches and their values can be
 shown with 
 
@@ -1826,7 +1826,7 @@ The `<opname>` can be qualified.
 In specifying views some rules can be omitted:
 
 1. If the source and target modules have common submodules, all the
-  sorts and modules decalred therein are assumed to be mapped to
+  sorts and modules declared therein are assumed to be mapped to
   themselves;
 
 2. If the source and target modules have sorts and/or operators with
