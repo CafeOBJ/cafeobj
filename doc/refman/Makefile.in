@@ -57,6 +57,10 @@ manuals: reference-manual.odt reference-manual.epub reference-manual.html refere
 update-ref:
 	cafeobj -batch update-reference.cafe
 
+wiki: update-ref
+	rm -rf wiki/*.mdwn
+	cat reference.md | perl refman2wiki.pl
+
 reference-manual.odt: $(MDFILES) Makefile.in
 	pandoc ${PDOPTSALL} ${PDOPTSOTHER} -t odt -s -o reference-manual.odt ${MDFILES}
 
