@@ -1,0 +1,12 @@
+20141008 email sawada
+
+How about not to specify --dynamic-space-size at image creation time?
+
+It would be nice if we can specify this at the time of invoking cafeobj.
+According to the sbcl manual (ver. 1.2.1), there is a way to do this.
+(1) specifying the argument ':save-runtime-options nil' to 'save-lisp-and-die'
+(2) calls cafeobj executable like this
+     cafeobj --dynamic-space-size XXXX --end-runtime-options
+--end-toplevel-options <args-to-cafeobj>*
+(Please refer to 3.2.3 Saving Core Image and 3.3 Command Line Options
+of the manual. )
