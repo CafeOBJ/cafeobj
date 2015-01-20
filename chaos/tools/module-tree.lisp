@@ -59,39 +59,6 @@
       (return-from print-module-graph nil)))
   (!print-module-tree mod stream t))
 
-#||
-(defun !print-module-tree (mod stream show-as-graph)
-  (let* ((leaf? #'(lambda (tree) (null (dag-node-subnodes tree))))
-	 (leaf-name #'(lambda (tree)
-		       (with-output-to-string (str)
-			 (let ((datum (dag-node-datum tree)))
-			   (case (cdr datum)
-			     (:protecting (princ "pr(" str))
-			     (:extending (princ "ex(" str))
-			     (:using (princ "us(" str))
-			     (:modmorph (princ "!(" str)))
-			   (print-chaos-object (car datum) str)
-			   (when (cdr datum) (princ ")" str)))
-			 str)))
-	 (leaf-info #'(lambda (tree) (declare (ignore tree)) t))
-	 (int-node-name #'(lambda (tree) (funcall leaf-name tree)))
-	 (int-node-children #'(lambda (tree)
-				(let ((subs nil))
-				  (dolist (sub-node (dag-node-subnodes tree))
-				    (let ((datum (dag-node-datum sub-node)))
-				      (unless (and (module-p (car datum))
-						   (or (memq (car datum) *kernel-hard-wired-builtin-modules*)
-						       (memq (cdr datum) '(:view :modmorph))))
-					(push sub-node subs))))
-				  subs)))) ;; #'(lambda (tree) (dag-node-subnodes tree))
-    (force-output stream)
-    (print-next nil *print-indent* stream)
-    (print-trees (list (if show-as-graph
-			   (augment-tree-as-graph (module-dag mod))
-			   (augment-tree (module-dag mod))))
-		 stream)))
-||#
-
 (defun !print-module-tree (mod stream show-as-graph)
   (let* ((leaf? #'(lambda (tree) (null (dag-node-subnodes tree))))
 	 (leaf-name #'(lambda (tree)
@@ -101,6 +68,7 @@
 			       (:protecting (princ "pr(" str))
 			       (:extending (princ "ex(" str))
 			       (:using (princ "us(" str))
+			       (:including (princ "inc(" str))
 			       (:modmorph (princ "!(" str)))
 			     (print-mod-name-x (car datum) str t nil)
 			     (when (cdr datum) (princ ")" str)))
@@ -183,10 +151,9 @@
 		 (print-chaos-object mod)))))
 
 (defun print-mod-name-x (arg &optional
-			   (stream *standard-output*)
-			   (abbrev nil)
-			   (no-param nil))
-  (declare (values t))
+			     (stream *standard-output*)
+			     (abbrev nil)
+			     (no-param nil))
   (let ((*standard-output* stream))
     (if (module-p arg)
 	(let ((modname (get-module-print-name arg)))
@@ -220,14 +187,10 @@
 		    ;; patch-end
 		    (setq flg t)))
 		;; (princ "]")
-		(princ ")")
-		))))
-	(print-chaos-object arg)
-	)))
+		(princ ")")))))
+	(print-chaos-object arg))))
 
-(defun print-mod-name-internal-x (val abbrev
-				    &optional
-				    (no-param nil))
+(defun print-mod-name-internal-x (val abbrev &optional (no-param nil))
   (declare (values t))
   (if (stringp val)
       (princ val)
@@ -240,8 +203,7 @@
 		    (princ ".")
 		    (print-mod-name-x (car (last val))
 				      *standard-output*
-				      abbrev no-param)
-		    )
+				      abbrev no-param))
 		  ;;
 		  (let ((cntxt (fourth val)))
 		    (if (and cntxt
@@ -254,4 +216,62 @@
 	      (print-chaos-object val))
 	  (print-modexp val *standard-output* abbrev no-param))))
 
+(defvar .mod-dup-hash. (make-hash-table :test #'eq))
+;; (defparameter .submod-level. -1)
+
+(defun describe-module-tree (dag-node &optional (stream *standard-output*))
+  (clrhash .mod-dup-hash.)
+  (d-module-tree* dag-node stream nil))
+
+(defun describe-module-graph (dag-node &optional (stream *standard-output*))
+  (clrhash .mod-dup-hash.)
+  (d-module-tree* dag-node stream nil))
+
+(defun pr-imp-mode (mode stream)
+  (case mode
+    (:protecting (princ "pr" stream))
+    (:extending (princ "ex" stream))
+    (:using (princ "us" stream))
+    (:icluding (princ "inc" stream))
+    (:modmorph (princ "mph" stream))
+    (otherwise (princ "??" stream))))
+
+(defun d-module-tree* (dag-node stream p-label &optional my-num)
+  (let* ((mod+imp (dag-node-datum dag-node))
+	 (mod (car mod+imp))
+	 (imp (cdr mod+imp))
+	 (*print-line-limit* 80)
+	 (*print-xmode* :fancy)
+	 (.submod-level. (1+ .submod-level.))
+	 (num (if (and p-label my-num)
+		  (format nil "~a-~d" p-label my-num)
+		(if my-num
+		    (format nil "~a" my-num)
+		  nil)))
+	 (dup? (gethash mod .mod-dup-hash.)))
+    (when num
+      (format stream "[~a]: " num)
+      (when imp
+	(pr-imp-mode imp stream)))
+    (cond (dup? (format stream "=> ~a" dup?))
+	  (t (setf (gethash mod .mod-dup-hash.) num)
+	     (let ((*print-indent* (+ (max 6 (length num)) *print-indent*)))
+	       (declare (type fixnum *print-indent*))
+	       (when num (princ "(" stream))
+	       (print-mod-name-x mod stream)
+	       (when num (princ ")" stream)))
+	     (with-in-module (mod)
+	       (let ((subnodes (dag-node-subnodes dag-node)))
+		 (when subnodes
+		   (let ((*print-indent* (+ 2 *print-indent*))
+			 (y-num 1))
+		     (dolist (sub subnodes)
+		       (let ((subm (car (dag-node-datum sub)))
+			     (sub-imp (cdr (dag-node-datum sub))))
+			 (unless (or (module-hidden subm)
+				     (eq sub-imp :modmorph)
+				     (equal (module-name subm) "NIL"))
+			   (print-next-prefix #\Space)
+			   (d-module-tree* sub stream num y-num)
+			   (incf y-num))))))))))))
 ;;; EOF

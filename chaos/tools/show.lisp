@@ -243,10 +243,12 @@
     (let ((modval (eval-mod-ext mod)))
       (when modval
 	(if tree
-	    (print-module-graph modval)
 	    (if desc
-		(describe-module modval)
-		(show-module modval)))))))
+		(describe-module-graph (module-dag modval))
+	      (print-module-graph modval))
+	  (if desc
+	      (describe-module modval)
+	    (show-module modval)))))))
 
 ;;; *************
 ;;; SHOW VIEW ...
