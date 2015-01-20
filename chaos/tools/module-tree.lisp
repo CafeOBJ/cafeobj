@@ -217,7 +217,6 @@
 	  (print-modexp val *standard-output* abbrev no-param))))
 
 (defvar .mod-dup-hash. (make-hash-table :test #'eq))
-;; (defparameter .submod-level. -1)
 
 (defun describe-module-tree (dag-node &optional (stream *standard-output*))
   (clrhash .mod-dup-hash.)
@@ -242,7 +241,6 @@
 	 (imp (cdr mod+imp))
 	 (*print-line-limit* 80)
 	 (*print-xmode* :fancy)
-	 (.submod-level. (1+ .submod-level.))
 	 (num (if (and p-label my-num)
 		  (format nil "~a-~d" p-label my-num)
 		(if my-num
