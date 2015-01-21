@@ -534,6 +534,7 @@
 (defun print-modules (x)
   (declare (ignore x))
   (let ((*print-indent-contin* nil)
+	(*print-line-limit* 80)
 	(mods nil))
     (dolist (entry *modules-so-far-table*)
       (let ((m (cdr entry)))
@@ -551,7 +552,7 @@
       (when (< 0 (filecol *standard-output*))
 	(princ "  "))
       ;; (print-modexp-simple m)
-      (print-mod-name2 m *standard-output* t)
+      (print-mod-name m *standard-output* t t)
       (print-check))
     (fresh-line)))
 
