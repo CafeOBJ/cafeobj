@@ -525,7 +525,8 @@
 		  (when (at-eof)
 		    (setf .reader-ch. 'space)
 		    (!read-discard)
-		    (return-from skip-multi-comment *lex-eof*)))))))))
+		    (return-from skip-multi-comment *lex-eof*))
+		  (reader-unread .reader-ch. stream))))))))
 
 ;;; READ-SYM : STREAM -> TOKEN
 ;;; read characters considered to be constructs of a token, returns
