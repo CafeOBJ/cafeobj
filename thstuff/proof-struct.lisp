@@ -339,7 +339,8 @@
 	  (cur-goal (ptree-node-goal ptree-node))
 	  (next-goal (make-goal :name goal-name
 				:tactic tactic)))
-      ;; (clean-up-module next-context)
+      ;; goal module is hidden from user
+      (setf (module-hidden next-context) t)
       (push (%module-decl-name decl-form) .goals-so-far.)
       ;; import original context module
       (import-module next-context :including (goal-context cur-goal))
@@ -736,6 +737,7 @@
   (unless goal-axioms (return-from begin-proof nil))
   (let* ((*chaos-quiet* t)
 	 (root-module (eval-ast .root-context-module.)))
+    (setf (module-hidden root-module) t)
     (prepare-root-context root-module context-module)
     (when .goals-so-far. 
       (setq *modules-so-far-table* (remove-if #'(lambda (x) 

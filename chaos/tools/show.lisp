@@ -535,19 +535,10 @@
   (declare (ignore x))
   (let ((*print-indent-contin* nil)
 	(mods nil))
-    #||
-    (maphash #'(lambda (key m)
-		 (declare (ignore key))
-		 (if (module-is-hard-wired m)
-		     (when (or *on-debug* *chaos-verbose*)
-		       (push m mods))
-		     (unless (equal (module-name m) "%") (push m mods))))
-	     *modules-so-far-table*)
-    ||#
     (dolist (entry *modules-so-far-table*)
       (let ((m (cdr entry)))
-	(if (module-is-hard-wired m)
-	    (when t			; (or *on-debug* *chaos-verbose*)
+	(if (module-hidden m)
+	    (when (or *on-debug* *chaos-verbose*)
 	      (push m mods))
 	  (unless (equal (module-name m) "%") (push m mods)))))
     ;;
