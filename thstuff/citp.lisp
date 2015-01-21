@@ -191,9 +191,33 @@
 
 ;;;
 ;;; citp-parse-verbose
-;;;
+;;; :verbose {on | off}
 (defun citp-parse-verbose (args)
   (second args))
+
+;;;
+;;; citp-parse-ctf
+;;; :ctf { eq <term> = <term> .}
+;;;
+(defun citp-parse-ctf (args)
+  (let ((ax nil))
+    (setq ax (parse-module-element-1 (third args)))
+    ax))
+
+;;;
+;;; { :show | :describe } <something>
+;;;
+(defun citp-parse-show (inp)
+  (let ((tag (car inp))
+	(args (cdr inp))
+	(com nil))
+    (cond ((member tag '(":show" ":sh") :test #'equal)
+	   (setq com :show))
+	  ((member tag '(":describe" ":desc") :test #'equal)
+	   (setq com :describe))
+	  (t (with-output-chaos-error ('internal)
+	       (format t "Internal error, unknown citp command ~s" tag))))
+    (cons com args)))
 
 ;;; ================================
 ;;; CITP related command evaluators
@@ -284,5 +308,36 @@
       (with-output-chaos-error ('invlid-value)
 	(format t "Unknown parameter ~s." token)))))
 
+;;; :ctf
+;;;
+(defun eval-citp-ctf (equation)
+  (check-context-module)
+  (with-in-module (*current-module*)
+    (let ((ax (parse-axiom-declaration equation)))
+      (apply-ctf ax))))
+
+;;; :show, :describe
+(defun eval-citp-show (token)
+  (let* ((com (car token))
+	 (describe (eq com :describe))
+	 (target (cadr token))
+	 (rest-args (cddr token)))
+    (cond ((member target '("unproved" "unp") :test #'equal)
+	   (check-ptree)
+	   (print-unproved-goals *proof-tree*))
+	  ((equal target "goal")
+	   (check-ptree)
+	   (let ((name (car rest-args)))
+	     (print-named-goal *proof-tree* name)))
+	  ((equal target "proof")
+	   (let ((name (car rest-args)))
+	     (when (or (null name) (equal name "."))
+	       (setq name "root"))
+	     (print-proof-tree name describe)))
+	  ((member target '("." "current") :test #'equal)
+	   (check-ptree)
+	   (print-current-goal describe))
+	  (t (with-output-chaos-error ('unknown)
+	       (format t "Unknown parameter to :show/:describe ~S" target))))))
 
 ;;; EOF

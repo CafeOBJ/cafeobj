@@ -586,7 +586,7 @@ to be on a line by itself without leading spaces.
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :title "`eq [ <op-exp> ] <term> = <term> .`"
+    :title "`eq [ <op-exp> ]: <term> = <term> .`"
     :related ("ceq" "beq" "bceq")
     :doc "Declares an axiom, or equation.
 
@@ -2283,6 +2283,32 @@ Do nothing.
     :title "`:verbose { on | off }`"
     :doc "TODO"
     )
+
+(define (":ctf")
+    :category :proof
+    :parser citp-parse-ctf
+    :evaluator eval-citp-ctf
+    :title "`:ctf { eq [ <op-exp> ]: <term> = <term> .`"
+    :doc "TODO"
+    )
+
+(define  (":show" ":sh")
+    :category :inspect
+    :parser citp-parse-show
+    :evaluator eval-citp-show
+    :title "`:show <something>`"
+    :related (":describe")
+    :doc "TODO")
+
+(define (":describe" ":desc")
+    :category :inspect
+    :parser citp-parse-show
+    :evaluator eval-citp-show
+    :title "`:describe <something>`"
+    :related (":show")
+    :doc "Similar to the `:show` command but with more details. See `:describe ?` for
+the possible set of invocations.
+")
 
 ;;;
 )					; end eval-when

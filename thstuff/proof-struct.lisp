@@ -69,6 +69,9 @@
 
   ;; default tatics is a seriase of SI CA CS TC IP.
   (defparameter .default-tactics. (list .tactic-si. .tactic-ca. .tactic-cs. .tactic-tc. .tactic-ip. .tactic-rd.))
+  ;; this is not an ordinary tactic but a command, but it generates goals
+  (defparameter .tactic-ctf. (make-tactic :name :ctf
+					  :executor 'apply-ctf))
 
   ;; user defiled tactics: assoc list of (name . list-of-tactics)
   ;;
@@ -828,5 +831,17 @@
 	    (dolist (sub subnodes)
 	      (print-next-prefix #\.)
 	      (describe-proof-tree sub))))))))
+
+;;;
+;;; print-current-goal : mode -> void
+;;;
+(defun print-current-goal (describe)
+  (let ((current (get-next-proof-context *proof-tree*)))
+    (if current
+	(if describe			; :describe
+	    (pr-goal (ptree-node-goal current))
+	  (format t "~%The current goal is ~a" (goal-name (ptree-node-goal current))))
+      (with-output-chaos-warning ()
+	(format t "All goals have been discharged.")))))
 
 ;;; EOF

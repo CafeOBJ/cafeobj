@@ -2130,6 +2130,59 @@
 	  (format t "No default target goal."))))
     (perform-reduction* token-seq (goal-context (ptree-node-goal next-goal-node)) mode)))
 
+;;; :ctf
+;;;
+(defun do-apply-ctf (cur-node equation)
+  (let ((*chaos-quiet* t)
+	(*rwl-search-no-state-report* t)
+	(cur-goal (ptree-node-goal cur-node)))
+    (when (goal-is-discharged cur-goal)
+      (with-output-chaos-warning ()
+	(format t "** The goal ~s has been proved!." (goal-name (ptree-node-goal cur-node)))
+	(return-from do-apply-ctf nil)))
+    (let ((t-goal (prepare-next-goal cur-node .tactic-ctf.))
+	  (f-goal (prepare-next-goal cur-node .tactic-ctf.)))
+      ;; true case
+      (with-in-module ((goal-context t-goal))
+	(adjoin-axiom-to-module *current-module* equation)
+	(set-operator-rewrite-rule *current-module* equation)
+	(compile-module *current-module*))
+      (setf (goal-targets t-goal) (goal-targets cur-goal))
+      (setf (goal-assumptions t-goal) (append (goal-assumptions cur-goal) (list equation)))
+      ;; false case
+      (let ((f-ax nil))
+	(with-in-module ((goal-context f-goal))
+	  (setq f-ax (make-rule :lhs (make-applform-simple *bool-sort* 
+							   *eql-op*
+							   (list (rule-lhs equation)
+								 (rule-rhs equation)))
+				:rhs *bool-false*
+				:condition *bool-true*
+				:type :equation
+				:behavioural nil))
+	  (adjoin-axiom-to-module *current-module* f-ax)
+	  (set-operator-rewrite-rule *current-module* f-ax)
+	  (compile-module *current-module*))
+	(setf (goal-targets f-goal) (goal-targets cur-goal))
+	(setf (goal-assumptions f-goal) (append (goal-assumptions cur-goal) (list f-ax)))
+	(values t (list t-goal f-goal))))))
+
+(defun apply-ctf (equation &optional (verbose *citp-verbose*))
+  (check-ptree)
+  (let ((ptree-node (get-next-proof-context *proof-tree*)))
+    (multiple-value-bind (applied next-goals)
+	(do-apply-ctf ptree-node equation)
+      (declare (ignore applied))
+      (unless next-goals
+	(return-from apply-ctf nil))
+      (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
+      (add-ptree-children ptree-node next-goals)
+      (when verbose
+	(dolist (gn (ptree-node-subnodes ptree-node))
+	  (pr-goal (ptree-node-goal gn))))
+      (ptree-node-subnodes ptree-node))))
+      
+
 ;;; *****************************************************
 ;;; APPLY-TACTIC
 ;;; apply-tactic : ptree-node tactic -> List(ptree-node)

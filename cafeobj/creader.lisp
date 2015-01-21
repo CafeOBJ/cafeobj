@@ -793,8 +793,8 @@
 	((:+ |:red| |lred| |:lred| |:exec| |:bred|)
 	 (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
 	(|:verbose| :symbol)
-	;; blocked comment
-	(|**{| :bcomment)
+	(|:ctf| |{| #.EqDeclaration |}|)
+	((:+ |:show| |:sh| |:describe| |:desc|) :args)
         ))				; end Top-Form
 
       ;; some separated definitions of non-terminals.
