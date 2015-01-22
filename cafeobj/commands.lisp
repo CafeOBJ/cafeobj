@@ -368,7 +368,7 @@ Optional structuring of the statements in a module.
     :doc "Defines a behavioral equation. For details see [`eq`](#eq).
 ")
 
-(define ("bctrans")
+(define ("bctrans" "bctr")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -391,7 +391,7 @@ construct. `<sorts>` is a space separated list of sort names containing
 For `<op-spec>` see the explanations of [`op`](#op).
 ")
 
-(define ("bpred")
+(define ("bpred" "bpreds" "bprs")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -414,7 +414,7 @@ For `breduce` equations, possibly conditional, possibly behavioral, are taken
 into account for reduction.
 ")
 
-(define ("btrans")
+(define ("btrans" "btr")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -1213,7 +1213,7 @@ command will prompt for one of the trees.
     :doc "
 ")
 
-(define ("pred")
+(define ("pred" "preds" "prs")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -1983,7 +1983,14 @@ CafeOBJ> lisp (+ 4 5)
     :doc "(pignose)
 ")
   
-(define ("trns" "ctrns")
+(define ("trans" "ctrans")
+    :category :module-element
+    :parser identity
+    :evaluator cafeobj-eval-module-element-proc
+    :doc "
+")
+
+(define ("tr" "ctr")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -2011,13 +2018,6 @@ CafeOBJ> lisp (+ 4 5)
     :doc "
 ")
 
-(define ("btrns" "bctrns")
-    :category :module-element
-    :parser identity
-    :evaluator cafeobj-eval-module-element-proc
-    :doc "
-")
-
 (define ("brl" "bcrl")
     :category :module-element
     :parser identity
@@ -2025,6 +2025,19 @@ CafeOBJ> lisp (+ 4 5)
     :doc "
 ")
 
+(define ("btrans" "bctrans")
+    :category :module-element
+    :parser identity
+    :evaluator cafeobj-eval-module-element-proc
+    :doc "
+")
+
+(define ("btr" "bctr")
+    :category :module-element
+    :parser identity
+    :evaluator cafeobj-eval-module-element-proc
+    :doc "
+")
 
 (define ("inspect")
     :category :proof

@@ -477,6 +477,22 @@
                    (with-output-panic-message ()
                      (format t "unknown predicate type ~a" type)))))))
 
+;;; PREDS
+(defun process-predicates-declaration-form (decl &rest ignore)
+  (declare (ignore ignore))
+  (mapcar #'(lambda (pat)
+	      (process-predicate-declaration-form
+	       (list* "pred" (if (consp pat) pat (list pat)) (cddr decl))))
+	  (group-paren-units (cadr decl))))
+
+;;; BPREDS
+(defun process-bpredicates-declaration-form (decl &rest ignore)
+  (declare (ignore ignore))
+  (mapcar #'(lambda (pat)
+	      (process-predicate-declaration-form
+	       (list* "bpred" (if (consp pat) pat (list pat)) (cddr decl))))
+	  (group-paren-units (cadr decl))))
+
 ;;; OPS
 (defun process-operators-declaration-form (decl &rest ignore)
   (declare (ignore ignore))
@@ -625,7 +641,7 @@
 ;;; input form : (kind ([ label ] lhs tokens ) ( rhs tokens )
 ;;;               [ "if" ( condition tokens ) ])
 ;;;  kind is one of "eq", "ceq" "cq" "rule" "rl" "crule" "crl"
-;;;
+;;;                 "trans" "tr" "btrans" "btr" "bctrans" "bctr"
 (defun process-axiom-form (decl &rest ignore)
   (declare (ignore ignore))
   (let (type

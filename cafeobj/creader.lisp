@@ -117,7 +117,7 @@
               (|identity:| :chaos-item)
               (|idr:| :chaos-item)
               (|identity-rules:| :chaos-item)
-              ((:pred general-read-numberp))
+              ;; ((:pred general-read-numberp))
               ((:+ prec precedence |prec:| |pecedence:|) :int)
               (|(| (:seq-of :int) |)|)
               ((:+ strat strategy |strat:| |strategy:|)
@@ -141,7 +141,7 @@
               (|identity:| :chaos-item)
               (|idr:| :chaos-item)
               (|identity-rules:| :chaos-item)
-              ((:pred general-read-numberp))
+              ;; ((:pred general-read-numberp))
               ((:+ prec precedence |prec:| |pecedence:|) :int)
               (|(| (:seq-of :int) |)|)
               ((:+ strat strategy |strat:| |strategy:|)
@@ -156,11 +156,11 @@
 ;;; PREDICATE -- short hand for bool-valued ops.
 
   (defparameter PredicateDeclaration
-      '(pred (:seq-of :opname) |:|
+      '((:+ pred preds) (:seq-of :opname) |:|
         (:upto (op ops bop bops |[| pred preds bpred bpreds hidden signature sig
                 axioms ax axiom imports dpred
                 |{| |}| |.| -- ** --> **> class record eq rule rl ceq crule crl
-                bq bcq beq bceq brule brl bcrule bcrl trans tr btrans btr
+                bq bcq beq bceq brule brl bcrule bcrl trans tr ctrans ctr btrans btr
                 bctrans bctr fax bfax
                 var vars parse ev evq lisp lispq let |#define|)
          :sorts)
@@ -186,12 +186,12 @@
          )))
 
   (defparameter BPredicateDeclaration
-      '(bpred (:seq-of :opname) |:|
+      '((+ bpred bpreds) (:seq-of :opname) |:|
         (:upto (op ops bop bops |[| pred preds bpred bpreds hidden signature sig
-                axioms ax axiom imports 
+                axioms ax axiom imports dpred
                 |{| |}| |.| -- ** --> **> class record eq rule rl ceq crule crl
-                bq bcq beq bceq brule brl bcrule bcrl trans trns btrans btrns
-                bctrans bctrns fax bfax
+                bq bcq beq bceq brule brl bcrule bcrl trans tr ctrans ctr btrans btr
+                bctrans bctr fax bfax
                 var vars parse ev evq lisp lispq let |#define|)
          :sorts)
         (:if-present
@@ -241,12 +241,12 @@
 ;;; RECORD DECLARATION
 ;;; *NOTE* class is not part of CafeOBJ language.
 ;;;-----------------------------------------------------------------------------
-
+#|| -- this is obsolete
   (defparameter R-C-Declaration
       '((:+ record class) :symbol (:optional (:! Supers)) |{|
         (:optional (:! Sv-pairs))
         |}|))
-
+||# 
 ;;;-----------------------------------------------------------------------------
 ;;; LET
 ;;;-----------------------------------------------------------------------------
@@ -296,13 +296,13 @@
 ;;; STATE TRANSITION
 
   (defparameter RlDeclaration
-      '((:+ rule rl trans trns) :term => :term |.|))
+      '((:+ rule rl trans tr) :term => :term |.|))
   (defparameter BRLDeclaration
-      '((:+ brule brl btrans btrns) :term => :term |.|))
+      '((:+ brule brl btrans btr) :term => :term |.|))
   (defparameter CRLDeclaration
-      '((:+ crule crl ctrans ctrns) :term => :term if :term |.|))
+      '((:+ crule crl ctrans ctr) :term => :term if :term |.|))
   (defparameter BCRLDeclaration
-      '((:+ bcrule brl bctrans bctrns) :term => :term if :term |.|))
+      '((:+ bcrule brl bctrans bctr) :term => :term if :term |.|))
 
 ;;;-----------------------------------------------------------------------------
 ;;; IMPORTATIONS
@@ -375,7 +375,7 @@
                                #.PredicateDeclaration
                                #.BPredicateDeclaration
                                #.OperatorAttribute
-                               #.R-C-Declaration
+                               ;; #.R-C-Declaration
                                ((:+ --> **>) :comment)
                                ((:+ -- **) :comment)
                                )
@@ -409,7 +409,7 @@
           #.SortDeclaration
           #.HSortDeclaration
           #.BHSortDeclaration
-          #.R-C-Declaration
+          ;; #.R-C-Declaration
           #.OperatorDeclaration
           #.BOperatorDeclaration
           #.PredicateDeclaration
@@ -569,7 +569,7 @@
 				     #.PredicateDeclaration
 				     #.BPredicateDeclaration
 				     #.OperatorAttribute
-				     #.R-C-Declaration
+				     ;; #.R-C-Declaration
 				     ((:+ --> **>) :comment)
 				     ((:+ -- **) :comment)
 				     )
@@ -603,7 +603,7 @@
 		#.SortDeclaration
 		#.HSortDeclaration
 		#.BHSortDeclaration
-		#.R-C-Declaration
+		;; #.R-C-Declaration
 		#.OperatorDeclaration
 		#.BOperatorDeclaration
 		#.PredicateDeclaration
