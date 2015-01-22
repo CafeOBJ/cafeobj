@@ -89,13 +89,13 @@
     :parser process-boperators-declaration-form
     :evaluator eval-ast)
 
-(define ("pred")
+(define ("pred" "pd")
     :type :inner-module
     :category :signature
     :parser process-predicate-declaration-form
     :evaluator eval-ast)
 
-(define ("preds")
+(define ("preds" "pds")
     :type :inner-module
     :category :signature
     :parser process-predicates-declaration-form
@@ -107,13 +107,13 @@
     :parser process-predicate-declaration-form
     :evaluator eval-ast)
               
-(define ("bpred")
+(define ("bpred" "bpd")
     :type :inner-module
     :category :signature 
     :parser process-predicate-declaration-form
     :evaluator eval-ast)
 
-(define ("bpreds")
+(define ("bpreds" "bpds")
     :type :inner-module
     :category :signature 
     :parser process-bpredicates-declaration-form

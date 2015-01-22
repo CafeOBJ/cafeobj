@@ -391,7 +391,7 @@ construct. `<sorts>` is a space separated list of sort names containing
 For `<op-spec>` see the explanations of [`op`](#op).
 ")
 
-(define ("bpred" "bpreds" "bprs")
+(define ("bpred" "bpreds" "bpd" "bpds")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -1213,7 +1213,7 @@ command will prompt for one of the trees.
     :doc "
 ")
 
-(define ("pred" "preds" "prs")
+(define ("pred" "pd" "preds" "pds")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc

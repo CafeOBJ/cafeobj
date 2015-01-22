@@ -460,22 +460,21 @@
                          (nth 3 e)))
           (coarity "Bool")
           (attr (process-opattr-form (cadr (nth 4 e)))))
-      (case-equal type
-                  ("pred"
-                   (%make-op-decl :name pat
-                                  :arity arity
-                                  :coarity coarity
-                                  :attribute attr
-                                  :hidden nil))
-                  ("bpred"
-                   (%make-op-decl :name pat
-                                  :arity arity
-                                  :coarity coarity
-                                  :attribute attr
-                                  :hidden :hidden))
-                  (t
-                   (with-output-panic-message ()
-                     (format t "unknown predicate type ~a" type)))))))
+      (cond ((member type '("pred" "pd") :test #'equal)
+	     (%make-op-decl :name pat
+			    :arity arity
+			    :coarity coarity
+			    :attribute attr
+			    :hidden nil))
+	    ((member type '("bpred" "bpd") :test #'equal)
+	     (%make-op-decl :name pat
+			    :arity arity
+			    :coarity coarity
+			    :attribute attr
+			    :hidden :hidden))
+	    (t
+	     (with-output-panic-message ()
+	       (format t "unknown predicate type ~a" type)))))))
 
 ;;; PREDS
 (defun process-predicates-declaration-form (decl &rest ignore)

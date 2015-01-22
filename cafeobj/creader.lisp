@@ -156,8 +156,8 @@
 ;;; PREDICATE -- short hand for bool-valued ops.
 
   (defparameter PredicateDeclaration
-      '((:+ pred preds) (:seq-of :opname) |:|
-        (:upto (op ops bop bops |[| pred preds bpred bpreds hidden signature sig
+      '((:+ pred preds pd pds) (:seq-of :opname) |:|
+        (:upto (op ops bop bops |[| pred preds pd pds bpred bpreds bpd bpds hidden signature sig
                 axioms ax axiom imports dpred
                 |{| |}| |.| -- ** --> **> class record eq rule rl ceq crule crl
                 bq bcq beq bceq brule brl bcrule bcrl trans tr ctrans ctr btrans btr
@@ -186,8 +186,8 @@
          )))
 
   (defparameter BPredicateDeclaration
-      '((+ bpred bpreds) (:seq-of :opname) |:|
-        (:upto (op ops bop bops |[| pred preds bpred bpreds hidden signature sig
+      '((+ bpred bpreds bpd bpds) (:seq-of :opname) |:|
+        (:upto (op ops bop bops |[| pred preds pd pds bpred bpreds bpd bpds hidden signature sig
                 axioms ax axiom imports dpred
                 |{| |}| |.| -- ** --> **> class record eq rule rl ceq crule crl
                 bq bcq beq bceq brule brl bcrule bcrl trans tr ctrans ctr btrans btr
