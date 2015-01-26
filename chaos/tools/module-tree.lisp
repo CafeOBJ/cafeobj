@@ -229,7 +229,7 @@
     (:protecting (princ "pr" stream))
     (:extending (princ "ex" stream))
     (:using (princ "us" stream))
-    (:icluding (princ "inc" stream))
+    (:including (princ "inc" stream))
     (:modmorph (princ "!" stream))
     (otherwise (princ "??" stream))))
 
@@ -255,7 +255,7 @@
       (when imp
 	(pr-imp-mode imp stream)))
     (unless dup? (setf (gethash mod .mod-dup-hash.) num))
-    (let ((*print-indent* (+ 2 *print-indent*)))
+    (let ((*print-indent* (+ 0 *print-indent*)))
       (when num (princ "(" stream))
       (print-mod-name mod *standard-output* t t)
       (when num (princ ")" stream))

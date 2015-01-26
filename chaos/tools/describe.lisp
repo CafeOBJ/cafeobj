@@ -448,6 +448,10 @@
 		 (format t "illegal show mode ~s" syntax))
 	       (return-from show-module nil))))
 
+(defun ignore-from-import-list (mod)
+  (or (module-hidden mod)
+      (module-is-parameter-theory mod)))
+
 (defun show-module-in-cafeobj-syntax (mod)
   (with-in-module (mod)
     (let* ((merged (print-merged mod))
@@ -477,10 +481,6 @@
 		   (:hard (princ "hwd:mod* "))
 		   (:system (princ "sys:mod* "))
 		   (otherwise (princ "module* "))))
-	(:ots (case type
-		(:hard (princ "hwd:ots "))
-		(:system (princ "sys:ots "))
-		(otherwise (princ "ots "))))
 	(otherwise (case type
 		     (:hard (princ "hwd:mod "))
 		     (:system (princ "sys:mod "))
@@ -546,7 +546,7 @@
 	      (let ((flg nil))
 		(print-next)
 		(dolist (sb subs)
-		  (when (not (member (car sb) skip))
+		  (unless (ignore-from-import-list (car sb))
 		    (if flg (print-next) (setf flg t))
 		    (print-check)
 		    ;; importation-mode

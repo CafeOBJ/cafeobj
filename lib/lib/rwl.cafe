@@ -172,14 +172,6 @@ sys:mod! RWL
     ** histrical builtin ==> is equivalent with =(1,*)=>*
     eq (CXU ==> CYU) = CXU =(1,*)=>* CYU .
 
-    ** older version of `search', for backward compatibiliy
-    **
-    ** eq (CXU =( N:NzNat* )=> CYU)
-    **  = #!! (rwl-sch-set-result (term-pattern-included-in-cexec cxu cyu n)) .
-    ** eq (CXU =( N:NzNat* )=> CYU suchThat COND)
-    **  = #!! (rwl-sch-set-result (term-pattern-included-in-cexec cxu cyu n cond)) .
-    **
-
     -- ==>
     eq (CXU ==>1 CYU) = (CXU =(1,*)=>+ CYU) .
     eq (CXU ==>* CYU) = (CXU =(*,*)=>* CYU) .
@@ -310,9 +302,9 @@ sys:mod! RWL
       #!! (rwl-sch-set-result
 	     (rwl-search :term S :pattern SS :max-result MR :max-depth MD :zero? nil
 		:final? nil :cond P :if CC :bind B)) .
-
     ** =>
-    eq (CXU => CYU) = #!! (rwl-sch-set-result (rwl-check-one-step-reachability CXU CYU)) .
+    -- eq (CXU => CYU) = #!! (rwl-sch-set-result (rwl-check-one-step-reachability CXU CYU)) .
+       eq (CXU => CYU) = CXU =(1,*)=>* CYU .
   }
 }
 
