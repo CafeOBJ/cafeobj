@@ -204,6 +204,15 @@
     (setq ax (parse-module-element-1 (third args)))
     ax))
 
+;;; citp-parse-csp
+;;; :csp { <axiom> ... }
+;;;
+(defun citp-parse-csp (args)
+  (let ((ax-decls nil))
+    (dolist (elem (third args))
+      (push (parse-module-element-1 elem) ax-decls))
+    (nreverse ax-decls)))
+
 ;;;
 ;;; { :show | :describe } <something>
 ;;;
@@ -315,6 +324,15 @@
   (with-in-module (*current-module*)
     (let ((ax (parse-axiom-declaration equation)))
       (apply-ctf ax))))
+
+;;; :csp
+(defun eval-citp-csp (goal-ax-decls)
+  (check-context-module)
+  (with-in-module (*current-module*)
+    (let ((axs nil))
+      (dolist (a-decl goal-ax-decls)
+	(push (parse-axiom-declaration a-decl) axs))
+      (apply-csp (nreverse axs)))))
 
 ;;; :show, :describe
 (defun eval-citp-show (token)

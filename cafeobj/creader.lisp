@@ -794,6 +794,11 @@
 	 (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
 	(|:verbose| :symbol)
 	(|:ctf| |{| #.EqDeclaration |}|)
+	(|:csp| |{| (:many-of  #.EqDeclaration
+				#.RlDeclaration
+				#.BeqDeclaration
+				#.BRLDeclaration)
+		 |}|)
 	((:+ |:show| |:sh| |:describe| |:desc|) :args)
         ))				; end Top-Form
 

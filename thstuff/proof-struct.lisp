@@ -72,7 +72,10 @@
   ;; this is not an ordinary tactic but a command, but it generates goals
   (defparameter .tactic-ctf. (make-tactic :name :ctf
 					  :executor 'apply-ctf))
-
+  ;; this is not an ordinary tactic but a command, but it generates goals
+  (defparameter .tactic-csp. (make-tactic :name :csp
+					  :executor 'apply-csp))
+  
   ;; user defiled tactics: assoc list of (name . list-of-tactics)
   ;;
   (defvar .user-defined-tactics. nil)

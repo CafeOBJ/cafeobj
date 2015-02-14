@@ -611,8 +611,9 @@ can look like:
 
 The `<modifier>` part is used to change the rewriting behavior of
 the axiom.  There are at the moment two possible 
-modifiers, namely `:m-and` and `:m-or`. Both make sense only for
-operators where the arguments come from an associative sort.
+modifiers, namely `:m-and(:m-ald-also)` and `:m-or(:m-or-else)`.
+Both make sense only for operators where the arguments come from an 
+associative sort.
 In this case both modifiers create all possible permutations
 of the arguments and rewrite the original term to the conjunction
 in case of `:m-and` or to the disjunction in case of `:m-or` of all
@@ -631,6 +632,7 @@ a set of natural number, and let
 In this case an expression like `q1(1 2 3)` would reduce to 
 `p1(1) and p1(2) and p1(3)` (modulo AC), and `q2(1 2 3)` into
 the same term with `or` instead.
+
 "
 )
 
@@ -1547,8 +1549,9 @@ the `show` command are:
 
   - `show [ <modexp> ]` - describes the current modules of the one specified
 	as argument
+  - `show module tree [ <modexp> ]` - displays submodules of <modexp> in tree format
   - `show switches` - lists all possible switches
-  - `show <term>` - displays a term, possible in tree format
+  - `show term [ tree ]` - displays a term, possible in tree format
 
 See the entry for `switches` for a full list.
 ")
@@ -2302,6 +2305,14 @@ Do nothing.
     :parser citp-parse-ctf
     :evaluator eval-citp-ctf
     :title "`:ctf { eq [ <op-exp> ]: <term> = <term> .`"
+    :doc "TODO"
+    )
+
+(define (":csp")
+    :category :proof
+    :parser citp-parse-csp
+    :evaluator eval-citp-csp
+    :title "`:csp { eq [ <op-exp>]: <term> = <term> . ...}`"
     :doc "TODO"
     )
 
