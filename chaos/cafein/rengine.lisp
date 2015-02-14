@@ -1694,12 +1694,9 @@
 	(.trace-or-step. (or $$trace-rewrite-whole $$trace-rewrite *rewrite-stepping*)))
     (declare (special .trace-or-step.))
     (cond (mandor
-	   ;; (format t "~&meta! ~s" mandor)
 	   (let ((all-subst nil)
 		 (rhs-list nil)
-		 (new-rhs nil)
-		 ;;(new-axiom nil)
-		 )
+		 (new-rhs nil))
 	     (multiple-value-bind (gs sub no-match eeq)
 		 (rew-matcher (rule-lhs rule) term)
 	       (declare (ignore eeq))
@@ -1726,18 +1723,14 @@
 			 (print-substitution sub))))
 		   ;; 
 		   (setq new-rhs (make-right-assoc-normal-form-with-sort-check
-				  (if (eq mandor :m-and)
-				      *m-and-op*
-				    *m-or-op*)
+				  (case mandor
+				    ('|:m-and| *bool-and*)
+				    ('|:m-and-also| *bool-and-also*)
+				    ('|:m-or| *bool-or*)
+				    ('|:m-or-else| *bool-or-else*)
+				    (otherwise (with-output-panic-message ()
+						 (format t "internal error, invalid meta rule label ~s" mandor))))
 				  rhs-list))
-		   #||
-		   (setq new-axiom (make-rule :lhs (rule-lhs rule)
-					      :rhs new-rhs
-					      :condition *bool-true*
-					      :behavioural (rule-is-behavioural rule)
-					      :labels (rule-labels rule)
-					      :type (rule-type rule)))
-		   ||#
 		   ;; DEBUG
 		   (when *debug-meta* 
 		     (format t "~&~s[=>] " mandor)
