@@ -190,8 +190,10 @@
 	(*print-xmode* :fancy))
     (with-in-module ((goal-context goal))
       (if (goal-tactic goal)
-	  (format stream "~%~a=>~%:goal { ** ~a -----------------------------------------" (goal-tactic goal) (goal-name goal))
-	(format stream "~%:goal { ** ~a -----------------------------------------" (goal-name goal)))
+	  (format stream "~%~a=>~%:goal { ** ~a -----------------------------------------"
+		  (goal-tactic goal) (goal-name goal))
+	(format stream "~%:goal { ** ~a -----------------------------------------" 
+		(goal-name goal)))
       (let ((*print-indent* (+ 2 *print-indent*))
 	    (v-consts (goal-constants goal))
 	    (i-consts (goal-ind-constants goal))
@@ -240,7 +242,7 @@
 	      (print-axiom-brief as) (princ " ."))))
 	(when axs
 	  (print-next)
-	  (format stream "-- axiom~p to be proved" (length axs))
+	  (format stream "-- sentence~p to be proved" (length axs))
 	  (dolist (ax axs)
 	    (let ((*print-indent* (+ 2 *print-indent*)))
 	      (print-next)
@@ -750,6 +752,7 @@
     (setq *proof-tree* (initialize-proof-tree context-module root-module goal-axioms))
     (pr-goal (ptree-node-goal (ptree-root *proof-tree*)))
     (format t "~%** Initial goal (root) is generated. **")
+    (setq *next-default-proof-node* (ptree-root *proof-tree*))
     *proof-tree*))
 
 ;;;
@@ -815,7 +818,7 @@
 	  (let ((proved (goal-proved goal)))
 	    (when proved
 	      (print-next)
-	      (format t "** discharged axiom~p:" (length proved))
+	      (format t "** discharged sentence~p:" (length proved))
 	      (let ((*print-indent* (+ 2 *print-indent*)))
 		(dolist (ax proved)
 		  (print-next)
@@ -824,8 +827,8 @@
 	    (when targets
 	      (print-next)
 	      (if (node-is-discharged? node)
-		  (format t "** targeted axiom~p:" (length targets))
-		(format t "** axiom~p to be proved:" (length targets)))
+		  (format t "** targeted sentence~p:" (length targets))
+		(format t "** sentence~p to be proved:" (length targets)))
 	      (let ((*print-indent* (+ 2 *print-indent*)))
 		(dolist (target targets)
 		  (print-next)

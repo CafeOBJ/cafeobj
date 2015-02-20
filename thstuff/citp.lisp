@@ -323,7 +323,8 @@
   (check-context-module)
   (with-in-module (*current-module*)
     (let ((ax (parse-axiom-declaration equation)))
-      (apply-ctf ax))))
+      (apply-ctf ax)
+      (check-success *proof-tree*))))
 
 ;;; :csp
 (defun eval-citp-csp (goal-ax-decls)
@@ -332,7 +333,8 @@
     (let ((axs nil))
       (dolist (a-decl goal-ax-decls)
 	(push (parse-axiom-declaration a-decl) axs))
-      (apply-csp (nreverse axs)))))
+      (apply-csp (nreverse axs))
+      (check-success *proof-tree*))))
 
 ;;; :show, :describe
 (defun eval-citp-show (token)
