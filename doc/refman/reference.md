@@ -53,6 +53,22 @@ TODO
 
 TODO
 
+## `:csp { eq [ <op-exp>]: <term> = <term> . ...}` ## {#:csp}
+
+TODO
+
+## `:ctf { eq [ <op-exp> ]: <term> = <term> .` ## {#:ctf}
+
+TODO
+
+## `:describe <something>` ## {#:describe}
+
+Similar to the `:show` command but with more details. See `:describe ?` for
+the possible set of invocations.
+
+
+Related: [`:show`](#:show)
+
 ## `:equation` ## {#:equation}
 
 TODO
@@ -90,6 +106,12 @@ TODO
 ## `:select <goal-name>` ## {#:select}
 
 TODO
+
+## `:show <something>` ## {#:show}
+
+TODO
+
+Related: [`:describe`](#:describe)
 
 ## `:verbose { on | off }` ## {#:verbose}
 
@@ -394,11 +416,6 @@ Defines a behavioral transition. For details see [`trans`](#trans).
 
 Related: [`bctrans`](#bctrans), [`ctrans`](#ctrans), [`trans`](#trans)
 
-## `btrns` ## {#btrns}
-
-
-
-
 ## `cbred` ## {#cbred}
 
 
@@ -574,7 +591,7 @@ untested code or documentations below the `eof` mark. Has
 to be on a line by itself without leading spaces.
 
 
-## `eq [ <op-exp> ] <term> = <term> .` ## {#eq}
+## `eq [ <op-exp> ]: <term> = <term> .` ## {#eq}
 
 Declares an axiom, or equation.
 
@@ -599,8 +616,9 @@ can look like:
 
 The `<modifier>` part is used to change the rewriting behavior of
 the axiom.  There are at the moment two possible 
-modifiers, namely `:m-and` and `:m-or`. Both make sense only for
-operators where the arguments come from an associative sort.
+modifiers, namely `:m-and (:m-and-also)` and `:m-or (:m-or-else)`.
+Both make sense only for operators where the arguments come from an 
+associative sort.
 In this case both modifiers create all possible permutations
 of the arguments and rewrite the original term to the conjunction
 in case of `:m-and` or to the disjunction in case of `:m-or` of all
@@ -619,6 +637,7 @@ a set of natural number, and let
 In this case an expression like `q1(1 2 3)` would reduce to 
 `p1(1) and p1(2) and p1(3)` (modulo AC), and `q2(1 2 3)` into
 the same term with `or` instead.
+
 
 
 Related: [`bceq`](#bceq), [`beq`](#beq), [`ceq`](#ceq)
@@ -1533,8 +1552,9 @@ the `show` command are:
 
   - `show [ <modexp> ]` - describes the current modules of the one specified
 	as argument
+  - `show module tree [ <modexp> ]` - displays submodules of <modexp> in tree format
   - `show switches` - lists all possible switches
-  - `show <term>` - displays a term, possible in tree format
+  - `show term [ tree ]` - displays a term, possible in tree format
 
 See the entry for `switches` for a full list.
 
@@ -1728,11 +1748,6 @@ not take transitions into account. Only [`exec`](#execute) also uses
 transitions. On the other hand, the built-in 
 [search predicate](#searchpredicate) searches all possible transitions
 from a given term.
-
-
-## `trns` ## {#trns}
-
-
 
 
 ## `unprotect <module-name>` ## {#unprotect}

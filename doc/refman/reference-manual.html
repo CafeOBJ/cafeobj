@@ -5,7 +5,6 @@
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <meta name="author" content="Toshimi Sawada, Kokichi Futatsugi, Norbert Preining" />
-  <meta name="date" content="2014-06-19" />
   <title>CafeOBJ Reference Manual</title>
   <style type="text/css">code{white-space: pre;}</style>
 </head>
@@ -13,7 +12,7 @@
 <div id="header">
 <h1 class="title">CafeOBJ Reference Manual</h1>
 <h2 class="author">Toshimi Sawada, Kokichi Futatsugi, Norbert Preining</h2>
-<h3 class="date">2014-06-19</h3>
+<h3 class="date">2015-02-25 (v1.5.3)</h3>
 </div>
 <div id="TOC">
 <ul>
@@ -42,6 +41,9 @@
 <li><a href="#auto-auto"><code>:auto</code> ## {#:auto}</a></li>
 <li><a href="#backward-equation-backward"><code>:backward equation</code> ## {#:backward}</a></li>
 <li><a href="#cp-label-axiom-.-label-axiom-.-cp"><code>:cp { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; . &quot;)&quot; } &gt;&lt; { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; .&quot;)&quot; }</code> ## {#:cp}</a></li>
+<li><a href="#csp-eq-op-exp-term-term-.-...-csp"><code>:csp { eq [ &lt;op-exp&gt;]: &lt;term&gt; = &lt;term&gt; . ...}</code> ## {#:csp}</a></li>
+<li><a href="#ctf-eq-op-exp-term-term-.-ctf"><code>:ctf { eq [ &lt;op-exp&gt; ]: &lt;term&gt; = &lt;term&gt; .</code> ## {#:ctf}</a></li>
+<li><a href="#describe-something-describe"><code>:describe &lt;something&gt;</code> ## {#:describe}</a></li>
 <li><a href="#equation-equation"><code>:equation</code> ## {#:equation}</a></li>
 <li><a href="#goal-axiom-.-...-goal"><code>:goal { &lt;axiom&gt; . ... }</code> ## {#:goal}</a></li>
 <li><a href="#ind-on-variable-...-.-ind"><code>:ind on &lt;variable&gt; ... .</code> ## {#:ind}</a></li>
@@ -51,6 +53,7 @@
 <li><a href="#roll-back-roll"><code>:roll back</code> ## {#:roll}</a></li>
 <li><a href="#rule-rule"><code>:rule</code> ## {#:rule}</a></li>
 <li><a href="#select-goal-name-select"><code>:select &lt;goal-name&gt;</code> ## {#:select}</a></li>
+<li><a href="#show-something-show"><code>:show &lt;something&gt;</code> ## {#:show}</a></li>
 <li><a href="#verbose-on-off-verbose"><code>:verbose { on | off }</code> ## {#:verbose}</a></li>
 <li><a href="#axeq"><code>=</code></a></li>
 <li><a href="#searchpredsymb"><code>=(n)=&gt;</code>, <code>=(n,m)=&gt;</code>, <code>=()=&gt;</code></a></li>
@@ -81,7 +84,6 @@
 <li><a href="#brule"><code>brule</code></a></li>
 <li><a href="#bsort"><code>bsort</code></a></li>
 <li><a href="#btrans"><code>btrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></a></li>
-<li><a href="#btrns"><code>btrns</code></a></li>
 <li><a href="#cbred"><code>cbred</code></a></li>
 <li><a href="#cd"><code>cd &lt;dirname&gt;</code></a></li>
 <li><a href="#ceq"><code>ceq [ &lt;op-exp&gt; ] &lt;term&gt; = &lt;term&gt; if &lt;boolterm&gt; .</code></a></li>
@@ -104,7 +106,7 @@
 <li><a href="#dpred"><code>dpred</code></a></li>
 <li><a href="#dribble"><code>dribble</code></a></li>
 <li><a href="#eof"><code>eof</code></a></li>
-<li><a href="#eq"><code>eq [ &lt;op-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></a></li>
+<li><a href="#eq"><code>eq [ &lt;op-exp&gt; ]: &lt;term&gt; = &lt;term&gt; .</code></a></li>
 <li><a href="#switch-exec-limit"><code>exec limit</code> switch</a></li>
 <li><a href="#switch-exec-trace"><code>exec trace</code> switch</a></li>
 <li><a href="#execute-dash"><code>exec!</code></a></li>
@@ -195,7 +197,6 @@
 <li><a href="#switches">switches</a></li>
 <li><a href="#switch-trace"><code>trace [whole]</code> switch</a></li>
 <li><a href="#trans"><code>trans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></a></li>
-<li><a href="#trns"><code>trns</code></a></li>
 <li><a href="#unprotect"><code>unprotect &lt;module-name&gt;</code></a></li>
 <li><a href="#using"><code>using ( &lt;modexp&gt; )</code></a></li>
 <li><a href="#var"><code>var &lt;var-name&gt; : &lt;sort-name&gt;</code></a></li>
@@ -500,6 +501,13 @@ mod! PCLABEL {
 <p>TODO</p>
 <h2 id="cp-label-axiom-.-label-axiom-.-cp"><code>:cp { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; . &quot;)&quot; } &gt;&lt; { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; .&quot;)&quot; }</code> ## {#:cp}</h2>
 <p>TODO</p>
+<h2 id="csp-eq-op-exp-term-term-.-...-csp"><code>:csp { eq [ &lt;op-exp&gt;]: &lt;term&gt; = &lt;term&gt; . ...}</code> ## {#:csp}</h2>
+<p>TODO</p>
+<h2 id="ctf-eq-op-exp-term-term-.-ctf"><code>:ctf { eq [ &lt;op-exp&gt; ]: &lt;term&gt; = &lt;term&gt; .</code> ## {#:ctf}</h2>
+<p>TODO</p>
+<h2 id="describe-something-describe"><code>:describe &lt;something&gt;</code> ## {#:describe}</h2>
+<p>Similar to the <code>:show</code> command but with more details. See <code>:describe ?</code> for the possible set of invocations.</p>
+<p>Related: <a href="#:show"><code>:show</code></a></p>
 <h2 id="equation-equation"><code>:equation</code> ## {#:equation}</h2>
 <p>TODO</p>
 <h2 id="goal-axiom-.-...-goal"><code>:goal { &lt;axiom&gt; . ... }</code> ## {#:goal}</h2>
@@ -518,6 +526,9 @@ mod! PCLABEL {
 <p>TODO</p>
 <h2 id="select-goal-name-select"><code>:select &lt;goal-name&gt;</code> ## {#:select}</h2>
 <p>TODO</p>
+<h2 id="show-something-show"><code>:show &lt;something&gt;</code> ## {#:show}</h2>
+<p>TODO</p>
+<p>Related: <a href="#:describe"><code>:describe</code></a></p>
 <h2 id="verbose-on-off-verbose"><code>:verbose { on | off }</code> ## {#:verbose}</h2>
 <p>TODO</p>
 <h2 id="axeq"><code>=</code></h2>
@@ -636,7 +647,6 @@ mod! PCLABEL {
 <h2 id="btrans"><code>btrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></h2>
 <p>Defines a behavioral transition. For details see <a href="#trans"><code>trans</code></a>.</p>
 <p>Related: <a href="#bctrans"><code>bctrans</code></a>, <a href="#ctrans"><code>ctrans</code></a>, <a href="#trans"><code>trans</code></a></p>
-<h2 id="btrns"><code>btrns</code></h2>
 <h2 id="cbred"><code>cbred</code></h2>
 <h2 id="cd"><code>cd &lt;dirname&gt;</code></h2>
 <p>Change the current working directory, like the Unix counterpart. The argument is necessary. No kind of expansion or substitution is done.</p>
@@ -715,7 +725,7 @@ mod! PCLABEL {
 <h2 id="dribble"><code>dribble</code></h2>
 <h2 id="eof"><code>eof</code></h2>
 <p>Terminates reading of the current file. Allows for keeping untested code or documentations below the <code>eof</code> mark. Has to be on a line by itself without leading spaces.</p>
-<h2 id="eq"><code>eq [ &lt;op-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></h2>
+<h2 id="eq"><code>eq [ &lt;op-exp&gt; ]: &lt;term&gt; = &lt;term&gt; .</code></h2>
 <p>Declares an axiom, or equation.</p>
 <p>Spaces around the <code>=</code> are necessary to separate the left from the right hand side. The terms given must belong to the same connected component in the graph defined by the sort ordering.</p>
 <p>In simple words, the objects determined by the terms must be interpretable as of the same sort.</p>
@@ -723,7 +733,7 @@ mod! PCLABEL {
 <p><code>[ &lt;modifier&gt; &lt;label&gt; ] :</code></p>
 <p>Warning: The square brackets here are <em>not</em> specifying optional components, but syntactical elements. Thus, a labeled axiom can look like:</p>
 <p><code>eq[foobar] : foo = bar .</code></p>
-<p>The <code>&lt;modifier&gt;</code> part is used to change the rewriting behavior of the axiom. There are at the moment two possible modifiers, namely <code>:m-and</code> and <code>:m-or</code>. Both make sense only for operators where the arguments come from an associative sort. In this case both modifiers create all possible permutations of the arguments and rewrite the original term to the conjunction in case of <code>:m-and</code> or to the disjunction in case of <code>:m-or</code> of all the generated terms.</p>
+<p>The <code>&lt;modifier&gt;</code> part is used to change the rewriting behavior of the axiom. There are at the moment two possible modifiers, namely <code>:m-and (:m-and-also)</code> and <code>:m-or (:m-or-else)</code>. Both make sense only for operators where the arguments come from an associative sort. In this case both modifiers create all possible permutations of the arguments and rewrite the original term to the conjunction in case of <code>:m-and</code> or to the disjunction in case of <code>:m-or</code> of all the generated terms.</p>
 <p>Assume that <code>NatSet</code> is a sort with associative constructor modeling a set of natural number, and let</p>
 <pre><code>  pred p1: Nat .
   ops q1 q2 : NatSet -&gt; Bool .
@@ -1100,8 +1110,9 @@ mod! TWICE(X :: C) {
 <p>Some of the more important (but far from complete list) ways to call the <code>show</code> command are:</p>
 <ul>
 <li><code>show [ &lt;modexp&gt; ]</code> - describes the current modules of the one specified as argument</li>
+<li><code>show module tree [ &lt;modexp&gt; ]</code> - displays submodules of <modexp> in tree format</li>
 <li><code>show switches</code> - lists all possible switches</li>
-<li><code>show &lt;term&gt;</code> - displays a term, possible in tree format</li>
+<li><code>show term [ tree ]</code> - displays a term, possible in tree format</li>
 </ul>
 <p>See the entry for <code>switches</code> for a full list.</p>
 <p>Related: <a href="#describe"><code>describe</code></a>, <a href="#switches"><code>switches</code></a></p>
@@ -1199,7 +1210,6 @@ mod! TWICE(X :: C) {
 <p>Defines a transition, which is like an equation but without symmetry.</p>
 <p>See <a href="#eq"><code>eq</code></a> for specification of requirements on <code>&lt;label-exp&gt;</code> and the terms.</p>
 <p>Transitions and equations server similar, but different purpose. In particular, reductions (both with or without behavior axioms used) do not take transitions into account. Only <a href="#execute"><code>exec</code></a> also uses transitions. On the other hand, the built-in <a href="#searchpredicate">search predicate</a> searches all possible transitions from a given term.</p>
-<h2 id="trns"><code>trns</code></h2>
 <h2 id="unprotect"><code>unprotect &lt;module-name&gt;</code></h2>
 <p>Remove overwrite protection from a module that has been protected with the <code>protect</code> call. Some modules vital for the system are initially protected.</p>
 <p>Related: <a href="#protect"><code>protect</code></a></p>
