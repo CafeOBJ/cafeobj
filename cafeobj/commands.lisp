@@ -555,7 +555,7 @@ displayed when run through the interpreter.
     :doc "
 ")
 
-(define ("ctrans")
+(define ("ctrans" "ctr")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -611,7 +611,7 @@ can look like:
 
 The `<modifier>` part is used to change the rewriting behavior of
 the axiom.  There are at the moment two possible 
-modifiers, namely `:m-and(:m-ald-also)` and `:m-or(:m-or-else)`.
+modifiers, namely `:m-and (:m-and-also)` and `:m-or (:m-or-else)`.
 Both make sense only for operators where the arguments come from an 
 associative sort.
 In this case both modifiers create all possible permutations
@@ -1727,7 +1727,7 @@ printed. Setting the switch `trace` will result in the display of
 which rule, substitution, and replacement are used.
 ")
 
-(define ("trans")
+(define ("trans" "tr")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -1986,19 +1986,6 @@ CafeOBJ> lisp (+ 4 5)
     :doc "(pignose)
 ")
   
-(define ("trans" "ctrans")
-    :category :module-element
-    :parser identity
-    :evaluator cafeobj-eval-module-element-proc
-    :doc "
-")
-
-(define ("tr" "ctr")
-    :category :module-element
-    :parser identity
-    :evaluator cafeobj-eval-module-element-proc
-    :doc "
-")
 
 (define ("rule" "crule")
     :category :module-element
@@ -2022,20 +2009,6 @@ CafeOBJ> lisp (+ 4 5)
 ")
 
 (define ("brl" "bcrl")
-    :category :module-element
-    :parser identity
-    :evaluator cafeobj-eval-module-element-proc
-    :doc "
-")
-
-(define ("btrans" "bctrans")
-    :category :module-element
-    :parser identity
-    :evaluator cafeobj-eval-module-element-proc
-    :doc "
-")
-
-(define ("btr" "bctr")
     :category :module-element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
