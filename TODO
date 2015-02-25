@@ -1,3 +1,16 @@
+20150225 np
+
+we should add a check that a key is not define'd more than once
+my idea was to add code to oldoc.lisp as the generate-oldoc- is
+called on all values, but the following patch didn't generate
+any warnings:
+-       (setf (gethash key *cafeobj-alias-db*) mainkey)))
++        (multiple-value-bind (hk pr) (gethash key *cafeobj-alias-db*)
++         (format t "DEBUG DEBUG DEBUG defining ~s" key)
++         (if pr
++           (error "multiple defines of ~s" key))
++         (setf hk mainkey))))
+
 20141008 email sawada
 
 How about not to specify --dynamic-space-size at image creation time?
