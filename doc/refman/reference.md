@@ -53,6 +53,22 @@ TODO
 
 TODO
 
+## `:csp { eq [ <op-exp>]: <term> = <term> . ...}` ## {#:csp}
+
+TODO
+
+## `:ctf { eq [ <op-exp> ]: <term> = <term> .` ## {#:ctf}
+
+TODO
+
+## `:describe <something>` ## {#:describe}
+
+Similar to the `:show` command but with more details. See `:describe ?` for
+the possible set of invocations.
+
+
+Related: [`:show`](#:show)
+
 ## `:equation` ## {#:equation}
 
 TODO
@@ -91,6 +107,12 @@ TODO
 
 TODO
 
+## `:show <something>` ## {#:show}
+
+TODO
+
+Related: [`:describe`](#:describe)
+
 ## `:verbose { on | off }` ## {#:verbose}
 
 TODO
@@ -111,7 +133,7 @@ See [`search predicates`](#searchpredicate)
 
 ## `=*=` ## {#bequality}
 
-The predicate for behavioural equivalence, written `=*=`, is a binary
+The predicate for behavioral equivalence, written `=*=`, is a binary
 operator defined on each hidden sort. 
 
 TODO: old manual very unclear ... both about `=*=` and 
@@ -174,7 +196,7 @@ Note: Fancy quoting with single and double quotes might lead to unexpected probl
 CafeOBJ> ?ap prec oper
 `````
 will search for all entries that contain both `prec` and `oper` as
-substrings. Matching is done as simple sub-string match.
+sub-strings. Matching is done as simple sub-string match.
 
 `````
 CafeOBJ> ?ap foo att[er]
@@ -241,7 +263,7 @@ in the rule are bound to the given term.
 
 `<range>` is either `within` or `at`. In the former case the action is
 applied at or inside the (sub)term specified by the following
-selection. In the later case it means exactely at the (sub)term.
+selection. In the later case it means exactly at the (sub)term.
 
 Finally, the `<selection>` is an expression
 
@@ -317,14 +339,14 @@ Related: [`trans`](#trans), [`eq`](#eq), [`var`](#var), [`imports`](#imports), [
 
 ## `bceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#bceq}
 
-Defines a behaviour conditional equation. For details see [`ceq`](#ceq).
+Defines a behavioral conditional equation. For details see [`ceq`](#ceq).
 
 
 Related: [`beq`](#beq), [`ceq`](#ceq), [`eq`](#eq)
 
 ## `bctrans [ <label-exp> ] <term> => <term> if <bool> .` ## {#bctrans}
 
-Defines a behaviour conditional transition. 
+Defines a behavioral conditional transition. 
 For details see [`ctrans`](#ctrans).
 
 
@@ -332,7 +354,7 @@ Related: [`btrans`](#btrans), [`ctrans`](#ctrans), [`trans`](#trans)
 
 ## `beq [ <op-exp> ] <term> = <term> .` ## {#beq}
 
-Defines a behaviour equation. For details see [`eq`](#eq).
+Defines a behavioral equation. For details see [`eq`](#eq).
 
 
 Related: [`bceq`](#bceq), [`ceq`](#ceq), [`eq`](#eq)
@@ -344,9 +366,9 @@ Related: [`bceq`](#bceq), [`ceq`](#ceq), [`eq`](#eq)
 
 ## `bop <op-spec> : <sorts> -> <sort>` ## {#bop}
 
-Defines a behavioural operator by its domain, codomain, and the term 
+Defines a behavioral operator by its domain, co-domain, and the term 
 construct. `<sorts>` is a space separated list of sort names containing
-*exactely* one hidden sort. `<sort>` is a single sort name.
+*exactly* one hidden sort. `<sort>` is a single sort name.
 
 For `<op-spec>` see the explanations of [`op`](#op).
 
@@ -356,7 +378,7 @@ Related: [`op`](#op)
 ## `bpred <op-spec> : <sorts>` ## {#bpred}
 
 Short hand for `op <op-spec> : <sorts> -> Bool` defining a
-behavioural predicate.
+behavioral predicate.
 
 
 Related: [`pred`](#pred), [`bop`](#bop), [`op`](#op)
@@ -366,7 +388,7 @@ Related: [`pred`](#pred), [`bop`](#bop), [`op`](#op)
 Reduce the given term in the given module, if `<mod-exp>` is given, 
 otherwise in the current module. 
 
-For `breduce` equations, possibly conditional, possibly behavioural, are taken
+For `breduce` equations, possibly conditional, possibly behavioral, are taken
 into account for reduction.
 
 
@@ -389,15 +411,10 @@ Related: [`reduce`](#reduce), [`execute`](#execute)
 
 ## `btrans [ <label-exp> ] <term> => <term> .` ## {#btrans}
 
-Defines a behaviour transition. For details see [`trans`](#trans).
+Defines a behavioral transition. For details see [`trans`](#trans).
 
 
 Related: [`bctrans`](#bctrans), [`ctrans`](#ctrans), [`trans`](#trans)
-
-## `btrns` ## {#btrns}
-
-
-
 
 ## `cbred` ## {#cbred}
 
@@ -480,7 +497,7 @@ Related: [`strat` in operator attributes](#opattr), [`start`](#start), [`apply`]
 
 ## `clean memo` ## {#cleanmemo}
 
-Resets (clears) the memo storages of the system. Memorized computations 
+Resets (clears) the memo storage of the system. Memorized computations 
 are forgotten. 
 
 
@@ -574,7 +591,7 @@ untested code or documentations below the `eof` mark. Has
 to be on a line by itself without leading spaces.
 
 
-## `eq [ <op-exp> ] <term> = <term> .` ## {#eq}
+## `eq [ <op-exp> ]: <term> = <term> .` ## {#eq}
 
 Declares an axiom, or equation.
 
@@ -586,7 +603,7 @@ In simple words, the objects determined by the terms must be
 interpretable as of the same sort.
 
 The optional part `<op-exp>` serves two purposes, one is to give
-an axiom an identifier, and one is to modify its behaviour. The
+an axiom an identifier, and one is to modify its behavior. The
 `<op-exp>` is of the form:
 
 ` [ <modifier> <label> ] : `
@@ -597,16 +614,17 @@ can look like:
 
 `eq[foobar] : foo = bar .`
 
-The `<modifier>` part is used to change the rewriting behaviour of
+The `<modifier>` part is used to change the rewriting behavior of
 the axiom.  There are at the moment two possible 
-modifiers, namely `:m-and` and `:m-or`. Both make sense only for
-operators where the arguments come from an associative sort.
+modifiers, namely `:m-and (:m-and-also)` and `:m-or (:m-or-else)`.
+Both make sense only for operators where the arguments come from an 
+associative sort.
 In this case both modifiers create all possible permutations
 of the arguments and rewrite the original term to the conjunction
 in case of `:m-and` or to the disjunction in case of `:m-or` of all
 the generated terms.
 
-Assume that `NatSet` is a sort with associative constructor modelling
+Assume that `NatSet` is a sort with associative constructor modeling
 a set of natural number, and let
 
 `````
@@ -619,6 +637,7 @@ a set of natural number, and let
 In this case an expression like `q1(1 2 3)` would reduce to 
 `p1(1) and p1(2) and p1(3)` (modulo AC), and `q2(1 2 3)` into
 the same term with `or` instead.
+
 
 
 Related: [`bceq`](#bceq), [`beq`](#beq), [`ceq`](#ceq)
@@ -799,7 +818,7 @@ position instead of names as in
 which would bind the `<view_name>`s to the respective parameters
 of the parameterized module `<mod_name>`.
 
-This can be combined with the ephemeral defintion of a view like in
+This can be combined with the ephemeral definition of a view like in
 the following example (assume `ILIST` has two parameters):
 
 ~~~~~
@@ -961,7 +980,7 @@ renaming
     separated list of mappings of either sorts (`sort` and `hsort`) or
     operators (`op` and `bop`). Source names may be qualified, while
     target names are not, they are required to be new names. Renaming
-    is often used in combination with [instantiantion](#instantiation).
+    is often used in combination with [instantiation](#instantiation).
 
 summation
   ~ `<mod_exp> + <mod_exp>`
@@ -1012,7 +1031,7 @@ Related: [`var`](#var)
 
 ## `op <op-spec> : <sorts> -> <sort> { <attribute-list> }` ## {#op}
 
-Defines an operator by its domain, codomain, and the term construct.
+Defines an operator by its domain, co-domain, and the term construct.
 `<sorts>` is a space separated list of sort names, `<sort>` is a 
 single sort name.
 `<op-spec>` can be of the following forms:
@@ -1020,11 +1039,11 @@ single sort name.
 prefix-spec
   ~ the `<op-spec>` does not contain a literal `_`:
     This defines a normal prefix operator with domain `<sorts>` and
-    codomain `<sort>`
+    co-domain `<sort>`
 
     Example: `op f : S T -> U`
 mixfix-spec
-  ~ the `<op-spec>` contains exactely as many literal `_` as there are
+  ~ the `<op-spec>` contains exactly as many literal `_` as there are
     sort names in `<sorts>`:
     This defines an arbitrary mixfix (including postfix) operator
     where the arguments are inserted into the positions designated 
@@ -1088,9 +1107,9 @@ supported
 
     `op if_then_else_fi : Bool Int Int -> Int { strat: (1 0) }`
  
-    In this case the first argument (the boolean term) is tried to
+    In this case the first argument (the Boolean term) is tried to
     be evaluated, and depending on that either the second or third.
-    But if the first (boolean) argument cannot be evaluated, 
+    But if the first (Boolean) argument cannot be evaluated, 
     no evaluation in the subterms will appear.
 
     Using negative values allows for lazy evaluation of the corresponding
@@ -1124,7 +1143,7 @@ Related: [`bop`](#bop)
 ## `operator precedence` ## {#opprec}
 
 CafeOBJ allows for complete freedom of syntax, in particular infix
-operators and overloading. To correctly parse terms that are ambigous,
+operators and overloading. To correctly parse terms that are ambiguous,
 all operators have precedence values. These values can be adjusted
 manually during definition of the operator 
 (see [operator attributes](#opattr)). In absence of manual
@@ -1135,7 +1154,7 @@ the following rules:
   receive operator precedence value 0.
 - unary operators, i.e., those of the form `op u_ : S1 -> S`, receive
   precedence 15.
-- mix-fix operators with forst and last token being arguments, i.e.,
+- mix-fix operators with first and last token being arguments, i.e.,
   those of the form `op _ arg-or-op _ : S1 .. Sk -> S`, receive
   precedence 41.
 - all other operators (constants, operators of the form `a _ b`, etc.)
@@ -1360,7 +1379,7 @@ Related: [`apply`](#apply)
 ## `regularize <mod-name>` ## {#regularize}
 
 Regularizes the signature of the given module, ensuring that every
-term has exactely one minimal parse tree. In this process additional
+term has exactly one minimal parse tree. In this process additional
 sorts are generated to ensure unique least sort of all terms.
 
 Modules can be automatically regularized by the interpreter if the
@@ -1411,7 +1430,7 @@ Related: [`save-system`](#save-system), [`save`](#save), [`input`](#input)
 
 Possible values: positive integers, default not specified.
 
-Allows limiting the number of rewrite steps during a stepwise
+Allows limiting the number of rewrite steps during a step-wise
 execution.
 
 
@@ -1447,7 +1466,7 @@ Related: [`save-system`](#save-system), [`restore`](#restore), [`input`](#input)
 
 Dumps the image of the whole system into a file. This is functionality
 provided by the underlying Common Lisp system and might carry some 
-restrictons.
+restrictions.
 
 
 Related: [`restore`](#restore), [`save`](#save), [`input`](#input)
@@ -1484,7 +1503,7 @@ The predicates return true if there is a (chain of) transitions
 that fits the parameters (`n`,`m`, and `*`, `+`, `!`) and connects `S`
 with `SS`.
 
-There are two orthogonal extension to this search perdicate, one
+There are two orthogonal extension to this search predicate, one
 adds a `suchThat` clause, one adds a `withStateEq` clause.
 
 `S =(n,m)=>* SS [if Pred1] suchThat Pred2`
@@ -1504,7 +1523,7 @@ These two cases can also be combined into
 
 Selects a module given by the module expression `<mod_exp>` as the
 current module. All further operations are carried out within the
-given module. In constrast to `open` this does not allow for
+given module. In contrast to `open` this does not allow for
 modification of the module, e.g., addition of new sorts etc.
 
 
@@ -1513,7 +1532,7 @@ Related: [`module expression`](#moduleexpression), [`open`](#open)
 ## `set <name> [option] <value>` ## {#set}
 
 Depending on the type of the switch, options and value specification varies.
-Possible value types for switches are boolean (`on`, `off`), string (`"value"`),
+Possible value types for switches are Boolean (`on`, `off`), string (`"value"`),
 integers (5434443), lists (lisp syntax).
 
 For a list of all available switches, use `set ?`. To see the current
@@ -1533,8 +1552,9 @@ the `show` command are:
 
   - `show [ <modexp> ]` - describes the current modules of the one specified
 	as argument
+  - `show module tree [ <modexp> ]` - displays submodules of <modexp> in tree format
   - `show switches` - lists all possible switches
-  - `show <term>` - displays a term, posible in tree format
+  - `show term [ tree ]` - displays a term, possible in tree format
 
 See the entry for `switches` for a full list.
 
@@ -1692,7 +1712,7 @@ Related: [`step switch`](#switch-step)
 
 ## switches ## {#switches}
 
-Switches control various aspects of the computations and behaviour
+Switches control various aspects of the computations and behavior
 of CafeOBJ. The current list of switches and their values can be
 shown with 
 
@@ -1728,11 +1748,6 @@ not take transitions into account. Only [`exec`](#execute) also uses
 transitions. On the other hand, the built-in 
 [search predicate](#searchpredicate) searches all possible transitions
 from a given term.
-
-
-## `trns` ## {#trns}
-
-
 
 
 ## `unprotect <module-name>` ## {#unprotect}
@@ -1805,7 +1820,7 @@ The `<opname>` can be qualified.
 In specifying views some rules can be omitted:
 
 1. If the source and target modules have common submodules, all the
-  sorts and modules decalred therein are assumed to be mapped to
+  sorts and modules declared therein are assumed to be mapped to
   themselves;
 
 2. If the source and target modules have sorts and/or operators with

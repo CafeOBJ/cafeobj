@@ -1,3 +1,18 @@
+* CafeOBJ 1.5.3
+===============
+
+  - interpreter functions
+    . 'describe module tree' (new) - prints out module importing structure
+    . multi-line comments delimited by #| and |#
+    . 'show modules' - does not print out hidden modules
+    . 'preds' (new) - declare multiple Bool ops at once
+    . new abbreviations: tr, ctr, pd, pds, bpd, bpds (for trans, ctrans,
+      pred, preds, bpred, bpreds, respectively)
+    . new meta label: :m-and-also, :m-or-else
+  - CITP changes
+    . new command :ctf, :csp
+    . modules generated in CITP are hidden
+
 * CafeOBJ 1.5.2
 ===============
 

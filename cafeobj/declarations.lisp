@@ -89,10 +89,16 @@
     :parser process-boperators-declaration-form
     :evaluator eval-ast)
 
-(define ("pred")
+(define ("pred" "pd")
     :type :inner-module
     :category :signature
     :parser process-predicate-declaration-form
+    :evaluator eval-ast)
+
+(define ("preds" "pds")
+    :type :inner-module
+    :category :signature
+    :parser process-predicates-declaration-form
     :evaluator eval-ast)
 
 (define ("dpred")
@@ -101,10 +107,16 @@
     :parser process-predicate-declaration-form
     :evaluator eval-ast)
               
-(define ("bpred")
+(define ("bpred" "bpd")
     :type :inner-module
     :category :signature 
     :parser process-predicate-declaration-form
+    :evaluator eval-ast)
+
+(define ("bpreds" "bpds")
+    :type :inner-module
+    :category :signature 
+    :parser process-bpredicates-declaration-form
     :evaluator eval-ast)
               
 (define ("dbpred")
@@ -113,11 +125,13 @@
     :parser process-predicate-declaration-form
     :evaluator eval-ast)
               
+#|| obsolete
 (define ("rec" "record")
     :type :inner-module
     :category :signature 
     :parser process-record-declaration-form
     :evaluator eval-ast)
+||# 
 
 (define ("let")
     :type :inner-module
@@ -131,9 +145,9 @@
     :parser process-macro-declaration-form
     :evaluator eval-ast)
 
-(define ("eq" "cq" "ceq" "rule" "rl" "crl" "crule" "trans" "ctrans" "trns" "ctrns"
-	       "beq" "bceq" "brule" "brl" "bcrule" "bcrl" "btrans" "btrns"
-	       "bctrans" "bctrns")
+(define ("eq" "cq" "ceq" "rule" "rl" "crl" "crule" "trans" "ctrans" "tr" "ctr"
+	       "beq" "bceq" "brule" "brl" "bcrule" "bcrl" "btrans" "btr"
+	       "bctrans" "bctr")
     :type :inner-module
     :category :axiom
     :parser process-axiom-form

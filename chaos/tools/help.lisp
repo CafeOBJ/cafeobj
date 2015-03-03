@@ -64,11 +64,13 @@
                  (detail (fourth entry)))
              (setf (gethash keypat *Help-DB*) (list syntax simple detail))))))
 
+#|| not used
 (defun setup-help-db ()
   (let ((fname (chaos-probe-file "help" *chaos-libpath* '(".desc"))))
     (unless fname
       (error "Internal error, can't find help.desc"))
     (read-help-db fname)))
+||#
 
 ;;; EOF
 

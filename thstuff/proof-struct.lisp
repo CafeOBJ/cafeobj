@@ -69,7 +69,13 @@
 
   ;; default tatics is a seriase of SI CA CS TC IP.
   (defparameter .default-tactics. (list .tactic-si. .tactic-ca. .tactic-cs. .tactic-tc. .tactic-ip. .tactic-rd.))
-
+  ;; this is not an ordinary tactic but a command, but it generates goals
+  (defparameter .tactic-ctf. (make-tactic :name :ctf
+					  :executor 'apply-ctf))
+  ;; this is not an ordinary tactic but a command, but it generates goals
+  (defparameter .tactic-csp. (make-tactic :name :csp
+					  :executor 'apply-csp))
+  
   ;; user defiled tactics: assoc list of (name . list-of-tactics)
   ;;
   (defvar .user-defined-tactics. nil)
@@ -184,8 +190,10 @@
 	(*print-xmode* :fancy))
     (with-in-module ((goal-context goal))
       (if (goal-tactic goal)
-	  (format stream "~%~a=>~%:goal { ** ~a -----------------------------------------" (goal-tactic goal) (goal-name goal))
-	(format stream "~%:goal { ** ~a -----------------------------------------" (goal-name goal)))
+	  (format stream "~%~a=>~%:goal { ** ~a -----------------------------------------"
+		  (goal-tactic goal) (goal-name goal))
+	(format stream "~%:goal { ** ~a -----------------------------------------" 
+		(goal-name goal)))
       (let ((*print-indent* (+ 2 *print-indent*))
 	    (v-consts (goal-constants goal))
 	    (i-consts (goal-ind-constants goal))
@@ -234,7 +242,7 @@
 	      (print-axiom-brief as) (princ " ."))))
 	(when axs
 	  (print-next)
-	  (format stream "-- axiom~p to be proved" (length axs))
+	  (format stream "-- sentence~p to be proved" (length axs))
 	  (dolist (ax axs)
 	    (let ((*print-indent* (+ 2 *print-indent*)))
 	      (print-next)
@@ -336,7 +344,8 @@
 	  (cur-goal (ptree-node-goal ptree-node))
 	  (next-goal (make-goal :name goal-name
 				:tactic tactic)))
-      ;; (clean-up-module next-context)
+      ;; goal module is hidden from user
+      (setf (module-hidden next-context) t)
       (push (%module-decl-name decl-form) .goals-so-far.)
       ;; import original context module
       (import-module next-context :including (goal-context cur-goal))
@@ -733,6 +742,7 @@
   (unless goal-axioms (return-from begin-proof nil))
   (let* ((*chaos-quiet* t)
 	 (root-module (eval-ast .root-context-module.)))
+    (setf (module-hidden root-module) t)
     (prepare-root-context root-module context-module)
     (when .goals-so-far. 
       (setq *modules-so-far-table* (remove-if #'(lambda (x) 
@@ -742,6 +752,7 @@
     (setq *proof-tree* (initialize-proof-tree context-module root-module goal-axioms))
     (pr-goal (ptree-node-goal (ptree-root *proof-tree*)))
     (format t "~%** Initial goal (root) is generated. **")
+    (setq *next-default-proof-node* (ptree-root *proof-tree*))
     *proof-tree*))
 
 ;;;
@@ -807,7 +818,7 @@
 	  (let ((proved (goal-proved goal)))
 	    (when proved
 	      (print-next)
-	      (format t "** discharged axiom~p:" (length proved))
+	      (format t "** discharged sentence~p:" (length proved))
 	      (let ((*print-indent* (+ 2 *print-indent*)))
 		(dolist (ax proved)
 		  (print-next)
@@ -816,8 +827,8 @@
 	    (when targets
 	      (print-next)
 	      (if (node-is-discharged? node)
-		  (format t "** targeted axiom~p:" (length targets))
-		(format t "** axiom~p to be proved:" (length targets)))
+		  (format t "** targeted sentence~p:" (length targets))
+		(format t "** sentence~p to be proved:" (length targets)))
 	      (let ((*print-indent* (+ 2 *print-indent*)))
 		(dolist (target targets)
 		  (print-next)
@@ -828,5 +839,17 @@
 	    (dolist (sub subnodes)
 	      (print-next-prefix #\.)
 	      (describe-proof-tree sub))))))))
+
+;;;
+;;; print-current-goal : mode -> void
+;;;
+(defun print-current-goal (describe)
+  (let ((current (get-next-proof-context *proof-tree*)))
+    (if current
+	(if describe			; :describe
+	    (pr-goal (ptree-node-goal current))
+	  (format t "~%The current goal is ~a" (goal-name (ptree-node-goal current))))
+      (with-output-chaos-warning ()
+	(format t "All goals have been discharged.")))))
 
 ;;; EOF

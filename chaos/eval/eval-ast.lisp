@@ -487,7 +487,7 @@
   (and (consp (car token-list))
        (eq (caar token-list) '|%Chaos|)))
 
-(defvar .special-meta-rule-labels. '(|:m-and| |:m-or|))
+(defvar .special-meta-rule-labels. '(|:m-and| |:m-or| |:m-and-also| |:m-or-else|))
 
 (defun parse-axiom-declaration (ast)
   (I-miss-current-module parse-axiom-declaration)
@@ -504,14 +504,14 @@
 	 (type (%axiom-decl-type ast))
 	 (behavioural (%axiom-decl-behavioural ast))
 	 (the-axiom nil)
-	 (meta-and (member '|:m-and| labels))
-	 (meta-or  (member '|:m-or| labels)))
+	 (meta-rule nil))
     ;;
-    (when (and meta-and meta-or)
-      (with-output-chaos-error ('invalid-meta-rule)
-	(format t "You cannot specify both :m-and and :m-or at once!")))
-    ;;
-    ;; (format t "~&labels=~s, meta-and=~s, meta-or=~s" labels meta-and meta-or)
+    (dolist (ml .special-meta-rule-labels.)
+      (when (member ml labels)
+	(when meta-rule
+	  (with-output-chaos-error ('invalid-meta-rule)
+	    (format t "You cannot specify multiple :m-and, :m-or, .e.t.c at once!")))
+	(setq meta-rule ml)))
     ;;
     (when (eq type :rule)
       (include-rwl *current-module*))
@@ -520,12 +520,9 @@
     (cond ((or (is-lisp-form-token-sequence rhs)
 	       (is-chaos-value-token-sequence rhs))
 	   ;;
-	   (when (or meta-and meta-or)
+	   (when meta-rule
 	     (with-output-chaos-error ('invalid-special-rule)
-	       (format t "Invalid special rule ~s for built-in axiom." 
-		       (if meta-and
-			   ":m-and"
-			 ":m-or"))))
+	       (format t "Invalid special rule ~s for built-in axiom." meta-rule)))
 	   ;; aka builtin rule.
 	   (let* ((parsed-lhs (simple-parse *current-module* lhs sort))
 		  (parsed-rhs (simple-parse *current-module* rhs sort))
@@ -640,21 +637,16 @@
 				 (print-ast ast)
 				 ))
 			     ;;
-			     (when (or meta-and meta-or)
+			     (when meta-rule
 			       ;; lhs must be associative 
-			       #||
-			       (unless (method-is-associative (term-head lhs-result))
-				 (with-output-chaos-error ('ivalid-lhs)
-				   (format t "For :m-and/:m-or axioms, LHS must be of associative operator.")))
-			       ||#
 			       (unless (eq *bool-true* parsed-cnd)
 				 (with-output-chaos-error ('invalid-cond)
-				   (format t "Sorry, but now :m-and/:m-or can only be specified for non-conditional axioms.")))
+				   (format t "Sorry, but now ~s can only be specified for non-conditional axioms." meta-rule)))
 			       (unless (is-in-same-connected-component *bool-sort* 
 								       (term-sort rhs-result)
 								       *current-sort-order*)
 				 (with-output-chaos-error ('invalid-rhs)
-				   (format t "RHS must be a term of sort Bool for :m-and/:m-or axiom."))))
+				   (format t "RHS must be a term of sort Bool for ~s axiom." meta-rule))))
 			     ;;
 			     (let ((canon (canonicalize-variables (list lhs-result rhs-result parsed-cnd) *current-module*)))
 			       (unless (sort<= (term-sort (third canon)) *condition-sort* *current-sort-order*)
@@ -670,11 +662,7 @@
 					    :behavioural behavioural
 					    :labels labels
 					    :type type
-					    :meta-and-or (if meta-and
-							     :m-and
-							   (if meta-or
-							       :m-or
-							     nil)))))
+					    :meta-and-or meta-rule)))
 			     ;;
 			     (when *chaos-verbose*
 			       (when behavioural

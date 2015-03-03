@@ -43,6 +43,7 @@
     (let ((mod (create-module name)))
       (setf (module-type mod) :hard)
       (setf (module-kind mod) :object)
+      (setf (module-hidden mod) t)
       (add-modexp-defn name mod)
       mod)))
 

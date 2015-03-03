@@ -1,0 +1,37 @@
+20140401 mail futatsugi
+
+{{
+
+Definition of reduction and interpretation of variables of
+      RD =def "S =( , )=> P suchThat C withStateEq E {I}"
+
+(a) Let {V1, V2, ...,Vn} =def (vars(P) \setminus vars(S)).
+(a.1) Treat variables in
+  ((vars(S) U vars(P) U vars (C) U vars(I))
+     \setminus {V1, V2, ...,Vn})
+  as fresh constants.
+(a.2) Treat variables in {V1, V2, ...,Vn} as "variables"
+  for making bindings.
+(a.3) (vars(E) = {S1,S2}) and
+      ((((vars(S) U vars(P) U vars (C) U vars(I))
+         \setintersection(\cap) {S1,S2}) = \emptyset);
+     S1 and S2 are variables for indicating two arguments of a
+     predicate over sort(S) (=sort(P))
+
+(b) The reduction of RD works as follows.
+    Search next term T such that (S =( , )=> T).
+    E is used for terminating the search for T.
+    Do the followings for each T.
+(b.1) Get all bindings b1,b2,...,bm such that (bi(P) = T).
+           where bi = {V1->t1, V2->t2, ..., Vn->tn}
+(b.2) Output (to the standard output stream) the binding bi and the term
+　　　bi(I) if (bi(C) = true).
+
+(C) The returned value of RD is defined as follows
+    if the reduction of RD terminates.
+(c.1) Return "true" if there exits some term T such that (S =( , )=> T)
+ and ((bi(C) = true) for some binding bi).
+(C.2) Return "false" otherwise.
+
+}}
+

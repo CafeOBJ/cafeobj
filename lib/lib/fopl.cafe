@@ -417,7 +417,10 @@ lispq
 
 lispq
 (setq *pn-refinement-check-module*
-  (eval-ast (%module-decl* "( refinment check )" :object :hard nil)))
+   (eval-ast (%module-decl* "( refinment check )" :object :hard nil)))
+lispq
+(progn (setf (module-hidden *pn-proof-module*) t)
+       (setf (module-hidden *pn-refinement-check-module*) t))
 
 lispq
 (setq .pn-ignore-ops.

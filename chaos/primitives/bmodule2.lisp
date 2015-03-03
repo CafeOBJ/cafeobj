@@ -820,6 +820,10 @@
   ` (let ((type (module-type ,_mod_)))
       (or (eq type :user) (null type))))
 
+;;; HIDDEN
+(defmacro module-hidden (_mod)
+  ` (getf (object-misc-info ,_mod) ':module-hidden))
+
 ;;; KIND
 (defmacro module-kind (_mod)
   `(getf (object-misc-info ,_mod) ':module-kind))

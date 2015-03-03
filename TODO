@@ -1,0 +1,25 @@
+20150225 np
+
+we should add a check that a key is not define'd more than once
+my idea was to add code to oldoc.lisp as the generate-oldoc- is
+called on all values, but the following patch didn't generate
+any warnings:
+-       (setf (gethash key *cafeobj-alias-db*) mainkey)))
++        (multiple-value-bind (hk pr) (gethash key *cafeobj-alias-db*)
++         (format t "DEBUG DEBUG DEBUG defining ~s" key)
++         (if pr
++           (error "multiple defines of ~s" key))
++         (setf hk mainkey))))
+
+20141008 email sawada
+
+How about not to specify --dynamic-space-size at image creation time?
+
+It would be nice if we can specify this at the time of invoking cafeobj.
+According to the sbcl manual (ver. 1.2.1), there is a way to do this.
+(1) specifying the argument ':save-runtime-options nil' to 'save-lisp-and-die'
+(2) calls cafeobj executable like this
+     cafeobj --dynamic-space-size XXXX --end-runtime-options
+--end-toplevel-options <args-to-cafeobj>*
+(Please refer to 3.2.3 Saving Core Image and 3.3 Command Line Options
+of the manual. )

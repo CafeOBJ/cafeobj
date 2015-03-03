@@ -55,7 +55,6 @@
      ` (eval-when (:execute :compile-toplevel :load-toplevel)
          (defparameter ,token-name ,id-value)
          (setf (gethash ,id-value *builtin-cats*) t)))
-
   )
 
 ;;; Chaos BUILTIN LEXICAL CATEGORIES.
@@ -83,6 +82,8 @@
   (declare-bi-token '%GLisp)
   (declare-bi-token '|String|)
   (declare-bi-token '|%Chaos|)
+  (declare-bi-token '|#\||)
+  (declare-bi-token '|\|#|)
   )
 
 ;;;=============================================================================
@@ -437,6 +438,10 @@
 (defparameter .chaos-simple-LISP-keyword. "#!")
 (defparameter .chaos-general-LISP-keyword. "#!!")
 (defparameter .chaos-value-keyword. "#%")
+(defparameter .ml-begin-char. #\#)
+(defparameter .ml-end-char. #\|)
+
+(defvar .lex-inner-multi-comment. nil)
 
 (defun read-lexicon (&optional (stream *standard-input*))
   (declare (type stream stream))
@@ -464,8 +469,7 @@
 		  (return (subseq .reader-buf. 0 (1+ p))))
 		))
     ;;
-    (lex-consider-token res)
-    ))
+    (lex-consider-token res)))
 
 (defun lex-consider-token (tok)
   (declare (type t tok))
@@ -502,6 +506,28 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun skip-multi-comment (stream)
+  (block exit
+    (loop
+      (reader-get-char stream)
+      (cond ((at-eof)
+	     (setf .reader-ch. 'space)
+	     (!read-discard)
+	     (return-from skip-multi-comment *lex-eof*))
+	    (t (case .reader-ch.
+		 (#\" (lex-read-string stream))
+		 (#\|
+		  (reader-get-char stream)
+		  (when (equal .reader-ch. #\#)
+		    (!read-discard)
+		    (setq .reader-ch. 'space)
+		    (return-from skip-multi-comment nil))
+		  (when (at-eof)
+		    (setf .reader-ch. 'space)
+		    (!read-discard)
+		    (return-from skip-multi-comment *lex-eof*))
+		  (reader-unread .reader-ch. stream))))))))
+
 ;;; READ-SYM : STREAM -> TOKEN
 ;;; read characters considered to be constructs of a token, returns
 ;;; the token recognized.
@@ -511,74 +537,81 @@
 ;;;  'c      : read as character constant.
 ;;;
 (defun unread-token (&rest ignore)
-  (declare (ignore ignore)
-	   (values t))
+  (declare (ignore ignore))
   (unless (eq *last-token* *reader-void*)
     (push *last-token* *token-buf*)
     (setq *last-token* *reader-void*)))
 
 (defun read-sym (&optional (stream *standard-input*) (parse-list nil))
   (declare (type stream stream)
-	   (type (or null t) parse-list)
-	   (values t))
-  (when *token-buf*
-    (return-from read-sym (pop *token-buf*)))
-  ;; skip white chars.
-  (while (memq .reader-ch. (if *live-newline* '(space)
-			     '(space return)))
-    (reader-get-char stream))
-  (cond (;; (or (at-eof) (see-ctrl-d))
-	 (at-eof)
-	 ;; (format t "~&we are at eof")
-	 (setf .reader-ch. 'space)
-	 (!read-discard)
-	 *lex-eof*)
-	((see-input-escape)
-	 ;; user forces aborting reading process.
-	 (setq .reader-ch. 'space)
-	 (!read-discard)
-	 (clear-input)
-	 (throw :aborting-read :aborting-read))
-	(t
-	 (case .reader-ch.
-	   (|(| (if parse-list
-		    (setq *last-token* (lex-read-list stream))
-		    (progn
-		      (setq .reader-ch. 'space)
-		      (setq *last-token* "("))))
-	   (return
-	     (setq .reader-ch. 'space)
-	     (setq *last-token* (if *live-newline*
-					  '(return)
-					*reader-void*)))
-	   (#\"				; string
-	    (setq *last-token* (list (lex-read-string stream))))
-	   (#\#				; #! or #!!
-	    (reader-get-char stream)
-	    (cond ((memq .reader-ch. '(space return))
-		   (setq *last-token* '("#")))
-		  ((eq .reader-ch. *lisp-escape-char*)
-		   (setq *last-token* (lex-read-lisp-escape stream)))
-		  ((eq .reader-ch. *chaos-escape-char*)
-		   (setq *last-token* (lex-read-chaos-value stream)))
-		  (t (reader-unread .reader-ch. stream)
-		     (setq .reader-ch. #\#)
-		     (let ((tok (read-lexicon stream)))
-		       (if (equal tok *lex-eof*)
-			   (progn (setq *last-token* *reader-void*)
-				  *lex-eof*)
-			   (setq *last-token* tok))))))
-	   ;;
-	   (otherwise
-	    (if (symbolp .reader-ch.)
-		(let ((str (string .reader-ch.)))
-		  (setq .reader-ch. 'space)
-		  (setq *last-token* (lex-consider-token str)))
-		(let ((tok (read-lexicon stream)))
-		  (if (eq tok *lex-eof*)
-		      (progn (setq *last-token* *reader-void*)
-			     *lex-eof*)
-		      (setq *last-token* tok)))))))))
+	   (type (or null t) parse-list))
+  (flet ((skip-whites ()
+	   ;; skip white chars.
+	   (while (memq .reader-ch. (if *live-newline* '(space)
+				      '(space return)))
+	     (reader-get-char stream))))
+    (when *token-buf*
+      (return-from read-sym (pop *token-buf*)))
+    ;; skip white chars.
+    (skip-whites)
+    ;; get token
+    ;; (setq *last-token* nil)
+    (cond ((at-eof) (setf .reader-ch. 'space)
+		    (!read-discard)
+		    (return-from read-sym (progn (setq *last-token* *reader-void*) *lex-eof*)))
+	  ((see-input-escape)
+	   ;; user forces aborting reading process.
+	   (setq .reader-ch. 'space)
+	   (!read-discard)
+	   (clear-input)
+	   (throw :aborting-read :aborting-read))
+	  (t (case .reader-ch.
+	       (|(| (if parse-list
+			(setq *last-token* (lex-read-list stream))
+		      (progn
+			(setq .reader-ch. 'space)
+			(setq *last-token* "(")))
+		   (return-from read-sym *last-token*))
+	       (return
+		 (setq .reader-ch. 'space)
+		 (setq *last-token* (if *live-newline*
+					'(return)
+				      *reader-void*))
+		 (return-from read-sym *last-token*))
+	       (#\"			; string
+		(return-from read-sym (setq *last-token* (list (lex-read-string stream)))))
+	       (#\#			; #! or #!!
+		(reader-get-char stream)
+		(cond ((memq .reader-ch. '(space return))
+		       (return-from read-sym (setq *last-token* '("#"))))
+		      ((eq .reader-ch. *lisp-escape-char*)
+		       (return-from read-sym (setq *last-token* (lex-read-lisp-escape stream))))
+		      ((eq .reader-ch. *chaos-escape-char*)
+		       (return-from read-sym (setq *last-token* (lex-read-chaos-value stream))))
+		      ((equal .reader-ch. #\|) ; begin multi comment
+		       (setq .lex-inner-multi-comment. t)
+		       (skip-multi-comment stream)
+		       (setq .lex-inner-multi-comment. nil)
+		       (skip-whites))
+		      (t (reader-unread .reader-ch. stream)
+			 (setq .reader-ch. #\#)
+			 (let ((tok (read-lexicon stream)))
+			   (if (equal tok *lex-eof*)
+			       (return-from read-sym
+				 (progn (setq *last-token* *reader-void*)
+					*lex-eof*))
+			     (return-from read-sym (setq *last-token* tok))))))))
+	     ;;
+	     (if (symbolp .reader-ch.)
+		 (let ((str (string .reader-ch.)))
+		   (setq .reader-ch. 'space)
+		   (return-from read-sym (setq *last-token* (lex-consider-token str))))
+	       (let ((tok (read-lexicon stream)))
+		 (if (eq tok *lex-eof*)
+		     (return-from read-sym
+		       (progn (setq *last-token* *reader-void*)
+			      *lex-eof*))
+		   (return-from read-sym (setq *last-token* tok)))))))))
 
 ;;; builtin string reader
 (defun lex-read-string (stream)

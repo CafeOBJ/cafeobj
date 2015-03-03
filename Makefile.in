@@ -252,8 +252,6 @@ install-stamp: build-stamp
 	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjlibdir)
 	$(INSTALL) -m 0644 		\
 			$(srcdir)/lib/lib/*.cafe	\
-			$(srcdir)/lib/lib/*.bin		\
-			$(srcdir)/lib/lib/*.desc	\
 			$(DESTDIR)$(prefix)/$(cafeobjlibdir)
 	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjpreludedir)
 	$(INSTALL) -m 0644 $(srcdir)/lib/prelude/*.bin 	\

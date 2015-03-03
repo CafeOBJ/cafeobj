@@ -243,10 +243,12 @@
     (let ((modval (eval-mod-ext mod)))
       (when modval
 	(if tree
-	    (print-module-graph modval)
 	    (if desc
-		(describe-module modval)
-		(show-module modval)))))))
+		(describe-module-graph (module-dag modval))
+	      (print-module-graph modval))
+	  (if desc
+	      (describe-module modval)
+	    (show-module modval)))))))
 
 ;;; *************
 ;;; SHOW VIEW ...
@@ -532,22 +534,14 @@
 (defun print-modules (x)
   (declare (ignore x))
   (let ((*print-indent-contin* nil)
+	(*print-line-limit* 80)
 	(mods nil))
-    #||
-    (maphash #'(lambda (key m)
-		 (declare (ignore key))
-		 (if (module-is-hard-wired m)
-		     (when (or *on-debug* *chaos-verbose*)
-		       (push m mods))
-		     (unless (equal (module-name m) "%") (push m mods))))
-	     *modules-so-far-table*)
-    ||#
     (dolist (entry *modules-so-far-table*)
       (let ((m (cdr entry)))
-	(if (module-is-hard-wired m)
-	    (when t			; (or *on-debug* *chaos-verbose*)
-	      (push m mods))
-	  (unless (equal (module-name m) "%") (push m mods)))))
+	(cond ((or (module-hidden m) (module-is-parameter-theory m))
+	       (when (or *on-debug* *chaos-verbose*)
+		 (push m mods)))
+	      (t (unless (equal (module-name m) "%") (push m mods))))))
     ;;
     (dolist (m (sort mods #'ob< :key #'(lambda (x)
 					 (let ((name (module-name x)))
@@ -558,7 +552,7 @@
       (when (< 0 (filecol *standard-output*))
 	(princ "  "))
       ;; (print-modexp-simple m)
-      (print-mod-name2 m *standard-output* t)
+      (print-mod-name m *standard-output* t t)
       (print-check))
     (fresh-line)))
 
