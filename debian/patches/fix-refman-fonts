@@ -4,9 +4,9 @@
 
 --- cafeobj.git.orig/doc/refman/Makefile.in
 +++ cafeobj.git/doc/refman/Makefile.in
-@@ -37,9 +37,9 @@
- 	--table-of-contents				\
- 	--toc-depth=1					\
+@@ -38,9 +38,9 @@
+ 	--biblatex					\
+ 	-V biblio-files=manual.bib			\
  	-V papersize=a4paper				\
 -	-V mainfont='Lucida Bright OT'			\
 -	-V sansfont='Lucida Sans OT'			\
