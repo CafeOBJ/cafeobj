@@ -47,7 +47,7 @@ File: eval-match.lisp
 ;;; ******
 
 (defun eval-match-command (ast)
-  (unless *last-module*
+  (unless (get-context-module)
     (with-output-chaos-error ('no-current-module)
       (princ "no current module.")))
   (let ((type (%match-type ast))
@@ -58,7 +58,7 @@ File: eval-match.lisp
                            $$subterm
                          $$term))
                   (t (let* ((*parse-variables* nil)
-                            (parsed (with-in-module (*last-module*)
+                            (parsed (with-in-module ((get-context-module))
                                       (simple-parse *current-module*
                                                     (%match-target ast)
                                                     *cosmos*))))
@@ -85,15 +85,15 @@ File: eval-match.lisp
 
 (defun find-rewrite-rules-top (target what &optional (type :match))  
   (let* ((real-target (supply-psuedo-variables target))
-         (patterns (find-matching-rules what real-target *last-module* type)))
+         (patterns (find-matching-rules what real-target (get-context-module) type)))
     (unless patterns
-      (with-in-module (*last-module*)
+      (with-in-module ((get-context-module))
         (format t "~&no rules found for term : ")
         (term-print target))
       (return-from find-rewrite-rules-top nil))
     ;; report the result
     (format t "~&== matching rules to term : ")
-    (with-in-module (*last-module*)
+    (with-in-module ((get-context-module))
       (let ((*fancy-print* nil))
         (term-print target))
       (dolist (pat patterns)
@@ -128,15 +128,15 @@ File: eval-match.lisp
 
 (defun find-rewrite-rules-all (target what &optional (type :match))  
   (let* ((real-target (supply-psuedo-variables target))
-         (patterns (find-matching-rules-all what real-target *last-module* type)))
+         (patterns (find-matching-rules-all what real-target (get-context-module) type)))
     (unless patterns
-      (with-in-module (*last-module*)
+      (with-in-module ((get-context-module))
         (format t "~&no rules found for term : ")
         (term-print target))
       (return-from find-rewrite-rules-all nil))
     ;; report the result
     (format t "~&== matching rules to term : ")
-    (with-in-module (*last-module*)
+    (with-in-module ((get-context-module))
       (let ((*fancy-print* nil))
         (term-print target))
       (dolist (pat patterns)
@@ -193,7 +193,7 @@ File: eval-match.lisp
                                    nil
                                  'next-match)
                              'next-unify)))
-      (with-in-module (*last-module*)
+      (with-in-module ((get-context-module))
         (let* ((*parse-variables* (mapcar #'(lambda (x)
                                               (cons (variable-name x) x))
                                           (term-variables target)))

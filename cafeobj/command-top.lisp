@@ -393,31 +393,34 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 (defun print-cafeobj-prompt ()
   (fresh-all)
   (flush-all)
-  (cond ((eq *prompt* 'system)
-         (if *last-module*
-             (if (module-is-inconsistent *last-module*)
+  (let ((cur-module (get-context-module)))
+    (cond ((eq *prompt* 'system)
+	   (if cur-module
+             (if (module-is-inconsistent cur-module)
                  (progn
                    (with-output-chaos-warning ()
                      (format t "~a is inconsistent due to changes in some of its submodules."
-                             (module-name *last-module*))
+                             (module-name cur-module))
                      (print-next)
                      (princ "resetting the `current module' of the system.."))
-                   (setq *last-module* nil)
-                   (format *error-output* "~&CafeOBJ> ")
-                   )
+		   (reset-context-module)
+                   (format *error-output* "~&CafeOBJ> "))
                (let ((*standard-output* *error-output*))
-                 (print-simple-mod-name *last-module*)
+                 (print-simple-mod-name cur-module)
                  (princ "> ")))
-           (format *error-output* "CafeOBJ> "))
-         (setf *sub-prompt* nil))
-        ((eq *prompt* 'none))
-        (*prompt*
-         (let ((*standard-output* *error-output*))
-           (if (atom *prompt*)
-               (princ *prompt*)
-             (print-simple-princ-open *prompt*))
-           (princ " "))))
-  (flush-all))
+	     ;; no context module
+	     (format *error-output* "CafeOBJ> "))
+	   (setf *sub-prompt* nil))
+	  ;; prompt specified to NONE
+	  ((eq *prompt* 'none))
+	  ;; specified prompt
+	  (*prompt*
+	   (let ((*standard-output* *error-output*))
+	     (if (atom *prompt*)
+		 (princ *prompt*)
+	       (print-simple-princ-open *prompt*))
+	     (princ " "))))
+    (flush-all)))
 
 ;;; SAVE INTERPRETER IMAGE
 ;;;_____________________________________________________________________________
@@ -602,9 +605,6 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
           (when .in-in.
             (setq *chaos-print-errors* t)
             (setq .in-in. nil)))))))
-
-(defun try-reduce-term (inp)
-  (perform-reduction* inp *current-module* nil nil))
 
 (defun handle-cafeobj-top-error (val)
   (if *chaos-input-source*

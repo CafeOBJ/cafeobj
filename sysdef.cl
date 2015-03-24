@@ -161,7 +161,6 @@
                      "construct/match-method"
                      "construct/axiom"
                      "construct/gen-rule"
-                     "construct/cr"
                      "construct/rwl"
                      "construct/beh"
                      "construct/module"

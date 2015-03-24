@@ -40,12 +40,10 @@
 ;;;
 ;;; CHECK COMPATIBILITY
 ;;;
-(defun check-compatibility (&optional (module (or *last-module*
-						  *current-module*)))
+(defun check-compatibility (&optional (module (get-context-module)))
   (unless module
     (with-output-chaos-error ('no-context)
-      (princ "no context (current) module is specified!")
-      ))
+      (princ "no context (current) module is specified!")))
   ;;
   (unless *on-preparing-for-parsing*
     (prepare-for-parsing module))

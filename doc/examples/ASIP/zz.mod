@@ -4,7 +4,9 @@
 -- imperative program", MIT Press.
 -- * program codes are converted from OBJ to CafeOBJ
 --
-"ZZ extends CafeoBJ's built-in representation of the integers with an
+
+#|------------------------------
+ZZ extends CafeoBJ's built-in representation of the integers with an
  equality predicate, _is_, and with some equations that are useful for
  manipulating inequalities. In paricular, these equations are useful
  as lemmas in the correctness proof given in the book. For example,
@@ -19,19 +21,21 @@
  lemma for the proof. In fact, there is not set of equations that can allow
  the automatic verification of all properties of integer expressions which 
  contain indeterminate values such as `s[['X]]'; in other words, first order
- arithmetic is \"undecidable\".
-"
+ arithmetic is "undecidable".
+--------------------------|#
 
 module ZZ {
   imports {
     protecting (INT)
   }
   signature {
-    "The predicate _is_ is intended to represent equality on integers.
+    #|
+    The predicate _is_ is intended to represent equality on integers.
      The reason for introducing a new equality predicate rather then
      using CafeOBJ's builtin equality _==_ is that we want to use 
      integer expressions which indeterminate values in program 
-     correctness proofs (cf. Section 2.1.1 of Chapter2). "
+       correctness proofs (cf. Section 2.1.1 of Chapter2).
+    |#
     op _is_ : Int Int -> Bool
   }
   axioms {

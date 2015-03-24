@@ -1057,13 +1057,11 @@
 (defparameter *import-rwl-ast*
   (%import* :protecting (%modexp* "RWL")))
 
-(defun include-rwl (&optional (module (or *current-module* *last-module*)))
+(defun include-rwl (&optional (module (get-context-module)))
   (when *include-rwl*
     (unless (module-includes-rwl module)
       (with-in-module (module)
-	(eval-import-modexp *import-rwl-ast*)
-	)))
-  )
+	(eval-import-modexp *import-rwl-ast*)))))
 
 ;;;
 ;;; IMPORT-VARIABLES

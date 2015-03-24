@@ -49,52 +49,6 @@
 ;;; MODULE    __________________________________________________________________
 ;;; STRUCTURE
 ;;; *********
-#||
-(defterm module (top-object)
-  :visible (name)			; module name (modexpr).
-  :hidden  (signature			; own signature.
-	    axiom-set			; set of own axioms.
-	    theorems			; set of own theorems, not used yet.
-	    parse-dictionary		; infos for term parsing.
-	    ex-info			; various compiled informations.
-	    trs				; corresponding semi-compiled TRS.
-	    context			; run time context
-	    )
-  :int-printer print-module-object
-  :print print-module-internal)
-
-(defstruct (module (:include top-object (-type 'module))
-		   (:conc-name "MODULE-")
-		   (:constructor make-module)
-		   (:constructor module* (name))
-		   (:print-function print-module-object)
-		   )
-  (signature nil :type (or null signature-struct))
-					; own signature.
-  (axiom-set nil :type (or null axiom-set))
-					; set of own axioms.
-  (theorems nil :type list)		; set of own theorems, not used yet.
-  (parse-dictionary nil :type (or null parse-dictionary))
-					; infos for term parsing.
-  (ex-info nil :type list)		; various compiled informations.
-  (trs nil :type (or null trs))	; corresponding semi-compiled TRS.
-  (context nil
-	   :type (or null module-context))
-					; run time context
-  (alias nil :type list)
-  )
-
-(eval-when (:execute :load-toplevel)
-  (setf (get 'module :type-predicate) (symbol-function 'module-p))
-  (setf (get 'module :eval) nil)
-  (setf (get 'module :print) 'print-module-internal)
-  )
-
-||#
-
-;;; type predicate
-
-;;; (defmacro module-p (_object) `(is-module ,_object))
 
 ;;; module name
 ;;; name ::= string
@@ -250,11 +204,9 @@
 		    (return-from get-importing-path
 		      (nconc path im2))))))))))
 
-(defun get-real-importing-mode (module2 &optional (module (or *current-module*
-							      *last-module*)))
+(defun get-real-importing-mode (module2 &optional (module (get-context-module)))
   (declare (type module module2 module)
 	   (values symbol))
-  ;;
   (let ((path (get-importing-path module2 module)))
     (let ((mode nil))
       (dolist (e path mode)
@@ -419,20 +371,6 @@
 ;;; gathers own signature infomations of a module. stored in module's `signature'
 ;;; slot.
 
-#||
-(defstruct (signature-struct (:conc-name "SIGNATURE$")
-			     ;; #+gcl (:static t)
-			     )
-  (sorts nil :type list)		; list of own sorts.
-  (sort-relations nil :type list)	; list of subsort relations.
-  (operators nil :type list)		; list of operators declared in the
-					; module. 
-  (opattrs nil :type list)		; explicitly declared operator
-					; attributes in a form of AST.
-  (principal-sort nil :type atom)	; principal sort of the module.
-  )
-
-||#
 
 ;;; accessors via module, all are setf'able.
 
@@ -467,19 +405,6 @@
 ;;; *********
 ;;; gathers own axioms and explicitly declared variables of a module.
 ;;; stored in module's `axioms' slot.
-
-#||
-(defstruct (axiom-set (:conc-name "AXIOM-SET$")
-		      ;; #+gcl (:static t)
-		      )
-  (variables nil :type list)		; assoc list of explicitly declared
-					; variables.  
-					;  ((variable-name . variable) ...)
-  (equations nil :type list)		; list of equtions declared in the module.
-  (rules nil :type list)		; list of rules declared in the module.
-  )
-
-||#
 
 ;;; accessors from module object, all are setf'able.
 
@@ -516,17 +441,6 @@
 ;;;  builtins : list of infos on builtin constants. each info consists of the
 ;;;             builtin-info part of builtin sorts.
 ;;;
-
-#||
-(defstruct (parse-dictionary (:conc-name "DICTIONARY-")
-			     ;; #+gcl (:static t)
-			     )
-  (table (make-hash-table :test #'equal :size 50)
-	 :type (or null hash-table))
-  (builtins nil :type list)
-  (juxtaposition nil :type list)	; list of juxtaposition methods.
-  )
-||#
 
 ;;; accessors via module, all are setf'able
 
@@ -566,53 +480,6 @@
 ;;; ***
 ;;; TRS________________________________________________________________________
 ;;; ***
-
-#||
-(let ((.ext-rule-table-symbol-num. 0))
-  (declare (type fixnum .ext-rule-table-symbol-num.))
-  (defun make-ext-rule-table-name ()
-    (declare (values symbol))
-    (intern (format nil "ext-rule-table-~d" (incf .ext-rule-table-symbol-num.))))
-  )
-
-;;; The structure TRS is a representative of flattened module.
-
-(defstruct (TRS (:conc-name trs$)
-		;; #+gcl (:static t)
-		)
-  (module nil :type (or null module))	; the reverse pointer
-  ;; SIGNATURE INFO
-  (opinfo-table	(make-hash-table :test #'eq)
-		:type (or null hash-table))
-					; operator infos
-  (sort-order (make-hash-table :test #'eq)
-	      :type (or null hash-table))
-					; transitive closure of sort-relations
-  ;; (ext-rule-table (make-hash-table :test #'eq))
-  (ext-rule-table (make-ext-rule-table-name)
-		  :type symbol)
-					; assoc table of rule A,AC extensions
-  ;;
-  (sorts nil :type list)		; list of all sorts
-  (operators nil :type list)		; list of all operators
-  ;; REWRITE RULES
-  (rules nil :type list)		; list of all rewrite rules.
-  ;; INFO FOR EXTERNAL INTERFACE -----------------------------------
-  (sort-name-map nil :type list)
-  (op-info-map nil :type list)
-  (op-rev-table nil :type list)
-  ;; GENERATED OPS & AXIOMS for equalities & if_then_else_fi
-  ;; for proof support system.
-  (sort-graph nil :type list)
-  (err-sorts nil :type list)
-  (dummy-methods nil :type list)
-  (sem-relations nil :type list)	; without error sorts
-  (sem-axioms nil :type list)		; ditto
-  ;; a status TRAM interface generated?
-  (tram	nil :type symbol)		; nil,:eq, or :all
-  )
-
-||#
 
 ;;; accessor via module, all are setf'able.
 (defmacro module-rewrite-rules (_mod) `(trs$rules (module-trs ,_mod)))
@@ -707,10 +574,6 @@
   (if (trs$opinfo-table trs)
       (clrhash (trs$opinfo-table trs)))
   (setf (trs$opinfo-table trs) nil)
-  #||
-  (if (trs$ext-rule-table trs)
-      (clrhash (trs$ext-rule-table trs)))
-  ||#
   (setf (get (trs$ext-rule-table trs) :ext-rules) nil)
   )
 
@@ -718,21 +581,6 @@
 ;;; CONTEXT_____________________________________________________________________
 ;;; *******
 ;;; holds some run time context infos.
-
-#||
-(defstruct (module-context
-	     ;; #+gcl (:static t)
-	     )
-  (bindings nil :type list)		; top level let binding
-  (special-bindings nil :type list)	; users $$variables ...
-  ($$term nil :type list)		; $$term
-  ($$subterm nil :type list)		; $$subterm
-  ($$action-stack nil :type list)	; action stack for apply
-  ($$selection-stack nil :type list)	; selection stack for choose
-  ($$stop-pattern nil :type list)	; stop pattern
-  )
-||#
-
 ;;; accessors via module, all are setf'able.
 
 (defmacro module-bindings (_mod) `(module-context-bindings (module-context
@@ -749,7 +597,7 @@
 
 ;;; intialization
 (defun initialize-module-context (context)
-  (declare (type module-context context)
+  (declare (type module-dyn-context context)
 	   (values t))
   (setf (module-context-bindings context) nil
 	(module-context-special-bindings context) nil
@@ -761,7 +609,7 @@
   )
 
 (defun clean-up-context (context)
-  (declare (type module-context context)
+  (declare (type module-dyn-context context)
 	   (values t))
   (initialize-module-context context))
 
@@ -795,10 +643,9 @@
 ;;;  beh-axioms-prooved nil		;
 ;;;  psort-decl                         ; declaration form of principal sort
 ;;;  error-op-decl                      ; declaration forms of explicit error
-;;;                                     ; operators. may contain illegual ones.
-;;;  macros
-;;;
+
 (defun module-infos (mod) (object-misc-info mod))
+
 (defsetf module-infos (mod) (values)
   `(setf (object-misc-info ,mod) ,values))
 
@@ -824,31 +671,9 @@
 (defmacro module-hidden (_mod)
   ` (getf (object-misc-info ,_mod) ':module-hidden))
 
-;;; KIND
-(defmacro module-kind (_mod)
-  `(getf (object-misc-info ,_mod) ':module-kind))
-
-(defmacro module-is-theory (_mod_) `(eq :theory (module-kind ,_mod_)))
-
-(defmacro module-is-object (_mod_) `(eq :object (module-kind ,_mod_)))
-
-(defmacro module-is-final (_mod_) `(eq :theory (module-kind ,_mod_)))
-
-(defmacro module-is-loose (_mod_)
-  ` (memq (module-kind ,_mod_) '(:module :ots)))
-
-(defmacro module-is-initial (_mod_) `(eq (module-kind ,_mod_) :object))
-
 ;;; REGULARITY
 (defmacro module-is-regular (_mod)
   `(getf (object-misc-info ,_mod) ':modle-is-regular))
-
-;;; ALL-SUBMODULES-LIST -- cached data
-;;; OBSOLETE
-;;; (defun module-all-submodules-list (mod)
-;;;   (or (object-misc-info-all-submodules-list (object-misc-info mod))
-;;;       (setf (object-misc-info-all-submodules-list (object-misc-info mod))
-;;;	    (mapcar #'car (module-all-submodules mod)))))
 
 ;;; ADD-IMPORTED-MODULE : module mode submodule [alias] -> void
 ;;; (for downward comatibility.)
@@ -1075,22 +900,6 @@
 (defmacro module-ambig-sorts (_m) `(getf (object-misc-info ,_m) ':ambig-sorts))
 (defmacro module-ambig-ops (_m) `(getf (object-misc-info ,_m) ':ambig-ops))
 
-;;; EX-INFO INITIALIZATION -----------------------------------------------------
-;;; OBSOLETE
-
-#||
-(defun initialize-module-ex-info (ex-info)
-  (setf (module-ex-info-protected-modules ex-info) nil
-	(module-ex-info-hard-wired ex-info) nil
-	(module-ex-info-kind ex-info) nil
-	(module-ex-info-all-submodules-list ex-info) nil
-	(module-ex-info-infos ex-info) nil))
-
-(defun clean-up-ex-info (ex-info)
-  (initialize-module-ex-info ex-info))
-
-||#
-
 ;;; *************
 ;;; Module status_______________________________________________________________
 ;;; *************
@@ -1100,18 +909,21 @@
 ;;; 1 : regularized -- NOT USED.
 ;;; 2 : prepared for parsing
 ;;; 3 : prepared for rewriting
-;;;
+(defparameter module-initial -1)
+(defparameter module-inconsistent 0)
+(defparameter module-regularized 1)
+(defparameter module-ready-parsing 2)
+(defparameter module-ready-rewriting 3)
+
 ;;; o Adding new sort or operator declarations makes the module status to 0.
 ;;; o Adding new rule makes the module status to at most 2.
 ;;; o Some changes in any submodule makes the status to 0.
 ;;;   (should be more fine grained checking for statu change).
-;;; 
-;;; (defmacro module-status (_mod) `(object-status ,_mod))
 
 ;;; initial inconsistent status
 
-(defmacro module-is-inconsistent (_module)
-  `(object-is-inconsistent ,_module))
+(defun module-is-inconsistent (_module)
+  (object-is-inconsistent _module))
 
 (defun mark-module-as-inconsistent (_module)
   (mark-object-as-inconsistent _module))
@@ -1119,33 +931,33 @@
 ;;; parsing preparation
 
 (defmacro need-parsing-preparation (_module)
-  `(< (module-status ,_module) 2))
+  `(< (module-status ,_module) module-ready-parsing))
 
 (defmacro module-is-ready-for-parsing (_module)
-  `(>= (module-status ,_module) 2))
+  `(>= (module-status ,_module) module-ready-parsing))
 
 (defmacro mark-module-ready-for-parsing (_module)
-  `(setf (module-status ,_module) (max 2 (module-status ,_module))))
+  `(setf (module-status ,_module) (max module-ready-parsing (module-status ,_module))))
 
 (defmacro mark-need-parsing-preparation (_module)
-  `(setf (module-status ,_module) (min 1 (module-status ,_module))))
+  `(setf (module-status ,_module) (min module-regularized (module-status ,_module))))
 
 ;;; rewriting preparation
 
 (defmacro need-rewriting-preparation (_module)
-  `(< (module-status ,_module) 3))
+  `(< (module-status ,_module) module-ready-rewriting))
       
 (defmacro module-is-ready-for-rewriting (_module)
-  `(>= (module-status ,_module) 3))
+  `(>= (module-status ,_module) module-ready-rewriting))
 
 (defmacro mark-module-as-consistent (_module)
-  `(setf (module-status ,_module) 3))
+  `(setf (module-status ,_module) module-ready-rewriting))
 
 (defmacro mark-module-ready-for-rewriting (_module)
   `(mark-module-as-consistent ,_module))
 
 (defmacro mark-module-need-rewriting-preparation (_module)
-  `(setf (module-status ,_module) (min 2 (module-status ,_module))))
+  `(setf (module-status ,_module) (min module-ready-parsing (module-status ,_module))))
 
 ;;; some handy procs.
 
@@ -1158,24 +970,6 @@
 (defmacro needs-rule (&optional (_module '*current-module*))
   `(compile-module ,_module))
 
-;;; *******
-;;; PRINTER
-;;; *******
-
-(defun print-module-object (obj stream &rest ignore)
-  (declare (ignore ignore)
-	   (type module obj)
-	   (type stream stream)
-	   (values t))
-  (if (or (module-is-inconsistent obj)
-	  (null (module-name obj)))
-      (format stream "[:module \"~a\"]" (module-name obj))
-    (cond ((module-is-object obj)
-	   (format stream ":mod![\"~a\"]" (module-print-name obj)))
-	  ((module-is-theory obj)
-	   (format stream ":mod*[\"~a\"]" (module-print-name obj)))
-	  (t (format stream ":mod[\"~a\"]" (module-print-name obj))))))
-
 ;;; *********************************
 ;;; Constructing RUN TIME ENVIRONMENT -----------------------------------------
 ;;; *********************************
@@ -1186,7 +980,6 @@
 ;;;                          module. 
 ;;; *current-opinfo-table* : operator information table of the current module .
 ;;;
-
 (defmacro with-in-module ((_module_) &body body)
   (once-only (_module_)
     ` (block with-in-module
@@ -1394,8 +1187,7 @@
 (defun initialize-module (mod)
   (declare (type module mod)
 	   (values t))
-  ;;
-  (setf (module-status mod) -1)		; initial state.
+  (setf (module-status mod) module-initial) ; initial state.
   (setf (module-decl-form mod) nil)
   ;; interface
   (if (the (or null ex-interface) (module-interface mod))
@@ -1417,22 +1209,18 @@
       (setf (module-parse-dictionary mod) (make-parse-dictionary)))
   ;; misc infos
   (setf (object-misc-info mod) nil)
-  ;;; (if (object-misc-info mod)
-  ;;;    (initialize-module-ex-info (module-ex-info mod))
-  ;;;    (setf (module-ex-info mod) (make-module-ex-info)))
   ;; trs
   (if (the (or null trs) (module-trs mod))
       (initialize-trs (module-trs mod) mod)
       (setf (module-trs mod) (make-trs :module mod)))
   ;; context
-  (if (the (or null module-context) (module-context mod))
+  (if (the (or null module-dyn-context) (module-context mod))
       (initialize-module-context (module-context mod))
-      (setf (module-context mod) (make-module-context)))
+    (setf (module-context mod) (make-module-dyn-context :object mod)))
   ;; symbol table
   (setf (module-alias mod) nil)
   (setf (module-symbol-table mod) (make-symbol-table))
   ;; print name
-  ;; (setf (module-print-name mod) (make-module-print-name2 mod))
   (setf (module-print-name mod) (make-module-print-name mod))
   ;;
   (clear-tmp-sort-cache)

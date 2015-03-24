@@ -42,13 +42,13 @@ File: eval-apply.lisp
 ;;; *****
 
 (defun eval-start-command (ast)
-  (do-eval-start-th (%start-target ast) *last-module*))
+  (do-eval-start-th (%start-target ast) (get-context-module)))
 
 (defun do-eval-start-th (pre-term &optional context)
   (catch 'apply-context-error
     (let ((mod (if context
                    (eval-modexp context)
-                 *last-module*)))
+		 (get-context-module))))
       (if (or (null mod) (modexp-is-error mod))
           (if (null mod)
               (with-output-chaos-error ('invalid-module)
@@ -65,10 +65,10 @@ File: eval-apply.lisp
                          (setq target (get-bound-value (car pre-term))))
                        (unless target
                          (return-from do-eval-start-th nil))
-                       (when (eq mod *last-module*)
+                       (when (eq mod (get-context-module))
                          (setq $$action-stack nil))
                        (reset-reduced-flag target)
-                       (reset-target-term target *last-module* mod)))
+                       (reset-target-term target *current-module* mod)))
                     (t 
                      (let ((*parse-variables* nil))
                        (let ((res (simple-parse *current-module*
@@ -76,9 +76,9 @@ File: eval-apply.lisp
                                                 *cosmos*)))
                          (when (term-is-an-error res)
                            (return-from do-eval-start-th nil))
-                         (when (eq *last-module* mod)
+                         (when (eq (get-context-module) mod)
                            (setq $$action-stack nil))
-                         (reset-target-term res *last-module* mod))))))
+                         (reset-target-term res *current-module* mod))))))
           ;; try use $$term
           (progn
             (when (or (null $$term) (eq 'void $$term))
@@ -86,12 +86,10 @@ File: eval-apply.lisp
                 (format t "no target term is given!")
                 (return-from do-eval-start-th nil)))
             (check-apply-context mod)
-            (when (eq *last-module* mod)
+            (when (eq (get-context-module) mod)
               (setq $$action-stack nil))
             (reset-reduced-flag $$term)
-            (reset-target-term $$term *last-module* mod)
-            )))
-      ;; (clear-found-rules)
+            (reset-target-term $$term (get-context-module) mod))))
       (when (command-final) (command-display))
       t)))
 
@@ -112,7 +110,7 @@ File: eval-apply.lisp
       (setq $$subterm $$term)
       (setq $$selection-stack nil)
       (return-from eval-choose-command nil))
-    (with-in-module (*last-module*)
+    (with-in-module ((get-context-module))
       (multiple-value-bind (subterm-sort subterm)
           (compute-selection $$subterm selectors)
         (declare (ignore subterm-sort))
@@ -157,39 +155,38 @@ File: eval-apply.lisp
             (with-output-chaos-error ('invalid-term)
               (princ "term to be applied is not defined.")
               ))
-          (unless *last-module*
+          (unless (get-context-module)
             (with-output-chaos-error ('no-context-module)
-              (princ "no current module.")
-              ))
+              (princ "no current module.")))
           ;; real work begins here ------------------------------
-          (with-in-module (*last-module*)
+          (with-in-module ((get-context-module))
             (multiple-value-bind (subterm-sort subterm)
                 (compute-selection $$term selectors)
               (setq *-applied-* t)
               (case action
                 (:reduce                ; full reduction on selections.
-                 (!setup-reduction *last-module*)
+                 (!setup-reduction *current-module*)
                  (let ((*rewrite-semantic-reduce*
-                        (module-has-behavioural-axioms *last-module*))
+                        (module-has-behavioural-axioms *current-module*))
                        (*rewrite-exec-mode* nil))
                    (term-replace subterm (@copy-term subterm))
                    (reset-reduced-flag subterm)
-                   (rewrite subterm *last-module*)))
+                   (rewrite subterm *current-module*)))
                 (:breduce
-                 (!setup-reduction *last-module*)
+                 (!setup-reduction *current-module*)
                  (let ((*rewrite-semantic-reduce* nil)
                        (*rewrite-exec-mode* nil))
                    (term-replace subterm (@copy-term subterm))
                    (reset-reduced-flag subterm)
-                   (rewrite subterm *last-module*)))
+                   (rewrite subterm *current-module*)))
                 (:exec
-                 (!setup-reduction *last-module*)
+                 (!setup-reduction *current-module*)
                  (let ((*rewrite-semantic-reduce*
-                        (module-has-behavioural-axioms *last-module*))
+                        (module-has-behavioural-axioms *current-module*))
                        (*rewrite-exec-mode* t))
                    (term-replace subterm (@copy-term subterm))
                    (reset-reduced-flag subterm)
-                   (rewrite subterm *last-module*)))
+                   (rewrite subterm *current-module*)))
                 ;;
                 (:print                 ; print selections.
                  (format t "~&term ")
@@ -215,8 +212,7 @@ File: eval-apply.lisp
 		   (update-lowest-parse $$term)
                    (when (nth 2 rule-spec) ; reverse order
                      (setq $$term (@copy-term $$term)))
-                   (reset-target-term $$term *last-module* *last-module*))
-                 )                      ; end :apply
+                   (reset-target-term $$term *current-module* *current-module*))) ; end :apply
                 (t (with-output-panic-message ()
                      (format t "unknown apply action : ~a" action)
                      (chaos-error 'unknown-action))))
@@ -451,7 +447,7 @@ File: eval-apply.lisp
                 (when (and rev (or (rule-is-builtin rule)
                                    (eq (axiom-type rule) :rule)))
                   (format t "~&This rule cannot be applied reversed."))
-                (when (and *last-module*
+                (when (and (get-context-module)
                            (not (rule-is-builtin rule)))
                   (format t "~&(This rule rewrites up.)"))))))))
     t))

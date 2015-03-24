@@ -74,8 +74,7 @@
        (term-is-congruent-2? (macro-rhs macro1)
 			     (macro-rhs macro2))))
 
-(defun expand-macro (term &optional (module (or *current-module*
-						*last-module*)))
+(defun expand-macro (term &optional (module (get-context-module)))
   (labels ((apply-macro-rule (macro term)
 	     (block the-end
 	       (multiple-value-bind (global-state subst no-match E-equal)

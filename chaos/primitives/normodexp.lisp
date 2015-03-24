@@ -78,11 +78,8 @@
     (setq modexp (car modexp)))
   ;;
   (when (and (equal modexp "*the-current-module*")
-	     *current-module*)
-    (setq modexp *current-module*))
-  ;; (when (and (equal modexp "THE-LAST-MODULE") *last-module*)
-  ;;  (setq modexp *last-module*))
-  ;;
+	     (get-context-module))
+    (setq modexp (get-context-module)))
   (cond ((module-p modexp) (normalize-modexp (module-name modexp)))
 	((stringp modexp) (canonicalize-simple-module-name modexp))
 	((atom modexp) modexp)

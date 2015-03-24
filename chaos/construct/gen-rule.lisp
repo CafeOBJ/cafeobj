@@ -47,27 +47,12 @@
 	   (values t))
   (compute-protected-modules module)
 
-  ;; reset rewrite rule set.
-  ;; (setf (module-all-rules module) nil)
-
-  ;; adds axioms for record/class
-  (dolist (s (module-sorts module))
-    (cond ((class-sort-p s)
-	   (declare-class-axioms module s))
-	  ((record-sort-p s)
-	   (declare-record-axioms module s))))
-  
   ;; install own rules.
   (let ((axiom-set (module-axiom-set module)))
     (dolist (eq (axiom-set$equations axiom-set))
       (gen-rule-internal eq module))
     (dolist (rule (axiom-set$rules axiom-set))
       (gen-rule-internal rule module)))
-
-  ;; install rules of submodules
-  ;;  (dolist (submodule (module-all-submodules module))
-  ;;    (unless (eq 'using (cdr submodule))
-  ;;      (transfer-axioms module (car submodule))))
 
   ;; specialize rules of sumodules.
   (dolist (rule (gather-submodule-rules module))
@@ -83,8 +68,7 @@
       (and (term-is-application-form? t2)
 	   (dolist (sub (term-subterms t2) nil)
 	     (when (variable-occurs-in t1 sub)
-	       (return-from variable-occurs-in t))))
-      ))
+	       (return-from variable-occurs-in t))))))
 
 (defparameter non-exec-labels '(|:nonexec| |:non-exec| |:no-ex| |:noex| |:noexec|))
 
@@ -117,9 +101,7 @@
     (when (term-is-variable? (axiom-lhs rule))
       (when (variable-occurs-in (axiom-lhs rule)
 				(axiom-rhs rule))
-	;; (format t "..setting rule mark `need-copy'")
 	(setf (axiom-need-copy rule) t))
-      ;;
       (unless (eq (axiom-type rule) :rule)
 	(unless (axiom-non-exec rule)
 	  (with-output-chaos-warning ()
@@ -131,7 +113,6 @@
 	(setf (axiom-kind rule) ':bad-rule)
 	(setf (axiom-kind ax) ':bad-rule))
       (return-from gen-rule-internal nil))
-    ;;
     (let ((rhs-vars (term-variables (axiom-rhs rule)))
 	  (cond-vars (term-variables (axiom-condition rule))))
       (declare (type list rhs-vars cond-vars))
@@ -145,8 +126,6 @@
 		 (print-chaos-object rule)
 		 (print-next)
 		 (princ "is not a subset of variables in LHS, system does not guarantee the result of the rewriting.")))
-	     ;; (setf (axiom-kind rule) ':bad-rule)
-	     ;; (setf (axiom-kind ax) ':bad-rule))
 	     (add-rule-to-module module rule)
 	     (unless (term-is-variable? (axiom-lhs rule))
 	       (add-associative-extensions module
@@ -174,7 +153,6 @@
 		 (progn
 		   (setf (axiom-kind rule) ':bad-rule)
 		   (setf (axiom-kind ax) ':bad-rule))))
-	    ;;
 	    ;; all is ok, we can use this axiom as a rewrite rule
 	    (t (add-rule-to-module module rule)
 	       (unless (term-is-variable? (axiom-lhs rule))
@@ -386,7 +364,6 @@
 		     :kind (if (eq ':id-theorem (axiom-kind r))
 			       ':id-ext-theory
 			       ':a-right-theory)))
-	      ;; (compute-rule-method a-rule)
 	      (add-rule-to-method a-rule method-above (module-opinfo-table mod))
 	      
 	      (setf a-rule
@@ -414,9 +391,7 @@
 		     :kind (if (eq ':id-theorem (axiom-kind r))
 			       ':id-ext-theory
 			       ':a-middle-theory)))
-	      ;; (compute-rule-method a-rule)
-	      (add-rule-to-method a-rule method-above (module-opinfo-table mod))))
-	))))
+	      (add-rule-to-method a-rule method-above (module-opinfo-table mod))))))))
 
 (defun rule-check-down (mod method terms)
   (declare (ignore mod)
@@ -489,8 +464,7 @@
 					     (cdr term-s)) 
 				     cvi)))
 			   (unless (eq ':fail res)
-			     (return res)))))))))
-      ))
+			     (return res)))))))))))
 
 ;;;-----------------------------------------------------------------------------
 (defun normalize-rules-in (mod)
@@ -509,8 +483,7 @@
 	     (values list))
     (prog1
 	(list (intern (format nil "~a~a" label $rule-counter)))
-      (incf $rule-counter)))
-  )
+      (incf $rule-counter))))
 
 (defun add-operator-theory-axioms (module opinfo)
   (declare (type module module)
@@ -691,18 +664,14 @@
 			 (not (eq r newrule)))
 		(setf (axiom-labels newrule)
 		      (create-rule-name module "compl")))
-	      ;; #||
 	      (when (axiom-extensions newrule)
 		(dolist (e (axiom-a-extensions newrule)) 
 		  (setf (axiom-id-condition e) newidcond))
 		(dolist (e (axiom-AC-extension newrule))
 		  (setf (axiom-id-condition e) newidcond)))
-	      ;; ||#
 	      (dolist (e (axiom-extensions newrule))
 		(when e
 		  (setf (axiom-id-condition e) newidcond)))
-	      ;;
-	      ;; (break)
 	      (unless (eq r rul)
 		(adjoin-axiom-to-module module newrule)))))))))
 
@@ -863,7 +832,6 @@
 	     :kind ':id-completion
 	     :meta-and-or (rule-meta-and-or rul)
 	     :labels (cons (car (create-rule-name 'dummy "idcomp")) (axiom-labels rul))))
-	  ;;
 	  ;;
 	  (when *gen-rule-debug*
 	    (format t "~%invert-val: ")

@@ -1,3 +1,15 @@
+20150324 tswd
+
+refactor, over 20 years old codes
+   even 20 years a go, the style was already old fashioned.
+   (1) many globals to be eliminated
+       *memoized-module* ?
+   (2) clean up and reorganize modules
+       profiler -- new
+       context
+   (3) many dumplicated/similar code fragments
+       much codes have been added in ad hoc manner
+
 20150225 np
 
 we should add a check that a key is not define'd more than once
@@ -23,3 +35,5 @@ According to the sbcl manual (ver. 1.2.1), there is a way to do this.
 --end-toplevel-options <args-to-cafeobj>*
 (Please refer to 3.2.3 Saving Core Image and 3.3 Command Line Options
 of the manual. )
+
+   

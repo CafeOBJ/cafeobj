@@ -97,8 +97,7 @@
 
 ;;; FIND-SORTS-IN-MODULE
 
-(defun find-sorts-in-module (sort-name &optional (module (or *current-module*
-							     *last-module*)))
+(defun find-sorts-in-module (sort-name &optional (module (get-context-module)))
   (declare (type symbol sort-name)
 	   (type module module))
   (let ((res nil))
@@ -108,33 +107,6 @@
 
 ;;; FIND-SORT 
 ;;; 
-#||
-(defun find-sort (sort-name-or-name-ref &optional (module (or *current-module*
-							      *last-module*)))
-  (unless module
-    (error "Internal error,module is not specified: find-sort"))
-  (unless (module-p module)
-    (error "Internal error, find-sort: invalid module ~A" module))
-  (let ((sort (get-sort-named sort-name-or-name-ref module)))
-    (if sort sort
-	(let ((ambig-sorts (find-sorts-in-module sort-name-or-name-ref module)))
-	  (cond ((= (length ambig-sorts) 1) (car ambig-sorts))
-		((> (length ambig-sorts) 1)
-		 (with-output-chaos-warning ()
-		   (princ "sort name ")
-		   (princ sort-name-or-name-ref)
-		   (princ " is ambiguous, arbitrary take ")
-		   (print-chaos-object (setf sort (car (nreverse ambig-sorts))))
-		   (princ " as the resolved name.")
-		   )
-		 sort)
-		(t (or (get-sort-named sort-name-or-name-ref '*chaos-module*)
-		       (with-output-chaos-warning ()
-			 (princ "no such sort ")
-			 (princ sort-name-or-name-ref)
-			 nil))))))))
-
-||#
 
 ;;; FIND-SORT-IN : Module Sort-Name -> Sort
 ;;; 

@@ -148,23 +148,21 @@
         (number-matches nil))
     (let ((mod (if modexp 
                    (eval-modexp modexp)
-                 *last-module*)))
-      (unless (eq mod *last-module*)
+		 (get-context-module))))
+      (unless (eq mod (get-context-module))
         (clear-term-memo-table *term-memo-table*))
       (if (or (null mod) (modexp-is-error mod))
           (if (null mod)
               (with-output-chaos-error ('no-context)
-                (princ "no module expression provided and no selected(current) module.")
-                )
+                (princ "no module expression provided and no selected(current) module."))
             (with-output-chaos-error ('no-such-module)
               (princ "incorrect module expression, no such module ")
-              (print-chaos-object modexp)
-              ))
+              (print-chaos-object modexp)))
         (progn
-          (context-push-and-move *last-module* mod)
+          (context-push-and-move (get-context-module) mod)
+	  (when *auto-context-change*
+	    (change-context (get-context-module) mod))
           (with-in-module (mod)
-            (when *auto-context-change*
-              (change-context *last-module* mod))
             (!setup-reduction mod)
             (setq $$mod *current-module*)
             (setq sort *cosmos*)
@@ -178,19 +176,13 @@
               (when (or (null (term-sort term))
                         (sort<= (term-sort term) *syntax-err-sort* *chaos-sort-order*))
                 (return-from perform-reduction* nil))
-	      #||
-	      (setq term (car (canonicalize-variables (list term) mod)))
-	      ||#
               (when *rewrite-stepping* (setq *steps-to-be-done* 1))
               (when *show-stats*
                 (setq time2 (get-internal-run-time))
                 (setf time-for-parse
                   (format nil "~,3f sec"
-                          ;; (/ (float (- time2 time1)) internal-time-units-per-second)
-                          (elapsed-time-in-seconds time1 time2)
-                          )))
+                          (elapsed-time-in-seconds time1 time2))))
               (unless *chaos-quiet*
-                ;; (fresh-all)
                 (flush-all)
                 (if (eq mode :exec)     ; *rewrite-exec-mode*
                     (format t "~%-- execute in ")
@@ -198,8 +190,7 @@
                       (format t "~%-- execute! in ")
                     (if (eq mode :red)
                         (format t "~%-- reduce in ")
-                      (format t"~%-- behavioural reduce in "))
-                    ))
+                      (format t"~%-- behavioural reduce in "))))
                 (print-simple-mod-name *current-module*)
                 (princ " : ")
                 (let ((*print-indent* (+ 4 *print-indent*)))
@@ -207,7 +198,7 @@
                   (term-print-with-sort term))
                 (flush-all))
               ;; ******** 
-              (reset-target-term term *last-module* mod)
+              (reset-target-term term (get-context-module) mod)
               ;; ********
               (setq $$matches 0)
               (setq time1 (get-internal-run-time))
@@ -220,23 +211,9 @@
                                *cexec-normalize*)
                           (rewrite-exec term *current-module* mode)
                         (rewrite term *current-module* mode))))
-                  ;;
-                  #|| ============= TODO
-                  (when (term-op-contains-theory $$term)
-                    (reset-reduced-flag $$term)
-                    (setq term $$term)
-                    (catch 'rewrite-abort
-                      (let ((*do-empty-match* nil))
-                        (if (and *rewrite-exec-mode*
-                                 *cexec-normalize*)
-                            (rewrite-exec term *current-module* mode)
-                          (rewrite term *current-module* mode)))))
-                  ||#
-                  ;;
                   (setq res $$term)
                   (when *mel-sort*
-                    (setq res (setq $$term (apply-sort-memb res mod)))
-                    )
+                    (setq res (setq $$term (apply-sort-memb res mod))))
                   ;;
                   (setq time2 (get-internal-run-time))
                   (setf time-for-reduction
@@ -276,11 +253,7 @@
                             (format t ")~%")
                           (format t ", ~d memo hits)~%"
                                   *term-memo-hash-hit*)))
-                      (flush-all)
-                      ;; (terpri)
-                      ))
-                  ))
-              ))
+                      (flush-all)))))))
           (context-pop-and-recover))))))
 
 (defun perform-meta-reduction (pre-term &optional modexp mode)
@@ -290,7 +263,7 @@
 	sort)
     (let ((mod (if modexp 
                    (eval-modexp modexp)
-                 *last-module*)))
+		 (get-context-module))))
       (if (or (null mod) (modexp-is-error mod))
           (if (null mod)
               (with-output-chaos-error ('no-context)
@@ -299,13 +272,12 @@
               (princ "incorrect module expression, no such module ")
               (print-chaos-object modexp)))
         (progn
-          (context-push-and-move *last-module* mod)
+          (context-push-and-move (get-context-module) mod)
 	  (setq sort *cosmos*)
+	  (when *auto-context-change*
+	    (change-context (get-context-module) mod)) ;;; what?
           (with-in-module (mod)
-	    ;;
-	    (change-context *last-module* mod)
-	    ;;
-            (!setup-reduction mod)
+            (!setup-reduction *current-module*)
             (setq $$mod *current-module*)
             (setq *rewrite-semantic-reduce*
               (and (eq mode :red)
@@ -365,7 +337,7 @@
 (defun do-parse-term* (preterm &optional modexp)
   (let ((mod (if modexp
                  (eval-modexp modexp)
-               *last-module*)))
+	       (get-context-module))))
     (unless mod
       (with-output-chaos-error ('no-context)
 	(princ "no module expression provided and no selected(current) module.")))
@@ -374,7 +346,7 @@
 	(princ "incorrect module expression, not such module: ")
 	(print-chaos-object modexp)))
     ;;
-    (context-push-and-move *last-module* mod)
+    (context-push-and-move (get-context-module) mod)
     (with-in-module (mod)
       (prepare-for-parsing *current-module*)
       (let ((*parse-variables* nil))
@@ -385,17 +357,11 @@
 	    (!setup-reduction mod)
 	    (setq res (apply-sort-memb res
 				       mod)))
-	  (reset-target-term res *last-module* mod)
+	  (reset-target-term res *current-module* mod)
 	  ;; ********
 	  (format t "~&")
 	  (term-print-with-sort res *standard-output*)
-	  (flush-all)
-	  ;; (break "...")
-	  #||
-	  (when *chaos-verbose*
-	    (print-term-tree res t))
-	  ||#
-	  )))
+	  (flush-all))))
     (context-pop-and-recover)))
 
 ;;; *TODO*
@@ -403,38 +369,7 @@
   (declare (ignore mod prompt))
   (with-output-simple-msg ()
     (princ "sorry, red-loop is not implemented yet.."))
-  (return-from red-loop nil)
-  #||
-  (setq $$trials 1)
-  (setq mod (eval-modexp-top mod))
-  (if (modexp-is-error mod)
-      (with-output-chaos-error ('no-such-module)
-        (princ "undefined module")
-        )
-    (let (in
-          (flag nil)
-          (top-level (at-top-level)))
-      (!setup-reduction mod)
-      (loop
-        (chaos-init)
-        (when (and prompt top-level)
-          (terpri)
-          (print-mod-name mod) (princ "> "))
-        (let ((cur (!set-single-reader '("[" "]" "_"))))
-          (progn
-            (setq in (read-seq-of-term '(|.|)))
-            (!set-reader cur)))
-        (when (null in) (return))
-        (unless top-level
-          (if flag
-              (progn (princ "---------------------------------------")
-                     (terpri))
-            (setq flag t)))
-        (perform-reduction in)          ; should ...
-        )))
-  :done
-  ||#
-  )
+  (return-from red-loop nil))
 
 (defun check-bad-rules (mod)
   (declare (ignore mod))
@@ -458,17 +393,6 @@
 (defun under-debug-rewrite ()
   (or $$trace-rewrite $$trace-rewrite-whole *rewrite-stepping*
       *rewrite-count-limit* *rewrite-stop-pattern*))
-
-#||
-(defun rewrite-debug-on ()
-  (setf (symbol-function 'apply-one-rule)
-	(symbol-function 'apply-one-rule-dbg)))
-
-(defun rewrite-debug-off ()
-  (unless (under-debug-rewrite)
-    (setf (symbol-function 'apply-one-rule)
-	  (symbol-function 'apply-one-rule-simple))))
-||#
 
 (defun rewrite-debug-on () ())
 (defun rewrite-debug-off () ())
@@ -501,8 +425,7 @@
         (if (= len (length count))
             (set-rewrite-count-limit num)
 	      (with-output-chaos-error ('invalid-value)
-            (format t "invalid rewrite count limit ~a" count)
-            ))))))
+            (format t "invalid rewrite count limit ~a" count)))))))
 
 (defun set-rewrite-count-limit (num)
   (if (integerp num)
@@ -564,11 +487,9 @@
   (if (or (null pat)
           (member pat '(("none") ("off") ("nil") ("null"))))
       (set-rewrite-stop-pattern 'none)
-    (let ((mod (or *current-module*
-                   *last-module*
+    (let ((mod (or (get-context-module)
                    (with-output-chaos-error ('no-context)
-                     (princ "no context (current) module is specified.")))
-               ))
+                     (princ "no context (current) module is specified.")))))
       (let* ((*parse-variables* (module-variables mod))
              (term (simple-parse mod
                                  pat *cosmos*)))
@@ -618,8 +539,7 @@
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
         (format t "incorrect module expression, unknown module?")
-        (print-modexp modexp)
-        ))
+        (print-modexp modexp)))
     (describe-module mod)))
 
 
@@ -631,18 +551,16 @@
         ;; (*current-module* nil)
         mod)
     (setf mod (if (null modexp)
-                  *last-module*
+                  (get-context-module)
                 (eval-modexp modexp)))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
         (princ "incorrect module expression or uknown module")
-        (print-modexp modexp)
-        ))
+        (print-modexp modexp)))
     ;;
     (unless mod
       (with-output-chaos-error ('no-context)
-        (princ "no module to be opened!")
-        ))
+        (princ "no module to be opened!")))
     ;;
     (unless *chaos-quiet*
       (fresh-all)
@@ -654,9 +572,7 @@
     (!open-module mod)
     (unless *chaos-quiet*
       (print-in-progress ". done.")
-      (terpri)
-      )
-    ))
+      (terpri))))
 
 (defparameter *module-open-form*
     (%module-decl* "%"
@@ -673,19 +589,17 @@
         (princ "closing this module...") (print-next)
         (eval-close-module nil)))
     (setq *open-module* mod)
-    (setq *last-before-open* *last-module*)
-    (setq *last-module* mod)
+    (setq *last-before-open* (get-context-module))
     (clear-term-memo-table *term-memo-table*)
     (let ((*chaos-quiet* t)
-          (*copy-variables* t))
+          (*copy-variables* t)
+	  open-mod)
       (setf (%module-decl-kind *module-open-form*) (module-kind mod))
-      (setq *last-module* (eval-ast *module-open-form*))
-      (import-module *last-module* :using mod)
-      ;; (import-module *last-module* :including mod)
-      ;; (import-variables mod *last-module*)
-      (compile-module *last-module*))
-    (change-context *last-before-open* *last-module*)
-    *last-module*))
+      (setq open-mod (eval-ast *module-open-form*))
+      (import-module open-mod :using mod)
+      (compile-module open-mod)
+      (change-context *last-before-open* open-mod)
+      open-mod)))
 
 ;;; ************
 ;;; CLOSE-MODULE
@@ -693,21 +607,14 @@
 (defun eval-close-module (&rest ast)
   (declare (ignore ast))
   (if *open-module*
-      (let ((saved-open *open-module*))
-        (when (and saved-open (equal "%" (module-name saved-open)))
-          ;; (delete-module-all saved-open)
-          ;; discard all resources
-          (initialize-module *open-module*)
-          (setq *open-module* nil))
-        (change-context *last-module* *last-before-open*)
+      (let ((omod (eval-modexp "%")))
+	(initialize-module omod)
+	(when (eq omod (get-context-module))
+	  (change-context (get-context-module) *last-before-open*))
         (setq *open-module* nil)
-        (when *current-module*
-          (change-current-module *last-module*))
         (setq *last-before-open* nil))
     (with-output-chaos-warning ()
-      (princ "no module is open.")
-      )))
-
+      (princ "no module is open."))))
 
 ;;; ***********
 ;;; SAVE SYSTEM
@@ -759,8 +666,7 @@
           (print-centering
            "* NOTE : DO NOT MODIFY THIS FILE ULESS YOU REALLY KNOW WHAT YOU ARE DOING!."
            .fill-space.
-           stream)
-          )
+           stream))
         (terpri stream)
         (princ "|#" stream)
         (format stream "~&(in-package \"CHAOS\")")
@@ -863,8 +769,7 @@
     (when msg?
       (with-output-simple-msg ()
         (format t "~&** done restting system.")
-        (force-output)))
-    ))
+        (force-output)))))
 
 ;;; **********
 ;;; FULL-RESET
@@ -895,8 +800,7 @@
     ;;
     (when msg?
       (print-in-progress " done")
-      (terpri)
-      )
+      (terpri))
     (setq *chaos-features* nil)
     (setq *open-module* nil)
     (setq *last-before-open* nil)
@@ -1361,12 +1265,9 @@
 
       ;; operator strictness
       (:strictness
-       (let ((mod (if *last-module* *last-module*
-                    (if *current-module*
-                        *current-module*
+       (let ((mod (or (get-context-module)
                       (with-output-chaos-error ('no-context)
-                        (princ "no context (current) module.")
-                        )))))
+                        (princ "no context (current) module.")))))
          ;;
          (!setup-reduction mod)
          (with-in-module (mod)
@@ -1378,9 +1279,7 @@
                          (check-operator-strictness op mod t))
                      (with-output-chaos-error ('no-such-operator)
                        (princ "no such operator")
-                       (print-chaos-object parsedop)
-                       ))
-                   ))
+                       (print-chaos-object parsedop)))))
              (check-operator-strictness-whole mod t)))))
 
       ;; TRS compatibility
@@ -1401,8 +1300,7 @@
                      (format t "~&- rewrite rule")
                      (let ((*print-indent* (+ 2 *print-indent*)))
                        (print-next)
-                       (print-chaos-object (car r-ms))
-                       )
+                       (print-chaos-object (car r-ms)))
                      (format t "~&  violates the compatibility,")
                      (format t "~&  and following operator(s) can possibly be affected:")
                      (let ((*print-indent* (+ 2 *print-indent*)))
@@ -1412,15 +1310,10 @@
              (with-output-simple-msg ()
                (format t ">> module is compatible."))))))
       ;;;
-      ;;;
-      ;;;
       (:coherency
-       (let ((mod (if *last-module* *last-module*
-                    (if *current-module*
-                        *current-module*
+       (let ((mod (or (get-context-module)
                       (with-output-chaos-error ('no-context)
-                        (princ "no context (current) module.")
-                        )))))
+                        (princ "no context (current) module.")))))
          ;;
          (!setup-reduction mod)
          (with-in-module (mod)
@@ -1432,9 +1325,7 @@
                          (check-operator-coherency op mod t))
                      (with-output-chaos-error ('no-such-operator)
                        (princ "no such operator")
-                       (print-chaos-object parsedop)
-                       ))
-                   ))
+                       (print-chaos-object parsedop)))))
              (check-operator-coherency-whole mod)))))
       ;;
       ;; SENSIBILITY of the signature
@@ -1468,8 +1359,7 @@
        (pn-check-refinement args))
       ;; unknown
       (t (with-output-chaos-error ('invalid-arg)
-           (format t "unknown option to check: ~a" (%check-what ast))
-           )))))
+           (format t "unknown option to check: ~a" (%check-what ast)))))))
 
 ;;; *************
 ;;; TRAM COMPILER
@@ -1486,7 +1376,7 @@
     ;; first we check the context
     (let ((mod (if modexp
                    (eval-modexp modexp)
-                 *last-module*)))
+		 (get-context-module))))
       ;;
       (when (or (null mod) (modexp-is-error mod))
         (if (null mod)
@@ -1529,7 +1419,7 @@
                    (princ (cadr result)))
                  (force-output))
              (progn
-               (context-push-and-move *last-module* mod)
+               (context-push-and-move (get-context-module) mod)
                (let ((*print-indent* (+ 4 *print-indent*)))
                  (with-in-module (mod)
                    (setq $$term (car result))
@@ -1546,14 +1436,13 @@
                      (terpri)
                      (princ (cadr result)))
                    (force-output)
-                   (reset-target-term $$term *last-module* mod)))
+                   (reset-target-term $$term (get-context-module) mod)))
                (context-pop-and-recover)))))
         ;;
         (otherwise (with-output-panic-message ()
                      (format t "internal error, unknown tram command ~a"
                              command)
-                     (chaos-error 'panic))))
-      )))
+                     (chaos-error 'panic)))))))
 
 ;;; ********
 ;;; AUTOLOAD
@@ -1564,8 +1453,7 @@
     (let ((entry (assoc modname *autoload-alist* :test #'equal)))
       (if entry
           (setf (cdr entry) file)
-        (push (cons modname file) *autoload-alist*)))
-    ))
+        (push (cons modname file) *autoload-alist*)))))
 
 ;;; *********************
 ;;; MISC SUPOORT ROUTINES
@@ -1612,8 +1500,8 @@
         (number-matches 0))
     (let ((mod (if modexp
                    (eval-modexp modexp)
-                 *last-module*)))
-      (unless (eq mod *last-module*)
+                 (get-context-module))))
+      (unless (eq mod (get-context-module))
         (clear-term-memo-table *term-memo-table*))
       (when (or (null mod) (modexp-is-error mod))
         (if (null mod)
@@ -1622,11 +1510,10 @@
           (with-output-chaos-error ('no-such-module)
             (princ "no such module: ")
             (print-chaos-object modexp))))
-      ;;
-      (context-push-and-move *last-module* mod)
+      (context-push-and-move (get-context-module) mod)
+      (when *auto-context-change*
+	(change-context (get-context-module) mod))
       (with-in-module (mod)
-        (when *auto-context-change*
-          (change-context *last-module* mod))
         (!setup-reduction mod)
         (setq $$mod *current-module*)
         (setq sort *cosmos*)
@@ -1656,15 +1543,12 @@
             (print-simple-mod-name *current-module*)
             (print-check 0 3)
             (princ " : ")
-            ;; (print-check)
             (let ((*print-indent* (+ 4 *print-indent*)))
               (term-print lhs)
               (print-check 0 4)
               (princ " == ")
-              ;; (print-check)
               (term-print rhs))
             (flush-all))
-          ;;
           (setq $$matches 0)
           (setq time1 (get-internal-run-time))
           
@@ -1714,7 +1598,7 @@
   (let ((modexp (%inspect-modexp ast))
         mod)
     (setf mod (if (null modexp)
-                  *last-module*
+		  (get-context-module)
                 (eval-modexp modexp)))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
@@ -1735,7 +1619,7 @@
         (modexp (%what-is-module ast))
 	(mod nil))
     (setf mod (if (null modexp)
-		  *last-module*
+		  (get-context-module)
 		(eval-modexp modexp)))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module))
@@ -1754,7 +1638,7 @@
         (modexp (%look-up-module ast))
 	(mod nil))
     (setf mod (if (null modexp)
-		  (or *last-module*
+		  (or (get-context-module)
 		      (with-output-chaos-error ('no-context)
 			(format t "~%No context module is set.")))
 		(eval-modexp modexp)))

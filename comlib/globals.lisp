@@ -73,14 +73,9 @@
 
 (defvar *top-level-definition-in-progress* nil)
 
-;;; *last-module* bounds the module object which was the target of the operation
-;;; in the last time, i.e., whenever the context is swithced, *last-module*
-;;; bounds the last `current module'.
 ;;; *open-module* bounds the 'opening' module.
 ;;; 
 (declaim (special *open-module*		; the module crrently opened.
-		  *last-module*		; the module which was the current last
-					; time. 
 		  *last-before-open*	; the module which was *last* before the
 					; currently opened module.
 		  ))
@@ -90,7 +85,6 @@
 (defvar *current-opinfo-table* nil)
 (defvar *current-ext-rule-table* nil)
 (defvar *open-module* nil)
-(defvar *last-module* nil)
 (defvar *last-before-open* nil)
 
 ;;; Feature for require & provide

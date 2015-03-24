@@ -125,7 +125,6 @@
 						    (:file "match-method")
 						    (:file "axiom")
 						    (:file "gen-rule")
-						    (:file "cr")
 						    (:file "rwl")
 						    (:file "beh")
 						    (:file "module")

@@ -138,11 +138,10 @@
     (fresh-all)
     (flush-all)
     (format t "~&[")
-    (if *last-module*
-	(print-simple-mod-name *last-module*)
+    (if (get-context-module)
+	(print-simple-mod-name (get-context-module))
       (princ "*"))
-    (princ "]> ")
-    ))
+    (princ "]> ")))
 
 (defun handle-chaos-error (val)
   (if *chaos-input-source*

@@ -228,8 +228,7 @@
 		    (return-from get-importing-path
 		      (nconc path im2))))))))))
 
-(defun get-real-importing-mode (module2 &optional (module (or *current-module*
-							      *last-module*)))
+(defun get-real-importing-mode (module2 &optional (module (get-context-module)))
   (declare (type module module2 module)
 	   (values symbol))
   ;;

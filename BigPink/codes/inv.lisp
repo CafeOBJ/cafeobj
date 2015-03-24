@@ -771,8 +771,7 @@
     
 (defun pn-check-invariance (args)
   (declare (type list args))
-  (let ((target-module (or *current-module*
-			   *last-module*)))
+  (let ((target-module (get-context-module)))
     (declare (type (or null module) target-module))
     (unless target-module
       (with-output-chaos-error ('no-context)

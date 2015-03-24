@@ -55,8 +55,7 @@
   (non-empties nil)			; non-empty methods.
   )
 
-(defun print-sop (sop &optional (module (or *current-module*
-					    *last-module*)))
+(defun print-sop (sop &optional (module (get-context-module)))
   (with-in-module (module)
     (format t "~%** SOP : operator ")
     (print-chaos-object (sop-operator sop))
@@ -601,8 +600,7 @@
       (cadr m)))
 
 (defun check-method-redundancy (arity coarity method-list
-				      &optional (module (or *current-module*
-							    *last-module*)))
+				      &optional (module (get-context-module)))
   (let ((so (module-sort-order module))
 	(redundant-methods nil)
 	(not-tobe-added? nil))

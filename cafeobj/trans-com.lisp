@@ -583,9 +583,11 @@
 ;;; ******************
 ;;; MODULE Constructs.
 ;;; ******************
+
+;;; it is an error unless a module is open.
 (defun cafeobj-eval-module-element-proc (inp)
   (if *open-module*
-      (with-in-module (*last-module*)
+      (with-in-module ((get-context-module))
 	(multiple-value-bind (type ast)
 	    (parse-module-element inp)
 	  (declare (ignore type))

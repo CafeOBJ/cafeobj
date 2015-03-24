@@ -37,13 +37,12 @@
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
-;;; (defvar *on-operator-debug* nil)
 (defun on-debug-operator ()
   (setq *on-operator-debug* t))
 (defun off-debug-operator ()
   (setq *on-operator-debug* nil))
 
-;;; *TODO, immediately*
+;;; *TODO*
 ;;;  syntax of an operator can be regular-expression.
 
 ;;; === DESCRIPTION ============================================================
@@ -324,8 +323,7 @@
 	(setq theory (merge-operator-theory-in *current-module*
 					       method
 					       old-th
-					       theory
-					       ))
+					       theory))
 	(setq new-code (theory-code theory))))
     ;;
     ;; associativity
@@ -455,8 +453,7 @@
 	(princ "invalid strategy ")
 	(princ strat)
 	(princ " for operator ")
-	(princ (method-symbol meth))
-	))
+	(princ (method-symbol meth))))
     ;; complete
     (setf (method-supplied-strategy meth) (complete-strategy num-args strat))))
   
@@ -476,8 +473,7 @@
     (t (with-output-chaos-warning ()
 	 (format t "unknown associativity declaration ~a assoc for operator ~a, ignored"
 		 assoc
-		 (method-symbol meth)
-		 ))
+		 (method-symbol meth)))
        nil)))
 
 ;;; PRECEDENCE ___________________________________________________________________
@@ -516,8 +512,7 @@
   (setf (method-constructor method) constr)
   (when constr
     (pushnew method (sort-constructor (method-coarity method))
-	     :test #'eq))
-  )
+	     :test #'eq)))
 
 ;;; COHERENCY ---------------------------------------------------------------------
 
@@ -526,41 +521,6 @@
 	   (type (or null t) coherent)
 	   (values (or null t)))
   (setf (method-coherent method) coherent))
-
-;;; COPIER ________________________________________________________________________
-;;; COPY-METHOD-INFO : from-method to-method
-;;;
-#|| NOT USED
-(defun copy-method-info (from to)
-  (let (sup-strat
-	theory
-	prec
-	memo
-	assoc
-	constr)
-    (when *on-operator-debug*
-      (format t "~&[copy-method-info]:")
-      (format t "~&-- copy from ") (print-chaos-object from)
-      (format t "~&        to   ") (print-chaos-object to))
-    (let ((from-module (method-module from)))
-      (with-in-module (from-module)
-	(setf sup-strat (method-supplied-strategy from)
-	      theory (method-theory from)
-	      prec (get-method-precedence from)
-	      memo (method-memo from)
-	      assoc (method-associativity from)
-	      constr (method-constructor from))))
-    (let ((to-module (method-module to)))
-      (with-in-module (to-module)
-	(setf (method-supplied-strategy to) sup-strat
-	      (method-theory to) theory
-	      (method-precedence to) prec
-	      (method-memo to) memo
-	      (method-associativity to) assoc
-	      (method-constructor to) constr)))
-    ))
-
-||#
 
 ;;; ********************
 ;;; OPERATOR DECLARATION _______________________________________________________
@@ -588,8 +548,7 @@
     (unless mod
       (with-output-chaos-error ('no-such-module)
 	(princ "declaring operator, no such module ")
-	(princ module)
-	))
+	(princ module)))
 
     ;; check arity, coarity
     (with-in-module (mod)
@@ -629,21 +588,7 @@
 		(t 
 		 (with-output-chaos-error ('no-such-sort)
 		   (princ "declaring operator, no such sort ")
-		   (print-sort-ref coarity)
-		   ))))
-	;; name conflict check with existing variables
-	#||
-	(when (and (null r-arity)
-		   (find-variable-in module (car op-name)))
-	  (with-output-chaos-warning ()
-	    (format t "declaring op ~s" op-name)
-	    (print-next)
-	    (princ "     there already a variable with the same name.")
-	    (princ " ... ignoring"))
-	  (return-from declare-operator-in-module (values nil nil nil))
-	  )
-	||#
-	;;
+		   (print-sort-ref coarity)))))
 	(multiple-value-bind (x y)
 	    (add-operator-declaration-to-module op-name
 						(nreverse r-arity)
@@ -652,10 +597,8 @@
 						constructor
 						behavioural
 						coherent
-						error-operator
-						)
-	  (values x y nil))))
-    ))
+						error-operator)
+	  (values x y nil))))))
 
 (defun make-operator-in-module (op-name num-args module &optional qual-name)
   (declare (ignore qual-name)
@@ -671,7 +614,7 @@
   (unless arity
     (let ((opstr (car op-name))
 	  (sorts (module-all-sorts module)))
-      (dolist (bi sorts)
+      (dolist (bi sorts nil)
 	(when (sort-is-builtin bi)
 	  (let ((token-pred (bsort-token-predicate bi)))
 	    (when (and token-pred
@@ -685,10 +628,7 @@
 		(print-sort-name bi module)
 		(print-next)
 		(princ "... ignored.")
-		(return-from check-overloading-with-builtin t)
-		))))))
-    )
-  nil)
+		(return-from check-overloading-with-builtin t)))))))))
 
 (defun add-operator-declaration-to-module (op-name arity coarity module
 						   &optional
@@ -699,12 +639,10 @@
   (declare (type t op-name)
 	   (type list arity)
 	   (type (or symbol sort-struct) coarity)
-	   (type t module)
-	   (type (or null t)
-		 constructor behavioural coherent error-operator))
+	   (type (or null module) module))
   (let* ((mod (if (module-p module)
 		  module
-		  (find-module-in-env module)))
+		(find-module-in-env module)))
 	 (op-infos (find-operators-in-module op-name (length arity) mod))
 	 (opinfo nil)
 	 (op nil))
@@ -717,8 +655,7 @@
 	      arity coarity)
       (format t "~% -- module = ~a, constructor = ~a, behavioural = ~a"
 	      module constructor behavioural)
-      (format t "~% -- coherent = ~a, error-operator = ~a" coherent error-operator)
-      )
+      (format t "~% -- coherent = ~a, error-operator = ~a" coherent error-operator))
     ;; checks hidden sort condition
     (let ((hidden? nil))
       (dolist (as arity)
@@ -728,40 +665,19 @@
 		(format t "more than one hidden sort in the declaration of operator \"~{~a~}\""
 		       op-name)
 		))
-	  (setf hidden? t)
-	  #|| -----------------------------------------------
-	  (when (and (not (sort= as *huniversal-sort*))
-		     (not (eq module (sort-module as)))
-		     behavioural)
-	    (with-output-chaos-warning ()
-	      (format t "behavioural operator \"~{~a~}\" has imported hidden sort " op-name)
-	      (print-sort-name as)
-	      (princ " in its arity.")
-	      ))
-	  --------------------------------------------------- ||#
-	  ))
-      #|| NULL argument is acceptable...2012/6/28
-      (when (and behavioural (not hidden?))
-	(with-output-chaos-error ('invalid-op-decl)
-	  (format t "behavioural operator must have exactly one hidden sort in its arity")
-	  ))
-      ||#
+	  (setf hidden? t)))
       (when (and behavioural coherent)
 	(with-output-chaos-error ('invalid-op-decl)
 	  (format t "coherency is meaningless for behavioural operator.")
 	  ))
       (when (and coherent (not (some #'(lambda (x) (sort-is-hidden x)) arity)))
 	(with-output-chaos-error ('invalid-op-decl)
-	  (format t "coherency is only meaningfull for operator with hidden sort in its arity.")
-	  ))
-      )
-
+	  (format t "coherency is only meaningfull for operator with hidden sort in its arity."))))
     ;;
     (when *builtin-overloading-check*
       (when (check-overloading-with-builtin op-name arity coarity module)
 	(return-from add-operator-declaration-to-module nil)))
-    ;;
-    
+
     ;; uses pre-existing operator if it is the apropreate one,
     ;; i.e.,
     ;;  (1) has method with coarity which is in the same connected component.
@@ -779,7 +695,7 @@
 						     xcoarity
 						     (module-sort-order mod)))
 
-	    (when *chaos-verbose* ;; *on-operator-debug*
+	    (when *chaos-verbose*
 	      (with-output-simple-msg ()
 		(format t "~&declaring overloading operator ~a : "
 			(operator-name (opinfo-operator x)))
@@ -801,9 +717,7 @@
       (push opinfo (module-all-operators mod))
       (symbol-table-add (module-symbol-table mod) op-name op)
       (when *on-operator-debug*
-	(format t "~&opdecl: created new operator ~a" (operator-name op)))
-		
-      )
+	(format t "~&opdecl: created new operator ~a" (operator-name op))))
     ;;
     (multiple-value-bind (ent? meth)
 	(add-operator-declaration-to-table opinfo
@@ -857,22 +771,6 @@
   (let ((opinfo (find-operator-or-warn op-name number-of-args module)))
     (unless opinfo (return-from declare-operator-precedence-in-module nil))
     (declare-operator-precedence (opinfo-operator opinfo) prec)))
-
-#||
-(defun declare-operator-theory-in-module (op-name number-of-args
-						  theory
-						  &optional
-						  (module
-						   *current-module*))
-  (declare (type t op-name)
-	   (type fixnum number-of-args)
-	   (type op-theory theory)
-	   (type module module)
-	   (values t))
-  (let ((opinfo (find-operator-or-warn op-name number-of-args module)))
-    (unless opinfo (return-from declare-operator-theory-in-module nil))
-    (declare-operator-theory (opinfo-operator opinfo)  theory)))
-||#
 
 (defun declare-operator-associativity-in-module (op-name number-of-args
 							 assoc
@@ -955,11 +853,6 @@
   (declare (type list list-of-method)
 	   (type fixnum arg-pos num-args)
 	   (type hash-table so))
-  ;;
-  ;;(debug-msg ("~%===================================================="))
-  ;;(debug-msg ("~%arg-pos = ~d") arg-pos)
-  ;;(debug-msg ("~%mathods = ~s") list-of-method)
-  ;;;
   (if (= 0 num-args)
       ;; we assume the signature is regular, thus, constants has only one
       ;; declaration and it has no declaration for erro sort. 
@@ -995,7 +888,6 @@
 			   (push m res))))))
 	    (let ((minimal-methods (get-minimal-methods)))
 	      (declare (type list minimal-methods))
-	      ;;(debug-msg ("~%minimal-methods: ~s") minimal-methods)
 	      (let* ((num-entry (length minimal-methods))
 		     (result (make-list num-entry)))
 		(declare (type fixnum num-entry)
@@ -1005,7 +897,6 @@
 		  (let* ((s-ms (nth x minimal-methods))
 			 (comparable-methods (find-comparable (car s-ms))))
 		    (declare (type list s-ms comparable-methods))
-		    ;;(debug-msg ("~%comparable-methods: ~s") comparable-methods)
 		    (setf (nth x result)
 			  (cons (cons (car s-ms)
 				      (if (= arg-pos (1- num-args))
@@ -1021,8 +912,7 @@
 								num-args
 								so)
 				    nil)))))
-		result)))
-	  )))
+		result))))))
     
 			       
 ;;; FIND-OPERATOR-METHOD operator arg-sort-list & optional opinfo-table sort-order
@@ -1057,8 +947,7 @@
 		   (when method (return-from find method))
 		   ))))
       ;; constant. only one method.
-      method-table
-      ))
+      method-table))
 				
 ;;; *****************
 ;;; ADDING NEW METHOD___________________________________________________________
@@ -1074,21 +963,14 @@
 					  arity
 					  coarity
 					  &optional
-					  (module
-					   (or *current-module* *last-module*))
+					  (module (get-context-module))
 					  constructor
 					  behavioural
 					  coherent
 					  error-operator)
   (declare (type list opinfo arity)
 	   (type sort-struct coarity)
-	   (type module module)
-	   (type (or null t)
-		 constructor
-		 behavioural
-		 coherent
-		 error-operator)
-	   (values (or null t) method))
+	   (type (or null module) module))
   ;;
   (let ((meth nil))
     (dolist (m (opinfo-methods opinfo))
@@ -1100,24 +982,16 @@
 	       (not (eq (method-name meth )
 			(method-name *beh-equal*)))
 	       (not (method-is-error-method meth)))
-	       ;; (and meth *on-operator-debug*)
       (with-output-chaos-warning ()
 	(format t "the operator of the same rank has already been declared: ")
 	(print-next)
 	(print-chaos-object meth)
 	(print-next)
-	(format t "~%... ignored.")
-	;; (print-next)
-	;; (format t "ignoring this one.")
-	)
-      #||
-      (return-from add-operator-declaration-to-table
-	(values nil meth))
-      ||#
-      )
+	(format t "~%... ignored.")))
     (let ((operator (opinfo-operator opinfo)))
       (declare (type operator operator))
       (when (and meth (not (eq (method-module meth) module)))
+	;; the method is the imported one
 	(when (and (not (method-constructor meth))
 		   constructor)
 	  (with-output-chaos-warning ()
@@ -1148,21 +1022,14 @@
 	    (print-simple-mod-name (method-module meth))
 	    (print-next)
 	    (princ "but being declared as coherent in ")
-	    (print-simple-mod-name module)
-	    #||
-	    (print-next)
-	    (princ "ignoring this `coherent' attribute.")
-	    ||#
-	    )))
+	    (print-simple-mod-name module))))
       (unless meth
 	(setq meth (make-operator-method :name (operator-name operator)
 					 :arity arity
-					 :coarity coarity
-					 )))
+					 :coarity coarity)))
       (when (eq (method-module meth) module)
 	(setf (method-constructor meth) constructor)
 	(setf (method-is-behavioural meth) behavioural)
-	;; (setf (method-is-coherent meth) coherent)
 	(setf (method-is-user-defined-error-method meth)
 	      error-operator))
       ;;
@@ -1245,10 +1112,8 @@
 	    (pushnew method (module-beh-attributes module) :test #'eq))
 	(if (sort-is-hidden (method-coarity method))
 	    (pushnew method (module-non-beh-methods module) :test #'eq)
-	  (pushnew method (module-non-beh-attributes module) :test #'eq))
-	))
-    (pushnew method (opinfo-methods opinfo) :test #'eq)
-    ))
+	  (pushnew method (module-non-beh-attributes module) :test #'eq))))
+    (pushnew method (opinfo-methods opinfo) :test #'eq)))
 
 (defun add-method-to-table-very-fast (opinfo method module)
   (declare (type list opinfo)
@@ -1265,8 +1130,7 @@
       (if (sort-is-hidden (method-coarity method))
 	  (push method (module-non-beh-methods module))
 	(push method (module-non-beh-attributes module)))))
-  (push method (opinfo-methods opinfo))
-  )
+  (push method (opinfo-methods opinfo)))
 
 ;;;
 ;;; RECREATE-METHOD
@@ -1349,8 +1213,7 @@
 	    ;;
 	    (progn
 	      (setf (method-theory newmeth) theory)
-	      (compute-method-theory-info-for-matching newmeth)
-	      ))
+	      (compute-method-theory-info-for-matching newmeth)))
 	;;
 	newmeth))))
 	
@@ -1379,14 +1242,12 @@
 	(coar2 (method-coarity meth2)))
     (or (sort< coar2 coar1 so)
 	(and (sort= coar1 coar2)
-	     (sort-list<= (method-arity meth2) (method-arity meth1) so)))
-    ))
+	     (sort-list<= (method-arity meth2) (method-arity meth1) so)))))
 
 ;;;
 ;;; DELETE-ERROR-OPERATORS-IN
 ;;;
-(defun delete-error-operators-in (&optional (module (or *current-module*
-							*last-module*)))
+(defun delete-error-operators-in (&optional (module (get-context-module)))
   (declare (type module module)
 	   (values t))
   (let ((minfo (module-opinfo-table module))
@@ -1404,14 +1265,12 @@
 	    (delete-if #'(lambda (x)
 			   (and (method-is-error-method x)
 				(not (method-is-user-defined-error-method x))))
-		       (opinfo-methods opinfo))))
-    ))
+		       (opinfo-methods opinfo))))))
 
 ;;;
 ;;; MAKE-OPERATOR-CLUSTERS-IN
 ;;;
-(defun make-operator-clusters-in (&optional (module (or *current-module*
-							*last-module*)))
+(defun make-operator-clusters-in (&optional (module (get-context-module)))
   (declare (type module module)
 	   (values t))
   (let ((result nil)
@@ -1472,8 +1331,7 @@
 		    (let ((*print-indent* (+ 2 *print-indent*)))
 		      (fresh-line)
 		      (princ "-- the result : ")
-		      (print-chaos-object pre)))
-		  )
+		      (print-chaos-object pre))))
 		(push info result))))))
     ;;
     (setf (module-all-operators module)
@@ -1507,8 +1365,7 @@
 ;;;
 (defun method-most-general-no-error (method methods
 					    &optional
-					    (module (or *current-module*
-							*last-module*)))
+					    (module (get-context-module)))
   (declare (type method method)
 	   (type list methods)
 	   (type module module)
@@ -1523,7 +1380,7 @@
 ;;;
 ;;; SETUP-ERROR-OPERATORS-IN
 ;;; *NOTE* assumption : no error operators are generated in the module yet.
-;;;
+;;; TODO--------
 (defun get-new-error-sort-name-in (module sort-name)
   (declare (type module module)
 	   (type (or simple-string symbol) sort-name))
@@ -1542,8 +1399,7 @@
 				   :test #'equal))
     (eval-ast decl)))
 
-(defun setup-error-operators-in (&optional (module (or *current-module*
-						       *last-module*)))
+(defun setup-error-operators-in (&optional (module (or (get-context-module))))
   (declare (type module module)
 	   (values t))
   (let ((all-error-operators nil))
@@ -1556,24 +1412,6 @@
 	    (format t "~%[setup-error-operators-in]:BEFORE")
 	    (format t "~&  arity=~s" proto-arity)
 	    (format t "~&  coarity=~s" proto-coarity))
-	  #||
-	  (setq proto-arity
-	    (mapcar #'(lambda (sref)
-			(if (%is-sort-ref sref)
-			    (let ((name (%sort-ref-name sref)))
-			      (setf (%sort-ref-name sref)
-				(get-new-error-sort-name-in module name)))
-			  (get-new-error-sort-name-in module sref)))
-		    proto-arity))
-	  (if (%is-sort-ref proto-coarity)
-	      (setf (%sort-ref-name proto-coarity)
-		(get-new-error-sort-name-in module
-					    (%sort-ref-name proto-coarity)))
-	    (setq proto-coarity
-	      (get-new-error-sort-name-in module proto-coarity)))
-	  (setf (%op-decl-arity eop-decl) proto-arity)
-	  (setf (%op-decl-coarity eop-decl) proto-coarity)
-	  ||#
 	  (when *on-operator-debug*
 	    (format t "~%[setup-error-operators-in]: declaring user defind errr op")
 	  (format t "~% by decl : ") (print-chaos-object eop-decl))
@@ -1601,29 +1439,24 @@
     (print-chaos-object (car opinfo)))
 
   ;; avoid generate if there already ...
-
-  ;;#||
   (when (some #'(lambda (x)
 		  (method-is-error-method x))
 	      (opinfo-methods opinfo))
     (when *on-operator-debug*
       (format t "~% * already exists"))
     (return-from setup-error-operator nil))
-  ;;||#
   ;;
   (let ((method-info-table (module-opinfo-table module))
 	(sort-order (module-sort-order module))
 	(pre-errs (module-error-methods module))
-	(all-errs nil)
-	)
+	(all-errs nil))
     ;; NOTE:
     ;; all coarities of methods are in the same connected component.
     (let ((proto-method nil)
 	  (method-name nil)
 	  (err-coarity nil)
 	  (new-arities nil)
-	  (coherent nil)
-	  )
+	  (coherent nil))
       ;;
       (setq proto-method
 	    (find-if #'(lambda (x) (method-is-universal* x))
@@ -1669,8 +1502,7 @@
 			      (method-arity meth))))
 	      (pushnew ar new-arities :test #'equal))
 	    (setq coherent
-		  (or coherent (method-is-coherent meth)))
-	    )))
+		  (or coherent (method-is-coherent meth))))))
       (dolist (arity new-arities)
 	(when *on-operator-debug*
 	  (format t "~% * try for arity ")
@@ -1720,8 +1552,7 @@
 		(compute-method-theory-info-for-matching
 		 pre
 		 method-info-table)
-		(setf (method-is-coherent pre) coherent)
-		)
+		(setf (method-is-coherent pre) coherent))
 	      ;; not yet have, generate a new one.
 	      (multiple-value-bind (ent? meth)
 		  (add-operator-declaration-to-table opinfo
@@ -1736,7 +1567,6 @@
 		  (print-chaos-object meth)
 		  (format t "~%   -- entered? ~a" ent?))
 		(when ent?
-		  ;;
 		  (push meth all-errs)
 		  (setf (method-theory meth method-info-table)
 			*the-empty-theory*
@@ -1744,9 +1574,7 @@
 			(method-is-behavioural proto-method))
 		  (setf (method-is-coherent meth) coherent)
 		  (compute-method-theory-info-for-matching
-		   meth method-info-table)
-		  )))
-	      ))
+		   meth method-info-table))))))
       ;; returns the list of error operators.
       all-errs)))
 
@@ -1777,8 +1605,7 @@
       (setf (method-theory new-meth)
 	    (method-theory meth))
       (setf (method-theory-info-for-matching new-meth)
-	    (method-theory-info-for-matching meth))
-      )))
+	    (method-theory-info-for-matching meth)))))
 
 (defun make-if-then-else-op (module sort)
   (declare (type module module)
@@ -1805,8 +1632,7 @@
       (setf (method-theory new-meth)
 	    (method-theory *bool-if*))
       (setf (method-theory-info-for-matching new-meth)
-	    (method-theory-info-for-matching *bool-if*))
-      )))
+	    (method-theory-info-for-matching *bool-if*)))))
   
 (defun setup-if-then-else-in (module)
   (declare (type module module)
@@ -1816,48 +1642,6 @@
       (dolist (es sorts)
 	(make-if-then-else-op module es)))))
     
-#||
-(defun setup-sem-relations-in (module)
-  (when (assq *truth-module* (module-all-submodules module))
-    (let ((sorts (get-module-top-sorts module)))
-      (dolist (es sorts)
-	(if (sort-is-hidden es)
-	    (progn
-	      ;; _=*=_
-	      (make-sem-relation-op module
-				    *beh-equal*
-				    (list es es)
-				    *bool-sort*)
-	      ;; _=b=_
-	      (make-sem-relation-op module
-				    *beh-eq-pred*
-				    (list es es)
-				    *bool-sort*))
-	    (progn
-	      ;; _==_
-	      (make-sem-relation-op module
-				    *bool-equal*
-				    (list es es)
-				    *bool-sort*)
-	      ;; _=/=_
-	      (make-sem-relation-op module
-				    *bool-nonequal*
-				    (list es es)
-				    *bool-sort*)
-	      ))
-	)))
-  (when (assq *rwl-module* (module-all-submodules module))
-    ;; _==>_
-    (let ((sorts (get-module-top-sorts module)))
-      (dolist (s sorts)
-	(make-sem-relation-op module
-			      *rwl-predicate*
-			      (list s s)
-			      *bool-sort*))))
-  )
-
-||#
-
 (defun setup-sem-relations-in (module)
   (declare (type module module)
 	   (values t))
@@ -1869,8 +1653,7 @@
 	    (make-sem-relation-op module
 				  *beh-equal*
 				  (list es es)
-				  *bool-sort*)
-	    )))))
+				  *bool-sort*))))))
 
 (defparameter memb-predicate-name-template
   '("_" ":" 'sort-name))
@@ -1943,8 +1726,7 @@
 	      (unless (operator-associativity op)
 		(if (operator-is-associative op)
 		    (setf (operator-associativity op)
-			  :right)))
-	      )
+			  :right))))
 	    ;; set (1) lowers and highers,
 	    ;;     (2) memo property
 	    ;;     (3) match theory.
@@ -1961,11 +1743,6 @@
 		(setf (method-overloaded-methods m)
 		      (compute-overloaded-methods m methods))
 		(when (eq (method-module m) *current-module*)
-		  #||
-		  ;; (2) memo is now obsolete
-		  (unless (method-has-memo m)
-		    (setf (method-has-memo m) memo))
-		  ||#
 		  ;; ** the rewrite strategy for default methods are always eager.
 		  ;;     we set the value here.
 		  (when (method-is-error-method m)
@@ -1990,26 +1767,7 @@
 			    (setf (method-theory m method-info-table) theory)
 			    (compute-method-theory-info-for-matching
 			     m
-			     method-info-table))
-			  ))
-		    ))
-		))
-	    
-	    ;; setup method lookup table.
-	    ;; *** NOT USED NOW ***
-	    ;; (setf (opinfo-method-table opinfo)
-	    ;;       (make-method-table (opinfo-methods  opinfo)
-	    ;;                           *current-sort-order*))
-	    ;;
-	    #||
-	    ;; compute syntactic properties for each methods.
-	    (compute-method-syntactic-properties opinfo method-info-table)
-	    ;; set syntactic properties for error methods.
-	    (compute-error-method-syntactic-properties opinfo
-						       method-info-table)
-	    ||#
-	    ))
-	))))
+			     method-info-table))))))))))))))
 
 (defun set-operator-syntactic-properties (module)
   (with-in-module (module)
@@ -2019,8 +1777,7 @@
 	  (compute-method-syntactic-properties opinfo method-info-table)
 	  ;; set syntactic properties for error methods.
 	  (compute-error-method-syntactic-properties opinfo
-						     method-info-table)
-	  ))))
+						     method-info-table)))))
 
 (defun make-standard-token-seq (op-name-token number-of-args)
   (declare (type fixnum number-of-args)
@@ -2050,8 +1807,7 @@
 	 (methods (opinfo-methods opinfo))
 	 (op-prec (operator-computed-precedence op))
 	 (op-assoc (operator-associativity op))
-	 (token-sequence (operator-token-sequence op))
-	 )
+	 (token-sequence (operator-token-sequence op)))
     (unless (operator-is-mixfix op)
       ;; operator has a standard application form.
       (setf token-sequence (make-standard-token-seq token-sequence
@@ -2069,10 +1825,9 @@
 				   ;; assoc theory is interpreted as right-associative
 				   (if (and (method-is-associative method
 								   method-info-table)
-					    (null op-assoc)
-					    )
+					    (null op-assoc))
 				       ':right
-				       op-assoc)))))
+				     op-assoc)))))
 	(declare (type fixnum prec lower-prec)
 		 (type symbol assoc-decl))
 	;;
@@ -2112,11 +1867,6 @@
 			     gathering (cdr gathering)))
 		      (t (push (cons 'token cur-item) res)))
 		(setq token-seq (cdr token-seq)))
-	  ;;
-	  ; (terpri)
-	  ; (print-chaos-object method)
-	  ; (format t " :form= ~S" form)
-	  ;;
 	  (setf (method-form method) form))))))
 
 (defun compute-error-method-syntactic-properties (opinfo method-info-table)
@@ -2160,15 +1910,10 @@
 	   (type list token-seq)
 	   (type symbol assoc-decl)
 	   (values list))
-  ;;
-  ; (terpri)
-  ; (print-chaos-object method)
-  ; (format t " : assoc=~S" (method-is-associative method))
-  ;;
   (if assoc-decl
       (if (eq assoc-decl ':left)
 	  '(:left :right)
-	  '(:right :left))
+	'(:right :left))
       ;; if unary prefix use :left not :right
       (if (not (operator-is-mixfix (method-operator method)))
 	  (mapcar #'(lambda (x) (declare (ignore x)) '&) (method-arity method))
@@ -2183,8 +1928,7 @@
 ;;;
 ;;; CHECK-POLIMORHIC-OVERLODING-IN
 ;;;
-(defun check-polimorphic-overloading-in (&optional (module (or *current-module*
-							    *last-module*)))
+(defun check-polimorphic-overloading-in (&optional (module (get-context-module)))
   (declare (type module module)
 	   (values t))
   (with-in-module (module)
@@ -2359,14 +2103,12 @@
 			   (return-from is-variable)))
 		       ;; come here if the occ-th argument is a variable,or
 		       ;; method is maximal. delay the evaluation.
-		       (push (1+ occ) end-strategy)
-		       ))
+		       (push (1+ occ) end-strategy)))
 		   (setf (method-rewrite-strategy meth)
                          (complete-method-strategy meth
 			                           (append (reverse strategy)
 				                           (if (member 0 strategy) nil '(0))
-				                           (reverse end-strategy))))
-		   ))))))))
+				                           (reverse end-strategy))))))))))))
 
 ;;; *NOTE* assumes *current-opinfo-table* is properly bound.
 ;;;
@@ -2390,9 +2132,7 @@
 	(setf (method-rules-with-different-top mth)
 	      (sort (method-rules-with-different-top mth) 
 		    #'method<=
-		    :key #'(lambda (x) (term-head (axiom-lhs x)))))
-	;;
-	))))
+		    :key #'(lambda (x) (term-head (axiom-lhs x)))))))))
 
 (defun propagate-attributes (module)
   (declare (type module module)
@@ -2449,9 +2189,7 @@
                                       (print-chaos-object (opinfo-operator opinfo))
 				      (print-next)
 				      (term-print id) (princ " -- VS. -- ")
-				      (term-print nid)))
-                                  )))
-			  )))
+				      (term-print nid)))))))))
 		    ;;
 		    (when id
 		      (let ((idsrt (term-sort id))
@@ -2475,21 +2213,6 @@
 		    ;;
 		    (set-method-theory lower
 				       newthy
-				       #|| set-method-theory calls this
-				       (check-method-theory-consistency
-					      lower
-					      newthy
-					      *current-opinfo-table*
-					      t)
-				       ||#
-				       *current-opinfo-table*
-				       t))
-		    ))
-	      ))			; end unless
-	  )				; end dolist
-	)				; end dolist
-      )
-    ))
-
+				       t)))))))))))
 
 ;;; EOF

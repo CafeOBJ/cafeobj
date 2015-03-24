@@ -59,7 +59,7 @@
 	    kinds)
       kinds)))
 
-(defun make-sort-tree (sort &optional (mod (or *current-module* *last-module*)))
+(defun make-sort-tree (sort &optional (mod (get-object-context sort)))
   (let* ((so (module-sort-order mod))
 	 (kind (the-err-sort sort so))
 	 (sls (module-sort-relations mod))
@@ -77,12 +77,12 @@
 
 (defun print-sort-tree (sort &optional
 			     (stream *standard-output*)
-			     (mod (or *current-module* *last-module*)))
+			     (mod (get-object-context sort)))
   (!print-sort-tree sort stream mod nil))
 
 (defun print-sort-graph (sort &optional
 			      (stream *standard-output*)
-			      (mod (or *current-module* *last-module*)))
+			      (mod (get-object-context sort)))
   (!print-sort-tree sort stream mod t))
 
 (defun !print-sort-tree (sort stream mod show-as-graph)
@@ -104,11 +104,11 @@
 
 ;;; PRINT-MODULE-SORT-TREE
 
-(defun print-module-sort-tree (&optional (mod (or *current-module* *last-module*))
+(defun print-module-sort-tree (&optional (mod (get-context-module))
 					 (stream *standard-output*))
   (!print-module-sort-tree mod stream nil))
 
-(defun print-module-sort-graph (&optional (mod (or *current-module* *last-module*))
+(defun print-module-sort-graph (&optional (mod (get-context-module))
 					  (stream *standard-output*))
   (!print-module-sort-tree mod stream t))
 

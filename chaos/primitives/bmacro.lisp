@@ -43,7 +43,7 @@
 
 (defun print-macro (macro stream &rest ignore)
   (declare (ignore ignore))
-  (let ((mod (or *last-module* *current-module*)))
+  (let ((mod (get-context-module)))
     (if mod
 	(with-in-module (mod)
 	  (term-print (macro-lhs macro) stream)

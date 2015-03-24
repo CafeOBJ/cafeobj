@@ -780,9 +780,8 @@
 (defvar .test-term-sort-membership-in-progress. nil)
 
 (defun test-term-sort-membership (term sort-id-const
-				       &optional
-				       (module (or *current-module*
-						   *last-module*)))
+				       &optional (module (get-context-module)))
+
   (declare (type term term sort-id-const))
   (unless module
     (with-output-chaos-error ('no-context)

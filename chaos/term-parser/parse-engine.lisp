@@ -171,8 +171,7 @@
 						 (term-subterms term)))
 	  (simple-copy-term term))))
 
-(defun get-qualified-op-pattern (tok &optional (module (or *current-module*
-							   *last-module*)))
+(defun get-qualified-op-pattern (tok &optional (module (get-context-module)))
   (labels ((destruct-op-name (expr)
 	     (let ((pos (position #\_ expr)))
 	       (declare (type (or null fixnum) pos))
@@ -1683,16 +1682,13 @@
       (print-terletox-list terletox-list))
     terletox-list))
 
-(defun test-sort-memb-predicate (term &optional (module (or *current-module*
-							     *last-module*)))
+(defun test-sort-memb-predicate (term &optional (module (get-context-module)))
   (unless module
     (with-output-chaos-error ('no-context)
       (princ "checking _:_, no context module is given!")))
   (with-in-module (module)
     (let ((arg1 (term-arg-1 term))
 	  (id-const (term-arg-2 term)))
-      ;; (format t "~&arg1 = ")(print arg1)
-      ;; (format t "~&id-const = ") (print id-const)
       (let ((sorts (gather-sorts-with-id id-const module))
 	    (term-sort (term-sort arg1)))
 	(unless sorts

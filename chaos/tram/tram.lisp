@@ -145,22 +145,13 @@
 	    ;;
 	    (with-output-chaos-error ('tram-fail)
 	      (format t "failed to invoke TRAM compiler")
-	      (when *last-module*
-		(context-pop-and-recover))
-	      ))
+	      (when (get-context-module)
+		(context-pop-and-recover))))
 
     ;;
     (setq *tram_in_file* in-file
 	  *tram_out_file* out-file)
     
-    #||
-    ;; wait for a while untill i/o files are prepared
-    (dotimes (x 30)
-      x
-      (sleep 1)
-      (when (probe-file in-file) (return nil)))
-     ||#
-
     ;; try open streams
     (setq out-stream (open out-file
 			   :direction :output
@@ -172,11 +163,9 @@
     (unless (and in-stream out-stream)
       (with-output-chaos-error ('tram-fail)
 	(format t "failed to open TRAM I/O streams")
-	(when *last-module*
-	  (context-pop-and-recover))
-	))
-    (setq *tram-process* (cons in-stream out-stream))
-    ))
+	(when (get-context-module)
+	  (context-pop-and-recover))))
+    (setq *tram-process* (cons in-stream out-stream))))
 
 (defun kill-tram-process ()
   (setq *tram-last-module* nil)
@@ -290,7 +279,7 @@
 		 (format t "Unkonwn TRAM term ~s is returned.~
 ~%  This can happen if signature is not regular..."
 			 tram-term)
-		 (when *last-module*
+		 (when (get-context-module)
 		   (context-pop-and-recover))
 		 (chaos-error 'tram-panic)))))))
 
@@ -752,8 +741,7 @@
 ;;; TRAM-COMPILE-CHAOS-MODULE
 ;;;
 (defun tram-compile-chaos-module (&optional all?
-					    (module (or *current-module*
-							*last-module*))
+					    (module (get-context-module))
 					    debug)
   ;;
   (unless debug (run-tram-process-if-need))

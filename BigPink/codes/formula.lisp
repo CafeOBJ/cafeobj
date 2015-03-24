@@ -668,12 +668,11 @@
 		    ;; must skolemize subformula first to avoid
 		    ;; problem in \Ax...\Ey...\Ex F(x,y)
 		    (skolem (term-arg-2 sentence))
-		    (let* ((mod (or *current-module* *last-module*))
+		    (let* ((mod (get-context-module))
 			   (skfun-name
 			    (make-skolem-function-name (term-sort
 							(term-arg-1 sentence))
-						       variables))
-			   )
+						       variables)))
 		      (multiple-value-bind (op meth)
 			  (declare-operator-in-module
 			   (list skfun-name)

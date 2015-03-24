@@ -216,9 +216,9 @@ File:butils.lisp
 
 ;;; IS-SKOLEM : method module -> Bool
 ;;;
-(defun is-skolem (meth &optional (module (or *current-module* *last-module*)))
+(defun is-skolem (meth &optional (module (get-context-module)))
   (declare (type method meth)
-           (type module module)
+           (type (or null module) module)
            (values boolean))
   (memq meth (module-skolem-functions module)))
 
@@ -1788,8 +1788,7 @@ File:butils.lisp
                  (princ "---"))
              *full-lit-table*)))
 
-(defun show-demodulators (&optional (mod (or *current-module*
-                                             *last-module*)))
+(defun show-demodulators (&optional (mod (get-context-module)))
   (unless mod (return-from show-demodulators nil))
   (with-in-module (mod)
     (let* ((psys (module-proof-system mod))

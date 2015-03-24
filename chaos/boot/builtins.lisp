@@ -187,7 +187,7 @@
 (defun install-chaos-hard-wired-modules ()
   (setq *dribble-ast* nil)
   (setq *ast-log* nil)
-  (setq *last-module* nil *current-module* nil)
+  (reset-context-module)
   (setq *include-bool* nil)
   (setq *include-rwl* nil)
   (setq *regularize-signature* nil)
@@ -281,8 +281,7 @@
                        (%bsort-decl "String" nil nil prin1 stringp nil))))
   (install-string)
   ;;
-  ;;
-  (setq *last-module* nil *current-module* nil)
+  (reset-context-module)
   (setq *include-bool* t)
   (setq *include-rwl* t)
   )
@@ -303,8 +302,7 @@
     (setq *ast-log* nil)
     (setq *include-bool* t)
     (setq *include-rwl* t)
-    (setq *last-module* nil
-          *current-module* nil)
+    (reset-context-module)
     (setq *regularize-signature* nil)
     ;; set recover proc.
     (setq *system-soft-wired*

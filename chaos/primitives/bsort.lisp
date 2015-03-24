@@ -58,23 +58,6 @@
 ;;;       never be created as a term body (abstract class).
 ;;;
 
-#||
-(defterm sort-struct (object)		; (static-object)
-  ;; :name ""
-  :visible (id				; sort name, symbol.
-	    hidden)			; flag, t iff the sort is hidden sort.
-
-  :hidden (module			; module in which the sort is declared.
-					; type = module object.
-	   constructor			; the list of constructor methods of the
-					; sort. not used.
-	   inhabited			; temporary flag used for regularizing
-					; the signature of a module. 
-	   )
-  :int-printer print-sort-internal
-  :print print-sort-internal)
-||#
-
 (defstruct (sort-struct (:conc-name "SORT-STRUCT-")
 			(:include object (-type 'sort-struct))
 			(:copier nil)
@@ -83,11 +66,14 @@
 			(:constructor sort-struct* (id hidden)))
   (id nil :type symbol)
   (hidden nil :type (or null t))
-  (module nil :type (or null module))
   (constructor nil :type list)
   (inhabited nil :type (or null t))
-  (derived-from nil :type (or null sort-struct))
-  )
+  (derived-from nil :type (or null sort-struct)))
+
+(eval-when (:execute :load-toplevel :compile-toplevel)
+(defmacro sort-module (sort)
+  `(object-context-mod ,sort))
+)
 
 (eval-when (:execute :load-toplevel)
   (setf (symbol-function 'sort-sort-struct) (symbol-function 'sort-struct-p))
@@ -174,19 +160,10 @@
 	   (type (or null t) hidden))
   (let ((sort (sort* id hidden)))
     (setf (sort-module sort) module)
-    (set-context-module sort module)
+    (set-object-context-module sort module)
     sort))
 
 ;;; *SORT-TABLE*
-#||
-(defvar *sort-table* (make-hash-table :test #'equal))
-(defmacro get-sort-named (sort-name_ module_)
-  `(gethash (cons ,sort-name_ ,module_) *sort-table*))
-(defun clear-all-sorts () (clrhash *sort-table*))
-(defun register-sort (sort)
-  (setf (gethash (cons (sort-id sort) (sort-module sort)) *sort-table*) sort))
-
-||#
 
 (defvar *sort-table* nil)
 (defun get-sort-named (sort-name module)
@@ -327,7 +304,7 @@
     (setf (crsort-maker s) (if (eq p-type 'class-sort)
 			       (list nil nil nil nil)
 			       (list nil nil)))
-    (set-context-module s module)
+    (set-object-context-module s module)
     s))
   
 (defun new-record-sort (id module &optional hidden)
@@ -431,7 +408,7 @@
   (let ((bs (bsort* id hidden)))
     (setf (sort-module bs) module
 	  (bsort-info bs) info)
-    (set-context-module bs module)
+    (set-object-context-module bs module)
     bs))
 
 ;;; Predicate ------------------------------------------------------------------
@@ -514,7 +491,7 @@
   (let ((as (and-sort* id hidden)))
     (setf (sort-module as) module
 	  (and-sort-components as) and-components)
-    (set-context-module as module)
+    (set-object-context-module as module)
     as))
 
 ;;; Predicates -----------------------------------------------------------------
@@ -568,7 +545,7 @@
   (let ((os (or-sort* id hidden)))
     (setf (sort-module os) module
 	  (or-sort-components os) or-components)
-    (set-context-module os module)
+    (set-object-context-module os module)
     os))
 
 ;;; Predicate ------------------------------------------------------------------
@@ -619,7 +596,7 @@
     (setf (sort-module es) module
 	  (err-sort-components es) components
 	  (err-sort-lowers es) lowers)
-    (set-context-module es module)
+    (set-object-context-module es module)
     es))
 
 ;;; Predicates ----------------------------------------------------------------

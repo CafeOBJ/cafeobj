@@ -88,7 +88,7 @@ File: basics.lisp
         nil))))
 
 (defun disp-term (x)
-  (with-in-module (*last-module*)
+  (with-in-module ((get-context-module))
     (term-print x)
     (princ " : ")
     (print-sort-name (term-sort x) *current-module*)))
@@ -514,8 +514,7 @@ File: basics.lisp
         trmtoks
         avar
         aterm)
-    ;; (!setup-parse *last-module*)
-    (with-in-module (*last-module*)
+    (with-in-module ((get-context-module))
       (loop (when (null substtoks) (return))
         ;; <varid> = <term>
         (setq varnm (cadr substtoks))

@@ -385,13 +385,6 @@
       (with-in-module (*current-module*)
 	(auto-db-reset *current-module*)
 	(setq psys (module-proof-system *current-module*))
-	#||
-	(unless psys
-	  (with-output-chaos-error ('no-psys)
-	    (princ "no proof system prepared, do `db reset' first!"))
-	  )
-	||#
-	;;
 	(setq args (flatten-list args))
 	(dolist (arg args)
 	  (cond ((is-nat arg)
@@ -437,8 +430,7 @@
 				 (princ "specified term is not valid as formula.")
 				 (term-print val)))
 			     (dolist (cl (formula->clause-1 val psys))
-			       (push cl real-set)))))))))
-	  )
+			       (push cl real-set))))))))))
 	;;
 	(dolist (cl (if (eq type :sos)
 			(psystem-sos psys)
@@ -468,8 +460,7 @@
 				       (nreverse real-set)
 				       :test #'clause-equal)))
 		   (when put-sysgoal-in-sos
-		     (setq put-sysgoal-in-sos nil)))
-	  )
+		     (setq put-sysgoal-in-sos nil))))
 	;;
 	(if (eq type :sos)
 	    (dolist (cl (psystem-sos psys))
@@ -505,8 +496,7 @@
 	(when put-sysgoal-in-sos
 	  (push :system-goal (psystem-sos psys)))
 	;;
-	psys
-	))))
+	psys))))
 
 ;;; EVAL-CLAUSE-SHOW
 ;;;
@@ -516,11 +506,6 @@
       (with-output-chaos-error ('no-context)
 	(princ "no context module is given.")))
     (prepare-for-parsing *current-module*)
-    #||
-    (unless (module-proof-system *current-module*)
-      (with-output-chaos-error ('no-psys)
-	(princ "no proof system prepared, do `db reset' first!")))
-    ||#
     (auto-db-reset *current-module*)
     (with-in-module (*current-module*)
       (let* ((*parse-variables* nil)
@@ -539,8 +524,7 @@
 	(dolist (cl (formula->clause-1 term
 				       (module-proof-system *current-module*)))
 	  (print-next)
-	  (print-clause cl *standard-output*)))
-      )))
+	  (print-clause cl *standard-output*))))))
 
 ;;; EVAL-PN-LIST
 ;;;
@@ -565,30 +549,16 @@
 	   (princ " ")
 	   (dolist (cl (psystem-axioms psys))
 	     (print-next)
-	     (print-clause cl *standard-output*)))
-	 ))
+	     (print-clause cl *standard-output*)))))
       (:sos
        (with-proof-context (*current-module*)
-	 (print-sos-list)
-	 #||
-	 (dolist (cl (psystem-sos psys))
-	   (print-next)
-	   (print-clause cl *standard-output*))
-	 ||#
-	 ))
+	 (print-sos-list) ))
       (:usable
        (with-proof-context (*current-module*)
-	 (print-usable-list)
-	 #||
-	 (dolist (cl (psystem-usable psys))
-	   (print-next)
-	   (print-clause cl *standard-output*))
-	 ||#
-	 ))
+	 (print-usable-list) ))
       (:passive
        (with-proof-context (*current-module*)
 	 (print-passive-list)))
-      
       (:flag
        (pr-list-of-flag))
       (:param
@@ -597,36 +567,25 @@
        (pr-list-of-option))
       (:demod
        (with-proof-context (*current-module*)
-	 (print-demodulators-list)
-	 #||
-	 (dolist (cl (psystem-demods psys))
-	   (print-next)
-	   (print-clause cl *standard-output*))
-	 ||#
-	 ))
+	 (print-demodulators-list)))
       (otherwise
        (with-output-chaos-error ('invalid)
-	 (format t "internal error, unknown list option ~a" arg)))
-      )))
+	 (format t "internal error, unknown list option ~a" arg))))))
 
 ;;; EVAL-RESOLVE
 ;;;
 (defun eval-resolve (ast)
-  (unless *current-module*
-    (with-output-chaos-error ('no-context)
-      (princ "no context (current module) is set!"))
-    )
-  (let ((out-file (%resolve-arg ast)))
-    (if (and out-file (not (equal out-file ".")))
-	(with-open-file (stream out-file :direction :output
-			 :if-exists :append :if-does-not-exist :create)
-	  (let ((*standard-output* stream))
-	    (do-resolve (if *open-module*
-			    *last-module*
-			  *current-module*))))
-      (do-resolve (if *open-module*
-		      *last-module*
-		    *current-module*)))))
+  (let ((eval-context (get-context-module)))
+    (unless eval-context
+      (with-output-chaos-error ('no-context)
+	(princ "no context (current module) is set!")))
+    (let ((out-file (%resolve-arg ast)))
+      (if (and out-file (not (equal out-file ".")))
+	  (with-open-file (stream out-file :direction :output
+			   :if-exists :append :if-does-not-exist :create)
+	    (let ((*standard-output* stream))
+	      (do-resolve eval-context)))
+	(do-resolve eval-context)))))
 
 (defun do-resolve (mod)
   (let ((time1 nil)
@@ -691,8 +650,7 @@
       (setf (pn-flag index) value)
       (dependent-flags index)
       ;; run hook
-      (funcall (pn-flag-hook index) value)
-      )))
+      (funcall (pn-flag-hook index) value))))
 
 ;;; SHOW-OPTION
 ;;;
@@ -731,8 +689,7 @@
 	(with-output-msg ()
 	  (format t "setting parameter ~s to ~d."
 		  name value)))
-      (setf (pn-parameter index) value)
-      )))
+      (setf (pn-parameter index) value))))
   
 ;;; option reset
 ;;;
@@ -742,8 +699,7 @@
     (case command
       (:reset (init-pn-options))
       (:save (save-option-set name))
-      (:restore (restore-option-set name))
-      )))
+      (:restore (restore-option-set name)))))
 
 ;;; DEMOD
 (defun perform-demodulation (ast)
@@ -754,7 +710,6 @@
     (perform-demodulation* preterm modexp mode result-as-text)))
 
 (defun perform-demodulation* (preterm &optional modexp mode (result-as-text nil))
-  ;; (setq $$trials 1)
   (let ((*consider-object* t)
 	(*rewrite-exec-mode* (eq mode :exec))
 	(*rewrite-semantic-reduce* nil)
@@ -766,35 +721,33 @@
 	(number-matches nil))
     (let ((mod (if modexp 
 		   (eval-modexp modexp)
-		   *last-module*)))
-      (unless (eq mod *last-module*)
+		 (get-context-module))))
+      (unless (eq mod (get-context-module))
 	(clear-term-memo-table *term-memo-table*))
       (if (or (null mod) (modexp-is-error mod))
 	  (if (null mod)
 	      (with-output-chaos-error ('no-context)
-		(princ "no module expression provided and no selected(current) module.")
-		)
+		(princ "no module expression provided and no selected(current) module."))
 	      (with-output-chaos-error ('no-such-module)
 		(princ "incorrect module expression, no such module ")
-		(print-chaos-object modexp)
-		))
-	  (progn
-	    (context-push-and-move *last-module* mod)
-	    (with-in-module (mod)
-	      (auto-db-reset mod))
-	    (with-proof-context (mod)
-	      (when *auto-context-change*
-		(change-context *last-module* mod))
-	      (!setup-reduction mod)
-	      (setq $$mod *current-module*)
-	      (setq sort *cosmos*)
-	      (when *show-stats* (setq time1 (get-internal-run-time)))
+		(print-chaos-object modexp)))
+	(progn
+	  (context-push-and-move (get-context-module) mod)
+	  (with-in-module (mod)
+	    (auto-db-reset mod))
+	  (with-proof-context (mod)
+	    (when *auto-context-change*
+	      (change-context (get-context-module) mod))
+	    (!setup-reduction mod)
+	    (setq $$mod (get-context-module))
+	    (setq sort *cosmos*)
+	    (when *show-stats* (setq time1 (get-internal-run-time)))
 	      (setq *rewrite-semantic-reduce*
 		    (and (eq mode :red)
 			 (module-has-behavioural-axioms mod)))
 	      ;;
 	      (let* ((*parse-variables* nil)
-		     (term (simple-parse *current-module* preterm sort)))
+		     (term (simple-parse (get-context-module) preterm sort)))
 		(when (or (null (term-sort term))
 			  (sort<= (term-sort term) *syntax-err-sort* *chaos-sort-order*))
 		  (return-from perform-demodulation* nil))
@@ -803,9 +756,7 @@
 		  (setq time2 (get-internal-run-time))
 		  (setf time-for-parse
 			(format nil "~,3f sec"
-				;; (/ (float (- time2 time1)) internal-time-units-per-second)
-				(elapsed-time-in-seconds time1 time2)
-				)))
+				(elapsed-time-in-seconds time1 time2))))
 		(unless *chaos-quiet*
 		  (fresh-all)
 		  (flush-all)
@@ -815,29 +766,20 @@
 			  (princ "-- demodulate in ")
 			  (princ "-- behavioural demodulate in "))
 		      )
-		  (print-simple-mod-name *current-module*)
+		  (print-simple-mod-name (get-context-module))
 		  (princ " : ")
 		  (let ((*print-indent* (+ 4 *print-indent*)))
 		    (term-print term))
 		  (flush-all))
 		;; ******** 
-		(reset-target-term term *last-module* mod)
+		(reset-target-term term (get-context-module) mod)
 		;; ********
 		(setq $$matches 0)
 		(setq time1 (get-internal-run-time))
 		(let ((*rule-count* 0))
 		  (let ((res nil))
 		    (catch 'rewrite-abort
-		      #||
-		      (if (sort<= (term-sort term) *fopl-sentence-sort*
-				  *current-sort-order*)
-			  (dolist (sub (term-subterms term))
-			    (unless (term-is-variable? sub)
-			      (demod-atom sub)))
-			(setq res (demod-atom term)))
-		      ||#
-		      (setq res (demod-atom term))
-		      )
+		      (setq res (demod-atom term)))
 		    (unless res (setq res $$term))
 		    ;;
 		    (when *mel-sort*
@@ -849,8 +791,6 @@
 		    (setq time2 (get-internal-run-time))
 		    (setf time-for-reduction
 			  (format nil "~,3f sec"
-				  ;; (/ (float (- time2 time1))
-				  ;;     internal-time-units-per-second)
 				  (elapsed-time-in-seconds time1 time2)))
 		    (setf number-matches $$matches)
 		    (setq $$matches 0)
@@ -865,9 +805,8 @@
 				   (print-check)
 				   (princ " : ")
 				   (print-sort-name (term-sort res)
-						    *current-module*))
-				 s
-				 ))
+						    (get-context-module))
+				   s)))
 			      (stat
 			       (if *show-stats*
 				   (concatenate
@@ -891,7 +830,7 @@
 			    (print-check 0 3)
 			    (princ " : ")
 			    (print-sort-name (term-sort res)
-					     *current-module*))
+					     (get-context-module)))
 			  (when *show-stats*
 			    (format t "~%(~a for parse, ~s rewrites(~a), ~d matches"
 				    time-for-parse
@@ -902,9 +841,7 @@
 				(format t ")~%")
 				(format t ", ~d memo hits)~%"
 					*term-memo-hash-hit*)))
-			  (flush-all)))
-		    ))
-		))
+			  (flush-all)))))))
 	    (context-pop-and-recover))))))
 
 ;;; SIGMATCH
@@ -921,19 +858,17 @@
 	(princ "no such module: ")
 	(print-modexp (%sigmatch-mod2 ast))))
     (setq views (sigmatch mod1 mod2))
-    ;; 
     (if views
 	(princ views)
-      (princ "( )"))
-    ))
+      (princ "( )"))))
     
 ;;; LEX
 (defun eval-pn-lex (ast)
-  (unless *current-module*
+  (unless (get-context-module)
     (with-output-chaos-error ('no-context)
       (princ "no context(current) module is specified.")))
-  (compile-module *current-module*)
-  (with-in-module (*current-module*)
+  (compile-module (get-context-module))
+  (with-in-module ((get-context-module))
     (let ((optokens (%pn-lex-ops ast))
 	  (prec-list nil))
       (dolist (e optokens)
@@ -947,9 +882,7 @@
 		     (with-in-module (mod)
 		       (dolist (opinfo ops)
 			 (dolist (meth (reverse (opinfo-methods opinfo)))
-			   (push meth prec-list))))))
-		 )
-	      ))
+			   (push meth prec-list)))))))))
       ;;
       (unless (memq :* prec-list)
 	(push :* prec-list))
@@ -957,8 +890,6 @@
 	(push :skolem prec-list))
       (setq prec-list (nreverse prec-list))
       ;;
-      (setf (module-op-lex *current-module*) prec-list)
-      )))
-    
+      (setf (module-op-lex *current-module*) prec-list))))
 
 ;;; EOF

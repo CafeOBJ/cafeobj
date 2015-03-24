@@ -74,17 +74,12 @@
 	modexp)))
   (let ((mod nil)
 	(me (normalize-modexp modexp)))
-    (when (and (equal me "THE-LAST-MODULE")
-	       *last-module*)
-      (return-from eval-modexp
-	(if reconstruct-if-need
-	    (reconstruct-module-if-need *last-module*)
-	  *last-module*)))
+    ;; "." -> current context module
     (when (and (equal me ".")
-	       *current-module*)
-      (return-from eval-modexp
-	*current-module*))
+	       (get-context-module))
+      (return-from eval-modexp (get-context-module)))
     (when (stringp me)
+      ;; simple name
       (let ((pos (position #\. (the simple-string me) :from-end t)))
 	(if pos
 	    (let ((name (subseq (the simple-string me) 0 (the fixnum pos)))
@@ -95,11 +90,10 @@
 	      (if (modexp-is-error context)
 		  (with-output-chaos-error ('no-such-module)
 		    (format t "Could not evaluate modexpr ~a, " me)
-		    (format t " no such module ~a" qual)
-		    )
+		    (format t " no such module ~a" qual))
 		(setf mod (find-module-in-env name context))))
 	  (setq mod (find-module-in-env me (if also-local
-					       *current-module*
+					       (get-context-module)
 					     nil))))))
     (if mod
 	(if reconstruct-if-need
@@ -112,7 +106,7 @@
 		 (declare (special *on-autoload*))
 		 (!input-file (cdr ent)))
 	       (setq mod (find-module-in-env me (if also-local
-						    *current-module*
+						    (get-context-module)
 						  nil)))
 	       (if mod
 		   mod
@@ -162,8 +156,7 @@
 	
 	;; Internal Error!
 	(t (with-output-chaos-error ('invalid-modexp)
-	     (format t "bad modexp form ~s" modexp)))
-	))
+	     (format t "bad modexp form ~s" modexp)))))
 
 ;;; ************************
 ;;; SPECIFIC MODULE CREATORS____________________________________________________
@@ -178,19 +171,6 @@
 (declaim (special *copy-variables*))
 (defvar *copy-variables* nil)
 
-#||
-(defun create-renamed-module (mod name)
-  (let ((*beh-proof-in-progress* t)
-	(*copy-variables* t))
-    (let ((newmod (eval-ast (%module-decl* (normalize-modexp name)
-					   (module-kind mod)
-					   :user
-					   (list (%import* :using mod))))))
-      (add-modexp-defn (module-name newmod) newmod)
-      (compile-module newmod)
-      newmod)
-    ))
-||#
 (defun create-renamed-module (mod name)
   (let ((*beh-proof-in-progress* t)
 	(*copy-variables* t)
@@ -202,8 +182,7 @@
       (import-module newmod :using mod)
       (add-modexp-defn (module-name newmod) newmod)
       (compile-module newmod)
-      newmod)
-    ))
+      newmod)))
 
 (defun create-renamed-module-2 (mod name context-module)
   (let ((*copy-variables* t)
@@ -215,8 +194,7 @@
       (incorporate-module-copying newmod mod t nil context-module)
       (add-modexp-defn (module-name newmod) newmod)
       (compile-module newmod)
-      newmod)
-    ))
+      newmod)))
 
 ;;; ***********
 ;;; CREATE-PLUS : Modexp -> Module
@@ -265,62 +243,6 @@
 ;;; ********************
 ;;; *NOTE* apply-modmorph must use memo tables since mapping may affect
 ;;; sub-modules (e.g. with "protecting A[X <= Y]")
-;;;
-;;;
-#||
-(defun create-instantiation (modexp)
-  (flet ((report-error (&rest ignore)
-	   (declare (ignore ignore))
-	   (with-output-msg ()
-	     (princ "could not evaluate instantiation: ")
-	     (print-modexp modexp *standard-output* t t)
-	     (chaos-error 'modexp-error))))
-    (with-chaos-error (#'report-error)
-      (cond ((int-instantiation-p modexp) ; evaluated internal modexp.
-	     (let ((mappg (views-to-modmorph (int-instantiation-module modexp)
-					     (int-instantiation-args modexp))))
-	       (apply-modmorph modexp mappg (int-instantiation-module modexp))))
-	    (t				; not yet evaluated, build from the
-					; scratch.
-	     (let* ((*auto-context-change* nil)
-		    ;; parameter module must be a global
-		    (modpar (eval-modexp (%instantiation-module modexp))))
-	       (unless (module-p modpar)
-		 (with-output-chaos-error ('modexp-err)
-		   (princ  "Unknown parameterized module in instantiation: ")
-		   (when (modexp-is-error modpar)
-		       (princ (cdr modpar))
-		       ))
-		 )
-	       #||
-	       (when (eq *current-module* modpar)
-		 (with-output-chaos-error ('modexp-eval)
-		   (princ "module ")
-		   (print-mod-name *current-module*)
-		   (princ "cannot instantiate itself")
-  	         ))
-	       ||#
-	       (unless (get-module-parameters modpar)
-		 (with-output-chaos-error ('modexp-eval)
-		   (princ "module ")
-		   (print-mod-name modpar)
-		   (princ " has no parameters.")
-		   ))
-	       ;; 
-	       (let ((args (do ((r (%instantiation-args modexp) (cdr r))
-				(res nil))
-			       ((null r) (nreverse res))
-			     (push (eval-view-arg (car r)
-						  modpar)
-				   res))))
-		 (let ((name (make-int-instantiation :module modpar
-						     :args args))
-		       (mappg (views-to-modmorph modpar args)))
-		   (let ((module (apply-modmorph name mappg modpar)))
-		     ;; (setf (module-name module) name) ; name is set by apply-modmorph.
-		     (setf (module-decl-form module) modexp)
-		     module)))))))))
-||#
 
 (defun create-instantiation (modexp)
   (flet ((report-error (&rest ignore)
@@ -343,15 +265,12 @@
 		 (with-output-chaos-error ('modexp-err)
 		   (princ  "Unknown parameterized module in instantiation: ")
 		   (when (modexp-is-error modpar)
-		       (princ (cdr modpar))
-		       ))
-		 )
+		       (princ (cdr modpar)))))
 	       (unless (get-module-parameters modpar)
 		 (with-output-chaos-error ('modexp-eval)
 		   (princ "module ")
 		   (print-mod-name modpar)
-		   (princ " has no parameters.")
-		   ))
+		   (princ " has no parameters.")))
 	       ;; 
 	       (let ((args nil)
 		     (mappg nil))
@@ -412,9 +331,7 @@
 		type
 		(if (eq type :visible)
 		    "sort"
-		    "hsort")
-		)
-	))
+		    "hsort"))))
     sort))
 
 (defun create-rename (modexp)

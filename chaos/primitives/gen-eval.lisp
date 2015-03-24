@@ -81,10 +81,7 @@
 				(and (fboundp (car ast))
 				     (symbol-function (car ast))))))
 	     (cond (evaluator
-		    (let ((module (or ;; (chaos-eval-context ast)
-				   ;; *chaos-eval-context*
-				   *current-module*
-				   *last-module*)))
+		    (let ((module (get-context-module)))
 		      (when (and module (not (module-p module)))
 			(setq module (find-module-in-env
 				      (normalize-modexp (string module)))))

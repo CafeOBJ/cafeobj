@@ -49,15 +49,12 @@
 ;;; 1. constants(operations free from axioms) are always strict.
 ;;; 
 (defun check-method-strictness (meth &optional
-				     (module (or *current-module*
-						 *last-module*
-						 ))
+				     (module (get-context-module))
 				     report?)
 				     
   (unless module
     (with-output-chaos-error ('no-cntext)
-      (princ "checking lazyness: no context module is specified!")
-      ))
+      (princ "checking lazyness: no context module is specified!")))
   ;;
   (with-in-module (module)
     (cond ((and (null (method-rules-with-different-top meth))
@@ -145,13 +142,11 @@
 		 (values (reverse strategy) (reverse end-strategy)))))
 	  )))
 
-(defun check-operator-strictness (op &optional (module (or *last-module*
-							    *current-module*))
-				     report?)
+(defun check-operator-strictness (op &optional (module (get-context-module))
+					       report?)
   (unless module
     (with-output-chaos-error ('no-context)
-      (princ "no context (current) module is given!")
-      ))
+      (princ "no context (current) module is given!")))
   ;;
   (let* ((opinfo (if (opinfo-p op)
 		     (prog1 op (setq op (opinfo-operator op)))
@@ -180,13 +175,11 @@
 	  (push (list meth str-list1 str-list2) res))))
     (nreverse res)))
 
-(defun check-operator-strictness-whole (&optional (module (or *last-module*
-							      *current-module*))
+(defun check-operator-strictness-whole (&optional (module (get-context-module))
 						  report?)
   (unless module
     (with-output-chaos-error ('no-context)
-      (princ "no context (current) module is specified!")
-      ))
+      (princ "no context (current) module is specified!")))
   ;;
   (let ((result nil))
     (dolist (opinfo (ops-to-be-shown module))
@@ -244,7 +237,7 @@
 	     nil))))
 
 (defun check-method-coherency (meth &optional
-				    (module (or *current-module* *last-module*))
+				    (module (get-context-module))
 				    (warn t))
   (unless module
     (with-output-chaos-error ('no-cntext)
@@ -521,14 +514,12 @@
   
 (defun check-operator-coherency (op
 				 &optional
-				 (module (or *current-module* *last-module*))
-				 (warn t)
-				 )
+				 (module (get-context-module))
+				 (warn t))
 				 
   (unless module
     (with-output-chaos-error ('no-context)
-      (princ "no context (current) module is given!")
-      ))
+      (princ "no context (current) module is given!")))
   ;;
   (let* ((opinfo (if (opinfo-p op)
 		     (prog1 op (setq op (opinfo-operator op)))
@@ -617,8 +608,7 @@
       ))
 	
 (defun check-method-congruency (meth iobservers
-				&optional (module (or *current-module*
-						      *last-module*)))
+				&optional (module (get-context-module)))
   (unless module
     (with-output-panic-message ()
       (princ "congruence check: no context module!")))

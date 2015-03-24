@@ -1421,7 +1421,7 @@
 			(bind nil)
 			;; the followings are experimental
 			(if nil))
-  (let ((module (or *current-module* *last-module*))
+  (let ((module (get-context-module))
         max-r
         max-d)
     (unless module

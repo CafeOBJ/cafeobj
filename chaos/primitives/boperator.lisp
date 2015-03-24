@@ -125,29 +125,12 @@
 ;;; ********
 ;;; OPERATOR __________________________________________________________________
 ;;; ********
-#||
-(defterm operator (object)		; (static-object)
-  :visible (name)			; list of `symbol' & `number of arguments'.
-  :hidden (module
-	   strategy
-	   theory
-	   syntax
-	   memo
-	   print-name
-	   hidden
-	   )
-  :int-printer print-operator-object
-  :print print-operator-internal)
-
-||#
-
 (defstruct (operator (:include object (-type 'operator))
 		     (:constructor make-operator)
 		     (:constructor operator* (name))
 		     (:copier nil)
 		     (:print-function print-operator-object))
   (name nil :type list)
-  (module nil :type (or null module))
   (strategy nil :type list)
   (theory nil :type (or null op-theory))
   (syntax nil :type (or null opsyntax))
@@ -162,18 +145,13 @@
 
 (defun print-operator-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "(:op ~s : ~x)" (operator-name obj) (addr-of obj))
-  )
-
-;;; (defmacro operator-p (_o) `(is-operator ,_o))
+  (format stream ":op[~s : ~x]" (operator-name obj) (addr-of obj)))
 
 ;;; Basic accessors ----------------------------------------------------------
-
-;;; (defmacro operator-name (_operator) `(%operator-name ,_operator))
+(defmacro operator-module (op)
+  `(object-context-mod ,op))
 (defmacro operator-symbol (_operator) `(car (operator-name ,_operator)))
 (defmacro operator-num-args (_operator) `(cdr (operator-name ,_operator)))
-;;; (defmacro operator-module (_operator) `(%operator-module ,_operator))
-;;; (defmacro operator-hidden (_operator) `(%operator-hidden ,_operator))
 
 ;;; id = (name . module)
 (defmacro operator-id (__operator)
@@ -181,13 +159,8 @@
     `(cons (operator-name ,__operator) (operator-module ,__operator))))
 (defmacro operator-module-id (__operator) `(module-name (operator-module
 						        ,__operator))) 
-;;; (defmacro operator-strategy (__operator) `(%operator-strategy ,__operator))
 (defmacro operator-rewrite-strategy (__operator)
   `(operator-strategy ,__operator)) 
-;;; (defmacro operator-theory (__operator) `(%operator-theory ,__operator))
-;;; (defmacro operator-syntax (__operator) `(%operator-syntax ,__operator))
-;;; (defmacro operator-print-name (__operator) `(%operator-print-name ,__operator))
-;;; (defmacro operator-memo (__operator) `(%operator-memo ,__operator))
 
 (defun explode-operator-name (op-symbol)
   (declare (type list op-symbol)
@@ -242,10 +215,6 @@
 
 ;;; Constructor of Operator body.-----------------------------------------------
 (defvar *opname-table* nil)
-#||
-(eval-when (:execute :load-toplevel)
-  (setf *opname-table* (make-hash-table :test #'equal)))
-||#
 
 (defun canonicalize-op-name (name)
   (declare (type list name)
@@ -254,26 +223,6 @@
       (prog1
 	  name
 	(push (cons name name) *opname-table*))))
-
-#||
-(defvar .operator-recycler.)
-(eval-when (:execute :load-toplevel)
-  (setq .operator-recycler. (make-hash-table :test #'equal)))
-
-(defun allocate-operator (name num-args module)
-  (let* ((name (canonicalize-op-name (cons name num-args)))
-	 (key (cons name module))
-	 (op (gethash key .operator-recycler.)))
-    (if op
-	op
-	(progn
-	  (setq op (operator* name))
-	  (setf (operator-module op) module)
-	  (when (modexp-is-simple-name (module-name module))
-	    (setf (gethash key .operator-recycler.) op))
-	  op))))
-
-||#
 
 (defun allocate-operator (name num-args module)
   (declare (type list name)
@@ -302,7 +251,6 @@
 	  (operator-syntax o) syntax
 	  (operator-print-name o) print-name)
     o))
-
 
 ;;; accessors of an operator's syntax via operator.
 ;;;
@@ -458,28 +406,6 @@
 ;;; *****************************************************************************
 
 ;;; * NOTE* The slots defined here are all module idependent.
-#||
-(defterm method (object)
-  :visible (name			; operator name (canonicalized).
-	    arity			; arity, list of argument sorts.
-	    coarity)			; coarity
-  :hidden (module			; the module it belongs.
-	   constructor			; flag, t iff the method is a
-					; constructor. not yet used.
-	   supplied-strategy		; user supplied rewrite strategy.
-	   form				; describes the form of a term with the
-					; method as top. used for parsing.
-	   precedence			; precedence used for parsing.
-	   associativity		; associative info used for parsing.
-	   memo				; t iff the rewriting will be memoized.
-	   behavioural			; t iff the method is behavioural method.
-	   coherent			; t iff the method is behaviourally coherent.
-	   error			; t iff the method is error method and user
-					; defined.
-	   )
-  :int-printer print-method-object
-  :print print-method-internal)
-||#
 
 (defstruct (method (:include object (-type 'method))
 		   (:constructor make-method)
@@ -489,7 +415,6 @@
   (name	nil :type list)			; operator name (canonicalized).
   (arity nil :type list)		; arity, list of argument sorts.
   (coarity nil :type (or null sort*))	; coarity
-  (module nil :type (or null module))	; the module it belongs.
   (constructor nil :type (or null t))	; flag, t iff the method is a
 					; constructor. not yet used.
   (supplied-strategy nil :type list)	; user supplied rewrite strategy.
@@ -499,13 +424,11 @@
 					; precedence used for parsing.
   (associativity nil :type symbol)	; associative info used for parsing.
   (behavioural nil :type (or null t))	; t iff the method is behavioural method.
-  ;; (coherent nil :type (or null t))	; t iff the method is behaviourally coherent.
   (error nil :type (or null t))		; t iff the method is error method and user
 					; defined.
   (derived-from nil :type (or null method))
   (has-memo nil :type (or null t))
-  (id-symbol nil :type symbol)
-  )
+  (id-symbol nil :type symbol))
 
 (eval-when (:execute :load-toplevel)
   (setf (symbol-function 'is-method) (symbol-function 'method-p))
@@ -514,7 +437,7 @@
 
 (defun print-method-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "[:operator ~a]" (method-name obj)))
+  (format stream ":op[~a]" (method-name obj)))
 
 ;;; Primitive constructor ------------------------------------------------------
 
@@ -522,7 +445,7 @@
 ;;;
 (defmacro create-operator-method (_name _arity _coarity)
   `(let ((meth (method* ,_name ,_arity ,_coarity)))
-     (set-context-module meth)
+     (set-object-context-module meth)
      meth))
 
 ;;; Primitive type predicate ---------------------------------------------------
@@ -531,20 +454,13 @@
 
 ;;; Primitive accessors --------------------------------------------------------
 
-;;; (defmacro method-name (_m) `(%method-name ,_m))
+(defmacro method-module (m)
+  `(object-context-mod ,m))
+
 (defmacro method-symbol (_m) `(car (method-name ,_m)))
-;;; (defmacro method-arity (_m) `(%method-arity ,_m))
-;;; (defmacro method-coarity (_m) `(%method-coarity ,_m))
-;;; (defmacro method-constructor (_m) `(%method-constructor ,_m))
-;;; (defmacro method-form (_m) `(%method-form ,_m))
-;;; (defmacro method-supplied-strategy (_m) `(%method-supplied-strategy ,_m))
-;;; (defmacro method-precedence (_m) `(%method-precedence ,_m))
-;;; (defmacro method-memo (_m) `(%method-memo ,_m))
-;;; (defmacro method-module (_m) `(%method-module ,_m))
-;;; (defmacro method-associativity (_m) `(%method-associativity ,_m))
-;;; (defmacro method-behavioural (_m) `(%method-behavioural ,_m))
+
 (defmacro method-is-behavioural (_m) `(method-behavioural ,_m)) ; synonym
-;;; (defmacro method-is-coherent (_m) `(method-coherent ,_m))
+
 (defmacro method-is-user-defined-error-method (_m)
   `(method-error ,_m))
 
@@ -579,15 +495,7 @@
 	   (type list arity)
 	   (type sort* coarity)
 	   (values method))
-  #||
-  (let ((key (list name arity coarity)))
-    (or (gethash key .operator-method-recycler.)
-      (let ((meth (method* name arity coarity)))
-	(setf (gethash key .operator-method-recycler.) meth)
-	meth)))
-  ||#
-  (create-operator-method name arity coarity)
-  )
+  (create-operator-method name arity coarity))
 
 (defun make-method-id-symbol (method)
   (let* ((nam (method-name method))
@@ -604,7 +512,7 @@
 	   (values method))
   (let ((meth (allocate-operator-method name arity coarity)))
     (declare (type method meth))
-    (setf (method-module meth) *current-module*
+    (setf (method-module meth) (get-context-module)
 	  (method-constructor meth) nil
 	  (method-supplied-strategy meth) nil
 	  (method-precedence meth) nil
@@ -625,6 +533,7 @@
 
 ;;; The same object.
 (defmacro method= (*_*meth1 *_*meth2) `(eq ,*_*meth1 ,*_*meth2))
+
 (defun method-w= (m1 m2)
   (or (method= m1 m2)
       (when (and (sort= (method-coarity m1) *sort-id-sort*)
@@ -676,29 +585,6 @@
 ;;; ***********
 ;;; Internal structure constaining module dependent infos of a method.
 ;;; does not appear explicitly in Chaos program.
-
-#||
-(defterm !method-info (int-object)	; (static-int-object) ; internal term.
-  :hidden (operator                     ; pointer to the operator.
-	   theory                       ; equational theory.
-	   lower-methods		; list of lower comparable methods,
-					; sorted lower->higher, exclusive.
-	   overloaded-methods		; list of overloaded methods,
-					; sortd higher->lower, exclusive.
-	   rules-with-same-top		; rewrite rules with lhs and rhs have a
-					; common top method.
-	   rules-with-different-top	; rewrite rules with lhs and rhs have
-					; different top method.
-	   strictly-overloaded		; t iff the method is strictly
-					; overloaded ,i.e., has no incomparable
-					; overloaded method.
-	   rew-strategy			; rewrite strategy.
-	   has-trans			; flag, t iff the method has transitivity
-					; axioms.
-	   ))
-
-||#
-
 (defstruct (!method-info (:include object (-type '!method-info))
 			 (:copier nil)
 			 (:constructor make-!method-info)
@@ -737,32 +623,6 @@
 ;;;
 ;;; GET-METHOD-INFO
 ;;;
-#||
-(defun get-method-info (method &optional (opinfo-table *current-opinfo-table*))
-  (if (and (eq method .method1.) (eq opinfo-table .method-tab1.))
-      .method-val1.
-      (if (and (eq method .method2.) (eq opinfo-table .method-tab2.))
-	  .method-val2.
-	  (let ((res (gethash method opinfo-table)))
-	    (if res
-		(progn
-		  (setq .method2. .method1.
-			.method-tab2. .method-tab1.
-			.method-val2. .method-val1.)
-		  (setq .method1. method
-			.method-tab1. opinfo-table
-			.method-val1. res)
-		  res)
-		#||
-		(with-output-chaos-error ()
-		  (format t "context is inconsistent, could not get info for operator:")
-		  (format t "~& ~a" (method-name method))
-		  (chaos-to-top))
-		||#
-		nil
-		)))))
-||#
-
 (declaim (inline get-method-info))
 
 (#+GCL si::define-inline-function #-GCL defun
@@ -841,20 +701,6 @@
 
 ;;; CONSTRUCTOR ----------------------------------------------------------------
 
-#||
-(defvar .method-info-recycler. (make-hash-table :test #'equal))
-(defun allocate-method-info (method module)
-  (let* ((key (list method module))
-	 (minfo (gethash key .method-info-recycler.)))
-    (if minfo
-	minfo
-	(progn
-	  (setq minfo (!method-info*))
-	  (when (modexp-is-simple-name (module-name module))
-	    (setf (gethash key .method-info-recycler.) minfo))
-	  minfo))))
-||#
-
 (defun allocate-method-info (meth mod)
   (declare (ignore meth mod)
 	   (values !method-info))
@@ -881,22 +727,6 @@
 ;;;
 ;;; METHOD-THEORY-INFO-FOR-MATCHING
 ;;;
-#||
-(defun method-theory-info-for-matching (method &optional (info-table
-							  *current-opinfo-table*)) 
-  (declare (type method method)
-	   (type hash-table info-table)
-	   (values theory-info))
-  (let* ((th (method-theory method info-table))
-	 (info (theory-info th)))
-    (declare (type op-theory th)
-	     (type theory-info info))
-    (if (zero-rule-only th)
-	(%svref *theory-info-array*
-		(logandc2 (the fixnum (theory-info-code info)) .Z.))
-	info)))
-||#
-
 (defun compute-method-theory-info-for-matching (method &optional
 						       (info-table
 							*current-opinfo-table*))
@@ -1147,15 +977,6 @@
 	  (if (err-sort-p a)
 	      (return-from method-is-error-method t))))))
 
-#||
-(defun method-is-universal (method)
-  (and (method-arity method)
-       (every #'(lambda (x) (or (sort= x *universal-sort*)
-				(sort= x *huniversal-sort*)
-				(sort= x *cosmos*)))
-	      (method-arity method))))
-||#
-
 (defun method-is-universal (method)
   (declare (type method method)
 	   (values (or null t)))
@@ -1329,26 +1150,6 @@
 ;;; *NOTE* second method is assumed to be just associative.
 ;;;
 #-GCL (declaim (inline method-is-associative-restriction-of))
-#||
-(defun method-is-associative-restriction-of (meth1
-					     meth2
-					     &optional
-					     (so *current-sort-order*)
-					     (info *current-opinfo-table*))
-  (declare (type method meth1 meth2)
-	   (type sort-order so)
-	   (type hash-table info)
-	   (values (or null t)))
-  (or (method= meth1 meth2)
-      (and (eq (method-name meth1) (method-name meth2))
-	   (sort<= (method-coarity meth1)
-		   (method-coarity meth2)
-		   so)
-	   (sort-list<= (method-arity meth1)
-			(method-arity meth2)
-			so)
-	   (theory-contains-associativity (method-theory meth1 info)))))
-||#
 #-GCL
 (defun method-is-associative-restriction-of (meth1
 					     meth2)
@@ -1374,29 +1175,7 @@
 ;;;
 ;;; *NOTE* second method is assumed to be associative-commutive.
 ;;;
-#||
-(defun method-is-AC-restriction-of (meth1
-				    meth2
-				    &optional
-				    (so *current-sort-order*)
-				    (info *current-opinfo-table*))
-  (declare (type method meth1 meth2)
-	   (type sort-order so)
-	   (type hash-table info)
-	   (values (or null t)))
-  (or (method= meth1 meth2)
-      (and (eq (method-name meth1) (method-name meth2))
-	   (sort<= (method-coarity meth1)
-		   (method-coarity meth2)
-		   so)
-	   (sort-list<= (method-arity meth1)
-			(method-arity meth2)
-			so)
-	   (theory-contains-AC (method-theory meth1 info)))))
-||#
-
 #-GCL (declaim (inline method-is-ac-restriction-of))
-
 #-GCL
 (defun method-is-AC-restriction-of (meth1
 				    meth2
@@ -1423,29 +1202,7 @@
 ;;;
 ;;; *NOTE* second method is assumed to be just commutive.
 ;;;
-#||
-(defun method-is-commutative-restriction-of (meth1
-					     meth2
-					     &optional
-					     (so *current-sort-order*)
-					     (info *current-opinfo-table*))
-  (declare (type method meth1 meth2)
-	   (type sort-order so)
-	   (type hash-table info)
-	   (values (or null t)))
-  (or (method= meth1 meth2)
-      (and (eq (method-name meth1) (method-name meth2))
-	   (sort<= (method-coarity meth1)
-		   (method-coarity meth2)
-		   so)
-	   (sort-list<= (method-arity meth1)
-			(method-arity meth2)
-			so)
-	   (theory-contains-commutativity (method-theory meth1 info)))))
-||#
-
 #-GCL (declaim (inline method-is-commutative-restriction-of))
-
 #-GCL
 (defun method-is-commutative-restriction-of (meth1 meth2)
   (declare (type method meth1 meth2)
@@ -1774,43 +1531,6 @@
 		  (car res)))
 	  (return-from lowest-method! method))))))
 
-#||
-(defun lowest-method! (method lower-bound &optional (module *current-module*))
-  (declare (type method method)
-	   (type list lower-bound)
-	   (type module module)
-	   (values (or null method)))
-  (let ((*current-sort-order* (module-sort-order module))
-	(*current-opinfo-table* (module-opinfo-table module))
-	(res nil))
-    (declare (type hash-table *current-sort-order* *current-opinfo-table*))
-    (let ((over-methods (method-overloaded-methods method *current-opinfo-table*)))
-      (declare (type list over-methods))
-      (when *on-debug*
-	(format t "~%* lowest-method! : over-methods =")
-	(dolist (m over-methods)
-	  (terpri)
-	  (princ "    ")
-	  (print-chaos-object m)))
-      ;;
-      (if over-methods
-	  (progn
-	    (dolist (meth over-methods)
-	      (declare (type method meth))
-	      (when (and (sort-list<= lower-bound (method-arity meth))
-			 (not (member
-			       meth
-			       res
-			       :test #'(lambda (x y)
-					 (method-is-instance-of y
-								x
-								*current-sort-order*)))))
-		(push meth res)))
-	    (or (choose-lowest-op res)
-		method))
-	(return-from lowest-method! method)))))
-||#
-
 (defun lowest-method* (method &optional lower-bound (module *current-module*))
   (declare (type method method)
 	   (type list lower-bound)
@@ -1988,7 +1708,7 @@
       (setf (operator-associativity op) nil)
       (setf (operator-computed-precedence op) nil)
       (setf (operator-theory op) *the-empty-theory*)
-      (set-context-module op module)
+      (set-object-context-module op module)
       op)))
 
 ;;; EOF

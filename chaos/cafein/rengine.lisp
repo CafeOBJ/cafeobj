@@ -1784,8 +1784,7 @@
       (apply-sort-memb-internal term module)))
   term)
 
-(defun sort-to-sort-id-term (sort &optional (module (or *current-module*
-                                                        *last-module*)))
+(defun sort-to-sort-id-term (sort &optional (module (get-context-module)))
   (let* ((name (string (sort-id sort)))
          (op (find-method-in module (list name) nil *sort-id-sort*)))
     (unless op

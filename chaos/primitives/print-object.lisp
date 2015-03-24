@@ -298,30 +298,19 @@
 
 ;;; top level modexp printer ---------------------------------------------------
 
-#||
 (defun get-context-name (obj)
-  (let ((context-mod (object-context-mod obj)))
-    (if context-mod
-	(with-output-to-string (str)
-	  (print-mod-name context-mod str t))
-      nil)))
-||#
-
-(defun get-context-name (obj)
-  (let ((context-mod (object-context-mod obj)))
+  (let ((context-mod (get-object-context obj)))
     (if context-mod
 	(get-module-print-name context-mod)
       nil)))
 
-(defun get-context-name-extended (obj &optional (context *current-module*))
+(defun get-context-name-extended (obj &optional (context (get-context-module)))
   (let ((cmod (object-context-mod obj)))
+    (declare (type (or null module) cmod))
     (unless cmod (return-from get-context-name-extended nil))
-    ;;
-    (when context
-      (let ((als (assoc cmod (module-alias context))))
-	(when als
-	  (return-from get-context-name-extended (cdr als)))))
-    ;;
+    (let ((als (assoc cmod (module-alias context))))
+      (when als
+	(return-from get-context-name-extended (cdr als))))
     (let ((name (get-module-print-name cmod)))
       (unless (module-is-parameter-theory cmod)
 	(cond ((modexp-is-simple-name name) 
@@ -879,36 +868,33 @@
 
 (defun print-sort-internal (sort &optional (stream *standard-output*) ignore)
   (declare (ignore ignore))
-  (print-sort-name sort (or *current-module* *last-module*) stream))
+  (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-record-internal (sort &optional (stream *standard-output*) ignore)
   (declare (ignore ignore))
-  (print-sort-name sort (or *current-module* *last-module*) stream))
+  (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-class-internal (sort &optional (stream *standard-output*) ignore)
   (declare (ignore ignore))
-  (print-sort-name sort (or *current-module* *last-module*) stream))
+  (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-bsort-internal (sort &optional (stream *standard-output*) ignore)
   (declare (ignore ignore))
-  (print-sort-name sort (or *current-module* *last-module*) stream))
+  (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-and-sort-internal (sort &optional (stream *standard-output*) ignore)
   (declare (ignore ignore))
-  (print-sort-name sort (or *current-module* *last-module*) stream))
+  (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-or-sort-internal (sort &optional (stream *standard-output*) ignore)
   (declare (ignore ignore))
-  (print-sort-name sort (or *current-module* *last-module*) stream))
+  (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-err-sort-internal (sort &optional (stream *standard-output*) ignore)
   (declare (ignore ignore))
-  (print-sort-name sort (or *current-module* *last-module*) stream))
+  (print-sort-name sort (get-object-context sort) stream))
 
 ;;; MODULE ************
-
-;;; (defun print-module-internal (module &optional (stream *standard-output*))
-;;;  (print-mod-name module stream t t))
 
 (defun print-module-internal (module &optional (stream *standard-output*) ignore)
   (declare (ignore ignore))
@@ -958,7 +944,7 @@
 
 (defun print-method-internal (meth &optional (stream *standard-output*) ignore)
   (declare (ignore ignore))
-  (let ((mod (or *current-module* *last-module*))
+  (let ((mod (get-object-context meth))
 	(.file-col. .file-col.))
     (format stream "~{~A~} :" (method-symbol meth))
     (setq .file-col. (file-column stream))
@@ -1196,9 +1182,8 @@
 
 ;;; PRINT-SORT-NAME : sort &optional module stream  -> Void
 ;;; 
-(defun print-sort-name (s &optional
-			  (module (or *current-module* *last-module*))
-			  (stream *standard-output*))
+(defun print-sort-name (s &optional (module (get-object-context s))
+				    (stream *standard-output*))
   (unless (sort-struct-p s) (break "print-sort-name: given non sort: ~s" s))
   (let ((*standard-output* stream)
 	(mod-name (get-module-print-name (sort-module s))))

@@ -50,11 +50,11 @@
       (with-output-msg ()
 	(princ "no current context, `select' some module first."))
       (return-from show-context nil))
-    (if (eq *last-module* mod)
+    (if (eq (get-context-module) mod)
 	(format t "~&-- current context :")
 	(progn (format t "~&-- context of : ")
 	       (print-chaos-object mod)))
-    (context-push-and-move *last-module* mod)
+    (context-push-and-move (get-context-module) mod)
     (with-in-module (mod)
       (format t "~&[module] ")
       (print-chaos-object *current-module*)
@@ -80,7 +80,7 @@
 
 ;;; SHOW BINDINGS
 
-(defun show-bindings (&optional (module *last-module*))
+(defun show-bindings (&optional (module (get-context-module)))
   (unless module
     (with-output-msg ()
       (princ "no context (current module) is specified.")
@@ -107,7 +107,7 @@
 	      
 ;;; show apply selection
 
-(defun show-apply-selection (&optional (module *last-module*))
+(defun show-apply-selection (&optional (module (get-context-module)))
   (unless module
     (with-output-msg ()
       (princ "no context (current module) is specified.")
@@ -138,12 +138,10 @@
 	  (terpri)
 	  (incf depth)))))
 
-;; (format t "~&[selections] ~{~a~^ of ~}" $$selection-stack)
-
 ;;;
 ;;; print-pending
 ;;;
-(defun print-pending (&optional (module *last-module*))
+(defun print-pending (&optional (module (get-context-module)))
   (unless module
     (with-output-msg ()
       (princ "no context (current module) is specified.")
@@ -185,13 +183,13 @@
     (with-output-chaos-warning ()
       (format t "unknown option for `show term' : ~a" tree?))
     (return-from show-term nil))
-  (unless *last-module*
+  (unless (get-context-module)
     (with-output-msg ()
       (princ "no current context, `select' some module first.")
       (return-from show-term nil)))
   (unless target
     (setq target "$$term"))
-  (with-in-module (*last-module*)
+  (with-in-module ((get-context-module))
     (when (stringp target)
       ;; let variable
       (catch 'term-context-error
@@ -390,18 +388,11 @@
 	(check-qualified-sort-name sort)
       (cond (modexp
 	     (setq mod (eval-modexp modexp))
-	     #||
-	     (find-module-in-env-ext modexp (or
-					     *current-module*
-					     *last-module*)
-				     :no-error)
-	     ||#
 	     (unless (module-p mod)
 	       (with-output-msg ()
 		 (format t "no such module ~a" modexp)
 		 (return-from show-sort nil))))
-	    (t (setq mod (or *current-module*
-			     *last-module*))
+	    (t (setq mod (get-context-module))
 	       (unless (module-p mod)
 		 (with-output-msg ()
 		   (princ "no context(current) module, select some first.")
@@ -435,12 +426,6 @@
 (defun get-module-from-opref (parsedop)
   (let ((mod nil))
     (cond ((%opref-module parsedop)
-	   #||
-	   (setq mod (find-module-in-env-ext (%opref-module parsedop)
-					     (or *current-module*
-						 *last-module*)
-					     :no-error))
-	   ||#
 	   (setq mod (%opref-module parsedop))
 	   (unless (module-p mod)
 	     (setq mod (eval-modexp (%opref-module parsedop)))
@@ -451,8 +436,7 @@
 		 (print-next)
 		 (princ "no such module ")
 		 (princ (%opref-module parsedop))))))
-	  (t (setq mod (or *current-module*
-			   *last-module*))
+	  (t (setq mod (get-context-module))
 	     (unless mod
 	       (with-output-chaos-error ('no-context)
 		 (princ "no context module is given.")))))
@@ -507,7 +491,7 @@
 (defun show-param (toks no &optional describe)
   (let ((mod (if toks
 		 (eval-mod-ext toks)
-		 (or *last-module* *current-module*))))
+	       (get-context-module))))
     (unless mod
       (with-output-msg ()
 	(format t "no context (current module) is specified.")

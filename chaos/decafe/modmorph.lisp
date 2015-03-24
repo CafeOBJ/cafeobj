@@ -104,9 +104,7 @@
 	     ;; some cases the real module compilation is not done
 	     ;; while evaluating modexprs, and we also want
 	     ;; psort-declaration for consistency. 
-	     (setf (module-principal-sort newmod) s-mapped)
-	     ))
-	 )
+	     (setf (module-principal-sort newmod) s-mapped))))
     ;; 
     (when *chaos-verbose* (princ "["))	; now we begin.
     (when *on-modexp-debug*
@@ -200,11 +198,8 @@
 			      (inherit-principal-sort x sortim)
 			      (unless (eq x sortim)
 				(push (cons x sortim) sortmap)
-				(setf (modmorph-sort map) sortmap))
-			      )
-			    (inherit-principal-sort x x))
-			)))
-	      )))
+				(setf (modmorph-sort map) sortmap)))
+			    (inherit-principal-sort x x))))))))
 	;;
 	(if *chaos-verbose*
 	    (print-in-progress "s")	; done mapping sorts
@@ -230,8 +225,7 @@
 	    (with-output-msg ()
 	      (format t " generating error sorts")))
 	  (generate-err-sorts so)
-	  (setq no-error-sort t)
-	  )
+	  (setq no-error-sort t))
 	;;
 	(if *chaos-verbose*
 	    (print-in-progress "<")	; done mapping sort relations
@@ -256,8 +250,7 @@
 			   (not (memq method
 				      (module-methods-for-regularity mod)))))
 	      (unless (assq method opmap)
-		(modmorph-recreate-method mod newmod sortmap method))
-	      )))
+		(modmorph-recreate-method mod newmod sortmap method)))))
 	;;
 	(if *chaos-verbose*
 	    (print-in-progress "o")	; done mapping operators
@@ -293,15 +286,7 @@
 	    (print-in-progress ","))
 	
 	;; THEOREMS ---------------------------------------------------------
-	#|| NO YET
-	(setf (module-theorems newmod)
-        	(append
-	          (mapcar #'(lambda (r)
-	                       (modmorph-recreate-axiom newmod sortmap
-	                                                opmap modmap r))
-                          (module-theorems mod))
-       	          (module-theorems newmod)))
-	||#
+	;; NO YET
       
 	;; OK we've done, nothing to be done here already.
 	;;
@@ -326,8 +311,7 @@
     (modmorph-update-theory mod map opinfo))
   (propagate-attributes mod)
   (update-parse-information mod)
-  (mark-module-ready-for-parsing mod)
-  )
+  (mark-module-ready-for-parsing mod))
 
 (defun fix-operator-mapping (mod map)
   (let ((opmap (modmorph-op map))
@@ -357,151 +341,6 @@
 			 (setf (car target) :simple-map)))
 		      (t nil))))
 	  opmap)))
-
-#||
-(defun modmorph-find-error-method (module method opmap &optional sortmap)
-  (declare (type module module)
-	   (type method method)
-	   (type list opmap sortmap)
-	   (values (or null method)))
-  (or (car (memq method (module-error-methods module)))
-      (let* ((alen (length (method-arity method)))
-	     (opinfos (find-operators-in-module (method-symbol method)
-						alen
-						module)))
-	(declare (type fixnum alen)
-		 (type list opinfos))
-	;;
-	(unless opinfos
-	  (let* ((name (method-symbol method))
-		 (mapped? (find-if #'(lambda (x)
-				       (and (equal (method-symbol
-						    (the method (car x)))
-						   name)
-					    (= (the fixnum
-						 (length (method-arity (car x))))
-					       alen)))
-				   opmap)))
-	    (when mapped?
-	      ;; (method :simple-map . method)
-	      ;; (mehtod :replacement pvars term)
-	      (setq name (if (memq (second mapped?)
-				   '(:simple-map :simple-error-map))
-			     (method-symbol (the method (cddr mapped?)))
-			     (method-symbol (term-head (cadddr mapped?)))))
-	      (setq opinfos (find-operators-in-module name alen module)))))
-	;;
-	(let ((opinfo nil)
-	      (err-method nil))
-	  (let* ((ar (mapcar #'(lambda (x)
-				 (declare (type sort* x))
-				 (if (err-sort-p x)
-				     (find-compatible-err-sort x module sortmap)
-				     x))
-			     (method-arity method)))
-		 #||
-		 (ar-names (mapcar #'(lambda(x)
-		 (declare (type sort* x))
-		 (sort-id x))
-		 ar))
-		 ||#
-		 (cr (if (err-sort-p (method-coarity method))
-			 (find-compatible-err-sort (method-coarity method)
-						   module
-						   sortmap)
-			 (method-coarity method)))
-		 #||
-		 (cr-name (sort-id cr))
-		 ||#
-		 )
-	    (declare (type sort* cr))
-	    (block find-method
-	      (dolist (oi opinfos)
-		(declare (type list oi))
-		(dolist (cand (opinfo-methods oi))
-		  (declare (type method cand))
-		  (when (and (sort-list= ar (method-arity cand))
-			     (sort= cr (method-coarity cand)))
-		    (setq opinfo oi)
-		    (setq err-method cand)
-		    (return-from find-method nil))
-		  )))
-	    ;;
-	    (unless opinfo
-	      ;; failed!....
-	      ;; this means we need error method which are not generated
-	      ;; yet. -- really? 
-	      ;; (break)
-	      (let ((arity (mapcar #'(lambda (x)
-				       (declare (type sort* x))
-				       (if (err-sort-p x)
-					   (let ((compo 
-						  (err-sort-components x)))
-					     (mapcar #'(lambda(y)
-							 (modmorph-assoc-image
-							  sortmap
-							  y))
-						     compo))
-					   (list (modmorph-assoc-image
-						  sortmap
-						  x))))
-				   ar))
-		    (coarity (let ((c cr))
-			       (if (err-sort-p c)
-				   (let ((compo (err-sort-components c)))
-				     (mapcar #'(lambda (s)
-						 (modmorph-assoc-image sortmap s))
-					     compo))
-				   (list (modmorph-assoc-image sortmap c)))))
-		    (so (module-sort-order module)))
-		(declare (type sort-order so))
-		;;
-		;; (break)
-		;;
-		(when (block
-			  find-opinfo
-			(dolist (oi opinfos)
-			  (declare (type list oi))
-			  (let ((mm (opinfo-methods oi)))
-			    (dolist (m mm)
-			      (declare (type method m))
-			      (block try1
-				(let ((xarity (method-arity m))
-				      (xcoarity (method-coarity m)))
-				  (declare (type list xarity)
-					   (type sort* xcoarity))
-				  (dotimes (pos (length xarity))
-				    (declare (type fixnum pos))
-				    (unless (some #'(lambda (y)
-						      (declare (type sort* y))
-						      (sort<= (the sort*
-								(nth pos xarity))
-							      y
-							      so))
-						  (nth pos arity))
-				      (return-from try1 nil)))
-				  (unless (some #'(lambda (y)
-						    (declare (type sort* y))
-						    (sort<= xcoarity y so))
-						coarity)
-				    (return-from try1 nil))
-				  (setq opinfo oi)
-				  (return-from find-opinfo t))
-				)))))
-		  ;;
-		  (setup-error-operator opinfo module)
-		  (setq err-method (car (opinfo-methods opinfo)))
-		  )))
-	    )
-	  ;;
-	  (when *on-modexp-debug*
-	    (format t "~%-- finding error method for : ")
-	    (print-chaos-object method)
-	    (format t "~%   found : ")
-	    (print-chaos-object err-method))
-	  ;;
-	  err-method))))
-||#
 
 (defun modmorph-find-mapped-sorts (module sort-l sortmap)
   (mapcar #'(lambda (x)
@@ -534,9 +373,7 @@
 	      (method-has-memo to) memo
 	      (method-associativity to) assoc
 	      (method-constructor to) constr)
-	(set-method-theory to theory)
-	))
-    ))
+	(set-method-theory to theory)))))
 
     
 (defun modmorph-find-user-defined-error-method (method module sortmap)
@@ -569,8 +406,7 @@
 					  sortmap))
 	  (cr (car (modmorph-find-mapped-sorts module
 					       (list (method-coarity method))
-					       sortmap)))
-	  )
+					       sortmap))))
       (declare (type sort* cr))
       (block find-method
 	(dolist (oi opinfos)
@@ -582,8 +418,7 @@
 		       (sort= cr (method-coarity cand)))
 	      (setq opinfo oi)
 	      (setq err-method cand)
-	      (return-from find-method nil))
-	    )))
+	      (return-from find-method nil)))))
 	;;
       (unless opinfo
 	;; failed!....
@@ -642,12 +477,10 @@
 					  coarity)
 			      (return-from try1 nil))
 			    (setq opinfo oi)
-			    (return-from find-opinfo t))
-			  )))))
+			    (return-from find-opinfo t)))))))
 	    ;;
 	    (setup-error-operator opinfo module)
-	    (setq err-method (car (opinfo-methods opinfo)))
-	    )
+	    (setq err-method (car (opinfo-methods opinfo))))
 	  (unless err-method
 	    ;; this means that the original method should be an
 	    ;; user defined error-method... 
@@ -657,19 +490,11 @@
 				  (err-sort-p x))
 			      ar)
 			(err-sort-p coarity))
-	      ;; so bad ...
-	      #||
-	      (with-output-panic-message ()
-		(format t "well ... could not find proper error method for ")
-		(print-chaos-object method))
-	      ||#
 	      (with-output-chaos-warning ()
 		(format t "well ... could not find proper error method for ")
 		(print-chaos-object method))
-	      (return-from modmorph-find-proper-error-method method)
-	      )
+	      (return-from modmorph-find-proper-error-method method))
 	    ;; we declare err-method
-	    ;; (format t "~&declaring new error method...")
 	    (multiple-value-bind (o m)
 		(declare-operator-in-module
 		 (method-symbol method)
@@ -681,11 +506,8 @@
 		 nil
 		 t)			; error method?
 	      (declare (ignore o))
-	      (setq err-method m))
-	    )				; end case no err-method
-	  )
-	)				; end case no op-info
-      )
+	      (setq err-method m)))	; end case no err-method
+	  )))
     ;;
     (when *on-modexp-debug*
       (format t "~%-- finding error method for : ")
@@ -745,8 +567,7 @@
 					; user defined one.
 	       (modmorph-find-user-defined-error-method method
 							module
-							sortmap)))
-	)))
+							sortmap))))))
 
 
 (defun replace-error-method (mod term op-map sort-map)
@@ -790,8 +611,7 @@
   (some #'(lambda (x)
 	    (or (modmorph-module-is-mapped modmap (car x))
 		(modmorph-submodule-is-mapped modmap (car x))))
-	(module-submodules mod))
-  )
+	(module-submodules mod)))
 
 ;;;=============================================================================
 ;;; MOD-MORPH-IMPORT-SUBMODULES  : MODULE NEW-MODULE MAP 
@@ -835,17 +655,7 @@
     ;; 
     (if (eq ':using mode)
 	(modmorph-import-submodules mod newmod map submodule-image)
-	#||
-	(if (module-is-parameter-theory submodule-image)
-	    (let* ((mod-name (module-name submodule-image))
-		   (formal-name (first mod-name))
-		   (real-sub (third mod-name)))
-	      (import-module newmod mode real-sub formal-name))
-	    (import-module newmod mode submodule-image))
-	||#
-	(import-module newmod mode submodule-image)
-	)
-    ))
+	(import-module newmod mode submodule-image))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; MODMORPH-MAP-SUBMODULE
@@ -892,8 +702,7 @@
 			 args)))
 	     (let ((new-name (%instantiation* smod  args)))
 	       ;; * * *
-	       (apply-modmorph (normalize-modexp new-name) map smod)
-	       )))
+	       (apply-modmorph (normalize-modexp new-name) map smod))))
 	  ;;
 	  (t (let ((nm (modmorph-construct-name map
 						;; (module-name smod)
@@ -952,8 +761,7 @@
 				      ,(parameter-module-context smod))))
 		 (t (normalize-modexp
 		     (%rename* s-name
-			       (%rename-map (modmorph-name map)))))
-		 )))
+			       (%rename-map (modmorph-name map))))))))
 	(t (let ((*modmorph-expanded* nil))
  	     (let ((val (modmorph-reconstruct-name map
 						   (if (module-p smod)
@@ -969,14 +777,7 @@
 ;;; want result in canonical form
 (defun modmorph-reconstruct-name (map me)
   (when *on-modexp-debug*
-    (format t "~%[modmorph-reconstruct-name]:")
-    #||
-    (format t "~%-- given map ")
-    (print-mapping map)
-    (format t "~%-- given modexp ")
-    (print-chaos-object me)
-    ||#
-    )
+    (format t "~%[modmorph-reconstruct-name]:"))
   ;;
   (when (modexp-is-?name? me)
     (when *on-modexp-debug*
@@ -1108,8 +909,7 @@
 	   (setf (view-decl-form view) (view-decl-form me))
 	   view))
 	;;
-	(t (break "modmorph-reconstruct-name: missing case"))
-	))
+	(t (break "modmorph-reconstruct-name: missing case"))))
 
 (defun target-of-view-arg (vw)
   (when (modexp-is-?name? vw)
@@ -1118,8 +918,7 @@
 	((module-p vw) vw)
 	((view-p vw) (view-target vw))
 	((%is-view vw) (%view-target vw))
-	(t (break "target-of-view-arg: unknown view argument"))
-	))
+	(t (break "target-of-view-arg: unknown view argument"))))
 
 (eval-when (:execute :compile-toplevel :load-toplevel)
   (declaim (type fixnum *anon-view-name*))
@@ -1168,8 +967,7 @@
 	(when *on-modexp-debug*
 	  (format t "~&*result view=")
 	  (print-chaos-object view))
-	(%!arg* arg-name view)))
-    ))
+	(%!arg* arg-name view)))))
 
 (defun modmorph-reconstruct-view-sort-mapping (mod map s-maps)
   (declare (ignore mod))
@@ -1411,9 +1209,7 @@
 			      (string (sort-id s1)))
 		      (print-chaos-object module)
 		      ;; (break)
-		      (return-from modmorph-sort-image nil)))
-		  )))
-	)))
+		      (return-from modmorph-sort-image nil)))))))))
 
 (defun modmorph-sorts-image (module sortmap sortlist)
   (mapcar #'(lambda (x) (modmorph-sort-image module sortmap x))
@@ -1450,8 +1246,7 @@
 					    op-symbol
 					    arity
 					    coarity
-					    sortmap))
-	))))
+					    sortmap))))))
 
 (defun modmorph-recreate-method-aux-1 (oldmodule module
 						 method
@@ -1459,8 +1254,7 @@
 						 arity
 						 coarity
 						 sort-map)
-  (recreate-method oldmodule method module op-symbol arity coarity sort-map)
-  )
+  (recreate-method oldmodule method module op-symbol arity coarity sort-map))
 
 (defun modmorph-recreate-method-aux-2 (oldmodule module sortmap method)
   (declare (ignore sortmap))
@@ -1495,8 +1289,7 @@
 					(cdr idinf)))))
 			     thy)))
 		      (t thy)))
-	  (compute-method-theory-info-for-matching method minfo))
-	)				; dolist
+	  (compute-method-theory-info-for-matching method minfo)))				; dolist
       )))
 
 ;;; TERMS
@@ -1537,8 +1330,7 @@
 		     (when *on-modexp-debug*
 		       (format t "~& variable not found in *modmorph-local-vars*"))
 		     (push new-var *modmorph-local-vars*)
-		     new-var))))
-	   ))
+		     new-var))))))
 	(t (let ((head (term-head term))
 		 (new-head nil))
 	     ;; look in the mapping
@@ -1587,8 +1379,7 @@
 							  (method-arity head))
 				    (modmorph-sort-image lookmod
 							 sortmap
-							 (method-coarity head)))
-				   ))))))
+							 (method-coarity head)))))))))
 	       ;;
 	       (unless new-head
 		 (with-output-chaos-error ('no-such-operator)
@@ -1614,8 +1405,7 @@
 							modmap
 							tm))
 			    (term-subterms term))
-		    module))
-	       )))))
+		    module)))))))
 
 ;;; AXIOMS
 
@@ -1671,8 +1461,7 @@
 	     (if (atom (car nm2)) (list nm2) nm2))
      (modmorph-merge-assoc (modmorph-sort m1) (modmorph-sort m2) warn)
      (modmorph-merge-op-assoc (modmorph-op m1) (modmorph-op m2) warn)
-     (modmorph-merge-assoc (modmorph-module m1) (modmorph-module m2) warn))
-  ))
+     (modmorph-merge-assoc (modmorph-module m1) (modmorph-module m2) warn))))
 
 (defun modmorph-merge-assoc (a1 a2 &optional warn)
   (let ((res a2))
@@ -1697,13 +1486,9 @@
 		      (print-chaos-object (cdr m))
 		      (print-next)
 		      (print-chaos-object (cdr im)))
-		    )))
-	      ;; (push (cons (car m) (cdr im)) res)
-	      )
-	    (push m res))
-	))
-    res
-    ))
+		    ))))
+	    (push m res))))
+    res))
 
 (defun modmorph-op-map-is-ident (map)
   (if (eq :simple-map (second map))
@@ -1743,13 +1528,9 @@
 			    (print-chaos-object (caddr m))
 			    (print-next)
 			    (print-chaos-object (caddr m)))))
-		    )))
-	      ;; (push (cons (car m) (cdr im)) res)
-	      )
-	    (push m res))
-	))
-    res
-    ))
+		    ))))
+	    (push m res))))
+    res))
 
 ;;  im1 & im2 are of the form 
 ;;;   (:simple-map . method) -- or --
@@ -1827,8 +1608,7 @@
 ;;;
 (defvar .mapping-debug. nil)
 
-(defun mapping-image (term-list term &optional (module (or *current-module*
-							   *last-module*)))
+(defun mapping-image (term-list term &optional (module (get-context-module)))
   (when .mapping-debug.
     (format t "~&[mapping-image] term = ")
     (print-chaos-object term)
@@ -1847,8 +1627,7 @@
 	    (term-head term)
 	    (mapcar #'(lambda (st) (mapping-image term-list st))
 		    (term-subterms term))
-	    module)
-	   )))
+	    module))))
 
 (defun mapping-image-2 (map term_list term)
   (cond  ((term-is-variable? term)
@@ -1887,8 +1666,7 @@
 							  (term-subterms term))
 						  (if (module-p as)
 						      as
-						      om))
-	      ))))
+						      om))))))
 
 ;;;
 (defun view-get-image-of-axioms (view)

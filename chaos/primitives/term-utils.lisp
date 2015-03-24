@@ -60,33 +60,8 @@
 (defun make-applform (sort meth &optional args)
   (declare (type sort* sort)
 	   (type method meth)
-	   (type list args)
-	   (values term))
-  (if *consider-object*
-      (if (method-is-object-constructor meth)
-	  (let ((id (car args))		; the first argument is always an object
-					; identifier.
-		(class sort))
-	    #+:debug-term
-	    (progn
-	      (format t "~&object construction: ")
-	      (print-object meth)
-	      (force-output))
-	    (if (not (term-is-variable? id)) ; non variable means the term
-					     ; denotes a concrete instance.
-		(let ((instance nil))
-		  (setf instance (find-instance id class))
-		  (if instance
-		      (progn (setf (term-arg-3 instance) (third args))
-			     instance)
-		      (progn (setf instance
-				   (make-applform-simple sort meth args))
-			     (register-instance instance)
-			     instance)))
-		(make-applform-simple sort meth args)
-		))
-	  (make-applform-simple sort meth args) )
-      (make-applform-simple sort meth args)))
+	   (type list args))
+  (make-applform-simple sort meth args))
 
 ;;; ******************
 ;;; RESET-REDUCED-FLAG
@@ -289,13 +264,13 @@
 	      (term-print-with-sort term)))))
       (if (term$is-builtin-constant? body)
 	  ;; built-in constant term
-	  (let ((so (module-sort-order
-		     (if *current-module*
-			 *current-module*
-		       (or *last-module*
-			   (sort-module (term$sort body))))))
-		(isrt (term$sort body))
-		(val (term$builtin-value body)))
+	  (let* ((isrt (term$sort body))
+		 (cm (get-object-context isrt))
+		 (so (if cm 
+			 (module-sort-order cm)
+		       (with-output-chaos-error ('internal-error)
+			 (format t "Internal Error, No context module [ULP]."))))
+		 (val (term$builtin-value body)))
 	    (declare (type sort-order so)
 		     (type sort* isrt)
 		     (type t val))
@@ -315,10 +290,7 @@
 
 	;; application form
 	(let* ((head (term$head body))
-	       (mod (if *current-module*
-			*current-module*
-		      (or *last-module*
-			  (operator-module (method-operator head)))))
+	       (mod (get-object-context (method-operator head)))
 	       (son nil)
 	       (t1 nil)
  	       (t2 nil)
@@ -326,17 +298,6 @@
 	       (new-head nil))
 	  (declare (type method head)
 		   (type module mod))
-	  ;; #||
-	  (when (method-is-error-method head)
-	    (when *term-debug*
-	      (with-output-msg ()
-		(format t "ULP:ERR_TERM: ")
-		(term-print-with-sort term)))
-	    ;; recursively
-	    (dolist (sub (term-subterms term))
-	      (update-lowest-parse sub)))
-	  ;; ||#
-
 	  ;; ----------------------------
 	  ;; special case if_then_else_fi
 	  ;; ----------------------------
@@ -825,8 +786,7 @@
 ;;; method, otherwise, given method is used.
 (defvar **sa-debug** nil)
 (defun make-term-with-sort-check (meth subterms
-                                  &optional (module (or *current-module*
-							*last-module*)))
+                                  &optional (module (get-context-module)))
   (declare (type method meth)
 	   (type list subterms)
 	   (type module module))
@@ -1467,12 +1427,10 @@
 				 (sort-is-hidden x))
 			     (mapcar #'(lambda (y) (term-sort y))
 				     (term-subterms term)))
-		    ;; patch Tue May 26 10:11:22 JST 1998
 		    (or (method-is-behavioural (term-head term))
 			(method-is-coherent (term-head term)))
 		  t)
-		(every #'term-can-be-in-beh-axiom? (term-subterms term))))
-	 )
+		(every #'term-can-be-in-beh-axiom? (term-subterms term)))))
 	(t t)))
 
 (defun term-is-non-behavioural? (term)

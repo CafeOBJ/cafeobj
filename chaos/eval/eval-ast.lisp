@@ -219,39 +219,6 @@
      *current-module*
      hidden )))
 
-;;;-----------------------------------------------------------------------------
-;;; DECLARE-RECORD
-;;;
-(defun declare-record (record-decl)
-  (I-miss-current-module declare-record)
-  (include-BOOL)
-  (include-RECORD)
-  (let ((rsort (declare-record-in-module *current-module*
-					 (%record-decl-name record-decl)
-					 (%record-decl-supers record-decl)
-					 (%record-decl-attributes
-					  record-decl)
-					 (%record-decl-hidden record-decl))))
-    (set-needs-parse)
-    (set-needs-rule)
-    rsort))
-
-;;;-----------------------------------------------------------------------------
-;;; DECLARE-CLASS
-;;;
-(defun declare-class (class-decl)
-  (I-miss-current-module declare-class)
-  (include-BOOL)
-  (include-OBJECT)
-  (let ((csort (declare-class-in-module *current-module*
-					(%class-decl-name class-decl)
-					(%class-decl-supers class-decl)
-					(%class-decl-attributes class-decl)
-					(%class-decl-hidden class-decl))))
-    (set-needs-parse)
-    (set-needs-rule)
-    csort))
-
 ;;;=============================================================================
 ;;; 			 OPERATOR, OPERATOR ATTRIBUTES
 ;;;=============================================================================
@@ -376,43 +343,6 @@
 	    (set-needs-rule)
 	    meth)
 	nil))))
-
-;;; DECLARE-OPERATOR-ATTRIBUTES : decl -> operator
-;;; returns operator if success, otherwise nil.
-;;;
-#||
-(defun declare-operator-attributes (decl)
-  (I-miss-current-module declare-operator-attributes)
-  ;; *NOTE* qualifier in opref is ignored, is it OK?
-  (let ((name (%opref-name (%opattr-decl-opref decl)))
-	(num-args (%opref-num-args (%opattr-decl-opref decl)))
-	(attr (%opattr-decl-attribute decl)))
-    (let ((opinfo (find-qual-operator-in *current-module* name num-args)))
-      (unless opinfo
-	(with-output-chaos-error ('operator-not-found)
-	  (format t "declaring attributes, could not found unique operator ~a."
-		  name)
-	  ))
-      (let ((op (opinfo-operator opinfo))
-	    (memo (%opattrs-memo attr))
-	    (theory (%opattrs-theory attr))
-	    (assoc (%opattrs-assoc attr))
-	    (prec (%opattrs-prec attr))
-	    (strat (%opattrs-strat attr)))
-	;; (when memo (declare-operator-memo-attr op memo))
-	(when memo
-	  (with-output-chaos-warning ()
-	    (format t "memo attribute is now obsolate.")))
-	(when theory (declare-operator-theory op theory))
-	(when assoc (declare-operator-associativity op assoc))
-	(when prec (declare-operator-precedence op prec))
-	(when strat (declare-operator-strategy op strat))
-	(set-needs-parse)
-	(set-needs-rule)
-	;; save the declaration form.
-	(push decl (module-opattrs *current-module*))
-	op))))
-||#
 
 ;;;=============================================================================
 ;;;			       AXIOMS, VARIABLES
@@ -782,7 +712,6 @@
 ;;; DECLARE-MODULE : module-declaration-form -> module
 ;;;
 (defun declare-module (decl)
-  ;; need not *current-module*
   (let ((mod nil)			; will bound created module.
 	(name (%module-decl-name decl))
 	(kind (%module-decl-kind decl))
@@ -829,8 +758,8 @@
 	;;
 	(propagate-module-change modval)
 	;;
-	(when (eq modval *last-module*)
-	  (setq *last-module* nil)
+	(when (eq modval (get-context-module))
+	  (reset-context-module)
 	  (setq recover-same-context t))
 	
 	(when (eq modval *memoized-module*)
@@ -845,8 +774,7 @@
 		$$term-context nil
 		$$subterm nil
 		$$action-stack nil
-		$$selection-stack nil))
-	)
+		$$selection-stack nil)))
 
       ;; process declaration forms.
       (setf mod (create-module name))
@@ -878,9 +806,9 @@
 	(let ((real-mod (find-module-in-env name nil)))
 	  (final-setup real-mod)
 	  (if recover-same-context
-	      (setq *last-module* real-mod)
-	      (if auto-context?
-		  (change-context *last-module* real-mod)))
+	      (reset-context-module real-mod)
+	    (if auto-context?
+		(change-context (get-context-module) real-mod)))
 	  ;;
 	  (unless (module-is-parameter-theory real-mod)
 	    (print-in-progress " done."))
@@ -939,59 +867,12 @@
 	(parameter (%import-parameter decl))
 	(alias (%import-alias decl))
 	(new-mod nil))
-    (when (and (%is-modexp modexp)
-	       (equal (%modexp-value modexp) "THE-LAST-MODULE"))
-      (setf (%modexp-value modexp) *last-module*))
-    (setf new-mod (import-module *current-module* mode modexp parameter alias))
+    (setf new-mod (import-module (get-context-module) mode modexp parameter alias))
     new-mod))
 
 ;;; !ADD-US
 ;;;-----------------------------------------------------------------------------
 ;;; NOT YET
-
-#||
-(defun !add-us (e)
-  ;; expansion top-level-eval
-  (let ((mepars (parse-modexp (third e))))
-  (if (and (consp mepars) (eq 'with (car mepars)))
-      (!add-using-with *current-module* mepars)
-      (let ((val (eval-modexp mepars nil nil)))
-	(if (eq *TRUTH-module* val) 
-	    (with-output-chaos-warning ()
-	      (princ "using TRUTH not allowed, replaced by extending")
-	      (print-next)
-	      (princ "in module ") (print-mod-name *current-module*)
-	      (import-module *current-module* :extending val))
-	    (if (eq *current-module* val)
-		(with-output-chaos-warning ()
-		  (princ "module cannot use itself (ignored)."))
-		(import-module *current-module* :using val))))
-      )))
-||#
-
-#||
-;;; handle using X with A and B
-(defun !add-using-with (module mepars)
-  (let ((mod (eval-modexp (cadr mepars))))
-    (when (modexp-is-error mod)
-      (with-output-chaos-error ()
-	(princ "cannot evaluate module: ")
-	(print-modexp (cadr mepars))
-	(chaos-to-top)))
-    (let ((submods (let ((*current-module* mod))
-		     (mapcar #'(lambda (me)
-				 (let ((val (eval-modexp me)))
-				   (when (modexp-is-error val)
-				     (with-output-chaos-error ()
-				       (princ "cannot evaluate module: ")
-				       (print-modexp me)
-				       (terpri)
-				       (chaos-to-top)))
-				   val))
-			     (if (equal '(nil) (caddr mepars))
-				 nil
-				 (caddr mepars))))))
-      (incorporate-using-with module mod submods))))
 
 ;;; Labels in Axioms env.
 ;;;-----------------------------------------------------------------------------
@@ -1011,71 +892,7 @@
 		(princ "label ")
 		(princ l)
 		(princ " contains an initial digit (ignored)") (terpri))
-	      (push l res)))
-      )
-    (nreverse res)
-    ))
-
-
-;;;=============================================================================
-;;; MISC.
-
-;;; AS
-;;;-----------------------------------------------------------------------------
-;;; !ADD-AS
-;;;
-(defun !add-as (e)
-  (unless (module-is-prepare-for-parsing *current-module*)
-    (prepare-for-parsing *current-module*))
-  (with-in-module (*current-module*)
-    (let* ((so (module-sort-order *current-module*))
-	   (sort (find-sort-in *current-module* (nth 1 e)))
-	   (tm (parser$parses *current-module* (nth 3 e)
-			      (if sort sort *cosmos*)))
-	   (cnd (parser$parses *current-module* (nth 5 e))))
-      (when (null sort)
-	(princ "Unknown sort in sort constraint"))
-      (when (null tm)
-	(princ "No parse for term in sort constraint") (terpri))
-      (when (or (null cnd) (not (null (cdr cnd))))
-	(princ "No single parse for condition in sort constraint") (terpri))
-      (if (and tm (not (null (cdr tm))))
-	  (when tm (princ "Term in sort constraint is ambiguous") (terpri))
-	  (when (and tm (null (cdr tm)))
-	    (when (and sort tm)
-	      (unless (sort-order$is-included-in so sort (term$sort (car tm)))
-		(princ "Specified sort and sort of term incompatible")))
-	    (when (and tm cnd (null (cdr tm)) (null (cdr cnd)))
-	      (unless (subsetp (term$vars (car cnd)) (term$vars (car tm)))
-		(princ "Condition variables not subset of those in term") (terpri)))
-	    )))
-    (error "** Error: general sort constraint not currently handled (ignored)")
-    (terpri)
-    (princ "    ")
-    (princ "as ")
-    (simple-princ-open (nth 1 e))
-    (princ " : ")
-    (simple-princ-open (nth 3 e))
-    (princ " if ")
-    (simple-princ-open (nth 5 e))
-    (princ " .")
-    (terpri)
-    ))
-
-;;; OP-AS
-(defun !add-op-as (e)
-  ;(!add-sort-constraint
-  ; (nth 7 e) (nth 5 e) (nth 9 e))
-  (with-output-chaos-warning ()
-    (princ "operator assertion being treated simply as a")
-    (princ " declaration") (print-next)
-    (princ "for operator: ") (print-simple-princ-open (nth 1 e)) (terpri))
-  (!add-op
-   `("op" ,(nth 1 e) ":" ,(nth 3 e) "->" ,(nth 5 e)
-	  ,@(if (equal "." (nth 10 e)) nil  (list (nth 10 e)))
-	  "."))
-  )
-
-||#
+	      (push l res))))
+    (nreverse res)))
 
 ;;; EOF

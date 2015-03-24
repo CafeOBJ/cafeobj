@@ -145,9 +145,7 @@
 						(variable-name x))
 					    variables))
 			 subst
-			 ',s-simbol))
-		      )
-		   )))
+			 ',s-simbol))))))
 	  ((term-is-general-lisp-form? term)
 	   (setf fun-body
 		 (make-fun* `(lambda (subst)
@@ -185,9 +183,7 @@
 	    ',(reverse (mapcar #'(lambda (x)
 				   (variable-name x))
 			       variables))
-	    subst))
-	 )
-      )
+	    subst))))
     (setf (term-builtin-value term)
       (list '|%Chaos| fun-body (term-builtin-value term)))
     term))
@@ -250,10 +246,8 @@
 				    (push (term-builtin-value value) bindings)
 				    (return-from invoke (values nil nil))))
 			      (return-from invoke (values value t))))
-			(return-from invoke (values nil nil)))
-		    )
-		(return-from invoke (values nil nil))
-		)))
+			(return-from invoke (values nil nil))))
+		(return-from invoke (values nil nil)))))
 	(if (sort-is-builtin sort)
  	    (values (make-bconst-term sort
 				      (apply fun bindings))
@@ -291,14 +285,11 @@
 				    (push (term-builtin-value value) bindings)
 				    (return-from invoke (values nil nil))))
 			      (return-from invoke (values value t))))
-			(return-from invoke (values nil nil)))
-		    )
-		(return-from invoke (values nil nil))
-		)))
+			(return-from invoke (values nil nil))))
+		(return-from invoke (values nil nil)))))
 	(values (make-bconst-term sort
 				  (apply fun bindings))
-		t)
-	))))
+		t)))))
 
 ;;;
 ;;;
@@ -342,10 +333,7 @@
 	   :rhs (make-applform (method-coarity top)
 			       top
 			       (list new-var
-				     ;;(substitution-check-builtin
-				     ;; (axiom-rhs rule))
-				     (axiom-rhs rule)
-				     ))
+				     (axiom-rhs rule)))
 	   :condition (axiom-condition rule)
 	   :id-condition (axiom-id-condition rule)
 	   :type (axiom-type rule)
@@ -381,9 +369,7 @@
 		     :id-ext-theory
 		   :A-right-theory)
 	   :meta-and-or (axiom-meta-and-or rule)))
-	;; (compute-rule-method ext-rule)
 	(push ext-rule listext)
-
 	;; the middle associative extension:
 	(setf ext-rule
 	  (make-rule
@@ -406,8 +392,7 @@
 	   :meta-and-or (axiom-meta-and-or rule)))
 	;;
 	(push ext-rule listext)
-	(setf (axiom-A-extensions rule) listext))
-      )))
+	(setf (axiom-A-extensions rule) listext)))))
 
 
 ;;; COMPUTE-AC-EXTENSION : rule method -> List[Rule]
@@ -439,8 +424,7 @@
 	   :rhs (make-applform (method-coarity top)
 			       top
 			       (list new-var
-				     (axiom-rhs rule)
-				     ))
+				     (axiom-rhs rule)))
 	   :condition (axiom-condition rule)
 	   :type (axiom-type rule)
 	   :behavioural (axiom-is-behavioural rule)
@@ -451,8 +435,7 @@
 		   ':ac-theory)
 	   :meta-and-or (axiom-meta-and-or rule)))
 	  ;;
-	(setf (axiom-AC-extension rule) (list ext-rule))
-	))))
+	(setf (axiom-AC-extension rule) (list ext-rule))))))
 
 
 ;;; GIVE-AC-EXTENSION : rule -> List[Rule]
@@ -573,18 +556,11 @@
     (cond ((term$is-variable? t1-body)
 	   (or (eq t1 t2)
 	       (and (term$is-variable? t2-body)
-		    #||
-		    ;; (eq (variable$name t1-body) (variable$name t2-body))
-		    (sort= (variable$sort t1-body) (variable$sort t2-body))
-		    ||#
-		    (variable= t1 t2)
-		    )))
+		    (variable= t1 t2))))
 	  ((term$is-variable? t2-body) nil)
 	  ((term$is-application-form? t1-body)
 	   (and (term$is-application-form? t2-body)
-		(if ;;(method-is-same-qual-method (term$method t1-body)
-		    ;;				(term$method t2-body))
-		    (method-is-of-same-operator+ (term$method t1-body)
+		(if (method-is-of-same-operator+ (term$method t1-body)
 						 (term$method t2-body))
 		    (let ((sl1 (term$subterms t1-body))
 			  (sl2 (term$subterms t2-body)))
@@ -643,8 +619,7 @@
     (when (rule-is-similar? rule r)
       (when (and *chaos-verbose*
 		 (not (eq rule r))
-		 (not (member (axiom-kind rule) .ext-rule-kinds.))
-		 )
+		 (not (member (axiom-kind rule) .ext-rule-kinds.)))
 	(with-output-msg ()
 	  (format t "a similar pair of axioms is found:")
 	  (print-next)
@@ -732,31 +707,14 @@
 ;;; ***********************
 ;;; ADDING AXIOMS TO MODULE
 ;;; ***********************
-#||
-(defun add-axiom-to-module (module ax)
-  (declare (type module module)
-	   (type axiom ax)
-	   (values t))
-  (if (memq (axiom-type ax) '(:equation :pignose-axiom :pignose-goal))
-      (push ax (module-equations module))
-    (push ax (module-rules module))))
-||#
 
 (defun add-axiom-to-module (module ax)
-  (adjoin-axiom-to-module module ax)
-  )
+  (adjoin-axiom-to-module module ax))
 
 (defun adjoin-axiom-to-module (module ax)
   (declare (type module module)
 	   (type axiom ax)
 	   (values t))
-  ;; (when (eq (object-context-mod ax) module)
-  ;; (let ((labels (axiom-labels ax)))
-  ;;   (dolist (lab labels)
-  ;; 	(symbol-table-add (module-symbol-table module)
-  ;; 			  lab
-  ;; 			  ax)))
-  ;; )
   (if (memq (axiom-type ax) '(:equation :pignose-axiom :pignose-goal))
       (setf (module-equations module)
 	    (adjoin-rule ax (module-equations module)))
@@ -820,8 +778,7 @@
 				       (substitution-partial-image
 					subst
 					(rule-condition r1))))))
-				(matches? newcond (rule-condition r2))
-				))))))))))
+				(matches? newcond (rule-condition r2))))))))))))
 
 (defun rule-strictly-subsumes (r1 r2)
   (declare (type axiom r1 r2)
@@ -892,10 +849,7 @@
 	       :condition (axiom-condition rule)
 	       :labels (axiom-labels rule)
 	       :kind (axiom-kind rule)
-	       :type (axiom-type rule)
-	       ;; :meta-and-or (axiom-meta-and-or rule)
-	       ;; :no-method-computation t
-	       )))
+	       :type (axiom-type rule))))
 
 (defun make-rule-instance (rule subst)
   (declare (type axiom rule)
@@ -933,68 +887,62 @@
     ;; we always need rule specifier
     (when (equal "" rule-id)
       (with-output-chaos-error ('invalid-rule-spec)
-	(format t "No rule number or name is specified.")
-	))
+	(format t "No rule number or name is specified.")))
     ;; get module in which the specified rule is looked up
-    (if (equal "" mod)
-	(setq mod *last-module*)
-      (if (and *last-module*
-	       (equal "%" (module-name *last-module*))
-	       (module-submodules *last-module*)
-	       (equal mod
-		      (module-name
-		       (caar (module-submodules *last-module*)))))
-	  (setq mod *last-module*)
-	;; we also find in local modules
-	(setq mod (eval-modexp mod t))))
-    ;;
-    (unless mod
-      (with-output-chaos-error ('no-context)
-	(princ "no context module.")))
-    ;;
-    (when (modexp-is-error mod)
-      (let ((nxt (eval-mod (list (car rule-spec)))))
-	(if (modexp-is-error nxt)
-	    (with-output-chaos-error ('invalid-module)
-	      (format t "module is undefined or unreachable: ~a" (car rule-spec))
-	      )
+    (let ((cur-context (get-context-module)))
+      (if (equal "" mod)
+	  (setq mod cur-context)
+	(if (and cur-context
+		 (equal "%" (module-name cur-context))
+		 (module-submodules cur-context)
+		 (equal mod
+			(module-name
+			 (caar (module-submodules cur-context)))))
+	    (setq mod cur-context)
+	  ;; we also find in local modules
+	  (setq mod (eval-modexp mod t))))
+      (unless mod
+	(with-output-chaos-error ('no-context)
+	  (princ "no context module.")))
+      (when (modexp-is-error mod)
+	(let ((nxt (eval-mod (list (car rule-spec)))))
+	  (if (modexp-is-error nxt)
+	      (with-output-chaos-error ('invalid-module)
+		(format t "module is undefined or unreachable: ~a" (car rule-spec)))
 	    (setq mod nxt))))
-    ;; check context
-    (unless (eq *last-module* mod)
-      (let ((e-mod (assoc mod (module-all-submodules *last-module*))))
-	(unless e-mod
-	  (with-output-chaos-error ('invalid-context)
-	    (format t "specified module is out of current context: ")
-	    (print-simple-mod-name mod)))
-	(unless (member (cdr e-mod)
-			'(:protecting :extending :using))
-	  (with-output-chaos-error ('invalid-rule-ref)
-	    (format t "you cannot refer the rule ~a of module " rule-spec)
-	    (print-simple-mod-name mod)
-	    (princ " directly.")))))
-    ;;
-    (with-in-module (mod)
-      ;; find specified rule
-      (if (and (< 0 (length rule-id))
-	       (every #'digit-char-p rule-id))
-	  (setq rule (get-rule-numbered mod (str-to-int rule-id)))
+      ;; check context
+      (unless (eq cur-context mod)
+	(let ((e-mod (assoc mod (module-all-submodules cur-context))))
+	  (unless e-mod
+	    (with-output-chaos-error ('invalid-context)
+	      (format t "specified module is out of current context: ")
+	      (print-simple-mod-name mod)))
+	  (unless (member (cdr e-mod)
+			  '(:protecting :extending :using))
+	    (with-output-chaos-error ('invalid-rule-ref)
+	      (format t "you cannot refer the rule ~a of module " rule-spec)
+	      (print-simple-mod-name mod)
+	      (princ " directly.")))))
+      ;; do search in 'mod'
+      (with-in-module (mod)
+	;; find specified rule
+	(if (and (< 0 (length rule-id))
+		 (every #'digit-char-p rule-id))
+	    (setq rule (get-rule-numbered mod (str-to-int rule-id)))
 	  (setq rule (get-rule-labelled mod rule-id)))
-      ;; make rule reverse order if need
+	;; make rule reverse order if need
       (when (nth 2 rule-spec) (setq rule (make-rule-reverse rule)))
       ;; apply variable substitution 
       (when subst-list
 	(setq rule
-	      (make-rule-instance rule (compute-variable-substitution
-					rule subst-list))))
-      )
+	  (make-rule-instance rule (compute-variable-substitution
+				    rule subst-list)))))
     ;; the result
-    (when *on-axiom-debug*
-      (with-output-simple-msg ()
-	(princ "[compute-action-rule]: rule= ")
-	(print-chaos-object rule)))
-    ;;
-    (values rule mod)
-    ))
+      (when *on-axiom-debug*
+	(with-output-simple-msg ()
+	  (princ "[compute-action-rule]: rule= ")
+	  (print-chaos-object rule)))
+      (values rule mod))))
 
 
 ;;; CHECK-AXIOM-ERROR-METHOD : Module Axiom -> Axiom
@@ -1011,13 +959,7 @@
 	(error-operators (module-error-methods module)))
     (macrolet ((check-check (_eops)
 		 ` (when (every #'(lambda (x)
-				    #||
-				    (and (memq x error-operators)
-					 (not (method-is-user-defined-error-method
-					       x)))
-				    ||#
-				    (memq x error-operators)
-				    )
+				    (memq x error-operators))
 				,_eops)
 		     (setq ,_eops nil))))
       ;;
@@ -1093,13 +1035,7 @@
 	     (type list error-operators))
     (macrolet ((check-check (_eops)
 		 ` (when (every #'(lambda (x)
-				    #||
-				    (and (memq x error-operators)
-					 (not (method-is-user-defined-error-method
-					       x)))
-				    ||#
-				    (memq x error-operators)
-				    )
+				    (memq x error-operators))
 				,_eops)
 		     (setq ,_eops nil))))
       ;;

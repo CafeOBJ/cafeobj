@@ -189,7 +189,7 @@
     (unless (literal-sign lit)
       (princ "~(" stream)
       (setq .file-col. (1+ .file-col.)))
-    (with-in-module ((or *current-module* *last-module*))
+    (with-in-module ((get-context-module))
       (cond ((eq-literal? lit)
 	     (let* ((lhs (term-arg-1 (literal-atom lit)))
 		    (rhs (term-arg-2 (literal-atom lit)))
@@ -232,14 +232,13 @@
     (unless (literal-sign lit)
       (princ "~(" stream)
       (setq .file-col. (1+ .file-col.)))
-    (with-in-module ((or *current-module* *last-module*))
+    (with-in-module ((get-context-module))
       (setq .printed-vars-so-far.
 	(append .printed-vars-so-far.
 		(term-print (literal-atom lit) stream))))
     (unless (literal-sign lit)
       (princ ")" stream))
-    .printed-vars-so-far.)
-  )
+    .printed-vars-so-far.))
 
 ;;; 
 ;;; some gobal flags

@@ -144,10 +144,8 @@
 ;;;
 ;;; SHOW-FMOD*
 ;;;
-(defun show-fmod* (&optional (module (or *last-module*
-					 *current-module*)))
+(defun show-fmod* (&optional (module (get-context-module)))
   (let ((trs (get-module-trs module)))
-    ;;
     (princ "fmod ")
     (print-mod-name module *standard-output* nil t)
     (princ " is ")

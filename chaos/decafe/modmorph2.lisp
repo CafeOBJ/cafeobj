@@ -1820,8 +1820,7 @@
 ;;;
 (defvar .mapping-debug. nil)
 
-(defun mapping-image (term-list term &optional (module (or *current-module*
-							   *last-module*)))
+(defun mapping-image (term-list term &optional (module (get-context-module)))
   (when .mapping-debug.
     (format t "~&[mapping-image] term = ")
     (print-chaos-object term)

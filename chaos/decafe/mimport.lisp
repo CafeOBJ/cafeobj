@@ -135,8 +135,7 @@
 	(return-from import-module-internal nil))
       (when (eq module submodule)
 	(with-output-chaos-error ('invalid-import)
-	  (princ "module cannot import itself!")
-	  ))
+	  (princ "module cannot import itself!")))
 
       ;; compile submodule if need
       (compile-module submodule)
@@ -151,16 +150,7 @@
 	      (nm (cdr al)))
 	  (add-module-alias module mod nm)))
       ;;
-      #||
-      (when (and *include-bool*
-		 (assq *bool-module*
-		       (module-all-submodules submodule)))
-	(include-bool module))
-      ||#
-      ;;
       (with-in-module (module)
-	;;
-	;;
 	(if parameter
 	    ;; PARAMETERIZED MODULE IMPORTATION.
 	    ;; We carete a new module with name `(formal-name "::" module-object)'
@@ -208,9 +198,7 @@
 			  (progn
 			    (when *on-import-debug*
 			      (format t "~&module is already imported, skipping.."))
-			    (return-from import-module-internal t)
-			    ))
-		      ))
+			    (return-from import-module-internal t)))))
 		  (when *check-import-mode*
 		    ;; other more complex importation check.
 		    ;; checks confliction among shared submodules.
@@ -278,8 +266,7 @@
 		    (add-imported-module newmod (cdr par)(cdar par))
 		    (incorporate-module newmod (cdr par) (cdar par)))
 		  (unless *chaos-quiet* (princ ")" *error-output*))
-		  newmod)))
-	))))
+		  newmod)))))))
 
 ;;; INCORPORATE-MODULE : Module Mode SubModule -> Module'
 ;;; Do the importation.
@@ -335,28 +322,13 @@
 			       :test #'eq))
       (let ((opinfos (module-all-operators submodule)))
 	(dolist (opinfo opinfos)
-	  (transfer-operator module submodule opinfo nil theory-mod))
-	)
-      ;; #||
+	  (transfer-operator module submodule opinfo nil theory-mod)))
       ;; import error operators which might be reused.
       ;; (dolist (em (module-error-methods submodule))
       ;; (when (method-is-user-defined-error-method em)
       ;;   (pushnew em (module-error-methods module) :test #'eq)))
       (dolist (em (module-error-methods submodule))
 	  (pushnew em (module-error-methods module) :test #'eq))
-      ;; ||#
-      ;; user defined error ops -----
-      #||
-      (when (module-error-op-decl submodule)
-	(format t "~&** importing error operator decl.")
-	(setf (module-error-op-decl module)
-	  (nconc (module-error-op-decl module)
-		 (copy-tree (module-error-op-decl submodule)))))
-      ||#
-      #||
-      (dolist (edecl (module-error-op-decl submodule))
-	(eval-ast edecl))
-      ||#
       ;; import macros
       (dolist (macro (module-macros submodule))
 	(add-macro-to-module module macro))
@@ -390,12 +362,6 @@
 	     (using-find-sort (_sort)
 	       (or (cdr (assq _sort *import-sort-map*)) _sort))
 
-	     ;; for debug
-	     #||
-	     (!using-find-sort (_sort)
-	       (or (cdr (assq _sort *import-sort-map*))
-		   (progn (break) _sort)))
-	     ||#
 	     (using-import-var (var)
 	       (let ((nm (variable-name var))
 		     (sort (using-find-sort (variable-sort var))))
@@ -409,8 +375,7 @@
 			 (setq val (make-variable-term sort nm))
 			 (when *copy-variables*
 			   (push (cons nm val) (module-variables module)))
-			 (push (cons nm val) *import-local-vars*)
-			 )))))
+			 (push (cons nm val) *import-local-vars*))))))
 	     ;;
 	     (using-find-sort-err (s)
 	       (let ((sort (cdr (assq s *import-sort-map*))))
@@ -518,8 +483,7 @@
 						   mode
 						   s
 						   nil
-						   (or theory-module submodule)))
-		       ))))
+						   (or theory-module submodule)))))))
 	     (using-import-subs (smod)
 	       (dolist (s (reverse (module-direct-submodules smod)))
 		 (using-import-sub (car s) (cdr s))))
@@ -633,12 +597,6 @@
 	;;
 	;; import error operator declarations
 	;;
-	#||
-	(when (module-error-op-decl submodule)
-	  (setf (module-error-op-decl module)
-		(nconc (module-error-op-decl module)
-		       (copy-tree (module-error-op-decl submodule)))))
-	||#
 	(dolist (eop (module-error-op-decl submodule))
 	  (when *on-import-debug*
 	    (with-output-msg ()
@@ -649,13 +607,8 @@
 	
 	;;
 	;; import variable declarations of error sorts
-	;;
-	#||
-	  (when (module-error-var-decl submodule)
-	    (setf (module-error-var-decl module)
-		  (nconc (module-error-var-decl module)
-			 (copy-tree (module-error-var-decl submodule)))))
-        ||#
+	;; nothing todo ... NO TODO
+
 	;;
 	;; copy macros
 	;;
@@ -667,8 +620,6 @@
 	    ;; (print macro)
 	    (add-macro-to-module module new-macro)))
 
-	;;(eval-psort-declaration (module-psort-declaration submodule)
-	;; module)
 	;;
 	;; import equations & rules copying
 	;;
@@ -719,22 +670,6 @@
 	    (to-opinfo (module-opinfo-table module))
 	    (so (module-sort-order module)))
 	;; find the method group to be inserted
-	#||
-	(dolist (method (opinfo-methods opinfo))
-	  (when (or (method-is-user-defined-error-method method)
-		    (and (not (method-is-error-method method))
-			 (not (method-is-for-regularity? method from-module))))
-	    (setq new-opinfo
-		  (dolist (x opinfos nil)
-		    (when (or (null (method-arity method))
-			      (is-in-same-connected-component*
-			       (method-coarity method) 
-			       (method-coarity (or (cadr (opinfo-methods x))
-						   (car (opinfo-methods x))))
-			       so))
-		      (return x))))
-	    (return nil)))
-	||#
 	(dolist (method (opinfo-methods opinfo))
 	  (when (and (not (method-is-error-method method))
 		     (not (method-is-for-regularity? method from-module)))
@@ -750,8 +685,7 @@
 	    (return nil)))
 	;; create new operaotr info if could not find.
 	(cond (new-opinfo
-	       (setq new-op (opinfo-operator new-opinfo))
-	       )
+	       (setq new-op (opinfo-operator new-opinfo)))
 	      (t
 	       (when *on-import-debug*
 		 (format t "~%* creating new opinfo for operator ~s : "
@@ -774,14 +708,6 @@
 	    (when *on-import-debug*
 	      (format t "~&-- importing method ~s : " method)
 	      (print-chaos-object method))
-	    ;;
-	    #||
-	    (when (modexp-add-method-to-table new-opinfo method module)
-	      (when *on-import-debug*
-		(format t "~&-- importing method-theory ~s:"
-			(method-theory method from-opinfo))
-		(finish-output *error-output*)))
-	    ||#
 	    (modexp-add-method-to-table new-opinfo method module)
 	    (transfer-operator-attributes method module from-module theory-mod)
 	    ;; import axioms
@@ -798,9 +724,7 @@
 		      (print-chaos-object method)))
 		  (add-rule-to-method (check-axiom-error-method module rule)
 				      method to-opinfo)
-		  (pushnew rule (module-all-rules module) :test #'rule-is-similar?)
-		  )
-		)
+		  (pushnew rule (module-all-rules module) :test #'rule-is-similar?)))
 	      ;;
 	      (dolist (r (reverse (method-rules-with-different-top method
 								   from-opinfo)))
@@ -816,63 +740,8 @@
 				      method to-opinfo)
 		  (pushnew r (module-all-rules module) :test #'rule-is-similar?)))
 	      )))
-	
-	;;
-	#||
-	(dolist (method (reverse (opinfo-methods opinfo)))
-	  (when (and ;; (not (method-is-error-method method))
-		     (not (method-is-for-regularity? method from-module)))
-	    (when *on-import-debug*
-	      (format t "~&-- importing method ~s : " method)
-	      (print-chaos-object method))
-	    ;;
-	    ;;#||
-	    (when (modexp-add-method-to-table new-opinfo method module)
-	      (when *on-import-debug*
-		(format t "~&-- importing method-theory ~s:"
-			(method-theory method from-opinfo))
-		(finish-output *error-output*)))
-	    ;; ||#
-	    (modexp-add-method-to-table new-opinfo method module)
-	    (transfer-operator-attributes method module from-module theory-mod)
-	    ;; import axioms
-	    (let ((all-rules (module-all-rules module)))
-	      (dolist (rule (rule-ring-to-list
-			     (method-rules-with-same-top method from-opinfo)))
-		(when (or (not (memq rule all-rules))
-			  (eq method (term-head (axiom-lhs rule))))
-		  (when *on-import-debug*
-		    (with-in-module (from-module)
-		      (format t "~%-- importing axiom ")
-		      (print-chaos-object rule)
-		      (format t "~%   for method : ")
-		      (print-chaos-object method)))
-		  (add-rule-to-method (check-axiom-error-method module rule)
-				      method to-opinfo)
-		  (pushnew rule (module-all-rules module) :test #'rule-is-similar?)
-		  )
-		)
-	      ;;
-	      (dolist (r (reverse (method-rules-with-different-top method
-								   from-opinfo)))
-		(when (or (not (memq r all-rules))
-			  (eq method (term-head (axiom-lhs r))))
-		  (when *on-import-debug*
-		    (with-in-module (from-module)
-		      (format t "~%-- importing axiom ")
-		      (print-chaos-object r)
-		      (format t "~%   for method : ")
-		      (print-chaos-object method)))
-		  (add-rule-to-method (check-axiom-error-method module r)
-				      method to-opinfo)
-		  (pushnew r (module-all-rules module) :test #'rule-is-similar?)))
-	      )))
-	||#
-	;;
 	(when *on-import-debug*
-	  (format t "~&* done transfer-operator"))
-	))
-    ))
+	  (format t "~&* done transfer-operator"))))))
 
 (defun modexp-add-method-to-table (opinfo method module)
   (let ((pmeth (find method (opinfo-methods opinfo)
@@ -882,9 +751,7 @@
 				    (sort= (method-coarity x)
 					   (method-coarity y))))))
 	(method-info-table (module-opinfo-table module)))
-    (if (eq pmeth method)    ; (or (eq pmeth method)
-					;     ;; dirty kludge!
-					; (and pmeth (method-is-of-same-operator-safe method *rwl-predicate*)))
+    (if (eq pmeth method)
 	nil
       (progn
 	(setf (get-method-info method method-info-table)
@@ -916,8 +783,7 @@
       (setf (method-theory method (module-opinfo-table to-module))
 	    new-theory)
       (compute-method-theory-info-for-matching method
-					       (module-opinfo-table to-module))
-      )))
+					       (module-opinfo-table to-module)))))
 
 (defun modexp-merge-operator-theory (method to-module from-module
 					    &optional theory-mod)
@@ -938,8 +804,7 @@
       (setq meta-demod (method-is-meta-demod meth)))
     (with-in-module (to-module)
       (setf (method-is-coherent meth) coh)
-      (setf (method-is-meta-demod meth) meta-demod))
-    ))
+      (setf (method-is-meta-demod meth) meta-demod))))
 
 ;;; *****************************************
 ;;; AUTOMATIC IMPORATION OF BUILT-IN MODULES.___________________________________
@@ -957,25 +822,13 @@
     (with-in-module (module)
       (eval-import-modexp *import-hard-wired-ast*))))
 
-#||
-(defun include-BOOL (&optional (module *current-module*))
-  (when *include-BOOL*
-    (unless (memq *Bool-sort*
-		  (module-all-sorts module))
-      (with-in-module (module)
-	(eval-import-modexp *import-bool-ast*))))
-  (include-chaos-module)
-  )
-||#
-
 (defun include-BOOL (&optional (module *current-module*))
   (when *include-BOOL*
     (unless (assq *bool-module*
 		  (module-all-submodules module))
       (with-in-module (module)
 	(eval-import-modexp *import-bool-ast*))))
-  (include-chaos-module)
-  )
+  (include-chaos-module))
 
 (defparameter *import-object-ast*
   (%import* :extending (%modexp* "OBJECT")))
@@ -983,8 +836,7 @@
 (defun include-object ()
   (unless (memq *class-id-sort*
 		(module-all-sorts *current-module*))
-    (eval-import-modexp *import-object-ast*)
-    ))
+    (eval-import-modexp *import-object-ast*)))
 
 (defparameter *import-record-ast*
   (%import* :extending (%modexp* "RECORD-STRUCTURE")))
@@ -997,13 +849,11 @@
 (defparameter *import-rwl-ast*
   (%import* :protecting (%modexp* "RWL")))
 
-(defun include-rwl (&optional (module (or *current-module* *last-module*)))
+(defun include-rwl (&optional (module (get-context-module)))
   (when *include-rwl*
     (unless (module-includes-rwl module)
       (with-in-module (module)
-	(eval-import-modexp *import-rwl-ast*)
-	)))
-  )
+	(eval-import-modexp *import-rwl-ast*)))))
 
 ;;;
 ;;; IMPORT-VARIABLES
@@ -1019,7 +869,6 @@
 	    (with-output-chaos-warning ()
 	      (format t "importing variable ~a, could not find sort ~a"
 		      name
-		      (sort-id (variable-sort v)))))))
-    ))
+		      (sort-id (variable-sort v)))))))))
 
 ;;; EOF

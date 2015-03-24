@@ -90,8 +90,7 @@
 
 ;;; PN-DB-RESET
 ;;;
-(defun pn-db-reset (&optional (mod (or *current-module*
-				       *last-module*)))
+(defun pn-db-reset (&optional (mod (get-context-module)))
   (clear-all-index-tables)
   (reset-module-proof-system mod))
 

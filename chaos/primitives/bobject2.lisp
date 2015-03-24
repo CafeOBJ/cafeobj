@@ -53,18 +53,6 @@
 ;;; definition of semantic object & internal data structure.
 ;;; all objects defined in this file inherits either %object or %int-object.
 
-#||
-;;; term structure of semantic object of Chaos.
-(defterm object () :category ':object) 
-
-(defterm static-object () :category ':static-object)
-
-;;; structure of internal object of Chaos.
-(defterm int-object () :category ':int-object)
-
-(defterm static-int-object () :category ':static-int-object)
-||#
-
 (defstruct (object (:conc-name "OBJECT-")
 		   (:constructor make-object)
 		   (:constructor object* nil)
@@ -77,14 +65,14 @@
 (defmacro object-info (_obj _info)
   ` (getf (object-misc-info ,_obj) ,_info))
 
-(defun set-context-module (obj &optional (mod *current-module*))
-  (setf (object-context-mod obj) mod))
+(defun set-object-context-module (obj &optional (context-mod (get-context-module)))
+  (setf (object-context-mod obj) context-mod))
 
-(eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-object)(symbol-function 'object-p))
-  (setf (get 'object ':type-predicate) (symbol-function 'is-object))
-  (setf (get 'object :eval) nil)
-  (setf (get 'object :print) nil))
+; (eval-when (:execute :load-toplevel)
+;   (setf (symbol-function 'is-object)(symbol-function 'object-p))
+;   (setf (get 'object ':type-predicate) (symbol-function 'is-object))
+;   (setf (get 'object :eval) nil)
+;   (setf (get 'object :print) nil))
 
 ;;; *********
 ;;; INTERFACE
@@ -128,7 +116,6 @@
 	((module-p nm) (canonicalize-object-name (module-name nm)))
 	(t
 	 ;; do nothing
-	 ;; (error "internal error, illegal name object ~s" nm)
 	 )))
 
 (defun symbol-table-add (table nm obj)
@@ -157,49 +144,10 @@
 	    (t (pushnew obj (stable-unknowns tbl))))
       tbl)))
 
-(defun symbol-table-get (name &optional (module *current-module*))
+(defun symbol-table-get (name &optional (module (get-context-module)))
   (let ((gname (canonicalize-object-name name)))
     (gethash gname (symbol-table-map
 		    (module-symbol-table module)))))
-
-#||
-(defun pr-symbol-table (st stream &rest ignore)
-  (let ((names (copy-list (symbol-table-names st))))
-    (setq names (sort  names #'ob<))
-    (dolist (name names)
-      (pr-name name (gethash name (symbol-table-map st)) stream))))
-
-(defun get-object-type (obj)
-  (cond ((module-p obj)  :module)
-	((sort-p obj) :sort)
-	((operator-p obj) :operator)
-	((axiom-p obj) :axiom)
-	((term-is-variable? obj) :variable)
-	(t :unknown)))
-
-(defun get-obj-info (obj)
-  (let ((type (get-object-type obj)))
-    (cond ((or (eq type :variable)
-	       (eq (object-context-mod obj) *current-module*))
-	   (list obj type "of the current module"))
-	  ((eq type :unknown)
-	   (list obj type "unknown type of object"))
-	  ((object-context-mod obj)
-	   (list obj
-		 type
-		 (concatenate 'string "of module "
-			      (with-output-to-string (str)
-				(print-mod-name (object-context-mod obj)
-						str
-						t)))))
-	   (t (list obj type "")))))
-
-(defun pr-name (name objs stream)
-  (format stream "~&~A~8T" name)
-  (dolist (obj objs)
-    (let ((info (get-obj-info obj)))
-      (format stream ": ~A ~A~%" (second info) (third info)))))
-||#
 
 ;;;=============================================================================
 ;;; TOP-OBJECT _________________________________________________________________
@@ -207,15 +155,6 @@
 
 ;;; represents common structure of top-level semantic objects.
 ;;; 
-#||
-(defterm top-object (object)		; was (static-object)
-  :visible (name)			; name.
-  :hidden (interface			; external interface.
-	   status			; object status.
-	   decl-form			; declaration form
-	   )
-  )
-||#
 (defstruct (top-object (:conc-name "TOP-OBJECT-")
 		       (:constructor make-top-object)
 		       (:constructor top-object* (name))
@@ -227,11 +166,11 @@
   (decl-form nil :type list)
   (symbol-table (make-symbol-table) :type symbol-table))
 
-(eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-top-object)(symbol-function 'top-object-p))
-  (setf (get 'top-object ':type-predicate) (symbol-function 'is-top-object))
-  (setf (get 'top-object :eval) nil)
-  (setf (get 'top-object :print) nil))
+; (eval-when (:execute :load-toplevel)
+;   (setf (symbol-function 'is-top-object)(symbol-function 'top-object-p))
+;   (setf (get 'top-object ':type-predicate) (symbol-function 'is-top-object))
+;   (setf (get 'top-object :eval) nil)
+;   (setf (get 'top-object :print) nil))
 
 ;;;
 ;;; basic accessors via top-object
@@ -334,16 +273,14 @@
   (declare (type ex-interface interface)
 	   (values t))
   (setf (interface$parameters interface) nil)
-  (setf (interface$exporting-objects interface) nil)
-  )
+  (setf (interface$exporting-objects interface) nil))
 
 (defun clean-up-ex-interface (interface)
   (declare (type ex-interface interface)
 	   (values t))
   (setf (interface$dag interface) nil)
   (setf (interface$parameters interface) nil)
-  (setf (interface$exporting-objects interface) nil)
-  )
+  (setf (interface$exporting-objects interface) nil))
 
 ;;;
 ;;; setting dependency
@@ -365,9 +302,7 @@
 				      (dag-node-subnodes sub-dag))))
 	(push s-node (dag-node-subnodes dag)))))
   ;; make exporting relation
-  ;; (pushnew (cons object mode) (object-exporting-objects subobject) :test #'equal)
-  (pushnew (cons object mode) (object-exporting-objects subobject) :test #'equal)
-  )
+  (pushnew (cons object mode) (object-exporting-objects subobject) :test #'equal))
 
 ;;; ******
 ;;; STATUS
@@ -436,9 +371,7 @@
 ;;;             builtin-info part of builtin sorts.
 ;;;
 
-(defstruct (parse-dictionary (:conc-name "DICTIONARY-")
-			     ;; #+gcl (:static t)
-			     )
+(defstruct (parse-dictionary (:conc-name "DICTIONARY-"))
   (table (make-hash-table :test #'equal :size 50)
 	 :type (or null hash-table))
   (builtins nil :type list)
@@ -541,14 +474,13 @@
   (let ((mod (trs$module obj)))
     (format stream "'[:trs \"~a\"]" (make-module-print-name2 mod))))
 
-;;; *******
-;;; CONTEXT_____________________________________________________________________
-;;; *******
-;;; holds some run time context infos.
+;;; ******************
+;;; MODULE-DYN-CONTEXT___________________________________________________________
+;;; ******************
+;;; holds run time dynamic infomation of a module.
 
-(defstruct (module-context
-	     ;; #+gcl (:static t)
-	     )
+(defstruct (module-dyn-context (:conc-name "MODULE-CONTEXT-"))
+  (object nil :type (or null object))	; module
   (bindings nil :type list)		; top level let binding
   (special-bindings nil :type list)	; users $$variables ...
   ($$term nil :type list)		; $$term
@@ -564,27 +496,11 @@
 ;;; MODULE    __________________________________________________________________
 ;;; STRUCTURE
 ;;; *********
-#||
-(defterm module (top-object)
-  :visible (name)			; module name (modexpr).
-  :hidden  (signature			; own signature.
-	    axiom-set			; set of own axioms.
-	    theorems			; set of own theorems, not used yet.
-	    parse-dictionary		; infos for term parsing.
-	    ex-info			; various compiled informations.
-	    trs				; corresponding semi-compiled TRS.
-	    context			; run time context
-	    )
-  :int-printer print-module-object
-  :print print-module-internal)
-||#
-
 (defstruct (module (:include top-object (-type 'module))
 		   (:conc-name "MODULE-")
 		   (:constructor make-module)
 		   (:constructor module* (name))
-		   (:print-function print-module-object)
-		   )
+		   (:print-function print-module-object))
   (print-name "" :type string)
   (signature nil :type (or null signature-struct))
 					; own signature.
@@ -593,19 +509,43 @@
   (theorems nil :type list)		; set of own theorems, not used yet.
   (parse-dictionary nil :type (or null parse-dictionary))
 					; infos for term parsing.
-  ;; (ex-info nil :type list)		; various compiled informations.
-  (trs nil :type (or null trs))	; corresponding semi-compiled TRS.
+  (trs nil :type (or null trs))		; corresponding semi-compiled TRS.
   (context nil
-	   :type (or null module-context))
+	   :type (or null module-dyn-context))
 					; run time context
-  (alias nil :type list)
+  (alias nil :type list)		; alias names for a module generated from complex modexpr
   )
 
-(eval-when (:execute :load-toplevel)
-  (setf (get 'module :type-predicate) (symbol-function 'module-p))
-  (setf (get 'module :eval) nil)
-  (setf (get 'module :print) 'print-module-internal)
-  )
+;;; KIND
+(defmacro module-kind (_mod)
+  `(getf (object-misc-info ,_mod) ':module-kind))
+
+(defmacro module-is-theory (_mod_) `(eq :theory (module-kind ,_mod_)))
+
+(defmacro module-is-object (_mod_) `(eq :object (module-kind ,_mod_)))
+
+(defmacro module-is-final (_mod_) `(eq :theory (module-kind ,_mod_)))
+
+(defmacro module-is-loose (_mod_)
+  ` (memq (module-kind ,_mod_) '(:module :ots)))
+
+(defmacro module-is-initial (_mod_) `(eq (module-kind ,_mod_) :object))
+
+;;; PRINTER
+
+(defun print-module-object (obj stream &rest ignore)
+  (declare (ignore ignore)
+	   (type module obj)
+	   (type stream stream)
+	   (values t))
+  (if (or (module-is-inconsistent obj)
+	  (null (module-name obj)))
+      (format stream ":module[\"~a\"]" (module-name obj))
+    (cond ((module-is-object obj)
+	   (format stream ":mod![\"~a\"]" (module-print-name obj)))
+	  ((module-is-theory obj)
+	   (format stream ":mod*[\"~a\"]" (module-print-name obj)))
+	  (t (format stream ":mod[\"~a\"]" (module-print-name obj))))))
 
 ;;; ****
 ;;; VIEW _______________________________________________________________________
@@ -634,7 +574,7 @@
 
 (defun print-view-struct-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (format stream "#<view ~a: ~s => ~s | ~s>"
+  (format stream ":view[~a: ~s => ~s | ~s]"
 	  (view-struct-name obj)
 	  (view-struct-src obj)
 	  (view-struct-target obj)

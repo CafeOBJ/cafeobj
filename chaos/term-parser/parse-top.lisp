@@ -369,7 +369,7 @@
 ;;; parse-convert : term -> term'
 ;;;
 (defun parse-convert (term
-		      &optional (module (or *current-module* *last-module*)))
+		      &optional (module (get-context-module)))
   ;; #define macro expand
   (when *macroexpand*
     (setq term (expand-macro term module)))
