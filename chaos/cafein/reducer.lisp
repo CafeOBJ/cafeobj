@@ -42,26 +42,33 @@
 ;;; REDUCER
 ;;; provides term rewriting eclosed within computing environment.
 ;;; ========
+(declaim (inline begin-parse end-parse time-for-parsing-in-seconds
+		 begin-rewrite end-rewrite time-for-rewriting-in-seconds
+		 number-metches number-rewritings number-memo-hits
+		 clear-rewriting-fc prepare-term reset-rewrite-counters
+		 prepare-reduction-env reducer reducer-no-stat))
 
-(let (*m-pattern-subst*
-      .rwl-context-stack.
-      .rwl-states-so-far.
-      *rewrite-exec-mode*
-      *rewrite-semantic-reduce*
-      $$mod
-      *steps-to-be-done*
-      $$matches
-      *perform-on-demand-reduction*
-      *rule-count*
-      *term-memo-hash-hit*
-      $$term
-      $$target-term
-      $$norm
-      *do-empty-match*
-      parse-begin-time
-      time-for-parsing
-      rewrite-begin-time
-      time-for-rewriting)
+
+(let ((*m-pattern-subst* nil)
+      (.rwl-context-stack. nil)
+      (.rwl-states-so-far. 0)
+      (*rewrite-exec-mode* nil)
+      (*rewrite-semantic-reduce* nil)
+      ($$mod nil)
+      (*steps-to-be-done* 0)
+      ($$matches 0)
+      (*perform-on-demand-reduction* nil)
+      (*rule-count* 0)
+      (*term-memo-hash-hit* 0)
+      ($$term nil)
+      ($$cond nil)
+      ($$target-term nil)
+      ($$norm nil)
+      (*do-empty-match* nil)
+      (parse-begin-time 0)
+      (time-for-parsing 0.0)
+      (rewrite-begin-time 0)
+      (time-for-rewriting 0.0))
   (declare (special *m-pattern-subst*
 		    .rwl-context-stack.
 		    .rwl-states-so-far.
@@ -75,16 +82,17 @@
 		    *term-memo-hash-hit*
 		    $$target-term
 		    $$term
+		    $$cond
+		    $$target-term
 		    $$norm
 		    *do-empty-match*))
   (declare (type (or null t) *perform-on-demand-reduction* *do-empty-match*)
 	   (type fixnum *steps-to-be-done* $$matches *rule-count* .rwl-states-so-far.
 		 *term-memo-hash-hit*)
 	   (type list *m-pattern-subst* .rwl-context-stack.)
-	   (type module $$mod)
+	   (type (or null module) $$mod)
 	   (type integer parse-begin-time rewrite-begin-time)
-	   (type float time-for-parsing time-for-rewriting)
-	   (type term $$term $$target-term $$norm))
+	   (type float time-for-parsing time-for-rewriting))
 
   (defun begin-parse ()
     (setf parse-begin-time (get-internal-run-time)))
@@ -115,7 +123,20 @@
   (defun number-memo-hits ()
     *term-memo-hash-hit*)
 
+  ;; 
+  (defun clear-rewriting-fc (module mode)
+    (setf *m-pattern-subst* nil
+	  .rwl-context-stack. nil
+	  .rwl-sch-context. nil
+	  .rwl-states-so-far. 0
+	  *steps-to-be-done* 1
+	  *do-empty-match* nil
+	  *rewrite-exec-mode* (or (eq mode :exec) (eq mode :exec+))
+	  *rewrite-semantic-reduce* (and (eq mode :red)
+					 (module-has-behavioural-axioms module))))
+
   ;; prepare-term
+  ;; NOTE: this always record the time cosumed for parsing the given term.
   (defun prepare-term (pre-term module)
     (declare (type module module))
     ;; be ready for parsing
@@ -139,43 +160,42 @@
     $$target-term)
 
   ;; reset-rewrite-counters
+  ;; initialize rewriting counters.
   (defun reset-rewrite-counters ()
     (setf $$matches 0
 	  *rule-count* 0
 	  *term-memo-hash-hit* 0))
 
+  ;; reset-term-memo-table
+  (defun reset-term-memo-table (module)
+    (unless (eq module (get-context-module))
+      (clear-term-memo-table *term-memo-table*)))
+
   ;; prepare-reduction-env
-  ;; setup environment variables.
+  ;; all-in-one proc for setting up environment variables for rewriting,
+  ;; returns evaluated 'context-module'.
   (defun prepare-reduction-env (term context-module mode stat-reset)
     (let ((module (if (module-p context-module)
 		      context-module
+		    ;; we got a module expression
 		    (eval-modexp context-module))))
       (unless (module-p module)
 	(with-output-chaos-error ('invalid-context)
 	  (format t "Invalid context module ~s" context-module)))
-
-      ;; initialize term memo iff proposed rewrring context is different with the current.
-      (unless (eq module (get-context-module))
-	(clear-term-memo-table *term-memo-table*))
+      ;; initialize term memo iff proposed rewring context is different from the current one.
+      (reset-term-memo-table module)
       ;; setup target term
       (prepare-term term module)
       ;; reset statistics
       (when stat-reset (reset-rewrite-counters))
-      ;; set up various flags and counters
-      (setf *m-pattern-subst* nil
-	    .rwl-context-stack. nil
-	    .rwl-sch-context. nil
-	    .rwl-states-so-far. 0
-	    *steps-to-be-done* 1
-	    *do-empty-match* nil
-	    *rewrite-exec-mode* (or (eq mode :exec) (eq mode :exec+))
-	    *rewrite-semantic-reduce* (and (eq mode :red)
-					   (module-has-behavioural-axioms module)))
+      ;; set up various flags and counters used in rewriting process
+      (clear-rewriting-fc module mode)
+      ;; returns the evaluated context module
       module))
     
   ;; generate-statistics-form
   (defun generate-statistics-form ()
-    (let (stat-form)
+    (let ((stat-form ""))
       (declare (type string stat-form))
       (setq stat-form
     	(format nil "(~a sec for parse, ~a sec for ~d rewrites + ~d matches"
@@ -189,7 +209,7 @@
 		     (format nil ", ~d memo hits)" (number-memo-hits))))))
   
   (defun generate-statistics-form-rewriting-only ()
-    (let (stat-form)
+    (let ((stat-form ""))
       (declare (type string stat-form))
       (setf stat-form
     	(format nil "(consumed ~a sec, including ~d rewrites + ~d matches"

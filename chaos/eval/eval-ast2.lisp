@@ -135,7 +135,6 @@
 	term				; target term
 	stat-form			; statistics in string 
 	term-form)			; normalized term in string form
-    (declare (type string stat-form term-form))
     ;; prepare rewriting context
     (when (or (null mod) (modexp-is-error mod))
       (if mod

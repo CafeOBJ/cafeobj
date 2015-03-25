@@ -570,13 +570,6 @@
 ;;; ****************
 
 (defun if-binding-should-be-printed (sch-context)
-  #||
-  (when *cexec-debug*
-    (format t "~%++ checking print or not:~%  if = ~s, current depth = ~d, max = ~d"
-	    (rwl-sch-context-if sch-context)
-	    (rwl-sch-context-cur-depth sch-context)
-	    (rwl-sch-context-max-depth sch-context)))
-  ||#
   (and (rwl-sch-context-if sch-context)
        (<= (rwl-sch-context-cur-depth sch-context) (rwl-sch-context-max-depth sch-context))))
 

@@ -83,10 +83,7 @@
     (let ((*print-indent* (+ 2 *print-indent*)))
       (dolist (tg (beh-stuff-targets obj))
 	(print-next)
-	(print-chaos-object tg)))
-    ))
-
-;;; (defvar *beh-debug* nil)
+	(print-chaos-object tg)))))
 
 (defun construct-beh-stuff (module)
   (declare (type module module)
@@ -123,23 +120,7 @@
 		(push attr (beh-stuff-attributes beh)))))
 	  ;;
 	  (when (beh-stuff-attributes beh)
-	    (push beh beh-list))
-
-	  #||
-	  (if (or (null (beh-stuff-methods beh))
-		  (null (beh-stuff-attributes beh)))
-	      (progn
-		(unless (beh-stuff-methods beh)
-		  (with-output-chaos-warning ()
-		    (princ "there are no methods defined on hidden sort ")
-		    (print-sort-name s module)))
-		(unless (beh-stuff-attributes beh)
-		  (with-output-chaos-warning ()
-		    (princ "there are no attributes defined on hidden sort ")
-		    (print-sort-name s module))))
-	      (push beh beh-list))
-	  ||#
-	  ))
+	    (push beh beh-list))))
       ;;
       (add-beh-equivalence module beh-list)
       ;;
@@ -173,20 +154,13 @@
 			(make-variable-term hs '|hs2|)))
       (setq pvars (list (make-pvariable-term hs '|`phs-1|)
 			  (make-pvariable-term hs '|`phs-2|)))
-      #||
-      (setq pvars (list (make-variable-term hs '|phs-1|)
-			(make-variable-term hs '|phs-2|)))
-      ||#
-      ;; cond (hs1 =*= hs2)
       (setq cond (make-term-with-sort-check *beh-equal* hvars))
-      ;;
       (dolist (attr attributes)
 	(let ((arity (method-arity attr)))
 	  ;; first, make general axiom for each attributes.
 	  ;; ceq attr(t,d) = attr(t',d) if t =*= t'.
 	  ;; *NOTE* This is redundant, seems useless.
 	  ;;        we omit this now. Mon Mar  9 23:05:16 JST 1998
-	  ;;
 	  (setq hs-pos (position-if #'(lambda (x) (sort-is-hidden x))
 				    arity))
 	  (setq lhs-args
@@ -208,20 +182,6 @@
 	  (setq rhs (make-term-with-sort-check attr rhs-args))
 	  ;; ax  : ceq attr(t,d) = attr(t',d) if t =*= t'.
 	  ;; *NOTE* we don't introduce this now, see the above note.
-	  #||--------------------omit-------------------
-	  (setq ax
-		(check-axiom-error-method module
-					  (make-rule :lhs lhs
-						     :rhs rhs
-						     :condition cond
-						     :type ':equation
-						     ;; :kind ':beh-equiv
-						     )))
-	  ;; we can always introcude this axiom.
-	  (adjoin-axiom-to-module module ax)
-	  (push ax (beh-stuff-axioms hma))
-	  -----------------------omit------------------ ||#
-	  ;;
 	  ;; make assumption used for prove congruence relation at the later stage.
 	  ;; eq attr(t,d) = attr(t',d)
 	  ;; NOTE: uses psuedo constants.
@@ -234,15 +194,7 @@
 			      (make-pvariable-term x
 						   (intern (format nil
 								     "`pvs~D"
-								     (incf var-num)))
-						     )
-			      #||
-			      (make-variable-term x
-						  (intern (format nil
-								  "vs~D"
-								  (incf var-num))))
-			      ||#
-			      ))
+								     (incf var-num))))))
 			arity))
 	  (setf rhs-args (copy-list lhs-args))
 	  (setf (nth hs-pos rhs-args) (cadr pvars))
@@ -280,8 +232,7 @@
 						   :type ':equation
 						   ;; :kind ':beh-equiv-theorem
 						   )))
-	(setf (beh-stuff-theorem hma) ax)	
-	)
+	(setf (beh-stuff-theorem hma) ax))
       ;; make terms to be evaluated to true in proof.
       (when methods
 	;; for each methods
@@ -293,38 +244,16 @@
 			      (if (sort-is-hidden x)
 				  (car pvars)
 				(make-pvariable-term x
-				(intern (format nil
-								       "`bpvs~D"
-								       (incf
-									var-num))))
-				#||
-				(make-variable-term x
-						    (intern (format nil
-								    "bvs~D"
-								    (incf
-								     var-num))))
-				||#
-				))
+				(intern (format nil "`bpvs~D"
+						(incf
+						 var-num))))))
 			  marity))
 	    (setq rhs-args (copy-list lhs-args))
 	    (setf (nth mhpos rhs-args) (cadr pvars))
 	    (Setq lhs (make-term-with-sort-check bmeth lhs-args))
 	    (setq rhs (make-term-with-sort-check bmeth rhs-args))
 	    (push (make-term-with-sort-check *beh-equal* (list lhs rhs))
-		  (beh-stuff-targets hma)))))
-      )))
-
-;;;
-;;; now defined in globals.lisp
-;;; (declaim (special *beh-proof-in-progress*))
-;;; (defvar *beh-proof-in-progress* nil)
-
-#||
-(let ((.beh-proof-mod-num. 0))
-  (defun make-beh-proof-mod-name ()
-    ;; (format nil " % % -~d" (incf .beh-proof-mod-num.))
-    " % % " ))
-||#
+		  (beh-stuff-targets hma))))))))
 
 (defun make-beh-proof-mod-name () " % % " )
 
@@ -373,8 +302,7 @@
 					     proof-mod
 					     as)))
 		  (set-needs-rule proof-mod)
-		  (compile-module proof-mod)
-		  )
+		  (compile-module proof-mod))
 		;;
 		(when *chaos-verbose*
 		  (with-output-simple-msg ()
@@ -411,20 +339,15 @@
 		    (when *chaos-verbose*
 		      (with-output-simple-msg ()
 			(print-next)
-			(princ "==> success!")))
-		    )
+			(princ "==> success!"))))
 		  (if failed
 		      (progn (setq fail t) (return))
-		    (push t-pos proved))
-		  )))
+		    (push t-pos proved)))))
 	    ;; done for a beh-stuff
 	    )
 	  ;; done for each beh-stuff
 	  ))
-      (clean-up-module proof-mod)		; dont need no more 
-      ;; 
-      ;; (eval-close-module)
-      )
+      (clean-up-module proof-mod))
     ;; we assert proved theorem in module
     (let ((real-ths (module-beh-stuff module)))
       (if fail
@@ -475,20 +398,10 @@
 		  (adjoin-axiom-to-module module
 					  (check-axiom-error-method
 					   module
-					   (beh-stuff-theorem th)))
-		  )
-		))
-	    (set-needs-rule module)
-	    )))
-    ))
+					   (beh-stuff-theorem th))))))
+	    (set-needs-rule module))))))
 
 (defun beh-rewrite (term mod)
-  (let (($$term term)
-	(*rule-count* 0)
-	(*perform-on-demand-reduction* t)
-	(*rewrite-semantic-reduce* (module-has-behavioural-axioms mod)))
-    (declare (special $$term)
-	     (special *rewrite-semantic-reduce*))
-    (rewrite term mod)))
+  (reducer term mod :red))
 
 ;;; EOF

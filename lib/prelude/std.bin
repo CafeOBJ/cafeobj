@@ -37,8 +37,7 @@
 (eval-when (:execute :load-toplevel)
 ;;; system standard prelude.
 (setq *include-bool* t)
-(setf *last-module* nil
-      *current-module* nil)
+(setf *current-module* nil)
 (setf *print-circle* nil)
 (setf *print-pretty* nil)
 (install-prelude)

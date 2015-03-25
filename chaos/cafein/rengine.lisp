@@ -265,7 +265,7 @@
    (incf *rule-count*)
    (term-replace old new))
 
-(declaim (special *m-pattern-subst*))
+(declaim (special *m-pattern-subst* $$cond))
 
 (defun !apply-one-rule (rule term &aux (applied nil))
   (declare (type axiom rule)
