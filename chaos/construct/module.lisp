@@ -79,9 +79,6 @@
     (setf (module-creation-date mod) (get-universal-time))
     mod))
 
-;;; ***************
-;;;
-
 ;;; other useful accessors
 (defun module-all-methods (mod &optional (no-error-methods t))
   (let ((ops (module-all-operators mod))
@@ -118,19 +115,7 @@
   (setf (module-protected-modules module)
 	(do-compute-protected-modules module)))
 
-#|
-(defun do-compute-protected-modules (module)
-  (declare (type module module)
-	   (values list))
-  (let ((res nil))
-    (dolist (mp (module-all-submodules module) res)
-      (if (eq ':protecting (cdr mp))
-	  (pushnew (car mp) res :test #'eq)
-	  (if (member (car mp) res)
-	      (setq res
-		(delete (car mp) res)))))))
-|#
-
+;;; TODO
 (defun do-compute-protected-modules (module)
   (declare (type module module)
 	   (values list))
@@ -140,8 +125,6 @@
 ;;;
 ;;; AUTOMATIC DEPENDENCY CHECK --> RECONSTRUCTION
 ;;;
-;;; (defvar *on-change-debug* nil)
-
 (defun reconstruct-module-if-need (module)
   (declare (type module module)
 	   (values module))
@@ -280,41 +263,6 @@
 ;;;
 (defvar *do-=*=-proof* t)
 
-#||
-(defun compile-module (module &optional (force nil))
-  (declare (type module module)
-	   (type (or null t) force)
-	   (values t))
-  (prepare-for-parsing module force)
-  ;; evaluate postponed psort decl.
-  (when (module-psort-declaration module)
-    (eval-psort-declaration (module-psort-declaration module) module))
-  ;;
-  (when (or force (need-rewriting-preparation module))
-    (compile-module-internal module)
-    (when *do-=*=-proof*
-      (try-beh-proof-in module))
-    )
-  (when (need-rewriting-preparation module)
-    (with-in-module (module)
-      (generate-rewrite-rules module)
-      (mapc #'(lambda (opinfo)
-		(compute-rew-strategy module opinfo)
-		(fix-strategy-and-rules module opinfo))
-	    (module-all-operators module))
-      (when (and *check-compatibility*
-		 (not (module-is-theory module)))
-	(when (check-compatibility module)
-	  (with-output-chaos-warning ()
-	    (princ "TRS of module ")
-	    (print-mod-name module)
-	    (princ "is not compatible.")
-	    (print-next)
-	    (princ "please try `check compatible' command for details."))))
-      ;;
-      (mark-module-ready-for-rewriting module))))
-||#
-
 (defun compile-module (module &optional (force nil))
   (declare (type module module)
 	   (type (or null t) force)
@@ -340,10 +288,8 @@
   module)
 
 (defun !setup-reduction (mod)
-  (declare (type module mod)
-	   (values t))
-  (compile-module mod)
-  )
+  (declare (type module mod))
+  (compile-module mod))
 
 (defun final-setup (module)
   (declare (type module module)
@@ -394,13 +340,7 @@
 			       lab
 			       ax)))))
     ;; set status.
-    (mark-module-ready-for-rewriting module)
-    ;; 
-    #||
-    (when (featurep :bigpink)
-      (create-module-psystem module))
-    ||#
-    ))
+    (mark-module-ready-for-rewriting module)))
 
 (defun check-behavioural-rules (module)
   (declare (type module module)
@@ -437,9 +377,7 @@
 	  (compute-rule-method (cdr rule-pair)))
 	(when clean
 	  (setf (module-terms-to-be-fixed module) nil
-		(module-axioms-to-be-fixed module) nil))
-	;;
-	))))
+		(module-axioms-to-be-fixed module) nil))))))
 
 (defun fix-rewrite-rules (module)
   (declare (type module module)
@@ -474,45 +412,7 @@
 		     (format t "the sort ")
 		     (print-chaos-object s)
 		     (princ " is in a cycle."))))
-	     *current-sort-order*)
-    
-    #||
-    ;; checks theory is proper for operators. not complete.
-    (dolist (op-info (module-all-operators module))
-      (dolist (meth (opinfo-methods op-info))
-	(let ((thy (method-theory meth))
-	      (coarity (method-coarity meth))
-	      (arity (method-arity meth)))
-	  (when (theory-contains-associativity thy)
-	    (unless (and (= (length arity) 2) ; redundant ...
-			 (sort<= coarity (car arity))
-			 (sort<= coarity (cadr arity)))
-	      (with-output-chaos-warning ()
-		(princ "associative operator ")
-		(print-chaos-object meth)
-		(princ " has bad rank!"))))
-
-	  ;; the following is redundant, more strong restrictive check is
-	  ;; done elsewhere.
-
-	  (when (theory-contains-commutativity thy)
-	    (unless (and (= (length arity) 2)
-			 (is-in-same-connected-component* (car arity) (cadr arity)))
-	      (with-output-chaos-warning ()
-		(princ "commutative operator ")
-		(print-chaos-object meth)
-		(princ " has bad rank!"))))
-
-	  ;; identity, ??
-
-	  (when (theory-contains-identity thy)
-	    (unless (= (length arity) 2)
-	      (with-output-chaos-warning ()
-		(princ "operator with identity ")
-		(print-chaos-object meth)
-		(princ " has bad rank!")))))))
-    ||#
-    ))
+	     *current-sort-order*)))
 
 ;; *todo* must re-import iff necessary.
 ;;
@@ -536,8 +436,7 @@
 		   (module-theorems mod) :test #'eq))
 	(dolist (rl (module-rules pmod))
 	  (pushnew (check-axiom-error-method mod rl)
-		   (module-theorems mod) :test #'eq))
-	))))
+		   (module-theorems mod) :test #'eq))))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; DELETING MODULES/VIEWS
@@ -565,12 +464,7 @@
 	  (some #'(lambda (sm)
 		    (or (eq x (car sm))
 			(modexp-is-submodule-of x (car sm))))
-		(module-submodules y))
-	  )))
-
-;;;
-;;;
-;;;
+		(module-submodules y)))))
 
 (defun propagate-module-change (x)
   (declare (type module x)
@@ -581,8 +475,7 @@
   (let ((exobj (object-all-exporting-objects x)))
     (clean-up-sub-objects exobj))
   (delete-parameters x)
-  (delete-object-from-assoc-table *modexp-eval-table* x)
-  )
+  (delete-object-from-assoc-table *modexp-eval-table* x))
 
 (defun delete-parameters (x)
   (declare (type module x)
@@ -636,8 +529,7 @@
 		(t (with-output-panic-message ()
 		     (format t "unknown type of exporting object : ")
 		     (prin1 object)
-		     (chaos-error 'panic))))
-	  )))))
+		     (chaos-error 'panic)))))))))
 
 (defun delete-module (x)
   (declare (type module x)
@@ -650,8 +542,7 @@
   (delete-object-from-assoc-table *modules-so-far-table* x)
   (delete-object-from-assoc-table *modexp-eval-table* x)
   (delete-parameters x)
-  (clean-up-module x)
-  )
+  (clean-up-module x))
 
 (defun delete-view (x)
   (declare (type view-struct x)
@@ -659,7 +550,6 @@
   (when (null (view-name x))
     (return-from delete-view nil))
   (delete-object-from-assoc-table *modexp-view-table* x)
-  (clean-up-view x)
-  )
+  (clean-up-view x))
 
 ;;; EOF

@@ -2213,6 +2213,7 @@
 		    ;;
 		    (set-method-theory lower
 				       newthy
+				       *current-opinfo-table*
 				       t)))))))))))
 
 ;;; EOF

@@ -478,6 +478,8 @@ File: basics.lisp
 ;;;
 ;;; FOR :=
 ;;;
+(declaim (special *m-pattern-subst*))
+
 (defun match-m-pattern (pat term)
   (multiple-value-bind (res subst)
       (@pat-match pat term)

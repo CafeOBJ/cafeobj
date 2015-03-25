@@ -141,11 +141,9 @@
 						    (:file "mimport")
 						    ))
 			      (:module cafein
-				       :components (;; (:file "apply-rule")
-						    (:file "rengine")
+				       :components ((:file "rengine")
 						    (:file "cbred")
-						    ;; (:file "rdebug")
-						    ;; (:file "trs")
+						    (:file "reducer")
 						    ))
 			      (:module tools
 				       :components ((:file "regcheck")

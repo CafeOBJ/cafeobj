@@ -95,8 +95,7 @@
                    (if (boundp form)
                        form
                      (with-output-chaos-error ('invalid-lisp-form)
-                       (format t "unbound Lisp symbol \"~a\"." form)
-                       ))
+                       (format t "unbound Lisp symbol \"~a\"." form)))
                  form))))
     (eval form)))
 
@@ -129,132 +128,63 @@
     (perform-reduction* preterm modexp mode result-as-text)))
 
 (defun perform-reduction* (preterm &optional modexp mode (result-as-text nil))
-  ;; (setq $$trials 1)
-  (setq *m-pattern-subst* nil)
-  ;;
-  (setq .rwl-context-stack. nil)
-  (setq .rwl-sch-context. nil)
-  (setq .rwl-states-so-far. 0)
-  ;;
-  (let ((*consider-object* t)
-        (*rewrite-exec-mode* (or (eq mode :exec)
-                                 (eq mode :exec+)))
-        (*rewrite-semantic-reduce* nil)
-        sort
-        time1
-        time2
-        (time-for-parse nil)
-        (time-for-reduction nil)
-        (number-matches nil))
-    (let ((mod (if modexp 
-                   (eval-modexp modexp)
-		 (get-context-module))))
-      (unless (eq mod (get-context-module))
-        (clear-term-memo-table *term-memo-table*))
-      (if (or (null mod) (modexp-is-error mod))
-          (if (null mod)
-              (with-output-chaos-error ('no-context)
-                (princ "no module expression provided and no selected(current) module."))
-            (with-output-chaos-error ('no-such-module)
-              (princ "incorrect module expression, no such module ")
-              (print-chaos-object modexp)))
-        (progn
-          (context-push-and-move (get-context-module) mod)
-	  (when *auto-context-change*
-	    (change-context (get-context-module) mod))
-          (with-in-module (mod)
-            (!setup-reduction mod)
-            (setq $$mod *current-module*)
-            (setq sort *cosmos*)
-            (when *show-stats* (setq time1 (get-internal-run-time)))
-            (setq *rewrite-semantic-reduce*
-              (and (eq mode :red)
-                   (module-has-behavioural-axioms mod)))
-            ;;
-            (let* ((*parse-variables* nil)
-                   (term (simple-parse *current-module* preterm sort)))
-              (when (or (null (term-sort term))
-                        (sort<= (term-sort term) *syntax-err-sort* *chaos-sort-order*))
-                (return-from perform-reduction* nil))
-              (when *rewrite-stepping* (setq *steps-to-be-done* 1))
-              (when *show-stats*
-                (setq time2 (get-internal-run-time))
-                (setf time-for-parse
-                  (format nil "~,3f sec"
-                          (elapsed-time-in-seconds time1 time2))))
-              (unless *chaos-quiet*
-                (flush-all)
-                (if (eq mode :exec)     ; *rewrite-exec-mode*
-                    (format t "~%-- execute in ")
-                  (if (eq mode :exec+)
-                      (format t "~%-- execute! in ")
-                    (if (eq mode :red)
-                        (format t "~%-- reduce in ")
-                      (format t"~%-- behavioural reduce in "))))
-                (print-simple-mod-name *current-module*)
-                (princ " : ")
-                (let ((*print-indent* (+ 4 *print-indent*)))
-                  (print-check 0 20)
-                  (term-print-with-sort term))
-                (flush-all))
-              ;; ******** 
-              (reset-target-term term (get-context-module) mod)
-              ;; ********
-              (setq $$matches 0)
-              (setq time1 (get-internal-run-time))
-              (let ((*perform-on-demand-reduction* t)
-                    (*rule-count* 0))
-                (let ((res nil))
-                  (catch 'rewrite-abort
-                    (let ((*do-empty-match* nil)) ; t
-                      (if (and *rewrite-exec-mode*
-                               *cexec-normalize*)
-                          (rewrite-exec term *current-module* mode)
-                        (rewrite term *current-module* mode))))
-                  (setq res $$term)
-                  (when *mel-sort*
-                    (setq res (setq $$term (apply-sort-memb res mod))))
-                  ;;
-                  (setq time2 (get-internal-run-time))
-                  (setf time-for-reduction
-                    (format nil "~,3f sec"
-                            (elapsed-time-in-seconds time1 time2)))
-                  (setf number-matches $$matches)
-                  (setq $$matches 0)
-                  (setq $$norm res)
-                  ;; print out the result.
-                  (if result-as-text
-                      (let ((red-term (term-print-with-sort-string res))
-                            (stat
-                             (if *show-stats*
-                                 (concatenate
-                                     'string
-                                   (format nil
-                                           "~%(~a for parse, ~s rewrites(~a), ~d matches"
-                                           time-for-parse
-                                           *rule-count*
-                                           time-for-reduction
-                                           number-matches)
-                                   (if (zerop *term-memo-hash-hit*)
-                                       (format nil ")~%")
-                                     (format nil ", ~d memo hits)~%"
-                                             *term-memo-hash-hit*)))
-                               "")))
-                        (return-from perform-reduction* (values red-term stat)))
-                    (progn
-                      (terpri)(term-print-with-sort res)
-                      (when *show-stats*
-                        (format t "~%(~a for parse, ~s rewrites(~a), ~d matches"
-                                time-for-parse
-                                *rule-count*
-                                time-for-reduction
-                                number-matches)
-                        (if (zerop *term-memo-hash-hit*)
-                            (format t ")~%")
-                          (format t ", ~d memo hits)~%"
-                                  *term-memo-hash-hit*)))
-                      (flush-all)))))))
-          (context-pop-and-recover))))))
+  (let ((result nil)			; normalized term
+	(mod (if modexp			; context of rewriting
+		 (eval-modexp modexp)
+	       (get-context-module)))
+	term				; target term
+	stat-form			; statistics in string 
+	term-form)			; normalized term in string form
+    (declare (type string stat-form term-form))
+    ;; prepare rewriting context
+    (when (or (null mod) (modexp-is-error mod))
+      (if mod
+	  (with-output-chaos-error ('no-such-module)
+	    (princ "Incorrect module expression, no such module ")
+	    (print-chaos-object modexp))
+	(with-output-chaos-error ('no-context)
+	  (princ "No module expression provided, and no selected (current) module."))))
+    ;; parse target term 
+    (setq term (prepare-term preterm mod))
+    ;; set rewrting context
+    (context-push-and-move (get-context-module) mod)
+    (when *auto-context-change*
+      (change-context (get-context-module) mod))
+    ;; print out prelude message
+    (unless *chaos-quiet*
+      (with-in-module (mod)
+	(format t "~%-- ~a in " (if (eq mode :exe)
+				    "execute"
+				  (if (eq mode :exe+)
+				      "execute!"
+				    (if (eq mode :red)
+					"reduce"
+				      "bhavioral reduce"))))
+	(print-simple-mod-name mod)
+	(princ " : ")
+	(let ((*print-indent* (+ 4 *print-indent*)))
+	  (print-check 0 20)
+	  (term-print-with-sort term))
+	(flush-all)))
+    ;; do the rewriting
+    (setq result (reducer term mod mode))
+    ;; print out the resultant term
+    (with-in-module (mod)
+      (if result-as-text
+	  (setq term-form (term-print-with-sort-string result))
+	(progn
+	  (format t "~&")
+	  (term-print-with-sort result))))
+    (when *show-stats*
+      (setf stat-form (generate-statistics-form))
+      (format t "~%~a" stat-form)
+      (flush-all))
+    ;; reset the context
+    (context-pop-and-recover)
+    ;; done all
+    (if result-as-text
+	(values term-form stat-form)
+      nil)))
 
 (defun perform-meta-reduction (pre-term &optional modexp mode)
   (let ((*rewrite-exec-mode* (or (eq mode :exec)

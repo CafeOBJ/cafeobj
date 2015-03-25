@@ -167,15 +167,17 @@
 (declaim (special *beh-rewrite*)
 	 (type (or null (not null)) *beh-rewrite*))
 (defvar *beh-rewrite* nil)
-(declaim (type fixnum *rule-count*))
-(defvar *rule-count* 0)
+(declaim (type fixnum *rule-count*)
+	 (special *rule-count*))
+;; (defvar *rule-count* 0)
 (defvar *show-stats* t)
 (defvar *try-try* nil)
 (defvar *reduce-conditions* nil)
 (declaim (type fixnum $$trials))
 (defvar $$trials 1)
-(declaim (type fixnum $$matches))
-(defvar $$matches 0)
+(declaim (type fixnum $$matches)
+	 (special $$matches))
+;; (defvar $$matches 0)
 (defvar *on-reduction* t)
 (defvar *reduce-builtin-eager* nil)
 ;; (declaim (type fixnum *condition-trial-limit*))
@@ -190,7 +192,7 @@
 ;;; (defvar *mel-reduce* nil)
 
 ;;; :=
-(defvar *m-pattern-subst* nil)
+;;; (defvar *m-pattern-subst* nil)
 
 ;; memoization
 (defvar *memo-rewrite* t)		; use memo mechanism

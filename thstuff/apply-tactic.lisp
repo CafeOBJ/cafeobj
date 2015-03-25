@@ -76,15 +76,19 @@
 ;;; copy rule with all variables are renewed and noralized.
 ;;;
 (defun rule-copy-canonicalized (rule module)
-  (let* ((new-rule (rule-copy rule))
-	 (canon (canonicalize-variables (list (rule-lhs new-rule)
-					      (rule-rhs new-rule)
-					      (rule-condition new-rule))
-					module)))
-    (setf (rule-lhs new-rule) (first canon)
-	  (rule-rhs new-rule) (second canon)
-	  (rule-condition new-rule) (third canon))
-    new-rule))
+  (with-in-module (module)
+    (with-citp-debug ()
+      (format t "[rule-copy]")
+      (print-axiom-brief rule))
+    (let* ((new-rule (rule-copy rule))
+	   (canon (canonicalize-variables (list (rule-lhs new-rule)
+						(rule-rhs new-rule)
+						(rule-condition new-rule))
+					  module)))
+      (setf (rule-lhs new-rule) (first canon)
+	    (rule-rhs new-rule) (second canon)
+	    (rule-condition new-rule) (third canon))
+      new-rule)))
 
 ;;;
 ;;; apply-substitution-to-axiom : subst axiom [label] [add] -> axiom'
@@ -191,25 +195,22 @@
 (defun normalize-term-in (module term &optional (reduction-mode :red))
   (let ((applied? nil)
 	(targets nil)
-	(rule-count-save *rule-count*))
+	(rule-count-save (number-rewritings)))
     (if (term-variables term)
 	(setq targets (get-gterms term))
       (setq targets (list term)))
     (if targets
-	(with-in-module (module)
+	(progn
 	  (dolist (gt targets)
 	    (block next
 	      (when (term-is-reduced? gt) 
 		(return-from next nil))
-	      (let ((*perform-on-demand-reduction* t)
-		    (*rewrite-exec-mode* (eq reduction-mode :exec)))
-		(rewrite gt *current-module* reduction-mode)
-		(unless (= rule-count-save *rule-count*)
-		  (setq applied? t)))))
+	      (reducer-no-stat gt module reduction-mode)
+	      (unless (= rule-count-save (number-rewritings))
+		(setq applied? t))))
 	  (values term applied?))
       (values term nil))))
 
-;;;
 ;;; normalize-sentence : axiom module -> axiom' Bool
 ;;; normalize an axiom by reduction, returns the result.
 ;;; NOTE: given axiom is preserved (not changed).
@@ -541,21 +542,21 @@
 ;;; check-sentence&mark-label : sentence module -> (<result> <normalized-sentence> <origina-sentence>)
 ;;; 
 (defun check-sentence&mark-label (sentence module &optional (report-header nil))
-  (with-in-module (module)
-    (flet ((make-st-label ()
-	     (let ((lbl (or report-header 'st)))
-	       (cons lbl (rule-labels sentence))))
-	   (make-ct-label ()
-	     (let ((lbl (if report-header
-			    (intern (format nil "CT-~A" report-header))
-			  'ct)))
-	       (cons lbl (rule-labels sentence))))
-	   (make-ic-label ()
-	     (let ((lbl (if report-header
-			    (intern (format nil "IC-~A" report-header))
-			  'ic)))
-	       (cons lbl (rule-labels sentence)))))
-      ;;
+  (flet ((make-st-label ()
+	   (let ((lbl (or report-header 'st)))
+	     (cons lbl (rule-labels sentence))))
+	 (make-ct-label ()
+	   (let ((lbl (if report-header
+			  (intern (format nil "CT-~A" report-header))
+			'ct)))
+	     (cons lbl (rule-labels sentence))))
+	 (make-ic-label ()
+	   (let ((lbl (if report-header
+			  (intern (format nil "IC-~A" report-header))
+			'ic)))
+	     (cons lbl (rule-labels sentence)))))
+    ;;
+    (with-in-module (module)
       (let ((target sentence)
 	    (res nil)
 	    (*print-indent* (+ 2 *print-indent*))
@@ -564,30 +565,33 @@
 	(if (check-contradiction module report-header)
 	    (setq res :ct)
 	  (multiple-value-setq (res target)
-	    (sentence-is-satisfied sentence *current-module*)))
+	    (sentence-is-satisfied sentence module)))
 	(when res
 	  ;; discharged by certain reson
 	  (setq sentence (rule-copy-canonicalized sentence *current-module*)))
-	(case res
-	  (:st (when report-header
-		 (format t "~%[~a] discharged: " report-header)
-		 (print-next)
-		 (print-axiom-brief sentence))
-	       (setf (rule-labels sentence) (make-st-label))
-	       (values :st target sentence))
-	  (:ct (when report-header
-		 (format t "~%[~a] discharged: " report-header)
-		 (print-next)
-		 (print-axiom-brief sentence))
-	       (setf (rule-labels sentence) (make-ct-label))
-	       (values :ct target sentence))
-	  (:ic (when report-header
-		 (format t "~%[~a] discharged: " report-header)
-		 (print-next)
-		 (print-axiom-brief sentence))
-	       (setf (rule-labels sentence) (make-ic-label))
-	       (values :ic target sentence))
-	  (otherwise (values nil target sentence)))))))
+	(with-in-module (module)
+	  ;; check how we did dischage.
+	  (case res
+	    (:st (when report-header
+		   (format t "~%[~a] discharged: " report-header)
+		   (print-next)
+		   (print-axiom-brief sentence))
+		 (setf (rule-labels sentence) (make-st-label))
+		 (values :st target sentence))
+	    (:ct (when report-header
+		   (format t "~%[~a] discharged: " report-header)
+		   (print-next)
+		   (print-axiom-brief sentence))
+		 (setf (rule-labels sentence) (make-ct-label))
+		 (values :ct target sentence))
+	    (:ic (when report-header
+		   (format t "~%[~a] discharged: " report-header)
+		   (print-next)
+		   (print-axiom-brief sentence))
+		 (setf (rule-labels sentence) (make-ic-label))
+		 (values :ic target sentence))
+	    ;; could not discharge
+	    (otherwise (values nil target sentence))))))))
 
 ;;;
 ;;; set-operator-rewrite-rule : module axiom -> void
@@ -614,29 +618,27 @@
 
 (defun do-check-sentence (target goal &optional report-header)
   (let ((mod (goal-context goal)))
-    (with-in-module (mod)
-      (multiple-value-bind (result norm-target marked-target)
-	  (check-sentence&mark-label target *current-module* report-header)
-	(cond (result
-	       ;; goal is dischared by some reason
-	       ;; 
-	       )
-	      ((and (is-true? (rule-condition target))
-		    (eq (rule-type target) :equation))
-	       (setf target (rule-copy-canonicalized target *current-module*))
-	       (setf (rule-lhs target) (make-applform-simple *bool-sort*
-							     *eql-op*
-							     (list (rule-lhs target)
-								   (rule-rhs target)))
-		     (rule-rhs target) *bool-true*)
-	       (multiple-value-bind (res-2 norm-target-2 marked-target-2)
-		   (check-sentence&mark-label target *current-module* report-header)
-		 (declare (ignore norm-target-2 marked-target-2))
-		 (when res-2
-		   (setf result res-2))))
-	      (t ;; nothing to do
-	       ))
-	(values result norm-target marked-target)))))
+    (multiple-value-bind (result norm-target marked-target)
+	(check-sentence&mark-label target mod report-header)
+      (cond (result
+	     ;; goal has been dischared already by some reason
+	     )
+	    ((and (is-true? (rule-condition target))
+		  (eq (rule-type target) :equation))
+	     (setf target (rule-copy-canonicalized target mod))
+	     (setf (rule-lhs target) (make-applform-simple *bool-sort*
+							   *eql-op* ; _=_
+							   (list (rule-lhs target)
+								 (rule-rhs target)))
+		   (rule-rhs target) *bool-true*)
+	     (multiple-value-bind (res-2 norm-target-2 marked-target-2)
+		 (check-sentence&mark-label target mod report-header)
+	       (declare (ignore norm-target-2 marked-target-2))
+	       (when res-2
+		 (setf result res-2))))
+	    (t ;; nothing to do
+	     ))
+      (values result norm-target marked-target))))
 
 ;;;
 ;;; try-prove-with-axioms : module List(axiom) axiom : -> { :satisfied | :ct | nil }
@@ -693,62 +695,6 @@
 
 (defun generate-ip-derived-axioms (module axiom)
   (condition->axioms module (axiom-condition axiom) 'ip))
-
-#||
-(defun apply-ip (ptree-node)
-  (declare (type ptree-node ptree-node))
-  (with-in-context (ptree-node)
-    (let ((original-goal (ptree-node-goal ptree-node)))
-      (flet ((push-next-goal (goal)
-	       (unless (eq goal original-goal) (push goal .next-goals.))))
-	(let ((target-goals (distribute-sentences ptree-node .cur-targets. .tactic-ip.)))
-	  (dolist (.cur-goal. target-goals)
-	    (multiple-value-bind (result target otarget)
-		(check-goal-is-satisfied .cur-goal. 'ip)
-	      (declare (ignore otarget))
-	      (if result
-		  ;; discharged by some reason
-		  (push-next-goal .cur-goal.)
-		(cond ((and (not (is-true? (rule-condition target)))
-			    (null (term-variables (rule-condition target))))
-		       ;; t = t' if C
-		       ;; C is a ground term and is not true.
-		       ;; try if (SP + { C } |- t = t') or not..
-		       ;; if this is satisfied, discharge it.
-		       (let ((ngoal (if (eq .cur-goal. original-goal)
-					(prepare-next-goal ptree-node .tactic-ip.)
-				      .cur-goal.)))
-			 (with-in-module ((goal-context ngoal))
-			   (let ((new-axs (generate-ip-derived-axioms *current-module* target))
-				 (next-target (rule-copy-canonicalized target *current-module*)))
-			     ;; make the target
-			     (setf (rule-condition next-target) *bool-true*)
-			     (setf (goal-targets ngoal) (list next-target))
-			     
-			     ;; add [ip] axioms 
-			     (dolist (ax new-axs)
-			       (adjoin-axiom-to-module *current-module* ax)
-			       (set-operator-rewrite-rule *current-module* ax))
-			     (setf (goal-assumptions ngoal) (append (goal-assumptions ngoal) (reverse new-axs)))
-			     ;; compile & check 
-			     (compile-module *current-module* t)
-			     ;; check if introduced axioms can cause true <=> false:
-			     (cond ((check-ct-with-axioms ngoal new-axs 'ip)
-				    (let ((dscd (rule-copy-canonicalized target *current-module*)))
-				      (setf (goal-targets ngoal) nil)
-				      (setf (rule-labels dscd) (list '|CT-ip|))
-				      (setf (goal-proved ngoal) (list dscd))))
-				   (t   ;; check-goal-is-satisfied do all the neccessary things for us.
-				    (check-goal-is-satisfied ngoal 'ip)))
-			     (push-next-goal ngoal)))))
-		      ((is-true? (rule-condition target))
-		       ;; discharged.
-		       (push-next-goal .cur-goal.))
-		      ;; nothig todo. remain the goal as is
-		      (t )))))
-	  ;; done for all goals
-	  (values .next-goals. (nreverse .next-goals.)))))))
-||#
 
 (defun apply-ip (ptree-node)
   (declare (type ptree-node ptree-node))
@@ -1299,41 +1245,24 @@
 ;;; TACTIC: REDUCTION [RD]
 ;;; =======================
 (defun do-apply-rd (cur-goal tactic)
-  (setq *m-pattern-subst* nil)
-  (setq .rwl-context-stack. nil)
-  (setq .rwl-sch-context. nil)
-  (setq .rwl-states-so-far. 0)
-  (let ((*rewrite-exec-mode* nil)
-        (*rewrite-semantic-reduce* nil)
-        (time1 (get-internal-run-time))
-        time2
-        (consumed-time nil)
-	(*perform-on-demand-reduction* t)
-	(*rule-count* 0))
-    (setq $$matches 0)
-    (let ((cur-targets (goal-targets cur-goal))
+  (let ((cur-targets (goal-targets cur-goal))
 	  (reduced-targets nil)
 	  (discharged nil)
 	  (result nil))
       (when cur-targets
-	(with-in-module ((goal-context cur-goal))
-	  (compile-module *current-module* t)
-	  (dolist (target cur-targets)
-	    (multiple-value-bind (c-result cur-target original-sentence)
-		(do-check-sentence target cur-goal tactic)
-	      (cond (c-result		; satisfied or contradition
-		     (setq result t)
-		     (push original-sentence discharged))
-		    (t (push cur-target reduced-targets)))))
-	  (setf (goal-targets cur-goal) (nreverse reduced-targets))
-	  (setf (goal-proved cur-goal) (nreverse discharged))
-	  (unless reduced-targets
-	    (format t "~%[~a] discharged goal ~s." tactic (goal-name cur-goal)))))
-      (setq time2 (get-internal-run-time))
-      (setq consumed-time (format nil "~,4f sec" (elapsed-time-in-seconds time1 time2)))
-      (unless (zerop *rule-count*)
-	(format t "~%[rd] consumed ~a (~d rewrites, ~d matches)" consumed-time *rule-count* $$matches))
-      (values result nil))))
+	(compile-module (goal-context cur-goal) t)
+	(dolist (target cur-targets)
+	  (multiple-value-bind (c-result cur-target original-sentence)
+	      (do-check-sentence target cur-goal tactic)
+	    (cond (c-result		; satisfied or contradition
+		   (setq result t)
+		   (push original-sentence discharged))
+		  (t (push cur-target reduced-targets)))))
+	(setf (goal-targets cur-goal) (nreverse reduced-targets))
+	(setf (goal-proved cur-goal) (nreverse discharged))
+	(unless reduced-targets
+	  (format t "~%[~a] discharged goal ~s." tactic (goal-name cur-goal))))
+      (values result nil)))
   
 (defun apply-rd (ptree-node &optional (tactic 'rd))
   (declare (type ptree-node ptree-node))
@@ -1391,12 +1320,6 @@
 	  (@matcher (axiom-lhs crule) term :match)
 	(declare (ignore eeq sub gs))
 	(unless no-match
-	  #||
-	  (with-citp-debug
-	      (format t "~%[ca] sub has matching rule: ") (print-axiom-brief crule)
-	      (print-next)
-	      (term-print-with-sort gterm))
-	  ||#
 	  (return-from gsubterm-has-matching-rule t)))))
   nil)
 
@@ -1513,18 +1436,6 @@
 						   
 ;;; normalize-cases : List(List(term)) -> List(List(term))'
 ;;;
-
-#||
-(defun find-same-case-in (case l-case)
-  (declare (type list case l-case))
-  (let ((size (length case)))
-    (declare (type fixnum size))
-  (dolist (xc l-case)
-    (when (and (= size (length xc))
-	       (every #'(lambda (x) (find x xc :test #'term-equational-equal)) case))
-      (return-from find-same-case-in xc)))
-  nil))
-||#
 
 (defun find-sub-case-in (case l-case)
   (declare (type list case l-case))
@@ -1859,14 +1770,6 @@
 	(rsubst nil))
     (setq rsubst (make-real-instanciation-subst subst (axiom-variables new-axiom)))
     (apply-substitution-to-axiom rsubst new-axiom '(init))
-    #||
-    (when (axiom-variables new-axiom)
-      (with-output-chaos-error ('not-ground)
-	(format t "Instanciating an axiom, not all variable substitutions are supplied.")
-	(dolist (v (axiom-variables new-axiom))
-	  (print-next)
-	  (term-print-with-sort v))))
-    ||#
     new-axiom))
 
 ;;;
@@ -2145,6 +2048,7 @@
 	(if goal-name
 	    (format t ":~a could not find the goal ~s." mode goal-name)
 	  (format t "No default target goal."))))
+    ;; do rewriting
     (perform-reduction* token-seq (goal-context (ptree-node-goal next-goal-node)) mode)))
 
 ;;; :ctf
@@ -2238,11 +2142,16 @@
       ;; apply implicit rd
       (dolist (ngoal next-goals)
 	(do-apply-rd ngoal 'csp))
+      ;; add generated node as children
       (add-ptree-children ptree-node next-goals)
       (when verbose
 	(dolist (gn (ptree-node-subnodes ptree-node))
 	  (pr-goal (ptree-node-goal gn))))
       (ptree-node-subnodes ptree-node))))
+
+(defun report-citp-stat ()
+  (when *show-stats*
+    (format t "~%~a" (generate-statistics-form-rewriting-only))))
 
 ;;; *****************************************************
 ;;; APPLY-TACTIC
@@ -2301,13 +2210,19 @@
     (unless target
       (format t "~%**> All goals have been proved!")
       (return-from apply-tactics nil))
-    (apply-tactics-to-node target tactics verbose))
-    (check-success ptree))
+    (reset-rewrite-counters)
+    (begin-rewrite)
+    (apply-tactics-to-node target tactics verbose)
+    (end-rewrite)
+    (report-citp-stat)
+    (check-success ptree)))
 
 ;;;
 ;;; apply-auto
 ;;;
 (defun apply-auto (ptree &optional (tactics .default-tactics.) (verbose *citp-verbose*))
+  (reset-rewrite-counters)
+  (begin-rewrite)
   (if (next-proof-target-is-specified?)
       (apply-tactics-to-node (get-next-proof-context ptree) tactics verbose)
     (let ((target-nodes (get-unproved-nodes ptree)))
@@ -2317,6 +2232,8 @@
       (dolist (tactic tactics)
 	(dolist (target-node (get-unproved-nodes ptree))
 	  (apply-tactic target-node tactic verbose)))))
+  (end-rewrite)
+  (report-citp-stat)
   (check-success ptree))
 
 ;;;
@@ -2327,7 +2244,11 @@
     (unless target-node
       (with-output-chaos-error ('no-named-goal)
 	(format t "There is no goal with name ~s." name)))
+    (reset-rewrite-counters)
+    (begin-rewrite)
     (apply-tactics-to-node target-node tactics verbose)
+    (end-rewrite)
+    (report-citp-stat)
     (check-success ptree)))
 
 ;;; EOF

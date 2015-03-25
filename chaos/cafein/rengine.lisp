@@ -42,9 +42,9 @@
 ;;; -------------------
 (defvar .trace-or-step. nil)
 
- ;;; -------
- ;;; MEMOIZE
- ;;; -------
+;;; -------
+;;; MEMOIZE
+;;; -------
 
 (deftype term-hash-key () '(unsigned-byte 29))
 
@@ -86,31 +86,10 @@
 
 #-GCL
 (declaim (inline term-hash-comb))
-
-#||
-(defun term-hash-comb (x y)
-  ;; (declare (type term-hash-key x y))
-  (the term-hash-key
-    (logxor (the term-hash-key (ash x -5))
-	    y
-	    (the term-hash-key
-	      (logand term-hash-mask
-		      (the term-hash-key (ash (logand x 31) 26)))))))
-||#
-
 #-GCL
 (defun term-hash-comb (x y)
   ;; (declare (type term-hash-key x y))
   (the term-hash-key (logand term-hash-mask (logand term-hash-mask (+ x y)))))
-
-;#+GCL
-;(si:define-inline-function term-hash-comb (x y)
-;  (make-and term-hash-mask (+ x y)))
-
-;;; #+GCL
-;;; (si:define-inline-function term-hash-comb (x y)
-;;;   (make-xor (ash x -5) y (ash (make-and x 31) 26))
-;;;  )
 
 ;;;
 ;;; term-hash
@@ -251,20 +230,6 @@
 
 ;;; CHECK BEHAVIOURAL CONTEXT
 
-#||
-(defun check-beh-context (rule target-term)
-   (declare (ignore rule))
-   (or (not (term-is-red target-term))
-       (and *beh-rewrite*
-	    (eq $$term target-term))))
-
-(defmacro beh-context-ok? (rule term)
-   `(if (axiom-is-behavioural ,rule)
-	(check-beh-context ,rule ,term)
-      t))
-
-||#
-
 (defmacro beh-context-ok? (rule term)
    `(if (axiom-is-behavioural ,rule)
 	(or (not (term-is-red ,term))
@@ -300,185 +265,7 @@
    (incf *rule-count*)
    (term-replace old new))
 
-#||
-(defun apply-one-rule-simple (rule term)
-  (declare (type axiom rule)
-	   (type term term)
-	   (values (or null t)))
-  #||
-  (when (rule-non-exec rule)
-    (return-from apply-one-rule-simple nil))
-  ||#
-  ;; ________
-  #||
-  (when (and *rewrite-debug* (err-sort-p (term-sort term)))
-    (format t "~&..ERR_TERM: ")
-    (term-print-with-sort term))
-  ||#
-  ;; ________
-  (setq *cafein-current-rule* rule)
-  ;;
-  (let ((applied nil))
-    (setq applied
-      (block the-end
-	(let* ((condition nil)
-	       (next-match-method nil)
-	       (*self* term)
-	       (builtin-failure nil))
-	  #||
-	  (when *m-pattern-subst*
-	    (term-replace-dd-simple
-	     term
-	     (set-term-color
-	      (substitution-image-simplifying *m-pattern-subst*
-					      term
-					      (rule-need-copy rule))))
-	    (when *rewrite-debug*
-	      (format t "~&[applied *m-pattern-subst*]")
-	      (print-substitution *m-pattern-subst*)
-	      (format t "--> ")
-	      (term-print-with-sort term)))
-	  ||#
-	  (multiple-value-bind (global-state subst no-match E-equal)
-	      (funcall (rule-first-match-method rule) (rule-lhs rule) term)
-	    (incf $$matches)
-	    (when no-match (return-from the-end nil))
-
-	    ;; check behavioural context.
-	    (unless (beh-context-ok? rule term)
-	      (return-from the-end nil))
-	    
-	    ;; technical assignation related to substitution-image.
-	    (when E-equal (setq subst nil))
-
-	    ;; match success
-	    ;; check the rule condition:
-	    (setq condition (rule-condition rule))
-	    (when (and (is-true? condition)
-		       (null (rule-id-condition rule)))
-	      ;; no condition, i.e. condition = true
-	      (setq builtin-failure
-		(catch 'rule-failure
-		  (progn
-		    ;; there is no condition --
-		    ;; rewrite term.
-		    (term-replace-dd-simple
-		     term
-		     ;; NOTE that the computation of the substitution
-		     ;; made a copy of the rhs.
-		     ;; NOTE also, subst... may throw 'rule-failure
-		     ;; with non-nil value meaning failure of applying built-in rule.
-		     (set-term-color
-		      (substitution-image-simplifying subst
-						      (rule-rhs rule)
-						      (rule-need-copy rule))))
-		    ;; return with success
-		    (return-from the-end t)))))
-	    ;; 
-	    (setq next-match-method (rule-next-match-method rule))
-	    ;;
-	    (when builtin-failure
-	      ;; this means that the term contains some variables:
-	      ;; if we are lucky, we may find a successful match.
-	      (loop
-		(multiple-value-setq (global-state subst no-match)
-		  (progn
-		    (incf $$matches)
-		    (funcall next-match-method global-state)))
-		(when no-match
-		  ;; no hope
-		  (return-from the-end nil))
-		;;
-		;; ok try another case:
-		(catch 'rule-failure
-		  (term-replace-dd-simple
-		   term
-		   (set-term-color
-		    (substitution-image-simplifying subst
-						    (rule-rhs rule)
-						    (rule-need-copy rule))))
-		  ;; good!
-		  (return-from the-end t))))
-
-	    ;; this is the case for non-simple condition:
-	    ;; if the condition is not trivial, we enter in a loop
-	    ;; where one try to find a match such that the condition 
-	    ;; is satisfied.
-	    ;; (setq next-match-method (rule-next-match-method rule))
-	    (loop 
-	      (when (and *condition-trial-limit*
-			 (> $$trials *condition-trial-limit*))
-		(with-output-chaos-warning ()
-		  (format t "~&Infinite loop? Evaluating rule condition, exceeds trial limit: ~d" $$trials)
-		  (format t "~%terminates rewriting: ")
-		  (term-print $$term))
-		(chaos-error 'too-deep))
-	      ;;
-	      (catch 'rule-failure
-		(when (and (or (null (rule-id-condition rule))
-			       (rule-eval-id-condition subst
-						       (rule-id-condition rule)))
-			   (is-true? (let (($$cond (set-term-color
-						    (substitution-image-cp subst condition)))
-					   (*rewrite-exec-mode*
-					    (if *rewrite-exec-condition*
-						*rewrite-exec-mode*
-					      nil))
-					   ($$trials (1+ $$trials)))
-				       ;;
-				       (when *rewrite-debug*
-					 (princ "[COND] ")
-					 (term-print $$cond))
-				       ;; no simplyfing since probably wouldn't pay
-				       (normalize-term $$cond)
-				       ;; :=
-				       ;;#||
-				       (when *m-pattern-subst*
-					 (setq subst (append *m-pattern-subst* subst))
-					 (when *rewrite-debug*
-					   (format t "~&[subst+] ")
-					   (print-substitution subst)
-					   (format t "~&[subst-updated] ")
-					   (print-substitution subst)))
-				       ;;||#
-				       ;;
-				       $$cond)))
-		  ;; the condition is satisfied
-		  (progn
-		    #||
-		    (when *m-pattern-subst* 
-		      (setq subst (append *m-pattern-subst* subst))
-		      (when *rewrite-debug*
-			(format t "~&[m+s4] ")
-			(print-substitution subst)))
-		    ||#
-		    (when *rewrite-debug*
-		      (format *error-output* "~&SUBST:")
-		      (print-substitution subst))
-		    (term-replace-dd-simple
-		     term
-		     (set-term-color
-		      (substitution-image-simplifying subst
-						      (rule-rhs rule)
-						      (rule-need-copy rule))))
-		    ;; successful return
-		    ;; (setq *m-pattern-subst* nil)
-		    (return-from the-end t))))
-	      ;; else, try another ...
-	      (multiple-value-setq (global-state subst no-match)
-		(progn
-		  (incf $$matches)
-		  (funcall next-match-method global-state)))
-	      ;;
-	      (when (or no-match
-			(not (beh-context-ok? rule term)))
-		(return-from the-end nil))
-	      )				; end loop
-	    ))))
-    ;; 
-    (setq *m-pattern-subst* nil)
-    applied))
-||#
+(declaim (special *m-pattern-subst*))
 
 (defun !apply-one-rule (rule term &aux (applied nil))
   (declare (type axiom rule)
@@ -492,20 +279,21 @@
   
   ;; apply rule
   (setq *cafein-current-rule* rule)
-  ;;
+  ;; before rewriting, check if := matching has been done in this context
   (when (and *m-pattern-subst* $$cond)
     (let ((nt (set-term-color
 	       (substitution-image-simplifying *m-pattern-subst*
 					       term
 					       (rule-need-copy rule)))))
+      ;; substitute variables in the current target with subst obtained by := match.
       (term-replace term nt)
       (when *rewrite-debug*
 	(format t "~&[applied *m-pattern-subst*]")
 	(print-substitution *m-pattern-subst*)
 	(format t "--> ")
 	(term-print-with-sort term))))
-  ;;
-  (setq applied
+  ;; start rewriting
+  (setq applied				; will be t iff a rewrite rule is applied
     (block the-end
       (let* ((condition nil)
 	     (cur-trial nil)
@@ -515,30 +303,34 @@
 	     (*self* term)
 	     (builtin-failure nil)
 	     (rhs-instance nil))
-	#||
-	(when *rewrite-debug*
-	  (format t "~&+rule-first-match-method=~a" (rule-first-match-method rule)))
-	||#
 	(multiple-value-bind (global-state subst no-match E-equal)
+	    ;; first we find matching rewrite rule 
 	    (funcall (rule-first-match-method rule) (rule-lhs rule) term)
+	  ;; stat, count up number of matching trials
 	  (incf $$matches)
-	  (setq *cafein-current-subst* subst)
+	  (setq *cafein-current-subst* subst) ; I don't remember for what this is used
+	  ;; if matching fail no hope to rewriting. 
 	  (when no-match (return-from the-end nil))
-	  ;;
+	  ;; 
 	  (unless (beh-context-ok? rule term)
 	    (return-from the-end nil))
 	  
 	  ;; technical assignation related to substitution-image.
 	  (when E-equal (setq subst nil))
-	  ;; match success
-	  ;; then, the condition must be checked
+	  ;; match success with LHS of the rewrite rule.
+	  ;; next we check condition part of the rewrite rule.
 	  (setq condition (rule-condition rule))
 	  (when (and (is-true? condition)
 		     (null (rule-id-condition rule)))
-	    (setq builtin-failure
+	    ;; the case of non-conditional rule.
+	    ;; we generate an instance of RHS of the rule.
+	    (setq builtin-failure	; will be t iff there occured an error 
+					; in making instance of RHS with builtin lisp form.
 	      (catch 'rule-failure
 		;; there is no condition --
 		;; rewrite term.
+		
+		;; handle trace
 		(when (or $$trace-rewrite
 			  (rule-trace-flag rule))
 		  (let ((*print-with-sort* t))
@@ -555,13 +347,17 @@
 				    (substitution-image-simplifying subst
 								    (rule-rhs rule)
 								    (rule-need-copy rule))))
+		;; rewrite the term with the instance of RHS.
 		(if .trace-or-step.
 		    (term-replace-dd-dbg term rhs-instance)
 		  (term-replace-dd-simple term rhs-instance))
+		;; successfull rewriting.
 		(return-from the-end t))))
-	  ;;
+
+	  ;; We come here either catching an error with builtin rule
+	  ;; or, the target rewrite rule is conditional.
+	  ;; both case need trying different mathing if exists
 	  (setq next-match-method (rule-next-match-method rule))
-	  ;;
 	  (when builtin-failure
 	    ;; this means that the term contains some variables:
 	    ;; if we are lucky, we may find a successful match.
@@ -576,10 +372,10 @@
 		  (incf $$matches)
 		  (funcall next-match-method global-state)))
 	      (when no-match
-		;; no hope
+		;; no more match, we failed
 		(return-from the-end nil))
-	      ;;
-	      (setq *cafein-current-subst* subst)
+	      ;; found another match, try rewrite with this
+	      (setq *cafein-current-subst* subst) ; what is this...
 	      (setq cur-trial $$trials)
 	      (when (or $$trace-rewrite
 			(rule-trace-flag rule))
@@ -592,7 +388,7 @@
 		    (print-next)
 		    (print-substitution subst))
 		  (force-output)))
-	      ;;
+	      ;; 
 	      (catch 'rule-failure
 		(setq rhs-instance (set-term-color
 				    (substitution-image-simplifying subst
@@ -603,6 +399,7 @@
 		  (term-replace-dd-simple term rhs-instance))
 		(return-from the-end t))))
 
+	  ;; here is the case of conditional rule. 
 	  ;; if the condition is not trivial, we enter in a loop
 	  ;; where one try to find a match such that the condition 
 	  ;; is satisfied.
@@ -689,6 +486,7 @@
 	  ))))				; end of main process
   ;;
   (unless $$cond
+    ;; we reset := substitution 
     (setq *m-pattern-subst* nil))
   ;;
   (if applied
@@ -704,13 +502,12 @@
       nil)))
 
 (defun term-replace-dd-dbg (old new)
-  (declare (type term old new)
-           ;;(values term)
-	   )
-  ;;
+  (declare (type term old new))
+  ;; stat number of rewriting
   (incf *rule-count*)
-
+  ;; check if given stop pattern was matched to the resultant term.
   (when *matched-to-stop-pattern*
+    ;; yes
     (unless *rewrite-stepping*
       (setq *matched-to-stop-pattern* nil)
       (throw 'rewrite-abort $$term)))
@@ -728,7 +525,6 @@
         (term-print-with-sort old)
         (print-check 0 5)
         (princ " --> ")
-        ;; (print-check)
         (term-print-with-sort new))
       (unless $$trace-rewrite-whole (terpri))))
   ;; trace whole
@@ -760,8 +556,8 @@
                 ;; (print-check)
                 (term-print-with-sort $$term))
               res))))
+    ;; after tracing, we finally rewrite the target
     (term-replace old new))
-  ;;
   ;; check rewrite count limit
   (when (and *rewrite-count-limit*
              (<= *rewrite-count-limit* *rule-count*))
@@ -770,37 +566,6 @@
     (throw 'rewrite-abort $$term))
   ;;
   $$term)
-
-;;;
-;;;
-;;;
-#||
-(defun apply-rules-with-same-top (term rule-ring)
-  (declare (type term term)
-           (type rule-ring rule-ring)
-           (values (or null t)))
-  (let ((rr-ring (rule-ring-ring rule-ring))
-        applied
-        flg)
-    (when rr-ring
-      (loop (let ((rr-current rr-ring)
-                  (rr-mark rr-ring)
-                  rule)
-              (setq applied nil)
-              (loop (setq rule (car rr-current))
-                (when (apply-rule rule term)
-                  (setq applied (or applied t)
-                        rr-mark rr-current)
-                  (loop (unless (apply-rule rule term) (return nil))))
-                (setq rr-current (cdr rr-current))
-                (when (eq rr-current rr-mark) (return nil)))
-              (setq flg nil)
-              (dolist (sub (term-subterms term))
-                (setq flg (not (normalize-term sub)))
-                (setq applied (or applied flg)))
-              (unless applied (return-from apply-rules-with-same-top nil))
-              )))))
-||#
 
 (defun apply-rules-with-same-top (term rule-ring)
   (declare (type term term)
@@ -818,8 +583,6 @@
           (setq rr-current (cdr rr-current))
           (when (eq rr-current rr-mark) (return nil)))))))
 
-;;;
-;;;
 (defun apply-rules-with-different-top (term rules)
  (declare (type term term)
           (type list rules)
@@ -838,7 +601,6 @@
 	       (setq top (term-head term))
 	       ;; apply same top rules
 	       (apply-rules-with-same-top term (method-rules-with-same-top top))
-	       ;; 
 	       (if (not (eq top (term-head term)))
 		   (progn
 		     (mark-term-as-not-lowest-parsed term)
@@ -1039,70 +801,6 @@
 ;;; REWRITE : TERM -> TERM' ----------------------------------------------------
 ;;;-----------------------------------------------------------------------------
 
-#||
-(defun reduce-term (term strategy)
-  (declare (type term term)
-           (type list strategy)
-           (values (or null t)))
-  ;;
-  (when *rewrite-debug*
-    (with-output-simple-msg ()
-      (format t "[reduce-term](NF=~a,LP=~a): " (term-is-reduced? term) (term-is-lowest-parsed? term))
-      (term-print-with-sort term)
-      (format t "~%  strat = ~a" strategy)))
-  ;;
-  (let ((occ nil)
-        (top (term-head term))
-        ;; (*cexec-target* nil)
-        )
-    (cond ((null strategy)
-           ;; no strat, or exhausted.
-           (unless (term-is-lowest-parsed? term)
-             (update-lowest-parse term)
-             (unless (method= (term-method term) top)
-               (when *rewrite-debug*
-                 (with-output-msg ()
-                   (format t "- resetting reduced flag ...")))
-               (reset-reduced-flag term)
-               (return-from reduce-term (normalize-term term))))
-           (unless (or *rewrite-semantic-reduce*
-                       *beh-rewrite*)
-             (mark-term-as-reduced term)))
-          
-          ;; whole
-          ((= 0 (the fixnum (setf occ (car strategy))))
-           (unless (term-is-reduced? term)
-	     #||
-             (when *parse-normalize*
-               (term-replace term
-                             (right-associative-normal-form term)))
-	     ||#
-             (apply-rules term strategy)))
-
-          ;; explicit lazy
-          ((< (the fixnum occ) 0)
-           (let ((d-arg (term-arg-n term (1- (abs occ)))))
-             (unless (term-is-reduced? d-arg) (mark-term-as-on-demand d-arg))
-             (reduce-term term (cdr strategy))))
-
-          ;; normal case, reduce specified subterm
-          (t (if (method-is-associative top)
-                 (let ((list-subterms (list-assoc-subterms term top))
-		       (lp t))
-                   (dolist (x list-subterms)
-                     (unless (normalize-term x)
-		       (setq lp nil))
-		     )
-		   (unless lp		; nil
-		     (update-lowest-parse term)
-		     )
-                   (reduce-term term '(0)))
-               (progn
-                 (unless (normalize-term (term-arg-n term (1- occ)))
-		   (mark-term-as-not-lowest-parsed term))
-                 (reduce-term term (cdr strategy))))))))
-||#
-
 (defun reduce-term (term strategy)
   (declare (type term term)
            (type list strategy)
@@ -1173,10 +871,7 @@
                          (rwl-state-term
                           (car (rwl-sch-context-answers .rwl-sch-context.))))
          (with-output-chaos-error ()
-           (format t "PANIC!"))
-         ))
-     )
-    
+           (format t "PANIC!")))))
     (otherwise
      (setq $$trials 1)
      (when *memo-rewrite*
@@ -1185,13 +880,10 @@
          (clear-term-memo-table *term-memo-table*))
        (setq *memoized-module* module))
      (let ((*trace-level* 0))
-       (setq $$matches 0)
-       (setq *term-memo-hash-hit* 0)
        (with-in-module (module)
          (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
                                    (module-has-behavioural-axioms module))))
            (declare (special *beh-rewrite*))
-           ;;
            (set-term-color-top term)
            (normalize-term term))))))
   term)
@@ -1236,10 +928,7 @@
                          (rwl-state-term
                           (car (rwl-sch-context-answers .rwl-sch-context.))))
          (with-output-chaos-error ()
-           (format t "PANIC!"))
-         ))
-     )
-    
+           (format t "PANIC!")))))
     (otherwise
      (setq $$trials 1)
      (when *memo-rewrite*
@@ -1449,7 +1138,6 @@
       (when (and *steps-to-be-done* (> (the fixnum *steps-to-be-done*) 0))
         (return-from cafein-stepper nil))
       (unless *steps-to-be-done* (return-from cafein-stepper nil))))
-  ;;
   ;; print current term
   (format t "~&>> taret: ")
   (term-print term)
@@ -1543,7 +1231,6 @@
 	    ))
       (Selector
 	   (:one-of
-        ;; (term) (top) (subterm)
 	    (|{| :int :append (:seq-of |,| :int) |}|)
 	    (|(| (:seq-of :int) |)|)
 	    (\[ :int (:optional |..| :int) \])))

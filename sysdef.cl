@@ -175,7 +175,8 @@
                      "decafe/mimport"))
      (:module-group :cafein
                     (:serial "cafein/rengine"
-                             "cafein/cbred"))
+                             "cafein/cbred"
+			     "cafein/reducer"))
      (:module-group :tools
                     (:parallel
                      "tools/regcheck"

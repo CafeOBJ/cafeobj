@@ -322,18 +322,26 @@
 (defun eval-citp-ctf (equation)
   (check-context-module)
   (with-in-module (*current-module*)
+    (reset-rewrite-counters)
+    (begin-rewrite)
     (let ((ax (parse-axiom-declaration equation)))
       (apply-ctf ax)
+      (end-rewrite)
+      (report-citp-stat)
       (check-success *proof-tree*))))
 
 ;;; :csp
 (defun eval-citp-csp (goal-ax-decls)
   (check-context-module)
   (with-in-module (*current-module*)
+    (reset-rewrite-counters)
+    (begin-rewrite)
     (let ((axs nil))
       (dolist (a-decl goal-ax-decls)
 	(push (parse-axiom-declaration a-decl) axs))
       (apply-csp (nreverse axs))
+      (end-rewrite)
+      (report-citp-stat)
       (check-success *proof-tree*))))
 
 ;;; :show, :describe

@@ -633,6 +633,7 @@
        (unless opinfo-table
 	 (with-output-panic-message ()
 	   (format t "get-method-info: no opinfo-table")
+	   (break)
 	   (chaos-error 'panic)))
        (gethash method opinfo-table))
 
