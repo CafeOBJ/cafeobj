@@ -64,13 +64,12 @@
       ))
 
 (defparameter .valid-com-categories.
-    '(:decl-toplevel	       ; toplevel declaration, such as 'module', 'view', e.t.c.
+    '(:decl		       ; toplevel declaration, such as 'module', 'view', e.t.c.
       :checker		       ; check command
-      :module		       ; apply some modifications to a module, such as regularize
       :rewrite		       ; commands related to rewriting, such as 'reduce', 'execute', e.t.c.
       :parse		       ; commands related to parsing terms, such as 'parse', e.t.c
       :inspect		       ; commands inspecting modules, terms, such as 'show', 'match', e.t.c
-      :module-element	       ; declarations which can apper when a module is open.
+      :element		       ; declarations which can apper when a module is open.
       :proof		       ; commands related to proof stuff, such as 'open', 'apply, e.t.c.
       :switch		       ; 'set' commands
       :system		       ; various system related commands, such as 'protect', 'reset', e.t.c.
@@ -88,6 +87,20 @@
   (format stream "~%   parser      : ~a" (comde-parser me))
   (format stream "~%   evaluator   : ~a" (comde-evaluator me)))
 
+(defparameter .category-descriptions.
+    '((decl "CafeOBJ top-level declarations, such as 'module', 'view'.")
+      (element "Declarations of module constructs, such as 'op', 'eq' ...")
+      (parse "Commands parsing a term in the specified context.")
+      (rewrite "Invokes term rewriting engine in various manner.")
+      (inspect "Inspecting everhthing you want.")
+      (switch "Commands controlling system's behavior.")
+      (proof "Theorem proving commands.")
+      (checker "Commands checking interesting properties of a module.")
+      (library "Library related commands.")
+      (system "System related commands.")
+      (io "File input/output commands.")
+      (misc "Miscellaneous commands.")
+      (help "Online help commands.")))
 ;;;
 ;;; get-command-info
 ;;;
@@ -151,7 +164,7 @@
 						  :parser ',parser
 						  :evaluator ',evaluator)))))
        ;; set online help
-       (register-online-help (car ',keys) (cdr ',keys) ',title ',mdkey ',doc ',example ',related)))
+       (register-online-help (car ',keys) (cdr ',keys) ',title ',mdkey ',doc ',example ',related ',category)))
 
 (defun print-comde-usage (com)
   (format t "~&[Usage] ~s, not yet" com))

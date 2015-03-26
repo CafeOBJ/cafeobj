@@ -741,6 +741,8 @@
 	(?ex :args)
 	(?apropos :comment)
 	(?ap :comment)
+	((:+ ?com ?command) :args)
+	((:+ command commands com))
 	;; CITP commands
 	(|:goal| |{| (:many-of  #.EqDeclaration
 				#.CeqDeclaration

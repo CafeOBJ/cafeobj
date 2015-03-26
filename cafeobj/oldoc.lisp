@@ -157,8 +157,39 @@
 	      (format t "Did you mean one of ~a~%" doc))
 	  nil)))))
 
-
-
+;; oldoc-list-categories
+;;
+(defun oldoc-list-categories (cat)
+  (unless cat
+    (format t "** ======================================================================~%")
+    (format t "COMMAND CLASSES:~%")
+    (format t "'?com <class>' shows the list of commands classified by <class>.~2%")
+    (format t "class~10Tdescription~%")
+    (format t "-------------------------------------------------------------------------~%")
+    (dolist (entry .category-descriptions.)
+      (format t "~a~10T~a~%" (first entry) (second entry)))
+    (return-from oldoc-list-categories nil))
+  ;; gather commands
+  (unless (member (car cat) .valid-com-categories. 
+		  :test #'(lambda (x y) (string-equal x (symbol-name y))))
+    (with-output-chaos-error ('invalid-category)
+      (format t "System does not know the command class '~a'.~%" (car cat))
+      (format t "Type '?cat' for the list of available class names.")))
+  (let ((docs (oldoc-get-documents-by-category (car cat))))
+    (unless docs
+      (with-output-chaos-warning ()
+	(format t "Sorry, the commands classified as '~a' not found." (car cat)))
+      (return-from oldoc-list-categories nil))
+    (format t "The list of commands classified as '~a'.~%" (car cat))
+    (format t "Type '? <command-name>' for the online document of <command-name>.~%")
+    (format t "==========================================================================")
+    (do* ((dl docs (cdr dl))
+	  (doc (car dl) (car dl))
+	  (n 0 (1+ n)))
+	((endp dl))
+      (let ((key (car doc))
+	    (desc (cdr doc)))
+	(format t "~%** ~a~%syntax: ~a" key (format-markdown (oldoc-title desc)))))))
 
 ;;
 ;; INTERNAL functioons
@@ -170,6 +201,7 @@
 
 (defstruct (oldoc (:print-function print-online-document))
   (key        ""  :type string)		; 
+  (category nil :type symbol)		; cateogry name of the subject
   (main       ""  :type string)		; document string of commad/declaration
   (title      ""  :type string)         ; title 
   (rtitle     ""  :type string)         ; reduced title for search
@@ -190,7 +222,8 @@
   (format stream "~&example    : ~a" (oldoc-example doc))
   (format stream "~&names      : ~a" (oldoc-names doc))
   (format stream "~&related    : ~a" (oldoc-related doc))
-  (format stream "~&cache      : ~a" (oldoc-cache doc)))
+  (format stream "~&cache      : ~a" (oldoc-cache doc))
+  (format stream "~&cateogry   : ~a" (oldoc-category doc)))
 
 (defun oldoc-make-key (whatever)
   whatever)
@@ -374,7 +407,7 @@
 ;;;
 
   
-(defun register-online-help (mainname aliasnames title mdkey doc example related)
+(defun register-online-help (mainname aliasnames title mdkey doc example related &optional (category 'misc))
   (unless doc (return-from register-online-help nil))
   (unless (stringp doc) (return-from register-online-help nil))
   ; for each key generated from any name we generate an entry
@@ -396,7 +429,8 @@
 			:mdkey (or mdkey mainname)
 			:example (or example "")
 			:related related
-			:names (cons mainname aliasnames))))))
+			:names (cons mainname aliasnames)
+			:category category)))))
 
 ;;
 ;; format-markdown and oldoc-reduce-string are similar, but serve different
@@ -481,5 +515,16 @@
     (dolist (doc docs)
       (format t "~%** key   : ~s" (oldoc-key doc))
       (format t "~&   names : ~s" (oldoc-names doc)))))
+
+;; oldoc-get-documents-by-category
+;; returns the list of 
+(defun oldoc-get-documents-by-category (cat)
+  (let ((coms nil))
+    (maphash #'(lambda (key oldoc) 
+		 (let ((oldoc-cat (oldoc-category oldoc)))
+		   (when (string-equal cat (symbol-name oldoc-cat))
+		     (push (cons key oldoc) coms))))
+	     *cafeobj-doc-db*)
+    (sort coms #'ob< :key #'car)))
 
 ;;; EOF
