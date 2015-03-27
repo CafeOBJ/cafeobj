@@ -159,6 +159,8 @@
 
 ;; oldoc-list-categories
 ;;
+(declaim (special .category-descriptions. .valid-com-categories.))
+
 (defun oldoc-list-categories (cat)
   (unless cat
     (format t "** ======================================================================~%")
@@ -189,7 +191,7 @@
 	((endp dl))
       (let ((key (car doc))
 	    (desc (cdr doc)))
-	(format t "~%** ~a~%syntax: ~a" key (format-markdown (oldoc-title desc)))))))
+	(format t "~%~a~%  ~a" key (format-markdown (oldoc-title desc)))))))
 
 ;;
 ;; INTERNAL functioons
