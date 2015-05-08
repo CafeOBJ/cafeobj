@@ -195,14 +195,14 @@
 (defun citp-parse-verbose (args)
   (second args))
 
-;;;
 ;;; citp-parse-ctf
 ;;; :ctf { eq <term> = <term> .}
 ;;;
 (defun citp-parse-ctf (args)
-  (let ((ax nil))
-    (setq ax (parse-module-element-1 (third args)))
-    ax))
+  (let ((ax-form (third args)))
+    (with-citp-debug ()
+      (format t "~%[:ctf] target = ~s" ax-form))
+    ax-form))
 
 ;;; citp-parse-csp
 ;;; :csp { <axiom> ... }
@@ -210,10 +210,9 @@
 (defun citp-parse-csp (args)
   (let ((ax-decls nil))
     (dolist (elem (third args))
-      (push (parse-module-element-1 elem) ax-decls))
+      (push elem ax-decls))
     (nreverse ax-decls)))
 
-;;;
 ;;; { :show | :describe } <something>
 ;;;
 (defun citp-parse-show (inp)
@@ -319,30 +318,26 @@
 
 ;;; :ctf
 ;;;
-(defun eval-citp-ctf (equation)
-  (check-context-module)
+(defun eval-citp-ctf (ax-form)
+  (check-ptree)
   (with-in-module (*current-module*)
     (reset-rewrite-counters)
     (begin-rewrite)
-    (let ((ax (parse-axiom-declaration equation)))
-      (apply-ctf ax)
-      (end-rewrite)
-      (report-citp-stat)
-      (check-success *proof-tree*))))
+    (apply-ctf ax-form)
+    (end-rewrite)
+    (report-citp-stat)
+    (check-success *proof-tree*)))
 
 ;;; :csp
 (defun eval-citp-csp (goal-ax-decls)
-  (check-context-module)
+  (check-ptree)
   (with-in-module (*current-module*)
     (reset-rewrite-counters)
     (begin-rewrite)
-    (let ((axs nil))
-      (dolist (a-decl goal-ax-decls)
-	(push (parse-axiom-declaration a-decl) axs))
-      (apply-csp (nreverse axs))
-      (end-rewrite)
-      (report-citp-stat)
-      (check-success *proof-tree*))))
+    (apply-csp (nreverse goal-ax-decls))
+    (end-rewrite)
+    (report-citp-stat)
+    (check-success *proof-tree*)))
 
 ;;; :show, :describe
 (defun eval-citp-show (token)

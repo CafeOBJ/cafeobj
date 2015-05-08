@@ -2088,24 +2088,26 @@
 	(setf (goal-assumptions f-goal) (append (goal-assumptions cur-goal) (list f-ax)))
 	(values t (list t-goal f-goal))))))
 
-(defun apply-ctf (equation &optional (verbose *citp-verbose*))
-  (check-ptree)
+(defun apply-ctf (s-form &optional (verbose *citp-verbose*))
   (let ((ptree-node (get-next-proof-context *proof-tree*)))
-    (multiple-value-bind (applied next-goals)
-	(do-apply-ctf ptree-node equation)
-      (declare (ignore applied))
-      (unless next-goals
-	(return-from apply-ctf nil))
-      (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
-      ;; apply implicit rd
-      (dolist (ngoal next-goals)
-	(do-apply-rd ngoal 'ctf))
-      ;; add generated nodes as children
-      (add-ptree-children ptree-node next-goals)
-      (when verbose
-	(dolist (gn (ptree-node-subnodes ptree-node))
-	  (pr-goal (ptree-node-goal gn))))
-      (ptree-node-subnodes ptree-node))))
+    (with-in-module ((goal-context (ptree-node-goal ptree-node)))
+      (let ((*chaos-quiet* t)
+	    (equation (parse-axiom-declaration (parse-module-element-1 s-form))))
+	(multiple-value-bind (applied next-goals)
+	    (do-apply-ctf ptree-node equation)
+	  (declare (ignore applied))
+	  (unless next-goals
+	    (return-from apply-ctf nil))
+	  (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
+	  ;; apply implicit rd
+	  (dolist (ngoal next-goals)
+	    (do-apply-rd ngoal 'ctf))
+	  ;; add generated nodes as children
+	  (add-ptree-children ptree-node next-goals)
+	  (when verbose
+	    (dolist (gn (ptree-node-subnodes ptree-node))
+	      (pr-goal (ptree-node-goal gn))))
+	  (ptree-node-subnodes ptree-node))))))
       
 ;;; -----------------------------------------------------
 ;;; :csp 
@@ -2130,24 +2132,28 @@
 	  (push n-goal ngoals)))
       (values t (nreverse ngoals)))))
 
-(defun apply-csp (axs &optional (verbose *citp-verbose*))
-  (check-ptree)
+(defun apply-csp (ax-forms &optional (verbose *citp-verbose*))
   (let ((ptree-node (get-next-proof-context *proof-tree*)))
-    (multiple-value-bind (applied next-goals)
-	(do-apply-csp ptree-node axs)
-      (declare (ignore applied))
-      (unless next-goals
-	(return-from apply-csp nil))
-      (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
-      ;; apply implicit rd
-      (dolist (ngoal next-goals)
-	(do-apply-rd ngoal 'csp))
-      ;; add generated node as children
-      (add-ptree-children ptree-node next-goals)
-      (when verbose
-	(dolist (gn (ptree-node-subnodes ptree-node))
-	  (pr-goal (ptree-node-goal gn))))
-      (ptree-node-subnodes ptree-node))))
+    (with-in-module ((goal-context (ptree-node-goal ptree-node)))
+      (let ((*chaos-quiet* t)
+	    (axs nil))
+	(dolist (ax ax-forms)
+	  (push (parse-axiom-declaration (parse-module-element-1 ax)) axs))
+	(multiple-value-bind (applied next-goals)
+	    (do-apply-csp ptree-node axs)
+	  (declare (ignore applied))
+	  (unless next-goals
+	    (return-from apply-csp nil))
+	  (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
+	  ;; apply implicit rd
+	  (dolist (ngoal next-goals)
+	    (do-apply-rd ngoal 'csp))
+	  ;; add generated node as children
+	  (add-ptree-children ptree-node next-goals)
+	  (when verbose
+	    (dolist (gn (ptree-node-subnodes ptree-node))
+	      (pr-goal (ptree-node-goal gn))))
+	  (ptree-node-subnodes ptree-node))))))
 
 (defun report-citp-stat ()
   (when *show-stats*

@@ -1094,6 +1094,16 @@
   (with-in-module (module)
     (unless t2
       (setq t2 (make-anything-is-ok-term)))
+    ;; t1 and t2 must be in the same connected component
+    (let ((t1-sort (term-sort t1))
+	  (t2-sort (term-sort t2)))
+      (unless (is-in-same-connected-component t1-sort t2-sort *current-sort-order*)
+	(with-output-chaos-error ('invalid-sort)
+	  (format t "Sorts of the source term and the target pattern must be in the same connected component.")
+	  (format t "~%  Source term : ")
+	  (term-print-with-sort t1)
+	  (format t "~&  Target pattern: ")
+	  (term-print-with-sort t2))))
     (let ((svars (term-variables t1))	; variables in source
 	  (pvars (term-variables t2))	; variables in pattern
 	  (cvars (if cond		; variables in suchThat
