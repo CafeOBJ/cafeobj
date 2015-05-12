@@ -2308,6 +2308,14 @@ Do nothing.
     :doc "TODO"
     )
 
+(define (":normalize")
+    :category :proof
+    :parser citp-parse-normalize
+    :evaluator eval-citp-normalize
+    :title "`:normalize init { on | off}"
+    :doc "TODO"
+    )
+
 (define (":ctf")
     :category :proof
     :parser citp-parse-ctf

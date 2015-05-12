@@ -1787,6 +1787,13 @@
 	    (instance nil))
 	;;
 	(setq instance (make-axiom-instance *current-module* subst target-axiom))
+	;; we normalize the LHS of the instance
+	(when *citp-normalize-instance*
+	  (multiple-value-bind (n-lhs applied?)
+	      (normalize-term-in *current-module* (axiom-lhs instance))
+	    (when applied?
+	      (setf (axiom-lhs instance) n-lhs))))
+	  
 	;; input the instance to current context
 	(let ((goal (ptree-node-goal context)))
 	  (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))

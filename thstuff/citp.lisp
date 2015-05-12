@@ -195,6 +195,12 @@
 (defun citp-parse-verbose (args)
   (second args))
 
+;;;
+;;; citp-parse-normalize-init
+;;; :normalize init {on | off}
+(defun citp-parse-normalize (args)
+  (third args))
+
 ;;; citp-parse-ctf
 ;;; :ctf { eq <term> = <term> .}
 ;;;
@@ -315,6 +321,15 @@
 	(setq *citp-verbose* nil)
       (with-output-chaos-error ('invlid-value)
 	(format t "Unknown parameter ~s." token)))))
+
+;;; :normalize init
+(defun eval-citp-normalize (token)
+  (if (string-equal token "on")
+      (setq *citp-normalize-instance* t)
+    (if (string-equal token "off")
+	(setq *citp-normalize-instance* nil)
+      (with-output-chaos-error ('invalid-value)
+	(format t ":nomalize instance: unknown parameter ~s." token)))))
 
 ;;; :ctf
 ;;;
