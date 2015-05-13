@@ -676,6 +676,7 @@
 (defvar *cexec-debug* nil)
 (defvar *debug-meta* nil)
 (defvar *debug-citp* nil)
+(defvar *debug-print* nil)
 ;;;
 ;;; ** TO DO for other platforms
 #+SBCL

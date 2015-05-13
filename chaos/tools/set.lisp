@@ -214,6 +214,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
       ("debug" ("apply") parity *apply-debug* "" nil nil t)
       ("debug" ("meta") parity *debug-meta* "" nil nil t)
       ("debug" ("citp") parity *debug-citp* "" nil nil t)
+      ("debug" ("print") parity *debug-print* "" nil nil t)
       ))
 
 (defun set-chaos-switch (which value)
