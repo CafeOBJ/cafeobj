@@ -127,10 +127,10 @@
 (defun is-NzRat-token (token)
   (and (stringp token)
        (every #'(lambda (x)
-           (or (digit-char-p x)
-	       (eql #\- x)
-	       (eql #\/ x)))
-	 token)
+		  (or (digit-char-p x)
+		      (eql #\- x)
+		      (eql #\/ x)))
+	      token)
        (let* ((first (if (eql #\- (char token 0)) 1 0))
 	      (slash (position #\/ token)))
 	 (and slash
@@ -254,17 +254,15 @@
 ;;;-----------------------------------------------------------------------------
 (defun is-Float-token (token)
   (and (stringp token)
-       (or (digit-char-p (char token 0))
-	   (and (member (char token 0) '(#\+ #\. #\-))
-		(<= 2 (length token))
-		(digit-char-p (char token 1))))
+       (let ((chars (coerce token 'list)))
+	 (and (<= 2 (length chars))
+	      (member #\. chars)))
        (multiple-value-bind (res len) (read-from-string token)
-	 (declare (ignore res))
 	 (and (= (length token) len)
-	      (member (type-of (read-from-string token))
+	      (member (type-of res)
 		      '(float long-float short-float fixnum bignum ratio
-			single-float double-float
-	     ))))))
+			single-float double-float))))))
+
 (defun create-Float (token)
   (coerce (read-from-string token) 'long-float))
 (defun print-Float (val) (prin1 val))
