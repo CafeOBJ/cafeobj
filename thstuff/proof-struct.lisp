@@ -811,7 +811,8 @@
 	    (when assumptions
 	      (print-next)
 	      (format t "** assumption~p" (length assumptions))
-	      (let ((*print-indent* (+ 2 *print-indent*)))
+	      (let ((*print-indent* (+ 2 *print-indent*))
+		    (*print-xmode* :fancy))
 		(dolist (as assumptions)
 		  (print-next)
 		  (print-axiom-brief as)))))

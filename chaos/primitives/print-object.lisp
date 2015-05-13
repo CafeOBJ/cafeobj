@@ -1654,14 +1654,10 @@
       (print-rule-labels rul)
       (princ " "))
     (let ((.file-col. (file-column *standard-output*))
-	  (*print-indent* (+ *print-indent* (length axiom-header)))
-	  (mml (and (eq *print-xmode* :fancy)
-		    (eq (term-head (axiom-lhs rul)) *eql-op*))))
+	  (*print-indent* (+ *print-indent* (length axiom-header))))
       ;; LHS
-      (when mml (princ "("))
       (setq .printed-vars-so-far.
 	(term-print (axiom-lhs rul)))
-      (when mml (princ ")"))
       (unless (memq type '(:pignose-axiom :pignose-goal))
 	(setq .file-col. (file-column *standard-output*))
 	(print-check 0 .file-col.)

@@ -385,9 +385,13 @@
                                             (<= prec (get-method-precedence hd))))
                             (assoc-test (method-is-associative hd))
                             (token-seq (operator-token-sequence
-                                        (method-operator hd))))
+                                        (method-operator hd)))
+			    (some-eql-form? nil))
+			(when (equal '("_" "=" "_")
+				     (car (method-name hd)))
+			  (setq some-eql-form? t))
                         (setq .file-col. (file-column stream))
-                        (when prec-test
+                        (when (or prec-test some-eql-form?)
                           (princ "(" stream)
                           (setq .file-col. (1+ .file-col.)))
                         ;;
@@ -417,7 +421,7 @@
 				  (t (let ((name (string i)))
 				       (princ name stream)
 				       (print-check .file-col. 20 stream))))))
-                        (when prec-test (princ ")" stream)))))))
+                        (when (or prec-test some-eql-form?) (princ ")" stream)))))))
           (t (format stream "(~s)" (term-body term))))))
 
 (defun term-print (term &optional (stream *standard-output*)
