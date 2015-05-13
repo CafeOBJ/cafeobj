@@ -943,8 +943,7 @@
 (defun eval-popd (ast)
   (if (%popd-num ast)
       (chaos-popd (%popd-num ast))
-    (chaos-popd))
-  (format t "~&~a" (namestring (chaos-pwd))))
+    (chaos-popd)))
 
 ;;; ****
 ;;; DIRS

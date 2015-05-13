@@ -355,7 +355,11 @@
                (progn
                  (pop *chaos-directory-stack*)
                  nil))))
-          (t (chaos-pushd "+1")))))
+          (t (if (<= (length *chaos-directory-stack*) 1)
+		 (with-output-chaos-warning ()
+		   (format t "No other directory.")
+		   (return-from chaos-pushd nil))
+	       (chaos-pushd "+1"))))))
 
 (defun chaos-popd (&optional num)
   (declare (ignore num))
