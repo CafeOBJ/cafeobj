@@ -795,6 +795,7 @@
 	((:+ |:red| |lred| |:lred| |:exec| |:bred|)
 	 (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
 	(|:verbose| :symbol)
+	(|:normalize| :symbol)
 	(|:ctf| |{| #.EqDeclaration |}|)
 	(|:csp| |{| (:many-of  #.EqDeclaration
 				#.RlDeclaration
