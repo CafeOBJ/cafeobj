@@ -320,10 +320,11 @@
 		  (is-true? (normalize-term-in module
 					       (reset-reduced-flag (term-copy-and-returns-list-variables
 								    (rule-condition rule))))))
-	  (setq ct-rule rule)
-	  (with-citp-debug ()
-	    (format t "~% CT found!"))
-	  (return nil)))
+	  (unless (term-equational-equal (rule-lhs rule) (rule-rhs rule))
+	    (setq ct-rule rule)
+	    (with-citp-debug ()
+	      (format t "~% CT found!"))
+	    (return nil))))
       (when (and ct-rule report-header)
 	(format t "~%[~a] contradiction: " report-header)
 	(let ((*print-indent* (+ 2 *print-indent*)))
@@ -971,6 +972,7 @@
 ;;;
 ;;; make-step-constructor-term
 ;;;
+#||
 (defun make-step-constructor-term (goal op one-arg variable)
   (with-in-module ((goal-context goal))
     (let ((arity (method-arity op))
@@ -983,7 +985,32 @@
 		   (push constant arg-list)))))
       (let ((res (make-applform-simple (method-coarity op) op (nreverse arg-list))))
 	res))))
-
+||#
+(defun make-step-constructor-term (goal op one-arg variable)
+  (with-in-module ((goal-context goal))
+    (let ((arity (method-arity op))
+	  (arg-list nil)
+	  (arg-var-assoc nil)
+	  (n 0))
+      (setq arg-var-assoc
+	(mapcar #'(lambda (x) (cons x 0)) arity))
+      (dolist (s arity)
+	(cond ((sort<= (term-sort one-arg) s *current-sort-order*)
+	       (when (< 1 (incf n))
+		 (with-output-chaos-error ('sorry)
+		   (format t "Sorry, but system does not handle a constructor having multiple arguments of the same sort.")))
+	       (push one-arg arg-list))
+	      (t (let* ((var-assoc (assoc s arg-var-assoc))
+			(ind-var (if (zerop (cdr var-assoc))
+				     (progn (incf (cdr var-assoc)) variable)
+				   (make-variable-term s 
+						       (intern (format nil "~A~D" 
+								       (string (variable-name variable))
+								       (incf (cdr var-assoc)))))))
+			(constant (variable->constructor goal ind-var :sort s)))
+		   (push constant arg-list)))))
+      (let ((res (make-applform-simple (method-coarity op) op (nreverse arg-list))))
+	res))))
 ;;;
 ;;; make-induction-step-subst : goal axiom (var . op) -> substitution
 ;;; 

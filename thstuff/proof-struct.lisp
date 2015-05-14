@@ -425,7 +425,8 @@
 ;;;
 (defstruct (ptree (:print-function pr-ptree))
   (context nil :type (or null module))	; context module
-  (num-gen-const 0 :type fixnum)	   ; number of generated constants so far
+  (num-gen-const 0 :type fixnum)	; number of generated constants so far
+  (num-gen-const-ind 0 :type fixnum)	; number of generated constants for induction so far
   (root    nil :type (or null ptree-node)) ; root goal
   (indvar-subst nil :type list)
   (var-subst nil :type list)
@@ -490,14 +491,15 @@
 ;;;
 #||
 (defun make-tc-const-name (variable)
-  (format nil "~:@(~a~)@~a-~d" (variable-name variable) (sort-name (variable-sort variable))
-	  (incf (ptree-num-gen-const *proof-tree*))))
+  (format nil "~:@(~a~)~d@~a" 
+	  (variable-name variable) 
+	  (incf (ptree-num-gen-const *proof-tree*)))
+	  (string (sort-name (variable-sort variable))))
 ||#
 
 (defun make-tc-const-name (variable)
   (format nil "~:@(~a~)@~a" (variable-name variable)
 	  (string (sort-name (variable-sort variable)))))
-
 ;;; 
 ;;; variable->constant : goal variable -> term
 ;;;
@@ -525,8 +527,11 @@
 ;;; variable->constructor : goal variable op -> term
 ;;;
 #||
-(defun make-ind-const-name (name-prefix)
-  (format nil "~a#~d" name-prefix (incf (ptree-num-gen-const *proof-tree*))))
+(defun make-ind-const-name (name-prefix sort)
+  (format nil "~a~d#~a" 
+	  (string name-prefix)
+	  (incf (ptree-num-gen-const-ind *proof-tree*))
+	  (string (sort-name sort))))
 ||#
 
 (defun make-ind-const-name (name-prefix sort)

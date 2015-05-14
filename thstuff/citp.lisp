@@ -331,7 +331,7 @@
     (if (string-equal token "off")
 	(setq *citp-normalize-instance* nil)
       (if (string-equal token ".")
-	  (format t "~&:normalize flag is ~s" (if *citp-nomalize-instance* "on" "off"))
+	  (format t "~&:normalize flag is ~s" (if *citp-normalize-instance* "on" "off"))
 	(with-output-chaos-error ('invalid-value)
 	  (format t ":nomalize instance: unknown parameter ~s." token))))))
 
