@@ -10,6 +10,20 @@ refactor, over 20 years old codes
    (3) many dumplicated/similar code fragments
        much codes have been added in ad hoc manner
 
+20150317 np
+
+update manual.tex for current interpreter, add/remove options
+
+ship parametrized modules in lib/para/ like 
+	para/list.cafe
+	para/queue.cafe
+	para/set.cafe
+so that one can use
+	require para/list.cafe
+	pr(PARA_LIST(NAT))
+	pr(PARA_SET(NAT))
+	...
+
 20150225 np
 
 we should add a check that a key is not define'd more than once
