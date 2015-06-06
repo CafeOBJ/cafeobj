@@ -416,7 +416,7 @@
   (arity nil :type list)		; arity, list of argument sorts.
   (coarity nil :type (or null sort*))	; coarity
   (constructor nil :type (or null t))	; flag, t iff the method is a
-					; constructor. not yet used.
+					; constructor. 
   (supplied-strategy nil :type list)	; user supplied rewrite strategy.
   (form nil :type list)			; describes the form of a term with the
 					; method as top. used for parsing.
@@ -545,28 +545,38 @@
 ;;; Returns t iff the given two methods are of the same operator.
 ;;; NOTE: they are not neccessarily comparable in terms of their ranks.
 ;;;
-(defmacro method-is-of-same-operator (*_*m1 *_*m2)
-   `(eq (method-name ,*_*m1) (method-name ,*_*m2)))
+(defmacro method-has-same-name (_m1 _m2)
+  `(equal (method-name ,_m1) (method-name ,_m2)))
 
-(defmacro method-is-of-same-operator-safe (*_*m1 *_*m2)
-   `(and (method-p ,*_*m2) (eq (method-name ,*_*m1) (method-name ,*_*m2))))
+#||
+(defmacro method-is-of-same-operator (_m1 _m2)
+  (once-only (_m1 _m2)
+    `(if (or (atom ,_m1) (atom ,_m2))
+	 (equal ,_m1 ,_m2)
+       (method-has-same-name (the method ,_m1) (the method ,_m2)))))
+||#
 
-;;; this also checks that coarity is in same connected component
-(defmacro method-is-of-same-operator+ (_m1 _m2)
-  `(let ((ma ,_m1)
-	 (mb ,_m2))
-     (and (method-is-of-same-operator ma mb)
-	  (is-in-same-connected-component (method-coarity ma)
-					  (method-coarity mb)
+(defun method-is-of-same-operator (_m1 _m2)
+  (declare (type (or atom method) _m1 _m2))
+  (if (or (not (method-p _m1))
+	  (not (method-p _m2)))
+      (equal _m1 _m2)
+    (equal (method-name _m1) (method-name _m2))))
+
+;;; this also checks that coarity is in same the connected component
+(defmacro method-is-of-same-operator+ (m1 m2)
+  (once-only (m1 m2)
+    `(and (method-is-of-same-operator ,m1 ,m2)
+	  (is-in-same-connected-component (method-coarity ,m1)
+					  (method-coarity ,m2)
 					  (module-sort-order *current-module*)))))
-
+  
 ;;; method-is-predicate
 (defun method-is-predicate (method)
   (and (sort= *bool-sort* (method-coarity method))
        (not (member *bool-sort* (method-arity method)))
        (not (method= method *bool-true-meth*))
-       (not (method= method *bool-false-meth*))
-       ))
+       (not (method= method *bool-false-meth*))))
 
 ;;; METHOD ACCESSORS
 
@@ -1425,8 +1435,6 @@
 ;;; LOWEST-METHOD
 ;;;
 
-(defvar *op-debug* nil)
-
 ;;; choose-most-general-op: ops -> or null method
 ;;; NOTE: assumes *current-sort-order* and *current-opinfo-table* are bound to
 ;;;       properly.
@@ -1434,15 +1442,12 @@
 (defun choose-most-general-op (list-meth)
   (unless (cdr list-meth)
     (return-from choose-most-general-op (car list-meth)))
-  (let ((res (car list-meth))
-	(comp? nil))
-    (dolist (m (cdr list-meth))
-      (when (method<= res m)
-	(setq res m)
-	(setq comp? t)))
-    (if comp?
-	res
-      nil)))
+  (let ((res (car list-meth)))
+    (dolist (m (cdr list-meth) res)
+      (if (method<= res m)
+	  (setq res m)
+	(unless (method-is-of-same-operator res m)
+	  (return-from choose-most-general-op nil))))))
 
 ;;; choose-lowest-op : ops => or null method
 ;;; NOTE: assumes *current-sort-order* and *current-opinfo-table* are bound to
@@ -1451,13 +1456,21 @@
 (defun choose-lowest-op (list-meth)
   (unless (cdr list-meth)
     (return-from choose-lowest-op (car list-meth)))
+  (when *on-operator-debug*
+    (format t "~%[choose-lowest-op]:")
+    (dolist (meth list-meth)
+      (terpri)
+      (print-chaos-object meth)))
   (let ((res (car list-meth)))
-    (dolist (m (cdr list-meth) res)
+    (dolist (m (cdr list-meth))
       (if (method<= m res)
 	  (setq res m)
 	;; return immediately iff two methods are not comparable
-	(unless (method<= res m)
-	  (return-from choose-lowest-op nil))))))
+	(unless (method-is-of-same-operator res m)
+	  (return-from choose-lowest-op nil))))
+    (when *on-operator-debug*
+      (format t "~%--> ")
+      (print-chaos-object res))))
 
 (defun lowest-method (method lower-bound
 		      &optional (module *current-module*))
@@ -1500,7 +1513,7 @@
 			   (module-opinfo-table module))))
 
 	(declare (type list over-methods))
-	(when *on-debug*
+	(when *on-operator-debug*
 	  (format t "~%* lowest-method! : over-methods =")
 	  (dolist (m over-methods)
 	    (terpri)
@@ -1521,10 +1534,9 @@
 								  *current-sort-order*)))
 				))
 		  (push meth res)))
-	      (when *on-debug*
+	      (when *on-operator-debug*
 		(format t "~%lowest-method! res=")
-		(print-chaos-object res)
-		)
+		(print-chaos-object res))
 	      (if (cdr res)
 		  ;; was method
 		  (or (select-one-method res)

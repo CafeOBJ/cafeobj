@@ -243,32 +243,37 @@
 (defun pre-choose-final (module final)
   (declare (type module module)
 	   (type list final))
-  (when (and (cdr final) (assoc *id-module* (module-all-submodules module)))
-    ;; (format t "~%~s" final)
-    (setq final
-      (remove-if #'(lambda (x) (sort= *id-sort* (term-sort x))) final)))
-  (when (every #'(lambda(x) (term-is-application-form? x)) final)
-    (let ((mslist (mapcar #'(lambda (x) (term-head x)) final))
-	  (least-op nil)
-	  (gen-op nil)
-	  (res nil))
-      (with-in-module (module)
-	;; 
-	;; first find the lowest one
-	(setq least-op (choose-lowest-op mslist))
-	(when least-op
-	  (push (find-if #'(lambda (x) (method= least-op (term-head x)))
-			 final)
-		res)
-	  (return-from pre-choose-final res))
-	;; then select most general one
-	(setq gen-op (choose-most-general-op mslist))
-	(when gen-op
-	  (push (find-if #'(lambda (x) (method= gen-op (term-head x))) final)
-		res)
-	  (return-from pre-choose-final res)))))
-  ;; could not find
-  (pre-choose-final-sub module final))
+  (let ((result final))
+    (when (and (cdr final) (assoc *id-module* (module-all-submodules module)))
+      (setq result (remove-if #'(lambda (x) (sort= *id-sort* (term-sort x))) final)))
+    (when (every #'(lambda(x) (term-is-application-form? x)) result)
+      (when *on-operator-debug*
+	(format t "~%[pre-choose-final]")
+	(dolist (tx final)
+	  (terpri)
+	  (print-chaos-object (term-head tx))
+	  (princ ": ")
+	  (term-print-with-sort tx)))
+      (let ((mslist (mapcar #'(lambda (x) (term-head x)) result))
+	    (least-op nil)
+	    (gen-op nil)
+	    (res nil))
+	(with-in-module (module)
+	  ;; first find the lowest one
+	  (setq least-op (choose-lowest-op mslist))
+	  (cond (least-op
+		 (push (find-if #'(lambda (x) (method= least-op (term-head x)))
+				result)
+		       res)
+		 (setq result res))
+
+		(t (setq gen-op (choose-most-general-op mslist))
+		   ;; then select most general one
+		   (when gen-op
+		     (push (find-if #'(lambda (x) (method= gen-op (term-head x))) result)
+			   res)
+		     (setq result res)))))))
+    (pre-choose-final-sub module result)))
 
 ;;; NOT USED NOW.
 (defun parser-diagnose (module preterm sort)

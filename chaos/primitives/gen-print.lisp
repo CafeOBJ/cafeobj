@@ -72,6 +72,7 @@
 ;;;
 
 (defun print-ast-vd (ast stream print-var-sort)
+  (declare (type stream stream))
   (print-check)
   (cond ((consp ast)
          (let ((flg nil))

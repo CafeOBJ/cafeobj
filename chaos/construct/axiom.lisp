@@ -757,6 +757,12 @@
 (defun rule-subsumes (r1 r2)
   (declare (type axiom r1 r2)
 	   (values (or null t)))
+  (when *on-axiom-debug*
+    (format t "~%[rule-subsumes]:")
+    (format t "~%  r1: ")
+    (print-axiom-brief r1)
+    (format t "~%  r2: ")
+    (print-axiom-brief r2))
   (or (eq r1 r2)
       (let ((lhs1 (rule-lhs r1))
 	    (lhs2 (rule-lhs r2)))
