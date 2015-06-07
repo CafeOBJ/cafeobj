@@ -42,7 +42,7 @@
 ;;; FOPL SYNTAX ---------------------------------------------------------------
 ;;; ***********
 
-#||
+#|
 ;;; t if our logic has two diffrent types of equality.
 ;; (declaim (type boolean *fopl-two-equalities*))
 (defvar *fopl-two-equalities* nil)
@@ -73,7 +73,7 @@
 (defvar *clause-constructor2* nil)
 (defvar *fopl-sentence-seq* nil)
 
-||#
+|#
 ;;; *******
 ;;; FORMULA ----------------------------------------------------------------
 ;;; *******

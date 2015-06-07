@@ -625,8 +625,8 @@
 	(push (cons sname 2) *sk-function-num*)
 	(setq num 1)))
     (if variables
-	(format nil "#f~d.~a" (the fixnum num) (string sname))
-      (format nil "#c~d.~a" (the fixnum num) (string sname)))
+	(format nil "#f~d@~a" (the fixnum num) (string sname))
+      (format nil "#c~d@~a" (the fixnum num) (string sname)))
     ))
 
 (defun skolemize (formula)

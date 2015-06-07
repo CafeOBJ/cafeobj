@@ -244,7 +244,9 @@
   (with-in-module (*current-module*)
     (let ((axs nil))
       (dolist (a-decl goal-ax-decls)
-	(push (parse-axiom-declaration a-decl) axs))
+	(cond ((eq (car a-decl) '%fax)
+	       (push (parse-fax-declaration a-decl) axs))
+	      (t (push (parse-axiom-declaration a-decl) axs))))
       (begin-proof *current-module* (nreverse axs)))))
 
 ;;; :apply/:auto

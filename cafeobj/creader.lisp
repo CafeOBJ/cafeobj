@@ -751,7 +751,8 @@
 				#.BeqDeclaration
 				#.BCeqDeclaration
 				#.BRLDeclaration
-				#.BCRLDeclaration)
+				#.BCRLDeclaration
+				#.FoplAXDeclaration)
 		 |}|)
 	(|:apply| (:if-present to (:symbol)) (|(| (:seq-of :symbol) |)|))
 	(|:auto|)
@@ -764,7 +765,8 @@
 					#.BeqDeclaration
 					#.BCeqDeclaration
 					#.BRLDeclaration
-					#.BCRLDeclaration)
+					#.BCRLDeclaration
+					#.FoplAXDeclaration)
 			       |)|)
 			  (\[ (:symbol) \]))
 		 |by| |{| ((:! SubstList)) |}|)
@@ -775,7 +777,8 @@
 				      #.BeqDeclaration
 				      #.BCeqDeclaration
 				      #.BRLDeclaration
-				      #.BCRLDeclaration)
+				      #.BCRLDeclaration
+				      #.FoplGoalDeclaration)
 			     |)|)
 			(\[ (:symbol) \]))
 	       ><
@@ -786,7 +789,8 @@
 				      #.BeqDeclaration
 				      #.BCeqDeclaration
 				      #.BRLDeclaration
-				      #.BCRLDeclaration)
+				      #.BCRLDeclaration
+				      #.FoplGoalDeclaration)
 			     |)|)
 			(\[ (:symbol) \])))
 	((:+ |:equation| |:rule|))
@@ -796,11 +800,17 @@
 	 (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
 	(|:verbose| :symbol)
 	(|:normalize| :symbol)
-	(|:ctf| |{| #.EqDeclaration |}|)
+	(|:ctf| |{| (:one-of #.EqDeclaration 
+			     #.RlDeclaration
+			     #.BeqDeclaration
+			     #.BRLDeclaration
+			     #.FoplAXDeclaration)
+		|}|)
 	(|:csp| |{| (:many-of  #.EqDeclaration
-				#.RlDeclaration
-				#.BeqDeclaration
-				#.BRLDeclaration)
+			       #.RlDeclaration
+			       #.BeqDeclaration
+			       #.BRLDeclaration
+			       #.FoplAXDeclaration)
 		 |}|)
 	((:+ |:show| |:sh| |:describe| |:desc|) :args)
         ))				; end Top-Form

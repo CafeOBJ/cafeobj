@@ -526,49 +526,104 @@
 ;;;
 ;;; variable->constructor : goal variable op -> term
 ;;;
-#||
-(defun make-ind-const-name (name-prefix sort)
-  (format nil "~a~d#~a" 
-	  (string name-prefix)
-	  (incf (ptree-num-gen-const-ind *proof-tree*))
-	  (string (sort-name sort))))
-||#
-
 (defun make-ind-const-name (name-prefix sort)
   (format nil "~a#~a" (string name-prefix) (string (sort-name sort))))
 
 (defun variable->constructor (goal variable &key (sort nil) (op nil))
-    (let ((svar (if sort
-		  (make-variable-term sort (intern (format nil "~a_~a" (variable-name variable) (sort-name sort))))
+  (let ((svar (if sort
+		  (make-variable-term sort (intern (format nil "~a_~a" 
+							   (variable-name variable) 
+							   (sort-name sort))))
 		variable)))
-      (flet ((make-iv-const (name)
-	       (if op
-		   (let ((constant (make-applform-simple (method-coarity op) op nil)))
-		     (push (cons variable constant) (goal-ind-constants goal))
-		     constant)
-		 (let ((con (intro-const-returns-subst (goal-context goal)
-						       name
-						       svar)))
-		   (push con (goal-ind-constants goal))
-		   (cdr con)))))
-	(let ((v-assoc (find-variable-subst-in (goal-ind-constants goal) svar)))
-	  (or (cdr v-assoc)
-	      (let ((v-name (cdr (find-variable-subst-in (ptree-indvar-subst *proof-tree*) svar)))
-		    (vconst nil))
-		(unless v-name 
-		  (setq v-name (make-ind-const-name (variable-name variable)
-						    (or sort (variable-sort svar)))))
-		(setq vconst (make-iv-const v-name))
-		(pushnew (cons svar v-name) (ptree-indvar-subst *proof-tree*) :test #'equal)
-		vconst))))))
+    (flet ((make-iv-const (name)
+	     (if op
+		 (let ((constant (make-applform-simple (method-coarity op) op nil)))
+		   (push (cons variable constant) (goal-ind-constants goal))
+		   constant)
+	       (let ((con (intro-const-returns-subst (goal-context goal)
+						     name
+						     svar)))
+		 (push con (goal-ind-constants goal))
+		 (cdr con)))))
+      (let ((v-assoc (find-variable-subst-in (goal-ind-constants goal) svar)))
+	(or (cdr v-assoc)
+	    (let ((v-name (cdr (find-variable-subst-in (ptree-indvar-subst *proof-tree*) svar)))
+		  (vconst nil))
+	      (unless v-name 
+		(setq v-name (make-ind-const-name (variable-name variable)
+						  (or sort (variable-sort svar)))))
+	      (setq vconst (make-iv-const v-name))
+	      (pushnew (cons svar v-name) (ptree-indvar-subst *proof-tree*) :test #'equal)
+	      vconst))))))
+
+;;; SKOLEMITIZE
+;;; allow citp to represent the goal sentence in FOPLE-SENTENCE
+#|| TODO
+(defun make-skolem-function-name-citp (goal sort variables)
+  (declare (type sort* sort)
+	   (type list variables))
+  (let* ((sname (sort-name sort))
+	 (num-ent (assq sname (goal-skolems goal)))
+	 (num nil))
+    (declare (type symbol sname)
+	     (type list num-ent)
+	     (type (or null fixnum) num))
+    (if num-ent
+	(progn
+	  (setq num (the fixnum (cdr num-ent)))
+	  (incf (the fixnum (cdr num-ent))))
+      (progn
+	(push (cons sname 2) (goal-skolems goal))
+	(setq num 1)))
+    (if variables
+	(format nil "#f~d@~a" (the fixnum num) (string sname))
+      (format nil "#c~d@~a" (the fixnum num) (string sname)))))
+||#
+
+(defun skolemize-if-need (fax)
+  (unless (eq (axiom-type fax) :pignose-axiom)
+    (return-from skolemize-if-need fax))
+  (with-citp-debug ()
+    (format t "~%[skolemize]: ")
+    (print-axiom-brief fax))
+  (let* ((sentence (axiom-lhs fax))
+	 (type (fopl-sentence-type sentence)))
+    (declare (type symbol type))
+    (when (and (memq type '(:eq :beq))
+	       (term-is-lisp-form? (term-arg-2 sentence)))
+      (return-from skolemize-if-need fax))
+    ;; normalize quantified formula
+    ;; \Q[v1...vn]S --> \Q[v1]\Q[v2]...\Q[vn]S
+    (normalize-quantifiers sentence)
+    ;; convert to NNF(negation normal form.)
+    (setq sentence (neg-normal-form sentence))
+    ;; skolemization -- eliminate \Es
+    (skolemize sentence)
+    ;; skolemize may introduce new operators.
+    (prepare-for-parsing *current-module*)
+    ;; eliminate quantifiers -- eliminate \As
+    (zap-quantifiers sentence)
+    ;; convert to CNF(conjunctive normal form).
+    (conj-normal-form sentence)
+    ;; make it an equation
+    (let ((ax (make-rule :lhs sentence
+			 :rhs *bool-true*
+			 :condition *bool-true*
+			 :labels (axiom-labels fax)
+			 :behavioural (axiom-is-behavioural fax)
+			 :type :equation)))
+      (adjoin-axiom-to-module *current-module* ax)
+      ax)))
 
 ;;;
 ;;; initialize-proof-tree : module goal -> ptree
 ;;;
 (defun initialize-proof-tree (context-module goal-module initial-goals)
-  (let ((root (make-ptree-root goal-module initial-goals)))
-    (setq *next-default-proof-node* nil)
-    (make-ptree :root root :context context-module)))
+  (with-in-module (goal-module)
+    (let ((targets (mapcar #'skolemize-if-need initial-goals)))
+      (let ((root (make-ptree-root goal-module targets)))
+	(setq *next-default-proof-node* nil)
+	(make-ptree :root root :context context-module)))))
 
 ;;;
 ;;; check-success : ptree -> Bool

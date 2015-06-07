@@ -304,16 +304,16 @@
 ;;; =============================
 
 ;;; EVAL-FAX
-(defun eval-fax (ast)
+
+(defun parse-fax-declaration (ast)
   (declare (type list ast))
   (let ((sentence (%fax-sentence ast))
 	(behavioural (%fax-behavioural ast))
 	(label (%fax-label ast))
 	(goal? (%fax-goal ast)))
-    (I-miss-current-module eval-fax)
+    (I-miss-current-module parse-fax-declaration)
     ;; include fopl-clause unless already be imported.
     (include-fopl)
-    ;;
     (prepare-for-parsing *current-module*)
     (let ((sort *cosmos*)
 	  (*parse-variables* nil)
@@ -354,9 +354,13 @@
 	(check-axiom-error-method *current-module*
 				  ax
 				  t)
-	(add-axiom-to-module *current-module* ax)
-	(set-needs-rule)
 	ax))))
+
+(defun eval-fax (ast)
+  (let ((ax (parse-fax-declaration ast)))
+    (add-axiom-to-module *current-module* ax)
+    (set-needs-rule)
+    ax))
 
 ;;; reset
 (defun eval-pndb (ast)
