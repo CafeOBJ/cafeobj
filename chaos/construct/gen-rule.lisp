@@ -797,7 +797,8 @@
 	   (type axiom rul)
 	   (values (or null axiom)))
   (let (($$trace-rewrite nil)
-	($$trace-rewrite-whole nil))
+	($$trace-rewrite-whole nil)
+	(*m-pattern-subst* nil))
     (let ((newcond (if (is-true? (axiom-condition rul))
 		       *BOOL-true*
 		       (term-simplify
