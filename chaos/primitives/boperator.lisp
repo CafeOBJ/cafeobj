@@ -1021,6 +1021,9 @@
   (declare (type method meth)
 	   (type hash-table info)
 	   (values (or null t)))
+  (when *on-operator-debug* 
+    (format t "~%[method-is-assosiative]:")
+    (print-chaos-object meth))
   (theory-contains-associativity (method-theory meth info)))
 
 ;;; METHOD-IS-IDENTITY
@@ -1446,13 +1449,13 @@
     (dolist (m (cdr list-meth) res)
       (if (method<= res m)
 	  (setq res m)
-	(unless (method-is-of-same-operator res m)
+	(unless (method-is-in-same-component res m)
 	  (return-from choose-most-general-op nil))))))
 
 ;;; choose-lowest-op : ops => or null method
 ;;; NOTE: assumes *current-sort-order* and *current-opinfo-table* are bound to
 ;;;       properly.
-;;;
+;;; This is used for selecting a term from multiple parse result.
 (defun choose-lowest-op (list-meth)
   (unless (cdr list-meth)
     (return-from choose-lowest-op (car list-meth)))
@@ -1466,7 +1469,7 @@
       (if (method<= m res)
 	  (setq res m)
 	;; return immediately iff two methods are not comparable
-	(unless (method-is-of-same-operator res m)
+	(unless (method-is-in-same-component res m)
 	  (return-from choose-lowest-op nil))))
     (when *on-operator-debug*
       (format t "~%--> ")

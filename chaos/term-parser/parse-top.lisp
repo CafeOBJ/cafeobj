@@ -117,19 +117,14 @@
 		(t (setf result (make-bconst-term *syntax-err-sort*
 						  (if res
 						      res
-						      preterm)))
-		   ))
+						      preterm)))))
 	  ;;
 	  (setq *parse-raw-parse* result)
 	  (when (term-ill-defined result)
 	    (with-output-simple-msg ()
 	      (format t "~&[Error] no successful parse")
-	      (print-next)
-	      ;; (print-term-tree result t)
-	      ;; (term-print result)
-	      ))
-	  (parse-convert result module))))
-    ))
+	      (print-next)))
+	  (parse-convert result module))))))
 
 (defun select-parse (module final &optional print-warning)
   (declare (type module module)
@@ -180,9 +175,7 @@
 	    (nth (1- choise) final)))
       (progn
 	(parse-show-diff final)
-	(make-bconst-term *syntax-err-sort* "ambiguous term")
-	))
-    ))
+	(make-bconst-term *syntax-err-sort* "ambiguous term")))))
   
 (defun pre-choose-final-sub (module final)
   (declare (type module module)
@@ -266,14 +259,15 @@
 				result)
 		       res)
 		 (setq result res))
-
 		(t (setq gen-op (choose-most-general-op mslist))
 		   ;; then select most general one
 		   (when gen-op
 		     (push (find-if #'(lambda (x) (method= gen-op (term-head x))) result)
 			   res)
 		     (setq result res)))))))
-    (pre-choose-final-sub module result)))
+    (if result
+	(pre-choose-final-sub module result)
+      (pre-choose-final-sub module final))))
 
 ;;; NOT USED NOW.
 (defun parser-diagnose (module preterm sort)
@@ -536,42 +530,34 @@
 (defun parser-find-rule-pair (module lhslst rhslst)
   (declare (type module module)
 	   (type list lhslst rhslst))
-  (let ((*current-module* module))
+  (with-in-module (module)
     (let ((so (module-sort-order module))
 	  (ok nil)
-	  (retr nil)
-	  (ill nil))
+	  (retr nil))
+      ;; foreach lhs:lhslst {
+      ;;   foreach rhs:rhslst {
       (dolist (lhs lhslst)
-	(let ((sl (term-sort lhs)))
-	  (dolist (rhs rhslst)
-	    (let ((sr (term-sort rhs)))
-	      (if (term-ill-defined lhs)
-		  (push (list lhs rhs) ill)
-		  (if (term-head-is-error lhs)
-		      (if (is-in-same-connected-component sl sr so)
-			  (push (list lhs rhs) retr)
-			  ;; else, completely bad, unacceptable
-			  ())
-		      ;; lhs is proper term
-		      (if (sort<= sr sl so)
-			  (if (term-ill-defined rhs)
-			      (push (list lhs rhs) ill)
-			      (push (list lhs rhs) ok))
-			  (if (is-in-same-connected-component sl sr so)
-			      (if (term-ill-defined rhs)
-				  (push (list lhs rhs) ill)
-				  (push (list lhs rhs) retr))
-			      ;; lhs and rhs is not in same compo.
-			      ()
-			      )
-			  ))))
-	    )))
-      (if ok
-	  ok
-	  (if retr
-	      retr
-	      nil))
-      )))
+	(block cont-lhs
+	  (when *on-axiom-debug*
+	    (format t "~%lhs: ")
+	    (term-print-with-sort lhs))
+	  (when (term-ill-defined lhs)
+	    (return-from cont-lhs))	; skip it and continue
+	  (let ((sl (term-sort lhs)))
+	    (dolist (rhs rhslst)
+	      (block cont-rhs
+		(when *on-axiom-debug*
+		  (format t "~&rhs: ")
+		  (term-print-with-sort rhs))
+		(when (term-ill-defined rhs)
+		  (return-from cont-rhs)) ; continue it and continue
+		(let ((sr (term-sort rhs)))
+		  (if (sort<= sr sl so)
+		      (push (list lhs rhs) ok)
+		    (when (is-in-same-connected-component sl sr so)
+		      (push (list lhs rhs) retr)))))))))
+      ;; 
+      (or ok retr nil))))
 
 ;;; used in modexp-compute-op-mapping
 ;;;
