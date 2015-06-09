@@ -1473,7 +1473,8 @@
 	  (return-from choose-lowest-op nil))))
     (when *on-operator-debug*
       (format t "~%--> ")
-      (print-chaos-object res))))
+      (print-chaos-object res))
+    res))
 
 (defun lowest-method (method lower-bound
 		      &optional (module *current-module*))
@@ -1596,17 +1597,17 @@
     (if (null (cdr overloaded-methods))
 	(if overloaded-methods
 	    (car overloaded-methods)
-	    method)
-	(let* ((*current-sort-order* (module-sort-order module))
-	       (*current-opinfo-table* (module-opinfo-table module))
-	       (eligible-flag (if upper-bound
-				  (sort<= (method-coarity method) upper-bound)
-				  t))
-	       (method-res (if eligible-flag method nil))
-	       (cur-arity (if eligible-flag (method-arity method) nil))
-	       (cur-coarity (if eligible-flag (method-coarity method) nil)))
-	  (declare (type hash-table *current-sort-order*
-			 *current-opinfo-table*)
+	  method)
+      (let* ((*current-sort-order* (module-sort-order module))
+	     (*current-opinfo-table* (module-opinfo-table module))
+	     (eligible-flag (if upper-bound
+				(sort<= (method-coarity method) upper-bound)
+			      t))
+	     (method-res (if eligible-flag method nil))
+	     (cur-arity (if eligible-flag (method-arity method) nil))
+	     (cur-coarity (if eligible-flag (method-coarity method) nil)))
+	(declare (type hash-table *current-sort-order*
+		       *current-opinfo-table*)
 		   (type (or null t) eligible-flag)
 		   (type list cur-arity)
 		   (type (or null method) method-res)

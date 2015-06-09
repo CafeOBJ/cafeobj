@@ -255,9 +255,11 @@
 	  ;; first find the lowest one
 	  (setq least-op (choose-lowest-op mslist))
 	  (cond (least-op
-		 (push (find-if #'(lambda (x) (method= least-op (term-head x)))
-				result)
-		       res)
+		 (if (method= *bool-if* least-op)
+		     (setq res (select-if-then-least result (module-sort-order module)))
+		   (push (find-if #'(lambda (x) (method= least-op (term-head x)))
+				  result)
+			 res))
 		 (setq result res))
 		(t (setq gen-op (choose-most-general-op mslist))
 		   ;; then select most general one

@@ -249,6 +249,16 @@
 	  (rewrite $$target-term *current-module* rewrite-mode))))
     $$term)
       
+  (defun simplify-on-top (term context-module)
+    (declare (type term term)
+	     (values t))
+    (with-in-module ((prepare-reduction-env term context-module :red nil))
+      (catch 'rewrite-abort
+	(if (term-is-application-form? term)
+	    (apply-rules-with-different-top term
+					    (method-rules-with-different-top
+					     (term-method term)))
+	  term))))
   )
 
 

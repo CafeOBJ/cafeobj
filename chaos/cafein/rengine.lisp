@@ -780,6 +780,7 @@
     ;; return t iff the rule is applied.
     is-applied))
 
+#| -- moved to reducer.lisp
 (defun simplify-on-top (term)
   (declare (type term term)
            (values t))
@@ -788,6 +789,7 @@
                                       (method-rules-with-different-top
                                        (term-method term)))
     term))
+|#
 
 ;;;
 ;;; 				 REWRITE ENGINE

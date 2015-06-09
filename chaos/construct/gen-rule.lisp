@@ -37,8 +37,6 @@
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
-;;; (defvar *gen-rule-debug* nil)
-
 ;;; GENERATE REWRITE RULES module : -> module'
 ;;;-----------------------------------------------------------------------------
 ;;;
@@ -582,8 +580,7 @@
 	   (values t))
   (when *gen-rule-debug*
     (format t "~%[id-compl] given rule ~a, of kind ~a " r (axiom-kind r))
-    (print-next)
-    (print-chaos-object r))
+    (print-next))
   (unless (axiom-kind r)
     (let (varval
 	  (res nil)
@@ -618,7 +615,7 @@
 	       (setq sub1 (cons varval nil))
 	       (setq newsubst (substitution-can (cons varval subst)))
 	       (setq donesubst (cons (car sub1) donesubst))
-	       (setq new-axiom (insert-val sub1 a-axiom))
+	       (setq new-axiom (insert-val sub1 a-axiom module))
 	       (unless (or (null new-axiom)
 			   (rule-inf-subst-member newsubst res))
 		 (setq newres (cons (list new-axiom newsubst) newres)))))))
@@ -673,6 +670,9 @@
 		(when e
 		  (setf (axiom-id-condition e) newidcond)))
 	      (unless (eq r rul)
+		(when *gen-rule-debug*
+		  (format t "~%[id-compl]=> ")
+		  (print-chaos-object newrule))
 		(adjoin-axiom-to-module module newrule)))))))))
 
 (defun test-bad-axiom (ax)
@@ -792,7 +792,7 @@
 	       (eq val (cdr ye)))
       (return t))))
 
-(defun insert-val (subs rul)
+(defun insert-val (subs rul &optional (module *current-module*))
   (declare (type list subs)
 	   (type axiom rul)
 	   (values (or null axiom)))
@@ -801,9 +801,10 @@
 	(*m-pattern-subst* nil))
     (let ((newcond (if (is-true? (axiom-condition rul))
 		       *BOOL-true*
-		       (term-simplify
-			(normalize-for-identity-total
-			 (substitution-partial-image subs (axiom-condition rul)))))))
+		     (term-simplify
+		      (normalize-for-identity-total
+		       (substitution-partial-image subs (axiom-condition rul)))
+		      module))))
       (if (is-false? newcond)
 	  nil
 	(let ((rule nil)
@@ -812,7 +813,8 @@
 	      (rhs (term-simplify
 		    (normalize-for-identity-total
 		     (substitution-partial-image subs
-						 (axiom-rhs rul)))))
+						 (axiom-rhs rul)))
+		    module))
 	      (condition (if (is-true? newcond)
 			     *BOOL-TRUE*
 			   newcond)))
@@ -835,7 +837,7 @@
 	     :labels (cons (car (create-rule-name 'dummy "idcomp")) (axiom-labels rul))))
 	  ;;
 	  (when *gen-rule-debug*
-	    (format t "~%invert-val: ")
+	    (format t "~%[insert-val]:----------")
 	    (format t "~% given rule : ")
 	    (print-chaos-object rul)
 	    (format t "~% gen rule : ")
@@ -1040,37 +1042,36 @@
   (theory-standard-form (normalize-for-identity tm)))
 
 ;;; rules for and or not == =/= identical nonidentical must not have conditions
-(defun term-simplify (tm)
+(defun term-simplify (tm &optional (module *current-module*))
   (declare (type term tm)
 	   (values (or null term)))
   (if (term-is-variable? tm)
       nil
-      (if (term-is-constant? tm)
-	  nil
-	  (let ((meth (term-head tm)))
-	    (dolist (subtm (term-subterms tm))
-	      (term-simplify subtm))
-	    (if (or (eq *BOOL-and* meth)
-		    (eq *BOOL-or* meth)
-		    (eq *BOOL-not* meth)
-		    (eq *BOOL-if* meth))
-		(simplify-on-top tm)
-		(if (and (or (eq *BOOL-equal* meth)
-			     (eq *BOOL-nonequal* meth)
-			     (eq *identical* meth)
-			     (eq *nonidentical* meth))
-			 (term-is-ground? (term-arg-1 tm))
-			 (term-is-ground? (term-arg-2 tm)))
-		    (if (or (eq *BOOL-equal* meth)
-			    (eq *identical* meth))
-			(if (term-is-similar? (term-arg-1 tm) (term-arg-2 tm))
-			    (term-replace tm (simple-copy-term *BOOL-true*))
-			    nil)
-			(if (term-is-similar? (term-arg-1 tm) (term-arg-2 tm))
-			    (term-replace tm (simple-copy-term *BOOL-false*))
-			    nil))
-		    nil))
-	    )))
+    (if (term-is-constant? tm)
+	nil
+      (let ((meth (term-head tm)))
+	(dolist (subtm (term-subterms tm))
+	  (term-simplify subtm module))
+	(if (or (eq *BOOL-and* meth)
+		(eq *BOOL-or* meth)
+		(eq *BOOL-not* meth)
+		(eq *BOOL-if* meth))
+	    (simplify-on-top tm module)
+	  (if (and (or (eq *BOOL-equal* meth)
+		       (eq *BOOL-nonequal* meth)
+		       (eq *identical* meth)
+		       (eq *nonidentical* meth))
+		   (term-is-ground? (term-arg-1 tm))
+		   (term-is-ground? (term-arg-2 tm)))
+	      (if (or (eq *BOOL-equal* meth)
+		      (eq *identical* meth))
+		  (if (term-is-similar? (term-arg-1 tm) (term-arg-2 tm))
+		      (term-replace tm (simple-copy-term *BOOL-true*))
+		    nil)
+		(if (term-is-similar? (term-arg-1 tm) (term-arg-2 tm))
+		    (term-replace tm (simple-copy-term *BOOL-false*))
+		  nil))
+	    nil)))))
   tm)
 
 (defun normalize-for-identity (term)
