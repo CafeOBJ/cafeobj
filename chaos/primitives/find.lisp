@@ -52,28 +52,27 @@
     (setq modexp *current-module*))
   (if (module-p modexp)
       modexp
-      (let ((canon-name (canonicalize-simple-module-name modexp))
-	    (mod nil))
-	(declare (type (or simple-string list) canon-name))
-	(if (stringp canon-name)
-	    (let ((pos (position #\. (the simple-string canon-name) :from-end t)))
-	      (if pos
-		  (let ((name (subseq canon-name 0 pos))
-			(qual (subseq canon-name (1+ pos)))
-			(context nil))
-		    (setf context (find-module-or-error qual))
-		    (if (or (null context) (modexp-is-error context))
-			(with-output-chaos-error ('no-such-module)
-			  (format t "Could not evaluate modexpr ~a, " canon-name)
-			  (format t " no such module ~a" qual)
-			  )
-			(setf mod (find-module-in-env name context))))
-		  (setq mod (find-module-in-env canon-name))
-		  )
-	      (if mod
-		  mod
-		  (cons :error canon-name)))
-	    (cons :error canon-name)))))
+    (let ((canon-name (canonicalize-simple-module-name modexp))
+	  (mod nil))
+      (declare (type (or simple-string list) canon-name))
+      (if (stringp canon-name)
+	  (let ((pos (position #\. (the simple-string canon-name) :from-end t)))
+	    (if pos
+		(let ((name (subseq canon-name 0 pos))
+		      (qual (subseq canon-name (1+ pos)))
+		      (context nil))
+		  (setf context (find-module-or-error qual))
+		  (if (or (null context) (modexp-is-error context))
+		      (with-output-chaos-error ('no-such-module)
+			(format t "Could not evaluate modexpr ~s: " canon-name)
+			(when (and qual (not (equal qual "")))
+			  (format t "~% no such module ~s" qual)))
+		    (setf mod (find-module-in-env name context))))
+	      (setq mod (find-module-in-env canon-name)))
+	    (if mod
+		mod
+	      (cons :error canon-name)))
+	(cons :error canon-name)))))
 
 ;;; *************************
 ;;; GETTING MODULE CONSTRUCTS___________________________________________________
