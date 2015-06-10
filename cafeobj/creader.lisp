@@ -462,8 +462,9 @@
          (:if-present in :modexp |:|)
          (:seq-of :term) |.|)
         (version)
-        ;;
+        ;; AUTO LOAD
         (autoload :symbol :symbol)
+	(no autoload :symbol)
         ;; (stop at :term |.|)
         ;; ((:+ rwt) limit :symbol)
         (test (:+ reduction red execution exec) (:if-present in :modexp |:|)

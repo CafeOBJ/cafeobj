@@ -353,9 +353,8 @@
 		   ((token-is-not-instantiation (car *modexp-parse-input*))
 		    (prog1 (car *modexp-parse-input*) (modexp-skip)))
 		   (t (with-output-chaos-error ('invalid-modexp)
-			(princ (car *modexp-parse-input*))
-			(print "doesn't make sense in module expression.")
-			)))))
+			(format t "~s doesn't make sense in module expression." 
+				(car *modexp-parse-input*)))))))
     (let ((m (parse-basic)))
       (cond ((null *modexp-parse-input*) m) ; was just a simple name or parenced
 					    ; modexpr.
@@ -543,16 +542,14 @@
 		     (with-output-chaos-error ('invalid-modexp)
 		       (princ "premature end of input in operator pattern:")
 		       (print-next)
-		       (format t "beginning of pattern: ~{~s~}" (nreverse res))
-		        ))
+		       (format t "beginning of pattern: ~{~s~}" (nreverse res))))
 		   (when (member (car *modexp-parse-input*) cntxt :test #'equal)
 		     (return))
 		   (setq res (nconc res (parse-balanced-context cntxt))))
 	     res )))
     (cond ((null *modexp-parse-input*)
 	   (with-output-chaos-error ('invalid-modexp)
-	     (princ "premature end of view body")
-	      ))
+	     (princ "premature end of view body")))
 	  (t (case-equal (car *modexp-parse-input*)
 		("sort"			; sort map
 		 (let (from to)
@@ -562,8 +559,7 @@
 		   (when (not (equal "->" (car *modexp-parse-input*)))
 		     (with-output-chaos-error ('invalid-modexp)
 		       (format t "parsing sort mapping of ~a, missing \"->\"" 
-			       from)
-		       ))
+			       from)))
 		   (modexp-skip)	; skip "->"
 		   ;; parse `to' part.
 		   (setq to (parse-sort-reference '("," "}" "]")))
@@ -584,7 +580,7 @@
 		   `(:hsort ,from ,to)))
 		(("var" "vars")
 		 (let (v s)
-		   (modexp-skip)		; skip "var", "vars"
+		   (modexp-skip)	; skip "var", "vars"
 		   (setq v nil)
 		   (loop (let ((inp (car *modexp-parse-input*)))
 			   (when (equal ":" inp) (return))
@@ -595,23 +591,21 @@
 		   `(:var ,v ,s)))
 		("op"			; operator map
 		 (let (a b)
-		   (modexp-skip)		; skip "op"
+		   (modexp-skip)	; skip "op"
 		   (setq a (parse-op-name '("->")))
 		   (when (not (equal "->" (car *modexp-parse-input*)))
 		     (with-output-chaos-error ('invalid-modexp)
-		       (format t "in view body, for op ~a,  missing \"->\"" a)
-		       ))
+		       (format t "in view body, for op ~a,  missing \"->\"" a)))
 		   (modexp-skip)
 		   (setq b (parse-op-name '("." "}" ",")))
 		   `(:op ,a ,b)))
 		("bop"			; behavioural operator map
 		 (let (a b)
-		   (modexp-skip)		; skip "bop"
+		   (modexp-skip)	; skip "bop"
 		   (setq a (parse-op-name '("->")))
 		   (when (not (equal "->" (car *modexp-parse-input*)))
 		     (with-output-chaos-error ('invalid-modexp)
-		       (format t "in view body, for bop ~a, missing \"->\"" a)
-		       ))
+		       (format t "in view body, for bop ~a, missing \"->\"" a)))
 		   (modexp-skip)
 		   (setq b (parse-op-name '("." "}" ",")))
 		   `(:bop ,a ,b)))
@@ -619,9 +613,7 @@
 		 nil)
 		(t (with-output-chaos-error ('invalid-modexp)
 		     (format t "in view mapping, expecting \"sort\", \"hsort\", \"op\", \"bop\" or \"var\", but encoutered ~A."
-			     (car *modexp-parse-input*))
-		     )))
-	     ))))
+			     (car *modexp-parse-input*)))))))))
 
 ;;; *************************
 ;;; PARSE SORT REFERENCE FORM___________________________________________________
@@ -637,18 +629,6 @@
       (princ "premature end of input at sort specification.")
       ))
   (do-parse-sort-ref cntxt))
-
-#||
-;;; MODEXP-CHECK-QUAL
-(defun modexp-check-qual (x)
-  (if (stringp x)
-      (let ((pos (position #\. x)))
-	(if (and pos (< 0 pos) (< (1+ pos) (length x)))
-	    `(:qual ,(list (subseq x 0 pos))
-	           ,(subseq x (1+ pos)))
-	    x))
-      x))
-||#
 
 ;;; DO-PARSE-SORT-REF
 ;;; * NOTE *
@@ -730,8 +710,7 @@
 				       (subseq (the simple-string val) (1+ pos)))
 			   (%sort-ref* val))))
 		 ;; return it as is.
-		 (%sort-ref* val)
-		 )))))
+		 (%sort-ref* val))))))
 
 ;;; ****************************
 ;;; PARSE OPERATOR REFRENCE FORM______________________________________________________
@@ -743,7 +722,7 @@
 (defun parse-operator-reference (cntxt &optional (ignore-qual nil))
   (declare (type list cntxt))
   (when *on-modexp-debug*
-    (format t "~&[parse-operator-reference]:*modexp-parse-input*=~a" *modexp-parse-input*))
+    (format t "~%[parse-operator-reference]:*modexp-parse-input*:~% ~s" *modexp-parse-input*))
   (cond ((null *modexp-parse-input*)
 	 (with-output-chaos-error ('invalid-modexp)
 	   (princ "premature end of input at operator specification")))
@@ -751,19 +730,21 @@
 	 ;; parenthesized reference -------------------------------------------------
 	 (modexp-skip)			; skip "("
 	 (let ((val (parse-op-simple-name '(")")))
-	       (flag t))
+	       (in-paren t))
 	   (when (equal ")" (car *modexp-parse-input*))
 	     (modexp-skip)
-	     (setq flag nil))		; we are now out of parens.
-	   ;;
+	     (setq in-paren nil))		; we are now out of parens.
 	   (let ((res (cond ((and (not ignore-qual)
+				  ;; check qualifier
 				  (equal "." (car *modexp-parse-input*))
+				  (cdr *modexp-parse-input*)
 				  (not (member "." cntxt :test #'equal)))
 			     ;; ( <simple-op-ref> . <Modexpr> ...)
 			     (modexp-skip) ; skip "."
 			     (%opref* val (do-parse-modexp)))
 			    ((and *modexp-parse-input*
 				  (not ignore-qual)
+				  ;; check qualifier
 				  (<= 2 (length (car *modexp-parse-input*)))
 				  (eql #\. (char
 					    (the simple-string
@@ -776,14 +757,13 @@
 			       (%opref* val (subseq name 1))))
 			    ;; as is 
 			    (t (%opref* val)))))
-	     (when flag
+	     (when in-paren
 	       (unless (equal ")" (car *modexp-parse-input*))
 		 (with-output-chaos-error ('invalid-modexp)
 		   (princ "unbalanced parentheses in operator specification.")
 		   (print-next)
 		   (princ "context: ")
-		   (print-simple-princ-open val)
-		   ))
+		   (print-simple-princ-open val)))
 	       (modexp-skip))
 	     res)))
 	;; not in parenthe ---------------------------------------------------------
@@ -797,9 +777,18 @@
 			 ;; "foo.qualifier"
 			 (%opref* (list (subseq name 0 pos))
 				  (subseq name (1+ pos)))
-			 (%opref* val))))
-		 (%opref* val)))))
-  )
+		       (%opref* val))))
+	       (let ((mod-ref (last val)))
+		 (when (stringp (car mod-ref))
+		   (setq mod-ref (car mod-ref))
+		   (let ((pos (and (not ignore-qual) (position #\. mod-ref))))
+		     (when *on-modexp-debug*
+		       (format t "~%[]:pos = ~a, mod-ref = ~s" pos mod-ref))
+		     (if (and pos (< (1+ pos) (length mod-ref)))
+			 ;; .qualifier
+			 (%opref* (butlast val)
+				  (subseq mod-ref (1+ pos)))
+		       (%opref* val))))))))))
 
 ;;; PARSE-OP-SIMPLE-NAME
 
@@ -820,8 +809,7 @@
 		    (print-simple-princ-open (nreverse res))
 		    (print-next)
 		    (princ "expecting one of: ")
-		    (princ cntxt)
-		    )))
+		    (princ cntxt))))
 	  (when (member (car *modexp-parse-input*) cntxt :test #'equal)
 	    (return))
 	  (setq res (nconc res (parse-balanced-context cntxt))))

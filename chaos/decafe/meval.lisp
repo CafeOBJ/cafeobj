@@ -89,8 +89,9 @@
 	      (setf context (eval-modexp qual t))
 	      (if (modexp-is-error context)
 		  (with-output-chaos-error ('no-such-module)
-		    (format t "Could not evaluate modexpr ~a, " me)
-		    (format t " no such module ~a" qual))
+		    (format t "Could not evaluate modexpr ~s, " me)
+		    (when (and qual (not (equal qual "")))
+		      (format t "~% no such module ~s" qual)))
 		(setf mod (find-module-in-env name context))))
 	  (setq mod (find-module-in-env me (if also-local
 					       (get-context-module)

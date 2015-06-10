@@ -336,7 +336,21 @@ a module's content will switch the current module.
     :category :library
     :parser parse-autoload-command
     :evaluator eval-ast
-    :doc "
+    :title "`autoload <module-name> <file-name>`"
+    :related ("no autoload")
+    :doc "When evaluating a <module-name> and found that
+it is not yet declared, the system read in <file-name> then 
+retries the evaluation.
+")
+
+(define ("no autoload")
+    :category :library
+    :parse parse-no-autoload-command
+    :evaluator eval-ast
+    :title "`no autoload <module-name>`"
+    :related ("autoload")
+    :doc "Stop `autoload` of module with the name <module-name> .
+Please refer to `autoload` command.
 ")
 
 (define ("axioms" "axiom" "axs")

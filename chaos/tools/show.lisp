@@ -198,8 +198,7 @@
 	    (with-output-msg ()
 	      (format t "current module has no let binding for \"~a\""
 		      target)
-	      (return-from show-term nil)
-	      ))
+	      (return-from show-term nil)))
 	  (setq target val))))
     (when (stringp target)
       ;; cought context error
@@ -418,9 +417,13 @@
 	    (setq tokens (read-opname-from-string (car tokens))))
 	  (let ((*modexp-parse-input* tokens))
 	    (let ((val (parse-operator-reference nil)))
-	      (if (null *modexp-parse-input*)
-		  (setq res val)))
-	    res))
+	      (when *on-modexp-debug*
+		(format t "[parse-op-name] *modexp... = ~s" *modexp-parse-input*))
+	      (when (or (null *modexp-parse-input*)
+			(and (null (cdr *modexp-parse-input*))
+			     (equal "." (car *modexp-parse-input*))))
+		(setq res val))
+	    res)))
       nil)))
 
 (defun get-module-from-opref (parsedop)
@@ -446,15 +449,20 @@
   (let ((mod (get-module-from-opref opref)))
     (!setup-reduction mod)
     (with-in-module (mod)
-      (let ((ops (find-all-qual-operators-in mod (%opref-name opref))))
+      (let* ((name (%opref-name opref))
+	     (ops (find-all-qual-operators-in mod name)))
+	(unless ops
+	  (when (equal "." (car (last name)))
+	    (setq name (butlast name))
+	    (setq ops (find-all-qual-operators-in mod name))))
 	(unless ops
 	  (if no-error
-	      (with-output-msg ()
-		(princ "no such operator")
-		(print-chaos-object opref))
+	      (with-output-simple-msg ()
+		(format t "no such operator: ~a " name)
+		(return-from resolve-operator-reference
+		  (values nil mod)))
 	    (with-output-chaos-error ('no-such-op)
-	      (princ "no such operator")
-	      (print-chaos-object opref))))
+	      (format t "no such operator: ~a" name))))
 	(values ops mod)))))
 
 (defun show-op (toks &optional (desc nil))
@@ -465,8 +473,7 @@
 	(dolist (op ops)
 	  (if desc
 	      (describe-operator op)
-	    (describe-operator-brief op))))
-      )))
+	    (describe-operator-brief op)))))))
 
 ;;; ********
 ;;; SHOW SUB

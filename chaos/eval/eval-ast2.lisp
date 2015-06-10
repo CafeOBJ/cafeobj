@@ -152,9 +152,9 @@
     ;; print out prelude message
     (unless *chaos-quiet*
       (with-in-module (mod)
-	(format t "~%-- ~a in " (if (eq mode :exe)
+	(format t "~%-- ~a in " (if (eq mode :exec)
 				    "execute"
-				  (if (eq mode :exe+)
+				  (if (eq mode :exec+)
 				      "execute!"
 				    (if (eq mode :red)
 					"reduce"
