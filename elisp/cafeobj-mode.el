@@ -118,7 +118,7 @@
 ;;;            :
 ;;; After editting, type `C-c C-c'(M-x edit-abbrevs-redefine) to install
 ;;; abbrev definitions as specified. 
-;;; Then use `M-x write-abbrev-file' specifying ~/.abbrev_deffs to
+;;; Then use `M-x write-abbrev-file' specifying ~/.abbrev_defs to
 ;;; the target file name, and adds a line in my .emacs
 ;;; (read-abbrev-file "~/.abbrev_defs").
 ;;; See Emacs manual of Infos for detail.
@@ -150,6 +150,8 @@
 (require 'comint)
 (require 'custom)
 (require 'font-lock)
+(require 'abbrev)
+(require 'imenu)
 
 (defgroup cafeobj nil
   "CafeOBJ code editting."
@@ -188,6 +190,28 @@
 Should be a list of strings which will be given to the cafeobj process when star up."
   :group 'cafeobj)
 
+;;; simple imenu support
+(defcustom cafeobj-imenu-generic-expression-alist
+  '(("Modules" "^mod.* \\(\\w+\\b\\)" 1)
+    ("Vars" "var.* \\(\\w+\\b\\):" 1)
+    )
+  "Alist of regular expressions for the imode index. 
+Each element form (submenu-name regexp index).
+Where submenu-name is the name of the submenu under which
+items matching regexp are placed. When submenu-name is nil
+the matching entries appear in the root imenu list.
+Regexp idex indicates which regexp text group defines the
+text entry. When the index is 0 the entire :text that matches
+regexp appers."
+  :type '(repeat (list (choice :tag "Submenu Name" string (const nil))
+                       regexp (integer :tag "Regexp index")))
+  :group 'cafeobj
+  )
+
+(add-hook 'cafeobj-mode-hook
+          (lambda ()
+            (setq imenu-generic-expression cafeobj-imenu-generic-expression-alist)))
+
 ;;; FACES for CafeOBJ/CafeOBJ-Process
 
 (defgroup cafeobj-faces nil
@@ -206,7 +230,7 @@ Should be a list of strings which will be given to the cafeobj process when star
   :group 'cafeobj-faces)
 
 (defface cafeobj-comment-face-2
-  '((((class color) (background dark)) (:foreground "gray80"))
+  '((((class color) (background dark)) (:foreground "brown"))
     (((class color) (background light)) (:foreground "blue4"))
     (((class grayscale) (background light))
      (:foreground "DimGray" :bold t :italic t))
@@ -511,6 +535,8 @@ This is in addition to cafeobj-continued-statement-offset."
       "require"
       "provide"
       "resolve"
+      "full"
+      "reset"
       "option"
       "db"
       "sos"
@@ -523,8 +549,22 @@ This is in addition to cafeobj-continued-statement-offset."
       "lex"
       "name"
       "names"
+      "look"
       "inspect"
       "inspect-term"
+      ":goal"
+      ":apply"
+      ":init"
+      ":cp"
+      ":ctf"
+      ":csp"
+      ":show"
+      ":describe"
+      ":verbose"
+      ":backward"
+      ":equation"
+      ":rule"
+      ":select"
       )
   "CafeOBJ top-level commands")
 
@@ -547,20 +587,13 @@ This is in addition to cafeobj-continued-statement-offset."
 	    (regexp-opt cafeobj-top-keywords)
 	    "\\)\\>"))
 
-;(defconst cafeobj-top-decl-pat
-;    (concat "^[ \t]*\\(?:"
-;	    "module\\*\\|mod\\*\\|"
-;	    (regexp-opt '("module" "mod" "module!" "mod!" "view"))
-;	    "\\>\\)"))
-
 (defconst cafeobj-top-decl-pat
     (concat "^[ \t]*\\("
 	    "module\\|module\\*\\|mod\\*\\|module\\|mod\\|module!\\|mod!\\|view\\|hwd:mod!\\|sys:mod!"
 	    "\\)\\>"))
 
 (defun looking-at-cafeobj-top-decl ()
-  (looking-at cafeobj-top-decl-pat)
-  )
+  (looking-at cafeobj-top-decl-pat))
 
 (defconst cafeobj-block-start-pat
     (concat "[ \t]*"
@@ -640,8 +673,8 @@ This is in addition to cafeobj-continued-statement-offset."
 	     (purecopy (cons "CafeOBJ" (cdr cafeobj-mode-popup-menu)))))
       (t ;; 
        (setq cafeobj-mode-menu (make-sparse-keymap "CafeOBJ"))
-       (define-key cafeobj-mode-menu [choas-send-line]
-	 '("Evaluate Current Line" . cafeobj-send-current-line))
+       (define-key cafeobj-mode-menu [cafeobj-send-line]
+	 '("Evaluate Current Line" . cafeobj-send-line))
        (define-key cafeobj-mode-menu [cafeobj-send-region]
 	 '("Evaluate Cafeobj-Region" . cafeobj-send-region))
        (define-key cafeobj-mode-menu [cafeobj-send-proc]
@@ -666,51 +699,99 @@ This is in addition to cafeobj-continued-statement-offset."
 
 (defvar cafeobj-mode-abbrev-table nil
   "Abbrev table in use in CafeOBJ mode.")
+
+;;; se use extended abbriv 
+(autoload 'expand-abbrev-hook "expand")
+
 ;;; some default abbreviations define here
 (if cafeobj-mode-abbrev-table
     nil
-    (define-abbrev-table 'cafeobj-mode-abbrev-table
-	'(("btrns" "btrans" nil 0)
-	  ("bcq" "bceq" nil 0)
-	  ("compat" "compatibility" nil 0)
-	  ("psort" "principal-sort" nil 0)
-	  ("req" "require" nil 0)
-	  ("sh" "show" nil 0)
-	  ("verb" "verbose" nil 0)
-	  ("reg" "regularize" nil 0)
-	  ("import" "imports" nil 0)
-	  ("cq" "ceq" nil 0)
-	  ("red" "reduce" nil 0)
-	  ("strat" "strategy" nil 0)
-	  ("us" "using" nil 0)
-	  ("btrn" "btrans" nil 0)
-	  ("btr" "btrans" nil 0)
-	  ("reconst" "reconstruct" nil 0)
-	  ("chk" "check" nil 0)
-	  ("trns" "trans" nil 0)
-	  ("swit" "swithces" nil 0)
-	  ("bq" "beq" nil 0)
-	  ("desc" "describe" nil 0)
-	  ("bctr" "bctrans" nil 0)
-	  ("incl" "include" nil 0)
-	  ("bctrn" "bctrans" nil 0)
-	  ("ex" "extending" nil 0)
-	  ;; ("axs" "axioms" nil 0)
-	  ("pr" "protecting" nil 0)
-	  ("bctrns" "bctrans" nil 0)
-	  ("pat" "pattern" nil 0)
-	  ("recon" "reconstruct" nil 0)
-	  ("prov" "provide" nil 0)
-	  ("sel" "select" nil 0)
-	  ("sig" "signature" nil 0)
-	  ("sign" "signature" nil 1)
-	  ("cond" "conditions" nil 0)
-	  ("imp" "imports" nil 0)
-	  ("comp" "compatibility" nil 0)
-	  ("swi" "switch" nil 0)
-	  ("reconstr" "reconstruct" nil 0)
-	  ))
-    )
+  (define-abbrev-table 'cafeobj-mode-abbrev-table
+    '(;; top level declaration
+      ("mod" ["module  {\n\n}\n" 5 () nil] expand-abbrev-hook 0)
+      ("pmod" ["module  () {\n\n}\n" 8 () nil] expand-abbrev-hook 0)
+      ("vw" ["view  {\n\n}\n" 5 () nil] expand-abbrev-hook 0)
+      ("mk" ["make  ()" 3 () nil] expand-abbrev-hook 0)
+      ;; module constructs
+      ("ps" "pricipal-sort" nil 0)
+      ;; imports
+      ("imp" ["imports {\n\n}\n" 3 () nil] expand-abbrev-hook 0)
+      ("pr" ["protecting()" 1 () nil]  expand-abbrev-hook 0)
+      ("pa" ["protecting as  ()" 3 () nil] expand-abbrev-hook 0)
+      ("ex" ["extending()" 1 () nil] expand-abbrev-hook 0)
+      ("ea" ["extending as ()" 3 () nil] expand-abbrev-hook 0)
+      ("us" ["using()" 1 () nil] expand-abbrev-hook 0)
+      ("ua" ["using as ()" 3 () nil] expand-abbrev-hook 0)
+      ("inc" ["including()" 1 () nil] expand-abbrev-hook 0)
+      ("ias" ["including as ()" 3 () nil] expand-abbrev-hook 0)
+      ;; signature
+      ("sig" ["signature {\n\n}\n" 3 () nil] expand-abbrev-hook 0)
+      ;; sort declarations
+      ("[" ["[]" 1 () nil] expand-abbrev-hook 0)
+      ("*[" ["*[]*" 2 () nil] expand-abbrev-hook 0)
+      ;; operator declaration
+      ("op" ["op  :  ->   ." 9 () nil] expand-abbrev-hook 0)
+      ("ope" ["op  :  ->  {} ." 12 () nil] expand-abbrev-hook 0)
+      ("ops" ["ops  :  ->  ." 9 () nil] expand-abbrev-hook 0)
+      ("pred" ["pred  :  ." 2 () nil] expand-abbrev-hook 0)
+      ;; operator attributes
+      ("str" "strat:" nil 0)
+      ("ctr" "ctor" nil 0)
+      ("ra" "r-assoc" nil 0)
+      ("la" "l-assoc" nil 0)
+      ("pre" "prec:" nil 0)
+      ("ass" "assoc" nil 0)
+      ("com" "comm" nil 0)
+      ("idr" "idr:" nil 0)
+      ;; axiom
+      ("axi" ["axioms {\n\n}\n" 3 () nil] expand-abbrev-hook 0)
+      ("bt" ["btrans  =>   ." 7 () nil] expand-abbrev-hook 0)
+      ("bct"["bctrans  =>  if  ."  10 () nil] expand-abbrev-hook 0)
+      ("ctr" ["ctrans  =>  if  ." 10 () nil] expand-abbrev-hook 0)
+      ("tr" ["trans  =>    ." 7 () nil] expand-abbrev-hook 0)
+      ("eq" ["eq  =    ." 7 () nil] expand-abbrev-hook 0)
+      ("cq" ["ceq  =   if  ." 10 () nil] expand-abbrev-hook 0)
+      ("bq" ["beq  =   ." 7 () nil] expand-abbrev-hook 0)
+      ("bcq" ["bceq  =   if  ." 10 () nil] expand-abbrev-hook 0)
+      ("var" ["var  : " 3 () nil] expand-abbrev-hook 0)
+      ("vars" ["vars  : " 3 () nil] expand-abbrev-hook 0)
+      ;; commands   
+      ("ch" "check" nil 0)
+      ("comp" "compatibility " nil 0)
+      ("reg" "regularity " nil 0)
+      ("red" ["reduce  ." 2 () nil] expand-abbrev-hook 0)
+      ("rin" ["reduce in  :  ." 4 () nil] expand-abbrev-hook 0)
+      ("exe" ["execute  ." 2 () nil] expand-abbrev-hook 0)
+      ("ein" ["execute in   :  ." 4 () nil] expand-abbrev-hook 0)
+      ("sh" "show" nil 0)
+      ("des" "describe " nil 0)
+      ("regu" "regualize " nil 0)
+      ("verb" "verbose" nil 0)
+      ("sw" "switch" nil 0)
+      ("sws" "switches" nil 0)
+      ("req" "require" nil 0)
+      ("prov" "provide" nil 0)
+      ("sel" "select" nil 0)
+      ;; CITP
+      (":goal" [":goal {}" 1 () nil] expand-abbrev-hook 0)
+      (":go"  [":goal {}" 1 () nil] expand-abbrev-hook 0)
+      (":apply" [":apply ()" 1 () nil] expand-abbrev-hook 0)
+      (":app" [":apply ()" 1 () nil] expand-abbrev-hook 0)
+      (":ini" [":init () by {}" 7 () nil]  expand-abbrev-hook 0)
+      (":inil" [":init [] by {}" 7 () nil] expand-abbrev-hook 0)
+      (":cp" [":cp () >< ()" 7 () nil] expand-abbrev-hook 0)
+      (":cpl" [":cp [] >< []" 7 () nil] expand-abbrev-hook 0)
+      (":eq" ":equation" nil 0)
+      (":rl" ":rule" nil 0)
+      (":bk" ":backward" nil 0)
+      (":vb" ":verbose" nil 0)
+      (":norm" ":normalize" nil 0)
+      (":ctf" [":ctf{}" 1 () nil] expand-abbrev-hook 0)
+      (":csp" [":csp{}" 1 () nil] expand-abbrev-hook 0)
+      (":sh" ":show" nil 0)
+      (":dec" ":describe" nil 0)
+      ))
+  )
 
 
 (defvar cafeobj-mode-syntax-table nil
@@ -722,15 +803,18 @@ This is in addition to cafeobj-continued-statement-offset."
   (mapc (function
 	 (lambda (x) (modify-syntax-entry
 		      (car x) (cdr x) cafeobj-mode-syntax-table)))
-	'(( ?\( . "()" ) ( ?\) . ")(" )
-	  ( ?\[ . "(]" ) ( ?\] . ")[" )
-	  ( ?\{ . "(}" ) ( ?\} . "){" )
+	'((?\( . "()" ) ( ?\) . ")(" )
+	  ;; ( ?\[ . "(]" ) ( ?\] . ")[" )
+	  (?\{ . "(}" ) ( ?\} . "){" )
+          (?\[ . "w") (?\] . "w")
+          (?\* . "w")
 	  ;; underscore etc. is word class
 	  ( ?\_ . "w" )
 	  ( ?\# . "w" )
 	  ( ?\! . "w" )
 	  ( ?\$ . "w" )
 	  ( ?\% . "w" )
+          ( ?\: . "w")
 	  ( ?\" . "\"" )	; double quote is string quote too
 	  ( ?\n . ">"))
 	))
@@ -857,10 +941,10 @@ to `cafeobj-mode-map', otherwise they are prefixed with `cafeobj-prefix-key'."
     ;; indentation
     (define-key cafeobj-mode-map [?}] 'cafeobj-electric-brace)
     ;; communication
-    (define-key map "i" 'cafeobj-send-line)
+    (define-key map "l" 'cafeobj-send-line)
     (define-key map "e" 'cafeobj-send-decl)
     (define-key map "r" 'cafeobj-send-region)
-    (define-key map "l" 'cafeobj-send-buffer)
+    (define-key map "b" 'cafeobj-send-buffer)
     (define-key map "[" 'cafeobj-beginning-of-decl)
     (define-key map "]" 'cafeobj-end-of-decl)
     (define-key map "q" 'cafeobj-kill-process)
@@ -1251,7 +1335,6 @@ Returns nil if line starts inside a string, t if in a comment."
       (goto-char (1+ lim)))
   (skip-chars-forward " \t"))
 
-
 
 
 ;;; -----------------------
@@ -1519,15 +1602,18 @@ Thus, this does not include the CafeOBJ's current directory.")
 	   '("^\\*\\* Predicate .*$". cafeobj-message-3-face)
 	   '("^\\*\\* PigNose .*$" . cafeobj-message-2-face)
 	   '("^\\*\\* Search .*$" . cafeobj-process-keyword-face)
+           ;; reduction
 	   '("^\\(-- reduce in .* :\\) " 1 cafeobj-message-1-face)
 	   '("^\\(-- behavioural reduce in .* :\\) " 1 cafeobj-message-1-face)
 	   '("^\\(-- cbred in .* :\\)" 1 cafeobj-message-1-face)
 	   '("^\\(#[0-9]+\\)(" 1 cafeobj-comment-face-1)
+           ;; CITP
+           '("^\\[.+\\].*$" . cafeobj-message-1-face)
 	   ;; '("\\<done.$" . cafeobj-message-2-face)
 	   '("^\\(case #.*:\\) " 1 cafeobj-message-1-face)
 	   '("^|  .*|$" . cafeobj-message-2-face)
 	   '("** __+$" . cafeobj-message-1-face)
-	   '("^\\*\\*.*$" . cafeobj-comment-face-1)
+	   ;; '("^\\*\\*.*$" . cafeobj-comment-face-1)
 	   '("^\\*\\* USABLE " . cafeobj-process-keyword-face)
 	   '("^\\*\\* SOS " . cafeobj-process-keyword-face)
 	   '("^\\*\\* PASSIVE " . cafeobj-process-keyword-face)
@@ -1536,12 +1622,10 @@ Thus, this does not include the CafeOBJ's current directory.")
 	   '("^\\*\\* PROOF " . cafeobj-process-keyword-face)
 	   '("^___+$" . cafeobj-message-2-face)
 	   '("^---+$" . cafeobj-message-2-face)
-	   '("^--.*$" . cafeobj-comment-face-2)
 	   '("^adding axiom:" . cafeobj-comment-face-2)
 	   '("^goal:" . cafeobj-message-1-face)
 	   '("^hypo:" . cafeobj-comment-face-2)
 	   '("^ax:" . cafeobj-message-1-face)
-	   '("^+.*$" . cafeobj-message-2-face)
 	   '("^==.*$" . cafeobj-message-2-face)
 	   '("[ \t]\\([+-][^ \t\n>]+\\)" 1 cafeobj-option-face)
 	   ;; '("^[^\n]+.*$" . cafeobj-output-face)
