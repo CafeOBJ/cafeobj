@@ -377,6 +377,13 @@
 	    file)
   :eval eval-autoload)
 
+;;; ***********
+;;; NO AUTOLOAD
+;;; ***********
+(defterm no-autoload (%script)
+  :visible (mod-name)
+  :eval eval-no-autoload)
+
 ;;; ******************************
 ;;; CIRCULAR COINDUCTIVE REWRITING
 ;;; ******************************

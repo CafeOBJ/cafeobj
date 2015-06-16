@@ -1383,6 +1383,18 @@
           (setf (cdr entry) file)
         (push (cons modname file) *autoload-alist*)))))
 
+;;; ************
+;;; NO AUTOLOAD
+;;; ************
+(defun eval-no-autoload (ast)
+  (let ((modname (%no-autoload-mod-name ast)))
+    (unless (assoc modname *autoload-alist* :test #'equal)
+      (with-output-chaos-warning ()
+	(format t "Module ~s is not specified as 'autoload'." modname)))
+    (setq *autoload-alist*
+      (remove-if #'(lambda (x) (equal modname x)) *autoload-alist*
+		 :key #'car))))
+
 ;;; *********************
 ;;; MISC SUPOORT ROUTINES
 ;;; *********************

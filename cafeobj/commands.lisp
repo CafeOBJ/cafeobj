@@ -343,9 +343,9 @@ it is not yet declared, the system read in <file-name> then
 retries the evaluation.
 ")
 
-(define ("no autoload")
+(define ("no-autoload")
     :category :library
-    :parse parse-no-autoload-command
+    :parser parse-no-autoload-command
     :evaluator eval-ast
     :title "`no autoload <module-name>`"
     :related ("autoload")

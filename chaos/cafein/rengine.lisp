@@ -111,20 +111,21 @@
 			  (term-hash-equal (term-builtin-value term))))
 	 ((term-is-variable? term) (term-hash-eq term))))
 
-(defun dump-term-hash (term-hash &optional (size term-hash-size))
-   (dotimes (x size)
-     (let ((ent (svref term-hash x)))
-       (when ent
-	 (format t "~%[~3d]: ~d entrie(s)" x (length ent))
-	 (dotimes (y (length ent))
-	   (let ((e (nth y ent)))
-	     (format t "~%(~d)" y)
-	     (let ((*print-indent* (+ 2 *print-indent*)))
-	       (term-print (car e))
-	       (print-next)
-	       (princ "==>")
-	       (print-next)
-	       (term-print (cdr e)))))))))
+(defun dump-term-hash (term-hash &optional (size term-hash-size) (module *current-module*))
+  (with-in-module (module)
+    (dotimes (x size)
+      (let ((ent (svref term-hash x)))
+	(when ent
+	  (format t "~%[~3d]: ~d entrie(s)" x (length ent))
+	  (dotimes (y (length ent))
+	    (let ((e (nth y ent)))
+	      (format t "~%(~d)" y)
+	      (let ((*print-indent* (+ 2 *print-indent*)))
+		(term-print (car e))
+		(print-next)
+		(princ "==>")
+		(print-next)
+		(term-print (cdr e))))))))))
 
 #-GCL
 (declaim (inline get-hashed-term))
@@ -241,16 +242,29 @@
 
 ;;; ----------------------------------------
 ;;; BASIC PROCS for REWRITE RULE APPLICATION
+(defvar *memo-debug* nil)
 
+#| NOT USED
 (defmacro term-replace-with-memo (old new)
   (once-only (old new)
      ` (if (and (not (term-is-builtin-constant? ,old))
 		(or *always-memo*
 		    (method-has-memo (term-head ,old))))
-	   (progn
-	     (set-hashed-term (simple-copy-term ,old) *term-memo-table* ,new)
+	   (let ((term-memo (simple-copy-term ,old)))
+	     (when *memo-debug*
+	       (when (term-equational-equal term-memo ,new)
+		 (with-output-chaos-warning ()
+		   (format t "E-E term is about to hashed!")
+		   (terpri)
+		   (term-print-with-sort ,new)))
+	       (format t "~%[memo]: ")
+	       (term-print-with-sort term-memo)
+	       (format t "~% ==> ")
+	       (term-print-with-sort ,new))
+	     (set-hashed-term term-memo *term-memo-table* ,new)
 	     (term-replace ,old ,new))
 	 (term-replace ,old ,new))))
+|#
 
 (declaim (inline term-replace-dd-simple))
 #-gcl
@@ -780,7 +794,7 @@
     ;; return t iff the rule is applied.
     is-applied))
 
-#| -- moved to reducer.lisp
+#|| -- moved to reducer.lisp
 (defun simplify-on-top (term)
   (declare (type term term)
            (values t))
@@ -789,7 +803,7 @@
                                       (method-rules-with-different-top
                                        (term-method term)))
     term))
-|#
+||#
 
 ;;;
 ;;; 				 REWRITE ENGINE
@@ -955,12 +969,22 @@
   (let ((term-nu nil)
         (normal-form (get-hashed-term term *term-memo-table*)))
     (unless normal-form
-      (setq term-nu (simple-copy-term  term))
-      ;; compute the normal form of "term"
-      (reduce-term term strategy)
-      (setq normal-form term)
-      ;; store the normal form
-      (set-hashed-term term-nu *term-memo-table* normal-form))
+      (let ((rule-count (number-rewritings)))
+	(setq term-nu (simple-copy-term  term))
+	;; compute the normal form of "term"
+	(reduce-term term strategy)
+	(setq normal-form term)
+	(unless (= rule-count (number-rewritings))
+	  (when *memo-debug*
+	    (when (term-equational-equal term-nu normal-form)
+	      (with-output-chaos-warning ()
+		(format t "E-E term is about to be hashed!")
+		(format t "~%(~d) old = " rule-count (number-rewritings))
+		(term-print-with-sort term-nu)
+		(format t "~%(~d) new = " (number-rewritings))
+		(term-print-with-sort normal-form))))
+	  ;; store the normal form
+	  (set-hashed-term term-nu *term-memo-table* normal-form))))
     normal-form))
 
 (defmacro check-closed-world-assumption (?term)

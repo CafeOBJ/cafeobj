@@ -159,7 +159,15 @@
   (let ((mod-name (second inp))
 	(file (third inp)))
     (%autoload* mod-name file)))
-    
+
+;;;
+;;; NO AUTOLOAD
+;;;
+(defun parse-no-autoload-command (inp &rest ignore)
+  (declare (ignore ignore))
+  (let ((mod-name (second inp)))
+    (%no-autoload* mod-name)))
+
 ;;; ******
 ;;; CBREAD
 ;;; ******

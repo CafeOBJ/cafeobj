@@ -424,7 +424,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
     (pathname (concatenate 'string topdir "/lib/")))
   (setq *system-ex-dir*
     (pathname (concatenate 'string topdir "/exs/")))
-  (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*)))
+  ;; (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*))
+  (setq *chaos-libpath* (list *system-lib-dir*)))
 
 #-(or (and CCL (not :openmcl)) ALLEGRO (and SBCL WIN32))
 (defun set-cafeobj-standard-library-path (&optional topdir)
@@ -454,8 +455,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
       (setq *system-prelude-dir* (translate-logical-pathname (merge-pathnames "prelude/")))
       (setq *system-lib-dir* (translate-logical-pathname (merge-pathnames "lib/")))
       (setq *system-ex-dir* (translate-logical-pathname (merge-pathnames "exs/")))
-      (setq *chaos-libpath*
-        (list *system-lib-dir* *system-ex-dir*)))))
+      ;;; (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*))
+      (setq *chaos-libpath* (list *system-lib-dir*)))))
 
 #+(and :SBCL :win32)
 (defun set-cafeobj-standard-library-path (&optional topdir)
@@ -468,8 +469,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
       (setq *system-prelude-dir* (translate-logical-pathname (merge-pathnames "prelude/")))
       (setq *system-lib-dir* (translate-logical-pathname (merge-pathnames "lib/")))
       (setq *system-ex-dir* (translate-logical-pathname (merge-pathnames "exs/")))
-      (setq *chaos-libpath*
-        (list *system-lib-dir* *system-ex-dir*)))))
+      ;;; (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*))
+      (setq *chaos-libpath* (list *system-lib-dir*)))))
 
 ;;; patch by t-seino@jaist.ac.jp
 #+(and CCL (not :openmcl))
@@ -483,7 +484,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
     (full-pathname (make-pathname :host "ccl" :directory "lib/")))
   (setq *system-ex-dir*
     (full-pathname (make-pathname :host "ccl" :directory "exs/")))
-  (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*)))
+  ;; (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*))
+  (setq *chaos-libpath* (list *system-lib-dir*)))
 
 ;;; MAIN ROUTINE
 ;;; PROCESSING INPUT FILE STREAM

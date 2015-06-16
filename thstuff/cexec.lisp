@@ -778,7 +778,7 @@
 						:condition  condition))
                 ;; register the term
 		(when *cexec-debug*
-		  (format t "~%** hasing state ~D" state-num))
+		  (format t "~%** hashing state ~D" state-num))
                 (cexec-set-hashed-term target state-num))))
     ;;
     new-state))

@@ -464,7 +464,7 @@
         (version)
         ;; AUTO LOAD
         (autoload :symbol :symbol)
-	(no autoload :symbol)
+	(no-autoload :symbol)
         ;; (stop at :term |.|)
         ;; ((:+ rwt) limit :symbol)
         (test (:+ reduction red execution exec) (:if-present in :modexp |:|)

@@ -495,6 +495,18 @@
     (setq *chaos-libpath*
 	  (append (nreverse path) *chaos-libpath*))))
 
+(defun set-search-path-minus (paths)
+  (when (consp paths) (setq paths (car paths)))
+  (let ((path nil))
+    (dolist (p (parse-with-delimiter paths #\:))
+      (push p path))
+    (dolist (p path)
+      (if (not (member p *chaos-libpath* :test #'equal))
+	  (with-output-chaos-warning ()
+	    (format t "The path ~s does not in 'libpath'." p))
+	(setq *chaos-libpath* (remove p *chaos-libpath* :test #'equal))))
+    *chaos-libpath*))
+
 ;;;
 ;;; INITIALIZATION
 ;;;
