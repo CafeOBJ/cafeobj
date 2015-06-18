@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-				    System:CHAOS
-				   Module:thstuff
-  			           File:citp.lisp
+                                    System:CHAOS
+                                   Module:thstuff
+                                   File:citp.lisp
  =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -72,15 +72,15 @@
 ;;;
 (defun citp-parse-apply (args)
   (let ((tactic-forms nil)
-	(tactics nil)
-	(target nil))
+        (tactics nil)
+        (target nil))
     (cond ((string-equal (car (second args)) "to")
-	   (setq target (car (second (second args))))
-	   (setq tactic-forms (second (third args))))
-	  (t (setq tactic-forms (second (second args)))))
+           (setq target (car (second (second args))))
+           (setq tactic-forms (second (third args))))
+          (t (setq tactic-forms (second (second args)))))
     (dolist (tac tactic-forms)
       (let ((tactic (get-tactic tac)))
-	(setq tactics (nconc tactics tactic))))
+        (setq tactics (nconc tactics tactic))))
     (cons target tactics)))
 
 ;;; citp-parse-ind-on
@@ -92,14 +92,14 @@
   (with-in-module (*current-module*)
     (let ((vars nil))
       (dolist (var-decl (fourth args))
-	(let ((var (simple-parse-from-string var-decl)))
-	  (when (term-ill-defined var)
-	    (with-output-chaos-error ('no-parse)
-	      (format t "Illegal variable form: ~s" var-decl)))
-	  (unless (term-is-variable? var)
-	    (with-output-chaos-error ('no-var)
-	      (format t "Invalid argument to ':ind' command: ~s" var-decl)))
-	  (push var vars)))
+        (let ((var (simple-parse-from-string var-decl)))
+          (when (term-ill-defined var)
+            (with-output-chaos-error ('no-parse)
+              (format t "Illegal variable form: ~s" var-decl)))
+          (unless (term-is-variable? var)
+            (with-output-chaos-error ('no-var)
+              (format t "Invalid argument to ':ind' command: ~s" var-decl)))
+          (push var vars)))
       (nreverse vars))))
 
 ;;;
@@ -126,11 +126,11 @@
 
 (defun citp-parse-init (args)
   (let ((target-form (make-axiom-pattern (second args)))
-	(subst-list (fifth args))
-	(subst-pairs nil))
+        (subst-list (fifth args))
+        (subst-pairs nil))
     (dolist (subst-form subst-list)
       (unless (atom subst-form)
-	(push (cons (first subst-form) (third subst-form)) subst-pairs)))
+        (push (cons (first subst-form) (third subst-form)) subst-pairs)))
     (with-citp-debug ()
       (format t "~%[:init] target = ~s" target-form)
       (format t "~%        subst  = ~s" subst-pairs))
@@ -143,7 +143,7 @@
 ;;;
 (defun citp-parse-critical-pair (args)
   (let ((pat-1 (make-axiom-pattern (second args)))
-	(pat-2 (make-axiom-pattern (fourth args))))
+        (pat-2 (make-axiom-pattern (fourth args))))
     (with-citp-debug ()
       (format t "~%[cp] ~s" pat-1)
       (format t "~%     ~s" pat-2))
@@ -174,19 +174,19 @@
 ;;;
 (defun citp-parse-red (e)
   (let (goal-name
-	preterm
-	mode)
+        preterm
+        mode)
     (case-equal (first e)
-		((":red" ":lred" "lred") (setq mode :red))
-		((":exec") (setq mode :exec))
-		((":bred") (setq mode :bred)))
+                ((":red" ":lred" "lred") (setq mode :red))
+                ((":exec") (setq mode :exec))
+                ((":bred") (setq mode :bred)))
     (if (= 4 (length e)) 
-	(progn
-	  (setq goal-name (cadr (cadr e))); (find-goal-node *proof-tree* (cadr (cadr e)))
-	  (setq preterm (nth 2 e)))
+        (progn
+          (setq goal-name (cadr (cadr e))); (find-goal-node *proof-tree* (cadr (cadr e)))
+          (setq preterm (nth 2 e)))
       (progn
-	(setq goal-name nil)
-	(setq preterm (nth 1 e))))
+        (setq goal-name nil)
+        (setq preterm (nth 1 e))))
     (list mode goal-name preterm)))
 
 ;;;
@@ -223,14 +223,14 @@
 ;;;
 (defun citp-parse-show (inp)
   (let ((tag (car inp))
-	(args (cdr inp))
-	(com nil))
+        (args (cdr inp))
+        (com nil))
     (cond ((member tag '(":show" ":sh") :test #'equal)
-	   (setq com :show))
-	  ((member tag '(":describe" ":desc") :test #'equal)
-	   (setq com :describe))
-	  (t (with-output-chaos-error ('internal)
-	       (format t "Internal error, unknown citp command ~s" tag))))
+           (setq com :show))
+          ((member tag '(":describe" ":desc") :test #'equal)
+           (setq com :describe))
+          (t (with-output-chaos-error ('internal)
+               (format t "Internal error, unknown citp command ~s" tag))))
     (cons com args)))
 
 ;;; ================================
@@ -244,24 +244,24 @@
   (with-in-module (*current-module*)
     (let ((axs nil))
       (dolist (a-decl goal-ax-decls)
-	(cond ((eq (car a-decl) '%fax)
-	       (push (parse-fax-declaration a-decl) axs))
-	      (t (push (parse-axiom-declaration a-decl) axs))))
+        (cond ((eq (car a-decl) '%fax)
+               (push (parse-fax-declaration a-decl) axs))
+              (t (push (parse-axiom-declaration a-decl) axs))))
       (begin-proof *current-module* (nreverse axs)))))
 
 ;;; :apply/:auto
 (defun eval-citp-apply (list-tactic)
   (check-ptree)
   (let ((target (car list-tactic))
-	(tactics (cdr list-tactic)))
+        (tactics (cdr list-tactic)))
     (let ((*chaos-verbose* nil)
-	  (*chaos-quiet* t))
+          (*chaos-quiet* t))
       (if target
-	  (case target
-	    (:auto (apply-auto *proof-tree*))
-	    (otherwise
-	     (apply-tactics-to-goal *proof-tree* target tactics)))
-	(apply-tactics *proof-tree* tactics)))))
+          (case target
+            (:auto (apply-auto *proof-tree*))
+            (otherwise
+             (apply-tactics-to-goal *proof-tree* target tactics)))
+        (apply-tactics *proof-tree* tactics)))))
 
 ;;; :ind on
 ;;;
@@ -283,8 +283,8 @@
 (defun eval-citp-init (args)
   (check-ptree)
   (with-in-module (*current-module*)
-    (instanciate-axiom (first args)	; target
-		       (second args))))	; variable-term pairs
+    (instanciate-axiom (first args)     ; target
+                       (second args)))) ; variable-term pairs
 
 ;;; :cp
 (defun eval-citp-critical-pair (args)
@@ -311,8 +311,8 @@
 (defun eval-citp-red (token-seq)
   (check-ptree)
   (let ((mode (first token-seq))
-	(goal-name (second token-seq))
-	(pre-term (third token-seq)))
+        (goal-name (second token-seq))
+        (pre-term (third token-seq)))
     (reduce-in-goal mode goal-name pre-term)))
 
 ;;; :verbose
@@ -320,22 +320,22 @@
   (if (string-equal token "on")
       (setq *citp-verbose* t)
     (if (string-equal token "off")
-	(setq *citp-verbose* nil)
+        (setq *citp-verbose* nil)
       (if (string-equal token ".")
-	  (format t "~&:verbose flag is ~s" (if *citp-verbose* "on" "off"))
-	(with-output-chaos-error ('invlid-value)
-	  (format t "Unknown parameter ~s." token))))))
+          (format t "~&:verbose flag is ~s" (if *citp-verbose* "on" "off"))
+        (with-output-chaos-error ('invlid-value)
+          (format t "Unknown parameter ~s." token))))))
 
 ;;; :normalize init
 (defun eval-citp-normalize (token)
   (if (string-equal token "on")
       (setq *citp-normalize-instance* t)
     (if (string-equal token "off")
-	(setq *citp-normalize-instance* nil)
+        (setq *citp-normalize-instance* nil)
       (if (string-equal token ".")
-	  (format t "~&:normalize flag is ~s" (if *citp-normalize-instance* "on" "off"))
-	(with-output-chaos-error ('invalid-value)
-	  (format t ":nomalize instance: unknown parameter ~s." token))))))
+          (format t "~&:normalize flag is ~s" (if *citp-normalize-instance* "on" "off"))
+        (with-output-chaos-error ('invalid-value)
+          (format t ":nomalize instance: unknown parameter ~s." token))))))
 
 ;;; :ctf
 ;;;
@@ -363,25 +363,25 @@
 ;;; :show, :describe
 (defun eval-citp-show (token)
   (let* ((com (car token))
-	 (describe (eq com :describe))
-	 (target (cadr token))
-	 (rest-args (cddr token)))
+         (describe (eq com :describe))
+         (target (cadr token))
+         (rest-args (cddr token)))
     (cond ((member target '("unproved" "unp") :test #'equal)
-	   (check-ptree)
-	   (print-unproved-goals *proof-tree*))
-	  ((equal target "goal")
-	   (check-ptree)
-	   (let ((name (car rest-args)))
-	     (print-named-goal *proof-tree* name)))
-	  ((equal target "proof")
-	   (let ((name (car rest-args)))
-	     (when (or (null name) (equal name "."))
-	       (setq name "root"))
-	     (print-proof-tree name describe)))
-	  ((member target '("." "current") :test #'equal)
-	   (check-ptree)
-	   (print-current-goal describe))
-	  (t (with-output-chaos-error ('unknown)
-	       (format t "Unknown parameter to :show/:describe ~S" target))))))
+           (check-ptree)
+           (print-unproved-goals *proof-tree*))
+          ((equal target "goal")
+           (check-ptree)
+           (let ((name (car rest-args)))
+             (print-named-goal *proof-tree* name)))
+          ((equal target "proof")
+           (let ((name (car rest-args)))
+             (when (or (null name) (equal name "."))
+               (setq name "root"))
+             (print-proof-tree name describe)))
+          ((member target '("." "current") :test #'equal)
+           (check-ptree)
+           (print-current-goal describe))
+          (t (with-output-chaos-error ('unknown)
+               (format t "Unknown parameter to :show/:describe ~S" target))))))
 
 ;;; EOF

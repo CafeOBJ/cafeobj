@@ -73,7 +73,7 @@
 
 (defun augm-tree-int-node? (x)
   (declare (type list x)
-	   (values (or null t)))
+           (values (or null t)))
   (null (car x)))
 
 (defun augm-tree-pad? (x)

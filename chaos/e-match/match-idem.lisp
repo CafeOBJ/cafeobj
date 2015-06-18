@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				  System:Chaos
-				 Module:e-match
-			      File:match-idem.lisp
+                                  System:Chaos
+                                 Module:e-match
+                              File:match-idem.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -38,7 +38,7 @@
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 
-;;; 		     METHODS FOR IDEMPOTENT LIKE RULES:
+;;;                  METHODS FOR IDEMPOTENT LIKE RULES:
 ;;;   x + x = r
 ;;;   (x + x) + e = r + e  -- extension
 
@@ -73,24 +73,24 @@
   (if (not (term-is-applform? t2))
       nil
       (let* ((meth (term-head t2))
-	     (subs (list-AC-subterms t2 meth)))
-	(declare (type list subs))
-	(if (oddp (length subs))
-	    (values nil nil t nil)
-	    (let ((var (car (term-subterms t1)))
-		  (ms-tm (list-to-multiset subs #'term-equational-equal)))
-	      (if (dolist (x (multiset-elements ms-tm) t)
-		    (when (oddp (the fixnum (cdr x))) (return nil)))
-		  ;; if all even
-		  (values nil
-			  (list (cons var
-				      (make-right-assoc-normal-form-with-sort-check
-				       (term-head t1)
-				       (multiset-to-set ms-tm))))
-			  nil
-			  nil)
-		  (values nil nil t nil))
-	      )))))
+             (subs (list-AC-subterms t2 meth)))
+        (declare (type list subs))
+        (if (oddp (length subs))
+            (values nil nil t nil)
+            (let ((var (car (term-subterms t1)))
+                  (ms-tm (list-to-multiset subs #'term-equational-equal)))
+              (if (dolist (x (multiset-elements ms-tm) t)
+                    (when (oddp (the fixnum (cdr x))) (return nil)))
+                  ;; if all even
+                  (values nil
+                          (list (cons var
+                                      (make-right-assoc-normal-form-with-sort-check
+                                       (term-head t1)
+                                       (multiset-to-set ms-tm))))
+                          nil
+                          nil)
+                  (values nil nil t nil))
+              )))))
 
 ;;; IDEM-EXT-MATCH : Term Term -> GlobalState Substitution NO-MATCH E-EQUAL
 ;;;-----------------------------------------------------------------------------
@@ -101,82 +101,82 @@
 (defun idem-ext-match (t1 t2)
   (declare (type term t1 t2))
   (let* ((method (term-head t2))
-	 (subs (list-AC-subterms t2 method)))
+         (subs (list-AC-subterms t2 method)))
     (declare (type list subs)
-	     (type method method))
+             (type method method))
     (if (< (the fixnum (length subs)) 3)
-	(values nil nil t nil)
-	;; assume that the rules is actually created in the form e + (x + x)
-	(let* ((t1subs (term-subterms t1))
-	       (evar (car t1subs))
-	       (var (car (term-subterms (cadr t1subs))))
-	       (ms-tm (list-to-multiset subs #'term-equational-equal)))
-	  (declare (type term evar var)
-		   (type list t1subs))
-	  ;; if any odds that one from each goes in evar
-	  ;; if no odds then must put two in evar (evar has to match something)
-	  ;; if all 1, then fail (nothing to match var against)
-	  (let ((tl (multiset-elements ms-tm))
-		(singletons nil)
-		(evens nil)
-		(odds nil)
-		(n nil)
-		(fr nil)
-		(it nil))
-	    ;; split into singletons evens and odds (just categorize)
-	    (while tl
-	      (setq fr tl
-		    tl (cdr tl)
-		    it (car fr)
-		    n (cdr it))
-	      (if (= 1 (the fixnum n))
-		  (progn (rplacd fr singletons) (setq singletons fr))
-		  (if (oddp n)
-		      (progn (rplacd fr odds) (setq odds fr))
-		      (progn (rplacd fr evens) (setq evens fr)))))
-	    ;;
-	    (if (and (null evens) (null odds))
-		(values nil nil t nil)
-		(progn
-		  ;; change form of singletons to simple list of terms
-		  (if (and (null singletons) (null odds))
-		      (let ((fe (car evens)))
-			(setq singletons (list (car fe) (car fe)))
-			(let ((n (cdr fe)))
-			  (declare (type fixnum n))
-			  (if (= 2 n)
-			      (setq evens (cdr evens))
-			      (setf (the fixnum (cdr fe)) (- n 2)))))
-		      ;; else
-		      (let ((lst singletons))
-			(while lst
-			  (rplaca lst (caar lst))
-			  (setq lst (cdr lst)))))
-		  ;; transfer odds to singletons and evens
-		  (while odds
-		    (setq fr odds
-			  odds (cdr odds)
-			  it (car fr))
-		    (setq singletons (cons (car it) singletons))
-		    ;; know that repetition count is 3 or larger
-		    (rplacd fr evens)
-		    (setq evens fr)
-		    (decf (the fixnum (cdr it))))
-		  (values nil		; global state
-			  (list
-			   ;; evens
-			   (cons var
-				 (make-right-assoc-normal-form-with-sort-check
-				  (term-head t1)
-				  (mapcar #'car evens)))
-			   ;; singletons
-			   (cons evar
-				 (make-right-assoc-normal-form-with-sort-check
-				  (term-head t1)
-				  singletons)))
-			  nil
-			  nil)		;error indications
-		  )))
-	  ))))
+        (values nil nil t nil)
+        ;; assume that the rules is actually created in the form e + (x + x)
+        (let* ((t1subs (term-subterms t1))
+               (evar (car t1subs))
+               (var (car (term-subterms (cadr t1subs))))
+               (ms-tm (list-to-multiset subs #'term-equational-equal)))
+          (declare (type term evar var)
+                   (type list t1subs))
+          ;; if any odds that one from each goes in evar
+          ;; if no odds then must put two in evar (evar has to match something)
+          ;; if all 1, then fail (nothing to match var against)
+          (let ((tl (multiset-elements ms-tm))
+                (singletons nil)
+                (evens nil)
+                (odds nil)
+                (n nil)
+                (fr nil)
+                (it nil))
+            ;; split into singletons evens and odds (just categorize)
+            (while tl
+              (setq fr tl
+                    tl (cdr tl)
+                    it (car fr)
+                    n (cdr it))
+              (if (= 1 (the fixnum n))
+                  (progn (rplacd fr singletons) (setq singletons fr))
+                  (if (oddp n)
+                      (progn (rplacd fr odds) (setq odds fr))
+                      (progn (rplacd fr evens) (setq evens fr)))))
+            ;;
+            (if (and (null evens) (null odds))
+                (values nil nil t nil)
+                (progn
+                  ;; change form of singletons to simple list of terms
+                  (if (and (null singletons) (null odds))
+                      (let ((fe (car evens)))
+                        (setq singletons (list (car fe) (car fe)))
+                        (let ((n (cdr fe)))
+                          (declare (type fixnum n))
+                          (if (= 2 n)
+                              (setq evens (cdr evens))
+                              (setf (the fixnum (cdr fe)) (- n 2)))))
+                      ;; else
+                      (let ((lst singletons))
+                        (while lst
+                          (rplaca lst (caar lst))
+                          (setq lst (cdr lst)))))
+                  ;; transfer odds to singletons and evens
+                  (while odds
+                    (setq fr odds
+                          odds (cdr odds)
+                          it (car fr))
+                    (setq singletons (cons (car it) singletons))
+                    ;; know that repetition count is 3 or larger
+                    (rplacd fr evens)
+                    (setq evens fr)
+                    (decf (the fixnum (cdr it))))
+                  (values nil           ; global state
+                          (list
+                           ;; evens
+                           (cons var
+                                 (make-right-assoc-normal-form-with-sort-check
+                                  (term-head t1)
+                                  (mapcar #'car evens)))
+                           ;; singletons
+                           (cons evar
+                                 (make-right-assoc-normal-form-with-sort-check
+                                  (term-head t1)
+                                  singletons)))
+                          nil
+                          nil)          ;error indications
+                  )))
+          ))))
 
 ;;; EOF

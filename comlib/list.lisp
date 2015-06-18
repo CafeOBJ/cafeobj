@@ -28,9 +28,9 @@
 ;;;
 (in-package :CHAOS)
 #|==============================================================================
-				 System: Chaos
-				 Module: comlib
-				File: list.lisp
+                                 System: Chaos
+                                 Module: comlib
+                                File: list.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -60,23 +60,23 @@
 (defun flatten-list (L)
   ;; (declare (optimize (speed 3) (safety 0)))
   (cond ((null L) '())
-	((atom L) L)
-	((consp L)
-	 (if (consp (car L))
-	     (append (flatten-list (car L)) (flatten-list (cdr L)))
-	     (cons (car L) (flatten-list (cdr L)))))
-	))
+        ((atom L) L)
+        ((consp L)
+         (if (consp (car L))
+             (append (flatten-list (car L)) (flatten-list (cdr L)))
+             (cons (car L) (flatten-list (cdr L)))))
+        ))
 
 ;;; firstn
 ;;;  Returns a new list the same as List with only the first N elements.
 
 (defun firstn (list &optional (n 1))
   (declare ;; (optimize (speed 3) (safety 0))
-	   (type list list)
-	   (type fixnum n))
+           (type list list)
+           (type fixnum n))
   (cond ((> n (length list)) list)
-	((< n 0) nil)
-	(t (ldiff list (nthcdr n list)))))
+        ((< n 0) nil)
+        (t (ldiff list (nthcdr n list)))))
 
 ;;; in-order-union
 ;;;   Append and remove duplicates. Like union, but the objects are
@@ -98,22 +98,22 @@
 ;;;
 (defun rotate-list (list num minusp)
   (declare (type fixnum num)
-	   (type t minusp))
+           (type t minusp))
   (let ((len (length list))
-	(new-stack (copy-list list)))
+        (new-stack (copy-list list)))
     (declare (type fixnum len)
-	     (type list new-stack))
+             (type list new-stack))
     (when (>= (abs num) len)
       (return-from rotate-list nil))
     (cond ((or (< num 0) (and (= num 0) minusp))
-	   (setq num (- len (1+ (abs num))))
-	   (print num)
-	   (setq new-stack
-	     (setq new-stack (nconc (nthcdr num new-stack)
-				    (firstn new-stack num))))
-	   )
-	  (t (rotatef (nth 0 new-stack)
-		      (nth num new-stack))))
+           (setq num (- len (1+ (abs num))))
+           (print num)
+           (setq new-stack
+             (setq new-stack (nconc (nthcdr num new-stack)
+                                    (firstn new-stack num))))
+           )
+          (t (rotatef (nth 0 new-stack)
+                      (nth num new-stack))))
     new-stack))
 
 
@@ -123,11 +123,11 @@
 (defun delete-nth (nth lst)
   (declare (fixnum nth))
   (let ((len (length lst))
-	(new-lst nil))
+        (new-lst nil))
     (when (>= nth len)
       (return-from delete-nth nil))
     (setq new-lst (nconc (firstn lst nth)
-			 (nthcdr (1+ nth) lst)))
+                         (nthcdr (1+ nth) lst)))
     new-lst))
 
 

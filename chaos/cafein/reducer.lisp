@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-				    System:CHAOS
-				   Module:cafein
-				 File:reducer.lisp
+                                    System:CHAOS
+                                   Module:cafein
+                                 File:reducer.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 1) #-GCL (debug 0)))
@@ -43,10 +43,10 @@
 ;;; provides term rewriting eclosed within computing environment.
 ;;; ========
 (declaim (inline begin-parse end-parse time-for-parsing-in-seconds
-		 begin-rewrite end-rewrite time-for-rewriting-in-seconds
-		 number-metches number-rewritings number-memo-hits
-		 clear-rewriting-fc prepare-term reset-rewrite-counters
-		 prepare-reduction-env reducer reducer-no-stat))
+                 begin-rewrite end-rewrite time-for-rewriting-in-seconds
+                 number-metches number-rewritings number-memo-hits
+                 clear-rewriting-fc prepare-term reset-rewrite-counters
+                 prepare-reduction-env reducer reducer-no-stat))
 
 
 (let ((*m-pattern-subst* nil)
@@ -70,36 +70,39 @@
       (rewrite-begin-time 0)
       (time-for-rewriting 0.0))
   (declare (special *m-pattern-subst*
-		    .rwl-context-stack.
-		    .rwl-states-so-far.
-		    *rewrite-exec-mode*
-		    *rewrite-semantic-reduce*
-		    $$mod
-		    *steps-to-be-done*
-		    $$matches
-		    *perforom-on-demand-reduction*
-		    *rule-count*
-		    *term-memo-hash-hit*
-		    $$target-term
-		    $$term
-		    $$cond
-		    $$target-term
-		    $$norm
-		    *do-empty-match*))
+                    .rwl-context-stack.
+                    .rwl-states-so-far.
+                    *rewrite-exec-mode*
+                    *rewrite-semantic-reduce*
+                    $$mod
+                    *steps-to-be-done*
+                    $$matches
+                    *perforom-on-demand-reduction*
+                    *rule-count*
+                    *term-memo-hash-hit*
+                    $$target-term
+                    $$term
+                    $$cond
+                    $$target-term
+                    $$norm
+                    *do-empty-match*))
   (declare (type (or null t) *perform-on-demand-reduction* *do-empty-match*)
-	   (type fixnum *steps-to-be-done* $$matches *rule-count* .rwl-states-so-far.
-		 *term-memo-hash-hit*)
-	   (type list *m-pattern-subst* .rwl-context-stack.)
-	   (type (or null module) $$mod)
-	   (type integer parse-begin-time rewrite-begin-time)
-	   (type float time-for-parsing time-for-rewriting))
+           (type fixnum *steps-to-be-done* $$matches *rule-count* .rwl-states-so-far.
+                 *term-memo-hash-hit*)
+           (type list *m-pattern-subst* .rwl-context-stack.)
+           (type (or null module) $$mod)
+           (type integer parse-begin-time rewrite-begin-time)
+           (type float time-for-parsing time-for-rewriting))
+
+  (defun reset-parse-time ()
+    (setf time-for-parsing 0.0))
 
   (defun begin-parse ()
     (setf parse-begin-time (get-internal-run-time)))
 
   (defun end-parse ()
     (setf time-for-parsing (elapsed-time-in-seconds parse-begin-time
-						    (get-internal-run-time))))
+                                                    (get-internal-run-time))))
 
   (defun time-for-parsing-in-seconds ()
     time-for-parsing)
@@ -109,7 +112,7 @@
   
   (defun end-rewrite ()
     (setf time-for-rewriting (elapsed-time-in-seconds rewrite-begin-time
-						      (get-internal-run-time))))
+                                                      (get-internal-run-time))))
 
   (defun time-for-rewriting-in-seconds ()
     time-for-rewriting)
@@ -126,14 +129,14 @@
   ;; 
   (defun clear-rewriting-fc (module mode)
     (setf *m-pattern-subst* nil
-	  .rwl-context-stack. nil
-	  .rwl-sch-context. nil
-	  .rwl-states-so-far. 0
-	  *steps-to-be-done* 1
-	  *do-empty-match* nil
-	  *rewrite-exec-mode* (or (eq mode :exec) (eq mode :exec+))
-	  *rewrite-semantic-reduce* (and (eq mode :red)
-					 (module-has-behavioural-axioms module))))
+          .rwl-context-stack. nil
+          .rwl-sch-context. nil
+          .rwl-states-so-far. 0
+          *steps-to-be-done* 1
+          *do-empty-match* nil
+          *rewrite-exec-mode* (or (eq mode :exec) (eq mode :exec+))
+          *rewrite-semantic-reduce* (and (eq mode :red)
+                                         (module-has-behavioural-axioms module))))
 
   ;; prepare-term
   ;; NOTE: this always record the time cosumed for parsing the given term.
@@ -141,20 +144,21 @@
     (declare (type module module))
     ;; be ready for parsing
     (prepare-for-parsing module)
+    (reset-parse-time)
     ;; setup target term
     (if (termp pre-term)
-	(setq $$target-term pre-term)
+        (setq $$target-term pre-term)
       ;; not yet parsed term
       (progn
-	(begin-parse)
-	(let* ((*parse-variables* nil)
-	       (target-term (simple-parse module pre-term *cosmos*)))
-	  (end-parse)
-	  (when (or (null (term-sort target-term))
-		    (sort<= (term-sort target-term) *syntax-err-sort* *chaos-sort-order*))
-	    (with-output-chaos-error ('invalid-target-term)
-	      (format t "Could not parse the reduction target ~s" pre-term)))
-	  (setq $$target-term target-term))))
+        (begin-parse)
+        (let* ((*parse-variables* nil)
+               (target-term (simple-parse module pre-term *cosmos*)))
+          (end-parse)
+          (when (or (null (term-sort target-term))
+                    (sort<= (term-sort target-term) *syntax-err-sort* *chaos-sort-order*))
+            (with-output-chaos-error ('invalid-target-term)
+              (format t "Could not parse the reduction target ~s" pre-term)))
+          (setq $$target-term target-term))))
     ;; setup $$term
     (reset-target-term $$target-term module module)
     $$target-term)
@@ -163,8 +167,8 @@
   ;; initialize rewriting counters.
   (defun reset-rewrite-counters ()
     (setf $$matches 0
-	  *rule-count* 0
-	  *term-memo-hash-hit* 0))
+          *rule-count* 0
+          *term-memo-hash-hit* 0))
 
   ;; reset-term-memo-table
   (defun reset-term-memo-table (module)
@@ -176,12 +180,12 @@
   ;; returns evaluated 'context-module'.
   (defun prepare-reduction-env (term context-module mode stat-reset)
     (let ((module (if (module-p context-module)
-		      context-module
-		    ;; we got a module expression
-		    (eval-modexp context-module))))
+                      context-module
+                    ;; we got a module expression
+                    (eval-modexp context-module))))
       (unless (module-p module)
-	(with-output-chaos-error ('invalid-context)
-	  (format t "Invalid context module ~s" context-module)))
+        (with-output-chaos-error ('invalid-context)
+          (format t "Invalid context module ~s" context-module)))
       ;; initialize term memo iff proposed rewring context is different from the current one.
       (reset-term-memo-table module)
       ;; setup target term
@@ -198,28 +202,28 @@
     (let ((stat-form ""))
       (declare (type string stat-form))
       (setq stat-form
-    	(format nil "(~a sec for parse, ~a sec for ~d rewrites + ~d matches"
-		(format nil "~,4f" (time-for-parsing-in-seconds))
-		(format nil "~,4f" (time-for-rewriting-in-seconds))
-		(number-rewritings)
-		(number-matches)))
+        (format nil "(~a sec for parse, ~a sec for ~d rewrites + ~d matches"
+                (format nil "~,4f" (time-for-parsing-in-seconds))
+                (format nil "~,4f" (time-for-rewriting-in-seconds))
+                (number-rewritings)
+                (number-matches)))
       (concatenate 'string stat-form
-		   (if (zerop (number-memo-hits))
-		       ")"
-		     (format nil ", ~d memo hits)" (number-memo-hits))))))
+                   (if (zerop (number-memo-hits))
+                       ")"
+                     (format nil ", ~d memo hits)" (number-memo-hits))))))
   
   (defun generate-statistics-form-rewriting-only ()
     (let ((stat-form ""))
       (declare (type string stat-form))
       (setf stat-form
-    	(format nil "(consumed ~a sec, including ~d rewrites + ~d matches"
-		(format nil "~,4f" (time-for-rewriting-in-seconds))
-		(number-rewritings)
-		(number-matches)))
+        (format nil "(consumed ~a sec, including ~d rewrites + ~d matches"
+                (format nil "~,4f" (time-for-rewriting-in-seconds))
+                (number-rewritings)
+                (number-matches)))
       (concatenate 'string stat-form
-		   (if (zerop (number-memo-hits))
-		       ")"
-		     (format nil ", ~d memo hits)" (number-memo-hits))))))
+                   (if (zerop (number-memo-hits))
+                       ")"
+                     (format nil ", ~d memo hits)" (number-memo-hits))))))
 
   ;; REDUCER
   ;; perform reduction
@@ -231,9 +235,9 @@
       (begin-rewrite)
       ;; do the reduction
       (catch 'rewrite-abort
-	(if *rewrite-exec-mode*
-	    (rewrite-exec $$target-term *current-module* rewrite-mode)
-	  (rewrite $$target-term *current-module* rewrite-mode)))
+        (if *rewrite-exec-mode*
+            (rewrite-exec $$target-term *current-module* rewrite-mode)
+          (rewrite $$target-term *current-module* rewrite-mode)))
       (end-rewrite)
       $$term))
 
@@ -244,21 +248,21 @@
   (defun reducer-no-stat (term context-module rewrite-mode)
     (with-in-module ((prepare-reduction-env term context-module rewrite-mode nil))
       (catch 'rewrite-abort
-	(if *rewrite-exec-mode*
-	    (rewrite-exec $$target-term *current-module* rewrite-mode)
-	  (rewrite $$target-term *current-module* rewrite-mode))))
+        (if *rewrite-exec-mode*
+            (rewrite-exec $$target-term *current-module* rewrite-mode)
+          (rewrite $$target-term *current-module* rewrite-mode))))
     $$term)
       
   (defun simplify-on-top (term context-module)
     (declare (type term term)
-	     (values t))
+             (values t))
     (with-in-module ((prepare-reduction-env term context-module :red nil))
       (catch 'rewrite-abort
-	(if (term-is-application-form? term)
-	    (apply-rules-with-different-top term
-					    (method-rules-with-different-top
-					     (term-method term)))
-	  term))))
+        (if (term-is-application-form? term)
+            (apply-rules-with-different-top term
+                                            (method-rules-with-different-top
+                                             (term-method term)))
+          term))))
   )
 
 

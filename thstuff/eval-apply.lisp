@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-System: CHAOS
-Module: thstuff
-File: eval-apply.lisp
+                               System: CHAOS
+                              Module: thstuff
+                           File: eval-apply.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -48,7 +48,7 @@ File: eval-apply.lisp
   (catch 'apply-context-error
     (let ((mod (if context
                    (eval-modexp context)
-		 (get-context-module))))
+                 (get-context-module))))
       (if (or (null mod) (modexp-is-error mod))
           (if (null mod)
               (with-output-chaos-error ('invalid-module)
@@ -72,7 +72,7 @@ File: eval-apply.lisp
                     (t 
                      (let ((*parse-variables* nil))
                        (let ((res (simple-parse *current-module*
-						pre-term
+                                                pre-term
                                                 *cosmos*)))
                          (when (term-is-an-error res)
                            (return-from do-eval-start-th nil))
@@ -189,7 +189,7 @@ File: eval-apply.lisp
                    (rewrite subterm *current-module*)))
                 ;;
                 (:print                 ; print selections.
-                 (format t "~&term ")
+                 (format t "~%term ")
                  (disp-term subterm)
                  (format t "~&tree form")
                  (print-term-tree subterm))
@@ -209,7 +209,7 @@ File: eval-apply.lisp
                            (@apply-all actrule subterm-sort subterm)))
                      (@apply-rule actrule subterm-sort subterm)))
                  (when *-applied-*
-		   (update-lowest-parse $$term)
+                   (update-lowest-parse $$term)
                    (when (nth 2 rule-spec) ; reverse order
                      (setq $$term (@copy-term $$term)))
                    (reset-target-term $$term *current-module* *current-module*))) ; end :apply
@@ -232,7 +232,7 @@ File: eval-apply.lisp
   (when *apply-debug*
     (princ "* @apply-one-rule : rule = ")
     (print-chaos-object rule)
-    (format t "~&- sort = ") (print-sort-name sort)
+    (format t "~%- sort = ") (print-sort-name sort)
     (format t "~&- term = ") (term-print term))
   (let ((*self* term))
     (let ((cond (rule-condition rule)))
@@ -271,7 +271,7 @@ File: eval-apply.lisp
             (when eeq (setq sub nil))
             (unless no
               (setq *-applied-* t)
-              (format t "~&shifting focus to condition")
+              (format t "~%shifting focus to condition")
               (force-output)
               (let ((cond-inst (@copy-term (substitution-image! sub cond)))
                     (rhs-inst
@@ -282,7 +282,7 @@ File: eval-apply.lisp
                    $$action-stack))
                 (setq $$term cond-inst)
                 (when *-inside-apply-all-*
-                  (format t "~&-- applying rule only at first position found: ")
+                  (format t "~%-- applying rule only at first position found: ")
                   (term-print term)
                   (force-output)
                   (throw 'apply-all-quit nil))))))))))
@@ -301,13 +301,13 @@ File: eval-apply.lisp
   (block the-end
     (let ((condition nil)
           next-match-method
-	  ;; (*do-unify* t)
+          ;; (*do-unify* t)
           (*self* term))
       (multiple-value-bind (global-state subst nomatch Eequal)
           (funcall (rule-first-match-method rule) (rule-lhs rule) term)
         (when nomatch (return-from the-end nil))
         (when *apply-debug*
-          (format t "~&[apply-one-rule] : ")
+          (format t "~%[apply-one-rule] : ")
           (format t "~%  subst = ")
           (print-substitution subst)
           (format t "~%  Eequal = ~a" eequal))
@@ -417,19 +417,19 @@ File: eval-apply.lisp
 ;;;
 (defun apply-print-rule (x)
   (unless x
-    (format t "~&That dosen't make sense as a rule specification.")
+    (format t "~%That dosen't make sense as a rule specification.")
     (return-from apply-print-rule t))
   (let* ((act (get-apply-action x))
          (rule-spec (if (eq act :apply)
                         (parse-rule-spec x))))
     ;;
     (if (eq :reduce act)
-        (format t "~&special rule for reduction of a selected subterm.")
+        (format t "~%special rule for reduction of a selected subterm.")
       (if (eq :print act)
-          (format t "~&special rule to print-the selected subterm.")
+          (format t "~%special rule to print-the selected subterm.")
         (progn
           (when (or (eq :error rule-spec) (null rule-spec))
-            (format t "~&That doesn't make sense as a rule specification.")
+            (format t "~%That doesn't make sense as a rule specification.")
             (return-from apply-print-rule t))
           (let ((num (cadr rule-spec))
                 (mod (car rule-spec))
@@ -446,10 +446,10 @@ File: eval-apply.lisp
                 (print-chaos-object rule)
                 (when (and rev (or (rule-is-builtin rule)
                                    (eq (axiom-type rule) :rule)))
-                  (format t "~&This rule cannot be applied reversed."))
+                  (format t "~%This rule cannot be applied reversed."))
                 (when (and (get-context-module)
                            (not (rule-is-builtin rule)))
-                  (format t "~&(This rule rewrites up.)"))))))))
+                  (format t "~%(This rule rewrites up.)"))))))))
     t))
 
 ;;; EOF

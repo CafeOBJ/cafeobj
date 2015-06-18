@@ -29,9 +29,9 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-			     System:Chaos
-			    Module:BigPink
-			  File:proof-sys.lisp
+                             System:Chaos
+                            Module:BigPink
+                          File:proof-sys.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -39,28 +39,28 @@
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 ;;;*****************************************************************************
-;;;		 PROOF SYSTEM ASSOCIATED WITH MODULE
+;;;              PROOF SYSTEM ASSOCIATED WITH MODULE
 ;;;*****************************************************************************
 
 ;;; extend module info
 
 (defmacro module-proof-system (_mod)
   `(getf (object-misc-info ,_mod) :proof-system))
-	
+        
 (defun create-module-psystem (mod)
   (declare (type module mod))
   (if (module-proof-system mod)
       (let ((psys (module-proof-system mod)))
-	(initialize-psystem psys mod))
+        (initialize-psystem psys mod))
     (setf (module-proof-system mod)
       (make-psystem :module mod
-		    :clause-hash (make-hash-table :test #'eql)
-		    :demodulators (make-hash-table :test #'eq)))
+                    :clause-hash (make-hash-table :test #'eql)
+                    :demodulators (make-hash-table :test #'eq)))
     ))
 
 (defun update-module-proof-system (mod &optional do-anyway)
   (declare (type module mod)
-	   (ignore do-anyway))
+           (ignore do-anyway))
   (let ((clear-passive nil))
     (when (need-rewriting-preparation mod)
       (compile-module mod)
@@ -71,7 +71,7 @@
 
     (let ((psystem (create-module-psystem mod)))
       (when clear-passive
-	(setf (psystem-passive psystem) nil))
+        (setf (psystem-passive psystem) nil))
       ;; reset clause counter
       (reset-clause-db psystem)
       ;; generate axioms in clause form
@@ -107,33 +107,33 @@
   (once-only (_module_)
     `(block with-proof-context
        (block with-in-module
-	 (let* ((*current-module* ,_module_)
-		(*current-sort-order* (module-sort-order *current-module*))
-		(*current-opinfo-table* (module-opinfo-table *current-module*))
-		(*current-ext-rule-table* (module-ext-rule-table *current-module*)))
-	    (declare (special *current-module*
-			      *current-sort-order*
-			      *current-opinfo-table*
-			      *current-ext-rule-table*))
-	    (let* ((*current-proof-system* *current-module*)
-		   (*current-psys* (module-proof-system *current-module*))
-		   (*clause-hash* (psystem-clause-hash *current-psys*))
-		   (*sos* (psystem-sos *current-psys*))
-		   (*usable* (psystem-usable *current-psys*))
-		   (*demodulators* (psystem-demodulators *current-psys*))
-		   (*passive* (psystem-passive *current-psys*))
-		   (*clause-given* nil)
-		   )
-	      (declare (special *current-proof-system*
-				*current-psys*
-				*clause-hash*
-				*sos*
-				*usable*
-				*clause-given*
-				*passive*))
-	    ;;
-	    ,@body)
-	    )))))
+         (let* ((*current-module* ,_module_)
+                (*current-sort-order* (module-sort-order *current-module*))
+                (*current-opinfo-table* (module-opinfo-table *current-module*))
+                (*current-ext-rule-table* (module-ext-rule-table *current-module*)))
+            (declare (special *current-module*
+                              *current-sort-order*
+                              *current-opinfo-table*
+                              *current-ext-rule-table*))
+            (let* ((*current-proof-system* *current-module*)
+                   (*current-psys* (module-proof-system *current-module*))
+                   (*clause-hash* (psystem-clause-hash *current-psys*))
+                   (*sos* (psystem-sos *current-psys*))
+                   (*usable* (psystem-usable *current-psys*))
+                   (*demodulators* (psystem-demodulators *current-psys*))
+                   (*passive* (psystem-passive *current-psys*))
+                   (*clause-given* nil)
+                   )
+              (declare (special *current-proof-system*
+                                *current-psys*
+                                *clause-hash*
+                                *sos*
+                                *usable*
+                                *clause-given*
+                                *passive*))
+            ;;
+            ,@body)
+            )))))
 
 ;;; EOF
 

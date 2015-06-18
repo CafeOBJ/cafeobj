@@ -28,9 +28,9 @@
 ;;;
 (in-package :CHAOS)
 #|==============================================================================
-				 System: Chaos
-				 Module: comlib
-				File: process.lisp
+                                 System: Chaos
+                                 Module: comlib
+                                File: process.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -50,38 +50,38 @@
 
 (Clines "
 #undef PAGESIZE
-#include <errno.h>	/* errno global, error codes for UNIX IO	*/
-#include <sys/types.h>	/* Data types definitions			*/
-#include <sys/socket.h>	/* Socket definitions with out this forget it	*/
-#include <netinet/in.h>	/* Internet address definition AF_INET etc...	*/
-#include <signal.h>	/* UNIX Signal codes				*/
-#include <sys/ioctl.h>	/* IO control standard UNIx fair		*/
+#include <errno.h>      /* errno global, error codes for UNIX IO        */
+#include <sys/types.h>  /* Data types definitions                       */
+#include <sys/socket.h> /* Socket definitions with out this forget it   */
+#include <netinet/in.h> /* Internet address definition AF_INET etc...   */
+#include <signal.h>     /* UNIX Signal codes                            */
+#include <sys/ioctl.h>  /* IO control standard UNIx fair                */
 #include <sys/file.h>
-#include <fcntl.h>	/* Function to set socket aync/interrupt	*/
-#include <sys/time.h>	/* Time for select time out                     */
-#include <netdb.h>	/* Data Base interface for network files	*/
+#include <fcntl.h>      /* Function to set socket aync/interrupt        */
+#include <sys/time.h>   /* Time for select time out                     */
+#include <netdb.h>      /* Data Base interface for network files        */
 /* patch by ishisone@sra.co.jp */
-#include <sys/wait.h>	/* Wait system call options			*/
+#include <sys/wait.h>   /* Wait system call options                     */
 /* patch end */
 #include <stdio.h>
 
 static char *lisp_to_string(string)
 object string;
 {
-	int	i, len;
-	char	*sself;
-	char	*cstr;
+        int     i, len;
+        char    *sself;
+        char    *cstr;
 
-	len = string->st.st_fillp;
+        len = string->st.st_fillp;
 
-	cstr = (char *) malloc (len+1);
-	sself = &(string->st.st_self[0]);
-	for (i=0; i<len; i++)
-	{
-		cstr[i] = sself[i];
-	}
-	cstr[i] = 0;
-	return (cstr);
+        cstr = (char *) malloc (len+1);
+        sself = &(string->st.st_self[0]);
+        for (i=0; i<len; i++)
+        {
+                cstr[i] = sself[i];
+        }
+        cstr[i] = 0;
+        return (cstr);
 }
 
 /*
@@ -150,26 +150,26 @@ char **argv;
   if (fork() == 0)
     { /* the child --- replace standard in and out with descriptors given */
       /* patch by ishisone@sra.co.jp */
-      setsid();		                /* in order to get rid of job control */
-      fclose(istream->sm.sm_fp);	/* close parent-side file desc. */
-      fclose(ostream->sm.sm_fp);	/* ditto */
+      setsid();                         /* in order to get rid of job control */
+      fclose(istream->sm.sm_fp);        /* close parent-side file desc. */
+      fclose(ostream->sm.sm_fp);        /* ditto */
       /* end patch */
       close(0);
       dup(fdin);
       close(1);
       dup(fdout);
       if (execvp(pname, argv) == -1)
-	{
-	  fprintf(stderr, \"\\n***** Error in process spawning *******\");
-	  fflush(stderr);
-	  exit(1);
-	}
+        {
+          fprintf(stderr, \"\\n***** Error in process spawning *******\");
+          fflush(stderr);
+          exit(1);
+        }
     }
     /* patch by ishisone@sra.co.jp */
     else
     { /* the parent */
-       close(fdin);	/* close child-side file descriptor */
-       close(fdout);	/* ditto */
+       close(fdin);     /* close child-side file descriptor */
+       close(fdout);    /* ditto */
      }
     /* end patch */
 }
@@ -217,8 +217,8 @@ static run_child(file, arglist)
 
   stream = make_pipe();
   spawn_child(stream->sm.sm_object1,
-	      stream->sm.sm_object0,
-	      filename, argv);
+              stream->sm.sm_object0,
+              filename, argv);
   return(stream);
 
 }
@@ -240,8 +240,8 @@ static run_child(file, arglist)
 (defun run-process (program &optional args)
   (let ((stream (run-child program args)))
     (make-process :name program
-		  :in-stream (si::fp-input-stream stream)
-		  :out-stream (si::fp-output-stream stream))))
+                  :in-stream (si::fp-input-stream stream)
+                  :out-stream (si::fp-output-stream stream))))
 
 (defmacro with-write-to-process ((process) &body body)
   ` (let ((*standard-output* (process-out-stream ,process)))

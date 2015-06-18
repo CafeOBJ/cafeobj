@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-			    System: CHAOS
-			    Module: deCafe
-			   File: dgram.lisp
+                            System: CHAOS
+                            Module: deCafe
+                           File: dgram.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))

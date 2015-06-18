@@ -28,9 +28,9 @@
 ;;;
 (in-package :CHAOS)
 #|==============================================================================
-				 System: Chaos
-				 Module: comlib
-			       File: string.lisp
+                                 System: Chaos
+                                 Module: comlib
+                               File: string.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -50,17 +50,17 @@
 ;;;
 (defun string-search-car (character-bag string &aux (delimiter nil))
   (declare (type simple-string string)
-	   (type list character-bag)
-	   (values simple-string (or null character)))
+           (type list character-bag)
+           (values simple-string (or null character)))
   ;;
   (let ((delimiter-position (position-if #'(lambda (character)
-					     (declare (type character character))
-					     (when (find character 
-							 character-bag)
-					       (setq delimiter character)))
-					 string)))
+                                             (declare (type character character))
+                                             (when (find character 
+                                                         character-bag)
+                                               (setq delimiter character)))
+                                         string)))
     (values (subseq string 0 delimiter-position)
-	    delimiter)))
+            delimiter)))
 
 ;;; string-search-cdr
 ;;;   Returns the part of the string after the first of the delimiters in 
@@ -69,27 +69,27 @@
 
 (defun string-search-cdr (character-bag string &aux (delimiter nil))
   (declare (type simple-string string)
-	   (type list character-bag)
-	   (values (or null simple-string)
-		   (or null character)))
+           (type list character-bag)
+           (values (or null simple-string)
+                   (or null character)))
   (let ((delimiter-position (position-if #'(lambda (character)
-					     (when (find character 
-							 character-bag)
-					       (setq delimiter character)))
-					 string)))
+                                             (when (find character 
+                                                         character-bag)
+                                               (setq delimiter character)))
+                                         string)))
     (declare (type (or null fixnum) delimiter-position))
     (if delimiter-position
-	(values (subseq string (1+ (the (integer 0 1024) delimiter-position)))
-		delimiter)
-	;; Maybe this should be "" instead of NIL?
-	(values nil delimiter))))
+        (values (subseq string (1+ (the (integer 0 1024) delimiter-position)))
+                delimiter)
+        ;; Maybe this should be "" instead of NIL?
+        (values nil delimiter))))
 
 ;;; parse-with-delimiter : String -> List[String]
 ;;;   Breaks LINE into a list of strings, using DELIM as a breaking point.
 
 (defun parse-with-delimiter (line &optional (delim #\newline))
   (declare (type simple-string line)
-	   (values list))
+           (values list))
   ;; what about #\return instead of #\newline?
   (let ((pos (position delim line)))
     (declare (type (or null fixnum) pos))
@@ -101,14 +101,14 @@
 
 (defun parse-with-delimiter2 (line &optional (delim #\newline))
   (declare (type simple-string line)
-	   (values list))
+           (values list))
   ;; what about #\return instead of #\newline?
   (let ((pos (position delim line)))
     (declare (type (or null fixnum) pos))
     (cond (pos
            (cons (subseq line 0 pos)
-		 (cons (string delim)
-		       (parse-with-delimiter2 (subseq line (1+ pos)) delim))))
+                 (cons (string delim)
+                       (parse-with-delimiter2 (subseq line (1+ pos)) delim))))
           (t
            (list line)))))
 
@@ -117,11 +117,11 @@
 
 (defun parse-with-delimiters (line &optional (delimiters '(#\newline)))
   (declare (type simple-string line)
-	   (type list delimiters)
-	   (values list))
+           (type list delimiters)
+           (values list))
   ;; what about #\return instead of #\newline?
   (let ((pos (position-if #'(lambda (character) (find character delimiters))
-			    line)))
+                            line)))
     (declare (type (or null fixnum) pos))
     (cond (pos
            (cons (subseq line 0 pos)
@@ -137,20 +137,20 @@
 
 (defun parallel-substitute (alist string)
   (declare (type simple-string string)
-	   (values simple-string))
+           (values simple-string))
   ;; This function should be generalized to arbitrary sequences and
   ;; have an arglist (alist sequence &key from-end (test #'eql) test-not
   ;; (start 0) (count most-positive-fixnum) end key).
   (if alist
       (let* ((length (length string))
-	     (result (make-string length)))
-	(declare (simple-string result))
-	(dotimes-fixnum (i length)
-	  (let ((old-char (schar string i)))
-	    (setf (schar result i)
-		  (or (second (assoc old-char alist :test #'char=))
-		      old-char))))
-	result)
+             (result (make-string length)))
+        (declare (simple-string result))
+        (dotimes-fixnum (i length)
+          (let ((old-char (schar string i)))
+            (setf (schar result i)
+                  (or (second (assoc old-char alist :test #'char=))
+                      old-char))))
+        result)
       string))
 
 ;;; parse-with-string-delimiter
@@ -161,33 +161,33 @@
 
 (defun parse-with-string-delimiter (delim string &key (start 0) end)
   (declare (type simple-string string)
-	   (type fixnum start)
-	   (type (or null fixnum) end)
-	   (type (or simple-string character) delim)
-	   (values (or null simple-string) (or null fixnum) symbol))
+           (type fixnum start)
+           (type (or null fixnum) end)
+           (type (or simple-string character) delim)
+           (values (or null simple-string) (or null fixnum) symbol))
   ;; Conceivably, if DELIM is a string consisting of a single character,
   ;; we could do this more efficiently using POSITION instead of SEARCH.
   ;; However, any good implementation of SEARCH should optimize for that
   ;; case, so nothing to worry about.
   (setq end (or end (length string)))
   (let ((delim-pos (search delim string :start2 start :end2 end))
-	(dlength (length delim)))
+        (dlength (length delim)))
     (declare (type fixnum dlength))
-    (cond ((null delim-pos)		
-	   ;; No delimiter was found. Return the rest of the string,
-	   ;; the end of the string, and :delim-not-found.
-	   (values (subseq string start end) end :delim-not-found))
-	  ((= delim-pos start)		
-	   ;; The field was empty, so return nil and skip over the delimiter.
-	   (values nil (+ start dlength) nil))
-	  ;; The following clause is subsumed by the last cond clause,
-	  ;; and hence should probably be eliminated.
-	  (t				
-	   ;; The delimiter is in the middle of the string. Return the
-	   ;; field and skip over the delimiter. 
-	   (values (subseq string start delim-pos)
-		   (+ delim-pos dlength)
-		   nil)))))
+    (cond ((null delim-pos)             
+           ;; No delimiter was found. Return the rest of the string,
+           ;; the end of the string, and :delim-not-found.
+           (values (subseq string start end) end :delim-not-found))
+          ((= delim-pos start)          
+           ;; The field was empty, so return nil and skip over the delimiter.
+           (values nil (+ start dlength) nil))
+          ;; The following clause is subsumed by the last cond clause,
+          ;; and hence should probably be eliminated.
+          (t                            
+           ;; The delimiter is in the middle of the string. Return the
+           ;; field and skip over the delimiter. 
+           (values (subseq string start delim-pos)
+                   (+ delim-pos dlength)
+                   nil)))))
 
 ;;; parse-with-string-delimiter*
 ;;;  Breaks STRING into a list of strings, each of which was separated
@@ -197,119 +197,119 @@
 ;;;  not terminated by DELIM. Also returns the final position in the string.
 
 (defun parse-with-string-delimiter* (delim string &key (start 0) end
-					   include-last)
+                                           include-last)
   (declare (type simple-string string)
-	   (type fixnum start))
+           (type fixnum start))
   (setq end (or end (length string)))
   (let (result)
     (loop
      (if (< start (the fixnum end))
-	 (multiple-value-bind (component new-start delim-not-found)
-	     (parse-with-string-delimiter delim string :start start :end end)
-	   (when delim-not-found 
-	     (when include-last
-	       (setq start new-start)
-	       (push component result))
-	     (return))
-	   (setq start new-start)
-	   (push component result))
-	 (return)))
+         (multiple-value-bind (component new-start delim-not-found)
+             (parse-with-string-delimiter delim string :start start :end end)
+           (when delim-not-found 
+             (when include-last
+               (setq start new-start)
+               (push component result))
+             (return))
+           (setq start new-start)
+           (push component result))
+         (return)))
     (values (nreverse result) 
-	    start)))
+            start)))
 
 ;;; split-string
 ;;;  Splits the string into substrings at spaces.
 ;;;
 (defun split-string (string &key (item #\space) (test #'char=))
   (declare (type simple-string string)
-	   (type character item)
-	   (type function test)
-	   (values list))
+           (type character item)
+           (type function test)
+           (values list))
   (let ((len (length string))
-	(index 0)
-	(result nil))
+        (index 0)
+        (result nil))
     (declare (type fixnum index len))
     (dotimes (i len (progn (unless (= index len)
-			     (push (subseq string index) result))
-			   (reverse result)))
+                             (push (subseq string index) result))
+                           (reverse result)))
       (declare (type fixnum i))
       (when (funcall test (char string i) item)
-	(unless (= index i);; two spaces in a row
-	  (push (subseq string index i) result))
-	(setf index (1+ i))))))
+        (unless (= index i);; two spaces in a row
+          (push (subseq string index i) result))
+        (setf index (1+ i))))))
 
 ;;; extract-strings
 ;;;   Breaks STRING into a list of strings, using DELIMITERS as a 
 ;;;   breaking point.
 
 (defun extract-strings (string &optional (delimiters '(#\newline #\space
-						       #\return #\tab)))
+                                                       #\return #\tab)))
   (declare (type simple-string string)
-	   (type list delimiters)
-	   (values list))
+           (type list delimiters)
+           (values list))
   (let* ((begin (position-if-not #'(lambda (character)
-				     (find character delimiters))
-				 string))
-	 (end   (when begin
-		  (position-if #'(lambda (character)
-				   (find character delimiters))
-			       string :start begin))))
+                                     (find character delimiters))
+                                 string))
+         (end   (when begin
+                  (position-if #'(lambda (character)
+                                   (find character delimiters))
+                               string :start begin))))
     (cond ((and begin end)
            (cons (subseq string begin end)
                  (extract-strings (subseq string (1+ end)) delimiters)))
-	  (begin
-	   (list (subseq string begin)))
+          (begin
+           (list (subseq string begin)))
           (t
            nil))))
 
 ;;; format-justified-string
 ;;;
 (defun format-justified-string (prompt contents &optional (width 80)
-				       (stream *standard-output*))
+                                       (stream *standard-output*))
   (declare (type simple-string prompt contents)
-	   (type fixnum width)
-	   (type stream stream))
+           (type fixnum width)
+           (type stream stream))
   (let ((prompt-length (+ 2 (the fixnum (length prompt)))))
     (declare (type fixnum prompt-length))
     (cond ((< (+ prompt-length (the fixnum (length contents))) width)
-	   (format stream "~%~A- ~A" prompt contents))
-	  (t
-	   (format stream "~%~A-" prompt)
-	   (do* ((cursor prompt-length)
-		 (contents (split-string contents) (cdr contents))
-		 (content (car contents) (car contents))
-		 (content-length (1+ (the fixnum (length content)))
-				 (1+ (the fixnum (length content)))))
-	       ((null contents))
-	     (declare (type fixnum content-length))
-	     (cond ((< (+ cursor content-length) width)
-		    (incf cursor content-length)
-		    (format stream " ~A" content))
-		   (t
-		    (setf cursor (+ prompt-length content-length))
-		    (format stream "~%~A  ~A" prompt content)))))))
+           (format stream "~%~A- ~A" prompt contents))
+          (t
+           (format stream "~%~A-" prompt)
+           (do* ((cursor prompt-length)
+                 (contents (split-string contents) (cdr contents))
+                 (content (car contents) (car contents))
+                 (content-length (1+ (the fixnum (length content)))
+                                 (1+ (the fixnum (length content)))))
+               ((null contents))
+             (declare (type fixnum content-length))
+             (cond ((< (+ cursor content-length) width)
+                    (incf cursor content-length)
+                    (format stream " ~A" content))
+                   (t
+                    (setf cursor (+ prompt-length content-length))
+                    (format stream "~%~A  ~A" prompt content)))))))
   (finish-output stream))
 
 ;;; number-to-string
 ;;;
 (defun number-to-string (number &optional (base 10))
   (declare (type fixnum number)
-	   (type fixnum base))
+           (type fixnum base))
   (cond ((zerop number) "0")
-	((eql number 1) "1")
-	(t
-	 (do* ((len (1+ (truncate (log number base)))) 
-	       (res (make-string len))
-	       (i (1- len) (1- i))
-	       (q number)		; quotient
-	       (r 0))			; residue
-	     ((zerop q)			; nothing left
-	      res)
-	   (declare (simple-string res)
-		    (fixnum len i r))
-	   (multiple-value-setq (q r) (truncate q base))
-	   (setf (schar res i) 
-		 (schar "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" r))))))
+        ((eql number 1) "1")
+        (t
+         (do* ((len (1+ (truncate (log number base)))) 
+               (res (make-string len))
+               (i (1- len) (1- i))
+               (q number)               ; quotient
+               (r 0))                   ; residue
+             ((zerop q)                 ; nothing left
+              res)
+           (declare (simple-string res)
+                    (fixnum len i r))
+           (multiple-value-setq (q r) (truncate q base))
+           (setf (schar res i) 
+                 (schar "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" r))))))
 
 ;;; null-string
 ;;;  Returns T if STRING is the null string \"\" between START and END.
@@ -328,29 +328,29 @@
 ;;;   of returning EOF-VALUE.
 
 ;; (declaim (function read-delimited-string (list stream atom t) 
-;;		   (values string t character)))
+;;                 (values string t character)))
 
 (defun read-delimited-string (delimiters &optional (stream *standard-input*)
-					 (eof-error-p t) eof-value)
+                                         (eof-error-p t) eof-value)
   (declare (type list delimiters)
-	   (type stream stream))
+           (type stream stream))
   (let (char-list)
     ;; (declare (dynamic-extent char-list))
     (do ((peeked-char (peek-char nil stream eof-error-p :eof)
-		      (peek-char nil stream eof-error-p :eof)))
-	((or (member peeked-char delimiters) (eq peeked-char :eof))
-	 (values (coerce (nreverse char-list) 'string)
-		 (if (eq peeked-char :eof) eof-value) peeked-char))
+                      (peek-char nil stream eof-error-p :eof)))
+        ((or (member peeked-char delimiters) (eq peeked-char :eof))
+         (values (coerce (nreverse char-list) 'string)
+                 (if (eq peeked-char :eof) eof-value) peeked-char))
       (push (read-char stream t)
-	    ;; it should be good, else peek-char would have gotten the error.
-	    ;; so go for it.
-	    char-list))))
+            ;; it should be good, else peek-char would have gotten the error.
+            ;; so go for it.
+            char-list))))
 
 ;;; numeric-char-p
 ;;;
 (defmacro numeric-char-p (char)
   `(let ((cc (char-code ,char)))
      (and (>= cc (char-code #\0))
-	  (<= cc (char-code #\9)))))
+          (<= cc (char-code #\9)))))
 
 ;;; EOF

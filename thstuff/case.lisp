@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-					   System: CHAOS
-					  Module: thstuff
-					 File: base.lisp
+                                 System: CHAOS
+                                Module: thstuff
+                                File: base.lisp
 ==============================================================================|#
 
 (defparameter .case-module-true.  (%module-decl* "true-dummy" :object :user nil))
@@ -40,10 +40,10 @@
 
 (defun perform-case-reduction (ast)
   (let ((bool-term (%scase-bool-term ast))
-	(module (%scase-module ast))
-	(name (%scase-name ast))
-	(body (parse-module-elements (%scase-body ast)))
-	(goal-term (%scase-goal-term ast)))
+        (module (%scase-module ast))
+        (name (%scase-name ast))
+        (body (parse-module-elements (%scase-body ast)))
+        (goal-term (%scase-goal-term ast)))
     ;; prepare modules
     (setf (%module-decl-name .case-module-true.) (concatenate 'string name "-#T"))
     (setf (%module-decl-name .case-module-false.) (concatenate 'string name "-#F"))
@@ -55,33 +55,33 @@
     (setf (%module-decl-elements .case-module-false.) (append body (list .case-false-axiom.)))
     ;;
     (let ((org-mod (eval-modexp module))
-	  (true-mod (eval-ast .case-module-true.))
-	  (false-mod (eval-ast .case-module-false.)))
+          (true-mod (eval-ast .case-module-true.))
+          (false-mod (eval-ast .case-module-false.)))
       (when (modexp-is-error org-mod)
-	(with-output-chaos-error ('no-such-module)
-	  (format t "No such module or invalid module expression ~s" module)))
+        (with-output-chaos-error ('no-such-module)
+          (format t "No such module or invalid module expression ~s" module)))
 
       ;; CASE TRUE
       (with-in-module (true-mod)
-	(compile-module *current-module*)
-	;; 
-	(with-output-simple-msg ()
-	  (format t "===================~%")
-	  (format t ">>* CASE: true *<<~%")
-	  (format t "==================="))
-	(perform-reduction* goal-term true-mod :red))
+        (compile-module *current-module*)
+        ;; 
+        (with-output-simple-msg ()
+          (format t "===================~%")
+          (format t ">>* CASE: true *<<~%")
+          (format t "==================="))
+        (perform-reduction* goal-term true-mod :red))
 
       ;; CASE FALSE
       (with-in-module (false-mod)
-	(compile-module *current-module*)
-	;; 
-	(with-output-simple-msg ()
-	  (format t "===================~%")
-	  (format t ">>* CASE: false *<<~%")
-	  (format t "==================="))
-	(perform-reduction* goal-term false-mod :red)))))
+        (compile-module *current-module*)
+        ;; 
+        (with-output-simple-msg ()
+          (format t "===================~%")
+          (format t ">>* CASE: false *<<~%")
+          (format t "==================="))
+        (perform-reduction* goal-term false-mod :red)))))
 
 
 
 ;;; EOF
-	  		  
+                          

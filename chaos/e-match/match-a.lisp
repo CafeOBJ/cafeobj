@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				  System:Chaos
-				 Module:e-match
-			       File:match-a.lisp
+                                  System:Chaos
+                                 Module:e-match
+                               File:match-a.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -123,26 +123,26 @@
 (#-GCL defun #+GCL si:define-inline-function
        match-associative-simplify (sub1 sub2)
   (declare (type list sub1 sub2)
-	   (values (or null t)))
+           (values (or null t)))
   ;;
   (do ((t1 (car sub1) (car sub1))
        (t2 (car sub2) (car sub2)))
       ((or (null sub1)
-	   (null sub2)
-	   (term-is-variable? t1)
-	   (not (term-equational-equal t1 t2))))
+           (null sub2)
+           (term-is-variable? t1)
+           (not (term-equational-equal t1 t2))))
     (declare (type term t1 t2))
     (pop sub1)
     (pop sub2))
   ;;
   (setq sub1 (nreverse sub1)
-	sub2 (nreverse sub2))
+        sub2 (nreverse sub2))
   (do ((t1 (car sub1) (car sub1))
        (t2 (car sub2) (car sub2)))
       ((or (null sub1)
-	   (null sub2)
-	   (term-is-variable? t1)
-	   (not (term-equational-equal t1 t2))))
+           (null sub2)
+           (term-is-variable? t1)
+           (not (term-equational-equal t1 t2))))
     (declare (type term t1 t2))
     (pop sub1)
     (pop sub2))
@@ -153,39 +153,39 @@
       (declare (type term x1))
       (when (term-is-variable? x1) (incf numvars)))
     (if (and (<= 2 numvars)
-	     (<= 3 (the fixnum (length sub1)))
-	     (<= 5 (the fixnum (length sub2))))
-	(if (block test1
-	      (dolist (x1 sub1 nil)
-		(declare (type term x1))
-		(unless (term-is-variable? x1)
-		  (dolist (x2 sub2 (return-from test1 t))
-		    (declare (type term x2))
-		    (when (and (not (term-is-variable? x2))
-			       (possibly-matches-nonvar x1 x2))
-		      (return))))))
-	    (values nil nil t)
-	    (values (nreverse sub1) (nreverse sub2) nil))
-	(values (nreverse sub1) (nreverse sub2) nil))))
+             (<= 3 (the fixnum (length sub1)))
+             (<= 5 (the fixnum (length sub2))))
+        (if (block test1
+              (dolist (x1 sub1 nil)
+                (declare (type term x1))
+                (unless (term-is-variable? x1)
+                  (dolist (x2 sub2 (return-from test1 t))
+                    (declare (type term x2))
+                    (when (and (not (term-is-variable? x2))
+                               (possibly-matches-nonvar x1 x2))
+                      (return))))))
+            (values nil nil t)
+            (values (nreverse sub1) (nreverse sub2) nil))
+        (values (nreverse sub1) (nreverse sub2) nil))))
 
 (declaim (inline match-associativity-set-eq-state))
-	 
+         
 (#-GCL defun #+GCL si:define-inline-function
        match-associativity-set-eq-state (sub1 sub2)
   (declare (type list sub1 sub2))
   (let* ((sz1 (length sub1))
-	 (comp (alloc-svec-fixnum (if (= 0 sz1) 0 (- sz1 1)))))
+         (comp (alloc-svec-fixnum (if (= 0 sz1) 0 (- sz1 1)))))
     (declare (type #+GCL vector #-GCL simple-vector comp)
-	     (type fixnum sz1))
+             (type fixnum sz1))
     (dotimes (x (- sz1 1))
       (declare (type fixnum x))
       ;; x = 0,...,sz1-2
       ;;built the array (1, 2, 3, 4) if sz1 = 5 
       (setf (svref comp x) (1+ x)))
     (make-match-equation-comp sz1
-			      (apply #'vector sub1)
-			      (apply #'vector sub2)
-			      comp)))
+                              (apply #'vector sub1)
+                              (apply #'vector sub2)
+                              comp)))
 
 ;;; Create a single term from a collection of terms
 ;;;
@@ -194,22 +194,22 @@
 (#-GCL defun #+GCL si:define-inline-function
        match-A-make-term (method vect first last)
   (declare (type fixnum first last)
-	   (type #+GCL vector #-GCL simple-vector vect))
+           (type #+GCL vector #-GCL simple-vector vect))
   (if (= first last)
       (svref vect first)
     (let ((res (svref vect last)))
       (if (and (< 1 (the fixnum (- last first)))
-	       (null (cdr (method-lower-methods method))))
-	  (do ((i (1- last) (1- i)))
-	      ((< i first) res)
-	    (declare (type fixnum i))
-	    (setq res (make-term-with-sort-check method
-						 (list (svref vect i) res))))
-	(do ((i (1- last) (1- i)))
-	    ((< i first) res)
-	  (declare (type fixnum i))
-	  (setq res (make-term-with-sort-check-bin method 
-						   (list (svref vect i) res))))))))
+               (null (cdr (method-lower-methods method))))
+          (do ((i (1- last) (1- i)))
+              ((< i first) res)
+            (declare (type fixnum i))
+            (setq res (make-term-with-sort-check method
+                                                 (list (svref vect i) res))))
+        (do ((i (1- last) (1- i)))
+            ((< i first) res)
+          (declare (type fixnum i))
+          (setq res (make-term-with-sort-check-bin method 
+                                                   (list (svref vect i) res))))))))
 
 ;;; Returns the list of terms contained in the array of terms "t-arr"
 ;;; between the indices "from" and "to" both included.
@@ -221,10 +221,10 @@
 (#-GCL defun #+GCL si:define-inline-function
        match-A-extract-in-from-to (t-arr from to)
   (declare (type fixnum from to)
-	   (type #+GCL vector #-GCL simple-vector t-arr))
+           (type #+GCL vector #-GCL simple-vector t-arr))
   (let ((t-list nil))
     (do ((i to (1- i)))
-	((< i from)  t-list)
+        ((< i from)  t-list)
       (declare (type fixnum i))
       (push (svref t-arr i) t-list))))
 
@@ -237,27 +237,27 @@
        increment-the-match-A-state (A-st)
   (block the-end
     (let ((sz (match-A-state-size A-st))
-	  (sys (match-A-state-sys A-st)))
+          (sys (match-A-state-sys A-st)))
       (declare (type fixnum sz)
-	       (type #+GCL vector #-GCL simple-vector sys))
+               (type #+GCL vector #-GCL simple-vector sys))
       (let ((k 0)
-	    eq-comp)
-	(declare (type fixnum k))
-	(while (> sz k)
-	  (setq eq-comp (svref sys k))
-	  (when (match-A-try-increase-lexico
-		 (match-equation-comp-comp eq-comp)
-		 (1- (the fixnum
-		       (length (match-equation-comp-right eq-comp)))))
-	    ;; note that match-A-try-increase-lexico modify in this case
-	    ;; the  "comp"  of the current equation.
-	    ;; After that the previous composant are reset like in
-	    ;; 599 -> 600
-	    (match-A-reset-match-equation-comp sys k)
-	    (return-from the-end (values nil)))
-	  ;;otherwise, try to increase the next equation
-	  (setq k (1+ k))
-	  ))
+            eq-comp)
+        (declare (type fixnum k))
+        (while (> sz k)
+          (setq eq-comp (svref sys k))
+          (when (match-A-try-increase-lexico
+                 (match-equation-comp-comp eq-comp)
+                 (1- (the fixnum
+                       (length (match-equation-comp-right eq-comp)))))
+            ;; note that match-A-try-increase-lexico modify in this case
+            ;; the  "comp"  of the current equation.
+            ;; After that the previous composant are reset like in
+            ;; 599 -> 600
+            (match-A-reset-match-equation-comp sys k)
+            (return-from the-end (values nil)))
+          ;;otherwise, try to increase the next equation
+          (setq k (1+ k))
+          ))
       ;; this "normal" exit of the loop means that none of the
       ;; state has been increased so there is no more state
       (setf (match-A-state-no-more A-st) t)
@@ -276,22 +276,22 @@
 (#-GCL defun #+GCL si:define-inline-function
        match-A-try-increase-lexico (comp max)
   (declare (type fixnum max)
-	   (type #+GCL vector #-GCL simple-vector comp))
+           (type #+GCL vector #-GCL simple-vector comp))
   (let ((lim (1- (length comp))))
     (declare (type fixnum lim))
     (do ((i lim (- i 1)))
-	((< i 0) nil)
+        ((< i 0) nil)
       (declare (type fixnum i))
       (let ((x (svref comp i)))
-	(declare (type fixnum x))
-	(when (< x max)
-	  (setf (svref comp i) (1+ x))
-	  (do ((j (1+ i) (1+ j))
-	       (v (+ x 2) (1+ v)))
-	      ((< lim j))
-	    (declare (type fixnum j v))
-	    (setf (svref comp j) v))
-	  (return t)))
+        (declare (type fixnum x))
+        (when (< x max)
+          (setf (svref comp i) (1+ x))
+          (do ((j (1+ i) (1+ j))
+               (v (+ x 2) (1+ v)))
+              ((< lim j))
+            (declare (type fixnum j v))
+            (setf (svref comp j) v))
+          (return t)))
       (setq max (1- max)))))
 
 ;;; Reset the comp of "eq-comp" to his initial value i.e. (1,2,3,4,5)
@@ -315,8 +315,8 @@
 (#-GCL defun #+GCL si:define-inline-function
        match-A-reset-match-equation-comp (sys K)
   (declare (type #+GCL vector #-GCL simple-vector sys)
-	   (type fixnum k))
-  (dotimes (i K)				; i = 0,...,K-1 
+           (type fixnum k))
+  (dotimes (i K)                                ; i = 0,...,K-1 
     (declare (type fixnum i))
     (match-A-reset-comp (svref sys i))))
 
@@ -338,121 +338,121 @@
 (defun match-A-state-initialize (sys env)
   (block no-match
     (let* ((dim nil)
-	   (assoc-sys nil)
-	   (method nil)
-	   (i 0))
+           (assoc-sys nil)
+           (method nil)
+           (i 0))
       (declare (type fixnum i)
-	       (type (or null fixnum) dim)
-	       (type #+GCL (or null vector)
-		     #-GCL (or null simple-vector)
-		     assoc-sys)
-	       )
+               (type (or null fixnum) dim)
+               (type #+GCL (or null vector)
+                     #-GCL (or null simple-vector)
+                     assoc-sys)
+               )
       (dolist (equation (m-system-to-list sys))
-	(let ((t1 (equation-t1 equation))
-	      (t2 (equation-t2 equation)))
-	  (unless (and (term-is-application-form? t2)
-		       (method-is-of-same-operator+ (term-method t1)
-						    (term-method t2))
-		       (setq method (term-method t1)))
-	    (return-from no-match (values nil t)))
-	  ;;
-	  (let* ((sub1 (list-assoc-subterms t1 method))
-		 (sub1add nil)
-		 (sub2 (list-assoc-subterms t2 method))
-		 (sub2-len (length sub2))
-		 (fail nil))
-	    (declare (type list sub1 sub2)
-		     (type fixnum sub2-len))
-	    ;;
-	    ;;(when (> (the fixnum (length sub1)) sub2-len)
-	    ;;  (return-from no-match (values nil t)))
-	    ;;
-	    ;; add the additional information contained in "env" into "sub1".
-	    (dolist (val sub1)
-	      (declare (type term val))
-	      (if (term-is-variable? val)
-		  (let ((image (environment-image env val))
-			(head nil))
-		    (declare (type (or null term) image))
-		    (if (null image)
-			(push val sub1add)
-			(if (term-is-variable? image)
-			    (push image sub1add)
-			  (if (eq method (setf head (term-method image)))
-			      (setq sub1add
-			        (nconc
-			         (reverse
-			          (list-assoc-subterms image head))
-			         sub1add))
-			    (push image sub1add)))))
-		(push val sub1add)))
-	    ;;
-	    (setq sub1 (nreverse sub1add))
-	    ;;
-	    (when (> (the fixnum (length sub1)) sub2-len)
-	      (return-from no-match (values nil t)))
-	    (multiple-value-setq (sub1 sub2 fail)
-		(match-associative-simplify sub1 sub2))
-	    (when (or fail
-		      (and (null sub1) sub2)
-		      (and (null sub2) sub1))
-	      (return-from no-match (values nil t)))
-	    ;; sub1 may be nil but have modified match-A-..set-eq-state
-	    (unless assoc-sys
-	      (setq dim (size-of-m-system sys))
-	      (setq assoc-sys (alloc-svec (the fixnum dim))))
-	    (setf (svref assoc-sys i)
-		  (match-associativity-set-eq-state sub1 sub2))))
-	(setq i (1+ i)))
+        (let ((t1 (equation-t1 equation))
+              (t2 (equation-t2 equation)))
+          (unless (and (term-is-application-form? t2)
+                       (method-is-of-same-operator+ (term-method t1)
+                                                    (term-method t2))
+                       (setq method (term-method t1)))
+            (return-from no-match (values nil t)))
+          ;;
+          (let* ((sub1 (list-assoc-subterms t1 method))
+                 (sub1add nil)
+                 (sub2 (list-assoc-subterms t2 method))
+                 (sub2-len (length sub2))
+                 (fail nil))
+            (declare (type list sub1 sub2)
+                     (type fixnum sub2-len))
+            ;;
+            ;;(when (> (the fixnum (length sub1)) sub2-len)
+            ;;  (return-from no-match (values nil t)))
+            ;;
+            ;; add the additional information contained in "env" into "sub1".
+            (dolist (val sub1)
+              (declare (type term val))
+              (if (term-is-variable? val)
+                  (let ((image (environment-image env val))
+                        (head nil))
+                    (declare (type (or null term) image))
+                    (if (null image)
+                        (push val sub1add)
+                        (if (term-is-variable? image)
+                            (push image sub1add)
+                          (if (eq method (setf head (term-method image)))
+                              (setq sub1add
+                                (nconc
+                                 (reverse
+                                  (list-assoc-subterms image head))
+                                 sub1add))
+                            (push image sub1add)))))
+                (push val sub1add)))
+            ;;
+            (setq sub1 (nreverse sub1add))
+            ;;
+            (when (> (the fixnum (length sub1)) sub2-len)
+              (return-from no-match (values nil t)))
+            (multiple-value-setq (sub1 sub2 fail)
+                (match-associative-simplify sub1 sub2))
+            (when (or fail
+                      (and (null sub1) sub2)
+                      (and (null sub2) sub1))
+              (return-from no-match (values nil t)))
+            ;; sub1 may be nil but have modified match-A-..set-eq-state
+            (unless assoc-sys
+              (setq dim (size-of-m-system sys))
+              (setq assoc-sys (alloc-svec (the fixnum dim))))
+            (setf (svref assoc-sys i)
+                  (match-associativity-set-eq-state sub1 sub2))))
+        (setq i (1+ i)))
       (values (make-match-A-state dim method assoc-sys)
-	      nil))))
+              nil))))
 
 ;;; ASSOCITIVITY NEXT STATE ----------------------------------------------------
 
 (defun match-A-next-state (A-st)
   (declare (type match-a-state a-st)
-	   (values list (or null match-a-state) (or null t)))
+           (values list (or null match-a-state) (or null t)))
   (let* ((new-sys (new-m-system))
- 	 (sz (match-A-state-size A-st))
-	 (sys (match-A-state-sys A-st))
-	 (method (match-A-state-method A-st)))
+         (sz (match-A-state-size A-st))
+         (sys (match-A-state-sys A-st))
+         (method (match-A-state-method A-st)))
     (declare (type fixnum sz)
-	     (type vector sys))
-    (if (match-A-state-no-more A-st)	
-	;; there is no more match-A-state.
-	(values nil nil t)
+             (type vector sys))
+    (if (match-A-state-no-more A-st)    
+        ;; there is no more match-A-state.
+        (values nil nil t)
         (progn
-	  (dotimes (k sz)
-	    (declare (type fixnum k))
-	    ;; for each equation of the system
-	    (let* ((eq-comp (svref sys k))
-		   (sz-left (match-equation-comp-sz-left eq-comp))
-		   (left (match-equation-comp-left eq-comp))
-		   (right (match-equation-comp-right eq-comp))
-		   (sz-right (1- (the fixnum (length right))))
-		   (comp (match-equation-comp-comp eq-comp)))
-	      (declare (type fixnum sz-left sz-right)
-		       (type #+GCL vector #-GCL simple-vector left right)
-		       (type #+GCL vector #-GCL simple-vector comp))
-	      (dotimes (l sz-left)
-		(declare (type fixnum l))
-		;; i.e. for each term of the left hand 
-		;; side of the equation 
-		(let ((deb (if (= l 0)
-			       0 
-			       (svref comp (the fixnum (1- l)))))
-		      (fin (if (= l (the fixnum (1- sz-left)))
-			       sz-right 
-			       (1- (the fixnum (svref comp l))))))
-		  (declare (type fixnum deb fin))
-		  (add-equation-to-m-system
-		   new-sys
-		   (make-equation
-		    (svref left l)
-		    (match-A-make-term method right deb fin)))))
-	      ))
-	  (increment-the-match-A-state A-st) ; A-st is modified
-	  (values new-sys A-st nil)))))
+          (dotimes (k sz)
+            (declare (type fixnum k))
+            ;; for each equation of the system
+            (let* ((eq-comp (svref sys k))
+                   (sz-left (match-equation-comp-sz-left eq-comp))
+                   (left (match-equation-comp-left eq-comp))
+                   (right (match-equation-comp-right eq-comp))
+                   (sz-right (1- (the fixnum (length right))))
+                   (comp (match-equation-comp-comp eq-comp)))
+              (declare (type fixnum sz-left sz-right)
+                       (type #+GCL vector #-GCL simple-vector left right)
+                       (type #+GCL vector #-GCL simple-vector comp))
+              (dotimes (l sz-left)
+                (declare (type fixnum l))
+                ;; i.e. for each term of the left hand 
+                ;; side of the equation 
+                (let ((deb (if (= l 0)
+                               0 
+                               (svref comp (the fixnum (1- l)))))
+                      (fin (if (= l (the fixnum (1- sz-left)))
+                               sz-right 
+                               (1- (the fixnum (svref comp l))))))
+                  (declare (type fixnum deb fin))
+                  (add-equation-to-m-system
+                   new-sys
+                   (make-equation
+                    (svref left l)
+                    (match-A-make-term method right deb fin)))))
+              ))
+          (increment-the-match-A-state A-st) ; A-st is modified
+          (values new-sys A-st nil)))))
 
 
 ;;; Associative Equational Equal ------------------------------------------------ 
@@ -461,20 +461,20 @@
 ;;;
 (defun match-A-equal (t1 t2)
   (declare (type term t1 t2)
-	   (values (or null t)))
+           (values (or null t)))
   (if (term-is-application-form? t2)
       (let ((hd2 (term-method t2)))
-	(if (method-is-of-same-operator (term-head t1)
-					hd2)
-	    (let ((l1 (list-assoc-subterms t1 (term-method t1)))
-		  (l2 (list-assoc-subterms t2 hd2)))
-	      (declare (type list l1 l2))
-	      (and (= (the fixnum (length l1)) (the fixnum (length l2)))
-		   (loop (when (null l1) (return (null l2)))
-		       (unless (term-equational-equal (car l1) (car l2))
-			 (return nil))
-		     (setq l1 (cdr l1) l2 (cdr l2)))))
-	    nil))
+        (if (method-is-of-same-operator (term-head t1)
+                                        hd2)
+            (let ((l1 (list-assoc-subterms t1 (term-method t1)))
+                  (l2 (list-assoc-subterms t2 hd2)))
+              (declare (type list l1 l2))
+              (and (= (the fixnum (length l1)) (the fixnum (length l2)))
+                   (loop (when (null l1) (return (null l2)))
+                       (unless (term-equational-equal (car l1) (car l2))
+                         (return nil))
+                     (setq l1 (cdr l1) l2 (cdr l2)))))
+            nil))
       nil))
  
 ;;; EOF

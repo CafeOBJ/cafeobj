@@ -33,9 +33,9 @@
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 #|==============================================================================
-				 System: Chaos
-				  Module: eval
-				File: debug.lisp
+                                 System: Chaos
+                                  Module: eval
+                                File: debug.lisp
 ==============================================================================|#
 
 (defun print-opinfos (module)
@@ -50,11 +50,11 @@
     (dolist (opinfo (module-all-operators module))
       (let ((methods (opinfo-methods opinfo)))
         (dolist (m methods)
-          (format t "~&method : ")
+          (format t "~%method : ")
           (print-chaos-object m)
           (let ((info (get-method-info m)))
             (if (not info)
-              (format t "~&could not get method info ! ")
+              (format t "~%could not get method info ! ")
               (print-method-info info))))))))
 
 (defun print-method-info (info)

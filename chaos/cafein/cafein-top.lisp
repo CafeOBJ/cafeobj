@@ -28,74 +28,74 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-				  System:CHAOS
-				 Module:cafein
-			      File:cafein-top.lisp
+                                  System:CHAOS
+                                 Module:cafein
+                              File:cafein-top.lisp
 =============================================================================|#
 
 ;;;=============================================================================
-;;; 		     CafeIn Termrewriting system top-level
+;;;                  CafeIn Termrewriting system top-level
 ;;;=============================================================================
 
 ;;; CafeIn COMMANDS
 (defvar *cafein-commands* nil)
 (eval-when (:execute :load-toplevel)
   (setq *cafein-commands*
-	'((top-commands
-	   (:one-of
-	    ((:+ match unify) (:seq-of :term) to (:seq-of :term) |.|)
-	    (parse (:if-present  in :modexp |:|) (:seq-of :term) |.|)
-	    ((:+ lisp ev eval evq lispq)
-	     (:call (read)))
-	    ((:+ show sh set select describe desc) ; do 
-	     (:seq-of :top-opname))
-	    (#\^D)
-	    (eof)
-	    ((:+ quit q))
-	    ;; theorem proving stuff.
-	    (start :term |.|)
-	    ;; apply
-	    (apply (:one-of-default
-		    (:symbol (:upto
-			      (within at)
-			      (:optional with :symbol
-					 = (:upto (|,| within at) :term)
-					 :append
-					 (:seq-of |,| :symbol
-						  = (:upto (|,| within at) :term))))
-			     (:+ within at)
-			     (:one-of
-			      ((:+ top term subterm))
-			      ((:+ |(| |{| |[|)
-			       :unread
-			       ((:! Selector))
-			       (:seq-of of ((:! Selector)))
-			       |.|)))
-		    (?)))
-	    ;;
-	    (choose (:one-of
-		     ((:+ top term subterm))
-		     ((:+ |(| |{| |[|)
-		      :unread
-		      ((:! Selector))
-		      (:seq-of of ((:! Selector)))
-		      |.|)))
+        '((top-commands
+           (:one-of
+            ((:+ match unify) (:seq-of :term) to (:seq-of :term) |.|)
+            (parse (:if-present  in :modexp |:|) (:seq-of :term) |.|)
+            ((:+ lisp ev eval evq lispq)
+             (:call (read)))
+            ((:+ show sh set select describe desc) ; do 
+             (:seq-of :top-opname))
+            (#\^D)
+            (eof)
+            ((:+ quit q))
+            ;; theorem proving stuff.
+            (start :term |.|)
+            ;; apply
+            (apply (:one-of-default
+                    (:symbol (:upto
+                              (within at)
+                              (:optional with :symbol
+                                         = (:upto (|,| within at) :term)
+                                         :append
+                                         (:seq-of |,| :symbol
+                                                  = (:upto (|,| within at) :term))))
+                             (:+ within at)
+                             (:one-of
+                              ((:+ top term subterm))
+                              ((:+ |(| |{| |[|)
+                               :unread
+                               ((:! Selector))
+                               (:seq-of of ((:! Selector)))
+                               |.|)))
+                    (?)))
+            ;;
+            (choose (:one-of
+                     ((:+ top term subterm))
+                     ((:+ |(| |{| |[|)
+                      :unread
+                      ((:! Selector))
+                      (:seq-of of ((:! Selector)))
+                      |.|)))
 
-	    (find (:+ rule -rule +rule rules -rules +rules))
-	    (cd :symbol)
-	    #-(or GCL LUCID CMU) (ls :symbol)
-	    #+(or GCL LUCID CMU) (ls :top-term)
-	    (pwd)
-	    (! :top-term)
-	    (?)
-	    ))
-	(Selector
-	   (:one-of
-	    ;; (term) (top) (subterm)
-	    (|{| :int :append (:seq-of |,| :int) |}|)
-	    (|(| (:seq-of :int) |)|)
-	    (\[ :int (:optional |..| :int) \])))
-	  )))
+            (find (:+ rule -rule +rule rules -rules +rules))
+            (cd :symbol)
+            #-(or GCL LUCID CMU) (ls :symbol)
+            #+(or GCL LUCID CMU) (ls :top-term)
+            (pwd)
+            (! :top-term)
+            (?)
+            ))
+        (Selector
+           (:one-of
+            ;; (term) (top) (subterm)
+            (|{| :int :append (:seq-of |,| :int) |}|)
+            (|(| (:seq-of :int) |)|)
+            (\[ :int (:optional |..| :int) \])))
+          )))
 
 (defun cafein-parse ()
   (reader 'top-commands *cafein-commands*))

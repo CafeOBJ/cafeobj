@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-System: CHAOS
-Module: thstuff
-File: eval-match.lisp
+                               System: CHAOS
+                              Module: thstuff
+                           File: eval-match.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -88,11 +88,11 @@ File: eval-match.lisp
          (patterns (find-matching-rules what real-target (get-context-module) type)))
     (unless patterns
       (with-in-module ((get-context-module))
-        (format t "~&no rules found for term : ")
+        (format t "~%no rules found for term : ")
         (term-print target))
       (return-from find-rewrite-rules-top nil))
     ;; report the result
-    (format t "~&== matching rules to term : ")
+    (format t "~%== matching rules to term : ")
     (with-in-module ((get-context-module))
       (let ((*fancy-print* nil))
         (term-print target))
@@ -118,11 +118,11 @@ File: eval-match.lisp
             (princ " }"))
           (princ " is ")
           (print-axiom-brief rule *standard-output* nil t)
-          (format t "~& substitution : ")
+          (format t "~% substitution : ")
           (let ((*print-indent* (+ *print-indent* 4)))
             (print-substitution subst))
           (when extra
-            (format t "~& extra variables : ")
+            (format t "~% extra variables : ")
             (format t "~{~a~^ ~}" (mapcar #'(lambda (x) (string (variable-name x)))
                                           extra))))))))
 
@@ -131,11 +131,11 @@ File: eval-match.lisp
          (patterns (find-matching-rules-all what real-target (get-context-module) type)))
     (unless patterns
       (with-in-module ((get-context-module))
-        (format t "~&no rules found for term : ")
+        (format t "~%no rules found for term : ")
         (term-print target))
       (return-from find-rewrite-rules-all nil))
     ;; report the result
-    (format t "~&== matching rules to term : ")
+    (format t "~%== matching rules to term : ")
     (with-in-module ((get-context-module))
       (let ((*fancy-print* nil))
         (term-print target))
@@ -214,16 +214,16 @@ File: eval-match.lisp
               (funcall first-match-meth pattern real-target)
             (when no-match
               (if (eq type :match)
-                  (format t "~&-- no match")
-                (format t "~&-- no unify"))
+                  (format t "~%-- no match")
+                (format t "~%-- no unify"))
               (return-from perform-match nil))
             (if (eq type :match)
-                (format t "~&-- match success.")
-              (format t "~&-- unify success."))
+                (format t "~%-- match success.")
+              (format t "~%-- unify success."))
             (when e-equal
-              (format t "~&-- given terms are equational equal.")
+              (format t "~%-- given terms are equational equal.")
               (return-from perform-match nil))
-            (format t "~& substitution : ")
+            (format t "~% substitution : ")
             (let ((*print-indent* (+ *print-indent* 4)))
               (print-substitution subst))
             ;; ---- next matches
@@ -233,10 +233,10 @@ File: eval-match.lisp
               (while (not no-match)
                 (cond ((y-or-n-p-wait #\y 20 ">> More? [y/n] : ")
                        (if (eq type :match)
-                           (format t "~&-- match success : ")
-                         (format t "~&-- unify success : "))
+                           (format t "~%-- match success : ")
+                         (format t "~%-- unify success : "))
                        (let ((*print-indent* (+ 4 *print-indent*)))
-                         (format t "~& * substitution : ")
+                         (format t "~% * substitution : ")
                          (print-substitution subst))
                        (print-next))
                       (t (return-from end)))

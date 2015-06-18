@@ -102,23 +102,23 @@
                      (setf ,__exp (cdr ,__exp)))
                    (flatten-list (nreverse *__modexp)))))
     (let ((mode (case-equal (car imp-expr)
-			    (("pr" "protecting") :protecting)
-			    (("ex" "extending") :extending)
-			    (("us" "using") :using)
-			    (("inc" "including") :including)))
-	  (alias nil)
-	  (expr nil)
-	  (res nil))
+                            (("pr" "protecting") :protecting)
+                            (("ex" "extending") :extending)
+                            (("us" "using") :using)
+                            (("inc" "including") :including)))
+          (alias nil)
+          (expr nil)
+          (res nil))
       ;;
       (cond ((equal (second imp-expr) "(")
-	     (setq expr (scan-parenthesized-unit (cdr imp-expr))))
-	    ((and (consp (second imp-expr))
-		  (equal "as" (car (second imp-expr))))
-	     (setq alias (second (second imp-expr)))
-	     (setq expr (if (equal (third imp-expr) "(")
-			    (scan-parenthesized-unit (cddr imp-expr))
-			  (cddr imp-expr))))
-	    (t (setq expr (cdr imp-expr))))
+             (setq expr (scan-parenthesized-unit (cdr imp-expr))))
+            ((and (consp (second imp-expr))
+                  (equal "as" (car (second imp-expr))))
+             (setq alias (second (second imp-expr)))
+             (setq expr (if (equal (third imp-expr) "(")
+                            (scan-parenthesized-unit (cddr imp-expr))
+                          (cddr imp-expr))))
+            (t (setq expr (cdr imp-expr))))
       ;;
       (loop (unless expr (return))
         (if (equal (second expr) "::")
@@ -134,12 +134,12 @@
               (push (%make-import :mode mode
                                   :parameter param
                                   :module (parse-modexp (scan-modexp expr))
-				  :alias alias)
+                                  :alias alias)
                     res))
           ;; non parameterized importation
           (push (%make-import :mode mode
                               :module (parse-modexp (scan-modexp expr))
-			      :alias alias)
+                              :alias alias)
                 res))
         (setf expr (cdr expr)))
       ;;
@@ -151,19 +151,19 @@
 (defun parse-imports-form (e &rest ignore)
   (declare (ignore ignore))
   (let ((body nil)
-	(im-body (caddr e)))
+        (im-body (caddr e)))
     (unless (equal im-body "}")
       (dolist (elt im-body)
-	(unless (equal im-body "}")
-	  (case-equal (car elt)
-		      (("--" "**") nil)
-		      ("-->" (setq body (nconc body
-					       (list (%dyna-comment*
-						      (cons "--" (cdr elt)))))))
-		      ("**>" (setq body
-			       (nconc body (list
-					    (%dyna-comment* (cons "**" (cdr elt)))))))
-		      (t (setf body (nconc body (process-importation-form elt))))))))
+        (unless (equal im-body "}")
+          (case-equal (car elt)
+                      (("--" "**") nil)
+                      ("-->" (setq body (nconc body
+                                               (list (%dyna-comment*
+                                                      (cons "--" (cdr elt)))))))
+                      ("**>" (setq body
+                               (nconc body (list
+                                            (%dyna-comment* (cons "**" (cdr elt)))))))
+                      (t (setf body (nconc body (process-importation-form elt))))))))
     body))
 
 ;;; *****************************
@@ -422,7 +422,7 @@
             (with-output-chaos-warning ()
               (format t "# of arguments mismatch for mixfix operator `~{~a~}', ignored."
                       pat)
-	      (format t "~% arity = ~a, coarity=~a" arity coarity)
+              (format t "~% arity = ~a, coarity=~a" arity coarity)
               (return-from process-operator-declaration-form nil)))))
       (if (equal type "op")
           (%make-op-decl  :name pat
@@ -461,36 +461,36 @@
           (coarity "Bool")
           (attr (process-opattr-form (cadr (nth 4 e)))))
       (cond ((member type '("pred" "pd") :test #'equal)
-	     (%make-op-decl :name pat
-			    :arity arity
-			    :coarity coarity
-			    :attribute attr
-			    :hidden nil))
-	    ((member type '("bpred" "bpd") :test #'equal)
-	     (%make-op-decl :name pat
-			    :arity arity
-			    :coarity coarity
-			    :attribute attr
-			    :hidden :hidden))
-	    (t
-	     (with-output-panic-message ()
-	       (format t "unknown predicate type ~a" type)))))))
+             (%make-op-decl :name pat
+                            :arity arity
+                            :coarity coarity
+                            :attribute attr
+                            :hidden nil))
+            ((member type '("bpred" "bpd") :test #'equal)
+             (%make-op-decl :name pat
+                            :arity arity
+                            :coarity coarity
+                            :attribute attr
+                            :hidden :hidden))
+            (t
+             (with-output-panic-message ()
+               (format t "unknown predicate type ~a" type)))))))
 
 ;;; PREDS
 (defun process-predicates-declaration-form (decl &rest ignore)
   (declare (ignore ignore))
   (mapcar #'(lambda (pat)
-	      (process-predicate-declaration-form
-	       (list* "pred" (if (consp pat) pat (list pat)) (cddr decl))))
-	  (group-paren-units (cadr decl))))
+              (process-predicate-declaration-form
+               (list* "pred" (if (consp pat) pat (list pat)) (cddr decl))))
+          (group-paren-units (cadr decl))))
 
 ;;; BPREDS
 (defun process-bpredicates-declaration-form (decl &rest ignore)
   (declare (ignore ignore))
   (mapcar #'(lambda (pat)
-	      (process-predicate-declaration-form
-	       (list* "bpred" (if (consp pat) pat (list pat)) (cddr decl))))
-	  (group-paren-units (cadr decl))))
+              (process-predicate-declaration-form
+               (list* "bpred" (if (consp pat) pat (list pat)) (cddr decl))))
+          (group-paren-units (cadr decl))))
 
 ;;; OPS
 (defun process-operators-declaration-form (decl &rest ignore)
@@ -596,14 +596,14 @@
 (defun process-signature (e &rest ignore)
   (declare (ignore ignore))
   (let ((body nil)
-	(s-body (caddr e)))
+        (s-body (caddr e)))
     (unless (equal s-body "}")
       (dolist (elt s-body)
-	(unless (equal elt "}")
-	  (multiple-value-bind (type sig)
-	      (parse-module-element elt)
-	    (declare (ignore type))
-	    (setf body (nconc body sig))))))
+        (unless (equal elt "}")
+          (multiple-value-bind (type sig)
+              (parse-module-element elt)
+            (declare (ignore type))
+            (setf body (nconc body sig))))))
     body))
 
 ;;; *************************
@@ -680,13 +680,13 @@
     (when (and (not (equal (first lhs) "("))
                (equal (first lhs) "["))
       (let ((b-pos nil)
-	    (c-pos nil))
-	(setq b-pos (position "]" lhs :test #'equal))
-	(setq c-pos (position ":" lhs :test #'equal))
-	(when (and b-pos c-pos (= 1 (- c-pos b-pos)))
-	  (setf labels (mapcar #'(lambda (x) (intern (string x)))
-			       (cdr (firstn lhs b-pos))))
-	  (setf lhs (nthcdr (1+ c-pos) lhs)))))
+            (c-pos nil))
+        (setq b-pos (position "]" lhs :test #'equal))
+        (setq c-pos (position ":" lhs :test #'equal))
+        (when (and b-pos c-pos (= 1 (- c-pos b-pos)))
+          (setf labels (mapcar #'(lambda (x) (intern (string x)))
+                               (cdr (firstn lhs b-pos))))
+          (setf lhs (nthcdr (1+ c-pos) lhs)))))
     (%axiom-decl* type labels lhs rhs cond behavioural)))
 
 ;;;
@@ -696,14 +696,14 @@
 (defun process-axioms-declaration (e &rest ignore)
   (declare (ignore ignore))
   (let ((body nil)
-	(a-body (caddr e)))
+        (a-body (caddr e)))
     (unless (equal a-body "}")
       (dolist (elt a-body)
-	(unless (equal elt "}" )
-	  (multiple-value-bind (type ax)
-	      (parse-module-element elt)
-	    (declare (ignore type))
-	    (setf body (nconc body ax))))))
+        (unless (equal elt "}" )
+          (multiple-value-bind (type ax)
+              (parse-module-element elt)
+            (declare (ignore type))
+            (setf body (nconc body ax))))))
     body))
 
 ;;; ********************
@@ -764,7 +764,7 @@
                         :test #'equal)
                 (setq psort opt))
                (t (setq param opt)))))
-      (4 (setq param (nth 2 decl))	; full featured declaration
+      (4 (setq param (nth 2 decl))      ; full featured declaration
          (setq psort (nth 3 decl))))
 
     (setq body (nth (1+ b-pos) decl))
@@ -802,16 +802,16 @@
 (defun parse-module-elements (s &rest ignore)
   (declare (ignore ignore))
   (let ((body nil)
-	(sig nil)
-	(ax nil))
+        (sig nil)
+        (ax nil))
     (dolist (e s)
       (multiple-value-bind (kind elt)
-	  (parse-module-element e)
-	(case kind
-	  ((:ignore :misc) nil)
-	  (:signature (setq sig (nconc sig elt)))
-	  (:import (setq sig (nconc sig elt)))
-	  (:axiom (setq ax (nconc ax elt))))))
+          (parse-module-element e)
+        (case kind
+          ((:ignore :misc) nil)
+          (:signature (setq sig (nconc sig elt)))
+          (:import (setq sig (nconc sig elt)))
+          (:axiom (setq ax (nconc ax elt))))))
     (setf body (append sig ax))
     body))
 
@@ -820,16 +820,16 @@
   (let ((decl (get-decl-info (car e))))
     (unless decl
       (with-output-chaos-error ('no-decl)
-	(format t "No such declaration '~a'" (car e))))
+        (format t "No such declaration '~a'" (car e))))
     (let ((parser (comde-parser decl)))
       (unless parser
-	(with-output-chaos-error ('no-parser)
-	  (format t "No parser is defined for declaration ~a" (car e))))
+        (with-output-chaos-error ('no-parser)
+          (format t "No parser is defined for declaration ~a" (car e))))
       (let ((ast (funcall parser e)))
-	(declare (list ast))
-	(when (and ast (atom (car ast)))
-	  (setq ast (list ast)))
-	(values (comde-category decl) ast)))))
+        (declare (list ast))
+        (when (and ast (atom (car ast)))
+          (setq ast (list ast)))
+        (values (comde-category decl) ast)))))
 
 (defun parse-module-element-1 (e &rest ignore)
   (multiple-value-bind (type elt)

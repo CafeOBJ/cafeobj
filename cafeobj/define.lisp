@@ -45,38 +45,38 @@
 (defvar *cafeobj-declarations* (make-hash-table :test #'equal))
 
 (defstruct (comde (:print-function print-comde))
-  (key       ""  :type string)		; command/declaration keyword
-  (type      nil :type symbol)		; command or declaration
-  (category  nil :type symbol)		; kind of command/declaration
-  (parser    nil :type symbol)		; parser function
-  (evaluator nil :type symbol)		; evaluator function
+  (key       ""  :type string)          ; command/declaration keyword
+  (type      nil :type symbol)          ; command or declaration
+  (category  nil :type symbol)          ; kind of command/declaration
+  (parser    nil :type symbol)          ; parser function
+  (evaluator nil :type symbol)          ; evaluator function
   )
 
 (defparameter .valid-comde-types. '(:top :inner-module :doc-only))
 (defparameter .valid-decl-categories. 
-    '(:decl-toplevel			; toplevel declaration, such as 'module', 'view', e.t.c.
-					; i.e., declarations which can apper at toplevel.
-      :signature			; signature part of module body, such as 'op' '[', e.t.c
-      :axiom				; axiom part of mdoule body, such as 'eq, ceq', e.t.c
-      :ignore				; comments, dot (.), lisp, ev, e.t.c.
-      :import				; import part of module body, such as 'protecting'
+    '(:decl-toplevel                    ; toplevel declaration, such as 'module', 'view', e.t.c.
+                                        ; i.e., declarations which can apper at toplevel.
+      :signature                        ; signature part of module body, such as 'op' '[', e.t.c
+      :axiom                            ; axiom part of mdoule body, such as 'eq, ceq', e.t.c
+      :ignore                           ; comments, dot (.), lisp, ev, e.t.c.
+      :import                           ; import part of module body, such as 'protecting'
       :misc
       ))
 
 (defparameter .valid-com-categories.
-    '(:decl		       ; toplevel declaration, such as 'module', 'view', e.t.c.
-      :checker		       ; check command
-      :rewrite		       ; commands related to rewriting, such as 'reduce', 'execute', e.t.c.
-      :parse		       ; commands related to parsing terms, such as 'parse', e.t.c
-      :inspect		       ; commands inspecting modules, terms, such as 'show', 'match', e.t.c
-      :element		       ; declarations which can apper when a module is open.
-      :proof		       ; commands related to proof stuff, such as 'open', 'apply, e.t.c.
-      :switch		       ; 'set' commands
-      :system		       ; various system related commands, such as 'protect', 'reset', e.t.c.
-      :library		       ; library related commands, such as 'autoload', 'provide', e.t.c.
-      :help		       ; '?', '??' 
-      :io		       ; 'input', 'save', e.t.c.
-      :misc		       ; 
+    '(:decl                    ; toplevel declaration, such as 'module', 'view', e.t.c.
+      :checker                 ; check command
+      :rewrite                 ; commands related to rewriting, such as 'reduce', 'execute', e.t.c.
+      :parse                   ; commands related to parsing terms, such as 'parse', e.t.c
+      :inspect                 ; commands inspecting modules, terms, such as 'show', 'match', e.t.c
+      :element                 ; declarations which can apper when a module is open.
+      :proof                   ; commands related to proof stuff, such as 'open', 'apply, e.t.c.
+      :switch                  ; 'set' commands
+      :system                  ; various system related commands, such as 'protect', 'reset', e.t.c.
+      :library                 ; library related commands, such as 'autoload', 'provide', e.t.c.
+      :help                    ; '?', '??' 
+      :io                      ; 'input', 'save', e.t.c.
+      :misc                    ; 
       ))
 
 (defun print-comde (me &optional (stream *standard-output*) &rest ignore)
@@ -132,19 +132,19 @@
 ;;; DEFINE
 ;;; 
 (defmacro define ((&rest keys) &key (type :top)
-				    (category :misc)
-				    (parser nil)
-				    (evaluator 'eval-ast)
-				    (doc nil)
-				    (title nil)
-				    (example nil)
-				    (related nil)
-				    (mdkey nil))
+                                    (category :misc)
+                                    (parser nil)
+                                    (evaluator 'eval-ast)
+                                    (doc nil)
+                                    (title nil)
+                                    (example nil)
+                                    (related nil)
+                                    (mdkey nil))
     (case type
       (:top (unless (member category .valid-com-categories.)
-	      (error "Internal error, invalid category ~s" category)))
+              (error "Internal error, invalid category ~s" category)))
       (:inner-module (unless (member category .valid-decl-categories.)
-			(error "Internal error, invalid category ~s" category)))
+                        (error "Internal error, invalid category ~s" category)))
       (:doc-only)
       (:otherwise (error "Internal error, invalid type ~s" type)))
     (unless (eq type :doc-only)
@@ -153,16 +153,16 @@
     ;;
     `(progn
        (unless (eq ,type :doc-only)
-	 (let ((hash (if (or (eq ,type :top)
-			     (eq ,category :decl-toplevel))
-			 *cafeobj-top-commands*
-		       *cafeobj-declarations*)))
-	   (dolist (key ',keys)
-	     (setf (gethash key hash) (make-comde :key key
-						  :type ',type
-						  :category ',category
-						  :parser ',parser
-						  :evaluator ',evaluator)))))
+         (let ((hash (if (or (eq ,type :top)
+                             (eq ,category :decl-toplevel))
+                         *cafeobj-top-commands*
+                       *cafeobj-declarations*)))
+           (dolist (key ',keys)
+             (setf (gethash key hash) (make-comde :key key
+                                                  :type ',type
+                                                  :category ',category
+                                                  :parser ',parser
+                                                  :evaluator ',evaluator)))))
        ;; set online help
        (register-online-help (car ',keys) (cdr ',keys) ',title ',mdkey ',doc ',example ',related ',category)))
 

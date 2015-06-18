@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: Chaos
-			       Module: primitives
-			       File: bobject.lisp
+                                 System: Chaos
+                               Module: primitives
+                               File: bobject.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -54,11 +54,11 @@
 ;;; all objects defined in this file inherits either %object or %int-object.
 
 (defstruct (object (:conc-name "OBJECT-")
-		   (:constructor make-object)
-		   (:constructor object* nil)
-		   (:copier nil)
-		   (:include %chaos-object (-type 'object))
-		   (:print-function chaos-pr-object))
+                   (:constructor make-object)
+                   (:constructor object* nil)
+                   (:copier nil)
+                   (:include %chaos-object (-type 'object))
+                   (:print-function chaos-pr-object))
   (misc-info nil :type list)
   (context-mod nil))
 
@@ -80,13 +80,13 @@
 ;;; gathers informations for external interface of a top-level objects.
 
 (defstruct (ex-interface (:conc-name "INTERFACE$"))
-  (dag nil :type (or null dag-node))	; DAG of dependency hierarchy. 
-  (parameters nil :type list)		; list of parmeter modules.
-					; (also in dag).
-  (exporting-objects nil :type list)	; list of objects depending this one.
-					; (object . mode)
-					; mode ::= :protecting | :exporting | :using
-					;        | :modmorph | :view
+  (dag nil :type (or null dag-node))    ; DAG of dependency hierarchy. 
+  (parameters nil :type list)           ; list of parmeter modules.
+                                        ; (also in dag).
+  (exporting-objects nil :type list)    ; list of objects depending this one.
+                                        ; (object . mode)
+                                        ; mode ::= :protecting | :exporting | :using
+                                        ;        | :modmorph | :view
   )
 
 ;;; ************
@@ -107,47 +107,47 @@
 
 (defun canonicalize-object-name (nm)
   (cond ((stringp nm)
-	 (intern nm))
-	((consp nm)
-	 (if (cdr nm)
-	     (mapcar #'canonicalize-object-name nm)
-	   (canonicalize-object-name (car nm))))
-	((symbolp nm) nm)
-	((module-p nm) (canonicalize-object-name (module-name nm)))
-	(t
-	 ;; do nothing
-	 )))
+         (intern nm))
+        ((consp nm)
+         (if (cdr nm)
+             (mapcar #'canonicalize-object-name nm)
+           (canonicalize-object-name (car nm))))
+        ((symbolp nm) nm)
+        ((module-p nm) (canonicalize-object-name (module-name nm)))
+        (t
+         ;; do nothing
+         )))
 
 (defun symbol-table-add (table nm obj)
   (when (and (module-p obj)
-	     (module-is-parameter-theory obj))
+             (module-is-parameter-theory obj))
     (setq nm (car (module-name obj))))
   (let ((name (canonicalize-object-name nm)))
     (pushnew name (symbol-table-names table) :test #'equal)
     (let* ((map (symbol-table-map table))
-	   (tbl (gethash name map)))
+           (tbl (gethash name map)))
       (unless tbl
-	(setf tbl (setf (gethash name map) (make-stable))))
+        (setf tbl (setf (gethash name map) (make-stable))))
       (cond ((sort-p obj)
-	     (pushnew obj (stable-sorts tbl)))
-	    ((operator-p obj)
-	     (pushnew obj (stable-operators tbl)))
-	    ((module-p obj)
-	     (if (module-is-parameter-theory obj)
-		 (pushnew obj (stable-parameters tbl))
-	       (pushnew obj (stable-submodules tbl))))
-	    ((axiom-p obj)
-	     (pushnew obj (stable-axioms tbl)))
-	    ((and (termp obj)
-		  (term-is-variable? obj))
-	     (pushnew obj (stable-variables tbl)))
-	    (t (pushnew obj (stable-unknowns tbl))))
+             (pushnew obj (stable-sorts tbl)))
+            ((operator-p obj)
+             (pushnew obj (stable-operators tbl)))
+            ((module-p obj)
+             (if (module-is-parameter-theory obj)
+                 (pushnew obj (stable-parameters tbl))
+               (pushnew obj (stable-submodules tbl))))
+            ((axiom-p obj)
+             (pushnew obj (stable-axioms tbl)))
+            ((and (termp obj)
+                  (term-is-variable? obj))
+             (pushnew obj (stable-variables tbl)))
+            (t (pushnew obj (stable-unknowns tbl))))
       tbl)))
 
 (defun symbol-table-get (name &optional (module (get-context-module)))
   (let ((gname (canonicalize-object-name name)))
     (gethash gname (symbol-table-map
-		    (module-symbol-table module)))))
+                    (module-symbol-table module)))))
 
 ;;;=============================================================================
 ;;; TOP-OBJECT _________________________________________________________________
@@ -156,10 +156,10 @@
 ;;; represents common structure of top-level semantic objects.
 ;;; 
 (defstruct (top-object (:conc-name "TOP-OBJECT-")
-		       (:constructor make-top-object)
-		       (:constructor top-object* (name))
-		       (:copier nil)
-		       (:include object (-type 'top-object)))
+                       (:constructor make-top-object)
+                       (:constructor top-object* (name))
+                       (:copier nil)
+                       (:include object (-type 'top-object)))
   (name nil)
   (interface (make-ex-interface) :type (or null ex-interface))
   (status -1 :type fixnum)
@@ -180,50 +180,50 @@
 
 (defun object-parameters (_object)
   (declare (type top-object _object)
-	   (values list))
+           (values list))
   (let ((interf (top-object-interface _object)))
     (if interf
-	(interface$parameters interf)
-	nil)))
+        (interface$parameters interf)
+        nil)))
 
 (defsetf object-parameters (_obj) (_value)
   ` (let ((interf (top-object-interface ,_obj)))
       (unless interf
-	(with-output-panic-message ()
-	  (princ "invalid interface of object ")
-	  (print-chaos-object ,_obj)
-	  (chaos-error 'panic)))
+        (with-output-panic-message ()
+          (princ "invalid interface of object ")
+          (print-chaos-object ,_obj)
+          (chaos-error 'panic)))
       (setf (interface$parameters interf) ,_value)))
 
 (defun object-exporting-objects (_object)
   (declare (type top-object _object)
-	   (values list))
+           (values list))
   (let ((interf (top-object-interface _object)))
     (if interf
-	(interface$exporting-objects interf)
-	nil)))
+        (interface$exporting-objects interf)
+        nil)))
 
 (defsetf object-exporting-objects (_object) (_value)
   ` (let ((interf (top-object-interface ,_object)))
       (unless interf
-	(with-output-panic-message ()
-	  (princ "exporting-objects: invalid interface of object ")
-	  (print-chaos-object ,_object)
-	  (chaos-error 'panic)))
+        (with-output-panic-message ()
+          (princ "exporting-objects: invalid interface of object ")
+          (print-chaos-object ,_object)
+          (chaos-error 'panic)))
       (setf (interface$exporting-objects interf) ,_value)))
   
 (defun object-direct-sub-objects (_object)
   (declare (type top-object _object)
-	   (values list))
+           (values list))
   (let ((interf (top-object-interface _object)))
     (if interf
-	(mapcar #'dag-node-datum
-		(dag-node-subnodes (interface$dag interf)))
-	nil)))
+        (mapcar #'dag-node-datum
+                (dag-node-subnodes (interface$dag interf)))
+        nil)))
 
 (defun object-all-sub-objects (object)
   (declare (type top-object object)
-	   (values list))
+           (values list))
   (when (top-object-interface object)
     (let ((res (cons nil nil)))
       (gather-sub-objects object res)
@@ -231,17 +231,17 @@
 
 (defun gather-sub-objects (object res)
   (declare (type top-object object)
-	   (type list res)
-	   (values list))
+           (type list res)
+           (values list))
   (let ((dmods (object-direct-sub-objects object)))
     (dolist (dmod dmods)
       (unless (member dmod (car res) :test #'equal)
-	(push dmod (car res))
-	(gather-sub-objects (car dmod) res)))))
+        (push dmod (car res))
+        (gather-sub-objects (car dmod) res)))))
 
 (defun object-all-exporting-objects (object)
   (declare (type top-object object)
-	   (values list))
+           (values list))
   (when (top-object-interface object)
     (let ((res (cons nil nil)))
       (gather-exporting-objects object res)
@@ -249,35 +249,35 @@
 
 (defun gather-exporting-objects (object res)
   (declare (type top-object object)
-	   (type list res)
-	   (values list))
+           (type list res)
+           (values list))
   (let ((dmods (object-exporting-objects object)))
     (dolist (dmod dmods)
       (unless (member dmod (car res) :test #'equal)
-	(push dmod (car res))
-	(gather-exporting-objects (car dmod) res)))))
+        (push dmod (car res))
+        (gather-exporting-objects (car dmod) res)))))
 
 ;;;
 ;;; initialization
 ;;;
 (defun initialize-depend-dag (object)
   (declare (type top-object object)
-	   (values t))
+           (values t))
   (let ((dag (object-depend-dag object)))
     (if dag
-	(setf (dag-node-subnodes dag) nil)
-	(let ((node (create-dag-node (cons object nil) nil)))
-	  (setf (object-depend-dag object) node)))))
+        (setf (dag-node-subnodes dag) nil)
+        (let ((node (create-dag-node (cons object nil) nil)))
+          (setf (object-depend-dag object) node)))))
 
 (defun initialize-object-interface (interface)
   (declare (type ex-interface interface)
-	   (values t))
+           (values t))
   (setf (interface$parameters interface) nil)
   (setf (interface$exporting-objects interface) nil))
 
 (defun clean-up-ex-interface (interface)
   (declare (type ex-interface interface)
-	   (values t))
+           (values t))
   (setf (interface$dag interface) nil)
   (setf (interface$parameters interface) nil)
   (setf (interface$exporting-objects interface) nil))
@@ -287,9 +287,9 @@
 ;;;
 (defun add-depend-relation (object mode subobject)
   (declare (type top-object object)
-	   (type symbol mode)
-	   (type top-object subobject)
-	   (values t))
+           (type symbol mode)
+           (type top-object subobject)
+           (values t))
   ;; set dag
   (let ((dag (object-depend-dag object)))
     (unless dag
@@ -298,9 +298,9 @@
     (let ((sub-dag (object-depend-dag subobject)))
       (unless sub-dag (break "Panic! no object dag of subobject..."))
       (let* ((submod-datum (cons subobject mode))
-	     (s-node (create-dag-node submod-datum
-				      (dag-node-subnodes sub-dag))))
-	(push s-node (dag-node-subnodes dag)))))
+             (s-node (create-dag-node submod-datum
+                                      (dag-node-subnodes sub-dag))))
+        (push s-node (dag-node-subnodes dag)))))
   ;; make exporting relation
   (pushnew (cons object mode) (object-exporting-objects subobject) :test #'equal))
 
@@ -326,7 +326,7 @@
 ;;;
 (defun propagate-object-change (exporting-objects)
   (declare (type list exporting-objects)
-	   (values t))
+           (values t))
   (dolist (eobj exporting-objects)
     (mark-object-as-inconsistent (car eobj))
     (propagate-object-change (object-exporting-objects (car eobj)))))
@@ -373,9 +373,9 @@
 
 (defstruct (parse-dictionary (:conc-name "DICTIONARY-"))
   (table (make-hash-table :test #'equal :size 50)
-	 :type (or null hash-table))
+         :type (or null hash-table))
   (builtins nil :type list)
-  (juxtaposition nil :type list)	; list of juxtaposition methods.
+  (juxtaposition nil :type list)        ; list of juxtaposition methods.
   )
 
 ;;; *********
@@ -385,15 +385,15 @@
 ;;; slot.
 
 (defstruct (signature-struct (:conc-name "SIGNATURE$")
-	    (:print-function print-signature))
-  (module nil)				; module 
-  (sorts nil :type list)		; list of own sorts.
-  (sort-relations nil :type list)	; list of subsort relations.
-  (operators nil :type list)		; list of operators declared in the
-					; module. 
-  (opattrs nil :type list)		; explicitly declared operator
-					; attributes in a form of AST.
-  (principal-sort nil :type atom)	; principal sort of the module.
+            (:print-function print-signature))
+  (module nil)                          ; module 
+  (sorts nil :type list)                ; list of own sorts.
+  (sort-relations nil :type list)       ; list of subsort relations.
+  (operators nil :type list)            ; list of operators declared in the
+                                        ; module. 
+  (opattrs nil :type list)              ; explicitly declared operator
+                                        ; attributes in a form of AST.
+  (principal-sort nil :type atom)       ; principal sort of the module.
   )
 
 (defun print-signature (obj stream &rest ignore)
@@ -408,13 +408,13 @@
 ;;; stored in module's `axioms' slot.
 
 (defstruct (axiom-set (:conc-name "AXIOM-SET$")
-	    (:print-function print-axiom-set))
-  (module nil)				; contaning module
-  (variables nil :type list)		; assoc list of explicitly declared
-					; variables.  
-					;  ((variable-name . variable) ...)
-  (equations nil :type list)		; list of equtions declared in the module.
-  (rules nil :type list)		; list of rules declared in the module.
+            (:print-function print-axiom-set))
+  (module nil)                          ; contaning module
+  (variables nil :type list)            ; assoc list of explicitly declared
+                                        ; variables.  
+                                        ;  ((variable-name . variable) ...)
+  (equations nil :type list)            ; list of equtions declared in the module.
+  (rules nil :type list)                ; list of rules declared in the module.
   )
 
 (defun print-axiom-set (obj stream &rest ignore)
@@ -436,24 +436,24 @@
 ;;; The structure TRS is a representative of flattened module.
 
 (defstruct (TRS (:conc-name trs$)
-	        (:print-function print-trs))
-  (module nil :type (or null top-object))	; the reverse pointer
+                (:print-function print-trs))
+  (module nil :type (or null top-object))       ; the reverse pointer
   ;; SIGNATURE INFO
-  (opinfo-table	(make-hash-table :test #'eq)
-		:type (or null hash-table))
-					; operator infos
+  (opinfo-table (make-hash-table :test #'eq)
+                :type (or null hash-table))
+                                        ; operator infos
   (sort-order (make-hash-table :test #'eq)
-	      :type (or null hash-table))
-					; transitive closure of sort-relations
+              :type (or null hash-table))
+                                        ; transitive closure of sort-relations
   ;; (ext-rule-table (make-hash-table :test #'eq))
   (ext-rule-table (make-ext-rule-table-name)
-		  :type symbol)
-					; assoc table of rule A,AC extensions
+                  :type symbol)
+                                        ; assoc table of rule A,AC extensions
   ;;
-  (sorts nil :type list)		; list of all sorts
-  (operators nil :type list)		; list of all operators
+  (sorts nil :type list)                ; list of all sorts
+  (operators nil :type list)            ; list of all operators
   ;; REWRITE RULES
-  (rules nil :type list)		; list of all rewrite rules.
+  (rules nil :type list)                ; list of all rewrite rules.
   ;; INFO FOR EXTERNAL INTERFACE -----------------------------------
   (sort-name-map nil :type list)
   (op-info-map nil :type list)
@@ -463,10 +463,10 @@
   (sort-graph nil :type list)
   (err-sorts nil :type list)
   (dummy-methods nil :type list)
-  (sem-relations nil :type list)	; without error sorts
-  (sem-axioms nil :type list)		; ditto
+  (sem-relations nil :type list)        ; without error sorts
+  (sem-axioms nil :type list)           ; ditto
   ;; a status TRAM interface generated?
-  (tram	nil :type symbol)		; nil,:eq, or :all
+  (tram nil :type symbol)               ; nil,:eq, or :all
   )
 
 (defun print-trs (obj stream &rest ignore)
@@ -480,15 +480,15 @@
 ;;; holds run time dynamic infomation of a module.
 
 (defstruct (module-dyn-context (:conc-name "MODULE-CONTEXT-"))
-  (object nil :type (or null object))	; module
-  (bindings nil :type list)		; top level let binding
-  (special-bindings nil :type list)	; users $$variables ...
-  ($$term nil :type list)		; $$term
-  ($$subterm nil :type list)		; $$subterm
-  ($$action-stack nil :type list)	; action stack for apply
-  ($$selection-stack nil :type list)	; selection stack for choose
-  ($$stop-pattern nil :type list)	; stop pattern
-  ($$ptree nil)				; proof tree
+  (object nil :type (or null object))   ; module
+  (bindings nil :type list)             ; top level let binding
+  (special-bindings nil :type list)     ; users $$variables ...
+  ($$term nil :type list)               ; $$term
+  ($$subterm nil :type list)            ; $$subterm
+  ($$action-stack nil :type list)       ; action stack for apply
+  ($$selection-stack nil :type list)    ; selection stack for choose
+  ($$stop-pattern nil :type list)       ; stop pattern
+  ($$ptree nil)                         ; proof tree
   )
 
 ;;;
@@ -497,23 +497,23 @@
 ;;; STRUCTURE
 ;;; *********
 (defstruct (module (:include top-object (-type 'module))
-		   (:conc-name "MODULE-")
-		   (:constructor make-module)
-		   (:constructor module* (name))
-		   (:print-function print-module-object))
+                   (:conc-name "MODULE-")
+                   (:constructor make-module)
+                   (:constructor module* (name))
+                   (:print-function print-module-object))
   (print-name "" :type string)
   (signature nil :type (or null signature-struct))
-					; own signature.
+                                        ; own signature.
   (axiom-set nil :type (or null axiom-set))
-					; set of own axioms.
-  (theorems nil :type list)		; set of own theorems, not used yet.
+                                        ; set of own axioms.
+  (theorems nil :type list)             ; set of own theorems, not used yet.
   (parse-dictionary nil :type (or null parse-dictionary))
-					; infos for term parsing.
-  (trs nil :type (or null trs))		; corresponding semi-compiled TRS.
+                                        ; infos for term parsing.
+  (trs nil :type (or null trs))         ; corresponding semi-compiled TRS.
   (context nil
-	   :type (or null module-dyn-context))
-					; run time context
-  (alias nil :type list)		; alias names for a module generated from complex modexpr
+           :type (or null module-dyn-context))
+                                        ; run time context
+  (alias nil :type list)                ; alias names for a module generated from complex modexpr
   )
 
 ;;; KIND
@@ -535,17 +535,17 @@
 
 (defun print-module-object (obj stream &rest ignore)
   (declare (ignore ignore)
-	   (type module obj)
-	   (type stream stream)
-	   (values t))
+           (type module obj)
+           (type stream stream)
+           (values t))
   (if (or (module-is-inconsistent obj)
-	  (null (module-name obj)))
+          (null (module-name obj)))
       (format stream ":module[\"~a\"]" (module-name obj))
     (cond ((module-is-object obj)
-	   (format stream ":mod![\"~a\"]" (module-print-name obj)))
-	  ((module-is-theory obj)
-	   (format stream ":mod*[\"~a\"]" (module-print-name obj)))
-	  (t (format stream ":mod[\"~a\"]" (module-print-name obj))))))
+           (format stream ":mod![\"~a\"]" (module-print-name obj)))
+          ((module-is-theory obj)
+           (format stream ":mod*[\"~a\"]" (module-print-name obj)))
+          (t (format stream ":mod[\"~a\"]" (module-print-name obj))))))
 
 ;;; ****
 ;;; VIEW _______________________________________________________________________
@@ -557,11 +557,11 @@
 ;;;-----------------------------------------------------------------------------
 
 (defstruct (view-struct (:include top-object (-type 'view-struct))
-			(:conc-name "VIEW-STRUCT-")
-			(:constructor make-view-struct)
-			(:constructor view-struct* (name))
-			(:copier nil)
-			(:print-function print-view-struct-object))
+                        (:conc-name "VIEW-STRUCT-")
+                        (:constructor make-view-struct)
+                        (:constructor view-struct* (name))
+                        (:copier nil)
+                        (:print-function print-view-struct-object))
   (src nil :type (or null module))
   (target nil :type (or null module))
   (sort-maps nil :type list)
@@ -575,10 +575,10 @@
 (defun print-view-struct-object (obj stream &rest ignore)
   (declare (ignore ignore))
   (format stream ":view[~a: ~s => ~s | ~s]"
-	  (view-struct-name obj)
-	  (view-struct-src obj)
-	  (view-struct-target obj)
-	  (addr-of obj)))
+          (view-struct-name obj)
+          (view-struct-src obj)
+          (view-struct-target obj)
+          (addr-of obj)))
 
 
 ;;; EOF

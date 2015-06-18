@@ -29,17 +29,17 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-System:Chaos
-Module:BigPink
-File:formula.lisp
+                               System:Chaos
+                              Module:BigPink
+                            File:formula.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
-;;;	       *************************************
-;;; 	       Utility functions on CLAUSE & LITERAL
+;;;            *************************************
+;;;            Utility functions on CLAUSE & LITERAL
 ;;;            *************************************
 
 ;;; IS-EQUALITY : term -> {:equal, :non-equal, :beh-equal}
@@ -1168,8 +1168,8 @@ File:formula.lisp
     (setf (svref .map-array. x) nil))
   (if (map-rest c d nil)
       (progn
-	;; every literal of c matches some literal of d
-	;; thus c subsumes d.
+        ;; every literal of c matches some literal of d
+        ;; thus c subsumes d.
         (when (pn-flag debug-infer)
           (with-output-simple-msg ()
             (princ "*subsume?: ")

@@ -28,9 +28,9 @@
 ;;;
 (in-package :CHAOS)
 #|==============================================================================
-				 System: Chaos
-				 Module: comlib
-				 File: dag.lisp
+                                 System: Chaos
+                                 Module: comlib
+                                 File: dag.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -54,12 +54,12 @@
   (once-only (dag)
     `(setf (dag-node-subnodes ,dag)
        (nconc (dag-node-subnodes ,dag)
-	      (mapcar #'(lambda (d) (create-dag-node d nil))
-		      ,datums)))))
+              (mapcar #'(lambda (d) (create-dag-node d nil))
+                      ,datums)))))
 
 (defmacro push-sub-node (dag datum)
   `(push (create-dag-node ,datum nil)
-	 (dag-node-subnodes ,dag)))
+         (dag-node-subnodes ,dag)))
 
 ;;; 
 (defmacro dag-node-is-marked? (node) `(dag-node-flag ,node))
@@ -78,15 +78,15 @@
 ;;;
 (defun dag-dfs (dag &optional (function #'identity))
   (declare (type dag-node dag)
-	   (type (or symbol function) function)
-	   (values t))
+           (type (or symbol function) function)
+           (values t))
   (labels ((do-dag-dfs (d)
-	     (unless (dag-node-is-marked? d)
-	       (dolist (sub (dag-node-subnodes d))
-		 (unless (dag-node-is-marked? sub)
-		   (do-dag-dfs sub)))
-	       (funcall function d)
-	       (mark-dag-node d))))
+             (unless (dag-node-is-marked? d)
+               (dolist (sub (dag-node-subnodes d))
+                 (unless (dag-node-is-marked? sub)
+                   (do-dag-dfs sub)))
+               (funcall function d)
+               (mark-dag-node d))))
   (unmark-all-dag-nodes dag)
   (do-dag-dfs dag)))
 
@@ -95,15 +95,15 @@
 ;;;
 (defun dag-wfs (dag &optional (function #'identity))
   (declare (type dag-node dag)
-	   (type (or symbol function) function)
-	   (values t))
+           (type (or symbol function) function)
+           (values t))
   (labels ((do-dag-wfs (ld)
-	     (dolist (d ld)
-	       (unless (dag-node-is-marked? d)
-		 (funcall function d)
-		 (mark-dag-node d)))
-	     (dolist (d ld)
-	       (do-dag-wfs (dag-node-subnodes d)))))
+             (dolist (d ld)
+               (unless (dag-node-is-marked? d)
+                 (funcall function d)
+                 (mark-dag-node d)))
+             (dolist (d ld)
+               (do-dag-wfs (dag-node-subnodes d)))))
     (unmark-all-dag-nodes dag)
     (do-dag-wfs (list dag))))
 
@@ -116,31 +116,31 @@
   (once-only (subnodes datum)
    `(let ((bdag (make-bdag :datum ,datum :subnodes ,subnodes :parent nil)))
       (dolist (s ,subnodes)
-	(setf (bdag-parent s) bdag))
+        (setf (bdag-parent s) bdag))
       bdag)))
 
 (defmacro add-bdag-subnodes (bdag datums)
   (once-only (bdag datums)
     `(setf (dag-node-subnodes ,bdag)
        (nconc (dag-node-subnodes ,bdag)
-	      (mapcar #'(lambda (d)
-			  (let ((sub (create-bdag-node d nil)))
-			    (setf (bdag-parent sub) ,bdag)
-			    sub))
-		      ,datums)))))
+              (mapcar #'(lambda (d)
+                          (let ((sub (create-bdag-node d nil)))
+                            (setf (bdag-parent sub) ,bdag)
+                            sub))
+                      ,datums)))))
 
 (defmacro push-bdag-node (dag datum)
   (once-only (dag)
     `(push (let ((s (create-bdag-node ,datum nil)))
-	     (setf (bdag-parent s) ,dag)
-	     s)
-	   (dag-node-subnodes ,dag))))
+             (setf (bdag-parent s) ,dag)
+             s)
+           (dag-node-subnodes ,dag))))
 
 
 (defun get-bdag-parents (bdag)
   (declare (type bdag bdag))
   (let ((res nil)
-	(parent (bdag-parent bdag)))
+        (parent (bdag-parent bdag)))
     (while parent
       (push parent res)
       (setq parent (bdag-parent parent)))

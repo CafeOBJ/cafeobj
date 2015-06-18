@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: Chaos
-			   Module: primitives.chaos
-				File: meta.lisp
+                                 System: Chaos
+                           Module: primitives.chaos
+                                File: meta.lisp
 ===============================================================================|#
 ;;;
 ;;;
@@ -58,12 +58,12 @@
 (defun mnth (chaos-list num)
   (and (chaos-list-p chaos-list)
        (or (nth num (chaos-list-list chaos-list))
-	   *chaos-null*)))
+           *chaos-null*)))
 
 (defun mnthcdr (chaos-list num)
   (and (chaos-list-p chaos-list)
        (or (nthcdr num (chaos-list-list chaos-list))
-	   *chaos-null*)))
+           *chaos-null*)))
 
 (defun mlength (chaos-list)
   (and (chaos-list-p chaos-list)
@@ -73,7 +73,7 @@
   (declare (ignore ignore))
   (let ((lst (chaos-list-list obj)))
     (if lst
-	(format stream ":[~s]" lst)
+        (format stream ":[~s]" lst)
       (format stream ":[]"))))
 
 ;;; 
@@ -96,25 +96,25 @@
   (if (and (termp obj) (term-is-system-object? obj))
       obj
     (with-in-module (module)
-      (let ((sort (cond	((null obj) *chaos-void-sort*)
-			((symbolp obj) *chaos-void-sort*)
-			((sort-p obj) *sort-sort*)
-			((method-p obj) *operator-sort*)
-			((module-p obj) *module-sort*)
-			((axiom-p obj) *axiom-sort*)
-			((termp obj) *term-sort*)
-			((chaos-list-p obj) *chaos-list-sort*)
-			((subst*-p obj) *subst-sort*)
-			((signature-struct-p obj) *signature-sort*)
-			((axiom-set-p obj) *axiomset-sort*)
-			((trs-p obj) *trs-sort*)
-			((is-ast obj) *chaos-expr-sort*)
-			(t *chaos-void-sort*))))
-	(if (sort= sort *term-sort*)
-	    (make-meta-term obj)
-	  (if (sort= sort *chaos-void-sort*)
-	      (make-system-object-term 'void *chaos-void-sort*)
-	    (make-system-object-term obj sort)))))))
+      (let ((sort (cond ((null obj) *chaos-void-sort*)
+                        ((symbolp obj) *chaos-void-sort*)
+                        ((sort-p obj) *sort-sort*)
+                        ((method-p obj) *operator-sort*)
+                        ((module-p obj) *module-sort*)
+                        ((axiom-p obj) *axiom-sort*)
+                        ((termp obj) *term-sort*)
+                        ((chaos-list-p obj) *chaos-list-sort*)
+                        ((subst*-p obj) *subst-sort*)
+                        ((signature-struct-p obj) *signature-sort*)
+                        ((axiom-set-p obj) *axiomset-sort*)
+                        ((trs-p obj) *trs-sort*)
+                        ((is-ast obj) *chaos-expr-sort*)
+                        (t *chaos-void-sort*))))
+        (if (sort= sort *term-sort*)
+            (make-meta-term obj)
+          (if (sort= sort *chaos-void-sort*)
+              (make-system-object-term 'void *chaos-void-sort*)
+            (make-system-object-term obj sort)))))))
 
 ;;; msubterms
 (defun msubterms (term)
@@ -131,30 +131,30 @@
 #||
 (defun create-list-of-objects (fun system-obj-term)
   (create-system-object-term (mapcar #'(lambda (x) (create-system-object-term x))
-				     (funcall fun (term-system-object system-obj-term)))))
+                                     (funcall fun (term-system-object system-obj-term)))))
 ||#
 
 #||
 (defun create-list-of-objects (fun system-obj-term)
   (let ((vals (funcall fun (term-system-object system-obj-term))))
     (if vals
-	(create-system-object-term (make-chaos-list :list (mapcar #'(lambda (x) (create-system-object-term x)) vals)))
+        (create-system-object-term (make-chaos-list :list (mapcar #'(lambda (x) (create-system-object-term x)) vals)))
       (create-system-object-term *chaos-null*))))
 ||#
 
 (defun create-list-of-objects (fun system-obj-term)
   (let ((vals (funcall fun (term-system-object system-obj-term))))
     (if vals
-	(make-chaos-list :list (mapcar #'(lambda (x) (create-system-object-term x)) vals))
+        (make-chaos-list :list (mapcar #'(lambda (x) (create-system-object-term x)) vals))
       *chaos-null*)))
 
 (defun do-apply!! (fun args)
   (let ((rfun (symbol-function (intern (term-builtin-value fun))))
         (rargs (if (and (sort= *cosmos* (term-sort args))
-			(term-is-application-form? args)
-			(equal (method-symbol (term-head args)) '("_" "," "_")))
-		   (list-assoc-subterms args (term-head args))
-		 (list args))))
+                        (term-is-application-form? args)
+                        (equal (method-symbol (term-head args)) '("_" "," "_")))
+                   (list-assoc-subterms args (term-head args))
+                 (list args))))
       (if rfun
           (apply rfun rargs)
         (create-system-object-term nil))))
@@ -186,7 +186,7 @@
 (defun in-same-cc (s1 s2)
   (if (not *current-module*)
       (with-output-chaos-error ('no-current-module)
-	(format t "Context module is not set"))
+        (format t "Context module is not set"))
     (with-in-module (*current-module*)
       (is-in-same-connected-component s1 s2 *current-sort-order*))))
 
@@ -206,18 +206,18 @@
 
 (defun meta-get-context-module (module)
   (let ((rmod (if (termp module)
-		  (cond ((and (termp module) (term-is-system-object? module))
-			 (term-system-object module))
-			((and (term-is-builtin-constant? module)
-			      (sort= (term-sort module) *string-sort*))
-			 (eval-modexp (term-builtin-value module)))
-			(t :invalid))
-		(if (module-p module)
-		    module
-		  :invalid-modexp))))
+                  (cond ((and (termp module) (term-is-system-object? module))
+                         (term-system-object module))
+                        ((and (term-is-builtin-constant? module)
+                              (sort= (term-sort module) *string-sort*))
+                         (eval-modexp (term-builtin-value module)))
+                        (t :invalid))
+                (if (module-p module)
+                    module
+                  :invalid-modexp))))
     (if (or (eq rmod :invalid) (eq rmod :invalid-modexp))
-	(with-output-chaos-error ('invalid-module)
-	  (format t "Invalid module specification ~S" module))
+        (with-output-chaos-error ('invalid-module)
+          (format t "Invalid module specification ~S" module))
       rmod)))
 
 (defun meta-get-term (pterm &optional (module *current-module*))
@@ -227,109 +227,109 @@
   (with-in-module (module)
     (let ((rterm pterm))
       (cond ((sort= (term-sort pterm) *term-sort*)
-	     (setq rterm (term-arg-1 pterm)))
-	    ((and (term-is-builtin-constant? pterm)
-		  (sort= (term-sort pterm) *string-sort*))
-	     (setq rterm (simple-parse *current-module*
-				       (term-builtin-value pterm)
-				       *cosmos*))
-	     (when (term-is-an-error rterm)
-	       (with-output-chaos-error ('invalid-term)
-		 (format t "Could not parse: ~S" (term-builtin-value pterm)))))
-	     (t rterm))
+             (setq rterm (term-arg-1 pterm)))
+            ((and (term-is-builtin-constant? pterm)
+                  (sort= (term-sort pterm) *string-sort*))
+             (setq rterm (simple-parse *current-module*
+                                       (term-builtin-value pterm)
+                                       *cosmos*))
+             (when (term-is-an-error rterm)
+               (with-output-chaos-error ('invalid-term)
+                 (format t "Could not parse: ~S" (term-builtin-value pterm)))))
+             (t rterm))
       rterm)))
 
 (defun meta-get-integer (pterm &optional (module *current-module*))
   (let ((rterm (meta-get-term pterm module))
-	(value nil))
+        (value nil))
     (when (term-is-builtin-constant? rterm)
       (setq value (term-builtin-value rterm)))
     (unless (integerp value)
       (with-output-chaos-error ('ivalid-integer)
-	(format t "Invlid number specification ~S" pterm)))
+        (format t "Invlid number specification ~S" pterm)))
     value))
 
 (defun meta-get-list-integers (pterm &optional (module *current-module*))
   (if (and (consp pterm)
-	   (every #'integerp pterm))
+           (every #'integerp pterm))
       pterm
     (let ((rterm (meta-get-term pterm module)))
       (unless (chaos-list-p rterm)
-	(with-output-chaos-error ('invalid-integers)
-	  (format t "Invalid integer list ~S" pterm)))
+        (with-output-chaos-error ('invalid-integers)
+          (format t "Invalid integer list ~S" pterm)))
       (meta-get-list-integers (chaos-list-list rterm)))))
 
 (defvar *meta-match-depth* 0)
 (defvar *use-choose-match* nil)
 
 (defun do-meta-match (target pattern &optional (module *current-module*)
-					       depth
-					       (type :match)
-					       (start-pos nil))
+                                               depth
+                                               (type :match)
+                                               (start-pos nil))
   (let* ((rmod (meta-get-context-module module))
-	 (rtarget (meta-get-term target))
-	 (rpattern (meta-get-term pattern))
-	 (rdepth (if depth (meta-get-integer pattern) -1))
-	 (rpos (if start-pos (meta-get-list-integers start-pos rmod) nil))
-	 (*meta-match-depth* 0))
+         (rtarget (meta-get-term target))
+         (rpattern (meta-get-term pattern))
+         (rdepth (if depth (meta-get-integer pattern) -1))
+         (rpos (if start-pos (meta-get-list-integers start-pos rmod) nil))
+         (*meta-match-depth* 0))
     (with-in-module (rmod)
       (when rpos
-	(setq rtarget (get-subterm-pos rtarget rpos)))
+        (setq rtarget (get-subterm-pos rtarget rpos)))
       (let ((real-target (if (eq type :match)
-			     (supply-psuedo-variables rtarget)
-			   rtarget)))
-	(let ((first-match-meth (if (eq type :match)
-				    (if *use-choose-match*
-					nil
-				      '@matcher)
-				  'first-unify))
-	      (next-match-meth (if (eq type :match)
-				   (if *use-choose-match*
-				       nil
-				     'next-match)
-				 'next-unify))
-	      ;; (result nil)
-	      )
-	  (when (and *use-choose-match*
-		     (eq type :match))
-	    (let ((meth (choose-match-method real-target *bool-true* nil)))
-	      (setf first-match-meth (car meth))
-	      (setf next-match-meth (cdr meth))))
-	  ;; 
-	  (perform-meta-match* real-target rpattern rdepth first-match-meth next-match-meth))))))
+                             (supply-psuedo-variables rtarget)
+                           rtarget)))
+        (let ((first-match-meth (if (eq type :match)
+                                    (if *use-choose-match*
+                                        nil
+                                      '@matcher)
+                                  'first-unify))
+              (next-match-meth (if (eq type :match)
+                                   (if *use-choose-match*
+                                       nil
+                                     'next-match)
+                                 'next-unify))
+              ;; (result nil)
+              )
+          (when (and *use-choose-match*
+                     (eq type :match))
+            (let ((meth (choose-match-method real-target *bool-true* nil)))
+              (setf first-match-meth (car meth))
+              (setf next-match-meth (cdr meth))))
+          ;; 
+          (perform-meta-match* real-target rpattern rdepth first-match-meth next-match-meth))))))
     
 #||
 (defun perform-meta-match* (target pattern depth fm nm)
   (let 
 
-	;; ---- first match 
-	(multiple-value-bind (global-state subst no-match e-equal)
-	    (funcall first-match-meth pattern real-target)
-	  (when no-match
-	    (if (eq type :match)
-		(format t "~&-- no match")
-	      (format t "~&-- no unify"))
-	    (return-from do-meta-match *chaos-null*))
-	  (if (eq type :match)
-	      (format t "~&-- match success.")
-	    (format t "~&-- unify success."))
-	  (when e-equal
-	    (format t "~&-- given terms are equational equal.")
-	    (return-from do-meta-match *chaos-null*))
-	  (push (make-subst* :bindings subst) result)
-	  (multiple-value-setq (global-state subst no-match)
-	    (funcall next-match-meth global-state))
-	  (while (not no-match)
-	    (push (make-subst* :bindings subst) result)
-	    (multiple-value-setq (global-state subst no-match)
-	      (funcall next-match-meth global-state)))
-	  (make-chaos-list :list (nreverse result)))))
+        ;; ---- first match 
+        (multiple-value-bind (global-state subst no-match e-equal)
+            (funcall first-match-meth pattern real-target)
+          (when no-match
+            (if (eq type :match)
+                (format t "~&-- no match")
+              (format t "~&-- no unify"))
+            (return-from do-meta-match *chaos-null*))
+          (if (eq type :match)
+              (format t "~&-- match success.")
+            (format t "~&-- unify success."))
+          (when e-equal
+            (format t "~&-- given terms are equational equal.")
+            (return-from do-meta-match *chaos-null*))
+          (push (make-subst* :bindings subst) result)
+          (multiple-value-setq (global-state subst no-match)
+            (funcall next-match-meth global-state))
+          (while (not no-match)
+            (push (make-subst* :bindings subst) result)
+            (multiple-value-setq (global-state subst no-match)
+              (funcall next-match-meth global-state)))
+          (make-chaos-list :list (nreverse result)))))
 
 ||#
 
 (defun meta-subst-image (term sub)
   (let ((subst (subst*-bindings sub))
-	(image nil))
+        (image nil))
     (setq image (substitution-image subst term))
     (make-meta-term image)))
 
@@ -339,16 +339,16 @@
 (defun meta-get-occur (oc)
   (let ((oc-list (list-assoc-subterms oc (term-head oc))))
     (if oc-list
-	(mapcar #'(lambda (x) (term-builtin-value x)) oc-list)
+        (mapcar #'(lambda (x) (term-builtin-value x)) oc-list)
       nil)))
 
 (defun meta-occur-at (t1 occur)
   (let ((term (meta-term-term t1))
-	(roccur (meta-get-occur occur))
-	(res nil))
+        (roccur (meta-get-occur occur))
+        (res nil))
     (setq res (subterm-op term roccur))
     (if res
-	(make-meta-term res)
+        (make-meta-term res)
       (make-meta-term nil))))
 
 ;;; TODO

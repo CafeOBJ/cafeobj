@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: Chaos
-			       Module: primitives
-			       File: depend.lisp
+                                 System: Chaos
+                               Module: primitives
+                               File: depend.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -54,11 +54,11 @@
 ;;; ddnode     = a ddnode
 ;;;
 (defstruct (ddlink (:print-function (lambda (ddl stream depth)
-				      (declare (ignore depth))
-				      (format stream "< ~s : ~s <- ~s >"
-					      (ddlink-label ddl)
-					      (ddlink-mode ddl)
-					      (ddlink-ddnode ddl)))))
+                                      (declare (ignore depth))
+                                      (format stream "< ~s : ~s <- ~s >"
+                                              (ddlink-label ddl)
+                                              (ddlink-mode ddl)
+                                              (ddlink-ddnode ddl)))))
   (label nil :type (or null t))
   (mode nil :type symbol)
   (ddnode nil :type ddnode)
@@ -71,8 +71,8 @@
 ;;; ddlinks  = a list of ddlinks
 ;;;
 (defstruct (ddclause (:print-function (lambda (ddc stream depth)
-					(declare (ignore depth))
-					(format stream "~s" (ddclause-id ddc)))))
+                                        (declare (ignore depth))
+                                        (format stream "~s" (ddclause-id ddc)))))
   (id nil :type symbol)
   (ddlinks nil :type list)
   )
@@ -84,10 +84,10 @@
 ;;; ddclauses = list of the ddclauses pointing to this node.
 ;;;
 (defstruct (ddnode (:print-function (lambda (ddn stream depth)
-				      (declare (ignore depth))
-				      (format stream "( ~s: ~s)"
-					      (ddnode-id ddn)
-					      (ddnode-label ddn)))))
+                                      (declare (ignore depth))
+                                      (format stream "( ~s: ~s)"
+                                              (ddnode-id ddn)
+                                              (ddnode-label ddn)))))
   (id nil :type top-object)
   (label 'out :type symbol)
   (ddclauses nil :type list)
@@ -95,13 +95,13 @@
 
 (defun new-module-node (mod)
   (declare (type top-object mod)
-	   (values ddnode))
+           (values ddnode))
   (make-ddnode :id mod))
 
 (defun get-ddlink (label ddn)
   (declare (type symbol label)
-	   (type ddnode ddn)
-	   (values ddlink))
+           (type ddnode ddn)
+           (values ddlink))
   (make-ddlink :label label :ddnode ddn))
 
 #||
@@ -119,14 +119,14 @@
 ;;;
 (defun label-ddnode (ddn new-label)
   (declare (type ddnode ddn)
-	   (type symbol new-abel)
-	   (values t))
+           (type symbol new-abel)
+           (values t))
   (let ((old-label (ddnode-label ddn)))
     (cond ((not (eq old-label new-label))
-	   (show-ddnode-change ddn
-			       old-label
-			       new-label)
-	   (setf (ddnode-label ddn) new-label)))))
+           (show-ddnode-change ddn
+                               old-label
+                               new-label)
+           (setf (ddnode-label ddn) new-label)))))
 
 ;;; ATTACH-DDCLAUSE : ddclause -> 'void
 ;;; make all the ddnodes in ddclause point back to ddcualse.
@@ -141,7 +141,7 @@
 (defun detach-ddclause (ddc)
   (dolist (ddl (ddclause-ddlinks ddc))
     (setf (ddnode-ddclauses (ddlink-ddnode ddl))
-	  (delete ddc (ddnode-ddclauses (ddlink-ddnode ddl))))))
+          (delete ddc (ddnode-ddclauses (ddlink-ddnode ddl))))))
 
 ;;; CONTRADICT
 ;;; enter contradicting ddclause into *contradictions*
@@ -161,7 +161,7 @@
 ;;;
 (defun prune-contradictions ()
   (setq *contradictions*
-	(delete-if-not #'contradicted-p *contradictions*)))
+        (delete-if-not #'contradicted-p *contradictions*)))
 
 (defun init-module-depg (&optional debug-flag)
   (setq *contradictions* nil)
@@ -198,7 +198,7 @@
 ;;;
 (defun contradicted-p (ddc)
   (every #'ddlink-misaligned-p
-	 (ddclause-ddlinks ddc)))
+         (ddclause-ddlinks ddc)))
 
 ;;; MISALIGNED-DDLINKS : ddclause if-all if-all-but-one -> {   NIL
 ;;;                                                          | value returned by if-all or
@@ -210,13 +210,13 @@
 ;;;
 (defun misaligned-ddlinks (ddc if-all if-all-but-noe)
   (let ((non-misaligned-links (remove-if $'ddlink-misaligned-p
-					 (ddclause-ddlinks ddc))))
+                                         (ddclause-ddlinks ddc))))
     (cond ((null non-misaligned-links)
-	   (funcall if-all ddc))
-	  ((null (cdr non-misaligend-links))
-	   (funcall if-all-but-one ddc
-		    (car non-misaligned-links)))
-	  (t nil))))
+           (funcall if-all ddc))
+          ((null (cdr non-misaligend-links))
+           (funcall if-all-but-one ddc
+                    (car non-misaligned-links)))
+          (t nil))))
 
 (defun return-t (x &optional y)
   (declare (ignore x y))
@@ -231,9 +231,9 @@
 ;;;
 (defun ddclause-active-ddnode (ddc)
   (misaligned-ddlinks ddc
-		      #'return-nil
-		      #'(lambda (ddc dl) (declare (ignore ddc))
-				(ddlink-ddnode ddl))))
+                      #'return-nil
+                      #'(lambda (ddc dl) (declare (ignore ddc))
+                                (ddlink-ddnode ddl))))
 
 ;;; ASSERT-PREMISE ddclause-id label ddnode -> ddclause
 ;;; assert that ddnode has the given label.
@@ -246,7 +246,7 @@
 ;;;
 (defun assert-at-least-one (id ddnodes)
   (assert-ddlinks id (mapcan #'(lambda (ddn) (list (get-ddlinks t ddn)))
-			     ddnodes)))
+                             ddnodes)))
 
 ;;; ASSERT-AT-MOST-ONE : ddclause-id ddnode-list -> ddclause
 ;;; assert that at most one ddnode is true, i.e., at least one of
@@ -254,12 +254,12 @@
 ;;;
 (defun assert-at-most-one (id ddnodes)
   (mapc #'(lambda (ddn1)
-	    (mapc #'(lambda (ddn2)
-		      (assert-ddlinks id
-				      (list (get-ddlink nil ddn1)
-					    (get-ddlink nil ddn2))))
-		  (cdr (member ddn1 ddnodes))))
-	ddnodes))
+            (mapc #'(lambda (ddn2)
+                      (assert-ddlinks id
+                                      (list (get-ddlink nil ddn1)
+                                            (get-ddlink nil ddn2))))
+                  (cdr (member ddn1 ddnodes))))
+        ddnodes))
 
 ;;; ASSERT-DDLINKS : ddclause-id ddlink-list -> ddclause
 ;;; make a clause of the links and assert it.
@@ -288,41 +288,41 @@
 (defun show-ddnode-change (ddn old-label new-label)
   (if *module-dep-debug*
       (format t "~%~s ~s -> ~s"
-	      (ddnode-id ddn) old-label new-label)))
+              (ddnode-id ddn) old-label new-label)))
 
 (defun show-ddnetwork-change (message ddc)
   (if *module-dep-debug*
       (let ((ddlinks (ddclause-ddlinks ddc)))
-	(format t "~%~a" message)
-	(cond (ddlinks
-	       (show-ddlink (car ddlinks))
-	       (mapc #'(lambda (ddl)
-			 (princ " or ")
-			 (show-ddlink ddl))
-		     (cdr ddlinks)))))))
+        (format t "~%~a" message)
+        (cond (ddlinks
+               (show-ddlink (car ddlinks))
+               (mapc #'(lambda (ddl)
+                         (princ " or ")
+                         (show-ddlink ddl))
+                     (cdr ddlinks)))))))
 
 (defun show-ddlink (ddl)
   (format t "~s~s"
-	  (case (ddlink-label ddl)
-	    ((t) '+)
-	    ((nil) '-)
-	    (otherwise '?))
-	  (ddnode-id (ddlink-ddnode ddl))))
+          (case (ddlink-label ddl)
+            ((t) '+)
+            ((nil) '-)
+            (otherwise '?))
+          (ddnode-id (ddlink-ddnode ddl))))
 
 (defun show-contracitions ()
   (cond (*contracictions*
-	 (format t "~% Thre are contradictions.~%~S" *contradictions*)
-	 (mapc #'(lambda (ddc)
-		   (format t "~%~S caused by ~S~%" ddc (contradiction-causes ddc)))
-	       *contradictions*))))
+         (format t "~% Thre are contradictions.~%~S" *contradictions*)
+         (mapc #'(lambda (ddc)
+                   (format t "~%~S caused by ~S~%" ddc (contradiction-causes ddc)))
+               *contradictions*))))
 
 ;;; PROPAGATE-LABELS : ddclause -> void
 ;;; propagate T and NIL labels to ddclauses's ddnode.
 ;;; 
 (defun propagate-labels (ddc)
   (misaligend-ddlinks ddc
-		      #'contradict
-		      #'align-ddlink))
+                      #'contradict
+                      #'align-ddlink))
 
 ;;; ALIGN-DDLINK ddclause ddlink -> void
 ;;; mark the label of ddlink's ddnode agree with ddlink's label,
@@ -331,10 +331,10 @@
 (defun align-ddlink (ddc1 ddl)
   (let ((ddn (ddlink-ddnode ddl)))
     (cond ((ddnode-in-p ddn) nil)
-	  (t (label-ddnode ddn (ddlink-label ddl))
-	     (dolist (ddc2 (ddnode-ddclauses ddn))
-	       (unless (eq ddc1 ddc2)
-		 (propagate-labels ddc2)))))))
+          (t (label-ddnode ddn (ddlink-label ddl))
+             (dolist (ddc2 (ddnode-ddclauses ddn))
+               (unless (eq ddc1 ddc2)
+                 (propagate-labels ddc2)))))))
 
 ;;; PROPAGATE-OUT-LABLES : ddclause -> void
 ;;; mark 'OUT those ddnodes that may have been forced to a label by ddclause.
@@ -343,11 +343,11 @@
 ;;;
 (defun propagate-out-labels (ddc)
   (misaligned-ddlinks ddc
-		      #'uncontradict
-		      #'(lambda (ddc1 ddl)
-			  (dolist (ddc2 (delabel-ddnode (ddlink-ddnode ddl)))
-			    (propagate-labels ddc2))
-			  (prune-contradictions))))
+                      #'uncontradict
+                      #'(lambda (ddc1 ddl)
+                          (dolist (ddc2 (delabel-ddnode (ddlink-ddnode ddl)))
+                            (propagate-labels ddc2))
+                          (prune-contradictions))))
 
 ;;; DELABEL-DDNODE : ddnode -> List[ddclause]
 ;;; delabel all ddnodes that were justfied by this ddnode, and return all ddclauses
@@ -357,30 +357,30 @@
 ;;;
 (defun delabel-ddnode (ddn)
   (cond ((ddnode-out-p ddn) nil)
-	(t (let ((going-out (ddnode-jistificands ddn)))
-	     (label-ddnode ddn 'out)
-	     (nconc (mapcan #'(lambda (ddn)
-				(delabel-ddnode ddn))
-			    going-out)
-		    (ddnode-justifications ddn))))))
+        (t (let ((going-out (ddnode-jistificands ddn)))
+             (label-ddnode ddn 'out)
+             (nconc (mapcan #'(lambda (ddn)
+                                (delabel-ddnode ddn))
+                            going-out)
+                    (ddnode-justifications ddn))))))
 
 ;;; DDNODE-JISTIFICATIONS : ddnode -> List[ddclause]
 ;;; return the ddclauses that five ddnode its label.
 ;;;
 (defun ddnode-justifications (ddn)
   (mapcan #'(lambda (ddc)
-	      (if (eq (ddclause-active-ddnode ddc) ddc)
-		  (list ddc)
-		  nil))
-	  (ddnode-ddclauses ddn)))
+              (if (eq (ddclause-active-ddnode ddc) ddc)
+                  (list ddc)
+                  nil))
+          (ddnode-ddclauses ddn)))
 
 ;;; DDNODE-JUSTIFICANTS : ddnode -> List[ddnode]
 ;;; return the ddnodes that were propagated by labels from ddnode.
 ;;;
 (defun ddnode-justificants (ddn1)
   (remove-if-not #'(lambda (ddc)
-		     (let ((ddn2 (ddclause-active-ddnode ddc)))
-		       (and (not (eq ddn1 ddn2)) ddn2)))
-		 (ddnode-ddclauses ddn1)))
+                     (let ((ddn2 (ddclause-active-ddnode ddc)))
+                       (and (not (eq ddn1 ddn2)) ddn2)))
+                 (ddnode-ddclauses ddn1)))
 
 ;;; EOF

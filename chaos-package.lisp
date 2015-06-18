@@ -102,23 +102,23 @@
 
 (defpackage "CHAOS"
     (:shadow "METHOD-NAME"
-	     "METHOD"
-	     "MAKE-METHOD"
-	     #-:GCL "OBJECT"
-	     ;; #+(:ALLEGRO-VERSION>= 7.0) "WHILE"
-	     #+:EXCL
-	     "CLASS"
-	     "TIMER"
-	     "MODULE"
-	     "MODULE-P"
-	     "LOAD-FILE"
-	     )
+             "METHOD"
+             "MAKE-METHOD"
+             #-:GCL "OBJECT"
+             ;; #+(:ALLEGRO-VERSION>= 7.0) "WHILE"
+             #+:EXCL
+             "CLASS"
+             "TIMER"
+             "MODULE"
+             "MODULE-P"
+             "LOAD-FILE"
+             )
   (:use #+:GCL "LISP" #-:GCL "COMMON-LISP"
-	;; "FMCS"
-	#+:MCL "CCL" #+:EXCL "EXCL"
-	#+:GCL "DEFPACKAGE"
-	;; #+:common-graphics "COMMON-GRAPHICS"
-	)
+        ;; "FMCS"
+        #+:MCL "CCL" #+:EXCL "EXCL"
+        #+:GCL "DEFPACKAGE"
+        ;; #+:common-graphics "COMMON-GRAPHICS"
+        )
   )
 
       

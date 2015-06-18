@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				  System:Chaos
-				 Module:e-match
-			       File:match-cz.lisp
+                                  System:Chaos
+                                 Module:e-match
+                               File:match-cz.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -61,7 +61,7 @@
 
 
 (defstruct (match-CZ-state
-	     (:constructor create-match-cz-state (n sys)))
+             (:constructor create-match-cz-state (n sys)))
   (n 0 :type fixnum)
   (sys nil :type list))
 
@@ -71,7 +71,7 @@
 
 (defun match-CZ-state-initialize (sys env)
   (declare (ignore env)
-	   (type list sys))
+           (type list sys))
   ;; env : why isn't env used here or in C$?
   (values (create-match-cz-state 0 sys) nil))
 
@@ -86,103 +86,103 @@
 
 (defun match-CZ-next-state (CZ-st)
   (declare (type match-cz-state cz-st)
-	   (values list (or null match-cz-state) (or null t)))
+           (values list (or null match-cz-state) (or null t)))
   (let* ((sys (match-cz-state-sys CZ-st))
-	 (point (m-system-to-list sys))
-	 (equation nil)
-	 (r 0)
-	 (t1 nil)
-	 (t2 nil)
-	 (new-sys (new-m-system))
-	 (lg (length point))
-	 (meth1 nil)
-	 (meth2 nil)
-	 )
+         (point (m-system-to-list sys))
+         (equation nil)
+         (r 0)
+         (t1 nil)
+         (t2 nil)
+         (new-sys (new-m-system))
+         (lg (length point))
+         (meth1 nil)
+         (meth2 nil)
+         )
     (declare (type fixnum r lg)
-	     (type list new-sys point))
+             (type list new-sys point))
     (do* ((N (match-cz-state-n CZ-st))
-	  (q N N)
-	  )
-	 ((or (not (m-system-is-empty? new-sys))
-	      (>= N (the fixnum (expt 6 (the fixnum lg)))))
-	  (progn 
-	    (setf (match-cz-state-n CZ-st) N)
-	    (if (not (m-system-is-empty? new-sys))
-		(values new-sys CZ-st nil) ;succes case
-		(values nil nil t))))	; fail case
+          (q N N)
+          )
+         ((or (not (m-system-is-empty? new-sys))
+              (>= N (the fixnum (expt 6 (the fixnum lg)))))
+          (progn 
+            (setf (match-cz-state-n CZ-st) N)
+            (if (not (m-system-is-empty? new-sys))
+                (values new-sys CZ-st nil) ;succes case
+                (values nil nil t))))   ; fail case
       (declare (type fixnum n q))
-      (incf N)				; try the next N
-      (dotimes-fixnum (k lg)		; k = lg,...,1
-					; this treats q as a bitvector in base 6
-	#+KCL (setq r (rem q 6) q (truncate q 6))
-	#-KCL (multiple-value-setq (q r) (truncate q 6))
-	(setq equation (car point)
-	      point (cdr point)
-	      t1 (equation-t1 equation)
-	      t2 (equation-t2 equation)
-	      meth1 (if (or (term-is-constant? t1)
-			    (term-is-variable? t1))
-			nil 
-			(term-method t1))
-	      meth2 (if (or (term-is-constant? t2)
-			    (term-is-variable? t2))
-			nil 
-			(term-method t2)))
-	(cond ((and (= r 0)		; as if no thoery applied - 11 22
-		    meth1 meth2)
-	       (add-equation-to-m-system new-sys 
-					 (make-equation (term-arg-1 t1) 
-							(term-arg-1 t2)))
-	       (add-equation-to-m-system new-sys 
-					 (make-equation (term-arg-2 t1) 
-							(term-arg-2 t2))))
-	      ((and (= r 1)		; comm - 12 21
-		    meth1 meth2)	;
-	       (add-equation-to-m-system new-sys 
-					 (make-equation (term-arg-1 t1) 
-							(term-arg-2 t2)))
-	       (add-equation-to-m-system new-sys 
-					 (make-equation (term-arg-2 t1) 
-							(term-arg-1 t2))))
-	      ((and (= r 2)
-		    meth1		; term is non atomic
-		    (not (term-is-zero-for-method (term-arg-1 t1) meth1)))
-	       (add-equation-to-m-system new-sys
-					 (make-equation (term-arg-1 t1)
-							(term-make-zero meth1)))
-	       (add-equation-to-m-system new-sys
-					 (make-equation (term-arg-2 t1) t2)))
-	      ((and (= r 3)
-		    meth1		; term is non atomic
-		    (not (term-is-zero-for-method (term-arg-2 t1) meth1)))
-	       (add-equation-to-m-system new-sys
-					 (make-equation (term-arg-2 t1)
-							(term-make-zero meth1)))
-	       (add-equation-to-m-system new-sys
-					 (make-equation (term-arg-1 t1) t2)))
-	      ;; note these are redundant if we have terms 
-	      ;; in normal form (no identities).
-	      ((and (= r 4)
-		    meth2		; term is non atomic
-		    (not (term-is-zero-for-method (term-arg-1 t2) meth2)))
-	       (let ((zero (term-make-zero meth2)))
-		 (when zero
-		   (add-equation-to-m-system new-sys
-					     (make-equation zero
-							    (term-arg-1 t2))))
-		 (add-equation-to-m-system new-sys
-					   (make-equation t1 (term-arg-2 t2)))))
-	      ((and (= r 5)
-		    meth2		; term is non atomic
-		    (not (term-is-zero-for-method (term-arg-2 t2) meth2)))
-	       (let ((zero (term-make-zero meth2)))
-		 (when zero
-		   (add-equation-to-m-system new-sys
-					     (make-equation zero
-							    (term-arg-2 t2))))
-		 (add-equation-to-m-system new-sys
-					   (make-equation t1 (term-arg-1 t2)))))
-	      (t nil))))))
+      (incf N)                          ; try the next N
+      (dotimes-fixnum (k lg)            ; k = lg,...,1
+                                        ; this treats q as a bitvector in base 6
+        #+KCL (setq r (rem q 6) q (truncate q 6))
+        #-KCL (multiple-value-setq (q r) (truncate q 6))
+        (setq equation (car point)
+              point (cdr point)
+              t1 (equation-t1 equation)
+              t2 (equation-t2 equation)
+              meth1 (if (or (term-is-constant? t1)
+                            (term-is-variable? t1))
+                        nil 
+                        (term-method t1))
+              meth2 (if (or (term-is-constant? t2)
+                            (term-is-variable? t2))
+                        nil 
+                        (term-method t2)))
+        (cond ((and (= r 0)             ; as if no thoery applied - 11 22
+                    meth1 meth2)
+               (add-equation-to-m-system new-sys 
+                                         (make-equation (term-arg-1 t1) 
+                                                        (term-arg-1 t2)))
+               (add-equation-to-m-system new-sys 
+                                         (make-equation (term-arg-2 t1) 
+                                                        (term-arg-2 t2))))
+              ((and (= r 1)             ; comm - 12 21
+                    meth1 meth2)        ;
+               (add-equation-to-m-system new-sys 
+                                         (make-equation (term-arg-1 t1) 
+                                                        (term-arg-2 t2)))
+               (add-equation-to-m-system new-sys 
+                                         (make-equation (term-arg-2 t1) 
+                                                        (term-arg-1 t2))))
+              ((and (= r 2)
+                    meth1               ; term is non atomic
+                    (not (term-is-zero-for-method (term-arg-1 t1) meth1)))
+               (add-equation-to-m-system new-sys
+                                         (make-equation (term-arg-1 t1)
+                                                        (term-make-zero meth1)))
+               (add-equation-to-m-system new-sys
+                                         (make-equation (term-arg-2 t1) t2)))
+              ((and (= r 3)
+                    meth1               ; term is non atomic
+                    (not (term-is-zero-for-method (term-arg-2 t1) meth1)))
+               (add-equation-to-m-system new-sys
+                                         (make-equation (term-arg-2 t1)
+                                                        (term-make-zero meth1)))
+               (add-equation-to-m-system new-sys
+                                         (make-equation (term-arg-1 t1) t2)))
+              ;; note these are redundant if we have terms 
+              ;; in normal form (no identities).
+              ((and (= r 4)
+                    meth2               ; term is non atomic
+                    (not (term-is-zero-for-method (term-arg-1 t2) meth2)))
+               (let ((zero (term-make-zero meth2)))
+                 (when zero
+                   (add-equation-to-m-system new-sys
+                                             (make-equation zero
+                                                            (term-arg-1 t2))))
+                 (add-equation-to-m-system new-sys
+                                           (make-equation t1 (term-arg-2 t2)))))
+              ((and (= r 5)
+                    meth2               ; term is non atomic
+                    (not (term-is-zero-for-method (term-arg-2 t2) meth2)))
+               (let ((zero (term-make-zero meth2)))
+                 (when zero
+                   (add-equation-to-m-system new-sys
+                                             (make-equation zero
+                                                            (term-arg-2 t2))))
+                 (add-equation-to-m-system new-sys
+                                           (make-equation t1 (term-arg-1 t2)))))
+              (t nil))))))
 
 
 ;;; CZ Equality
@@ -194,21 +194,21 @@
 
 (defun match-CZ-equal (t1 t2)
   (declare (type term t1 t2)
-	   (values (or null t)))
+           (values (or null t)))
   (let ((meth1 (term-head t1))
-	(meth2 (term-head t2)))
-  (or (term-is-similar? t1 t2)		; was equal
+        (meth2 (term-head t2)))
+  (or (term-is-similar? t1 t2)          ; was equal
       (and (term-is-zero-for-method (term-arg-1 t1) meth1)
-	   (term-equational-equal (term-arg-2 t1) t2))
+           (term-equational-equal (term-arg-2 t1) t2))
       (and (term-is-zero-for-method (term-arg-2 t1) meth1)
-	   (term-equational-equal (term-arg-1 t1) t2))
+           (term-equational-equal (term-arg-1 t1) t2))
       (and (term-is-zero-for-method (term-arg-1 t2) meth2)
-	   (term-equational-equal t1 (term-arg-2 t2)))
+           (term-equational-equal t1 (term-arg-2 t2)))
       (and (term-is-zero-for-method (term-arg-2 t2) meth2)
-	   (term-equational-equal t1 (term-arg-1 t2)))
+           (term-equational-equal t1 (term-arg-1 t2)))
       (and (term-equational-equal (term-arg-1 t1) (term-arg-1 t2))
-	   (term-equational-equal (term-arg-2 t1) (term-arg-2 t2)))
+           (term-equational-equal (term-arg-2 t1) (term-arg-2 t2)))
       (and (term-equational-equal (term-arg-1 t1) (term-arg-2 t2))
-	   (term-equational-equal (term-arg-2 t1) (term-arg-1 t2))))))
+           (term-equational-equal (term-arg-2 t1) (term-arg-1 t2))))))
 
 ;;; EOF

@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-				  System:CHAOS
-			       Module: primitives
-			      File: op-theory.lisp
+                                  System:CHAOS
+                               Module: primitives
+                              File: op-theory.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -38,7 +38,7 @@
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 ;;;=============================================================================
-;;; 				OPERATOR THEORY
+;;;                             OPERATOR THEORY
 ;;;=============================================================================
 
 ;;; ***************
@@ -86,7 +86,7 @@
 
 (defun zero-rule-only (th)
   (declare (type op-theory th)
-	   (values (or null t)))
+           (values (or null t)))
   (let ((val (theory-zero th)))
     (and val (cdr val))))
 
@@ -136,35 +136,35 @@
   `(the symbol (svref ,_th_ 8)))
 
 (defun new-theory-info (name code empty-for-unify match-equal-fun match-init-fun
-			     match-next-fun unify-equal-fun unify-init-fun unify-next-fun)
+                             match-next-fun unify-equal-fun unify-init-fun unify-next-fun)
   (declare (type symbol name match-equal-fun match-init-fun
-		 match-next-fun unify-equal-fun unify-init-fun
-		 unify-next-fun)
-	   (type (or null t) empty-for-unify)
-	   (type fixnum code)
-	   (values theory-info))
+                 match-next-fun unify-equal-fun unify-init-fun
+                 unify-next-fun)
+           (type (or null t) empty-for-unify)
+           (type fixnum code)
+           (values theory-info))
   (let ((th (alloc-svec 9)))
     (declare (type theory-info th))
     (setf (theory-info-name th) name)
     (setf (theory-info-code th) code)
     (setf (theory-info-empty-for-unify th) empty-for-unify
-	  (theory-info-match-equal-fun th) match-equal-fun
-	  (theory-info-match-init-fun th) match-init-fun
-	  (theory-info-match-next-fun th) match-next-fun
-	  (theory-info-unify-equal-fun th) unify-equal-fun
-	  (theory-info-unify-init-fun th) unify-init-fun
-	  (theory-info-unify-next-fun th) unify-next-fun)
+          (theory-info-match-equal-fun th) match-equal-fun
+          (theory-info-match-init-fun th) match-init-fun
+          (theory-info-match-next-fun th) match-next-fun
+          (theory-info-unify-equal-fun th) unify-equal-fun
+          (theory-info-unify-init-fun th) unify-init-fun
+          (theory-info-unify-next-fun th) unify-next-fun)
     th))
 
 (defun pr-optheory-internal (opth stream &rest ignore)
   (declare (ignore ignore))
   (format stream "#<Theory ~s : zero = ~s>"
-	  (theory-info-name (theory-info opth))
-	  (theory-zero opth)))
+          (theory-info-name (theory-info opth))
+          (theory-zero opth)))
 
 (defun is-operator-theory? (object)
   (declare (type t object)
-	   (values (or null t)))
+           (values (or null t)))
   (and (consp object)
        (typep (car object) 'vector)
        (= 9 (length (the vector (car object))))))
@@ -194,7 +194,7 @@
 ;;; theory informations. 
 ;;;
 ;;(declaim (special .E. .Z. .I. .C. .A. .AC. .AI. .AZ. .CZ. .CI. .IZ. .ACI.
-;;		  .ACZ. .CIZ. .AIZ. .ACIZ.))
+;;                .ACZ. .CIZ. .AIZ. .ACIZ.))
 
 (eval-when (:execute :compile-toplevel :load-toplevel)
   (defconstant .E. 0)
@@ -220,7 +220,7 @@
 (defmacro test-theory (_x _y)
   `(the (or null t)
     (not (= 0 (logand (the fixnum ,_x)
-		      (the fixnum ,_y))))))
+                      (the fixnum ,_y))))))
 #+gcl
 (defmacro test-theory (_x _y) `(test-and (the fixnum ,_x) (the fixnum ,_y)))
 ;;; 
@@ -245,52 +245,52 @@
 ;;; 
 (defun create-theory (code-or-info zero)
   (declare (type (or fixnum theory-info) code-or-info)
-	   (type (or null t) zero)
-	   (values op-theory))
+           (type (or null t) zero)
+           (values op-theory))
   (theory-make (if (numberp code-or-info)
-		   (theory-code-to-info code-or-info)
-		   code-or-info)
-	       zero))
+                   (theory-code-to-info code-or-info)
+                   code-or-info)
+               zero))
 
-(declaim (special the-e-property	; .E.
-		  the-z-property	; .Z.
-		  the-i-property	; .I.
-		  the-iz-property	; .IZ.
-		  the-c-property	; .C.
-		  the-cz-property	; .CZ.
-		  the-ci-property	; .CI.
-		  the-ciz-property	; .CIZ.
-		  the-a-property	; .A.
-		  the-az-property	; .AZ.
-		  the-ai-property	; .AI.
-		  the-ac-property	; .AC.
-		  the-acz-property	; .ACZ.
-		  the-aci-property	; .ACI.
-		  the-aiz-property	; .AIZ.
-		  the-aciz-property))	; .ACIZ.
+(declaim (special the-e-property        ; .E.
+                  the-z-property        ; .Z.
+                  the-i-property        ; .I.
+                  the-iz-property       ; .IZ.
+                  the-c-property        ; .C.
+                  the-cz-property       ; .CZ.
+                  the-ci-property       ; .CI.
+                  the-ciz-property      ; .CIZ.
+                  the-a-property        ; .A.
+                  the-az-property       ; .AZ.
+                  the-ai-property       ; .AI.
+                  the-ac-property       ; .AC.
+                  the-acz-property      ; .ACZ.
+                  the-aci-property      ; .ACI.
+                  the-aiz-property      ; .AIZ.
+                  the-aciz-property))   ; .ACIZ.
 
 (defmacro define-theory-info (info-name
-			      name
-			      &key
-			      empty-for-unify
-			      match-equal-fun
-			      match-init-fun
-			      match-next-fun
-			      unify-equal-fun
-			      unify-init-fun
-			      unify-next-fun)
+                              name
+                              &key
+                              empty-for-unify
+                              match-equal-fun
+                              match-init-fun
+                              match-next-fun
+                              unify-equal-fun
+                              unify-init-fun
+                              unify-next-fun)
   ` (eval-when (:execute :load-toplevel)
       (setf (aref *theory-info-array* ,name)
-	    (setf ,info-name
-		  (new-theory-info ',name
-				   ,name
-				   ,empty-for-unify
-				   ',match-equal-fun
-				   ',match-init-fun
-				   ',match-next-fun
-				   ',unify-equal-fun
-				   ',unify-init-fun
-				   ',unify-next-fun)))))
+            (setf ,info-name
+                  (new-theory-info ',name
+                                   ,name
+                                   ,empty-for-unify
+                                   ',match-equal-fun
+                                   ',match-init-fun
+                                   ',match-next-fun
+                                   ',unify-equal-fun
+                                   ',unify-init-fun
+                                   ',unify-next-fun)))))
 
 (define-theory-info the-E-property .E.
   :empty-for-unify       t
@@ -441,7 +441,7 @@
 (defvar *the-empty-theory*)
 (eval-when (:execute :load-toplevel)
   (setf *the-empty-theory*
-	(theory-make the-e-property nil)))
+        (theory-make the-e-property nil)))
 
 (defmacro theory-info-is-empty-for-unify (_theory-info)
   `(theory-info-empty-for-unify ,_theory-info))
@@ -514,7 +514,7 @@
 
 (defun theory-info-is-restriction-of-ignoring-id (thn1 thn2)
   (= 0 (logandc2 (theory-info-code thn1)
-		 (logior .Z. (theory-info-code thn2)))))
+                 (logior .Z. (theory-info-code thn2)))))
 
 
 ;;; ****************
@@ -537,33 +537,33 @@
 (defun E-equal-in-theory-direct (th t1 t2 &optional (unify? nil))
   (let ((theory-info (theory-info th)))
     (cond ((or (theory-info-is-empty theory-info)
-	       (theory-info-is-Z theory-info)
-	       (theory-info-is-I theory-info)
-	       (theory-info-is-IZ theory-info))
-	   (if unify?
-	       (unify-empty-equal t1 t2)
-	       (match-empty-equal t1 t2)))
-	  ((or (theory-info-is-AC theory-info)
-	       (theory-info-is-ACI theory-info)
-	       (theory-info-is-ACZ theory-info)
-	       (theory-info-is-ACIZ theory-info))
-	   (if unify?
-	       (unify-AC-equal t1 t2)
-	       (match-AC-equal t1 t2)))
-	  ((or (theory-info-is-A theory-info)	
-	       (theory-info-is-AI theory-info)
-	       (theory-info-is-AZ theory-info)
-	       (theory-info-is-AIZ theory-info))
-	   (if unify?
-	       (unify-A-equal t1 t2)
-	       (match-A-equal t1 t2)))
-	  ((or (theory-info-is-C theory-info)
-	       (theory-info-is-CI theory-info)
-	       (theory-info-is-CZ theory-info)
-	       (theory-info-is-CIZ theory-info))
-	   (if unify?
-	       (unify-C-equal t1 t2)
-	       (match-C-equal t1 t2))))))
+               (theory-info-is-Z theory-info)
+               (theory-info-is-I theory-info)
+               (theory-info-is-IZ theory-info))
+           (if unify?
+               (unify-empty-equal t1 t2)
+               (match-empty-equal t1 t2)))
+          ((or (theory-info-is-AC theory-info)
+               (theory-info-is-ACI theory-info)
+               (theory-info-is-ACZ theory-info)
+               (theory-info-is-ACIZ theory-info))
+           (if unify?
+               (unify-AC-equal t1 t2)
+               (match-AC-equal t1 t2)))
+          ((or (theory-info-is-A theory-info)   
+               (theory-info-is-AI theory-info)
+               (theory-info-is-AZ theory-info)
+               (theory-info-is-AIZ theory-info))
+           (if unify?
+               (unify-A-equal t1 t2)
+               (match-A-equal t1 t2)))
+          ((or (theory-info-is-C theory-info)
+               (theory-info-is-CI theory-info)
+               (theory-info-is-CZ theory-info)
+               (theory-info-is-CIZ theory-info))
+           (if unify?
+               (unify-C-equal t1 t2)
+               (match-C-equal t1 t2))))))
 
 ||#
 
@@ -579,14 +579,14 @@
 (defun theory-contains-associativity-direct (th)
   (let ((theory-info (theory-info th)))
     (and (not (theory-info-is-empty theory-info))
-	 (or (theory-info-is-A theory-info) 
-	     (theory-info-is-AC theory-info) 
-	     (theory-info-is-AI theory-info) 
-	     (theory-info-is-AZ theory-info) 
-	     (theory-info-is-AIZ theory-info) 
-	     (theory-info-is-ACI theory-info)
-	     (theory-info-is-ACZ theory-info) 
-	     (theory-info-is-ACIZ theory-info)))))
+         (or (theory-info-is-A theory-info) 
+             (theory-info-is-AC theory-info) 
+             (theory-info-is-AI theory-info) 
+             (theory-info-is-AZ theory-info) 
+             (theory-info-is-AIZ theory-info) 
+             (theory-info-is-ACI theory-info)
+             (theory-info-is-ACZ theory-info) 
+             (theory-info-is-ACIZ theory-info)))))
 
 ;;; returns true iff the theory "th" contains the commutativity axiom
 ;;;
@@ -596,14 +596,14 @@
 (defun theory-contains-commutativity-direct (th)
   (let ((theory-info (theory-info th)))
     (and (not (theory-info-is-empty theory-info))
-	 (or (theory-info-is-C theory-info) 
-	     (theory-info-is-AC theory-info) 
-	     (theory-info-is-CI theory-info) 
-	     (theory-info-is-CZ theory-info) 
-	     (theory-info-is-CIZ theory-info) 
-	     (theory-info-is-ACI theory-info)
-	     (theory-info-is-ACZ theory-info) 
-	     (theory-info-is-ACIZ theory-info)))))
+         (or (theory-info-is-C theory-info) 
+             (theory-info-is-AC theory-info) 
+             (theory-info-is-CI theory-info) 
+             (theory-info-is-CZ theory-info) 
+             (theory-info-is-CIZ theory-info) 
+             (theory-info-is-ACI theory-info)
+             (theory-info-is-ACZ theory-info) 
+             (theory-info-is-ACIZ theory-info)))))
 
 (defmacro theory-contains-AC (*th)
   `(test-theory .AC. (theory-info-code (theory-info ,*th))))
@@ -611,9 +611,9 @@
 (defun theory-contains-AC-direct (th)
   (let ((theory-info (theory-info th)))
     (or (theory-info-is-AC theory-info) 
-	(theory-info-is-ACZ theory-info)
-	(theory-info-is-ACI theory-info)
-	(theory-info-is-ACIZ theory-info))))
+        (theory-info-is-ACZ theory-info)
+        (theory-info-is-ACI theory-info)
+        (theory-info-is-ACIZ theory-info))))
 
 ;;; returns true iff the theory "th" contains the idempotency axiom
 ;;;
@@ -623,13 +623,13 @@
 (defun theory-contains-idempotency-direct (th)
   (let ((theory-info (theory-info th)))
     (or (theory-info-is-I theory-info) 
-	(theory-info-is-CI theory-info) 
-	(theory-info-is-IZ theory-info) 
-	(theory-info-is-AI theory-info) 
-	(theory-info-is-AIZ theory-info) 
-	(theory-info-is-ACI theory-info)
-	(theory-info-is-CIZ theory-info)
-	(theory-info-is-ACIZ theory-info))))
+        (theory-info-is-CI theory-info) 
+        (theory-info-is-IZ theory-info) 
+        (theory-info-is-AI theory-info) 
+        (theory-info-is-AIZ theory-info) 
+        (theory-info-is-ACI theory-info)
+        (theory-info-is-CIZ theory-info)
+        (theory-info-is-ACIZ theory-info))))
 
 ;;; returns true iff the theory contains the identity axiom.
 ;;;
@@ -639,13 +639,13 @@
 (defun theory-contains-identity-direct (th)
   (let ((theory-info (theory-info th)))
     (or (theory-info-is-Z theory-info) 
-	(theory-info-is-CZ theory-info) 
-	(theory-info-is-AZ theory-info) 
-	(theory-info-is-IZ theory-info) 
-	(theory-info-is-AIZ theory-info) 
-	(theory-info-is-ACZ theory-info)
-	(theory-info-is-CIZ theory-info)
-	(theory-info-is-ACIZ theory-info))))
+        (theory-info-is-CZ theory-info) 
+        (theory-info-is-AZ theory-info) 
+        (theory-info-is-IZ theory-info) 
+        (theory-info-is-AIZ theory-info) 
+        (theory-info-is-ACZ theory-info)
+        (theory-info-is-CIZ theory-info)
+        (theory-info-is-ACIZ theory-info))))
 
 (defmacro theory-contains-ACZ (*th)
   `(test-theory .ACZ. (theory-info-code (theory-info ,*th))))
@@ -653,7 +653,7 @@
 (defun theory-contains-ACZ-direct (th)
   (let ((theory-info (theory-info th)))
     (or (theory-info-is-ACZ theory-info)
-	(theory-info-is-ACIZ theory-info))))
+        (theory-info-is-ACIZ theory-info))))
 
 (defmacro theory-contains-AZ (*th)
   `(test-theory .AZ. (theory-info-code (theory-info ,*th))))
@@ -661,8 +661,8 @@
 (defun theory-contains-AZ-direct (th)
   (let ((theory-info (theory-info th)))
     (or (theory-info-is-AZ theory-info)
-	(theory-info-is-AIZ theory-info)
-	(theory-info-is-ACZ theory-info)
-	(theory-info-is-ACIZ theory-info))))
+        (theory-info-is-AIZ theory-info)
+        (theory-info-is-ACZ theory-info)
+        (theory-info-is-ACIZ theory-info))))
 
 ;;; EOF

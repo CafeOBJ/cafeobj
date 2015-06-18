@@ -741,7 +741,7 @@ and save it to `pathname`.
     :evaluator cafeobj-eval-module-element-proc
     :title "`imports { <import-decl> }`"
     :related ("signature" "axioms" "extending" "including" "protecting"
-	      "using")
+              "using")
     :doc "Block enclosing import of other modules (`protecting` etc). 
 Other statements are not allowed within the `imports` block.
 Optional structuring of the statements in a module.
@@ -1470,7 +1470,7 @@ given in the current session.
 ")
 
 
-(define ("save-system" "save system")	; NOTE. this is obsolete.
+(define ("save-system" "save system")   ; NOTE. this is obsolete.
     :type :doc-only
     :title "`save-system <pathname>`"
     :related ("input" "save" "restore")
@@ -1566,7 +1566,7 @@ Some of the more important (but far from complete list) ways to call
 the `show` command are:
 
   - `show [ <modexp> ]` - describes the current modules of the one specified
-	as argument
+        as argument
   - `show module tree [ <modexp> ]` - displays submodules of <modexp> in tree format
   - `show switches` - lists all possible switches
   - `show term [ tree ]` - displays a term, possible in tree format
@@ -1957,21 +1957,21 @@ CafeOBJ> lisp (+ 4 5)
 
 
 ; seems these are obsolete, 
-; (define ("dpred")		; only for pignose
+; (define ("dpred")             ; only for pignose
 ;     :category :element
 ;     :parser identity
 ;     :evaluator cafeobj-eval-module-element-proc
 ;     :doc "(pignose)
 ; ")
 
-; (define ("dbpred")		; only for pignose
+; (define ("dbpred")            ; only for pignose
 ;     :category :element
 ;     :parser identity
 ;     :evaluator cafeobj-eval-module-element-proc
 ;     :doc "(pignose)
 ; ")
 
-(define ("ax")			; pignose
+(define ("ax")                  ; pignose
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -1979,7 +1979,7 @@ CafeOBJ> lisp (+ 4 5)
     :doc "(pignose)
 ")
 
-(define ("bax")			; pignose
+(define ("bax")                 ; pignose
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -1987,7 +1987,7 @@ CafeOBJ> lisp (+ 4 5)
     :doc "(pignose)
 ")
 
-(define ("goal")		; pignose
+(define ("goal")                ; pignose
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -1995,7 +1995,7 @@ CafeOBJ> lisp (+ 4 5)
     :doc "(pignose)
 ")
 
-(define ("bgoal")		; pignose
+(define ("bgoal")               ; pignose
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
@@ -2385,5 +2385,5 @@ If <term> is omitted, the list of available <term> will be printed.
     ")
 
 ;;;
-)					; end eval-when
+)                                       ; end eval-when
 ;;; EOF

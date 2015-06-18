@@ -28,9 +28,9 @@
 ;;;
 ;;; (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-				 Module: comlib
-			       File: message.lisp
+                                 System: CHAOS
+                                 Module: comlib
+                               File: message.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -71,7 +71,7 @@
   ` (progn
       (let ((*standard-output* *error-output*)
             (*print-indent* 4))
-        (output-msg :error ',msg-id "~&[Error]:" ,args)
+        (output-msg :error ',msg-id "~%[Error]:" ,args)
         ,@body)
       ,(if (and tag-p (eq tag 'to-top))
            `(chaos-to-top)

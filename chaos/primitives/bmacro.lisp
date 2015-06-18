@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: Chaos
-			       Module: primitives
-			       File: bmacro.lisp
+                                 System: Chaos
+                               Module: primitives
+                               File: bmacro.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -45,11 +45,11 @@
   (declare (ignore ignore))
   (let ((mod (get-context-module)))
     (if mod
-	(with-in-module (mod)
-	  (term-print (macro-lhs macro) stream)
-	  (terpri stream)
-	  (princ " ::= ")
-	  (term-print (macro-rhs macro) stream))
+        (with-in-module (mod)
+          (term-print (macro-lhs macro) stream)
+          (terpri stream)
+          (princ " ::= ")
+          (term-print (macro-rhs macro) stream))
       (format t "#<MacroDecl: ~D>" (addr-of macro)))))
 
 ;;; EOF

@@ -29,9 +29,9 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-			    System:Chaos
-			  Module:BigPink
-			   File:glob.lisp
+                            System:Chaos
+                          Module:BigPink
+                           File:glob.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -101,14 +101,14 @@
 ;;; PROOF SYSTEM
 ;;; ------------
 (declaim (special *current-proof-system*))
-(defvar *current-proof-system* nil)	; current module
-(defvar *current-psys* nil)		; current psystem
-(defvar *given-clause* nil)		; current given clause
+(defvar *current-proof-system* nil)     ; current module
+(defvar *current-psys* nil)             ; current psystem
+(defvar *given-clause* nil)             ; current given clause
 
-(defvar *pn-proof-module* nil)		; built-in for invariance check
+(defvar *pn-proof-module* nil)          ; built-in for invariance check
 
 (defvar *pn-refinement-check-module* nil)
-					; built-in for refinement check
+                                        ; built-in for refinement check
 
 (defvar *pn-no-db-reset* nil)
 
@@ -118,22 +118,22 @@
 (defvar .pn-clause-deleted. 0)
 
 ;;; hash table of all clauses generated so far.
-(defvar  *clause-hash* nil)		; from *current-psys*
+(defvar  *clause-hash* nil)             ; from *current-psys*
 
 ;;; Set of support (SOS)
 (declaim (type list *sos*))
-(defvar *sos* nil)			; from *current-psys*
+(defvar *sos* nil)                      ; from *current-psys*
 
 ;;; usable clauses
 (declaim (type list *usable*))
-(defvar *usable* nil)			; from *current-psys*
+(defvar *usable* nil)                   ; from *current-psys*
 
 ;;; demodulators
-(defvar *demodulators* nil)		; from *current-psys*
+(defvar *demodulators* nil)             ; from *current-psys*
 (defvar *new-demodulator* nil)
 
 (declaim (type list *passive*))
-(defvar *passive* nil)			; from *current-psys*
+(defvar *passive* nil)                  ; from *current-psys*
 
 ;;; binds the last clause id given as input.
 ;;;
@@ -196,53 +196,53 @@
 
 ;;; parameter index
 
-; (defconstant REPORT           0)	; output stats and times every
-					; n seconds  
-(defconstant MAX-GEN          0)	; stop search after this many
-					; generated clauses  
-(defconstant MAX-KEPT         1)	; stop search after this many
-					; kept clauses  
-(defconstant MAX-GIVEN        2)	; stop search after this many
-					; given clauses  
-; (defconstant MAX-LITERALS     5)	; max # of lits in kept clause
-					; (0 -> no limit)  
-(defconstant MAX-WEIGHT       3)	; maximum weight of kept clauses 
-; (defconstant MAX-DISTINCT-VARS 7)	; max # of variables in kept
-					; clause  
-(defconstant PICK-GIVEN-RATIO 4)	; pick lightest n times, then
-					; pick first  
-;(defconstant INTERRUPT-GIVEN  9)	; call interact after this
-					; many given cls  
-(defconstant DEMOD-LIMIT      5)	; Limit on number of rewrites
-					; per clause  
-(defconstant MAX-PROOFS       6)	; stop search after this many
-					; empty clauses  
-;(defconstant MIN-BIT-WIDTH    7)	; minimum field for bit strings 
-(defconstant NEG-WEIGHT       8)	; add this value to wight of
-					; negative literals  
-;(defconstant PRETTY-PRINT-INDENT 9)	; indent for pretty print 
-(defconstant STATS-LEVEL      10)	; higher stats-level -> output
-					; more statistics  
-(defconstant CHANGE-LIMIT-AFTER  11)	; replace reduce-weight-limit 
-(defconstant NEW-MAX-WEIGHT      12)	; replace reduce-weight-limit 
-;(defconstant HEAT                13)	; maximum heat level 
-;(defconstant DYNAMIC-HEAT-WEIGHT 14)	; max weigth of dynamic hot clause 
-(defconstant MAX-ANSWERS         13)	; maximum number of answer literals 
+; (defconstant REPORT           0)      ; output stats and times every
+                                        ; n seconds  
+(defconstant MAX-GEN          0)        ; stop search after this many
+                                        ; generated clauses  
+(defconstant MAX-KEPT         1)        ; stop search after this many
+                                        ; kept clauses  
+(defconstant MAX-GIVEN        2)        ; stop search after this many
+                                        ; given clauses  
+; (defconstant MAX-LITERALS     5)      ; max # of lits in kept clause
+                                        ; (0 -> no limit)  
+(defconstant MAX-WEIGHT       3)        ; maximum weight of kept clauses 
+; (defconstant MAX-DISTINCT-VARS 7)     ; max # of variables in kept
+                                        ; clause  
+(defconstant PICK-GIVEN-RATIO 4)        ; pick lightest n times, then
+                                        ; pick first  
+;(defconstant INTERRUPT-GIVEN  9)       ; call interact after this
+                                        ; many given cls  
+(defconstant DEMOD-LIMIT      5)        ; Limit on number of rewrites
+                                        ; per clause  
+(defconstant MAX-PROOFS       6)        ; stop search after this many
+                                        ; empty clauses  
+;(defconstant MIN-BIT-WIDTH    7)       ; minimum field for bit strings 
+(defconstant NEG-WEIGHT       8)        ; add this value to wight of
+                                        ; negative literals  
+;(defconstant PRETTY-PRINT-INDENT 9)    ; indent for pretty print 
+(defconstant STATS-LEVEL      10)       ; higher stats-level -> output
+                                        ; more statistics  
+(defconstant CHANGE-LIMIT-AFTER  11)    ; replace reduce-weight-limit 
+(defconstant NEW-MAX-WEIGHT      12)    ; replace reduce-weight-limit 
+;(defconstant HEAT                13)   ; maximum heat level 
+;(defconstant DYNAMIC-HEAT-WEIGHT 14)   ; max weigth of dynamic hot clause 
+(defconstant MAX-ANSWERS         13)    ; maximum number of answer literals 
 
-;(defconstant FSUB-HINT-ADD-WT    16)	; add to pick-given wt     
-;(defconstant BSUB-HINT-ADD-WT    17)	; add to pick-given wt     
-;(defconstant EQUIV-HINT-ADD-WT   23)	; add to pick-given wt     
-;(defconstant VERBOSE-DEMOD-SKIP  24)	; debugging option   
+;(defconstant FSUB-HINT-ADD-WT    16)   ; add to pick-given wt     
+;(defconstant BSUB-HINT-ADD-WT    17)   ; add to pick-given wt     
+;(defconstant EQUIV-HINT-ADD-WT   23)   ; add to pick-given wt     
+;(defconstant VERBOSE-DEMOD-SKIP  24)   ; debugging option   
 
-;(defconstant FSUB-HINT-WT        25)	; pick-given wt     
-;(defconstant BSUB-HINT-WT        26)	; pick-given wt     
-;(defconstant EQUIV-HINT-WT       27)	; pick-given wt     
+;(defconstant FSUB-HINT-WT        25)   ; pick-given wt     
+;(defconstant BSUB-HINT-WT        26)   ; pick-given wt     
+;(defconstant EQUIV-HINT-WT       27)   ; pick-given wt     
 
-;(defconstant AGE-FACTOR          30)	; to adjust the pick-given weight 
-;(defconstant DISTINCT-VARS-FACTOR 31)	; to adjust the pick-given weight 
+;(defconstant AGE-FACTOR          30)   ; to adjust the pick-given weight 
+;(defconstant DISTINCT-VARS-FACTOR 31)  ; to adjust the pick-given weight 
 ;(defconstant NEW-SYMBOL-LEX-POSITION 32)
 (defconstant MAX-SOS 14)
-(defconstant MAX-SECONDS      15)	; stop search after this many
+(defconstant MAX-SECONDS      15)       ; stop search after this many
 (defconstant DYNAMIC-DEMOD-DEPTH 16)
 (defconstant DYNAMIC-DEMOD-RHS   17)
 ;;
@@ -435,88 +435,88 @@
   `(pignose-flag-hook (aref *pn-control-flags* ,flag-index)))
 
 ;;; IDEXES
-(defconstant sos-queue 0)		; first clause on sos is given clause 
-(defconstant sos-stack 1)		; pick last sos clause as given clause 
-(defconstant input-sos-first 2)		; use input sos before generated sos 
+(defconstant sos-queue 0)               ; first clause on sos is given clause 
+(defconstant sos-stack 1)               ; pick last sos clause as given clause 
+(defconstant input-sos-first 2)         ; use input sos before generated sos 
 
-(defconstant print-given 3)		; print given clauses 
-(defconstant print-lists-at-end 4)	; print clause lists at end of run 
+(defconstant print-given 3)             ; print given clauses 
+(defconstant print-lists-at-end 4)      ; print clause lists at end of run 
 
-(defconstant binary-res 5)		; binary resolution 
-(defconstant hyper-res 6)		; hyperresolution 
-(defconstant neg-hyper-res 7)		; negatve hyperresolution inf rule 
-;(defconstant ur-res 8)			; UR-resolution.
-(defconstant para-into 8)		; `into' paramodulation inference rule 
-(defconstant para-from 9)		; `from' paramodulation inference rule 
-(defconstant demod-inf 10)		; apply demodulation as an inference rule 
+(defconstant binary-res 5)              ; binary resolution 
+(defconstant hyper-res 6)               ; hyperresolution 
+(defconstant neg-hyper-res 7)           ; negatve hyperresolution inf rule 
+;(defconstant ur-res 8)                 ; UR-resolution.
+(defconstant para-into 8)               ; `into' paramodulation inference rule 
+(defconstant para-from 9)               ; `from' paramodulation inference rule 
+(defconstant demod-inf 10)              ; apply demodulation as an inference rule 
  
-(defconstant para-from-left 11)		; allow paramodulation from left sides 
-(defconstant para-from-right 12)	; allow paramodulation from right sides 
-(defconstant para-into-left 13)		; allow paramodulation into
-					; left args of =  
-(defconstant para-into-right 14)	; allow paramodulation into
-					; right args of =  
-(defconstant para-from-vars 15)		; allow paramodulation from variables 
-(defconstant para-into-vars 16)		; allow paramodulation into variables 
-(defconstant para-from-units-only 17)	; from clause must be unit 
-(defconstant para-into-units-only 18)	; into clause must be unit 
-(defconstant para-skip-skolem 19)	; Skolem function restriction strategy 
-(defconstant para-ones-rule 20)		; paramod only into first args of terms 
-(defconstant para-all 21)		; paramodulate all occurrences
-					; of into term  
-;(defconstant detailed-history 23)	; store literal position vectors  
-;(defconstant order-history 24)		; Nucleus number first for
-					; hyper, UR.  
-(defconstant unit-deletion 22)		; unit deletion processing 
+(defconstant para-from-left 11)         ; allow paramodulation from left sides 
+(defconstant para-from-right 12)        ; allow paramodulation from right sides 
+(defconstant para-into-left 13)         ; allow paramodulation into
+                                        ; left args of =  
+(defconstant para-into-right 14)        ; allow paramodulation into
+                                        ; right args of =  
+(defconstant para-from-vars 15)         ; allow paramodulation from variables 
+(defconstant para-into-vars 16)         ; allow paramodulation into variables 
+(defconstant para-from-units-only 17)   ; from clause must be unit 
+(defconstant para-into-units-only 18)   ; into clause must be unit 
+(defconstant para-skip-skolem 19)       ; Skolem function restriction strategy 
+(defconstant para-ones-rule 20)         ; paramod only into first args of terms 
+(defconstant para-all 21)               ; paramodulate all occurrences
+                                        ; of into term  
+;(defconstant detailed-history 23)      ; store literal position vectors  
+;(defconstant order-history 24)         ; Nucleus number first for
+                                        ; hyper, UR.  
+(defconstant unit-deletion 22)          ; unit deletion processing 
 (defconstant delete-identical-nested-skolem 23) ; delete clauses containing 
-(defconstant sort-literals 24)		; sort literals in pre-process 
-(defconstant for-sub 25)		; forward subsumption 
-(defconstant back-sub 26)		; back subsumption 
-(defconstant factor 27)			; factor during post-process 
+(defconstant sort-literals 24)          ; sort literals in pre-process 
+(defconstant for-sub 25)                ; forward subsumption 
+(defconstant back-sub 26)               ; back subsumption 
+(defconstant factor 27)                 ; factor during post-process 
 
-;(defconstant demod-history 31)		; build history in demodulation 
-(defconstant order-eq 28)		; flip equalities (+ and -) if
-					; right arg heavier 
-(defconstant eq-units-both-ways 29)	; non-oriented eq units both ways 
+;(defconstant demod-history 31)         ; build history in demodulation 
+(defconstant order-eq 28)               ; flip equalities (+ and -) if
+                                        ; right arg heavier 
+(defconstant eq-units-both-ways 29)     ; non-oriented eq units both ways 
 
-(defconstant dynamic-demod 30)		; dynamic addition of demodulators 
-(defconstant dynamic-demod-all 31)	; try to make all equalities
-					; into demodulators  
-(defconstant dynamic-demod-lex-dep 32)	; allow lex-dep dynamic demodulators 
-(defconstant back-demod 33)		; back demodulation 
-(defconstant kb 34)			; Attempt Knuth-Bendix completion 
-(defconstant lrpo 35)			; lexicographic recursive path
-					; ordering  
-(defconstant lex-order-vars 36)		; consider variables when
-					; lex-checking terms  
-(defconstant simplify-fol 37)		; attempt to simplify during
-					; cnf translation  
+(defconstant dynamic-demod 30)          ; dynamic addition of demodulators 
+(defconstant dynamic-demod-all 31)      ; try to make all equalities
+                                        ; into demodulators  
+(defconstant dynamic-demod-lex-dep 32)  ; allow lex-dep dynamic demodulators 
+(defconstant back-demod 33)             ; back demodulation 
+(defconstant kb 34)                     ; Attempt Knuth-Bendix completion 
+(defconstant lrpo 35)                   ; lexicographic recursive path
+                                        ; ordering  
+(defconstant lex-order-vars 36)         ; consider variables when
+                                        ; lex-checking terms  
+(defconstant simplify-fol 37)           ; attempt to simplify during
+                                        ; cnf translation  
 (defconstant new-variable-name 38)
-(defconstant process-input 39)		; process input usable and sos 
+(defconstant process-input 39)          ; process input usable and sos 
 (defconstant quiet 40)
-(defconstant very-verbose 41)		; print generated clauses 
-(defconstant print-kept 42)		; print kept clauses 
-(defconstant print-proofs 43)		; print all proofs found 
-(defconstant print-new-demod 44)	; print new demodultors 
-(defconstant print-back-demod 45)	; print back demodulated clauses 
-(defconstant print-back-sub 46)		; print back subsumed clauses 
+(defconstant very-verbose 41)           ; print generated clauses 
+(defconstant print-kept 42)             ; print kept clauses 
+(defconstant print-proofs 43)           ; print all proofs found 
+(defconstant print-new-demod 44)        ; print new demodultors 
+(defconstant print-back-demod 45)       ; print back demodulated clauses 
+(defconstant print-back-sub 46)         ; print back subsumed clauses 
 
-(defconstant order-hyper 47)		; ordered hyperresolution
-					; (satellites)  
-(defconstant propositional 48)		; some propositional
-					; optimizations  
-;(defconstant atom-wt-max-args 53)	; weight of atom is max of
-					; weights of arguments  
-;(defconstant term-wt-max-args 54)	; weight of term is max of
-					; weights of arguments  
-(defconstant AUTO 49)			; select the current AUTO mode
-;(defconstant proof-weight 56)		; Calculate proof weight (ancestor bag). 
-(defconstant hyper-symmetry-kludge 50)	; Secret flag 
-;(defconstant gl-demod 58)		; Delay demodulation. 
+(defconstant order-hyper 47)            ; ordered hyperresolution
+                                        ; (satellites)  
+(defconstant propositional 48)          ; some propositional
+                                        ; optimizations  
+;(defconstant atom-wt-max-args 53)      ; weight of atom is max of
+                                        ; weights of arguments  
+;(defconstant term-wt-max-args 54)      ; weight of term is max of
+                                        ; weights of arguments  
+(defconstant AUTO 49)                   ; select the current AUTO mode
+;(defconstant proof-weight 56)          ; Calculate proof weight (ancestor bag). 
+(defconstant hyper-symmetry-kludge 50)  ; Secret flag 
+;(defconstant gl-demod 58)              ; Delay demodulation. 
 (defconstant discard-non-orientable-eq 51) ; Secret flag 
-(defconstant discard-xx-resolvable 52)	; Secret flag 
-(defconstant back-unit-deletion   53)	; like back demodulation, but
-					; for literals  
+(defconstant discard-xx-resolvable 52)  ; Secret flag 
+(defconstant back-unit-deletion   53)   ; like back demodulation, but
+                                        ; for literals  
 (defconstant auto2 54)
 (defconstant auto1 55)
 (defconstant auto3 56)
@@ -540,8 +540,8 @@
 (defconstant no-new-demod 74)
 ;;; new flags
 (defconstant prop-res 75)
-(defconstant no-junk 76)		; obsolete
-(defconstant no-confusion 77)		; obsolete
+(defconstant no-junk 76)                ; obsolete
+(defconstant no-confusion 77)           ; obsolete
 (defconstant meta-paramod 78)
 (defconstant debug-inv-check 79)
 (defconstant dist-const 80)
@@ -670,81 +670,81 @@
 
 ;;; BINARY-RES
 #|
-	default off
-	if set, inference rule binary resolution is used to 
-	generate new clauses. 
-	effected flags
-		*factor*    on
-		*unit-del*  on
+        default off
+        if set, inference rule binary resolution is used to 
+        generate new clauses. 
+        effected flags
+                *factor*    on
+                *unit-del*  on
 |#
 
 ;;; HYPER-RES
 #|
-	default off
-	if set, inference rule (positive) hyper resolution is used to
-	generate new clauses.
+        default off
+        if set, inference rule (positive) hyper resolution is used to
+        generate new clauses.
 |#
 
 ;;; NEG-HYPER-RES
 #|
-	default off
-	if set, inference rule negative hyper resolution is used
-	to generate new clauses.
+        default off
+        if set, inference rule negative hyper resolution is used
+        to generate new clauses.
 |#
 
 ;;; UR-RES
 #|
-	default off
-	if set, inference rule UR-resolution is used to generate
-	new clauses.
+        default off
+        if set, inference rule UR-resolution is used to generate
+        new clauses.
 |#
 
 ;;; PARA-INTO
 #|
-	default off
-	if set, inference rule "paramodulation into the given clause"
-	is used to generate new clauses.
+        default off
+        if set, inference rule "paramodulation into the given clause"
+        is used to generate new clauses.
 |#
 
 ;;; PARA-FROM
 #|
-	default off
-	if set, inference rule "paramodulation from the given clause"
-	is used to generate new clauses.
+        default off
+        if set, inference rule "paramodulation from the given clause"
+        is used to generate new clauses.
 |#
 
 ;;; PARAMODULATION
 
 ;;; PARA-FROM-LEFT
 #|
-	default set
-	if set, paramodulation is allowed from the left sides of
-	equality literals.
-	applied to both *para-into* and *para-from* inference rules.
+        default set
+        if set, paramodulation is allowed from the left sides of
+        equality literals.
+        applied to both *para-into* and *para-from* inference rules.
 |#
 
 ;;; PARA-FROM-RIGHT
 #|
-	default set
-	if set, paramodulation is allowed the right sides of
-	equality literals.
-	applied to both *para-into* and *para-from* inference rules.
+        default set
+        if set, paramodulation is allowed the right sides of
+        equality literals.
+        applied to both *para-into* and *para-from* inference rules.
 |#
 
 ;;; PARA-INTO-LEFT
 #|
-	default set
-	if set, paramodulation is allowed into left sides of
-	positive and negative literals.
-	applied to both *para-into* and *para-from* inference rules.
+        default set
+        if set, paramodulation is allowed into left sides of
+        positive and negative literals.
+        applied to both *para-into* and *para-from* inference rules.
 |#
 
 ;;; PARA-INTO-RIGHT
 #|
-	default set
-	if set, paramodulation is allowed into right sides of
-	positive and gengative equalities.
-	applied to both *para-into* and *para-from* inference rules.
+        default set
+        if set, paramodulation is allowed into right sides of
+        positive and gengative equalities.
+        applied to both *para-into* and *para-from* inference rules.
 |#
 
 ;;; Flags handling generated clauses
@@ -752,76 +752,76 @@
 
 ;;; DETAILED-HISTORY
 #|
-	default set
-	affects the parent lists in clauses that are derived by
-	*binary-res*, *para-from* or *para-into*.
-	if set, the positions of the unified literals or terms are
-	given alog with the IDs of the parents.  
-|#	
+        default set
+        affects the parent lists in clauses that are derived by
+        *binary-res*, *para-from* or *para-into*.
+        if set, the positions of the unified literals or terms are
+        given alog with the IDs of the parents.  
+|#      
 
 ;;; ORDER-HISTORY
 #|
-	default off
-	affects the order of parent lists in clauses that are derived 
-	by hyperresolition, negative hyperresolution, or
-	UR-reaolution.
-	if set, the nucleus is listed first, and the satellites are
-	listed in the order in which the corresponding literals appear
-	in the nucleus.
-	if the flag is off (or if the clause was derived by some other 
-	inference rule), the given clause is listed first.
+        default off
+        affects the order of parent lists in clauses that are derived 
+        by hyperresolition, negative hyperresolution, or
+        UR-reaolution.
+        if set, the nucleus is listed first, and the satellites are
+        listed in the order in which the corresponding literals appear
+        in the nucleus.
+        if the flag is off (or if the clause was derived by some other 
+        inference rule), the given clause is listed first.
 |#
 
 ;;; UNIT-DELETION
 #|
-	default off
-	if set, unit deletion is applied to newly generated clauses.
-	this removes a literal from a newly generated clause if 
-	the literal is the negation of an instance of a unit clause
-	that ocuurs in usable or sos. 
-	ex. the second literal of `p(a, x) \| q(a, x)' is removed by 
-	the unit `~q(u,v)'; but it is not removed by the unit
-	`~q(u,b)', because that unification causes the instantiation of 
-	x. 
+        default off
+        if set, unit deletion is applied to newly generated clauses.
+        this removes a literal from a newly generated clause if 
+        the literal is the negation of an instance of a unit clause
+        that ocuurs in usable or sos. 
+        ex. the second literal of `p(a, x) \| q(a, x)' is removed by 
+        the unit `~q(u,v)'; but it is not removed by the unit
+        `~q(u,b)', because that unification causes the instantiation of 
+        x. 
 
-	all such literals are removed from the newly generated clause,
-	even if the reslult is is the empty clauses.
-	unit deletion is not useful if all generated clauses are
-	units.
+        all such literals are removed from the newly generated clause,
+        even if the reslult is is the empty clauses.
+        unit deletion is not useful if all generated clauses are
+        units.
 
 |#
 
 ;;; FOR-SUB
 #|
-	default set
-	if this flag is set, forward subsumption is applied during
-	the processing of newly generated clauses -- delete the new
-	clause if it is subsumed by any clause in usable or sos.
+        default set
+        if this flag is set, forward subsumption is applied during
+        the processing of newly generated clauses -- delete the new
+        clause if it is subsumed by any clause in usable or sos.
 |#
 
 ;;; BACK-SUB
 #|
-	default set
-	if set, back subsumption is applied during the processing of
-	newly kept clauses -- delete all clauses in usable or sos
-	that are subsumed by the newly kept clause.
+        default set
+        if set, back subsumption is applied during the processing of
+        newly kept clauses -- delete all clauses in usable or sos
+        that are subsumed by the newly kept clause.
 |#
 
 ;;; FACTOR
 #|
-	default off
-	if set, factoring is applied in two ways. first, factoring is 
-	applied as a simplification rule to newly generated clauses.
-	if a generated clause C has factors that subsume C, it is
-	replaced with its smallest subsuing factor.
-	second, it is applied as an inference rule to newly kept 
-	clauses. note that unlike other inference rules, factoring is
-	not applied to the given clause; it is applied to a new clause
-	as soon as it is kept.
-	all factors are generated in an iterative manner.
-	if factor is set, a clause with n-literals will not cause
-	a clause with fewer than n-literals to be deleted by 
-	subsumption.
+        default off
+        if set, factoring is applied in two ways. first, factoring is 
+        applied as a simplification rule to newly generated clauses.
+        if a generated clause C has factors that subsume C, it is
+        replaced with its smallest subsuing factor.
+        second, it is applied as an inference rule to newly kept 
+        clauses. note that unlike other inference rules, factoring is
+        not applied to the given clause; it is applied to a new clause
+        as soon as it is kept.
+        all factors are generated in an iterative manner.
+        if factor is set, a clause with n-literals will not cause
+        a clause with fewer than n-literals to be deleted by 
+        subsumption.
 |#
 
 ;;; demodulation and ordering flags
@@ -979,8 +979,8 @@
 
 (declaim (type (simple-array fixnum (50)) *pn-stats*))
 (defvar *pn-stats* (make-array *pn-stat-size*
-			       :element-type 'fixnum
-			       :initial-element 0))
+                               :element-type 'fixnum
+                               :initial-element 0))
 
 ;;; STATISTICS ACCESSOR
 ;;;
@@ -1037,25 +1037,25 @@
 (defvar *pn-clocks* (make-array *pn-max-clocks*))
 
 (defstruct (pn-clock (:type list))
-  (accum 0 :type integer)		; accumlated time
-  (curr -1 :type integer))		; time since clock has been turned on
+  (accum 0 :type integer)               ; accumlated time
+  (curr -1 :type integer))              ; time since clock has been turned on
 
 (defmacro clock-start (clock-num)
   `(let ((clock (aref *pn-clocks* ,clock-num)))
      (if (not (= (pn-clock-curr clock) -1))
-	 (with-output-chaos-warning ()
-	   (format t "clock #~d already on." ,clock-num))
+         (with-output-chaos-warning ()
+           (format t "clock #~d already on." ,clock-num))
        (setf (pn-clock-curr clock) (get-internal-real-time)))))
 
 (defmacro clock-stop (clock-num)
   `(let ((clock (aref *pn-clocks* ,clock-num)))
      (if (= (pn-clock-curr clock) -1)
-	 (with-output-chaos-warning ()
-	   (format t "clock #~d already stop." ,clock-num))
+         (with-output-chaos-warning ()
+           (format t "clock #~d already stop." ,clock-num))
        (progn
-	 (incf (pn-clock-accum clock)
-	       (- (get-internal-real-time) (pn-clock-curr clock)))
-	 (setf (pn-clock-curr clock) -1)))))
+         (incf (pn-clock-accum clock)
+               (- (get-internal-real-time) (pn-clock-curr clock)))
+         (setf (pn-clock-curr clock) -1)))))
 
 (defun reset-pn-clocks ()
   (dotimes (x *pn-max-clocks*)
@@ -1107,7 +1107,7 @@
 
 (defun pn-internal-run-time ()
   (elapsed-time-in-seconds *pn-internal-start-time*
-			    (get-internal-run-time)))
+                            (get-internal-run-time)))
 
 ;;; SETUP
 ;;;
@@ -1116,19 +1116,19 @@
 (defun setup-pignose ()
   (setq .pn-ignore-ops.
     (list *bool-and*
-	  *bool-or*
-	  *bool-not*
-	  *sort-membership*
-	  *bool-if*
-	  *bool-imply*
-	  *bool-iff*
-	  *bool-xor*
-	  *bool-equal*
-	  *beh-equal*
-	  *bool-nonequal*
-	  *beh-eq-pred*
-	  *bool-and-also*
-	  *bool-or-else*))
+          *bool-or*
+          *bool-not*
+          *sort-membership*
+          *bool-if*
+          *bool-imply*
+          *bool-iff*
+          *bool-xor*
+          *bool-equal*
+          *beh-equal*
+          *bool-nonequal*
+          *beh-eq-pred*
+          *bool-and-also*
+          *bool-or-else*))
   )
 
 ;;; EOF

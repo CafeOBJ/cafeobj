@@ -53,9 +53,9 @@ module MODEXPR {
      var L : MapList
 
      eq sort X -> Y, L, sort X -> Z
-	= L, sort X -> Z  .
+        = L, sort X -> Z  .
      eq op X -> Y, L, op X -> Z
-	= L, op X -> Z .
+        = L, op X -> Z .
     }
   
   }

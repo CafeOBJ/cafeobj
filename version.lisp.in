@@ -39,14 +39,14 @@
   (if (not (equal "" cafeobj-version-memo))
       (if (not (equal "" patch-level))
           (setq cafeobj-version-minor
-	    (format nil "@VMINOR@(~a,~A)" 
-		    cafeobj-version-memo
-		    patch-level))
-	(setq cafeobj-version-minor 
-	  (format nil "@VMINOR@(~a)" cafeobj-version-memo)))
+            (format nil "@VMINOR@(~a,~A)" 
+                    cafeobj-version-memo
+                    patch-level))
+        (setq cafeobj-version-minor 
+          (format nil "@VMINOR@(~a)" cafeobj-version-memo)))
     (setq cafeobj-version-minor "@VMINOR@"))
   (setq cafeobj-version (concatenate 'string
-			  cafeobj-version-major
-			  cafeobj-version-minor))
+                          cafeobj-version-major
+                          cafeobj-version-minor))
   )
 ;; EOF

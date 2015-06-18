@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-				 Module: comlib
-				File: error.lisp
+                                 System: CHAOS
+                                 Module: comlib
+                                File: error.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -70,32 +70,32 @@
 (defmacro with-chaos-error ((&optional error-proc) &body body)
   (if error-proc
       ` (let ((ret-val nil))
-	  (let ((val (catch 'chaos-main-error
-		       (setq ret-val
-			     (progn ,@body))
-		       nil)))
-	    (if val
-		(funcall ,error-proc val)
-		ret-val)))
-	` (let ((ret-val nil))
-	    (let ((val (catch 'chaos-main-error
-			 (setq ret-val
-			       (progn ,@body))
-			 nil)))
-	      (if val
-		  (let ((std-proc (get-chaos-error-proc val)))
-		    (if std-proc
-			(funcall std-proc val)
-			(chaos-to-top)))
-		  ret-val)))))
+          (let ((val (catch 'chaos-main-error
+                       (setq ret-val
+                             (progn ,@body))
+                       nil)))
+            (if val
+                (funcall ,error-proc val)
+                ret-val)))
+        ` (let ((ret-val nil))
+            (let ((val (catch 'chaos-main-error
+                         (setq ret-val
+                               (progn ,@body))
+                         nil)))
+              (if val
+                  (let ((std-proc (get-chaos-error-proc val)))
+                    (if std-proc
+                        (funcall std-proc val)
+                        (chaos-to-top)))
+                  ret-val)))))
   
 (defun chaos-indicate-position ()
   (unless *suppress-err-handler-msg*
-    (when *chaos-input-source*		; nil means may be from terminal
-      (format t "~&filename: ~a" (namestring *chaos-input-source*))
+    (when *chaos-input-source*          ; nil means may be from terminal
+      (format t "~%filename: ~a" (namestring *chaos-input-source*))
       (when (file-position *standard-input*)
-	(format t " in top-level form ending at character position: ~d"
-		(file-position *standard-input*)))
+        (format t " in top-level form ending at character position: ~d"
+                (file-position *standard-input*)))
       (terpri))))
 
 (defun chaos-to-top (&rest ignore)
@@ -109,28 +109,28 @@
 (defmacro with-chaos-top-error ((&optional error-proc) &body body)
   (if error-proc
       ` (let ((ret-val nil))
-	  (let ((val (catch 'chaos-top-level-error
-		       (setq ret-val
-			     (progn ,@body))
-		       nil)))
-	    (if val
-		(funcall ,error-proc val)
-		ret-val)))
-	` (let ((ret-val nil))
-	    (let ((val (catch 'chaos-top-level-error
-			 (setq ret-val
-			       (progn ,@body))
-			 nil)))
-	      (if val
-		  (let ((std-proc (get-chaos-error-proc val)))
-		    (if std-proc
-			(funcall std-proc val)
-			;; we assume no more error handlers.
-			nil))
-		  ret-val)))))
+          (let ((val (catch 'chaos-top-level-error
+                       (setq ret-val
+                             (progn ,@body))
+                       nil)))
+            (if val
+                (funcall ,error-proc val)
+                ret-val)))
+        ` (let ((ret-val nil))
+            (let ((val (catch 'chaos-top-level-error
+                         (setq ret-val
+                               (progn ,@body))
+                         nil)))
+              (if val
+                  (let ((std-proc (get-chaos-error-proc val)))
+                    (if std-proc
+                        (funcall std-proc val)
+                        ;; we assume no more error handlers.
+                        nil))
+                  ret-val)))))
 
 (defmacro ignoring-chaos-error (&body body)
   ` (catch 'chaos-top-level-error
       (catch 'chaos-main-error
-	,@body)))
+        ,@body)))
 ;;; EOF

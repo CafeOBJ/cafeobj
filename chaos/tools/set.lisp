@@ -258,9 +258,9 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
       t
     (if (or (equal "off" x) (equal "no" x))
         nil
-	  (progn
-	    (princ "Specify on(yes) or off(no).") (terpri)
-	    (throw 'parity-error nil)))))
+          (progn
+            (princ "Specify on(yes) or off(no).") (terpri)
+            (throw 'parity-error nil)))))
 
 
 (defun show-modes (flg)
@@ -273,11 +273,11 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
     (let ((sw flg))
       (if (or (equal sw '(".")) (null sw))
           (show-modes t)
-	    (let ((which (car flg))
+            (let ((which (car flg))
               (sub (cdr flg))
               (found nil)
               (cand nil))
-	      (dolist (sw *chaos-switches*)
+              (dolist (sw *chaos-switches*)
             (block next
               (let ((key (chaos-switch-key sw)))
                 (when (eq key :comment) (return-from next nil))
@@ -289,11 +289,11 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
                       (setq found sw)
                       (setq cand nil)
                       (return)))))))
-	      (unless (or found cand)
+              (unless (or found cand)
             (with-output-chaos-warning ()
               (format t "unknown switch ~a" flg)
               (return-from show-modes nil)))
-	      (if found
+              (if found
               (show-mode found)
             (show-mode cand)))))))
 
@@ -304,12 +304,12 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
         (type (chaos-switch-type switch)))
     (cond ((eq name :comment)
            (format t "~%~a" (second switch)))
-	  ((equal name "libpath")
-	   (format t "~%libpath~24T= ~{~a~^:~}" value))
+          ((equal name "libpath")
+           (format t "~%libpath~24T= ~{~a~^:~}" value))
           (t (when (atom name) (setq name (list name)))
              (if (eq type 'parity)
-                 (format t "~&~{~a~^|~a~} ~{~^ ~a~} ~24T~:[off~;on~]" name option value)
-               (progn (format t "~&~{~a~^|~a~} ~{~^ ~a~} ~24T= " name option)
+                 (format t "~%~{~a~^|~a~} ~{~^ ~a~} ~24T~:[off~;on~]" name option value)
+               (progn (format t "~%~{~a~^|~a~} ~{~^ ~a~} ~24T= " name option)
                       (if value
                           (print-chaos-object value)
                         (princ "not specified"))))))))
@@ -323,11 +323,11 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
               (t (when (atom key) (setq key (list key)))
                  (case (chaos-switch-type sw)
                    (parity
-                    (format t "~& set ~{~a~^|~a~}~{~^ ~a~} {on|off} : ~a"
+                    (format t "~% set ~{~a~^|~a~}~{~^ ~a~} {on|off} : ~a"
                             key
                             (chaos-switch-subkey sw)
                             (chaos-switch-doc sw)))
-                   (otherwise (format t "~& set ~{~a~^|~a~}~{~^ ~a~} <value> : ~a"
+                   (otherwise (format t "~% set ~{~a~^|~a~}~{~^ ~a~} <value> : ~a"
                                       key
                                       (chaos-switch-subkey sw)
                                       (chaos-switch-doc sw))))))))))
@@ -348,13 +348,13 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
 ;;;
 (defun chaos-set-search-path (path)
   (let* ((add (equal "+" (car path)))
-	 (minus (equal "-" (car path)))
+         (minus (equal "-" (car path)))
          (paths (if (or add minus) (cadr path) (car path))))
     (if add
         (set-search-path-plus paths)
       (if minus
-	  (set-search-path-minus paths)
-	(set-search-path paths)))))
+          (set-search-path-minus paths)
+        (set-search-path paths)))))
 
 (defun chaos-set-tram-path (path)
   (let ((path (car path)))
@@ -387,10 +387,10 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
         (parse-integer (car value) :junk-allowed t)
       (if (= len (length (car value)))
           (setq *cexec-limit* num)
-	    (with-output-chaos-error ('invalid-value)
-	      (format t "invalid value for exec limit: ~a" (car value))
-	      (print-next)
-	      (princ "must be a positive integer.") )))))
+            (with-output-chaos-error ('invalid-value)
+              (format t "invalid value for exec limit: ~a" (car value))
+              (print-next)
+              (princ "must be a positive integer.") )))))
 
 (defun chaos-set-print-depth (value)
   (if (or (null value)
@@ -400,10 +400,10 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
         (parse-integer (car value) :junk-allowed t)
       (if (= len (length (car value)))
           (setq *term-print-depth* num)
-	    (with-output-chaos-error ('invalid-value)
-	      (format t "invalid value for term print depth: ~a" (car value))
-	      (print-next)
-	      (princ "must be a positive integer."))))))
+            (with-output-chaos-error ('invalid-value)
+              (format t "invalid value for term print depth: ~a" (car value))
+              (print-next)
+              (princ "must be a positive integer."))))))
 
 (defun chaos-set-print-mode (value)
   (case-equal (car value)

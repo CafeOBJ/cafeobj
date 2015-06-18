@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
+                                 System: CHAOS
                                  Module: tools
-			      File: sort-tree.lisp
+                              File: sort-tree.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -40,96 +40,96 @@
 (defun make-module-sort-tree (mod)
   (prepare-for-parsing mod)
   (let* ((sorder (module-sort-order mod))
-	 (kinds (get-kinds sorder))
-	 (sls (module-sort-relations mod)))
+         (kinds (get-kinds sorder))
+         (sls (module-sort-relations mod)))
     (labels ((make-tree (s)
-	       (let ((sl (assq s sls)))
-		 (if sl
-		     (cons s (mapcar #'(lambda (x) (make-tree x))
-				     (maximal-sorts (_subsorts sl) sorder)))
-		     (list s)))))
+               (let ((sl (assq s sls)))
+                 (if sl
+                     (cons s (mapcar #'(lambda (x) (make-tree x))
+                                     (maximal-sorts (_subsorts sl) sorder)))
+                     (list s)))))
       (mapc #'(lambda (k)
-		(setf (cdr k)
-		      (maximal-sorts (cdr k) sorder)))
-	    kinds)
+                (setf (cdr k)
+                      (maximal-sorts (cdr k) sorder)))
+            kinds)
       (mapc #'(lambda (k)
-		(setf (cdr k)
-		      (mapcar #'(lambda (x) (make-tree x))
-			      (cdr k))))
-	    kinds)
+                (setf (cdr k)
+                      (mapcar #'(lambda (x) (make-tree x))
+                              (cdr k))))
+            kinds)
       kinds)))
 
 (defun make-sort-tree (sort &optional (mod (get-object-context sort)))
   (let* ((so (module-sort-order mod))
-	 (kind (the-err-sort sort so))
-	 (sls (module-sort-relations mod))
-	 (fam (maximal-sorts (get-family kind so) so)))
+         (kind (the-err-sort sort so))
+         (sls (module-sort-relations mod))
+         (fam (maximal-sorts (get-family kind so) so)))
     (labels ((make-tree (s)
-	       (let ((sl (assq s sls)))
-		 (if sl
-		     (cons s (mapcar #'(lambda (x) (make-tree x))
-				     (maximal-sorts (_subsorts sl) so)))
-		     (list s)))))
+               (let ((sl (assq s sls)))
+                 (if sl
+                     (cons s (mapcar #'(lambda (x) (make-tree x))
+                                     (maximal-sorts (_subsorts sl) so)))
+                     (list s)))))
       (cons kind 
-	    (mapcar #'(lambda (x) (make-tree x)) fam)))))
+            (mapcar #'(lambda (x) (make-tree x)) fam)))))
 
 ;;; PRINT-SORT-TREE
 
 (defun print-sort-tree (sort &optional
-			     (stream *standard-output*)
-			     (mod (get-object-context sort)))
+                             (stream *standard-output*)
+                             (mod (get-object-context sort)))
   (!print-sort-tree sort stream mod nil))
 
 (defun print-sort-graph (sort &optional
-			      (stream *standard-output*)
-			      (mod (get-object-context sort)))
+                              (stream *standard-output*)
+                              (mod (get-object-context sort)))
   (!print-sort-tree sort stream mod t))
 
 (defun !print-sort-tree (sort stream mod show-as-graph)
   (let* ((leaf? #'(lambda (tree) (null (cdr tree))))
-	 (leaf-name #'(lambda (tree)
-			(with-output-to-string (str)
-			  (print-sort-name (car tree) mod str)
-			  str)))
-	 (leaf-info #'(lambda (tree) (declare (ignore tree)) t))
-	 (int-node-name #'(lambda (tree)
-			    (funcall leaf-name tree)))
-	 (int-node-children #'(lambda (tree) (cdr tree))))
+         (leaf-name #'(lambda (tree)
+                        (with-output-to-string (str)
+                          (print-sort-name (car tree) mod str)
+                          str)))
+         (leaf-info #'(lambda (tree) (declare (ignore tree)) t))
+         (int-node-name #'(lambda (tree)
+                            (funcall leaf-name tree)))
+         (int-node-children #'(lambda (tree) (cdr tree))))
     (force-output stream)
     (print-next nil *print-indent* stream)
     (print-trees (list (if show-as-graph
-			   (augment-tree-as-graph (make-sort-tree sort mod))
-			   (augment-tree (make-sort-tree sort mod))))
-		 stream)))
+                           (augment-tree-as-graph (make-sort-tree sort mod))
+                           (augment-tree (make-sort-tree sort mod))))
+                 stream)))
 
 ;;; PRINT-MODULE-SORT-TREE
 
 (defun print-module-sort-tree (&optional (mod (get-context-module))
-					 (stream *standard-output*))
+                                         (stream *standard-output*))
   (!print-module-sort-tree mod stream nil))
 
 (defun print-module-sort-graph (&optional (mod (get-context-module))
-					  (stream *standard-output*))
+                                          (stream *standard-output*))
   (!print-module-sort-tree mod stream t))
 
 (defun !print-module-sort-tree (mod stream show-as-graph)
   (let* ((leaf? #'(lambda (tree) (null (cdr tree))))
-	 (leaf-name #'(lambda (tree)
-			(with-output-to-string (str)
-			  (print-sort-name (car tree) mod str)
-			  str)))
-	 (leaf-info #'(lambda (tree) (declare (ignore tree)) t))
-	 (int-node-name #'(lambda (tree)
-			    (funcall leaf-name tree)))
-	 (int-node-children #'(lambda (tree) (cdr tree))))
+         (leaf-name #'(lambda (tree)
+                        (with-output-to-string (str)
+                          (print-sort-name (car tree) mod str)
+                          str)))
+         (leaf-info #'(lambda (tree) (declare (ignore tree)) t))
+         (int-node-name #'(lambda (tree)
+                            (funcall leaf-name tree)))
+         (int-node-children #'(lambda (tree) (cdr tree))))
     (dolist (tree (make-module-sort-tree mod))
       (force-output stream)
       (print-next nil *print-indent* stream)
       (princ "------------------------------------------------------------")
       (print-next nil *print-indent* stream)
       (print-trees (list (if show-as-graph
-			     (augment-tree-as-graph tree)
-			     (augment-tree tree)))
-		   stream))))
+                             (augment-tree-as-graph tree)
+                             (augment-tree tree)))
+                   stream))))
 
 ;;; EOF

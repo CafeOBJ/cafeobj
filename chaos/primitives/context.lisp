@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: Chaos
-			       Module: primitives
-			       File: context.lisp
+                                 System: Chaos
+                               Module: primitives
+                               File: context.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -72,60 +72,60 @@
 (defun check-$$term-context (mod)
   (or (eq $$term-context mod)
       (member $$term-context
-	      (module-all-submodules mod)
-	      :test #'(lambda (x y)
-			(eq x (car y))))))
+              (module-all-submodules mod)
+              :test #'(lambda (x y)
+                        (eq x (car y))))))
 
 (defun get-bound-value (let-sym &optional (mod (get-context-module)))
   (or (cdr (assoc let-sym (module-bindings mod) :test #'equal))
       (when *allow-$$term*
-	(cond ((equal let-sym "$$term")
-	       (when (or (null $$term) (eq 'void $$term))
-		 (with-output-simple-msg ()
-		   (princ "[Error] $$term has no proper value.")
-		   (throw 'term-context-error nil)))
-	       (unless (check-$$term-context mod)
-		 (with-output-simple-msg ()
-		   (princ "[Error] $$term is not proper in the current module.")
-		   (throw 'term-context-error nil)))
-	       $$term)
-	      ((equal let-sym "$$subterm")
-	       (unless $$subterm
-		 (with-output-simple-msg ()
-		   (princ "[Error] $$subterm has no proper vlaue.")
-		   (throw 'term-context-error nil)))
-	       (unless (check-$$term-context mod)
-		 (with-output-simple-msg ()
-		   (princ "[Error] $$subterm is not proper in the current module.")
-		   (throw 'term-context-error nil)))
-	       $$subterm)
-	      ((is-special-let-variable? let-sym)
-	       (cdr (assoc let-sym (module-bindings mod) :test #'equal)))
-	      (t nil)))))
+        (cond ((equal let-sym "$$term")
+               (when (or (null $$term) (eq 'void $$term))
+                 (with-output-simple-msg ()
+                   (princ "[Error] $$term has no proper value.")
+                   (throw 'term-context-error nil)))
+               (unless (check-$$term-context mod)
+                 (with-output-simple-msg ()
+                   (princ "[Error] $$term is not proper in the current module.")
+                   (throw 'term-context-error nil)))
+               $$term)
+              ((equal let-sym "$$subterm")
+               (unless $$subterm
+                 (with-output-simple-msg ()
+                   (princ "[Error] $$subterm has no proper vlaue.")
+                   (throw 'term-context-error nil)))
+               (unless (check-$$term-context mod)
+                 (with-output-simple-msg ()
+                   (princ "[Error] $$subterm is not proper in the current module.")
+                   (throw 'term-context-error nil)))
+               $$subterm)
+              ((is-special-let-variable? let-sym)
+               (cdr (assoc let-sym (module-bindings mod) :test #'equal)))
+              (t nil)))))
 
 (defun set-bound-value (let-sym value &optional (mod (get-context-module)))
   (when (or (equal let-sym "$$term")
-	    (equal let-sym "$$subterm"))
+            (equal let-sym "$$subterm"))
     (with-output-chaos-error ('misc-error)
       (princ "sorry, but you cannot use \"$$term\" or \"$$subterm\" as let variable.")
       ))
   ;;
   (let* ((special nil)
-	 (bindings (if (is-special-let-variable? let-sym)
-		       (progn (setq special t) (module-special-bindings mod))
-		       (module-bindings mod))))
+         (bindings (if (is-special-let-variable? let-sym)
+                       (progn (setq special t) (module-special-bindings mod))
+                       (module-bindings mod))))
     (let ((binding (assoc let-sym bindings :test #'equal)))
       (if binding
-	  (progn
-	    (with-output-chaos-warning ()
-	      (format t "resetting bound value of ~a to " let-sym)
-	      (print-chaos-object value))
-	    (setf (cdr binding) value))
-	  (if special
-	      (setf (module-special-bindings mod)
-		    (acons let-sym value (module-special-bindings mod)))
-	      (setf (module-bindings mod)
-		    (acons let-sym value (module-bindings mod))))))))
+          (progn
+            (with-output-chaos-warning ()
+              (format t "resetting bound value of ~a to " let-sym)
+              (print-chaos-object value))
+            (setf (cdr binding) value))
+          (if special
+              (setf (module-special-bindings mod)
+                    (acons let-sym value (module-special-bindings mod)))
+              (setf (module-bindings mod)
+                    (acons let-sym value (module-bindings mod))))))))
 
 ;;; CHANGING CONTEXT
 ;;;-----------------------------------------------------------------------------
@@ -138,27 +138,27 @@
   (when (and mod (module-name mod))
     (let ((context (module-context mod)))
       (setf (module-context-$$term context) $$term
-	    (module-context-$$subterm context) $$subterm
-	    (module-context-$$action-stack context) $$action-stack
-	    (module-context-$$selection-stack context) $$selection-stack
-	    (module-context-$$stop-pattern context) *rewrite-stop-pattern*))))
+            (module-context-$$subterm context) $$subterm
+            (module-context-$$action-stack context) $$action-stack
+            (module-context-$$selection-stack context) $$selection-stack
+            (module-context-$$stop-pattern context) *rewrite-stop-pattern*))))
 
 (defun new-context (mod)
   (unless mod
     (setf $$term nil
-	  $$subterm nil
-	  $$action-stack nil
-	  $$selection-stack nil
-	  $$term-context nil
-	  *current-module* nil
-	  *rewrite-stop-pattern* nil)
+          $$subterm nil
+          $$action-stack nil
+          $$selection-stack nil
+          $$term-context nil
+          *current-module* nil
+          *rewrite-stop-pattern* nil)
     (return-from new-context nil))
   (let ((context (module-context mod)))
     (setf $$term (module-context-$$term context)
-	  $$subterm (module-context-$$subterm context)
-	  $$action-stack (module-context-$$action-stack context)
-	  $$selection-stack (module-context-$$selection-stack context)
-	  *rewrite-stop-pattern* (module-context-$$stop-pattern context))
+          $$subterm (module-context-$$subterm context)
+          $$action-stack (module-context-$$action-stack context)
+          $$selection-stack (module-context-$$selection-stack context)
+          *rewrite-stop-pattern* (module-context-$$stop-pattern context))
     (setf $$term-context mod)
     (reset-context-module mod)
     (clear-method-info-hash)
@@ -181,11 +181,11 @@
 (defun reset-target-term (term old-mod mod)
   (if (eq mod old-mod)
       (progn
-	(setq $$term term
-	      $$subterm term
-	      $$selection-stack nil)
-	(save-context mod)
-	(new-context mod))
+        (setq $$term term
+              $$subterm term
+              $$selection-stack nil)
+        (save-context mod)
+        (new-context mod))
     ;; we do not change globals, instead set in context of mod.
     (save-context mod)))
 ;;;
@@ -203,9 +203,9 @@
   (when (get-context-module)
     (let ((old (context-pop)))
       (unless (eq old (get-context-module))
-	;; eval-mod may change the current context implicitly.
-	;; in this case we do not recover context.
-	(change-context (get-context-module) old)))))
+        ;; eval-mod may change the current context implicitly.
+        ;; in this case we do not recover context.
+        (change-context (get-context-module) old)))))
 
 ;;; EOF
 

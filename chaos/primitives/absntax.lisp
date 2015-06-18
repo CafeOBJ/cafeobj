@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-			       Module: primitives
-			       File: absntax.lisp
+                                 System: CHAOS
+                               Module: primitives
+                               File: absntax.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -96,8 +96,8 @@
 ;;;                       :import-decl
 ;;;                         /      \
 ;;;                   :protecting  :modexp
-;;;				      |
-;;;				     "INT"
+;;;                                   |
+;;;                                  "INT"
 ;;;
 ;;; where, :import-decl is a type tag which indicates this tree represents a
 ;;; <ModuleImportation>. :protecting is an example of usage of `symbol' in tree,
@@ -176,19 +176,19 @@
 ;;;
 (defterm sort-ref (%ast)
   :visible (name &optional qualifier)
-  :eval find-qual-sort			; the default meaning.
+  :eval find-qual-sort                  ; the default meaning.
   :print print-sort-ref)
 
 (defun may-be-error-sort-ref? (ref)
   (let ((name nil))
     (cond ((%is-sort-ref ref) (setq name (%sort-ref-name ref)))
-	  ((symbolp ref) (setq name (string ref)))
-	  ((stringp ref) (setq name ref))
-	  (t (with-output-panic-message ()
-	       (format t "invalid sort reference ~a" ref)
-	       (chaos-error 'panic))))
+          ((symbolp ref) (setq name (string ref)))
+          ((stringp ref) (setq name ref))
+          (t (with-output-panic-message ()
+               (format t "invalid sort reference ~a" ref)
+               (chaos-error 'panic))))
     (eql #\? (schar name 0))))
-	   
+           
 ;;; * NOTE *
 ;;; 1. As described above, the meaning of `sort-ref' is overloaded, this is
 ;;; because of a feature of CafeOBJ for relaxing a restriction of subsort
@@ -206,9 +206,9 @@
 ;;; representation = (%sort-decl name)
 ;;;
 (defterm sort-decl (%ast)
-  :visible (name			; one of string, symbol,
-					; ast `:sort-ref'.
-	    &optional hidden)		; non-nil iff hidden sorts.
+  :visible (name                        ; one of string, symbol,
+                                        ; ast `:sort-ref'.
+            &optional hidden)           ; non-nil iff hidden sorts.
   :eval declare-sort
   :print print-sort-decl)
 
@@ -221,8 +221,8 @@
 ;;;
 (defterm bsort-decl (%ast)
   :visible (name token-predicate term-creator
-		 term-printer term-predicate
-		 hidden)
+                 term-printer term-predicate
+                 hidden)
   :eval declare-bsort
   :print print-bsort-decl)
 
@@ -379,8 +379,8 @@
 ;;; LET Declaration____________________________________________________________
 ;;; 
 (defterm let (%ast)
-  :visible (sym				; name
-	    value)			; value (pre-term).
+  :visible (sym                         ; name
+            value)                      ; value (pre-term).
   :eval eval-let
   :print print-let-decl)
 
@@ -436,7 +436,7 @@
   :eval find-qual-rrule)
 
 ;;;=============================================================================
-;;; 			       MODULE IMPORTATION
+;;;                            MODULE IMPORTATION
 ;;;=============================================================================
 
 ;;; IMPORT DECLARATION__________________________________________________________
@@ -450,7 +450,7 @@
   :print print-import-decl)
 
 ;;;=============================================================================
-;;; 			    SIGNATURE, AXIOM, MODULE
+;;;                         SIGNATURE, AXIOM, MODULE
 ;;;=============================================================================
 
 ;;; SIGNATURE___________________________________________________________________

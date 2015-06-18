@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-				 Module: deCafe
-			       File: mutils.lisp
+                                 System: CHAOS
+                                 Module: deCafe
+                               File: mutils.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -51,7 +51,7 @@
   (do ((r l (cdr r))
        (i 0 (1+ i))
        (res nil (cons (make-variable-term (term-sort (car r)) i)
-		      res)))
+                      res)))
       ((null r) (nreverse res))
     (declare (type fixnum i))))
 
@@ -67,29 +67,29 @@
 
 (defun appropriate-method (srcmod module op)
   (when (or (null module)
-	    (not (member op
-			 (module-all-operators module)
-			 :test #'(lambda (x y)
-				   (operator= x (opinfo-operator y)))
-			 )))
+            (not (member op
+                         (module-all-operators module)
+                         :test #'(lambda (x y)
+                                   (operator= x (opinfo-operator y)))
+                         )))
     (setq module (operator-module op)))
   (let ((arnum (operator-num-args op))
-	;; (theory (operator-theory op)) ; not used now
-	)
+        ;; (theory (operator-theory op)) ; not used now
+        )
     (declare (type fixnum arnum))
     (let ((val (remove-if-not
-		#'(lambda (opinfo)
-		    (let ((opr (opinfo-operator opinfo)))
-		      (and (= arnum (the fixnum (operator-num-args opr)))
+                #'(lambda (opinfo)
+                    (let ((opr (opinfo-operator opinfo)))
+                      (and (= arnum (the fixnum (operator-num-args opr)))
                            ;; * todo * is-similar-theory
-			   ;; (is-similar-theory (operator-theory opr) theory)
-			   (eq srcmod (operator-module opr)))))
-		(module-all-operators srcmod))))
+                           ;; (is-similar-theory (operator-theory opr) theory)
+                           (eq srcmod (operator-module opr)))))
+                (module-all-operators srcmod))))
       (if val
-	  (if (null (cdr val))
-	      (car val)
-	      nil)
-	  nil))))
+          (if (null (cdr val))
+              (car val)
+              nil)
+          nil))))
 
 (defun modexp-eval-principal-op (mod)
   (let ((all-ops (module-all-operators mod)))
@@ -102,20 +102,20 @@
 ;;;
 (defun modmorph-check-rank (newmod oldmod map method)
   (let ((modmap (modmorph-module map))
-	(sortmap (modmorph-sort map))
-	(ar (method-arity method))
-	(coar (method-coarity method)))
+        (sortmap (modmorph-sort map))
+        (ar (method-arity method))
+        (coar (method-coarity method)))
     (setf (method-arity method)
-	  (modmorph-sorts-image-create newmod
-				       oldmod
-				       modmap
-				       sortmap
-				       ar))
+          (modmorph-sorts-image-create newmod
+                                       oldmod
+                                       modmap
+                                       sortmap
+                                       ar))
     (setf (method-coarity method)
-	  (modmorph-sort-image-create newmod
-				      oldmod
-				      modmap
-				      sortmap
-				      coar))
+          (modmorph-sort-image-create newmod
+                                      oldmod
+                                      modmap
+                                      sortmap
+                                      coar))
     ))
 

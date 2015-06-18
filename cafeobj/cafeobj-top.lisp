@@ -139,13 +139,13 @@
               (with-chaos-top-error ()
                 (with-chaos-error ()
                   (cafeobj-init-files)))))
-	  (with-simple-restart (nil "Exit CafeOBJ.")
-	    (loop
-	      (with-simple-restart (abort "Return to CafeOBJ Top level.")
-		(catch *top-level-tag*
-		  (process-cafeobj-input)
-		  (setq quit-flag t))
-		(when quit-flag (return :ok-exit))))))
+          (with-simple-restart (nil "Exit CafeOBJ.")
+            (loop
+              (with-simple-restart (abort "Return to CafeOBJ Top level.")
+                (catch *top-level-tag*
+                  (process-cafeobj-input)
+                  (setq quit-flag t))
+                (when quit-flag (return :ok-exit))))))
         (format t "[Leaving CafeOBJ]~%")))
   (finish-output))
 
@@ -185,14 +185,14 @@
                 (with-chaos-top-error ()
                   (with-chaos-error ()
                     (cafeobj-init-files)))))
-	    (with-simple-restart (nil "Exit CafeOBJ.")
-	      (loop
-		(with-simple-restart (abort "Return to CafeOBJ Top level.")
-		  (catch *top-level-tag*
-		    (process-cafeobj-input)
-		    (setq quit-flag t))
-		  (when quit-flag (return :ok-exit))))))
-	  (format t "[Leaving CafeOBJ]~%")))
+            (with-simple-restart (nil "Exit CafeOBJ.")
+              (loop
+                (with-simple-restart (abort "Return to CafeOBJ Top level.")
+                  (catch *top-level-tag*
+                    (process-cafeobj-input)
+                    (setq quit-flag t))
+                  (when quit-flag (return :ok-exit))))))
+          (format t "[Leaving CafeOBJ]~%")))
     (finish-output) ))
 
 ;;;=============================================================================
@@ -277,10 +277,10 @@
   ;;
   (let ((res (catch *top-level-tag* (cafeobj) 'ok-exit)))
     (if (eq res 'ok-exit)
-	(bye-bye-bye)
+        (bye-bye-bye)
       (progn
-	(princ "** ERROR")
-	(terpri)))))
+        (princ "** ERROR")
+        (terpri)))))
 
 #+EXCL
 (eval-when (:execute :load-toplevel)

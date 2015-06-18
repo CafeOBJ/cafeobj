@@ -464,7 +464,7 @@
         (version)
         ;; AUTO LOAD
         (autoload :symbol :symbol)
-	(no-autoload :symbol)
+        (no-autoload :symbol)
         ;; (stop at :term |.|)
         ;; ((:+ rwt) limit :symbol)
         (test (:+ reduction red execution exec) (:if-present in :modexp |:|)
@@ -491,7 +491,7 @@
         ((:+ --> **>) :comment)
         ((:+ -- **) :comment)
         (parse (:rdr #..term-delimiting-chars.
-		     (:if-present  in :modexp |:|) (:seq-of :term) |.|))
+                     (:if-present  in :modexp |:|) (:seq-of :term) |.|))
         ((:+ lisp ev eval evq lispq)
          (:call (read)))
         (;; (:+ show sh set select describe desc) ; do 
@@ -536,105 +536,105 @@
         (open :modexp |.|)
         (close)
         (start :term |.|)
-	;; scase (<Term>) on (<Modexp>) as <Name> { <ModuleElements> } : <GoalTerm> .
-	(scase |(| (:seq-of :term) |)| in |(| :modexp |)| as :symbol |{|
-	       (:many-of
-		;; MODULE IMPORTATIONS
-		;; *NOTE*  imports { ... } is not in MANUAL, and does not have
-		;;         translater to Chaos now.
-		((:+ imports import)
-		 |{|
-		 (:many-of
-		  #.ExDeclaration
-		  #.PrDeclaration
-		  #.UsDeclaration
-		  #.IncDeclaration
-		  ((:+ --> **>) :comment)
-		  ((:+ -- **) :comment)
-		  )
-		 |}|)
-		#.ExDeclaration
-		#.PrDeclaration
-		#.UsDeclaration
-		#.IncDeclaration
-		
-		;; SIGNATURE
-		((:+ sig signature) |{|
-				    (:many-of
-				     #.BSortDeclaration
-				     #.BHSortDeclaration
-				     #.HSortDeclaration
-				     #.SortDeclaration
-				     #.OperatorDeclaration
-				     #.BOperatorDeclaration
-				     #.PredicateDeclaration
-				     #.BPredicateDeclaration
-				     #.OperatorAttribute
-				     ;; #.R-C-Declaration
-				     ((:+ --> **>) :comment)
-				     ((:+ -- **) :comment)
-				     )
-				    |}|)
+        ;; scase (<Term>) on (<Modexp>) as <Name> { <ModuleElements> } : <GoalTerm> .
+        (scase |(| (:seq-of :term) |)| in |(| :modexp |)| as :symbol |{|
+               (:many-of
+                ;; MODULE IMPORTATIONS
+                ;; *NOTE*  imports { ... } is not in MANUAL, and does not have
+                ;;         translater to Chaos now.
+                ((:+ imports import)
+                 |{|
+                 (:many-of
+                  #.ExDeclaration
+                  #.PrDeclaration
+                  #.UsDeclaration
+                  #.IncDeclaration
+                  ((:+ --> **>) :comment)
+                  ((:+ -- **) :comment)
+                  )
+                 |}|)
+                #.ExDeclaration
+                #.PrDeclaration
+                #.UsDeclaration
+                #.IncDeclaration
+                
+                ;; SIGNATURE
+                ((:+ sig signature) |{|
+                                    (:many-of
+                                     #.BSortDeclaration
+                                     #.BHSortDeclaration
+                                     #.HSortDeclaration
+                                     #.SortDeclaration
+                                     #.OperatorDeclaration
+                                     #.BOperatorDeclaration
+                                     #.PredicateDeclaration
+                                     #.BPredicateDeclaration
+                                     #.OperatorAttribute
+                                     ;; #.R-C-Declaration
+                                     ((:+ --> **>) :comment)
+                                     ((:+ -- **) :comment)
+                                     )
+                                    |}|)
 
-		;; AXIOMS
-		((:+ axiom axioms axs) |{|
-				       (:many-of
-					#.LetDeclaration
-					#.MacroDeclaration
-					#.VarDeclaration
-					#.VarsDeclaration
-					#.EqDeclaration
-					#.CeqDeclaration
-					#.RlDeclaration
-					#.CRlDeclaration
-					#.BeqDeclaration
-					#.BCeqDeclaration
-					#.BRLDeclaration
-					#.BCRLDeclaration
-					#.FoplAXDeclaration
-					#.FoplGoalDeclaration
-					((:+ --> **>) :comment)
-					((:+ -- **) :comment)
-					)
-				       |}|)
+                ;; AXIOMS
+                ((:+ axiom axioms axs) |{|
+                                       (:many-of
+                                        #.LetDeclaration
+                                        #.MacroDeclaration
+                                        #.VarDeclaration
+                                        #.VarsDeclaration
+                                        #.EqDeclaration
+                                        #.CeqDeclaration
+                                        #.RlDeclaration
+                                        #.CRlDeclaration
+                                        #.BeqDeclaration
+                                        #.BCeqDeclaration
+                                        #.BRLDeclaration
+                                        #.BCRLDeclaration
+                                        #.FoplAXDeclaration
+                                        #.FoplGoalDeclaration
+                                        ((:+ --> **>) :comment)
+                                        ((:+ -- **) :comment)
+                                        )
+                                       |}|)
 
-		;; Module elements without signature/axioms.
-		#.BSortDeclaration
-		#.BHSortDeclaration
-		#.SortDeclaration
-		#.HSortDeclaration
-		#.BHSortDeclaration
-		;; #.R-C-Declaration
-		#.OperatorDeclaration
-		#.BOperatorDeclaration
-		#.PredicateDeclaration
-		#.BPredicateDeclaration
-		#.OperatorAttribute
-		#.LetDeclaration
-		#.MacroDeclaration
-		#.VarDeclaration
-		#.VarsDeclaration
-		#.EqDeclaration
-		#.BEqDeclaration
-		#.CeqDeclaration
-		#.BCeqDeclaration
-		#.RlDeclaration
-		#.CRlDeclaration
-		#.BRlDeclaration
-		#.BCRLDeclaration
-		#.FoplAXDeclaration
-		#.FoplGoalDeclaration
-		((:+ --> **>) :comment)
-		((:+ -- **) :comment)
-		
-		;; Misc elements.
-		;; (parse :term |.|)
-		((:+ ev lisp evq lispq) (:call (read)))
-		;; allow sole ".", and do nothing
-		(|.|)
-		)
-	       |}|
-	       |:| (:seq-of :term) |.|)
+                ;; Module elements without signature/axioms.
+                #.BSortDeclaration
+                #.BHSortDeclaration
+                #.SortDeclaration
+                #.HSortDeclaration
+                #.BHSortDeclaration
+                ;; #.R-C-Declaration
+                #.OperatorDeclaration
+                #.BOperatorDeclaration
+                #.PredicateDeclaration
+                #.BPredicateDeclaration
+                #.OperatorAttribute
+                #.LetDeclaration
+                #.MacroDeclaration
+                #.VarDeclaration
+                #.VarsDeclaration
+                #.EqDeclaration
+                #.BEqDeclaration
+                #.CeqDeclaration
+                #.BCeqDeclaration
+                #.RlDeclaration
+                #.CRlDeclaration
+                #.BRlDeclaration
+                #.BCRLDeclaration
+                #.FoplAXDeclaration
+                #.FoplGoalDeclaration
+                ((:+ --> **>) :comment)
+                ((:+ -- **) :comment)
+                
+                ;; Misc elements.
+                ;; (parse :term |.|)
+                ((:+ ev lisp evq lispq) (:call (read)))
+                ;; allow sole ".", and do nothing
+                (|.|)
+                )
+               |}|
+               |:| (:seq-of :term) |.|)
         ;; trace/untrace
         ((:+ trace untrace) :symbol)
         ;; apply
@@ -672,14 +672,14 @@
         (provide :symbol)
         (require :top-term)
         (autoload :symbol :symbol)
-	;; for testing delimiters
-	(delimiter (:+ = + -)
-		   |{|
-		   (:upto (|}|) :chars)
-		   :append (:seq-of (:upto (|}|) :chars))
-		   |}|)
-	;;
-	(delim)
+        ;; for testing delimiters
+        (delimiter (:+ = + -)
+                   |{|
+                   (:upto (|}|) :chars)
+                   :append (:seq-of (:upto (|}|) :chars))
+                   |}|)
+        ;;
+        (delim)
         ;; PigNose commands
         #+:bigpink (db reset)
         #+:bigpink ((:+ sos passive) (:+ = + -)
@@ -728,115 +728,115 @@
         (! :top-term)                   ; shell escape
         (|.|)
         ;; (chaos :args)
-	;; new commands as of 2011/Q1
-        (? :args)			; help/messege description
+        ;; new commands as of 2011/Q1
+        (? :args)                       ; help/messege description
         (?? :args)                      ; detailed help
-	;; new commands as of 2012/Q1
-	((:+ names name) :modexp |.|)
-	(look up (:if-present in :modexp |:|) (:seq-of :top-opname))
-	;; term inspector
-	((:+ inspect inspect-term) :args)
-	;; generate reference manual
-	(gendoc :symbol)
-	(?example :args)
-	(?ex :args)
-	(?apropos :comment)
-	(?ap :comment)
-	((:+ ?com ?command) :args)
-	((:+ command commands com))
-	;; CITP commands
-	(|:goal| |{| (:many-of  #.EqDeclaration
-				#.CeqDeclaration
-				#.RlDeclaration
-				#.CRlDeclaration
-				#.BeqDeclaration
-				#.BCeqDeclaration
-				#.BRLDeclaration
-				#.BCRLDeclaration
-				#.FoplAXDeclaration)
-		 |}|)
-	(|:apply| (:if-present to (:symbol)) (|(| (:seq-of :symbol) |)|))
-	(|:auto|)
-	(|:ind| (:+ on |:on|) |(| (:seq-of :term) |)|)
-	(|:roll| (:+ back |:back|))
-	(|:init| (:one-of (|(| (:one-of #.EqDeclaration
-					#.CeqDeclaration
-					#.RlDeclaration
-					#.CRlDeclaration
-					#.BeqDeclaration
-					#.BCeqDeclaration
-					#.BRLDeclaration
-					#.BCRLDeclaration
-					#.FoplAXDeclaration)
-			       |)|)
-			  (\[ (:symbol) \]))
-		 |by| |{| ((:! SubstList)) |}|)
-	(|:cp| (:one-of (|(| (:one-of #.EqDeclaration
-				      #.CeqDeclaration
-				      #.RlDeclaration
-				      #.CRlDeclaration
-				      #.BeqDeclaration
-				      #.BCeqDeclaration
-				      #.BRLDeclaration
-				      #.BCRLDeclaration
-				      #.FoplGoalDeclaration)
-			     |)|)
-			(\[ (:symbol) \]))
-	       ><
-	       (:one-of (|(| (:one-of #.EqDeclaration
-				      #.CeqDeclaration
-				      #.RlDeclaration
-				      #.CRlDeclaration
-				      #.BeqDeclaration
-				      #.BCeqDeclaration
-				      #.BRLDeclaration
-				      #.BCRLDeclaration
-				      #.FoplGoalDeclaration)
-			     |)|)
-			(\[ (:symbol) \])))
-	((:+ |:equation| |:rule|))
-	(|:backward| (:+ equation rule |:equation| |:rule|))
-	(|:select| (:symbol))
-	((:+ |:red| |lred| |:lred| |:exec| |:bred|)
-	 (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
-	(|:verbose| :symbol)
-	(|:normalize| :symbol)
-	(|:ctf| |{| (:one-of #.EqDeclaration 
-			     #.RlDeclaration
-			     #.BeqDeclaration
-			     #.BRLDeclaration
-			     #.FoplAXDeclaration)
-		|}|)
-	(|:csp| |{| (:many-of  #.EqDeclaration
-			       #.RlDeclaration
-			       #.BeqDeclaration
-			       #.BRLDeclaration
-			       #.FoplAXDeclaration)
-		 |}|)
-	((:+ |:show| |:sh| |:describe| |:desc|) :args)
-        ))				; end Top-Form
+        ;; new commands as of 2012/Q1
+        ((:+ names name) :modexp |.|)
+        (look up (:if-present in :modexp |:|) (:seq-of :top-opname))
+        ;; term inspector
+        ((:+ inspect inspect-term) :args)
+        ;; generate reference manual
+        (gendoc :symbol)
+        (?example :args)
+        (?ex :args)
+        (?apropos :comment)
+        (?ap :comment)
+        ((:+ ?com ?command) :args)
+        ((:+ command commands com))
+        ;; CITP commands
+        (|:goal| |{| (:many-of  #.EqDeclaration
+                                #.CeqDeclaration
+                                #.RlDeclaration
+                                #.CRlDeclaration
+                                #.BeqDeclaration
+                                #.BCeqDeclaration
+                                #.BRLDeclaration
+                                #.BCRLDeclaration
+                                #.FoplAXDeclaration)
+                 |}|)
+        (|:apply| (:if-present to (:symbol)) (|(| (:seq-of :symbol) |)|))
+        (|:auto|)
+        (|:ind| (:+ on |:on|) |(| (:seq-of :term) |)|)
+        (|:roll| (:+ back |:back|))
+        (|:init| (:one-of (|(| (:one-of #.EqDeclaration
+                                        #.CeqDeclaration
+                                        #.RlDeclaration
+                                        #.CRlDeclaration
+                                        #.BeqDeclaration
+                                        #.BCeqDeclaration
+                                        #.BRLDeclaration
+                                        #.BCRLDeclaration
+                                        #.FoplAXDeclaration)
+                               |)|)
+                          (\[ (:symbol) \]))
+                 |by| |{| ((:! SubstList)) |}|)
+        (|:cp| (:one-of (|(| (:one-of #.EqDeclaration
+                                      #.CeqDeclaration
+                                      #.RlDeclaration
+                                      #.CRlDeclaration
+                                      #.BeqDeclaration
+                                      #.BCeqDeclaration
+                                      #.BRLDeclaration
+                                      #.BCRLDeclaration
+                                      #.FoplGoalDeclaration)
+                             |)|)
+                        (\[ (:symbol) \]))
+               ><
+               (:one-of (|(| (:one-of #.EqDeclaration
+                                      #.CeqDeclaration
+                                      #.RlDeclaration
+                                      #.CRlDeclaration
+                                      #.BeqDeclaration
+                                      #.BCeqDeclaration
+                                      #.BRLDeclaration
+                                      #.BCRLDeclaration
+                                      #.FoplGoalDeclaration)
+                             |)|)
+                        (\[ (:symbol) \])))
+        ((:+ |:equation| |:rule|))
+        (|:backward| (:+ equation rule |:equation| |:rule|))
+        (|:select| (:symbol))
+        ((:+ |:red| |lred| |:lred| |:exec| |:bred|)
+         (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
+        (|:verbose| :symbol)
+        (|:normalize| :symbol)
+        (|:ctf| |{| (:one-of #.EqDeclaration 
+                             #.RlDeclaration
+                             #.BeqDeclaration
+                             #.BRLDeclaration
+                             #.FoplAXDeclaration)
+                |}|)
+        (|:csp| |{| (:many-of  #.EqDeclaration
+                               #.RlDeclaration
+                               #.BeqDeclaration
+                               #.BRLDeclaration
+                               #.FoplAXDeclaration)
+                 |}|)
+        ((:+ |:show| |:sh| |:describe| |:desc|) :args)
+        ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.
       ;; --------------------------------------------------
       ;; subterm specifier
       
       (Selector (:one-of 
-		 (|{| :int :append (:seq-of |,| :int) |}|)
-		 (|(| (:seq-of :int) |)|)
-		 (\[ :int (:optional |..| :int) \])))
+                 (|{| :int :append (:seq-of |,| :int) |}|)
+                 (|(| (:seq-of :int) |)|)
+                 (\[ :int (:optional |..| :int) \])))
 
       ;; parameter part
       ;; (Params (\[ (:! Param) :append (:seq-of |,| (:! Param)) \]))
       (Param  (:one-of-default
-	       (:symbols |::| (:upto (|,| \] \)) :modexp))
-	       ((:+ ex extending us using pr protecting inc including)
-		:symbols |::| (:upto (|,| \] \)) :modexp))))
+               (:symbols |::| (:upto (|,| \] \)) :modexp))
+               ((:+ ex extending us using pr protecting inc including)
+                :symbols |::| (:upto (|,| \] \)) :modexp))))
 
       ;; importation modexp
       #|| not used
       (ImportModexp (:symbol :modexp))
       (IM (:one-of-default
-	   (:modexp)
+           (:modexp)
            (|::| :modexp)))
       ||#
       ;; (sortConst
@@ -851,10 +851,10 @@
       ;; slot/value pairs
       (SV-Pairs ((:! Sv-pair) :append  (:seq-of (:! Sv-pair))))
       (Sv-Pair (:one-of-default
-		(:symbol (:upto (|}|))  (:one-of (|:| :sort)
-						 (= |(| :term |)| |:| :sort)))
-		((:+ -- **) :comment)
-		((:+ --> **>) :comment)))
+                (:symbol (:upto (|}|))  (:one-of (|:| :sort)
+                                                 (= |(| :term |)| |:| :sort)))
+                ((:+ -- **) :comment)
+                ((:+ --> **>) :comment)))
       ||#
       ;; Substitution
       ;;  variable-1 <- term-1; ... variable-n <- term-n;
@@ -862,8 +862,8 @@
       (SubstList ((:! Subst) :append (:seq-of (:! Subst))))
       ;; (Subst ((:term <- :term) |;|))
       (Subst ((:symbol <- :term) |;|))
-      ))				; end of *cafeobj-scheme*
-  )					; end eval-when
+      ))                                ; end of *cafeobj-scheme*
+  )                                     ; end eval-when
 
 
 ;;; EOF

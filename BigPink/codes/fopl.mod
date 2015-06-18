@@ -331,15 +331,15 @@ sys:module! FOPL-BASIC+EQ-1
 make FOPLE-SENTENCE
 (MFOPL+EQ-1(bool-as-truth-value,
             FOPL-BASIC+EQ-1 { sort Sentence -> FoplSentence,
-			      sort Var -> Cosmos,
-			      op and -> _&_,
-			      op or -> _|_,
-			      op imply -> (_->_),
-			      op iff -> _<->_,
-			      op forall -> \A[_]_,
-			      op exists -> \E[_]_,
-			      op not -> ~_,
-			      op eq -> _=_}))
+                              sort Var -> Cosmos,
+                              op and -> _&_,
+                              op or -> _|_,
+                              op imply -> (_->_),
+                              op iff -> _<->_,
+                              op forall -> \A[_]_,
+                              op exists -> \E[_]_,
+                              op not -> ~_,
+                              op eq -> _=_}))
 
 **
 ** We need some Lisp accessible values for PigNose engine.
@@ -379,10 +379,10 @@ sys:module! FOPL-CLAUSE
 
    eq[:BDEMOD]: EQ(X:Cosmos, Y:Cosmos)
    = #!! (coerce-to-bool
-	    (term-equational-equal x y)) .
+            (term-equational-equal x y)) .
    eq[:BDEMOD]: NE(X:Cosmos, Y:Cosmos)
    = #!! (coerce-to-bool
-	    (not (term-equational-equal x y))) .
+            (not (term-equational-equal x y))) .
 
  }
 

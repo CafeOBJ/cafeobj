@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-System: CHAOS
-Module: thstuff
-File: basics.lisp
+                                System: CHAOS
+                               Module: thstuff
+                              File: basics.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -58,7 +58,7 @@ File: basics.lisp
 
 (defun command-display ()
   (if $$action-stack
-      (format t "~&-- condition(~s) " (length $$action-stack))
+      (format t "~%-- condition(~s) " (length $$action-stack))
     (format t "~&result "))
   (disp-term $$term))
 
@@ -70,7 +70,7 @@ File: basics.lisp
     (if (term-is-similar? $$term *bool-true*)
         (progn
           (command-display)
-          (format t "~&-- condition is satisfied, applying rule")
+          (format t "~%-- condition is satisfied, applying rule")
           (format t "~&-- shifiting focus back to previous context")
           (let ((cur (car $$action-stack)))
             (setq $$term (car cur))
@@ -80,7 +80,7 @@ File: basics.lisp
       (if (term-is-similar? $$term *bool-false*)
           (progn
             (command-display)
-            (format t "~&-- condition is not satisfied, rule not applied")
+            (format t "~%-- condition is not satisfied, rule not applied")
             (format t "~&-- shifting focus back to previous context")
             (setq $$term (caar $$action-stack))
             (setq $$action-stack (cdr $$action-stack))
@@ -102,7 +102,7 @@ File: basics.lisp
 ;;; apply-help
 ;;;
 (defun apply-help ()
-  (format t "~&Apply a selected rule, possibly with an instantiation,")
+  (format t "~%Apply a selected rule, possibly with an instantiation,")
   (format t " to selected subterm(s).")
   (format t "~&Syntax:")
   (format t "~&  apply { reduction | red | print | bred | exec | <RuleSpec> [ <VarSubst> ] }")
@@ -485,7 +485,7 @@ File: basics.lisp
       (@pat-match pat term)
     (when res
       (dolist (sub subst)
-	(push sub *m-pattern-subst*))
+        (push sub *m-pattern-subst*))
       (return-from match-m-pattern t))
     nil))
 

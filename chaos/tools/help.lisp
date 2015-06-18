@@ -29,7 +29,7 @@
 (in-package :chaos)
 #|==============================================================================
                             System: CHAOS
-		          Module: chaos/tools
+                          Module: chaos/tools
                             File: help.lisp
 ==============================================================================|#
 #-:chaos-debug
@@ -47,7 +47,7 @@
   (let* ((sdesc (gethash com-pat *Help-DB*))
          (syntax (first sdesc)))
     (if sdesc
-        (concatenate 'string "~&[Syntax]: \"" syntax "\"~%  "
+        (concatenate 'string "~%[Syntax]: \"" syntax "\"~%  "
                      (if detail
                          (third sdesc)
                        (second sdesc)))
