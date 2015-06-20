@@ -61,7 +61,7 @@
 
 (defvar .saved-ambiguous. nil)
 
-;;; ** NOTE : MUST BE CALLED in `with-in-module'
+;;; SIMPLE-PARSE : module list-of-tokens &optional sort-constraint -> term
 ;;;
 (defun simple-parse (module preterm &optional (sort *cosmos*))
   (declare (type module module)
@@ -82,27 +82,31 @@
           (format t "~%[simple-parse] preterm= ~s, parsed term = " preterm)
           (print-terletox-list res))
         (let* ((final-well-defined (mapcan #'(lambda (e)
-                                               (when (and (null (cdr e))
+                                               ;; e ::= ((term . prec) . remaning-tokens)
+                                               (when (and (null (cdr e)) ; no remaining tokens
                                                           (not (term-ill-defined
                                                                 (caar e))))
                                                  (list (caar e))))
                                            res))
                (final (if final-well-defined
                           final-well-defined
-                          (mapcan #'(lambda (e)
-                                      (unless (cdr e)
-                                        (list (caar e))))
-                                  res)))
+                        (mapcan #'(lambda (e)
+                                    ;; gather ones without remaining tokens
+                                    (unless (cdr e)
+                                      (list (caar e))))
+                                res)))
                (partial (if final
                             nil
-                            (let ((len 0)
-                                  (val nil))
-                              (dolist (e res val)
-                                (if (< len (length (the list (cdr e))))
-                                    (setf val (cons (caar e) (cdr e))))))))
+                          (let ((len 0)
+                                ;; gather partially parsed ones
+                                (val nil))
+                            (dolist (e res val)
+                              (if (< len (length (the list (cdr e))))
+                                  (setf val (cons (caar e) (cdr e))))))))
                (result nil))
           ;;
           (cond (partial (setf result
+                           ;; syntax error: partially parsed
                                (make-applform *syntax-err-sort*
                                               *partial-method*
                                               (list (car partial)
@@ -110,11 +114,12 @@
                                                                       (cdr partial))))))
                 (final (if (term-ill-defined (car final))
                            (setf result (car final))
-                           (setf result 
-                                 (if (null (cdr final))
-                                     (car final)
-                                     (select-parse module final t)))))
+                         (setf result 
+                           (if (null (cdr final))
+                               (car final)
+                             (select-parse module final t)))))
                 (t (setf result (make-bconst-term *syntax-err-sort*
+                                                  ;; whole term could not be parsed
                                                   (if res
                                                       res
                                                       preterm)))))
@@ -122,8 +127,7 @@
           (setq *parse-raw-parse* result)
           (when (term-ill-defined result)
             (with-output-simple-msg ()
-              (format t "~&[Error] no successful parse")
-              (print-next)))
+              (format t "~&[Error] no successful parse")))
           (parse-convert result module))))))
 
 (defun select-parse (module final &optional print-warning)
@@ -146,8 +150,7 @@
         (print-next)
         (princ "if the signature is regular, there possibly be ")
         (print-next)
-        (princ "some name conflicts between operators and variables.")
-        ))
+        (princ "some name conflicts between operators and variables.")))
     ;;
     (print-next)
     (if *select-ambig-term*
@@ -181,17 +184,12 @@
   (declare (type module module)
            (type list final))
   ;; here we minimize the set of candidates of possible result of parsing.
-  ;; 
   (let ((well )
         (min nil)
         (so (module-sort-order module))
         (res nil))
     (declare (type list well res min)
              (type sort-order so))
-    ;; due to our parsing algorithm (no flames are welcom), possibly
-    ;; the same (in a sense of term-is-similar?) terms can co-exist.
-    (setq final (delete-duplicates final :test #'term-is-similar?))
-
     ;; of course, ill sorted terms detected during parsing procs. are
     ;; out of our focus. 
     ;; miserablly terminates when all are ill-defined terms...
@@ -236,6 +234,9 @@
 (defun pre-choose-final (module final)
   (declare (type module module)
            (type list final))
+  ;; due to our parsing algorithm (no flames are welcom), possibly
+  ;; the same (in a sense of term-is-similar?) terms can co-exist.
+  (setq final (delete-duplicates final :test #'term-is-similar?))
   (let ((result final))
     (when (and (cdr final) (assoc *id-module* (module-all-submodules module)))
       (setq result (remove-if #'(lambda (x) (sort= *id-sort* (term-sort x))) final)))
@@ -252,24 +253,41 @@
             (gen-op nil)
             (res nil))
         (with-in-module (module)
-          ;; first find the lowest one
-          (setq least-op (choose-lowest-op mslist))
-          (cond (least-op
-                 (if (method= *bool-if* least-op)
-                     (setq res (select-if-then-least result (module-sort-order module)))
-                   (push (find-if #'(lambda (x) (method= least-op (term-head x)))
-                                  result)
-                         res))
-                 (setq result res))
-                (t (setq gen-op (choose-most-general-op mslist))
-                   ;; then select most general one
-                   (when gen-op
-                     (push (find-if #'(lambda (x) (method= gen-op (term-head x))) result)
-                           res)
-                     (setq result res)))))))
+          (cond ((null (cdr mslist))
+                 ;; do nothing
+                 )
+                ((null (cdr (remove-duplicates mslist :test #'(lambda (x y) (method= x y)))))
+                 ;; check subterms and select one
+                 (setq result (choose-most-apropreate-term result)))
+                (t ;; first find the lowest one
+                 (setq least-op (choose-lowest-op mslist))
+                 (cond (least-op
+                        (if (method= *bool-if* least-op)
+                            (setq res (select-if-then-least result (module-sort-order module)))
+                          (push (find-if #'(lambda (x) (method= least-op (term-head x)))
+                                         result)
+                                res))
+                        (setq result res))
+                       (t (setq gen-op (choose-most-general-op mslist))
+                          ;; then select most general one
+                          (when gen-op
+                            (push (find-if #'(lambda (x) (method= gen-op (term-head x))) result)
+                                  res)
+                            (setq result res)))))))))
     (if result
         (pre-choose-final-sub module result)
       (pre-choose-final-sub module final))))
+
+;;; select a one among terms with the same top operator 
+(defun choose-most-apropreate-term (terms)
+  (unless (term-subterms (car terms))
+    ;; this is very strange case
+    (return-from choose-most-apropreate-term nil))
+  (let ((res nil))
+    (dolist (term terms)
+      (when (every #'(lambda (x) (not (term-head-is-error x))) (term-subterms term))
+        (push term res)))
+    res))
 
 ;;; NOT USED NOW.
 (defun parser-diagnose (module preterm sort)

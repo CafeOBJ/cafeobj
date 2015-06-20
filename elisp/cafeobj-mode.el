@@ -818,6 +818,7 @@ This is in addition to cafeobj-continued-statement-offset."
           ( ?\" . "\"" )        ; double quote is string quote too
           ( ?\n . ">"))
         ))
+(defvar mode-popup-menu) ;only for XEmacs
 
 (defun cafeobj-mode ()
   "Major mode for editing CafeOBJ programs.
@@ -1469,6 +1470,8 @@ for CafeOBJ process mode only."
   "List of directories saved by pushd in this buffer's CafeOBJ.
 Thus, this does not include the CafeOBJ's current directory.")
 
+(defvar cafeobj-dirstack-query nil)
+
 (defvar cafeobj-dirtrackp t
   "Non-nil in a CafeOBJ buffer means directory tracking is enabled.")
 
@@ -1488,6 +1491,8 @@ Thus, this does not include the CafeOBJ's current directory.")
          "\t" 'comint-dynamic-complete)
        (define-key cafeobj-process-mode-map
          "\M-?"  'comint-dynamic-list-filename-completions)
+       (define-key cafeobj-process-mode-map
+         "\C-c\C-g" 'cafeobj-put-esc-esc)
        (define-key cafeobj-process-mode-map [menu-bar completion]
          (cons "Complete"
                (copy-keymap (lookup-key comint-mode-map [menu-bar completion]))))
@@ -1758,13 +1763,14 @@ If `cafeobj-process' is nil or dead, start a new process first."
 (defun cafeobj-send-region (start end)
   "Send region to chaos subprocess."
   (interactive "r")
-  (or (and cafeobj-process
-           (comint-check-proc cafeobj-process-buffer))
-      (cafeobj-start-process cafeobj-application-name cafeobj-default-application))
-  (comint-simple-send cafeobj-process
-                      (concat (buffer-substring start end) "\n"))
-  (if cafeobj-always-show
-      (display-buffer cafeobj-process-buffer)))
+  (when (and start end) 
+    (or (and cafeobj-process
+             (comint-check-proc cafeobj-process-buffer))
+        (cafeobj-start-process cafeobj-application-name cafeobj-default-application))
+    (comint-simple-send cafeobj-process
+                        (concat (buffer-substring start end) "\n"))
+    (if cafeobj-always-show
+        (display-buffer cafeobj-process-buffer))))
 
 (defun cafeobj-send-decl ()
   "Send proc around point to chaos subprocess."
@@ -2149,6 +2155,18 @@ See `cafeobj-command-regexp'."
         (progn (goto-char (match-beginning 1))
                (skip-chars-forward ";&|")))))
 
+(defvar esc-esc "")
+
+(defun cafeobj-put-esc-esc ()
+  "send EscEsc to CafeOBJ process. This makes the interpeter
+to cancel current input."
+  (interactive)
+  (let* ((proc (get-buffer-process (current-buffer)))
+         (pmark (process-mark proc)))
+    (goto-char pmark)
+    (comint-send-string proc esc-esc)
+    (comint-send-string proc "\n")
+    (set-marker pmark (point))))
 
 (defun cafeobj-dynamic-complete-command ()
   "Dynamically complete the command at point.

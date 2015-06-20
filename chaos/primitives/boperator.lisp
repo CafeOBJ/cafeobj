@@ -988,6 +988,7 @@
           (if (err-sort-p a)
               (return-from method-is-error-method t))))))
 
+;;; returns true if all of its arguments are universal sort
 (defun method-is-universal (method)
   (declare (type method method)
            (values (or null t)))
@@ -1001,6 +1002,7 @@
                        (sort= ar *cosmos*))
              (return-from method-is-universal nil))))))
 
+;;; returns true if one of the argument is an universal sort
 (defun method-is-universal* (method)
   (declare (type method method)
            (values (or null t)))

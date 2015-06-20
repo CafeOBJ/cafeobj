@@ -1465,7 +1465,6 @@
         (when prec
           (if flag (princ " ") (setq flag t))
           (princ "prec: ") (print-simple prec))
-        ;; (print-check)
         (princ " }")))))
 
 (defun print-method-attrs (method &optional header)
@@ -1477,7 +1476,7 @@
         (prec (or (method-precedence method)
                   (get-method-precedence method)))
         (memo (method-has-memo method))
-        (meta-demod (method-is-meta-demod method))
+        (meta-demod (if *chaos-verbose* (method-is-meta-demod method) nil))
         (assoc (method-associativity method))
         (*print-line-limit* 100))
     (when (and (eql 0 (car (last strat)))
@@ -1491,7 +1490,6 @@
         (with-output-to-string (fs outstr)
           (let ((*standard-output* fs))
             (when header (print-next) (princ header))
-            ;; (print-check 0 3)
             (princ " { ")
             (setq .file-col. (1- (file-column *standard-output*)))
             (when (and thy (not (eq (theory-info thy) the-e-property)))
@@ -1585,10 +1583,14 @@
       (print-id-cond c r))))
 
 (defun print-rule-labels (rul)
-  (princ "[")
-  (format t "~{~a~^ ~}" (mapcar #'string (axiom-labels rul)))
-  (princ "]:")
-  )
+  (let ((labels (axiom-labels rul)))
+    (unless *chaos-verbose*
+      ;; (format t "~%~{~s~^ ~}" labels)
+      (setq labels (remove-if #'(lambda (x) (member x '(|:BDEMOD|))) labels)))
+    (when labels
+      (princ "[")
+      (format t "~{~a~^ ~}" (mapcar #'string labels))
+      (princ "]:"))))
 
 (defun print-axiom-brief (rul &optional (stream *standard-output*)
                                         (no-type nil)

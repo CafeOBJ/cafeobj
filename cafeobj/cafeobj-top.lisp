@@ -51,10 +51,8 @@
   (setq -cafeobj-load-time- (chaos::get-time-string)))
 
 (defun cafeobj-greeting ()
-  ;; (declare (values t))
   (unless (or *cafeobj-batch* *cafeobj-no-banner*)
     (let ((*print-pretty* nil))
-      ;;(declare (special *print-pretty*))
       (fresh-line)
       (terpri)
       (print-centering g_line_1)
@@ -91,7 +89,7 @@
       (print-centering "-- Containing PigNose Extensions --")
       (fresh-line)
       )
-    (unless *cafeobj-batch*
+    (unless (or *cafeobj-batch* *cafeobj-no-banner*)
       (print-centering "---")
       (fresh-line)
       (print-centering (concatenate
