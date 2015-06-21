@@ -230,7 +230,7 @@ regexp appers."
   :group 'cafeobj-faces)
 
 (defface cafeobj-comment-face-2
-  '((((class color) (background dark)) (:foreground "brown"))
+  '((((class color) (background dark)) (:foreground "honeydew3"))
     (((class color) (background light)) (:foreground "blue4"))
     (((class grayscale) (background light))
      (:foreground "DimGray" :bold t :italic t))
@@ -554,6 +554,8 @@ This is in addition to cafeobj-continued-statement-offset."
       "inspect-term"
       ":goal"
       ":apply"
+      ":auto"
+      ":ind"
       ":init"
       ":cp"
       ":ctf"
@@ -719,36 +721,37 @@ This is in addition to cafeobj-continued-statement-offset."
       ("pr" ["protecting()" 1 () nil]  expand-abbrev-hook 0)
       ("pa" ["protecting as  ()" 3 () nil] expand-abbrev-hook 0)
       ("ex" ["extending()" 1 () nil] expand-abbrev-hook 0)
-      ("ea" ["extending as ()" 3 () nil] expand-abbrev-hook 0)
+      ("ea" ["extending as ()" 2 () nil] expand-abbrev-hook 0)
       ("us" ["using()" 1 () nil] expand-abbrev-hook 0)
-      ("ua" ["using as ()" 3 () nil] expand-abbrev-hook 0)
+      ("ua" ["using as ()" 2 () nil] expand-abbrev-hook 0)
       ("inc" ["including()" 1 () nil] expand-abbrev-hook 0)
-      ("ias" ["including as ()" 3 () nil] expand-abbrev-hook 0)
+      ("ias" ["including as ()" 2 () nil] expand-abbrev-hook 0)
       ;; signature
       ("sig" ["signature {\n\n}\n" 3 () nil] expand-abbrev-hook 0)
       ;; sort declarations
       ("[" ["[]" 1 () nil] expand-abbrev-hook 0)
       ("*[" ["*[]*" 2 () nil] expand-abbrev-hook 0)
       ;; operator declaration
-      ("op" ["op  :  ->   ." 9 () nil] expand-abbrev-hook 0)
+      ("op" ["op  :  ->   ." 10 () nil] expand-abbrev-hook 0)
       ("ope" ["op  :  ->  {} ." 12 () nil] expand-abbrev-hook 0)
       ("ops" ["ops  :  ->  ." 9 () nil] expand-abbrev-hook 0)
-      ("pred" ["pred  :  ." 2 () nil] expand-abbrev-hook 0)
+      ("pred" ["pred  :  ." 4 () nil] expand-abbrev-hook 0)
       ;; operator attributes
-      ("str" "strat:" nil 0)
+      ("str" ["strat: ()" 1 () nil] expand-abbrev-hook 0)
       ("ctr" "ctor" nil 0)
       ("ra" "r-assoc" nil 0)
       ("la" "l-assoc" nil 0)
       ("pre" "prec:" nil 0)
       ("ass" "assoc" nil 0)
       ("com" "comm" nil 0)
+      ("id" "id:" nil 0)
       ("idr" "idr:" nil 0)
       ;; axiom
       ("axi" ["axioms {\n\n}\n" 3 () nil] expand-abbrev-hook 0)
       ("bt" ["btrans  =>   ." 7 () nil] expand-abbrev-hook 0)
       ("bct"["bctrans  =>  if  ."  10 () nil] expand-abbrev-hook 0)
       ("ctr" ["ctrans  =>  if  ." 10 () nil] expand-abbrev-hook 0)
-      ("tr" ["trans  =>    ." 7 () nil] expand-abbrev-hook 0)
+      ("tr" ["trans  =>   ." 7 () nil] expand-abbrev-hook 0)
       ("eq" ["eq  =    ." 7 () nil] expand-abbrev-hook 0)
       ("cq" ["ceq  =   if  ." 10 () nil] expand-abbrev-hook 0)
       ("bq" ["beq  =   ." 7 () nil] expand-abbrev-hook 0)
@@ -760,9 +763,12 @@ This is in addition to cafeobj-continued-statement-offset."
       ("comp" "compatibility " nil 0)
       ("reg" "regularity " nil 0)
       ("red" ["reduce  ." 2 () nil] expand-abbrev-hook 0)
-      ("rin" ["reduce in  :  ." 4 () nil] expand-abbrev-hook 0)
+      ("rin" ["reduce in  :  ." 5 () nil] expand-abbrev-hook 0)
       ("exe" ["execute  ." 2 () nil] expand-abbrev-hook 0)
-      ("ein" ["execute in   :  ." 4 () nil] expand-abbrev-hook 0)
+      ("ein" ["execute in   :  ." 5 () nil] expand-abbrev-hook 0)
+      ("par" ["parse  ." 2 () nil] expand-abbrev-hook 0)
+      ("parse" ["parse  ." 2 () nil] expand-abbrev-hook 0)
+      ("pin" ["parse in  :  ." 5 () nil] expand-abbrev-hook 0)
       ("sh" "show" nil 0)
       ("des" "describe " nil 0)
       ("regu" "regualize " nil 0)
@@ -771,12 +777,13 @@ This is in addition to cafeobj-continued-statement-offset."
       ("sws" "switches" nil 0)
       ("req" "require" nil 0)
       ("prov" "provide" nil 0)
-      ("sel" "select" nil 0)
+      ("sel" ["select  ." 2 () nil] expand-abbrev-hook 0)
       ;; CITP
       (":goal" [":goal {}" 1 () nil] expand-abbrev-hook 0)
       (":go"  [":goal {}" 1 () nil] expand-abbrev-hook 0)
       (":apply" [":apply ()" 1 () nil] expand-abbrev-hook 0)
       (":app" [":apply ()" 1 () nil] expand-abbrev-hook 0)
+      (":ind" [":ind on ()" 1 () nil] expand-abbrev-hook 0)
       (":ini" [":init () by {}" 7 () nil]  expand-abbrev-hook 0)
       (":inil" [":init [] by {}" 7 () nil] expand-abbrev-hook 0)
       (":cp" [":cp () >< ()" 7 () nil] expand-abbrev-hook 0)
@@ -789,7 +796,7 @@ This is in addition to cafeobj-continued-statement-offset."
       (":ctf" [":ctf{}" 1 () nil] expand-abbrev-hook 0)
       (":csp" [":csp{}" 1 () nil] expand-abbrev-hook 0)
       (":sh" ":show" nil 0)
-      (":dec" ":describe" nil 0)
+      (":des" ":describe" nil 0)
       ))
   )
 
