@@ -1166,7 +1166,7 @@
         (return-from cafein-stepper nil))
       (unless *steps-to-be-done* (return-from cafein-stepper nil))))
   ;; print current term
-  (format t "~%>> taret: ")
+  (format t "~%>> target: ")
   (term-print term)
   ;; prompt command
   (catch 'cafein-stepper-exit
