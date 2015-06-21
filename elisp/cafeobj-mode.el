@@ -84,7 +84,7 @@
 ;;;     (define-key cafeobj-mode-map <your-key> <function>)
 ;;; for all the functions you need.
 ;;;
-;;; ABBRIVE-MODE:
+;;; ABBREV-MODE:
 ;;; CafeOBJ mode provides a mode-specific abbrev table 'cafeobj-mode-abbrev-table',
 ;;; and there defined some abbriviations already.
 ;;; You can use abbrev by `M-x abbrev-mode' or putting the following in your
@@ -1706,7 +1706,8 @@ Thus, this does not include the CafeOBJ's current directory.")
 (defun cafeobj-startup-message (&optional x y)
   "Insert startup message in current buffer."
   (erase-buffer)
-  (when (display-graphic-p)
+  (when (and (display-graphic-p)
+             (file-exists-p cafeobj-logo-file))
     (let* ((img (create-image cafeobj-logo-file))
            (img-size (image-size img))
            (char-per-pixel (/ (* 1.0 (window-width)) (window-pixel-width))))
