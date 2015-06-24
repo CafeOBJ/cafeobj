@@ -732,8 +732,8 @@ This is in addition to cafeobj-continued-statement-offset."
       ("[" ["[]" 1 () nil] expand-abbrev-hook 0)
       ("*[" ["*[]*" 2 () nil] expand-abbrev-hook 0)
       ;; operator declaration
-      ("op" ["op  :  ->   ." 10 () nil] expand-abbrev-hook 0)
-      ("ope" ["op  :  ->  {} ." 12 () nil] expand-abbrev-hook 0)
+      ("ope" ["op  :  ->   ." 10 () nil] expand-abbrev-hook 0)
+      ("opt" ["op  :  ->  {} ." 12 () nil] expand-abbrev-hook 0)
       ("ops" ["ops  :  ->  ." 9 () nil] expand-abbrev-hook 0)
       ("pred" ["pred  :  ." 4 () nil] expand-abbrev-hook 0)
       ;; operator attributes
@@ -744,8 +744,6 @@ This is in addition to cafeobj-continued-statement-offset."
       ("pre" "prec:" nil 0)
       ("ass" "assoc" nil 0)
       ("com" "comm" nil 0)
-      ("id" "id:" nil 0)
-      ("idr" "idr:" nil 0)
       ;; axiom
       ("axi" ["axioms {\n\n}\n" 3 () nil] expand-abbrev-hook 0)
       ("bt" ["btrans  =>   ." 7 () nil] expand-abbrev-hook 0)
@@ -784,8 +782,8 @@ This is in addition to cafeobj-continued-statement-offset."
       (":apply" [":apply ()" 1 () nil] expand-abbrev-hook 0)
       (":app" [":apply ()" 1 () nil] expand-abbrev-hook 0)
       (":ind" [":ind on ()" 1 () nil] expand-abbrev-hook 0)
-      (":ini" [":init () by {}" 7 () nil]  expand-abbrev-hook 0)
-      (":inil" [":init [] by {}" 7 () nil] expand-abbrev-hook 0)
+      (":ini" [":init () by { ;}" 9 () nil]  expand-abbrev-hook 0)
+      (":inil" [":init [] by { ;}" 9 () nil] expand-abbrev-hook 0)
       (":cp" [":cp () >< ()" 7 () nil] expand-abbrev-hook 0)
       (":cpl" [":cp [] >< []" 7 () nil] expand-abbrev-hook 0)
       (":eq" ":equation" nil 0)
