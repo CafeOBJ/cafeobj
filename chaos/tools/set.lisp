@@ -190,6 +190,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
        "set path of user defined \"BOOL\" module."
        chaos-set-bool-path)
       ;; debug flags : invisible from user, internal use only
+      ("no" ("idcomp") parity *no-id-completion* "" nil nil t)
       ("sys" ("universal-sort") parity *allow-universal-sort* "" nil nil t)
       ("debug" ("rewrite") parity *rewrite-debug* "" nil nil t)
       ("debug" ("memo") parity *memo-debug* "" nil nil t)
@@ -350,11 +351,16 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
   (let* ((add (equal "+" (car path)))
          (minus (equal "-" (car path)))
          (paths (if (or add minus) (cadr path) (car path))))
+    (unless paths
+      (with-output-chaos-warning ()
+        (format t "No pathnames are specified.")
+        (return-from chaos-set-search-path nil)))
     (if add
         (set-search-path-plus paths)
       (if minus
           (set-search-path-minus paths)
-        (set-search-path paths)))))
+          (set-search-path paths)))
+    (pr-search-path)))
 
 (defun chaos-set-tram-path (path)
   (let ((path (car path)))

@@ -1573,8 +1573,7 @@
              (princ "not ")
              (print-id-cond (cadr x) 2)
              (when paren (princ ")"))))
-          (t (break "print-id-cond illegal condition"))
-          )))
+          (t (break "print-id-cond illegal condition")))))
 
 (defun print-id-cond-list (tok lst r)
   (let ((flag nil))
@@ -1794,11 +1793,11 @@
         (when (or *on-debug* *chaos-verbose*)
           (when (axiom-first-match-method rul)
             (print-next)
-            (princ "* first match  : ")
+            (princ "* first match   : ")
             (print-simple (axiom-first-match-method rul)))
           (when (axiom-next-match-method rul)
             (print-next)
-            (princ "* next match   : ")
+            (princ "* next match    : ")
             (print-simple (axiom-next-match-method rul))))
         ;; Extensions
         (let ((exts (axiom-extensions rul)))

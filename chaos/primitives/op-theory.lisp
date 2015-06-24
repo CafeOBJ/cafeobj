@@ -156,6 +156,11 @@
           (theory-info-unify-next-fun th) unify-next-fun)
     th))
 
+(defun pr-theory-info (th-info)
+  (format t "~%#<Theory ~s : init = ~s" 
+          (theory-info-name th-info)
+          (theory-info-match-init-fun th-info)))
+
 (defun pr-optheory-internal (opth stream &rest ignore)
   (declare (ignore ignore))
   (format stream "#<Theory ~s : zero = ~s>"

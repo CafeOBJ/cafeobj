@@ -1079,6 +1079,13 @@
                              (setq target "root"))
                            (print-proof-tree target describe)))
 
+                ("autoload"
+                 (format t "** Autoload settings:")
+                 (format t "~%Module~14TPathname")
+                 (format t "~%========================================")
+                 (dolist (al *autoload-alist*)
+                   (format t "~%~a~14T~a" (car al) (cdr al))))
+                ("libpath" (pr-search-path))
                 ;;
                 ;; helpers
                 ;;

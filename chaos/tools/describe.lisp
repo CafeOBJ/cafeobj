@@ -382,7 +382,7 @@
           (when (method-lower-methods m)
               (print-next)
               ;; (format t "lower declarations:")
-              (format t "lower operations   :")
+              (format t "lower operations  :")
               (let ((*print-indent* (+ 2 *print-indent*)))
                 (dolist (x (reverse (method-lower-methods m)))
                   (print-next)

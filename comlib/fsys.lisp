@@ -507,6 +507,9 @@
         (setq *chaos-libpath* (remove p *chaos-libpath* :test #'equal))))
     *chaos-libpath*))
 
+(defun pr-search-path (&optional (stream *standard-output*))
+  (format stream "libpath = ~{~a~^:~}" *chaos-libpath*))
+
 ;;;
 ;;; INITIALIZATION
 ;;;

@@ -320,8 +320,6 @@
         ;; and for each combination of sort ilands, we also need possibly
         ;; a new and-sort.
         ;; we make each from non-empty methods.
-        (when *chaos-verbose*
-          (format t "~%(checking sorts for regularity:"))
         (dolist (opinfo (module-all-operators module))
           (block make-coarity
             ;; step 1.1 : first we make glb sort for connected components.
@@ -358,7 +356,6 @@
                              :test #'eq))
                   )))
             ))
-        (when *chaos-verbose* (princ ")")(terpri)(force-output))
         ;; step 1.2
         ;; we make glb for each combinations of sort ilands.
         ;; note: new-sorts is the form of List[(operator-name sorts)].
@@ -405,7 +402,7 @@
         ;; check-signature-empties organized so.
         ;;
 
-        (when (or *chaos-verbose* *regularize-debug*)
+        (when *regularize-debug*
           (princ "(start checking operators : "))
         (dolist (sop sops)
           ;; step 2-1. first we construct ranks which may be
@@ -417,7 +414,7 @@
                 (redun-methods nil)
                 (new-ranks nil))
             ;;
-            (when (or *chaos-verbose* *regularize-debug*)
+            (when *regularize-debug*
               (format t "~{~a~^ ~a~} " (car name)))
             ;;
             (setq cent (find-if #'(lambda (x)

@@ -743,19 +743,18 @@
                                                         *current-opinfo-table*))
   (declare (type method method)
            (type hash-table info-table))
-  (let ((res nil))
-    (let* ((th (method-theory method info-table))
+  (let* ((th (method-theory method info-table))
          (info (theory-info th)))
     (declare (type op-theory th)
              (type theory-info info))
+    #| this was done for efficiency concern. not good.
     (setq res
-          (if (zero-rule-only th)
-              (%svref *theory-info-array*
-                      (logandc2 (the fixnum (theory-info-code info)) .Z.))
-              info))
-    (setf (method-theory-info-for-matching method info-table)
-          res)
-    )))
+    (if (zero-rule-only th)
+    (%svref *theory-info-array*
+    (logandc2 (the fixnum (theory-info-code info)) .Z.))
+    info))
+    |#
+    (setf (method-theory-info-for-matching method info-table) info)))
 
 ;;; GET-METHOD-PRECEDENCE
 ;;;

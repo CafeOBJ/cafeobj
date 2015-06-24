@@ -115,7 +115,9 @@
                    (declare (type list sys) (type theory-info theory-info))
                    (when *match-debug*
                      (format t "~% extracted a system ")
-                     (print-m-system sys))
+                     (print-m-system sys)
+                     (format t "~% theory = ")
+                     (pr-theory-info theory-info))
                    ;; the matching system is not modified,
                    ;; thus we create a new match-system
                    (multiple-value-bind (th-st no-match)

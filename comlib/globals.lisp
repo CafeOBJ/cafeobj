@@ -652,6 +652,9 @@
 ;;; find command control
 (defvar *find-all-rules* nil)
 
+;;; NO ID COMPLETION
+(defvar *no-id-completion* nil)
+
 ;;; DEBUG FLAGS
 (defvar *rewrite-debug* nil)
 (defvar *on-term-hash-debug* nil)
