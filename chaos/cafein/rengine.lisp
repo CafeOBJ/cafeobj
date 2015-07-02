@@ -592,11 +592,12 @@
             rule)
         (loop
           (setq rule (car rr-current))
-          (when (apply-rule rule term)
-            (setq rr-mark rr-current)
-            (loop (unless (apply-rule rule term) (return nil))))
-          (setq rr-current (cdr rr-current))
-          (when (eq rr-current rr-mark) (return nil)))))))
+          (unless (eq (axiom-kind rule) :bad-rule)
+            (when (apply-rule rule term)
+              (setq rr-mark rr-current)
+              (loop (unless (apply-rule rule term) (return nil))))
+            (setq rr-current (cdr rr-current))
+            (when (eq rr-current rr-mark) (return nil))))))))
 
 (defun apply-rules-with-different-top (term rules)
  (declare (type term term)
@@ -604,7 +605,8 @@
           (values (or null t)))
  (block the-end
    (dolist (rule rules nil)
-     (when (apply-rule rule term) (return-from the-end t)))))
+     (unless (eq (axiom-kind rule) :bad-rule)
+       (when (apply-rule rule term) (return-from the-end t))))))
 
 (defun apply-rules (term strategy)
   (declare (type term term)

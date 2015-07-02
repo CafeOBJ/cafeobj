@@ -117,8 +117,8 @@
       (cond ((and lhsv
                   (or (not (subsetp rhs-vars lhsv))
                       (not (subsetp cond-vars lhsv))))
-             (if (or (term-contains-match-op (axiom-lhs rule))
-                     (term-contains-match-op (axiom-rhs rule)))
+             (if (or (term-contains-match-op (axiom-rhs rule))
+                     (term-contains-match-op (axiom-condition rule)))
                  ;; it's ok to have extra variables in RHS side.
                  (progn
                    (add-rule-to-module module rule)
@@ -127,12 +127,13 @@
                                                  (term-head (axiom-lhs rule))
                                                  rule)
                      (specialize-rule rule module)))
-                 ;; else we don't allow it
+                 ;; else we don't allow it as rewrite rule
                  (progn
                    (setf (axiom-kind rule) ':bad-rule)
+                   (add-rule-to-module module rule)
                    (with-output-chaos-warning ()
                      (format t "RHS of the axiom has extra variable(s) which does not occur in LHS.")
-                     (format t "~%... ignored.")
+                     (format t "~%... ignored as rewrite rule.")
                      (return-from gen-rule-internal nil)))))
             ((and (axiom-is-behavioural rule)
                   (not (and (term-can-be-in-beh-axiom? (axiom-lhs rule))
