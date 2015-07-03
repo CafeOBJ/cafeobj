@@ -1,4 +1,4 @@
-;;;-*- Mode: Lisp; Syntax:CommonLisp; Package:CHAOS; Base:10 -*-
+;;;-*- Mode: Lisp; Syntax:Common-Lisp; Package:CHAOS; Base:10 -*-
 ;;;
 ;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
 ;;;
@@ -800,20 +800,23 @@
         ((:+ |:red| |lred| |:lred| |:exec| |:bred|)
          (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
         (|:verbose| :symbol)
-        (|:normalize| :symbol)
-        (|:ctf| |{| (:one-of #.EqDeclaration 
-                             #.RlDeclaration
-                             #.BeqDeclaration
-                             #.BRLDeclaration
-                             #.FoplAXDeclaration)
-                |}|)
-        (|:csp| |{| (:many-of  #.EqDeclaration
-                               #.RlDeclaration
-                               #.BeqDeclaration
-                               #.BRLDeclaration
-                               #.FoplAXDeclaration)
+        ;; (|:normalize| :symbol)
+        ((:+ |:ctf| |:ctf-|)
+         (:one-of (|{| (:one-of #.EqDeclaration 
+                                #.BeqDeclaration
+                                #.FoplAXDeclaration)
+                   
+                       |}|)
+                  (\[ :term |.| \]))) 
+        ((:+ |:csp| |:csp-|)
+         |{| (:many-of  #.EqDeclaration
+                        #.RlDeclaration
+                        #.BeqDeclaration
+                        #.BRLDeclaration
+                        #.FoplAXDeclaration)
                  |}|)
         ((:+ |:show| |:sh| |:describe| |:desc|) :args)
+        (|:spoiler| (:one-of (on) (off) (|.|)))
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.

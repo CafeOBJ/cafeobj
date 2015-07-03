@@ -62,10 +62,16 @@
   (defparameter .tactic-rd. (make-tactic :name :rd
                                          :executor 'apply-rd)) ; Reduction
 
+  (defparameter .tactic-nf. (make-tactic :name :nf
+                                         :executor 'apply-nf)) ; nomalize goals, assumptions
+
+  (defparameter .tactic-ct. (make-tactic :name :ct
+                                         :executor 'apply-ct)) ; check contradiction
+  
   (defparameter .tactic-nil. (make-tactic :name :nop
                                           :executor 'apply-nil)) ; Do nothing, used internally.
 
-  (defparameter .all-builtin-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-cs. .tactic-rd.))
+  (defparameter .all-builtin-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-cs. .tactic-rd. .tactic-nf. .tactic-ct.))
 
   ;; default tatics is a seriase of SI CA CS TC IP.
   (defparameter .default-tactics. (list .tactic-si. .tactic-ca. .tactic-cs. .tactic-tc. .tactic-ip. .tactic-rd.))

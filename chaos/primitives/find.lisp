@@ -346,14 +346,6 @@
                (push opinfo res))))))
     (nreverse res)))
 
-;;; *NOTE* not used now.....
-#|
-(defun simple-find-operator (operator-symbol num-args module-id)
-  (if (module-p module-id)
-      (setf module-id (module-name module-id)))
-  (get-operator-unique (list operator-symbol module-id) num-args))
-|#
-
 (defun match-op-symbol (sym1 sym2)
   (let ((s1 sym1)
         (s2 sym2))
@@ -724,17 +716,23 @@
                                         (sort-id (method-coarity cand))))
                         ;; (setq opinfo oi)
                         (setq err-method cand)
-                        (return-from find-method t))
-                      ))))
-            #||
-            (with-output-panic-message ()
-            (princ "could not find error operator! : ")
-            (print-chaos-object method)
-            (chaos-error 'panic))
-            ||#
+                        (return-from find-method t))))))
             (return-from find-error-method-in method))
           ;;
           err-method))))
+
+;;; FIND-CONSTRUCTORS-IN : module sort -> list(method)
+;;;
+(defun find-sort-constructors-in (module sort)
+  (declare (type module module))
+  (with-in-module (module)
+    (let ((ops nil))
+      (dolist (opinfo (module-all-operators *current-module*))
+        (dolist (meth (opinfo-methods opinfo))
+          (when (and (method-is-constructor? meth)
+                     (sort<= (method-coarity meth) sort (module-sort-order *current-module*)))
+            (push meth ops))))
+      (sort ops #'(lambda (x y) (< (length (method-arity x)) (length (method-arity y))))))))
 
 ;;; VARIABLES ------------------------------------------------------------------
 

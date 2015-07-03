@@ -203,21 +203,27 @@
 
 ;;; citp-parse-ctf
 ;;; :ctf { eq <term> = <term> .}
+;;;   (":ctf" ("{" ("eq" ("1" ">" "2") "=" ("true") ".") "}"))
+;;; :ctf [ <term> . ]
+;;;   (":ctf" ("[" ("1" ">" "2") "." "]"))
+;;; ==> (form . (term? . :ctf-?))
 ;;;
 (defun citp-parse-ctf (args)
-  (let ((ax-form (third args)))
-    (with-citp-debug ()
-      (format t "~%[:ctf] target = ~s" ax-form))
-    ax-form))
+  (let ((form (second (second args)))
+        (term? (equal (first (second args)) "[")))
+    (if (equal (first args) ":ctf-")
+        (cons form (cons term? :dash))
+      (cons form (cons term? nil)))))
 
 ;;; citp-parse-csp
 ;;; :csp { <axiom> ... }
 ;;;
 (defun citp-parse-csp (args)
-  (let ((ax-decls nil))
+  (let ((ax-decls nil)
+        (dash? (equal (car args) ":csp-")))
     (dolist (elem (third args))
       (push elem ax-decls))
-    (nreverse ax-decls)))
+    (cons (nreverse ax-decls) dash?)))
 
 ;;; { :show | :describe } <something>
 ;;;
@@ -232,6 +238,18 @@
           (t (with-output-chaos-error ('internal)
                (format t "Internal error, unknown citp command ~s" tag))))
     (cons com args)))
+
+;;; :spoiler { on | off }
+;;;
+(defun citp-parse-spoiler (form)
+  (let ((on-off (second form)))
+    (if (equal on-off '("on"))
+        (setq *citp-spoiler* t)
+      (if (equal on-off '("off"))
+          (setq *citp-spoiler* nil)
+        ;; 
+        (format t "~&:spoiler flag is ~s" (if *citp-spoiler* "on" "off"))))
+    t))
 
 ;;; ================================
 ;;; CITP related command evaluators
@@ -338,13 +356,14 @@
           (format t ":nomalize instance: unknown parameter ~s." token))))))
 
 ;;; :ctf
+;;; ax-form ::= (form . (term? . :ctf-?))
 ;;;
 (defun eval-citp-ctf (ax-form)
   (check-ptree)
   (with-in-module (*current-module*)
     (reset-rewrite-counters)
     (begin-rewrite)
-    (apply-ctf ax-form)
+    (apply-ctf (car ax-form) (cadr ax-form) (cddr ax-form))
     (end-rewrite)
     (report-citp-stat)
     (check-success *proof-tree*)))
@@ -355,7 +374,7 @@
   (with-in-module (*current-module*)
     (reset-rewrite-counters)
     (begin-rewrite)
-    (apply-csp (nreverse goal-ax-decls))
+    (apply-csp (car goal-ax-decls) (cdr goal-ax-decls))
     (end-rewrite)
     (report-citp-stat)
     (check-success *proof-tree*)))
