@@ -53,7 +53,7 @@
   (when (and (eql #\~ (char fname 0)) (eql #\/ (char fname 1)))
     (setq fname
           (concatenate 'string
-        (namestring (user-homedir-pathname))
+            (namestring (user-homedir-pathname))
         (subseq fname 2))))
   (load fname))
 
@@ -149,15 +149,14 @@
   (declare (type (or simple-string pathname) file)
            (type (or simple-string list) load-path)
            (type list suffixes))
-  (when (pathnamep file)
+  (when (and (pathnamep file) (not (is-directory? file)))
     (return-from chaos-probe-file (probe-file file)))
   ;;
   (setq file (expand-file-name file))
   (when (atom suffixes)
     (setq suffixes (list suffixes)))
-  (if load-path
-      (when (atom load-path)
-        (setq load-path (list load-path))))
+  (when (and load-path (atom load-path))
+    (setq load-path (list load-path)))
   ;;
   (cond ((is-simple-file-name? file)
          (let ((file-path (chaos-get-relative-path*
@@ -165,9 +164,11 @@
                (res nil))
            ;;
            (setq res (probe-file file-path))
+           (when (and res (is-directory? res))
+             (setq res nil))
            (unless res
              (dolist (fx (supply-suffixes file-path suffixes))
-               (when (probe-file fx)
+               (when (and (probe-file fx) (not (is-directory? fx)))
                  (setq res fx)
                  (return)))
              ;; search through load paths
@@ -185,19 +186,19 @@
                                ;; #+:Allegro (namestring libdir)
                                #-:CLISP (pathname-directory libdir)
                                :name (namestring file))))
-                       (if (probe-file f)
+                       (if (and (probe-file f) (not (is-directory? f)))
                            (progn (setq res f) (return))
                          (let ((x (supply-suffixes f suffixes)))
                            (dolist (fx x)
-                             (when (probe-file fx)
+                             (when (and (probe-file fx) (not (is-directory? fx)))
                                (setq res fx)
                                (return)))))))))))
            res))
         (t (let ((file-path (chaos-get-relative-path* file)))
-             (if (probe-file file-path)
+             (if (and (probe-file file-path) (not (is-directory? file-path)))
                  file-path
                (dolist (fx (supply-suffixes file-path suffixes))
-                 (when (probe-file fx)
+                 (when (and (probe-file fx) (not (is-directory? fx)))
                    (return-from chaos-probe-file fx))))))))
 
 (defun bare-chaos-pwd ()
