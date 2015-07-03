@@ -977,6 +977,7 @@
         ;; compute the normal form of "term"
         (reduce-term term strategy)
         (setq normal-form term)
+        #|
         (unless (= rule-count (number-rewritings))
           (when *memo-debug*
             (when (term-equational-equal term-nu normal-form)
@@ -987,7 +988,9 @@
                 (format t "~%(~d) new = " (number-rewritings))
                 (term-print-with-sort normal-form))))
           ;; store the normal form
-          (set-hashed-term term-nu *term-memo-table* normal-form))))
+          (set-hashed-term term-nu *term-memo-table* normal-form))
+          |#
+        (set-hashed-term term-nu *term-memo-table* normal-form)))
     normal-form))
 
 (defmacro check-closed-world-assumption (?term)
