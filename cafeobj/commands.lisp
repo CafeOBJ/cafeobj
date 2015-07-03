@@ -2338,7 +2338,23 @@ Do nothing.
     :doc "TODO"
     )
 
+(define (":ctf-")
+    :category :proof
+    :parser citp-parse-ctf
+    :evaluator eval-citp-ctf
+    :title "`:ctf { eq [ <label-exp> ] <term> = <term> .}`"
+    :doc "TODO"
+    )
+
 (define (":csp")
+    :category :proof
+    :parser citp-parse-csp
+    :evaluator eval-citp-csp
+    :title "`:csp { eq [ <label-exp>] <term> = <term> . ...}`"
+    :doc "TODO"
+    )
+
+(define (":csp-")
     :category :proof
     :parser citp-parse-csp
     :evaluator eval-citp-csp
@@ -2363,6 +2379,16 @@ Do nothing.
     :doc "Similar to the `:show` command but with more details. See `:describe ?` for
 the possible set of invocations.
 ")
+
+(define (":spoiler")
+    :category :proof
+    :parser citp-parse-spoiler
+    :evaluator identity
+    :title "`:spoiler { on | off}"
+    :doc "TODO"
+    )
+
+;;;
 
 (define ("commands" "com")
     :category :help
