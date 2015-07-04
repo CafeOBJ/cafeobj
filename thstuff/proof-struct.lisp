@@ -174,6 +174,7 @@
   (constants nil :type list)            ; list of (var . constant) introduced for TC/CA/SI
   (ind-constants nil :type list)        ; list of constants introduced for induction
   (indvars nil :type list)              ; list of induction variables
+  (skolems nil :type list)              ; list of skolem functions
   (assumptions nil :type list)          ; list of hypothesis
   (tactic nil :type (or null tactic))   ; tactic which derived this goal
   (targets nil :type list)              ; axioms to be proved
@@ -203,6 +204,7 @@
       (let ((*print-indent* (+ 2 *print-indent*))
             (v-consts (goal-constants goal))
             (i-consts (goal-ind-constants goal))
+            (skolems (goal-skolems goal))
             (ass (goal-assumptions goal))
             (vs (goal-indvars goal))
             (axs (goal-targets goal))
@@ -239,6 +241,13 @@
             (let ((*print-indent* (+ 2 *print-indent*)))
               (print-next)
               (print-method-brief (term-head (cdr ic))))))
+        (when skolems
+          (print-next)
+          (format stream "-- introduced skolem function~p" (length skolems))
+          (dolist (sk skolems)
+            (let ((*print-indent* (+ 2 *print-indent*)))
+              (print-next)
+              (print-method-brief sk))))
         (when ass
           (print-next)
           (format stream "-- introduced axiom~p" (length ass))
@@ -360,6 +369,7 @@
             (goal-constants next-goal) (goal-constants cur-goal)
             (goal-ind-constants next-goal) (goal-ind-constants cur-goal)
             (goal-indvars next-goal) (goal-indvars cur-goal)
+            (goal-skolems next-goal) (goal-skolems cur-goal)
             (goal-assumptions next-goal) (goal-assumptions cur-goal))
       (prepare-for-parsing next-context)
       (setq *next-default-proof-node* nil) ; we reset the next default target
@@ -384,9 +394,11 @@
   (declare (type module context-module)
            (type list initial-goals))
   (let ((root-node (make-ptree-node :subnodes nil :parent nil)))
-    (setf (ptree-node-goal root-node) (make-goal :name (make-ptree-goal-name nil (ptree-node-my-num root-node))
-                                                 :context context-module
-                                                 :targets initial-goals))
+    (setf (ptree-node-goal root-node) 
+      (make-goal :name (make-ptree-goal-name nil (ptree-node-my-num root-node))
+                 :context context-module
+                 :skolems (reverse (module-skolem-functions context-module))
+                 :targets initial-goals))
     root-node))
 
 ;;;
@@ -564,28 +576,6 @@
 
 ;;; SKOLEMITIZE
 ;;; allow citp to represent the goal sentence in FOPLE-SENTENCE
-#|| TODO
-(defun make-skolem-function-name-citp (goal sort variables)
-  (declare (type sort* sort)
-           (type list variables))
-  (let* ((sname (sort-name sort))
-         (num-ent (assq sname (goal-skolems goal)))
-         (num nil))
-    (declare (type symbol sname)
-             (type list num-ent)
-             (type (or null fixnum) num))
-    (if num-ent
-        (progn
-          (setq num (the fixnum (cdr num-ent)))
-          (incf (the fixnum (cdr num-ent))))
-      (progn
-        (push (cons sname 2) (goal-skolems goal))
-        (setq num 1)))
-    (if variables
-        (format nil "#f~d@~a" (the fixnum num) (string sname))
-      (format nil "#c~d@~a" (the fixnum num) (string sname)))))
-||#
-
 (defun skolemize-if-need (fax)
   (unless (eq (axiom-type fax) :pignose-axiom)
     (return-from skolemize-if-need fax))
@@ -593,7 +583,8 @@
     (format t "~%[skolemize]: ")
     (print-axiom-brief fax))
   (let* ((sentence (axiom-lhs fax))
-         (type (fopl-sentence-type sentence)))
+         (type (fopl-sentence-type sentence))
+         (*sk-function-num* nil))
     (declare (type symbol type))
     (when (and (memq type '(:eq :beq))
                (term-is-lisp-form? (term-arg-2 sentence)))
@@ -626,10 +617,12 @@
 ;;;
 (defun initialize-proof-tree (context-module goal-module initial-goals)
   (with-in-module (goal-module)
-    (let ((targets (mapcar #'skolemize-if-need initial-goals)))
-      (let ((root (make-ptree-root goal-module targets)))
-        (setq *next-default-proof-node* nil)
-        (make-ptree :root root :context context-module)))))
+    (let ((*sk-function-num* nil))
+      (declare (special *sk-function-num*))
+      (let* ((targets (mapcar #'skolemize-if-need initial-goals))
+             (root (make-ptree-root goal-module targets)))
+          (setq *next-default-proof-node* nil)
+          (make-ptree :root root :context context-module)))))
 
 ;;;
 ;;; check-success : ptree -> Bool
