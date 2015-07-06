@@ -83,9 +83,6 @@
 ;;;
 (defun rule-copy-canonicalized (rule module)
   (with-in-module (module)
-    (with-citp-debug ()
-      (format t "[rule-copy]")
-      (print-axiom-brief rule))
     (let* ((new-rule (rule-copy rule))
            (canon (canonicalize-variables (list (rule-lhs new-rule)
                                                 (rule-rhs new-rule)
@@ -1433,7 +1430,8 @@
 ;;; =======================
 ;;; TACTIC: REDUCTION [RD]
 ;;; =======================
-(defun do-apply-rd (cur-goal tactic)
+
+(defun do-apply-rd (cur-goal next-goal tactic)
   (let ((cur-targets (goal-targets cur-goal))
         (reduced-targets nil)
         (discharged nil)
@@ -1442,21 +1440,32 @@
       (compile-module (goal-context cur-goal) t)
       (dolist (target cur-targets)
         (multiple-value-bind (c-result cur-target original-sentence)
-            (do-check-sentence target cur-goal tactic)
+            (do-check-sentence target (or next-goal cur-goal) tactic)
           (cond (c-result               ; satisfied or contradition
                  (setq result t)
                  (push original-sentence discharged))
                 (t (push cur-target reduced-targets)))))
-      (setf (goal-targets cur-goal) (nreverse reduced-targets))
+      (setf (goal-targets (or next-goal cur-goal)) (nreverse reduced-targets))
       (setf (goal-proved cur-goal) (nreverse discharged))
       (unless reduced-targets
+        (setf (goal-targets cur-goal) nil)
         (format t "~%[~a] discharged goal ~s." tactic (goal-name cur-goal))))
-    (values result nil)))
-  
+    (if reduced-targets
+        (values t (list (or next-goal cur-goal)))
+      (values result nil))))
+
 (defun apply-rd (ptree-node &optional (tactic 'rd))
   (declare (type ptree-node ptree-node))
-  (let ((*citp-spoiler* t))
-    (do-apply-rd (ptree-node-goal ptree-node) tactic)))
+  (let ((*citp-spoiler* t)
+        (cur-goal (ptree-node-goal ptree-node)))
+    (when (goal-is-discharged cur-goal)
+      (with-output-chaos-warning ()
+        (format t "** The goal ~s has already been proved!"
+                (goal-name cur-goal)))
+      (return-from apply-rd (values nil nil)))
+    (if (goal-targets cur-goal)
+        (do-apply-rd cur-goal (prepare-next-goal ptree-node) tactic)
+      (values nil nil))))
 
 ;;; ==========================
 ;;; TACTIC: Case Analysis [CA]
@@ -2265,8 +2274,10 @@
       (let ((n-targets nil)
             (*citp-spoiler* t)
             (*chaos-quiet* t)
-            (n-assumptions nil))
+            ;; (n-assumptions nil)
+            )
         ;; first nomalize assumptions
+        #||
         (dolist (as (goal-assumptions .cur-goal.))
           (multiple-value-bind (ns app?)
               (normalize-sentence as *current-module*)
@@ -2277,6 +2288,7 @@
         (when n-assumptions
           (setf (goal-assumptions .cur-goal.)
             (append (goal-assumptions .cur-goal.) (nreverse n-assumptions))))
+        ||#
         ;; normalize goal sentences
         (dolist (sen (goal-targets .cur-goal.))
           (multiple-value-bind (ngoal app?)
@@ -2441,7 +2453,7 @@
           (when *citp-spoiler*
             ;; apply implicit rd
             (dolist (ngoal next-goals)
-              (do-apply-rd ngoal 'ctf)
+              (do-apply-rd ngoal nil 'ctf)
               (when (and dash? (goal-targets ngoal))
                 ;; reset target
                 (setf (goal-targets ngoal)
@@ -2493,7 +2505,7 @@
           (when *citp-spoiler*
             ;; apply implicit rd
             (dolist (ngoal next-goals)
-              (do-apply-rd ngoal 'csp)
+              (do-apply-rd ngoal nil 'csp)
               (when (and dash? (goal-targets ngoal))
                 ;; reset target
                 (setf (goal-targets ngoal)
