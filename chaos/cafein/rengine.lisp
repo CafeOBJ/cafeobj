@@ -972,25 +972,11 @@
   (let ((term-nu nil)
         (normal-form (get-hashed-term term *term-memo-table*)))
     (unless normal-form
-      (let ((rule-count (number-rewritings)))
-        (setq term-nu (simple-copy-term  term))
-        ;; compute the normal form of "term"
-        (reduce-term term strategy)
-        (setq normal-form term)
-        #|
-        (unless (= rule-count (number-rewritings))
-          (when *memo-debug*
-            (when (term-equational-equal term-nu normal-form)
-              (with-output-chaos-warning ()
-                (format t "E-E term is about to be hashed!")
-                (format t "~%(~d) old = " rule-count (number-rewritings))
-                (term-print-with-sort term-nu)
-                (format t "~%(~d) new = " (number-rewritings))
-                (term-print-with-sort normal-form))))
-          ;; store the normal form
-          (set-hashed-term term-nu *term-memo-table* normal-form))
-          |#
-        (set-hashed-term term-nu *term-memo-table* normal-form)))
+      (setq term-nu (simple-copy-term  term))
+      ;; compute the normal form of "term"
+      (reduce-term term strategy)
+      (setq normal-form term)
+      (set-hashed-term term-nu *term-memo-table* normal-form))
     normal-form))
 
 (defmacro check-closed-world-assumption (?term)
