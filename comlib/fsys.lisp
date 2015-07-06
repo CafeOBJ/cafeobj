@@ -103,7 +103,6 @@
     #+:SBCL
     (let ((directory-delimiter "/")  ; sbcl uses / on all platforms!
           (p (probe-file dpath)))
-      ; (format t "DEBUG is-directory? dpath ~s path ~s p ~s~%" dpath path p)
       (if p
           (and (string-equal (subseq (namestring p)
                                      (1- (length (namestring p))))
@@ -112,8 +111,7 @@
         nil))
     #+:Allegro
     (if (excl:file-directory-p dpath)
-        ;; (concatenate 'string dpath "/")
-        (pathname dpath)
+        (pathname (concatenate 'string dpath "/"))
       nil)
     #+(and :CCL (not :openmcl)) (if (directoryp dpath) dpath nil)
     #+:CLISP
