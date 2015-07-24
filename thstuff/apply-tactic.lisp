@@ -272,9 +272,14 @@
 ;;; is-contradiction : term term -> Bool
 ;;; returns true if true ~ false, or false ~ true
 ;;;
+#|
 (defun is-contradiction (t1 t2)
   (or (and (is-true? t1) (is-false? t2))
       (and (is-false? t1) (is-true? t2))))
+|#
+(defun is-contradiction (t1 t2)
+  (declare (ignore t1 t2))
+  nil)
 
 ;;;
 ;;; sentence-is-satisfied : axiom module -> { :satisfied | :ct | nil }
@@ -2274,30 +2279,19 @@
       (let ((n-targets nil)
             (*citp-spoiler* t)
             (*chaos-quiet* t)
-            ;; (n-assumptions nil)
-            )
-        ;; first nomalize assumptions
-        #||
-        (dolist (as (goal-assumptions .cur-goal.))
-          (multiple-value-bind (ns app?)
-              (normalize-sentence as *current-module*)
-            (when app?
-              (adjoin-axiom-to-module (goal-context .cur-goal.) ns)
-              (set-operator-rewrite-rule (goal-context .cur-goal.) ns)
-              (push ns n-assumptions))))
-        (when n-assumptions
-          (setf (goal-assumptions .cur-goal.)
-            (append (goal-assumptions .cur-goal.) (nreverse n-assumptions))))
-        ||#
+            (applied nil))
         ;; normalize goal sentences
         (dolist (sen (goal-targets .cur-goal.))
           (multiple-value-bind (ngoal app?)
               (normalize-sentence sen *current-module*)
             (if app?
-                (push ngoal n-targets)
+                (progn (setq applied t) (push ngoal n-targets))
               (push sen n-targets))))
-        (setf (goal-targets .cur-goal.) (nreverse n-targets))
-        t))))
+        (when applied
+          (let ((next-goal (prepare-next-goal ptree-node 'nf)))
+            (setf (goal-targets next-goal) (nreverse n-targets))
+            (return-from apply-nf (values t (list next-goal)))))
+        (values nil nil)))))
 
 ;;; ===========
 ;;; TACTIC: :CT
