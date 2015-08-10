@@ -1682,9 +1682,6 @@
     terletox-list))
 
 (defun test-sort-memb-predicate (term &optional (module (get-context-module)))
-  (unless module
-    (with-output-chaos-error ('no-context)
-      (princ "checking _:_, no context module is given!")))
   (with-in-module (module)
     (let ((arg1 (term-arg-1 term))
           (id-const (term-arg-2 term)))

@@ -55,42 +55,39 @@
 ;;;
 (defun eval-mod (toks &optional (change-context *auto-context-change*))
   (if (null toks)
-      (or (get-context-module)
-          (with-output-chaos-error ('no-context)
-            (princ "no selected(current) module.")))
-      (if (equal '("%") toks)
-          (if *open-module*
-              (let ((mod (find-module-in-env (normalize-modexp "%"))))
-                (unless mod
-                  (with-output-panic-message ()
-                    (princ "could not find % module!!!!")
-                    (chaos-error 'panic)))
-                (when change-context
-                  (change-context (get-context-module) mod))
-                mod)
-              (with-output-chaos-warning ()
-                (princ "no module is opening.")
-                (chaos-error 'no-open-module)))
-          (let ((val (modexp-top-level-eval toks)))
-            (if (modexp-is-error val)
-                (if (and (null (cdr toks))
-                         (<= 4 (length (car toks)))
-                         (equal "MOD" (subseq (car toks) 0 3)))
-                    (let ((val (read-from-string (subseq (car toks) 3))))
-                      (if (integerp val)
-                          (let ((nmod (print-nth-mod val))) ;;; !!!
-                            (when change-context
-                              (change-context (get-context-module) nmod))
-                            nmod)
-                          (with-output-chaos-error ('no-such-module)
-                            (format t "could not evaluate the modexp ~a" toks))))
+      (get-context-module)
+    (if (equal '("%") toks)
+        (if *open-module*
+            (let ((mod (find-module-in-env (normalize-modexp "%"))))
+              (unless mod
+                (with-output-panic-message ()
+                  (princ "could not find % module!!!!")
+                  (chaos-error 'panic)))
+              (when change-context
+                (change-context (get-context-module t) mod))
+              mod)
+          (with-output-chaos-warning ()
+            (princ "no module is opening.")
+            (chaos-error 'no-open-module)))
+      (let ((val (modexp-top-level-eval toks)))
+        (if (modexp-is-error val)
+            (if (and (null (cdr toks))
+                     (<= 4 (length (car toks)))
+                     (equal "MOD" (subseq (car toks) 0 3)))
+                (let ((val (read-from-string (subseq (car toks) 3))))
+                  (if (integerp val)
+                      (let ((nmod (print-nth-mod val))) ;;; !!!
+                        (when change-context
+                          (change-context (get-context-module t) nmod))
+                        nmod)
                     (with-output-chaos-error ('no-such-module)
-                      (format t "undefined module? ~a" toks)
-                      ))
-                (progn
-                  (when change-context
-                    (change-context (get-context-module) val))
-                  val))))))
+                      (format t "could not evaluate the modexp ~a" toks))))
+              (with-output-chaos-error ('no-such-module)
+                (format t "undefined module? ~a" toks)))
+          (progn
+            (when change-context
+              (change-context (get-context-module t) val))
+            val))))))
 
 ;;; what to do with this one?
 
@@ -122,7 +119,7 @@
                   (sub (nth-sub (1- no) mod)))
              (if sub
                  (when change-context
-                   (change-context (get-context-module) sub))
+                   (change-context (get-context-module t) sub))
                  (progn (princ "** Waring : No such sub-module") (terpri) nil))))
           ((and (equal "param" it)
                 (cadr toks)
@@ -133,12 +130,12 @@
                   (param (nth (1- no) params)))
              (if param
                  (when change-context
-                   (change-context (get-context-module) (cdr param)))
+                   (change-context (get-context-module t) (cdr param)))
                  (with-output-chaos-error ('no-such-parameter)
                    (princ "No such parameter")
                    ))))
           ((and (null toks) change-context force?)
-           (when (get-context-module)
+           (when (get-context-module t)
              (change-context (get-context-module) nil)))
           (t (eval-mod toks change-context)))))
 

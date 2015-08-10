@@ -970,7 +970,7 @@
                                           error-operator)
   (declare (type list opinfo arity)
            (type sort-struct coarity)
-           (type (or null module) module))
+           (type module module))
   ;;
   (let ((meth nil))
     (dolist (m (opinfo-methods opinfo))
@@ -1399,7 +1399,7 @@
                                    :test #'equal))
     (eval-ast decl)))
 
-(defun setup-error-operators-in (&optional (module (or (get-context-module))))
+(defun setup-error-operators-in (&optional (module (get-context-module)))
   (declare (type module module)
            (values t))
   (let ((all-error-operators nil))

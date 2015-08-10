@@ -47,9 +47,6 @@
 ;;; ******
 
 (defun eval-match-command (ast)
-  (unless (get-context-module)
-    (with-output-chaos-error ('no-current-module)
-      (princ "no current module.")))
   (let ((type (%match-type ast))
         (target (case (%match-target ast)
                   (:top $$term)

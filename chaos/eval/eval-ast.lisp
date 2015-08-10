@@ -754,7 +754,7 @@
         ;;
         (propagate-module-change modval)
         ;;
-        (when (eq modval (get-context-module))
+        (when (eq modval (get-context-module t))
           (reset-context-module)
           (setq recover-same-context t))
         
@@ -804,7 +804,7 @@
           (if recover-same-context
               (reset-context-module real-mod)
             (if auto-context?
-                (change-context (get-context-module) real-mod)))
+                (change-context (get-context-module t) real-mod)))
           ;;
           (unless (module-is-parameter-theory real-mod)
             (print-in-progress " done."))

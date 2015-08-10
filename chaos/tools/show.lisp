@@ -50,11 +50,11 @@
       (with-output-msg ()
         (princ "no current context, `select' some module first."))
       (return-from show-context nil))
-    (if (eq (get-context-module) mod)
+    (if (eq (get-context-module t) mod)
         (format t "~%-- current context :")
         (progn (format t "~%-- context of : ")
                (print-chaos-object mod)))
-    (context-push-and-move (get-context-module) mod)
+    (context-push-and-move (get-context-module t) mod)
     (with-in-module (mod)
       (format t "~%[module] ")
       (print-chaos-object *current-module*)
@@ -81,10 +81,6 @@
 ;;; SHOW BINDINGS
 
 (defun show-bindings (&optional (module (get-context-module)))
-  (unless module
-    (with-output-msg ()
-      (princ "no context (current module) is specified.")
-      (return-from show-bindings nil)))
   (with-in-module (module)
     (let ((bindings (module-bindings *current-module*)))
       (format t "~&[bindings] ")
@@ -108,10 +104,7 @@
 ;;; show apply selection
 
 (defun show-apply-selection (&optional (module (get-context-module)))
-  (unless module
-    (with-output-msg ()
-      (princ "no context (current module) is specified.")
-      (return-from show-apply-selection nil)))
+  (declare (ignore module))             ; TODO
   (when $$term-context
     (with-in-module ($$term-context)
       (format t "$$subterm = ")
@@ -142,10 +135,6 @@
 ;;; print-pending
 ;;;
 (defun print-pending (&optional (module (get-context-module)))
-  (unless module
-    (with-output-msg ()
-      (princ "no context (current module) is specified.")
-      (return-from print-pending nil)))
   (with-in-module (module)
     (format t"~&[pending actions] ")
     (if (null $$action-stack)
@@ -183,7 +172,7 @@
     (with-output-chaos-warning ()
       (format t "unknown option for `show term' : ~a" tree?))
     (return-from show-term nil))
-  (unless (get-context-module)
+  (unless (get-context-module t)
     (with-output-msg ()
       (princ "no current context, `select' some module first.")
       (return-from show-term nil)))
@@ -382,11 +371,7 @@
                (with-output-msg ()
                  (format t "no such module ~a" modexp)
                  (return-from show-sort nil))))
-            (t (setq mod (get-context-module))
-               (unless (module-p mod)
-                 (with-output-msg ()
-                   (princ "no context(current) module, select some first.")
-                   (return-from show-sort nil)))))
+            (t (setq mod (get-context-module))))
       (with-in-module (mod)
         (let ((srt (find-sort-in mod sort-n)))
           (if srt
@@ -430,10 +415,7 @@
                  (print-next)
                  (princ "no such module ")
                  (princ (%opref-module parsedop))))))
-          (t (setq mod (get-context-module))
-             (unless mod
-               (with-output-chaos-error ('no-context)
-                 (princ "no context module is given.")))))
+          (t (setq mod (get-context-module))))
     mod))
 
 (defun resolve-operator-reference (opref &optional (no-error nil))
@@ -490,25 +472,23 @@
   (let ((mod (if toks
                  (eval-mod-ext toks)
                (get-context-module))))
-    (unless mod
-      (with-output-msg ()
-        (format t "no context (current module) is specified.")
-        (return-from show-param nil)))
+    (when (modexp-is-error mod)
+      (with-output-chaos-error ('invalid-modexp)
+        (format t "Invalid module expression: ~s" toks)))
     (let ((param (find-parameterized-submodule no mod)))
       (if (and param (not (modexp-is-error param)))
           (progn
             (with-in-module (param)
               (if describe
                   (describe-module param)
-                  (show-module param)))
+                (show-module param)))
             (terpri))
-          (with-output-msg ()
-            (if (null (module-parameters mod))
-                (princ "module has no parameters.")
-                (format t "no such parameter ~a" (if (integerp no)
-                                                        (1+ no)
-                                                        no))))))
-    ))
+        (with-output-msg ()
+          (if (null (module-parameters mod))
+              (princ "module has no parameters.")
+            (format t "no such parameter ~a" (if (integerp no)
+                                                 (1+ no)
+                                               no))))))))
 
 ;;; ************
 ;;; SHOW MODULES

@@ -51,11 +51,6 @@
 (defun check-method-strictness (meth &optional
                                      (module (get-context-module))
                                      report?)
-                                     
-  (unless module
-    (with-output-chaos-error ('no-cntext)
-      (princ "checking lazyness: no context module is specified!")))
-  ;;
   (with-in-module (module)
     (cond ((and (null (method-rules-with-different-top meth))
                 (rule-ring-is-empty (method-rules-with-same-top meth)))

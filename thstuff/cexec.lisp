@@ -1323,9 +1323,6 @@
   (let ((module (get-context-module))
         max-r
         max-d)
-    (unless module
-      (with-output-chaos-error ('no-context)
-        (format t "no context module..")))
     (if (integerp max-result)
         (setq max-r max-result)
       (if (term-is-builtin-constant? max-result)

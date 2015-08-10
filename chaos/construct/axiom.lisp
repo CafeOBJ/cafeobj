@@ -895,7 +895,7 @@
       (with-output-chaos-error ('invalid-rule-spec)
         (format t "No rule number or name is specified.")))
     ;; get module in which the specified rule is looked up
-    (let ((cur-context (get-context-module)))
+    (let ((cur-context (get-context-module t)))
       (if (equal "" mod)
           (setq mod cur-context)
         (if (and cur-context

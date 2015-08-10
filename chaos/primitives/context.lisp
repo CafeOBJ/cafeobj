@@ -48,8 +48,12 @@
     nil))
 
 ;;; GET-CONTEXT-MODULE
-(defun get-context-module ()
-  *current-module*)
+(defun get-context-module (&optional no-error)
+  (or *current-module*
+      (if no-error
+          nil
+        (with-output-chaos-error ('no-context)
+          (format t "No context module is set.")))))
 
 ;;; RESET-CONTEXT-MODULE
 (defun reset-context-module (&optional (mod nil))
@@ -58,7 +62,7 @@
 ;;; GET-OBJECT-CONTEXT object -> null | module
 ;;;
 (defun get-object-context (obj)
-  (or (get-context-module) (object-context-mod obj)))
+  (or (get-context-module t) (object-context-mod obj)))
 
 ;;; BINDINGS *******************************************************************
 
@@ -107,8 +111,7 @@
   (when (or (equal let-sym "$$term")
             (equal let-sym "$$subterm"))
     (with-output-chaos-error ('misc-error)
-      (princ "sorry, but you cannot use \"$$term\" or \"$$subterm\" as let variable.")
-      ))
+      (princ "sorry, but you cannot use \"$$term\" or \"$$subterm\" as let variable.")))
   ;;
   (let* ((special nil)
          (bindings (if (is-special-let-variable? let-sym)
@@ -149,7 +152,6 @@
           $$subterm nil
           $$action-stack nil
           $$selection-stack nil
-          $$term-context nil
           *current-module* nil
           *rewrite-stop-pattern* nil)
     (return-from new-context nil))
@@ -182,12 +184,15 @@
   (if (eq mod old-mod)
       (progn
         (setq $$term term
+              $$term-context mod
               $$subterm term
               $$selection-stack nil)
         (save-context mod)
         (new-context mod))
     ;; we do not change globals, instead set in context of mod.
-    (save-context mod)))
+    (progn
+      (setq $$term-context mod)
+      (save-context mod))))
 ;;;
 (defun context-push (mod)
   (push mod *old-context*))
@@ -200,12 +205,11 @@
   (change-context old new))
 
 (defun context-pop-and-recover ()
-  (when (get-context-module)
-    (let ((old (context-pop)))
-      (unless (eq old (get-context-module))
-        ;; eval-mod may change the current context implicitly.
-        ;; in this case we do not recover context.
-        (change-context (get-context-module) old)))))
+  (let ((old (context-pop)))
+    (unless (eq old (get-context-module t))
+      ;; eval-mod may change the current context implicitly.
+      ;; in this case we do not recover context.
+      (change-context (get-context-module t) old))))
 
 ;;; EOF
 

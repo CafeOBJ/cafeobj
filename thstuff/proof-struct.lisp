@@ -701,13 +701,11 @@
                              (push x nodes))))
     (nreverse nodes)))
 
-;;;
 ;;; get-unproved-goals : ptree -> List(goal)
 ;;;
 (defun get-unproved-goals (ptree)
   (mapcar #'(lambda (y) (ptree-node-goal y)) (get-unproved-nodes ptree)))
 
-;;;
 ;;; print-unproved-goals
 ;;;
 (defun print-unproved-goals (ptree &optional (stream *standard-output*))
@@ -718,7 +716,6 @@
   (dolist (goal (get-unproved-goals ptree))
     (pr-goal goal stream)))
 
-;;;
 ;;; get-next-pfoof-context : ptree -> ptree-node
 ;;;
 (defun get-next-proof-context (ptree)
@@ -727,6 +724,20 @@
 
 (defun next-proof-target-is-specified? ()
   *next-default-proof-node*)
+
+;;; get-target-goal-node
+;;; given goal-name or NULL, returns the next targetted goal node.
+;;;
+(defun get-target-goal-node (&optional goal-name)
+  (let ((next-goal-node (if goal-name
+                            (find-goal-node *proof-tree* goal-name)
+                          (get-next-proof-context *proof-tree*))))
+    (unless next-goal-node
+      (with-output-chaos-error ('no-target)
+        (if goal-name
+            (format t "Could not find the goal ~s." goal-name)
+          (format t "No default target goal."))))
+    next-goal-node))
 
 ;;;
 ;;; select-next-goal : goal-name

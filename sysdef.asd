@@ -188,7 +188,8 @@
                            (:file "case")
                            (:file "proof-struct")
                            (:file "apply-tactic")
-                           (:file "citp")))
+                           (:file "citp")
+                           (:file "bterm-inspector")))
      (:module "BigPink"
                  :components ((:module codes
                                        :serial t

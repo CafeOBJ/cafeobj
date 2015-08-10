@@ -61,6 +61,7 @@
       (*rule-count* 0)
       (*term-memo-hash-hit* 0)
       ($$term nil)
+      ($$term-context nil)
       ($$cond nil)
       ($$target-term nil)
       ($$norm nil)
@@ -82,6 +83,7 @@
                     *term-memo-hash-hit*
                     $$target-term
                     $$term
+                    $$term-context
                     $$cond
                     $$target-term
                     $$norm
@@ -172,7 +174,7 @@
 
   ;; reset-term-memo-table
   (defun reset-term-memo-table (module)
-    (unless (eq module (get-context-module))
+    (unless (eq module (get-context-module t))
       (clear-term-memo-table *term-memo-table*)))
 
   ;; prepare-reduction-env

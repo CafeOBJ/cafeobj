@@ -235,7 +235,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 ;;; CafeOBJ INTERPRETER TOPLEVEL HELP
 ;;;
 (defun print-context-info ()
-  (let ((cmod (get-context-module)))
+  (let ((cmod (get-context-module t)))
     (cond ((null cmod)
            (format t "~&You are at top level, no context module is set."))
           (*open-module*
@@ -386,7 +386,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 (defun print-cafeobj-prompt ()
   (fresh-all)
   (flush-all)
-  (let ((cur-module (get-context-module)))
+  (let ((cur-module (get-context-module t)))
     (cond ((eq *prompt* 'system)
            (if cur-module
              (if (module-is-inconsistent cur-module)

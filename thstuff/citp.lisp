@@ -182,7 +182,7 @@
                 ((":bred") (setq mode :bred)))
     (if (= 4 (length e)) 
         (progn
-          (setq goal-name (cadr (cadr e))); (find-goal-node *proof-tree* (cadr (cadr e)))
+          (setq goal-name (cadr (cadr e)))
           (setq preterm (nth 2 e)))
       (progn
         (setq goal-name nil)
@@ -214,6 +214,19 @@
     (if (equal (first args) ":ctf-")
         (cons form (cons term? :dash))
       (cons form (cons term? nil)))))
+
+;;; citp-parse-pctf
+;;; :pctf { [<term> .] ... [<term> . ] }
+;;; (":pctf" "{" (("[" (<Term>1) "." "]") ... ("[" (<Termn>) "." "]")) "}")
+;;; ==> (:pctf-? <Term1> ... <Termn>)
+(defun citp-parse-pctf (args)
+  (let ((pctf-minus? (equal (car args) ":pctf-"))
+        (list-terms (third args))
+        (pre-terms nil))
+    (print list-terms)
+    (dolist (lt list-terms)
+      (push (second lt) pre-terms))
+    (cons pctf-minus? (nreverse pre-terms))))
 
 ;;; citp-parse-csp
 ;;; :csp { <axiom> ... }
@@ -250,6 +263,27 @@
         ;; 
         (format t "~&:spoiler flag is ~s" (if *citp-spoiler* "on" "off"))))
     t))
+
+;;;
+;;; {:binspect | binspect} [in <goal-name> : ] <boolean-term> .
+;;;
+(defun parse-citp-binspect (args)
+  (let (mode
+        goal-name
+        preterm)
+    (if (equal (first args) ":binspect")
+        (setq mode :citp)
+      (setq mode :general))
+    (if (= 4 (length args))
+        (progn
+          (setq goal-name (cadr (cadr args)))
+          (setq preterm (nth 2 args)))
+      (progn
+        (setq goal-name nil)
+        (setq preterm (nth 1 args))))
+    (list mode goal-name preterm)))
+
+
 
 ;;; ================================
 ;;; CITP related command evaluators
@@ -368,6 +402,20 @@
     (report-citp-stat)
     (check-success *proof-tree*)))
 
+;;; :pctf
+;;;
+(defun eval-citp-pctf (ax-form)
+  (check-ptree)
+  (with-in-module (*current-module*)
+    (reset-rewrite-counters)
+    (begin-rewrite)
+    ;; TODO
+    ax-form
+    ;; (apply-pctf (car ax-form) (cadr ax-form) (cddr ax-form))
+    (end-rewrite)
+    (report-citp-stat)
+    (check-success *proof-tree*)))
+
 ;;; :csp
 (defun eval-citp-csp (goal-ax-decls)
   (check-ptree)
@@ -402,5 +450,14 @@
            (print-current-goal describe))
           (t (with-output-chaos-error ('unknown)
                (format t "Unknown parameter to :show/:describe ~S" target))))))
+
+
+;;; :binspect
+;;;
+(defun eval-citp-binspect (args)
+  (let ((mode (first args))
+        (goal-or-mod (second args))
+        (preterm (third args)))
+  (binspect-in mode goal-or-mod preterm)))
 
 ;;; EOF

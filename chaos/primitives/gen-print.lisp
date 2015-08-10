@@ -596,7 +596,7 @@
   (cond ((chaos-ast? object)
          (let ((printer (ast-printer object)))
            (if printer
-               (let ((mod (get-context-module)))
+               (let ((mod (get-context-module t)))
                  (if mod
                      (with-in-module (mod)
                        (funcall printer object stream))
@@ -607,7 +607,7 @@
         ((and (chaos-object? object) (not (stringp object)))
          (let ((printer (object-printer object)))
            (if printer
-               (let ((mod (get-context-module)))
+               (let ((mod (get-context-module t)))
                  (if mod
                      (with-in-module (mod)
                        (funcall printer object stream))
@@ -616,7 +616,7 @@
                      (*print-pretty* nil))
                  (prin1 object stream)))))
         ((term? object)
-         (let ((mod (get-context-module)))
+         (let ((mod (get-context-module t)))
            (if mod
                (with-in-module (mod)
                  (term-print object stream))

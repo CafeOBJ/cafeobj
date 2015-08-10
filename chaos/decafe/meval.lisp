@@ -76,8 +76,8 @@
         (me (normalize-modexp modexp)))
     ;; "." -> current context module
     (when (and (equal me ".")
-               (get-context-module))
-      (return-from eval-modexp (get-context-module)))
+               (get-context-module t))
+      (return-from eval-modexp (get-context-module t)))
     (when (stringp me)
       ;; simple name
       (let ((pos (position #\. (the simple-string me) :from-end t)))
@@ -94,7 +94,7 @@
                       (format t "~% no such module ~s" qual)))
                 (setf mod (find-module-in-env name context))))
           (setq mod (find-module-in-env me (if also-local
-                                               (get-context-module)
+                                               (get-context-module t)
                                              nil))))))
     (if mod
         (if reconstruct-if-need
@@ -107,7 +107,7 @@
                  (declare (special *on-autoload*))
                  (!input-file (cdr ent)))
                (setq mod (find-module-in-env me (if also-local
-                                                    (get-context-module)
+                                                    (get-context-module t)
                                                   nil)))
                (if mod
                    mod

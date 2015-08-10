@@ -580,9 +580,6 @@
 ;;;
 (defun eval-resolve (ast)
   (let ((eval-context (get-context-module)))
-    (unless eval-context
-      (with-output-chaos-error ('no-context)
-        (princ "no context (current module) is set!")))
     (let ((out-file (%resolve-arg ast)))
       (if (and out-file (not (equal out-file ".")))
           (with-open-file (stream out-file :direction :output
@@ -713,6 +710,8 @@
         (result-as-text (%demod-return-text ast)))
     (perform-demodulation* preterm modexp mode result-as-text)))
 
+;;; *** TODO ***
+;;; use reducer.
 (defun perform-demodulation* (preterm &optional modexp mode (result-as-text nil))
   (let ((*consider-object* t)
         (*rewrite-exec-mode* (eq mode :exec))
@@ -725,8 +724,8 @@
         (number-matches nil))
     (let ((mod (if modexp 
                    (eval-modexp modexp)
-                 (get-context-module))))
-      (unless (eq mod (get-context-module))
+                 (get-context-module t))))
+      (unless (eq mod (get-context-module t))
         (clear-term-memo-table *term-memo-table*))
       (if (or (null mod) (modexp-is-error mod))
           (if (null mod)
@@ -736,12 +735,12 @@
                 (princ "incorrect module expression, no such module ")
                 (print-chaos-object modexp)))
         (progn
-          (context-push-and-move (get-context-module) mod)
+          (context-push-and-move (get-context-module t) mod)
           (with-in-module (mod)
             (auto-db-reset mod))
           (with-proof-context (mod)
             (when *auto-context-change*
-              (change-context (get-context-module) mod))
+              (change-context (get-context-module t) mod))
             (!setup-reduction mod)
             (setq $$mod (get-context-module))
             (setq sort *cosmos*)
@@ -868,9 +867,6 @@
     
 ;;; LEX
 (defun eval-pn-lex (ast)
-  (unless (get-context-module)
-    (with-output-chaos-error ('no-context)
-      (princ "no context(current) module is specified.")))
   (compile-module (get-context-module))
   (with-in-module ((get-context-module))
     (let ((optokens (%pn-lex-ops ast))

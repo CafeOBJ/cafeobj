@@ -808,6 +808,8 @@
                    
                        |}|)
                   (\[ :term |.| \]))) 
+        ((:+ |:pctf| |:pctf-|)
+         |{| (:many-of (\[ :term |.| \])) |}|)
         ((:+ |:csp| |:csp-|)
          |{| (:many-of  #.EqDeclaration
                         #.RlDeclaration
@@ -817,6 +819,8 @@
                  |}|)
         ((:+ |:show| |:sh| |:describe| |:desc|) :args)
         (|:spoiler| (:one-of (on) (off) (|.|)))
+        ((:+ |:binspect|)
+         (:rdr #..term-delimiting-chars. (:if-present in :symbol |:|)) (:seq-of :term) |.|)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.

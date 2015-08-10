@@ -2310,8 +2310,8 @@ Do nothing.
     :category :proof
     :parser citp-parse-red
     :evaluator eval-citp-red
-    :title "`{ :red | :exec | :bred } <term> .`"
-    :doc "TODO"
+    :title "`{ :red | :exec | :bred } [in <goal-name> :] <term> .`"
+    :doc "reduce the term in specified goal <goal-name>. "
     )
 
 (define (":verbose")
@@ -2343,6 +2343,22 @@ Do nothing.
     :parser citp-parse-ctf
     :evaluator eval-citp-ctf
     :title "`:ctf { eq [ <label-exp> ] <term> = <term> .}`"
+    :doc "TODO"
+    )
+
+(define (":pctf")
+    :category :proof
+    :parser citp-parse-pctf
+    :evaluator eval-citp-pctf
+    :title "`:pctf { <bool-term> . ... <bool-term> .}`"
+    :doc "TODO"
+    )
+
+(define (":pctf-")
+    :category :proof
+    :parser citp-parse-pctf
+    :evaluator eval-citp-pctf
+    :title "`:pctf- { <bool-term> . ... <bool-term> . }`"
     :doc "TODO"
     )
 
@@ -2384,9 +2400,33 @@ the possible set of invocations.
     :category :proof
     :parser citp-parse-spoiler
     :evaluator identity
-    :title "`:spoiler { on | off}"
+    :title "`:spoiler { on | off}`"
     :doc "TODO"
     )
+
+(define (":binspect")
+    :category :proof
+    :parser parse-citp-binspect
+    :evaluator eval-citp-binspect
+    :title "`:binspect [in <goal-name> :] <boolean-term> .`"
+    :doc "TODO"
+    )
+
+(define ("binspect")
+    :category :proof
+    :parser parse-citp-binspect
+    :evaluator eval-citp-binspect
+    :title "`binspect [in <module-name> :] <boolean-term> .`"
+    :doc "TODO"
+    )
+
+; (define ("binspect")
+;     :cateogory :proof
+;     :parser parse-citp-binspect
+;     :evaluator eval-citp-binspect
+;     :title "`binspect [in <module-name> :] <boolean-term> .`"
+;     :doc "TODO"
+;     )
 
 ;;;
 
@@ -2411,5 +2451,5 @@ If <term> is omitted, the list of available <term> will be printed.
     ")
 
 ;;;
-)                                       ; end eval-when
+)                                      ; end eval-when
 ;;; EOF

@@ -50,6 +50,7 @@
 
 (defconstant term-hash-mask #x1FFFFFFF)
 
+(declaim (type fixnum term-hash-size))
 (defconstant term-hash-size 9001)
 
 (defmacro method-has-memo-safe (m)

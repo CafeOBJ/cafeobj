@@ -136,19 +136,16 @@
         stat-form                       ; statistics in string 
         term-form)                      ; normalized term in string form
     ;; prepare rewriting context
-    (when (or (null mod) (modexp-is-error mod))
-      (if mod
-          (with-output-chaos-error ('no-such-module)
-            (princ "Incorrect module expression, no such module ")
-            (print-chaos-object modexp))
-        (with-output-chaos-error ('no-context)
-          (princ "No module expression provided, and no selected (current) module."))))
+    (when (modexp-is-error mod)
+      (with-output-chaos-error ('no-such-module)
+        (princ "Incorrect module expression, no such module ")
+        (print-chaos-object modexp)))
+    ;; set rewrting context
+    (context-push-and-move (get-context-module t) mod)
+    (when *auto-context-change*
+      (change-context (get-context-module t) mod))
     ;; parse target term 
     (setq term (prepare-term preterm mod))
-    ;; set rewrting context
-    (context-push-and-move (get-context-module) mod)
-    (when *auto-context-change*
-      (change-context (get-context-module) mod))
     ;; print out prelude message
     (unless *chaos-quiet*
       (with-in-module (mod)
@@ -193,18 +190,15 @@
     (let ((mod (if modexp 
                    (eval-modexp modexp)
                  (get-context-module))))
-      (if (or (null mod) (modexp-is-error mod))
-          (if (null mod)
-              (with-output-chaos-error ('no-context)
-                (princ "no module expression provided and no selected(current) module."))
-            (with-output-chaos-error ('no-such-module)
-              (princ "incorrect module expression, no such module ")
-              (print-chaos-object modexp)))
+      (if (modexp-is-error mod)
+          (with-output-chaos-error ('no-such-module)
+            (princ "incorrect module expression, no such module ")
+            (print-chaos-object modexp))
         (progn
-          (context-push-and-move (get-context-module) mod)
+          (context-push-and-move (get-context-module t) mod)
           (setq sort *cosmos*)
           (when *auto-context-change*
-            (change-context (get-context-module) mod)) ;;; what?
+            (change-context (get-context-module t) mod)) ;;; what?
           (with-in-module (mod)
             (!setup-reduction *current-module*)
             (setq $$mod *current-module*)
@@ -266,32 +260,29 @@
 (defun do-parse-term* (preterm &optional modexp)
   (let ((mod (if modexp
                  (eval-modexp modexp)
-               (get-context-module))))
-    (unless mod
-      (with-output-chaos-error ('no-context)
-        (princ "no module expression provided and no selected(current) module.")))
+               (get-context-module)))
+        (target-term nil))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
         (princ "incorrect module expression, not such module: ")
         (print-chaos-object modexp)))
     ;;
-    (context-push-and-move (get-context-module) mod)
+    (context-push-and-move (get-context-module t) mod)
     (with-in-module (mod)
       (prepare-for-parsing *current-module*)
       (let ((*parse-variables* nil))
-        (let ((res (simple-parse *current-module* preterm *cosmos*)))
-          (setq res (car (canonicalize-variables (list res) mod)))
-          ;; ******** MEL 
-          (when *mel-sort*
-            (!setup-reduction mod)
-            (setq res (apply-sort-memb res
-                                       mod)))
-          (reset-target-term res *current-module* mod)
-          ;; ********
-          (format t "~%")
-          (term-print-with-sort res *standard-output*)
-          (flush-all))))
-    (context-pop-and-recover)))
+        (setq target-term (car (canonicalize-variables (list (simple-parse *current-module* preterm *cosmos*)) mod)))
+        ;; ******** MEL 
+        (when *mel-sort*
+          (!setup-reduction mod)
+          (setq target-term (apply-sort-memb target-term mod)))
+        (reset-target-term target-term *current-module* mod)
+        ;; ********
+        (format t "~%")
+        (term-print-with-sort target-term *standard-output*)
+        (flush-all)))
+    (context-pop-and-recover)
+    (values target-term mod)))
 
 ;;; *TODO*
 (defun red-loop (mod &optional prompt)
@@ -416,9 +407,7 @@
   (if (or (null pat)
           (member pat '(("none") ("off") ("nil") ("null"))))
       (set-rewrite-stop-pattern 'none)
-    (let ((mod (or (get-context-module)
-                   (with-output-chaos-error ('no-context)
-                     (princ "no context (current) module is specified.")))))
+    (let ((mod (get-context-module)))
       (let* ((*parse-variables* (module-variables mod))
              (term (simple-parse mod
                                  pat *cosmos*)))
@@ -518,7 +507,7 @@
         (princ "closing this module...") (print-next)
         (eval-close-module nil)))
     (setq *open-module* mod)
-    (setq *last-before-open* (get-context-module))
+    (setq *last-before-open* (get-context-module t))
     (clear-term-memo-table *term-memo-table*)
     (let ((*chaos-quiet* t)
           (*copy-variables* t)
@@ -538,8 +527,8 @@
   (if *open-module*
       (let ((omod (eval-modexp "%")))
         (initialize-module omod)
-        (when (eq omod (get-context-module))
-          (change-context (get-context-module) *last-before-open*))
+        (when (eq omod (get-context-module t))
+          (change-context (get-context-module t) *last-before-open*))
         (setq *open-module* nil)
         (setq *last-before-open* nil))
     (with-output-chaos-warning ()
@@ -1200,10 +1189,7 @@
 
       ;; operator strictness
       (:strictness
-       (let ((mod (or (get-context-module)
-                      (with-output-chaos-error ('no-context)
-                        (princ "no context (current) module.")))))
-         ;;
+       (let ((mod (get-context-module)))
          (!setup-reduction mod)
          (with-in-module (mod)
            (if args
@@ -1246,10 +1232,7 @@
                (format t ">> module is compatible."))))))
       ;;;
       (:coherency
-       (let ((mod (or (get-context-module)
-                      (with-output-chaos-error ('no-context)
-                        (princ "no context (current) module.")))))
-         ;;
+       (let ((mod (get-context-module)))
          (!setup-reduction mod)
          (with-in-module (mod)
            (if args
@@ -1312,16 +1295,10 @@
     (let ((mod (if modexp
                    (eval-modexp modexp)
                  (get-context-module))))
-      ;;
-      (when (or (null mod) (modexp-is-error mod))
-        (if (null mod)
-            (with-output-chaos-error ('no-context)
-              (princ "no module expression provided and no selected(current) module.")
-              )
+      (when (modexp-is-error mod)
           (with-output-chaos-error ('no-such-module)
             (princ "incorrect module expression, no such module ")
-            (print-chaos-object modexp)
-            )))
+            (print-chaos-object modexp)))
       ;; process specified command
       (case command
         ((:compile :compile-all)
@@ -1354,7 +1331,7 @@
                    (princ (cadr result)))
                  (force-output))
              (progn
-               (context-push-and-move (get-context-module) mod)
+               (context-push-and-move (get-context-module t) mod)
                (let ((*print-indent* (+ 4 *print-indent*)))
                  (with-in-module (mod)
                    (setq $$term (car result))
@@ -1371,7 +1348,7 @@
                      (terpri)
                      (princ (cadr result)))
                    (force-output)
-                   (reset-target-term $$term (get-context-module) mod)))
+                   (reset-target-term $$term (get-context-module t) mod)))
                (context-pop-and-recover)))))
         ;;
         (otherwise (with-output-panic-message ()
@@ -1447,7 +1424,7 @@
         (number-matches 0))
     (let ((mod (if modexp
                    (eval-modexp modexp)
-                 (get-context-module))))
+                 (get-context-module t))))
       (unless (eq mod (get-context-module))
         (clear-term-memo-table *term-memo-table*))
       (when (or (null mod) (modexp-is-error mod))
@@ -1457,9 +1434,9 @@
           (with-output-chaos-error ('no-such-module)
             (princ "no such module: ")
             (print-chaos-object modexp))))
-      (context-push-and-move (get-context-module) mod)
+      (context-push-and-move (get-context-module t) mod)
       (when *auto-context-change*
-        (change-context (get-context-module) mod))
+        (change-context (get-context-module t) mod))
       (with-in-module (mod)
         (!setup-reduction mod)
         (setq $$mod *current-module*)
@@ -1585,9 +1562,7 @@
         (modexp (%look-up-module ast))
         (mod nil))
     (setf mod (if (null modexp)
-                  (or (get-context-module)
-                      (with-output-chaos-error ('no-context)
-                        (format t "~%No context module is set.")))
+                  (get-context-module)
                 (eval-modexp modexp)))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)

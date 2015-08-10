@@ -138,7 +138,7 @@
     (fresh-all)
     (flush-all)
     (format t "~%[")
-    (if (get-context-module)
+    (if (get-context-module t)
         (print-simple-mod-name (get-context-module))
       (princ "*"))
     (princ "]> ")))

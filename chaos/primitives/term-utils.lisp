@@ -824,7 +824,7 @@
 ;;; same as make-term-with-sort-check, but specialized to binary operators.
 
 (defun make-term-with-sort-check-bin (meth subterms
-                                           &optional (module *current-module*))
+                                           &optional (module (get-context-module)))
   (declare (type method meth)
            (type list subterms)
            (type (or null module) module)

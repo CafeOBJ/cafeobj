@@ -1788,7 +1788,7 @@
                  (princ "---"))
              *full-lit-table*)))
 
-(defun show-demodulators (&optional (mod (get-context-module)))
+(defun show-demodulators (&optional (mod (get-context-module t)))
   (unless mod (return-from show-demodulators nil))
   (with-in-module (mod)
     (let* ((psys (module-proof-system mod))

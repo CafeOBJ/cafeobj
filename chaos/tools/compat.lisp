@@ -41,13 +41,8 @@
 ;;; CHECK COMPATIBILITY
 ;;;
 (defun check-compatibility (&optional (module (get-context-module)))
-  (unless module
-    (with-output-chaos-error ('no-context)
-      (princ "no context (current) module is specified!")))
-  ;;
   (unless *on-preparing-for-parsing*
     (prepare-for-parsing module))
-  ;;
   (with-in-module (module)
     (let ((rules (module-all-rules module))
           (non-decreasing-rules nil))

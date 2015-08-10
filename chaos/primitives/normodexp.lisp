@@ -78,7 +78,7 @@
     (setq modexp (car modexp)))
   ;;
   (when (and (equal modexp "*the-current-module*")
-             (get-context-module))
+             (get-context-module t))
     (setq modexp (get-context-module)))
   (cond ((module-p modexp) (normalize-modexp (module-name modexp)))
         ((stringp modexp) (canonicalize-simple-module-name modexp))

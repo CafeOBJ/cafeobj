@@ -234,7 +234,8 @@
                          "thstuff/case"
                          "thstuff/proof-struct"
                          "thstuff/apply-tactic"
-                         "thstuff/citp"))
+                         "thstuff/citp"
+                         "thstuff/bterm-inspector"))
          (:module-group :bigpink
                         (:definitions
                             "BigPink/codes/types"

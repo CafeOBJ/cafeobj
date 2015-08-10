@@ -65,8 +65,7 @@
                          (setq target (get-bound-value (car pre-term))))
                        (unless target
                          (return-from do-eval-start-th nil))
-                       (when (eq mod (get-context-module))
-                         (setq $$action-stack nil))
+                       (setq $$action-stack nil)
                        (reset-reduced-flag target)
                        (reset-target-term target *current-module* mod)))
                     (t 
@@ -76,8 +75,7 @@
                                                 *cosmos*)))
                          (when (term-is-an-error res)
                            (return-from do-eval-start-th nil))
-                         (when (eq (get-context-module) mod)
-                           (setq $$action-stack nil))
+                         (setq $$action-stack nil)
                          (reset-target-term res *current-module* mod))))))
           ;; try use $$term
           (progn
@@ -86,8 +84,7 @@
                 (format t "no target term is given!")
                 (return-from do-eval-start-th nil)))
             (check-apply-context mod)
-            (when (eq (get-context-module) mod)
-              (setq $$action-stack nil))
+            (setq $$action-stack nil)
             (reset-reduced-flag $$term)
             (reset-target-term $$term (get-context-module) mod))))
       (when (command-final) (command-display))
@@ -147,82 +144,78 @@
         (where-spec (%apply-where-spec ast))
         (selectors (%apply-selectors ast)))
     (catch 'apply-context-error
-      (if (eq action :help)
-          (apply-help)
-        (progn
-          ;; check some evaluation env
-          (when (or (null $$term) (eq 'void $$term))
-            (with-output-chaos-error ('invalid-term)
-              (princ "term to be applied is not defined.")
-              ))
-          (unless (get-context-module)
-            (with-output-chaos-error ('no-context-module)
-              (princ "no current module.")))
-          ;; real work begins here ------------------------------
-          (with-in-module ((get-context-module))
-            (multiple-value-bind (subterm-sort subterm)
-                (compute-selection $$term selectors)
-              (setq *-applied-* t)
-              (case action
-                (:reduce                ; full reduction on selections.
-                 (!setup-reduction *current-module*)
-                 (let ((*rewrite-semantic-reduce*
-                        (module-has-behavioural-axioms *current-module*))
-                       (*rewrite-exec-mode* nil))
-                   (term-replace subterm (@copy-term subterm))
-                   (reset-reduced-flag subterm)
-                   (rewrite subterm *current-module*)))
-                (:breduce
-                 (!setup-reduction *current-module*)
-                 (let ((*rewrite-semantic-reduce* nil)
-                       (*rewrite-exec-mode* nil))
-                   (term-replace subterm (@copy-term subterm))
-                   (reset-reduced-flag subterm)
-                   (rewrite subterm *current-module*)))
-                (:exec
-                 (!setup-reduction *current-module*)
-                 (let ((*rewrite-semantic-reduce*
-                        (module-has-behavioural-axioms *current-module*))
-                       (*rewrite-exec-mode* t))
-                   (term-replace subterm (@copy-term subterm))
-                   (reset-reduced-flag subterm)
-                   (rewrite subterm *current-module*)))
-                ;;
-                (:print                 ; print selections.
-                 (format t "~%term ")
-                 (disp-term subterm)
-                 (format t "~&tree form")
-                 (print-term-tree subterm))
-                (:apply                 ; apply specified rule.
-                 (setq *-applied-* nil)
-                 (let* ((actrule (compute-action-rule rule-spec
-                                                      substitution
-                                                      selectors))
-                        (*-inside-apply-with-extensions-*
-                         (and
-                          (let ((arlhs (rule-lhs actrule)))
-                            (and (term-is-application-form? arlhs)
-                                 (method-is-associative (term-head arlhs)))))))
-                   (if (eq :within where-spec)
-                       (let ((*-inside-apply-all-* t))
-                         (catch 'apply-all-quit
-                           (@apply-all actrule subterm-sort subterm)))
-                     (@apply-rule actrule subterm-sort subterm)))
-                 (when *-applied-*
-                   (update-lowest-parse $$term)
-                   (when (nth 2 rule-spec) ; reverse order
-                     (setq $$term (@copy-term $$term)))
-                   (reset-target-term $$term *current-module* *current-module*))) ; end :apply
-                (t (with-output-panic-message ()
-                     (format t "unknown apply action : ~a" action)
-                     (chaos-error 'unknown-action))))
-              ;;
-              (unless *-applied-*
-                (with-output-chaos-warning ()
-                  (princ "rule not applied")))
-              ;;
-              (command-final)
-              (command-display))))))))
+      (when (eq action :help)
+        (apply-help)
+        (return-from eval-apply-command nil))
+      ;; check some evaluation env
+      (when (or (null $$term) (eq 'void $$term))
+        (with-output-chaos-error ('invalid-term)
+          (princ "term to be applied is not defined.")))
+      ;; real work begins here ------------------------------
+      (with-in-module ((get-context-module))
+        (multiple-value-bind (subterm-sort subterm)
+            (compute-selection $$term selectors)
+          (setq *-applied-* t)
+          (case action
+            (:reduce                    ; full reduction on selections.
+             (!setup-reduction *current-module*)
+             (let ((*rewrite-semantic-reduce*
+                    (module-has-behavioural-axioms *current-module*))
+                   (*rewrite-exec-mode* nil))
+               (term-replace subterm (@copy-term subterm))
+               (reset-reduced-flag subterm)
+               (rewrite subterm *current-module*)))
+            (:breduce
+             (!setup-reduction *current-module*)
+             (let ((*rewrite-semantic-reduce* nil)
+                   (*rewrite-exec-mode* nil))
+               (term-replace subterm (@copy-term subterm))
+               (reset-reduced-flag subterm)
+               (rewrite subterm *current-module*)))
+            (:exec
+             (!setup-reduction *current-module*)
+             (let ((*rewrite-semantic-reduce*
+                    (module-has-behavioural-axioms *current-module*))
+                   (*rewrite-exec-mode* t))
+               (term-replace subterm (@copy-term subterm))
+               (reset-reduced-flag subterm)
+               (rewrite subterm *current-module*)))
+            ;;
+            (:print                     ; print selections.
+             (format t "~%term ")
+             (disp-term subterm)
+             (format t "~&tree form")
+             (print-term-tree subterm))
+            (:apply                     ; apply specified rule.
+             (setq *-applied-* nil)
+             (let* ((actrule (compute-action-rule rule-spec
+                                                  substitution
+                                                  selectors))
+                    (*-inside-apply-with-extensions-*
+                     (and
+                      (let ((arlhs (rule-lhs actrule)))
+                        (and (term-is-application-form? arlhs)
+                             (method-is-associative (term-head arlhs)))))))
+               (if (eq :within where-spec)
+                   (let ((*-inside-apply-all-* t))
+                     (catch 'apply-all-quit
+                       (@apply-all actrule subterm-sort subterm)))
+                 (@apply-rule actrule subterm-sort subterm)))
+             (when *-applied-*
+               (update-lowest-parse $$term)
+               (when (nth 2 rule-spec)  ; reverse order
+                 (setq $$term (@copy-term $$term)))
+               (reset-target-term $$term *current-module* *current-module*))) ; end :apply
+            (t (with-output-panic-message ()
+                 (format t "unknown apply action : ~a" action)
+                 (chaos-error 'unknown-action))))
+          ;;
+          (unless *-applied-*
+            (with-output-chaos-warning ()
+              (princ "rule not applied")))
+          ;;
+          (command-final)
+          (command-display))))))
 
 (defvar *copy-conditions*)
 (declaim (special *copy-conditons*))
@@ -447,7 +440,7 @@
                 (when (and rev (or (rule-is-builtin rule)
                                    (eq (axiom-type rule) :rule)))
                   (format t "~%This rule cannot be applied reversed."))
-                (when (and (get-context-module)
+                (when (and (get-context-module t)
                            (not (rule-is-builtin rule)))
                   (format t "~%(This rule rewrites up.)"))))))))
     t))

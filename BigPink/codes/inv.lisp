@@ -772,11 +772,7 @@
 (defun pn-check-invariance (args)
   (declare (type list args))
   (let ((target-module (get-context-module)))
-    (declare (type (or null module) target-module))
-    (unless target-module
-      (with-output-chaos-error ('no-context)
-        (princ "check invariance: no context module is specified!")))
-    ;; 
+    (declare (type module target-module))
     (compile-module target-module)
     (multiple-value-bind (pred-name object-pat init-name loop-after
                           loop-after-sub

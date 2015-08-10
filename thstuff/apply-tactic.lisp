@@ -2252,14 +2252,7 @@
 (defun reduce-in-goal (mode goal-name token-seq)
   (with-citp-debug ()
     (format t "~%~s in ~s : ~s" (string mode) goal-name token-seq))
-  (let ((next-goal-node (if goal-name
-                            (find-goal-node *proof-tree* goal-name)
-                          (get-next-proof-context *proof-tree*))))
-    (unless next-goal-node
-      (with-output-chaos-error ('no-target)
-        (if goal-name
-            (format t ":~a could not find the goal ~s." mode goal-name)
-          (format t "No default target goal."))))
+  (let ((next-goal-node (get-target-goal-node goal-name)))
     ;; do rewriting
     (perform-reduction* token-seq (goal-context (ptree-node-goal next-goal-node)) mode)))
 
@@ -2459,6 +2452,15 @@
               (pr-goal (ptree-node-goal gn))))
           (ptree-node-subnodes ptree-node))))))
       
+;;; :pctf or :pctf-
+;;;
+(defun apply-pctf (s-forms dash? &optional (verbose *citp-verbose*))
+  ;; TODO
+  s-forms
+  dash?
+  verbose
+  )
+
 ;;; -----------------------------------------------------
 ;;; :csp or :csp-
 ;;;
