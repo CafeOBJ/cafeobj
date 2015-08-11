@@ -208,6 +208,14 @@
             (block next
               (when (term-is-reduced? gt) 
                 (return-from next nil))
+              #||
+              (with-citp-debug ()
+                (with-in-module (module)
+                  (print-chaos-object (term-head gt))
+                  (terpri)
+                  (print-chaos-object module)
+                  (format t "~%strat: ~a" (method-rewrite-strategy (term-head gt)))))
+              ||#
               (reducer-no-stat gt module reduction-mode)
               (unless (= rule-count-save (number-rewritings))
                 (setq applied? t))))
@@ -1443,6 +1451,8 @@
         (result nil))
     (when cur-targets
       (compile-module (goal-context cur-goal) t)
+      (when next-goal
+        (compile-module (goal-context next-goal) t))
       (dolist (target cur-targets)
         (multiple-value-bind (c-result cur-target original-sentence)
             (do-check-sentence target (or next-goal cur-goal) tactic)
@@ -1469,7 +1479,7 @@
                 (goal-name cur-goal)))
       (return-from apply-rd (values nil nil)))
     (if (goal-targets cur-goal)
-        (do-apply-rd cur-goal (prepare-next-goal ptree-node) tactic)
+        (do-apply-rd cur-goal (prepare-next-goal ptree-node .tactic-rd.) tactic)
       (values nil nil))))
 
 ;;; ==========================
@@ -2493,7 +2503,7 @@
         (dolist (ax ax-forms)
           (push (parse-axiom-declaration (parse-module-element-1 ax)) axs))
         (multiple-value-bind (applied next-goals)
-            (do-apply-csp ptree-node axs)
+            (do-apply-csp ptree-node (nreverse axs))
           (declare (ignore applied))
           (unless next-goals
             (return-from apply-csp nil))

@@ -1529,4 +1529,19 @@
       (declare (ignore list-new-var))
       list-copied-term)))
 
+;;; print-term-struct
+;;;
+(defun print-term-struct (term module &optional (stream *standard-output*))
+  (with-in-module (module)
+    (let ((*standard-output* stream))
+      (print-next)
+      (cond ((term-is-applform? term)
+             (format t "~a" (method-name (term-head term)))
+             (dotimes (x (length (term-subterms term)))
+               (let ((*print-indent* (+ 2 *print-indent*)))
+                 (print-term-struct (term-arg-n term x) module))))
+            ((term-is-builtin-constant? term)
+             (term-print term))
+            (t (print-chaos-object term))))))
+
 ;;; EOF

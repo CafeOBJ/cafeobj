@@ -819,8 +819,10 @@
                  |}|)
         ((:+ |:show| |:sh| |:describe| |:desc|) :args)
         (|:spoiler| (:one-of (on) (off) (|.|)))
-        ((:+ |:binspect|)
+        (|:binspect|
          (:rdr #..term-delimiting-chars. (:if-present in :symbol |:|)) (:seq-of :term) |.|)
+        (binspect
+         (:rdr #..term-delimiting-chars. (:if-present  in :modexp |:|)) (:seq-of :term) |.|)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.

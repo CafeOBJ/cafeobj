@@ -554,4 +554,19 @@
     (print-mod-name *memoized-module*)
     (dump-term-hash *term-memo-table*)))
 
+;;;
+;;; print-term-horizontal 
+;;;
+(defun print-term-horizontal (term module &optional (stream *standard-output*))
+  (with-in-module (module)
+    (let ((*standard-output* stream))
+      (print-next)
+      (cond ((term-is-applform? term)
+             (format t "~{~a~}" (method-symbol (term-head term)))
+             (dotimes (x (length (term-subterms term)))
+               (let ((*print-indent* (+ 4 *print-indent*)))
+                 (print-term-horizontal (term-arg-n term x) module))))
+            ((term-is-builtin-constant? term)
+             (term-print term))
+            (t (print-chaos-object term))))))
 ;;; EOF

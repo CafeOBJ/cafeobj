@@ -829,6 +829,8 @@
 ;;;
 ;;; print-proof-tree
 ;;;
+(defvar *show-proof-mode* :horizontal)
+
 (defun print-proof-tree (goal-name &optional (describe nil))
   (unless *proof-tree*
     (with-output-chaos-warning ()
@@ -841,9 +843,14 @@
                        (ptree-root *proof-tree*))))
     (if describe
         (describe-proof-tree target-node)
-      (!print-proof-tree target-node (get-next-proof-context *proof-tree*)))))
+      (!print-proof-tree target-node (get-next-proof-context *proof-tree*) *show-proof-mode*))))
 
-(defun !print-proof-tree (root-node next-target &optional (stream *standard-output*))
+(defun !print-proof-tree (root-node next-target mode &optional (stream *standard-output*))
+  (if (eq mode :horizontal)
+      (!print-proof-horizontal root-node next-target stream)
+    (!print-proof-vertical root-node next-target stream)))
+
+(defun !print-proof-vertical (root-node next-target stream)
   (let* ((leaf? #'(lambda (node) (null (dag-node-subnodes node))))
          (leaf-name #'(lambda (node)
                         (with-output-to-string (s)
@@ -862,6 +869,25 @@
     (force-output stream)
     (print-next nil *print-indent* stream)
     (print-trees (list (augment-tree root-node)) stream)))
+
+(defun !print-proof-horizontal (node next-target stream)
+  (let ((*standard-output* stream))
+    (let ((goal (ptree-node-goal node)))
+      (with-in-module ((goal-context goal))
+        (when (eq node next-target)
+          (princ ">"))
+        (if (goal-tactic goal)
+            (format t "~a ~a" (goal-tactic goal) (goal-name goal))
+          (format t "~a" (goal-name goal)))
+        (when (node-is-discharged? node)
+          (princ "*"))))
+    (let ((subnodes (ptree-node-subnodes node)))
+      (when subnodes
+        (let ((*print-indent* (+ 4 *print-indent*)))
+          (dolist (sub subnodes)
+            (print-next-prefix #\Space)
+            (!print-proof-horizontal sub next-target stream)))))))
+
 
 (defun describe-proof-tree (node)
   (declare (type ptree-node node))
