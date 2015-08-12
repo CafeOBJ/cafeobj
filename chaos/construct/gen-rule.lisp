@@ -71,7 +71,6 @@
 (defparameter non-exec-labels '(|:nonexec| |:non-exec| |:no-ex| |:noex| |:noexec|))
 
 (defun axiom-is-non-exec? (ax)
-  ;; (format t "~&labels=~s" (axiom-labels ax))
   (intersection (axiom-labels ax) non-exec-labels))
 
 (defun condition-has-match-condition (condition)

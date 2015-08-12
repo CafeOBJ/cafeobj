@@ -2420,13 +2420,13 @@ the possible set of invocations.
     :doc "TODO"
     )
 
-; (define ("binspect")
-;     :cateogory :proof
-;     :parser parse-citp-binspect
-;     :evaluator eval-citp-binspect
-;     :title "`binspect [in <module-name> :] <boolean-term> .`"
-;     :doc "TODO"
-;     )
+(define ("bresolve" ":bresoleve")
+    :category :proof
+    :parser identity
+    :evaluator bresolve
+    :title "{binspect :binspect}"
+    :doc "TODO"
+    )
 
 ;;;
 

@@ -110,7 +110,7 @@
 ;;; each non _and_ or _xor_ boolean sub-term is abstracted by a
 ;;; variable. 
 (defstruct (abst-bterm (:print-function print-abst-bterm))
-                                        ; by variables
+  (module nil)                          ; context module
   (term nil)                            ; the original term
   (subst nil)                           ; list of substitution 
                                         ; or instance of abst-bterm(for _and_ abstraction)
@@ -167,14 +167,14 @@
       (list-ac-subterms term *bool-and*)
     nil))
 
-(defun make-and-abstraction (term subterms)
+(defun make-and-abstraction (term subterms module)
   (let ((subst nil))
     (dolist (sub subterms)
       (push (cons (get-hashed-bterm-variable sub) sub) subst))
-    (make-abst-and :term term :subst (nreverse subst))))
+    (make-abst-and :term term :subst (nreverse subst) :module module)))
 
-(defun abstract-boolean-term (term)
-  (let ((bterm (make-abst-bterm :term term))
+(defun abstract-boolean-term (term module)
+  (let ((bterm (make-abst-bterm :term term :module module))
         (xor-subs (xtract-xor-subterms term))
         (subst nil))
     ;; reset variable number & term hash
@@ -185,12 +185,15 @@
         (dolist (xs xor-subs)
           (let ((as (xtract-and-subterms xs)))
             (if as 
-                (push (make-and-abstraction xs as) subst)
+                (push (make-and-abstraction xs as module) subst)
               (push (cons (get-hashed-bterm-variable xs) xs) subst))))
       ;; top operator is not xor
       (let ((as (xtract-and-subterms term)))
-        (when as
-          (push (make-and-abstraction term as) subst))))
+        (if as
+            (push (make-and-abstraction term as module) subst)
+          ;; we anly accept xor-and formal form
+          (with-output-chaos-error ('invalid-term)
+            (format t "Given term is not xor-and normal form.")))))
     (setf (abst-bterm-subst bterm) (nreverse subst))
     bterm))
 
@@ -319,50 +322,57 @@
 ;;; resolve-abst-bterm : bterm
 ;;; retuns a list of substitution which makes bterm to be true.
 ;;;
+(defvar .maximum-bterm-vars. 7)
+
 (defun resolve-abst-bterm (bterm &optional (module (get-context-module)))
   (declare (type abst-bterm bterm))
-  (let* ((abst-term (make-bterm-representation bterm))
-         (variables (term-variables abst-term))
-         (list-subst (assign-tf variables))
-         (answers nil))
-    (dolist (subst list-subst)
-      (let ((target (substitution-image-cp subst abst-term)))
-        (reset-reduced-flag target)
-        (when *debug-bterm*
-          (with-in-module ((get-context-module))
-            (format t "~%[resolver_target] ")
-            (term-print-with-sort target)
-            (print-next)
-            (format t "~% mod = ~a" *current-module*)
-            (print-next)
-            (print-method-brief (term-head target))
-            (print-next)
-            (format t " str: ~a" (method-rewrite-strategy (term-head target)))))
-        (setq target (reducer-no-stat target module :red))
-        (when *debug-bterm*
-          (with-in-module ((get-context-module))
-            (format t "~% --> ")
-            (term-print-with-sort $$term)))
-        (when (is-true? $$term)
-          (push subst answers))))
-    answers))
+  (with-in-module (module)
+    (let* ((abst-term (make-bterm-representation bterm))
+           (variables (term-variables abst-term))
+           (answers nil))
+      (when (> (length variables) .maximum-bterm-vars.)
+        (with-output-chaos-warning ()
+          (format t "Sorry, but the current system can not handle more than ~d variables."
+                  .maximum-bterm-vars.)
+          (return-from resolve-abst-bterm nil)))
+      (dolist (subst (assign-tf variables))
+        (let ((target (substitution-image-cp subst abst-term)))
+          (reset-reduced-flag target)
+          (when *debug-bterm*
+            (with-in-module ((get-context-module))
+              (format t "~%[resolver_target] ")
+              (term-print-with-sort target)
+              (print-next)
+              (format t "~% mod = ~a" *current-module*)
+              (print-next)
+              (print-method-brief (term-head target))
+              (print-next)
+              (format t " str: ~a" (method-rewrite-strategy (term-head target)))))
+          (setq target (reducer-no-stat target module :red))
+          (when *debug-bterm*
+            (with-in-module ((get-context-module))
+              (format t "~% --> ")
+              (term-print-with-sort $$term)))
+          (when (is-true? $$term)
+            (push subst answers))))
+      answers)))
 
-;;; try-resolve-boolean-term : term -> Values (abst-bterm List(substitution))
+;;; make-abst-boolean-term : term -> Values (abst-bterm List(substitution))
 ;;;
 (defvar *abst-bterm* nil)
 (defvar *abst-bterm-representation* nil)
 
-(defun try-resolve-boolean-term (term module)
+(defun make-abst-boolean-term (term module)
   (unless (sort= (term-sort term) *bool-sort*)
     (with-output-chaos-warning ()
       (format t "Given term is not of sort Bool. Ignored.")
-      (return-from try-resolve-boolean-term nil)))
+      (return-from make-abst-boolean-term nil)))
   (!setup-reduction module)
   (with-in-module (module)
     (reset-reduced-flag term)
     (let ((target (reducer-no-stat term module :red)))
       ;; abstract
-      (let ((bterm (abstract-boolean-term target)))
+      (let ((bterm (abstract-boolean-term target module)))
         (setq *abst-bterm* bterm)
         (setq *abst-bterm-representation*
           (make-bterm-representation bterm))
@@ -382,33 +392,43 @@
                   (print-next)
                   (term-print-with-sort var)
                   (princ " |-> ")
-                  (term-print-with-sort mapping))))
-            ;; find answers
-            (let ((ans (resolve-abst-bterm bterm module)))
-              (cond (ans
-                     (format t "~%** The following assignment(s) can make the term 'true'.")
-                     (let ((num 0))
-                       (declare (type fixnum num))
-                       (let ((*print-indent* (+ 2 *print-indent*)))
-                         (dolist (sub ans)
-                           (print-next)
-                           (format t "(~d): " (incf num))
-                           (print-substitution sub)))))
-                    (t
-                     (format t "~%** No solution was found.")))
-              (values bterm ans))))))))
+                  (term-print-with-sort mapping))))))))))
+
+;;; try-resolve-bterm
+;;;
+(defun try-resolve-bterm ()
+  (unless *abst-bterm*
+    (with-output-chaos-error ('no-bterm)
+      (format t "No abstracted boolean term is specified. ~%Please do :binspect or binspect first.")))
+  (let ((bterm *abst-bterm*)
+        (module (abst-bterm-module *abst-bterm*)))
+    ;; find answers
+    (let ((ans (resolve-abst-bterm bterm module)))
+      (cond (ans
+             (with-in-module (module)
+               (format t "~%** The following assignment(s) can make the term 'true'.")
+               (let ((num 0))
+                 (declare (type fixnum num))
+                 (let ((*print-indent* (+ 2 *print-indent*)))
+                   (dolist (sub ans)
+                     (print-next)
+                     (format t "(~d): " (incf num))
+                     (print-substitution sub))))))
+            (t
+             (format t "~%** No solution was found.")))
+      (values bterm ans))))
 
 ;;;
 (defun binspect-in-goal (goal-name preterm)
   (let* ((goal-node (get-target-goal-node goal-name))
          (context-module (goal-context (ptree-node-goal goal-node)))
          (target (do-parse-term* preterm context-module)))
-    (try-resolve-boolean-term target context-module)))
+    (make-abst-boolean-term target context-module)))
 
 (defun binspect-in-module (mod-name preterm)
   (multiple-value-bind (target context-module)
       (do-parse-term* preterm mod-name)
-    (try-resolve-boolean-term target context-module)))
+    (make-abst-boolean-term target context-module)))
 
 ;;; TOP LEVEL FUNCTION
 ;;; binspect-in
@@ -417,5 +437,10 @@
          (binspect-in-goal goal-or-module-name preterm))
         (t 
          (binspect-in-module goal-or-module-name preterm))))
+
+;;; bresolve
+;;;
+(defun bresolve ()
+  (try-resolve-bterm))
 
 ;;; EOF

@@ -223,7 +223,6 @@
   (let ((pctf-minus? (equal (car args) ":pctf-"))
         (list-terms (third args))
         (pre-terms nil))
-    (print list-terms)
     (dolist (lt list-terms)
       (push (second lt) pre-terms))
     (cons pctf-minus? (nreverse pre-terms))))
@@ -403,15 +402,13 @@
     (check-success *proof-tree*)))
 
 ;;; :pctf
-;;;
+;;; ax-form ::= (pctf-? . forms) .
 (defun eval-citp-pctf (ax-form)
   (check-ptree)
   (with-in-module (*current-module*)
     (reset-rewrite-counters)
     (begin-rewrite)
-    ;; TODO
-    ax-form
-    ;; (apply-pctf (car ax-form) (cadr ax-form) (cddr ax-form))
+    (apply-pctf *proof-tree* (car ax-form) (cdr ax-form))
     (end-rewrite)
     (report-citp-stat)
     (check-success *proof-tree*)))

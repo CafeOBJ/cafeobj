@@ -2322,8 +2322,9 @@
             (setf (goal-targets .cur-goal.) nil)))))
     t))
 
+;;; ==============
 ;;; :ctf or :ctf-
-;;;
+;;; ==============
 (defun do-apply-ctf (cur-node term-or-equation)
   (let ((*chaos-quiet* t)
         (*rwl-search-no-state-report* t)
@@ -2464,12 +2465,62 @@
       
 ;;; :pctf or :pctf-
 ;;;
-(defun apply-pctf (s-forms dash? &optional (verbose *citp-verbose*))
-  ;; TODO
-  s-forms
-  dash?
-  verbose
-  )
+(defun apply-pctf-internal (ptree-node s-form dash? &optional verbose)
+  (declare (type ptree-node ptree-node))
+  (let ((*chaos-quiet* t)
+        (*rwl-search-no-state-report* t))
+    (when (goal-is-discharged (ptree-node-goal ptree-node))
+      (with-output-chaos-warning ()
+        (format t "** The goal ~s has already been proved!." (goal-name (ptree-node-goal ptree-node)))
+        (return-from apply-pctf-internal nil)))
+    (format t "~%~a=> :goal{~a}" (if dash? "[pctf-]" "[pctf]") (goal-name (ptree-node-goal ptree-node)))
+    (initialize-ptree-node ptree-node)
+    (compile-module (goal-context (ptree-node-goal ptree-node)) t)
+    (with-in-module ((goal-context (ptree-node-goal ptree-node)))
+      (let ((term (simple-parse *current-module* s-form *cosmos*)))
+        (multiple-value-bind (applied next-goals)
+            (do-apply-ctf-with-constructors ptree-node term)
+          (unless applied (return-from apply-pctf-internal nil))
+          (unless next-goals
+            ;; cancel side effects
+            (initialize-ptree-node ptree-node)
+            (return-from apply-pctf-internal nil))
+          (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
+          (when *citp-spoiler*
+            ;; apply implicit rd
+            (dolist (ngoal next-goals)
+              (do-apply-rd ngoal nil 'ctf)
+              (when (and dash? (goal-targets ngoal))
+                ;; reset target
+                (setf (goal-targets ngoal)
+                  (goal-targets (ptree-node-goal ptree-node))))))
+          ;; add generated nodes as children
+          (add-ptree-children ptree-node next-goals)
+          (when verbose
+            (dolist (gn (ptree-node-subnodes ptree-node))
+              (pr-goal (ptree-node-goal gn))))
+          (ptree-node-subnodes ptree-node))))))
+
+(defun apply-pctf-to-node (target-node s-forms dash? &optional verbose)
+  (unless s-forms (return-from apply-pctf-to-node nil))
+  (let ((subs (apply-pctf-internal target-node (car s-forms) dash? verbose)))
+    (if subs
+        (dolist (target subs)
+          (apply-pctf-to-node target (cdr s-forms) dash? verbose))
+      (apply-pctf-to-node target-node (cdr s-forms) dash? verbose))))
+
+(defun apply-pctf (ptree dash? s-forms &optional (verbose *citp-verbose*))
+  (declare (type ptree ptree))
+  (let ((target (get-next-proof-context ptree)))
+    (unless target
+      (format t "~%**> All goals have been proved!")
+      (return-from apply-pctf nil))
+    (reset-rewrite-counters)
+    (begin-rewrite)
+    (apply-pctf-to-node target s-forms dash? verbose)
+    (end-rewrite)
+    (report-citp-stat)
+    (check-success ptree)))
 
 ;;; -----------------------------------------------------
 ;;; :csp or :csp-
