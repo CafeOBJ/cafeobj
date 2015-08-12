@@ -322,7 +322,7 @@
 ;;; resolve-abst-bterm : bterm
 ;;; retuns a list of substitution which makes bterm to be true.
 ;;;
-(defvar .maximum-bterm-vars. 7)
+(defvar .maximum-bterm-vars. 10)
 
 (defun resolve-abst-bterm (bterm &optional (module (get-context-module)))
   (declare (type abst-bterm bterm))
@@ -370,8 +370,13 @@
   (!setup-reduction module)
   (with-in-module (module)
     (reset-reduced-flag term)
+    (when *citp-verbose*
+      (format t "~%-- computing normal form of~%  ")
+      (term-print term))
     (let ((target (reducer-no-stat term module :red)))
       ;; abstract
+      (when *citp-verbose*
+        (format t "~%-- starting abstraction"))
       (let ((bterm (abstract-boolean-term target module)))
         (setq *abst-bterm* bterm)
         (setq *abst-bterm-representation*
@@ -380,11 +385,10 @@
           (format t "~%** Abstracted boolean term:")
           (with-in-module (module)
             (print-next)
-            (term-print-with-sort *abst-bterm-representation*)
-            (print-term-graph *abst-bterm-representation* *chaos-verbose*)
+            (print-term-horizontal *abst-bterm-representation* module)
             (format t "~%  where")
             (let ((*print-indent* (+ 2 *print-indent*)))
-              (dolist (var (term-variables *abst-bterm-representation*))
+              (dolist (var (nreverse (term-variables *abst-bterm-representation*)))
                 (let ((mapping (find-bvar-subst var bterm)))
                   (unless mapping
                     (with-output-chaos-error ('internal-err)
@@ -410,7 +414,7 @@
                (let ((num 0))
                  (declare (type fixnum num))
                  (let ((*print-indent* (+ 2 *print-indent*)))
-                   (dolist (sub ans)
+                   (dolist (sub (reverse ans))
                      (print-next)
                      (format t "(~d): " (incf num))
                      (print-substitution sub))))))
