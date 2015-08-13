@@ -46,8 +46,6 @@
 ;;; MEMOIZE
 ;;; -------
 
-(deftype term-hash-key () '(unsigned-byte 29))
-
 (defconstant term-hash-mask #x1FFFFFFF)
 
 (declaim (type fixnum term-hash-size))
@@ -57,13 +55,11 @@
   `(and (method-p ,m) (method-has-memo ,m)))
 
 #-GCL (declaim (inline term-hash-equal))
-#-(or GCL CMU)
-(defun term-hash-equal (x)
-   (logand term-hash-mask (sxhash x)))
-#+CMU
-(defun term-hash-equal (x)
-   (sxhash x))
- #+GCL
+
+#-GCL
+(defun term-hash-equal (x) (sxhash x))
+
+#+GCL
 (si:define-inline-function term-hash-equal (x) (sxhash x))
 
 #+GCL
@@ -78,29 +74,17 @@
 #-GCL
 (declaim (inline term-hash-eq))
 #-GCL
-(defun term-hash-eq (object)
-  (ash (+ (the term-hash-key
-            (logand term-hash-mask
-                    (the (unsigned-byte 32) (addr-of object))))
-          3)
-       -3))
+(defun term-hash-eq (object) (truncate (addr-of object) 4))
 
 #-GCL
 (declaim (inline term-hash-comb))
 #-GCL
 (defun term-hash-comb (x y)
-  ;; (declare (type term-hash-key x y))
-  (the term-hash-key (logand term-hash-mask (logand term-hash-mask (+ x y)))))
+  (logxor (ash x -5) y (ash (logand x 31) 26)))
 
 ;;;
 ;;; term-hash
 ;;;
-;;; (defvar *on-term-hash-debug* nil)
-
-(defstruct term-hash
-   (size term-hash-size :type (unsigned-byte 14) :read-only t)
-   (table nil :type (or null simple-array)) )
-
 (defun hash-term (term)
   (cond ((term-is-applform? term)
           (let ((res (sxhash (the symbol (method-id-symbol (term-head term))))))

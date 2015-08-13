@@ -824,6 +824,7 @@
         (binspect
          (:rdr #..term-delimiting-chars. (:if-present  in :modexp |:|)) (:seq-of :term) |.|)
         ((:+ |:bresolve| bresolve))
+        ((:+ |:bshow| bshow) :args)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.

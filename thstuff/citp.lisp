@@ -282,6 +282,12 @@
         (setq preterm (nth 1 args))))
     (list mode goal-name preterm)))
 
+;;; bshow | :bshow
+;;;
+(defun citp-parse-bshow (args)
+  (let ((param (cadr args)))
+    (or param ".")))
+
 
 
 ;;; ================================

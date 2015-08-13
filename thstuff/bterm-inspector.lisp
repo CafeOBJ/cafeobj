@@ -42,6 +42,7 @@
 ;;; Utilities to support investigating big boolean term of xor-and normal form.
 ;;;=============================================================================
 
+#||
 ;;; *********
 ;;; TERM HASH
 ;;; *********
@@ -101,6 +102,30 @@
             var)))))
 
   )
+||#
+
+(defvar .bterm-assoc-table. nil)
+(defvar .bvar-num. 0)
+(declaim (type fixnum .bvar-num.))
+
+(defun clear-bterm-memo-table ()
+  (setq .bterm-assoc-table. nil))
+
+(defun reset-bvar ()
+  (setq .bvar-num. 0)
+  (clear-bterm-memo-table))
+
+(defun make-bterm-variable ()
+   (let ((varname (intern (format nil "P-~d" (incf .bvar-num.)))))
+     (make-variable-term *bool-sort* varname)))
+
+(defun get-hashed-bterm-variable (term)
+  (let ((ent (assoc term .bterm-assoc-table. :test #'term-equational-equal)))
+    (if ent
+        (cdr ent)
+      (let ((var (make-bterm-variable)))
+        (push (cons term var) .bterm-assoc-table.)
+        var))))
 
 ;;; =======================================================================
 ;;; ABSTRACTED representation of a _xor_-_and_ normal form of boolean term.
@@ -109,7 +134,7 @@
 ;;; abstracted boolean term.
 ;;; each non _and_ or _xor_ boolean sub-term is abstracted by a
 ;;; variable. 
-(defstruct (abst-bterm (:print-function print-abst-bterm))
+(defstruct (abst-bterm)
   (module nil)                          ; context module
   (term nil)                            ; the original term
   (subst nil)                           ; list of substitution 
@@ -118,10 +143,12 @@
 
 (defstruct (abst-and (:include abst-bterm)))
 
-(defun print-abst-bterm (bt stream &rest ignore)
+(defun print-abst-bterm (bt &optional (stream *standard-output*) &rest ignore)
   (declare (ignore ignore))
-  (with-in-module ((get-context-module))
-    (princ ":abt[" stream)
+  (with-in-module ((abst-bterm-module bt))
+    (if (abst-and-p bt)
+        (princ ":and[" stream)
+      (princ ":xor[" stream))
     (let ((*print-indent* (+ 2 *print-indent*))
           (num 0))
       (declare (type fixnum *print-indent* num))
@@ -133,9 +160,9 @@
           (progn
             (let ((var (car sub))
                   (term (cdr sub)))
-              (term-print-with-sort var)
+              (term-print var)
               (princ " |-> ")
-              (term-print-with-sort term))))))
+              (term-print term))))))
     (princ " ]" stream)))
 
 ;;;
@@ -143,10 +170,10 @@
   (declare (type abst-bterm bterm))
   (dolist (sub (abst-bterm-subst bterm))
     (if (abst-bterm-p sub)
-        (find-bvar-subst var sub)
+        (let ((subst (find-bvar-subst var sub)))
+          (when subst (return-from find-bvar-subst subst)))
       (when (variable= var (car sub))
-        (return-from find-bvar-subst (cdr sub)))))
-  nil)
+        (return-from find-bvar-subst (cdr sub))))))
 
 ;;;
 ;;; abstract-boolen-term : bool-term -> abst-bterm
@@ -242,10 +269,12 @@
 
 ;;; print-bterm-tree : bterm -> void
 (defun print-bterm-tree (bterm &optional (mode :vertical))
-  (declare (type abst-bterm bterm)
-           (ignore mode))               ; for NOW ** TODO for :vertical
-  (let ((aterm (make-bterm-representation bterm)))
-    (print-term-graph aterm *chaos-verbose*)))
+  (declare (type abst-bterm bterm))
+  (with-in-module ((abst-bterm-module bterm))
+    (let ((aterm (make-bterm-representation bterm)))
+      (if (eq mode :vertical)
+          (print-term-graph aterm *chaos-verbose*)
+        (print-term-horizontal (make-bterm-representation bterm) *current-module*)))))
 
 ;;; print-abs-bterm : bterm &key mode
 ;;; mode :simple print term representation
@@ -260,13 +289,7 @@
     (:horizontal (print-bterm-tree bterm :horizontal))
     (otherwise
      (with-output-chaos-error ('invalid-mode)
-       (format t "Invalid print mode ~a." mode))))
-  ;; shows substitution
-  (format t "~%, where")
-  (dolist (subst (abst-bterm-subst bterm))
-    (format t "~%~4T~A |-> " (variable-name (car subst)))
-    (term-print-with-sort (cdr subst)))
-  )
+       (format t "Invalid print mode ~a." mode)))))
 
 ;;; ===========================================================================================
 ;;; RESOLVER
@@ -322,40 +345,20 @@
 ;;; resolve-abst-bterm : bterm
 ;;; retuns a list of substitution which makes bterm to be true.
 ;;;
-(defvar .maximum-bterm-vars. 10)
-
 (defun resolve-abst-bterm (bterm &optional (module (get-context-module)))
   (declare (type abst-bterm bterm))
   (with-in-module (module)
     (let* ((abst-term (make-bterm-representation bterm))
            (variables (term-variables abst-term))
            (answers nil))
-      (when (> (length variables) .maximum-bterm-vars.)
-        (with-output-chaos-warning ()
-          (format t "Sorry, but the current system can not handle more than ~d variables."
-                  .maximum-bterm-vars.)
-          (return-from resolve-abst-bterm nil)))
       (dolist (subst (assign-tf variables))
         (let ((target (substitution-image-cp subst abst-term)))
           (reset-reduced-flag target)
-          (when *debug-bterm*
-            (with-in-module ((get-context-module))
-              (format t "~%[resolver_target] ")
-              (term-print-with-sort target)
-              (print-next)
-              (format t "~% mod = ~a" *current-module*)
-              (print-next)
-              (print-method-brief (term-head target))
-              (print-next)
-              (format t " str: ~a" (method-rewrite-strategy (term-head target)))))
-          (setq target (reducer-no-stat target module :red))
-          (when *debug-bterm*
-            (with-in-module ((get-context-module))
-              (format t "~% --> ")
-              (term-print-with-sort $$term)))
+          (let ((*always-memo* t))
+            (setq target (reducer-no-stat target module :red)))
           (when (is-true? $$term)
             (push subst answers))))
-      answers)))
+      (nreverse answers))))
 
 ;;; make-abst-boolean-term : term -> Values (abst-bterm List(substitution))
 ;;;
@@ -371,9 +374,11 @@
   (with-in-module (module)
     (reset-reduced-flag term)
     (when *citp-verbose*
-      (format t "~%-- computing normal form of~%  ")
-      (term-print term))
-    (let ((target (reducer-no-stat term module :red)))
+      (format t "~%-- computing normal form."))
+    (let* ((*always-memo* t)
+           (target (reducer-no-stat term module :red)))
+      (format t "~%--> ")
+      (term-print term)
       ;; abstract
       (when *citp-verbose*
         (format t "~%-- starting abstraction"))
@@ -385,18 +390,28 @@
           (format t "~%** Abstracted boolean term:")
           (with-in-module (module)
             (print-next)
-            (print-term-horizontal *abst-bterm-representation* module)
-            (format t "~%  where")
-            (let ((*print-indent* (+ 2 *print-indent*)))
-              (dolist (var (nreverse (term-variables *abst-bterm-representation*)))
-                (let ((mapping (find-bvar-subst var bterm)))
-                  (unless mapping
-                    (with-output-chaos-error ('internal-err)
-                      (format t "Could not find the mapping of variable ~a." (variable-name var))))
-                  (print-next)
-                  (term-print-with-sort var)
-                  (princ " |-> ")
-                  (term-print-with-sort mapping))))))))))
+            (term-print *abst-bterm-representation*)
+            (when *citp-verbose*
+              (print-term-horizontal *abst-bterm-representation* module))
+            (print-bterm-substitution bterm *abst-bterm-representation*)))))))
+
+(defun print-bterm-substitution (bterm &optional 
+                                       (term-representation *abst-bterm-representation*))
+  (declare (type abst-bterm bterm))
+  (with-in-module ((abst-bterm-module bterm))
+    (print-next)
+    (princ "where")
+    (let ((*print-indent* (+ 2 *print-indent*)))
+      (dolist (var (nreverse (term-variables term-representation)))
+        (let ((mapping (find-bvar-subst var bterm)))
+          (unless mapping
+            (with-output-chaos-error ('internal-err)
+              (format t "Could not find the mapping of variable ~a." (variable-name var))))
+          (print-next)
+          (term-print var)
+          (princ " |-> ")
+          (term-print mapping)))))
+  (terpri))
 
 ;;; try-resolve-bterm
 ;;;
@@ -414,7 +429,7 @@
                (let ((num 0))
                  (declare (type fixnum num))
                  (let ((*print-indent* (+ 2 *print-indent*)))
-                   (dolist (sub (reverse ans))
+                   (dolist (sub ans)
                      (print-next)
                      (format t "(~d): " (incf num))
                      (print-substitution sub))))))
@@ -446,5 +461,19 @@
 ;;;
 (defun bresolve ()
   (try-resolve-bterm))
+
+;;; bshow
+;;;
+(defun bshow (tree?)
+  (unless *abst-bterm*
+    (return-from bshow nil))
+  (with-in-module ((abst-bterm-module *abst-bterm*))
+    (if (equal tree? "tree")
+        (print-term-horizontal *abst-bterm-representation* *current-module*)
+      (if (equal tree? ".")
+          (term-print *abst-bterm-representation*)
+        (with-output-chaos-error ('invalid-parameter)
+          (format t "Unknown option ~s" tree?))))
+    (print-bterm-substitution *abst-bterm* *abst-bterm-representation*)))
 
 ;;; EOF

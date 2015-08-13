@@ -2420,14 +2420,21 @@ the possible set of invocations.
     :doc "TODO"
     )
 
-(define ("bresolve" ":bresoleve")
+(define ("bresolve" ":bresolve")
     :category :proof
     :parser identity
     :evaluator bresolve
-    :title "{binspect :binspect}"
+    :title "`{binspect | :binspect}`"
     :doc "TODO"
     )
 
+(define ("bshow" ":bshow")
+    :category :proof
+    :parser citp-parse-bshow
+    :evaluator bshow
+    :title "`{bshow | :bshow} [tree]`"
+    :doc "TODO"
+    )
 ;;;
 
 (define ("commands" "com")

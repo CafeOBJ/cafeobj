@@ -912,7 +912,8 @@
                     (*print-xmode* :fancy))
                 (dolist (as assumptions)
                   (print-next)
-                  (print-axiom-brief as)))))
+                  (print-axiom-brief as)
+                  (princ " .")))))
           (let ((proved (goal-proved goal)))
             (when proved
               (print-next)
@@ -920,7 +921,8 @@
               (let ((*print-indent* (+ 2 *print-indent*)))
                 (dolist (ax proved)
                   (print-next)
-                  (print-axiom-brief ax)))))
+                  (print-axiom-brief ax)
+                  (princ " .")))))
           (let ((targets (goal-targets goal)))
             (when targets
               (print-next)
@@ -930,7 +932,8 @@
               (let ((*print-indent* (+ 2 *print-indent*)))
                 (dolist (target targets)
                   (print-next)
-                  (print-axiom-brief target)))))))
+                  (print-axiom-brief target)
+                  (princ " .")))))))
       (let ((subnodes (ptree-node-subnodes node)))
         (when subnodes
           (let ((*print-indent* (+ 2 *print-indent*)))
