@@ -428,7 +428,7 @@
                         :main doc
                         :title dt
                         :rtitle rt
-                        :mdkey (or mdkey mainname)
+                        :mdkey (or mdkey (funcall #~s/^:/citp-/ mainname))
                         :example (or example "")
                         :related related
                         :names (cons mainname aliasnames)
@@ -472,6 +472,15 @@
 ;;;
 (defvar .out-done. (make-hash-table :test #'equal))
 
+; refman-sort determines the order in the reference manual based on the
+; keys. For now we simply sort alphabetically but ignore leading :
+; from the CITP commands, so that 
+;   :foobar
+; is sorted near f and not at the beginning.
+(defun refman-sort (a b)
+  (let ((aa (funcall #~s/^:// a)) (bb (funcall #~s/^:// b)))
+     (string-lessp aa bb)))
+  
 (defun export-refman (&optional (output "manual/md/reference.md"))
   (clrhash .out-done.)
   (let (data)
@@ -487,7 +496,7 @@
                      ; (push (cons (oldoc-rtitle oldoc) docstr) data)))
                      (push (cons k docstr) data)))
                *cafeobj-doc-db*)
-      (setq data (sort data #'string-lessp :key #'car))
+      (setq data (sort data #'refman-sort :key #'car))
       (dolist (d data)
         (unless (gethash (car d) .out-done.)
           (format out "~a" (cdr d))
