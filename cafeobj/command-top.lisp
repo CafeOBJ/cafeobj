@@ -112,7 +112,7 @@
                              (setq *match-debug* t))
                             (("-view-debug")
                              (setq *on-view-debug* t))
-                            (("-h" "-help")
+                            (("-h" "-help" "--help")
                              (cafeobj-interpreter-help)
                              (bye-bye-bye))
                             (("-q")
