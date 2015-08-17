@@ -1,3 +1,4 @@
+ev (load "../../cafeobj/oldoc.lisp")
 ev (load "../../cafeobj/commands.lisp")
 gendoc reference.md
 quit

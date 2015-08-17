@@ -33,28 +33,10 @@
 <li><a href="#gorydetails">Gory Details</a><ul>
 <li><a href="#ctrld">Ctrl-D</a></li>
 <li><a href="#commandexec"><code>! &lt;command&gt;</code></a></li>
-<li><a href="#sharp-define"><code>#define</code></a></li>
+<li><a href="#sharp-define"><code>#define &lt;symbol&gt; := &lt;term&gt; .</code></a></li>
 <li><a href="#starstar"><code>**</code>, <code>**&gt;</code></a></li>
 <li><a href="#dashdash"><code>--</code>, <code>--&gt;</code></a></li>
 <li><a href="#dotsep"><code>.</code></a></li>
-<li><a href="#apply-tactic-...-to-goal-name-apply"><code>:apply (&lt;tactic&gt; ...) [to &lt;goal-name&gt;]</code> ## {#:apply}</a></li>
-<li><a href="#auto-auto"><code>:auto</code> ## {#:auto}</a></li>
-<li><a href="#backward-equation-backward"><code>:backward equation</code> ## {#:backward}</a></li>
-<li><a href="#cp-label-axiom-.-label-axiom-.-cp"><code>:cp { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; . &quot;)&quot; } &gt;&lt; { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; .&quot;)&quot; }</code> ## {#:cp}</a></li>
-<li><a href="#csp-eq-op-exp-term-term-.-...-csp"><code>:csp { eq [ &lt;op-exp&gt;]: &lt;term&gt; = &lt;term&gt; . ...}</code> ## {#:csp}</a></li>
-<li><a href="#ctf-eq-op-exp-term-term-.-ctf"><code>:ctf { eq [ &lt;op-exp&gt; ]: &lt;term&gt; = &lt;term&gt; .</code> ## {#:ctf}</a></li>
-<li><a href="#describe-something-describe"><code>:describe &lt;something&gt;</code> ## {#:describe}</a></li>
-<li><a href="#equation-equation"><code>:equation</code> ## {#:equation}</a></li>
-<li><a href="#goal-axiom-.-...-goal"><code>:goal { &lt;axiom&gt; . ... }</code> ## {#:goal}</a></li>
-<li><a href="#ind-on-variable-...-.-ind"><code>:ind on &lt;variable&gt; ... .</code> ## {#:ind}</a></li>
-<li><a href="#init-label-axiom-variable---term-...-init"><code>:init { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; &quot;&quot;)} &quot;{&quot; &lt;variable&gt; &lt;- &lt;term&gt;; ... &quot;}&quot;</code> ## {#:init}</a></li>
-<li><a href="#is-is"><code>:is</code> ## {#:is}</a></li>
-<li><a href="#lred-term-.-red"><code>:lred &lt;term&gt; .</code> ## {#:red}</a></li>
-<li><a href="#roll-back-roll"><code>:roll back</code> ## {#:roll}</a></li>
-<li><a href="#rule-rule"><code>:rule</code> ## {#:rule}</a></li>
-<li><a href="#select-goal-name-select"><code>:select &lt;goal-name&gt;</code> ## {#:select}</a></li>
-<li><a href="#show-something-show"><code>:show &lt;something&gt;</code> ## {#:show}</a></li>
-<li><a href="#verbose-on-off-verbose"><code>:verbose { on | off }</code> ## {#:verbose}</a></li>
 <li><a href="#axeq"><code>=</code></a></li>
 <li><a href="#searchpredsymb"><code>=(n)=&gt;</code>, <code>=(n,m)=&gt;</code>, <code>=()=&gt;</code></a></li>
 <li><a href="#bequality"><code>=*=</code></a></li>
@@ -63,74 +45,93 @@
 <li><a href="#transrel"><code>==&gt;</code></a></li>
 <li><a href="#help"><code>? [&lt;term&gt;]</code></a></li>
 <li><a href="#apropos"><code>?apropos &lt;term&gt; [&lt;term&gt; ...]</code></a></li>
+<li><a href="#help-commands"><code>?com [ &lt;term&gt; ]</code></a></li>
 <li><a href="#sortsymbol"><code>[</code></a></li>
 <li><a href="#switch-accept"><code>accept =*= proof</code> switch</a></li>
 <li><a href="#switch-all-axioms"><code>all axioms</code> switch</a></li>
 <li><a href="#switch-always-memo"><code>always memo</code> switch</a></li>
+<li><a href="#citp-apply"><code>:apply (&lt;tactic&gt; ...) [to &lt;goal-name&gt;]</code></a></li>
 <li><a href="#apply"><code>apply &lt;action&gt; [ &lt;subst&gt; ] &lt;range&gt; &lt;selection&gt;</code></a></li>
+<li><a href="#citp-auto"><code>:auto</code></a></li>
 <li><a href="#switch-auto-context"><code>auto context</code> switch</a></li>
-<li><a href="#autoload"><code>autoload</code></a></li>
-<li><a href="#ax"><code>ax</code></a></li>
+<li><a href="#autoload"><code>autoload &lt;module-name&gt; &lt;file-name&gt;</code></a></li>
+<li><a href="#ax"><code>ax [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt;</code> .</a></li>
 <li><a href="#axioms"><code>axioms { &lt;decls&gt; }</code></a></li>
-<li><a href="#bax"><code>bax</code></a></li>
-<li><a href="#bceq"><code>bceq [ &lt;op-exp&gt; ] &lt;term&gt; = &lt;term&gt; if &lt;boolterm&gt; .</code></a></li>
+<li><a href="#citp-backward"><code>:backward equation</code></a></li>
+<li><a href="#bax"><code>bax [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt;</code> .</a></li>
+<li><a href="#bceq"><code>bceq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; if &lt;boolterm&gt; .</code></a></li>
+<li><a href="#bcrule"><code>bcrule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;term&gt; .</code></a></li>
 <li><a href="#bctrans"><code>bctrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;bool&gt; .</code></a></li>
-<li><a href="#beq"><code>beq [ &lt;op-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></a></li>
-<li><a href="#bgoal"><code>bgoal</code></a></li>
+<li><a href="#beq"><code>beq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></a></li>
+<li><a href="#bgoal"><code>bgoal &lt;term&gt; .</code></a></li>
+<li><a href="#binspect"><code>binspect [in &lt;module-name&gt; :] &lt;boolean-term&gt; .</code></a></li>
+<li><a href="#citp-binspect"><code>:binspect [in &lt;goal-name&gt; :] &lt;boolean-term&gt; .</code></a></li>
 <li><a href="#bop"><code>bop &lt;op-spec&gt; : &lt;sorts&gt; -&gt; &lt;sort&gt;</code></a></li>
 <li><a href="#bpred"><code>bpred &lt;op-spec&gt; : &lt;sorts&gt;</code></a></li>
 <li><a href="#breduce"><code>breduce [ in &lt;mod-exp&gt; : ] &lt;term&gt; .</code></a></li>
-<li><a href="#brl"><code>brl</code></a></li>
-<li><a href="#brule"><code>brule</code></a></li>
+<li><a href="#bresolve"><code>{binspect | :binspect}</code></a></li>
+<li><a href="#brule"><code>brule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></a></li>
+<li><a href="#bshow"><code>{bshow | :bshow} [tree]</code></a></li>
 <li><a href="#bsort"><code>bsort</code></a></li>
 <li><a href="#btrans"><code>btrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></a></li>
-<li><a href="#cbred"><code>cbred</code></a></li>
+<li><a href="#cbred"><code>cbred [ in &lt;mod-exp&gt; :] &lt;term&gt; .</code></a></li>
 <li><a href="#cd"><code>cd &lt;dirname&gt;</code></a></li>
-<li><a href="#ceq"><code>ceq [ &lt;op-exp&gt; ] &lt;term&gt; = &lt;term&gt; if &lt;boolterm&gt; .</code></a></li>
+<li><a href="#ceq"><code>ceq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; if &lt;boolterm&gt; .</code></a></li>
 <li><a href="#check"><code>check &lt;options&gt;</code></a></li>
 <li><a href="#switch-check"><code>check &lt;something&gt;</code> switch</a></li>
 <li><a href="#choose"><code>choose &lt;selection&gt;</code></a></li>
-<li><a href="#clause"><code>clause</code></a></li>
+<li><a href="#clause"><code>clause &lt;term&gt; .</code></a></li>
 <li><a href="#cleanmemo"><code>clean memo</code></a></li>
 <li><a href="#switch-clean-memo"><code>clean memo</code> switch</a></li>
 <li><a href="#close"><code>close</code></a></li>
+<li><a href="#help"><code>commands</code></a></li>
 <li><a href="#comments">comments</a></li>
 <li><a href="#switch-cond-limit"><code>cond limit</code> switch</a></li>
 <li><a href="#cont"><code>cont</code></a></li>
-<li><a href="#ctrans"><code>ctrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></a></li>
-<li><a href="#db"><code>db</code></a></li>
-<li><a href="#dbpred"><code>dbpred</code></a></li>
+<li><a href="#citp-cp"><code>:cp { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;sentense&gt; . &quot;)&quot; } &gt;&lt; { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;sentence&gt; .&quot;)&quot; }</code></a></li>
+<li><a href="#crule"><code>crule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;term&gt; .</code></a></li>
+<li><a href="#citp-csp"><code>:csp { eq [ &lt;label-exp&gt;] &lt;term&gt; = &lt;term&gt; . ...}</code></a></li>
+<li><a href="#citp-csp-"><code>:csp { eq [ &lt;label-exp&gt;] &lt;term&gt; = &lt;term&gt; . ...}</code></a></li>
+<li><a href="#citp-ctf"><code>:ctf { eq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .}</code></a></li>
+<li><a href="#citp-ctf-"><code>:ctf { eq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .}</code></a></li>
+<li><a href="#ctrans"><code>ctrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;term&gt; .</code></a></li>
+<li><a href="#db"><code>db reset</code></a></li>
 <li><a href="#demod"><code>demod</code></a></li>
+<li><a href="#citp-describe"><code>:describe &lt;something&gt;</code></a></li>
 <li><a href="#describe"><code>describe &lt;something&gt;</code></a></li>
 <li><a href="#dirs"><code>dirs</code></a></li>
-<li><a href="#dpred"><code>dpred</code></a></li>
 <li><a href="#dribble"><code>dribble</code></a></li>
 <li><a href="#eof"><code>eof</code></a></li>
-<li><a href="#eq"><code>eq [ &lt;op-exp&gt; ]: &lt;term&gt; = &lt;term&gt; .</code></a></li>
+<li><a href="#eq"><code>eq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></a></li>
+<li><a href="#citp-equation"><code>:equation</code></a></li>
 <li><a href="#switch-exec-limit"><code>exec limit</code> switch</a></li>
 <li><a href="#switch-exec-trace"><code>exec trace</code> switch</a></li>
-<li><a href="#execute-dash"><code>exec!</code></a></li>
+<li><a href="#execute-dash"><code>exec! [ in &lt;mod-exp&gt; : ] &lt;term&gt; .</code></a></li>
 <li><a href="#execute"><code>execute [ in &lt;mod-exp&gt; : ] &lt;term&gt; .</code></a></li>
 <li><a href="#extending"><code>extending ( &lt;modexp&gt; )</code></a></li>
 <li><a href="#find"><code>find</code></a></li>
 <li><a href="#switch-find-all-rules"><code>find all rules</code> switch</a></li>
-<li><a href="#flag"><code>flag</code></a></li>
+<li><a href="#flag"><code>flag(&lt;name&gt;, { on | off })</code></a></li>
 <li><a href="#fullreset"><code>full reset</code></a></li>
 <li><a href="#gendoc"><code>gendoc &lt;pathname&gt;</code></a></li>
-<li><a href="#goal"><code>goal</code></a></li>
+<li><a href="#citp-goal"><code>:goal { &lt;sentence&gt; . ... }</code></a></li>
+<li><a href="#goal"><code>goal &lt;term&gt; .</code></a></li>
 <li><a href="#imports"><code>imports { &lt;import-decl&gt; }</code></a></li>
 <li><a href="#switch-include-bool"><code>include BOOL</code> switch</a></li>
 <li><a href="#switch-include-rwl"><code>include RWL</code> switch</a></li>
 <li><a href="#including"><code>including ( &lt;modexp&gt; )</code></a></li>
+<li><a href="#citp-ind"><code>:ind on &lt;variable&gt; ... .</code></a></li>
+<li><a href="#citp-init"><code>:init { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;sentence&gt; &quot;&quot;)} &quot;{&quot; &lt;variable&gt; &lt;- &lt;term&gt;; ... &quot;}&quot;</code></a></li>
 <li><a href="#input"><code>input &lt;pathname&gt;</code></a></li>
-<li><a href="#inspect"><code>inspect</code></a></li>
+<li><a href="#inspect"><code>inspect &lt;term&gt;</code></a></li>
 <li><a href="#instantiation">instantiation of parameterized modules</a></li>
+<li><a href="#citp-is"><code>:is</code></a></li>
 <li><a href="#let"><code>let &lt;identifier&gt; = &lt;term&gt; .</code></a></li>
-<li><a href="#lex"><code>lex</code></a></li>
+<li><a href="#lex"><code>lex (&lt;op&gt;, ..., &lt;op&gt;)</code></a></li>
 <li><a href="#switch-libpath"><code>libpath</code> switch</a></li>
 <li><a href="#lisp"><code>lisp</code></a></li>
 <li><a href="#lispq"><code>lispq</code></a></li>
-<li><a href="#list"><code>list</code></a></li>
+<li><a href="#list"><code>list { axiom | sos | usable | flag | param | option | demod }</code></a></li>
 <li><a href="#lookup"><code>look up &lt;something&gt;</code></a></li>
 <li><a href="#ls"><code>ls &lt;pathname&gt;</code></a></li>
 <li><a href="#make"><code>make</code></a></li>
@@ -138,17 +139,21 @@
 <li><a href="#switch-memo"><code>memo</code> switch</a></li>
 <li><a href="#module"><code>[sys:]module[!|*] &lt;modname&gt; [ ( &lt;params&gt; ) ] [ &lt;principal_sort_spec&gt; ] { mod_elements ... }</code></a></li>
 <li><a href="#moduleexpression"><code>module expression</code></a></li>
-<li><a href="#names"><code>names</code></a></li>
+<li><a href="#names"><code>names &lt;mod-exp&gt;</code> .</a></li>
+<li><a href="#no-autoload"><code>no autoload &lt;module-name&gt;</code></a></li>
+<li><a href="#citp-normalize"><code>:normalize { on | off}</code></a></li>
 <li><a href="#onthefly">on-the-fly declarations</a></li>
 <li><a href="#op"><code>op &lt;op-spec&gt; : &lt;sorts&gt; -&gt; &lt;sort&gt; { &lt;attribute-list&gt; }</code></a></li>
 <li><a href="#open"><code>open &lt;mod_exp&gt; .</code></a></li>
 <li><a href="#opattr"><code>operator attributes</code></a></li>
 <li><a href="#opprec"><code>operator precedence</code></a></li>
-<li><a href="#option"><code>option</code></a></li>
-<li><a href="#param"><code>param</code></a></li>
+<li><a href="#option"><code>option { reset | = &lt;name&gt; }</code></a></li>
+<li><a href="#param"><code>param(&lt;name&gt;, &lt;value&gt;)</code></a></li>
 <li><a href="#parameterizedmodule"><code>parameterized module</code></a></li>
 <li><a href="#parse"><code>parse [ in &lt;mod-exp&gt; : ] &lt;term&gt; .</code></a></li>
 <li><a href="#switch-parse-normalize"><code>parse normalize</code> switch</a></li>
+<li><a href="#citp-pctf"><code>:pctf { &lt;bool-term&gt; . ... &lt;bool-term&gt; .}</code></a></li>
+<li><a href="#citp-pctf-"><code>:pctf- { &lt;bool-term&gt; . ... &lt;bool-term&gt; . }</code></a></li>
 <li><a href="#popd"><code>popd</code></a></li>
 <li><a href="#pred"><code>pred &lt;op-spec&gt; : &lt;sorts&gt;</code></a></li>
 <li><a href="#prelude"><code>prelude</code></a></li>
@@ -158,37 +163,42 @@
 <li><a href="#protect"><code>protect &lt;module-name&gt;</code></a></li>
 <li><a href="#protecting"><code>protecting ( &lt;modexp&gt; )</code></a></li>
 <li><a href="#provide"><code>provide &lt;feature&gt;</code></a></li>
-<li><a href="#pushd"><code>pushd</code></a></li>
-<li><a href="#pvar"><code>pvar</code></a></li>
+<li><a href="#pushd"><code>pushd &lt;directory&gt;</code></a></li>
+<li><a href="#pvar"><code>pvar &lt;var-name&gt; : &lt;sort-name&gt;</code></a></li>
 <li><a href="#pwd"><code>pwd</code></a></li>
 <li><a href="#qualifiedother">qualified sort/operator/parameter</a></li>
 <li><a href="#qualified"><code>qualified term</code></a></li>
 <li><a href="#switch-quiet"><code>quiet</code> switch</a></li>
 <li><a href="#quit"><code>quit</code></a></li>
+<li><a href="#citp-red"><code>{ :red | :exec | :bred } [in &lt;goal-name&gt; :] &lt;term&gt; .</code></a></li>
 <li><a href="#reduce"><code>reduce [ in &lt;mod-exp&gt; : ] &lt;term&gt; .</code></a></li>
 <li><a href="#switch-reduce-conditions"><code>reduce conditions</code> switch</a></li>
 <li><a href="#regularize"><code>regularize &lt;mod-name&gt;</code></a></li>
 <li><a href="#switch-regularize-signature"><code>regularize signature</code> switch</a></li>
 <li><a href="#require"><code>require &lt;feature&gt; [ &lt;pathname&gt; ]</code></a></li>
 <li><a href="#reset"><code>reset</code></a></li>
-<li><a href="#resolve"><code>resolve</code></a></li>
+<li><a href="#resolve"><code>resolve {. | &lt;file-path&gt; }</code></a></li>
 <li><a href="#restore"><code>restore &lt;pathname&gt;</code></a></li>
 <li><a href="#switch-rewrite"><code>rewrite limit</code> switch</a></li>
-<li><a href="#rl"><code>rl</code></a></li>
-<li><a href="#rule"><code>rule</code></a></li>
+<li><a href="#citp-roll"><code>:roll back</code></a></li>
+<li><a href="#citp-rule"><code>:rule</code></a></li>
+<li><a href="#rule"><code>rule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></a></li>
 <li><a href="#save"><code>save &lt;pathname&gt;</code></a></li>
-<li><a href="#save-option"><code>save-option</code></a></li>
+<li><a href="#save-option"><code>save-option &lt;name&gt;</code></a></li>
 <li><a href="#save-system"><code>save-system &lt;pathname&gt;</code></a></li>
-<li><a href="#scase"><code>scase</code></a></li>
+<li><a href="#scase"><code>scase (&lt;term&gt;) in (&lt;mod-exp&gt;) as &lt;name&gt; { &lt;decl&gt; ..} : &lt;term&gt; .</code></a></li>
 <li><a href="#searchpredicate"><code>search predicates</code></a></li>
+<li><a href="#citp-select"><code>:select &lt;goal-name&gt;</code></a></li>
 <li><a href="#select"><code>select &lt;mod_exp&gt; .</code></a></li>
 <li><a href="#set"><code>set &lt;name&gt; [option] &lt;value&gt;</code></a></li>
+<li><a href="#citp-show"><code>:show &lt;something&gt;</code></a></li>
 <li><a href="#show"><code>show &lt;something&gt;</code></a></li>
 <li><a href="#switch-show-mode"><code>show mode</code> switch</a></li>
-<li><a href="#sigmatch"><code>sigmatch</code></a></li>
+<li><a href="#sigmatch"><code>sigmatch (&lt;mod-exp&gt;) to (&lt;mod-exp&gt;)</code></a></li>
 <li><a href="#signature"><code>signature { &lt;sig-decl&gt; }</code></a></li>
 <li><a href="#sort">sort declaration</a></li>
-<li><a href="#sos"><code>sos</code></a></li>
+<li><a href="#sos"><code>sos { = | + | - } { &lt;clause&gt; , ... }</code></a></li>
+<li><a href="#citp-spoiler"><code>:spoiler { on | off}</code></a></li>
 <li><a href="#start"><code>start &lt;term&gt; .</code></a></li>
 <li><a href="#switch-statistics"><code>statistics</code> switch</a></li>
 <li><a href="#switch-step"><code>step</code> switch</a></li>
@@ -200,6 +210,7 @@
 <li><a href="#unprotect"><code>unprotect &lt;module-name&gt;</code></a></li>
 <li><a href="#using"><code>using ( &lt;modexp&gt; )</code></a></li>
 <li><a href="#var"><code>var &lt;var-name&gt; : &lt;sort-name&gt;</code></a></li>
+<li><a href="#citp-verbose"><code>:verbose { on | off }</code></a></li>
 <li><a href="#switch-verbose"><code>verbose</code> switch</a></li>
 <li><a href="#version"><code>version</code></a></li>
 <li><a href="#view"><code>view &lt;name&gt; from &lt;modname&gt; to &lt;modname&gt; { &lt;viewelems&gt; }</code></a></li>
@@ -217,8 +228,6 @@
 
 % \include{reference.md}
 -->
-
-
 <h1 id="introduction">Introduction</h1>
 <p>This manual introduces the language CafeOBJ. Is is a reference manual with the aim to document the current status of the language, and not targeting at an exhaustive presentation of the mathematical and logical background. Still, the next section will give a short summary of the underlying formal approach and carry references for those in search for details.</p>
 <p>The manual is structured into three parts. The first one being this introduction, the second one being the presentation of basic concepts of CafeOBJ by providing a simple protocol which will get specified and verified. Although the second part tries to give a view onto the core features and their usage, it should not be considered a course in CafeOBJ, and cannot replace a proper introduction to the language. The CafeOBJ distribution also includes a <em>user manual</em>. This user manual is slightly outdated with respect to the current status of the language, but is targeting those without and prior knowledge of CafeOBJ.</p>
@@ -230,12 +239,10 @@
 <p>CafeOBJ is based on three extensions to the basic many-sorted equational logic:</p>
 <dl>
 <dt>Order-sorted logic</dt>
-<dd>In addition to having different sorts (similar to types in other programming languages), these sorts can be ordered, or in other words, one sort can be a subset of another sort: Take for example the number stack: CafeOBJ allows for the provision of natural numbers, which are part of the rational numbers, which are part of the real numbers. This concept allows for operator inheritance and overloading.
+<dd>In addition to having different sorts (similar to types in other programming languages), these sorts can be ordered, or in other words, one sort can be a subset of another sort: Take for example the number stack: CafeOBJ allows for the provision of natural numbers, which are part of the rational numbers, which are part of the real numbers. This concept allows for operator inheritance and overloading. Behavioral logic
 </dd>
-<dt>Behavioral logic</dt>
-<dd>Algebraic modeling is often based on constructors, i.e., all terms under discussion are built up from given operations, and equality can be decided via an equational theory. While being very successful, it is often necessary to model infinite objects (like data streams), which cannot be achieved in this way. CafeOBJ includes <em>behavioral logic</em> and the respective <em>hidden sorts</em> as methodology to model infinite objects which identity is defined via behavior instead of the equational theory.
+<dd>Algebraic modeling is often based on constructors, i.e., all terms under discussion are built up from given operations, and equality can be decided via an equational theory. While being very successful, it is often necessary to model infinite objects (like data streams), which cannot be achieved in this way. CafeOBJ includes <em>behavioral logic</em> and the respective <em>hidden sorts</em> as methodology to model infinite objects which identity is defined via behavior instead of the equational theory. Rewriting logic
 </dd>
-<dt>Rewriting logic</dt>
 <dd>Aim of a algebraic specification and verification is to give a formal proof of correctness. CafeOBJ contains order-sorted term rewriting as operational semantics, which allows for <em>execution of proof scores</em>, CafeOBJ code which forms a proof of the required properties.
 </dd>
 </dl>
@@ -432,19 +439,19 @@ mod! PCLABEL {
 <p>In the following case we ended up with five different predicates that combined worked as invariant:</p>
 <dl>
 <dt><code>cloud-idle-pcs-idle</code></dt>
-<dd><p>If the cloud is in the idle state, then all the pcs are also in the idle state.</p>
+<dd>If the cloud is in the idle state, then all the pcs are also in the idle state.
 </dd>
 <dt><code>pc-clval</code></dt>
-<dd><p>If the cloud is in busy state, then the value of the cloud and the value in the temporary storage area of any PCs in the <code>gotvalue</code> or <code>updated</code> states agree.</p>
+<dd>If the cloud is in busy state, then the value of the cloud and the value in the temporary storage area of any PCs in the <code>gotvalue</code> or <code>updated</code> states agree.
 </dd>
 <dt><code>one-active</code></dt>
-<dd><p>At most one PC is out of the idle state.</p>
+<dd>At most one PC is out of the idle state.
 </dd>
 <dt><code>gotvalue-cloud-value</code></dt>
-<dd><p>If a PC is in the <code>gotvalue</code> state, then the value saved in the temporary storage area and the one of the cloud agree.</p>
+<dd>If a PC is in the <code>gotvalue</code> state, then the value saved in the temporary storage area and the one of the cloud agree.
 </dd>
 <dt><code>goal</code></dt>
-<dd><p>If a PC is in the <code>updated</code> state, then the value of the PC and the value of the cloud agree.</p>
+<dd>If a PC is in the <code>updated</code> state, then the value of the PC and the value of the cloud agree.
 </dd>
 </dl>
 <p>See the mentioned web-page for the full code of these modules.</p>
@@ -484,7 +491,7 @@ mod! PCLABEL {
 <h2 id="ctrld">Ctrl-D</h2>
 <h2 id="commandexec"><code>! &lt;command&gt;</code></h2>
 <p>On Unix only, forks a shell and executes the given <code>&lt;command&gt;</code>.</p>
-<h2 id="sharp-define"><code>#define</code></h2>
+<h2 id="sharp-define"><code>#define &lt;symbol&gt; := &lt;term&gt; .</code></h2>
 <h2 id="starstar"><code>**</code>, <code>**&gt;</code></h2>
 <p>Starts a comment which extends to the end of the line. With the additional <code>&gt;</code> the comment is displayed while evaluated by the interpreter.</p>
 <p>Related: <a href="#comments">comments</a>, <a href="#starstar"><code>--</code></a></p>
@@ -493,44 +500,6 @@ mod! PCLABEL {
 <p>Related: <a href="#comments">comments</a>, <a href="#starstar"><code>**</code></a></p>
 <h2 id="dotsep"><code>.</code></h2>
 <p>Do nothing.</p>
-<h2 id="apply-tactic-...-to-goal-name-apply"><code>:apply (&lt;tactic&gt; ...) [to &lt;goal-name&gt;]</code> ## {#:apply}</h2>
-<p>TODO</p>
-<h2 id="auto-auto"><code>:auto</code> ## {#:auto}</h2>
-<p>TODO</p>
-<h2 id="backward-equation-backward"><code>:backward equation</code> ## {#:backward}</h2>
-<p>TODO</p>
-<h2 id="cp-label-axiom-.-label-axiom-.-cp"><code>:cp { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; . &quot;)&quot; } &gt;&lt; { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; .&quot;)&quot; }</code> ## {#:cp}</h2>
-<p>TODO</p>
-<h2 id="csp-eq-op-exp-term-term-.-...-csp"><code>:csp { eq [ &lt;op-exp&gt;]: &lt;term&gt; = &lt;term&gt; . ...}</code> ## {#:csp}</h2>
-<p>TODO</p>
-<h2 id="ctf-eq-op-exp-term-term-.-ctf"><code>:ctf { eq [ &lt;op-exp&gt; ]: &lt;term&gt; = &lt;term&gt; .</code> ## {#:ctf}</h2>
-<p>TODO</p>
-<h2 id="describe-something-describe"><code>:describe &lt;something&gt;</code> ## {#:describe}</h2>
-<p>Similar to the <code>:show</code> command but with more details. See <code>:describe ?</code> for the possible set of invocations.</p>
-<p>Related: <a href="#:show"><code>:show</code></a></p>
-<h2 id="equation-equation"><code>:equation</code> ## {#:equation}</h2>
-<p>TODO</p>
-<h2 id="goal-axiom-.-...-goal"><code>:goal { &lt;axiom&gt; . ... }</code> ## {#:goal}</h2>
-<p>TODO</p>
-<h2 id="ind-on-variable-...-.-ind"><code>:ind on &lt;variable&gt; ... .</code> ## {#:ind}</h2>
-<p>TODO</p>
-<h2 id="init-label-axiom-variable---term-...-init"><code>:init { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;axiom&gt; &quot;&quot;)} &quot;{&quot; &lt;variable&gt; &lt;- &lt;term&gt;; ... &quot;}&quot;</code> ## {#:init}</h2>
-<p>TODO</p>
-<h2 id="is-is"><code>:is</code> ## {#:is}</h2>
-<p>Boolean expression: <code>A :is B</code> where <code>A</code> is a term and <code>B</code> is a sort. Returns true if <code>A</code> is of sort <code>B</code>.</p>
-<h2 id="lred-term-.-red"><code>:lred &lt;term&gt; .</code> ## {#:red}</h2>
-<p>TODO</p>
-<h2 id="roll-back-roll"><code>:roll back</code> ## {#:roll}</h2>
-<p>TODO</p>
-<h2 id="rule-rule"><code>:rule</code> ## {#:rule}</h2>
-<p>TODO</p>
-<h2 id="select-goal-name-select"><code>:select &lt;goal-name&gt;</code> ## {#:select}</h2>
-<p>TODO</p>
-<h2 id="show-something-show"><code>:show &lt;something&gt;</code> ## {#:show}</h2>
-<p>TODO</p>
-<p>Related: <a href="#:describe"><code>:describe</code></a></p>
-<h2 id="verbose-on-off-verbose"><code>:verbose { on | off }</code> ## {#:verbose}</h2>
-<p>TODO</p>
 <h2 id="axeq"><code>=</code></h2>
 <p>The syntax element <code>=</code> introduces an axiom of the equational theory, and is different from <code>==</code> which specifies an equality based on rewriting.</p>
 <p>Related: <a href="#eq"><code>eq</code></a>, <a href="#equality"><code>==</code></a></p>
@@ -547,7 +516,7 @@ mod! PCLABEL {
 <p>This binary predicate is defined on each visible sort, and defines the transition relation, which is reflexive, transitive, and closed under operator application. It expresses the fact that two states (terms) are connected via transitions.</p>
 <p>Related: <a href="#searchpredicate">search predicates</a>, <a href="#trans"><code>trans</code></a></p>
 <h2 id="help"><code>? [&lt;term&gt;]</code></h2>
-<p>Without any argument, lists all top-level commands. With argument gives the reference manual description of <code>term</code>. In addition to this, many commands allow for passing <code>?</code> as argument to obtain further help.</p>
+<p>Without any argument, shows the brief guide of online help system. With argument gives the reference manual description of <code>term</code>. In addition to this, many commands allow for passing <code>?</code> as argument to obtain further help.</p>
 <p>In case examples are provided for the <code>&lt;term&gt;</code>, they can be displayed using <code>?ex &lt;term&gt;</code>. In this case the normal help output will also contain an informational message that examples are available.</p>
 <p>When called as ?? both documentation and examples are shown.</p>
 <h2 id="apropos"><code>?apropos &lt;term&gt; [&lt;term&gt; ...]</code></h2>
@@ -558,6 +527,8 @@ mod! PCLABEL {
 <p>will search for all entries that contain both <code>prec</code> and <code>oper</code> as sub-strings. Matching is done as simple sub-string match.</p>
 <pre><code>CafeOBJ&gt; ?ap foo att[er]</code></pre>
 <p>will search for entries that contain the string <code>foo</code> as well as either the string <code>atte</code> or <code>attr</code>.</p>
+<h2 id="help-commands"><code>?com [ &lt;term&gt; ]</code></h2>
+<p>List commands or declarations categorized by the key <term>. <term> is one of 'decl', 'module', 'parse', 'rewrite', 'inspect', 'switch', 'proof', 'system', 'inspect', 'library', 'help', 'io' or 'misc'. If <term> is omitted, the list of available <term> will be printed.</p>
 <h2 id="sortsymbol"><code>[</code></h2>
 <p>Starts a sort declaration. See <a href="#sort">sort declaration</a> for details.</p>
 <h2 id="switch-accept"><code>accept =*= proof</code> switch</h2>
@@ -568,11 +539,13 @@ mod! PCLABEL {
 <h2 id="switch-always-memo"><code>always memo</code> switch</h2>
 <p>Turns on memorization of computation also for operators without the <a href="#opattr"><code>memo</code></a> operator attribute.</p>
 <p>Related: <a href="#opattr">operator attributes</a>, <a href="#switch-memo"><code>memo</code></a></p>
+<h2 id="citp-apply"><code>:apply (&lt;tactic&gt; ...) [to &lt;goal-name&gt;]</code></h2>
+<p>TODO</p>
 <h2 id="apply"><code>apply &lt;action&gt; [ &lt;subst&gt; ] &lt;range&gt; &lt;selection&gt;</code></h2>
 <p>Applies one of the following actions <code>reduce</code>, <code>exec</code>, <code>print</code>, or a rewrite rule to the term in focus.</p>
 <dl>
 <dt><code>reduce</code>, <code>exec</code>, <code>print</code></dt>
-<dd><p>the operation acts on the (sub)term specified by <code>&lt;range&gt;</code> and <code>&lt;selection&gt;</code>.</p>
+<dd>the operation acts on the (sub)term specified by <code>&lt;range&gt;</code> and <code>&lt;selection&gt;</code>.
 </dd>
 <dt>rewrite rule</dt>
 <dd><p>in this case a rewrite rule spec has to be given in the following form:</p>
@@ -589,47 +562,59 @@ mod! PCLABEL {
 <p>where each <code>&lt;selector&gt;</code> is one of</p>
 <dl>
 <dt><code>top</code>, <code>term</code></dt>
-<dd><p>Selects the whole term</p>
+<dd>Selects the whole term
 </dd>
 <dt><code>subterm</code></dt>
-<dd><p>Selects the pre-chosen subterm (see <a href="#choose"><code>choose</code></a>)</p>
+<dd>Selects the pre-chosen subterm (see <a href="#choose"><code>choose</code></a>)
 </dd>
 <dt><code>( &lt;number_list&gt; )</code></dt>
-<dd><p>A list of numbers separated by blanks as in <code>(2 1)</code> indicates a subterm by tree search. <code>(2 1)</code> means the first argument of the second argument.</p>
+<dd>A list of numbers separated by blanks as in <code>(2 1)</code> indicates a subterm by tree search. <code>(2 1)</code> means the first argument of the second argument.
 </dd>
 <dt><code>[ &lt;number1&gt; .. &lt;number2&gt; ]</code></dt>
 <dd><p>This selector can only be used with associative operators. It indicates a subterm in a flattened structure and selects the subterm between and including the two numbers given. <code>[n .. n]</code> can be abbreviated to <code>[n]</code>.</p>
 <p>Example: If the term is <code>a * b * c * d * e</code>, then the expression <code>[2 .. 4]</code> selects the subterm <code>b * c * d</code>.</p>
 </dd>
 <dt><code>{ &lt;number_set&gt; }</code></dt>
-<dd>This selector can only be used with associative and commutative
+<dd>This selector can only be used with associative and commutative operators. It indicates a subterm in a multiset structure obtained from selecting the subterms at position given by the numbers.
 </dd>
 </dl>
-<p>operators. It indicates a subterm in a multiset structure obtained from selecting the subterms at position given by the numbers.</p>
 <p>Example: If the operator <code>_*_</code> is declared as associative and commutative, and the current term is <code>b * c * d * c * e</code>, then then the expression <code>{2, 4, 5}</code> selects the subterm <code>c * c * e</code>.</p>
 <p>Related: <a href="#start"><code>start</code></a>, <a href="#choose"><code>choose</code></a></p>
+<h2 id="citp-auto"><code>:auto</code></h2>
+<p>TODO</p>
 <h2 id="switch-auto-context"><code>auto context</code> switch</h2>
 <p>Possible values: <code>on</code> or <code>off</code>, default is <code>off</code>.</p>
 <p>If this switch is <code>on</code>, the context will automatically switch to the most recent module, i.e., defining a module or inspecting a module's content will switch the current module.</p>
-<h2 id="autoload"><code>autoload</code></h2>
-<h2 id="ax"><code>ax</code></h2>
+<h2 id="autoload"><code>autoload &lt;module-name&gt; &lt;file-name&gt;</code></h2>
+<p>When evaluating a <module-name> and found that it is not yet declared, the system read in <file-name> then retries the evaluation.</p>
+<p>Related: <a href="#no-autoload"><code>no autoload</code></a></p>
+<h2 id="ax"><code>ax [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt;</code> .</h2>
 <p>(pignose)</p>
 <h2 id="axioms"><code>axioms { &lt;decls&gt; }</code></h2>
 <p>Block enclosing declarations of variables, equations, and transitions. Other statements are not allowed within the <code>axioms</code> block. Optional structuring of the statements in a module.</p>
 <p>Related: <a href="#trans"><code>trans</code></a>, <a href="#eq"><code>eq</code></a>, <a href="#var"><code>var</code></a>, <a href="#imports"><code>imports</code></a>, <a href="#signature"><code>signature</code></a></p>
-<h2 id="bax"><code>bax</code></h2>
+<h2 id="citp-backward"><code>:backward equation</code></h2>
+<p>TODO</p>
+<h2 id="bax"><code>bax [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt;</code> .</h2>
 <p>(pignose)</p>
-<h2 id="bceq"><code>bceq [ &lt;op-exp&gt; ] &lt;term&gt; = &lt;term&gt; if &lt;boolterm&gt; .</code></h2>
+<h2 id="bceq"><code>bceq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; if &lt;boolterm&gt; .</code></h2>
 <p>Defines a behavioral conditional equation. For details see <a href="#ceq"><code>ceq</code></a>.</p>
 <p>Related: <a href="#beq"><code>beq</code></a>, <a href="#ceq"><code>ceq</code></a>, <a href="#eq"><code>eq</code></a></p>
+<h2 id="bcrule"><code>bcrule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;term&gt; .</code></h2>
+<p>Synonym of 'bctrans'</p>
+<p>Related: <a href="#bctrans"><code>bctrans</code></a></p>
 <h2 id="bctrans"><code>bctrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;bool&gt; .</code></h2>
 <p>Defines a behavioral conditional transition. For details see <a href="#ctrans"><code>ctrans</code></a>.</p>
 <p>Related: <a href="#btrans"><code>btrans</code></a>, <a href="#ctrans"><code>ctrans</code></a>, <a href="#trans"><code>trans</code></a></p>
-<h2 id="beq"><code>beq [ &lt;op-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></h2>
+<h2 id="beq"><code>beq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></h2>
 <p>Defines a behavioral equation. For details see <a href="#eq"><code>eq</code></a>.</p>
 <p>Related: <a href="#bceq"><code>bceq</code></a>, <a href="#ceq"><code>ceq</code></a>, <a href="#eq"><code>eq</code></a></p>
-<h2 id="bgoal"><code>bgoal</code></h2>
+<h2 id="bgoal"><code>bgoal &lt;term&gt; .</code></h2>
 <p>(pignose)</p>
+<h2 id="binspect"><code>binspect [in &lt;module-name&gt; :] &lt;boolean-term&gt; .</code></h2>
+<p>TODO</p>
+<h2 id="citp-binspect"><code>:binspect [in &lt;goal-name&gt; :] &lt;boolean-term&gt; .</code></h2>
+<p>TODO</p>
 <h2 id="bop"><code>bop &lt;op-spec&gt; : &lt;sorts&gt; -&gt; &lt;sort&gt;</code></h2>
 <p>Defines a behavioral operator by its domain, co-domain, and the term construct. <code>&lt;sorts&gt;</code> is a space separated list of sort names containing <em>exactly</em> one hidden sort. <code>&lt;sort&gt;</code> is a single sort name.</p>
 <p>For <code>&lt;op-spec&gt;</code> see the explanations of <a href="#op"><code>op</code></a>.</p>
@@ -641,30 +626,35 @@ mod! PCLABEL {
 <p>Reduce the given term in the given module, if <code>&lt;mod-exp&gt;</code> is given, otherwise in the current module.</p>
 <p>For <code>breduce</code> equations, possibly conditional, possibly behavioral, are taken into account for reduction.</p>
 <p>Related: <a href="#reduce"><code>reduce</code></a>, <a href="#execute"><code>execute</code></a></p>
-<h2 id="brl"><code>brl</code></h2>
-<h2 id="brule"><code>brule</code></h2>
+<h2 id="bresolve"><code>{binspect | :binspect}</code></h2>
+<p>TODO</p>
+<h2 id="brule"><code>brule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></h2>
+<p>Synonym of 'btrans'.</p>
+<p>Related: <a href="#btrans"><code>btrans</code></a></p>
+<h2 id="bshow"><code>{bshow | :bshow} [tree]</code></h2>
+<p>TODO</p>
 <h2 id="bsort"><code>bsort</code></h2>
 <h2 id="btrans"><code>btrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></h2>
 <p>Defines a behavioral transition. For details see <a href="#trans"><code>trans</code></a>.</p>
 <p>Related: <a href="#bctrans"><code>bctrans</code></a>, <a href="#ctrans"><code>ctrans</code></a>, <a href="#trans"><code>trans</code></a></p>
-<h2 id="cbred"><code>cbred</code></h2>
+<h2 id="cbred"><code>cbred [ in &lt;mod-exp&gt; :] &lt;term&gt; .</code></h2>
 <h2 id="cd"><code>cd &lt;dirname&gt;</code></h2>
 <p>Change the current working directory, like the Unix counterpart. The argument is necessary. No kind of expansion or substitution is done.</p>
 <p>Related: <a href="#ls"><code>ls</code></a>, <a href="#pwd"><code>pwd</code></a></p>
-<h2 id="ceq"><code>ceq [ &lt;op-exp&gt; ] &lt;term&gt; = &lt;term&gt; if &lt;boolterm&gt; .</code></h2>
+<h2 id="ceq"><code>ceq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; if &lt;boolterm&gt; .</code></h2>
 <p>Defines a conditional equation. Spaces around the <code>if</code> are obligatory. <code>&lt;boolterm&gt;</code> needs to be a Boolean term. For other requirements see <a href="#eq"><code>eq</code></a>.</p>
 <p>Related: <a href="#bceq"><code>bceq</code></a>, <a href="#beq"><code>beq</code></a>, <a href="#eq"><code>eq</code></a></p>
 <h2 id="check"><code>check &lt;options&gt;</code></h2>
 <p>This command allows for checking of certain properties of modules and operators.</p>
 <dl>
 <dt><code>check regularity &lt;mod_exp&gt;</code></dt>
-<dd><p>Checks whether the module given by the module expression <code>&lt;mod_exp&gt;</code> is regular.</p>
+<dd>Checks whether the module given by the module expression <code>&lt;mod_exp&gt;</code> is regular.
 </dd>
 <dt><code>check compatibility &lt;mod_exp&gt;</code></dt>
-<dd><p>Checks whether term rewriting system of the module given by the module expression <code>&lt;mod_exp&gt;</code> is compatible, i.e., every application of every rewrite rule to every well-formed term results in a well-formed term. (This is not necessarily the case in order-sorted rewriting!)</p>
+<dd>Checks whether term rewriting system of the module given by the module expression <code>&lt;mod_exp&gt;</code> is compatible, i.e., every application of every rewrite rule to every well-formed term results in a well-formed term. (This is not necessarily the case in order-sorted rewriting!)
 </dd>
 <dt><code>check laziness &lt;op_name&gt;</code></dt>
-<dd><p>Checks whether the given operator can be evaluated lazily. If not <code>&lt;op_name&gt;</code> is given, all operators of the current module are checked.</p>
+<dd>Checks whether the given operator can be evaluated lazily. If not <code>&lt;op_name&gt;</code> is given, all operators of the current module are checked.
 </dd>
 </dl>
 <p>Related: <a href="#regularize"><code>regularize</code></a></p>
@@ -672,25 +662,25 @@ mod! PCLABEL {
 <p>These switches turn on automatic checking of certain properties:</p>
 <dl>
 <dt><code>check coherency</code></dt>
-<dd><p>TODO</p>
+<dd>TODO
 </dd>
 <dt><code>check compatibility</code></dt>
-<dd><p>see the <a href="#check"><code>check</code></a> command</p>
+<dd>see the <a href="#check"><code>check</code></a> command
 </dd>
 <dt><code>check import</code></dt>
-<dd><p>TODO</p>
+<dd>TODO
 </dd>
 <dt><code>check regularity</code></dt>
-<dd><p>see the <a href="#check"><code>check</code></a> command</p>
+<dd>see the <a href="#check"><code>check</code></a> command
 </dd>
 <dt><code>check sensible</code></dt>
-<dd><p>TODO</p>
+<dd>TODO
 </dd>
 </dl>
 <h2 id="choose"><code>choose &lt;selection&gt;</code></h2>
 <p>Chooses a subterm by the given <code>&lt;selection&gt;</code>. See <a href="#apply"><code>apply</code></a> for details on <code>&lt;selection&gt;</code>.</p>
 <p>Related: <a href="#opattr"><code>strat</code> in operator attributes</a>, <a href="#start"><code>start</code></a>, <a href="#apply"><code>apply</code></a></p>
-<h2 id="clause"><code>clause</code></h2>
+<h2 id="clause"><code>clause &lt;term&gt; .</code></h2>
 <p>(pignose)</p>
 <h2 id="cleanmemo"><code>clean memo</code></h2>
 <p>Resets (clears) the memo storage of the system. Memorized computations are forgotten.</p>
@@ -701,35 +691,49 @@ mod! PCLABEL {
 <h2 id="close"><code>close</code></h2>
 <p>This command closes a modification of a module started by <code>open</code>.</p>
 <p>Related: <a href="#open"><code>open</code></a></p>
+<h2 id="help"><code>commands</code></h2>
+<p>Print outs the list of main toplevel commands.</p>
 <h2 id="comments">comments</h2>
 <p>The interpreter accepts the following strings as start of a comment that extends to the end of the line: <code>--</code>, <code>--&gt;</code>, <code>**</code>, <code>**&gt;</code>.</p>
 <p>The difference in the variants with <code>&gt;</code> is that the comment is displayed when run through the interpreter.</p>
 <p>Related: <a href="#starstar"><code>--</code></a>, <a href="#starstar"><code>**</code></a></p>
 <h2 id="switch-cond-limit"><code>cond limit</code> switch</h2>
 <h2 id="cont"><code>cont</code></h2>
-<h2 id="ctrans"><code>ctrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></h2>
+<h2 id="citp-cp"><code>:cp { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;sentense&gt; . &quot;)&quot; } &gt;&lt; { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;sentence&gt; .&quot;)&quot; }</code></h2>
+<p>TODO</p>
+<h2 id="crule"><code>crule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;term&gt; .</code></h2>
+<p>Synonym of 'ctrans'</p>
+<p>Related: <a href="#rule"><code>rule</code></a>, <a href="#ctrans"><code>ctrans</code></a></p>
+<h2 id="citp-csp"><code>:csp { eq [ &lt;label-exp&gt;] &lt;term&gt; = &lt;term&gt; . ...}</code></h2>
+<p>TODO</p>
+<h2 id="citp-csp-"><code>:csp { eq [ &lt;label-exp&gt;] &lt;term&gt; = &lt;term&gt; . ...}</code></h2>
+<p>TODO</p>
+<h2 id="citp-ctf"><code>:ctf { eq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .}</code></h2>
+<p>TODO</p>
+<h2 id="citp-ctf-"><code>:ctf { eq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .}</code></h2>
+<p>TODO</p>
+<h2 id="ctrans"><code>ctrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;term&gt; .</code></h2>
 <p>Defines a conditional transition. For details see <a href="#trans"><code>trans</code></a> and <a href="#ceq"><code>ceq</code></a>.</p>
 <p>Related: <a href="#bctrans"><code>bctrans</code></a>, <a href="#btrans"><code>btrans</code></a>, <a href="#trans"><code>trans</code></a></p>
-<h2 id="db"><code>db</code></h2>
-<p>(pignose)</p>
-<h2 id="dbpred"><code>dbpred</code></h2>
+<h2 id="db"><code>db reset</code></h2>
 <p>(pignose)</p>
 <h2 id="demod"><code>demod</code></h2>
 <p>(pignose)</p>
+<h2 id="citp-describe"><code>:describe &lt;something&gt;</code></h2>
+<p>Similar to the <code>:show</code> command but with more details. Call <code>:describe ?</code> for the possible set of invocations.</p>
+<p>Related: <a href="#citp-show"><code>:show</code></a></p>
 <h2 id="describe"><code>describe &lt;something&gt;</code></h2>
-<p>Similar to the <code>show</code> command but with more details. See <code>describe ?</code> for the possible set of invocations.</p>
+<p>Similar to the <code>show</code> command but with more details. Call <code>describe ?</code> for the possible set of invocations.</p>
 <p>Related: <a href="#show"><code>show</code></a></p>
 <h2 id="dirs"><code>dirs</code></h2>
-<h2 id="dpred"><code>dpred</code></h2>
-<p>(pignose)</p>
 <h2 id="dribble"><code>dribble</code></h2>
 <h2 id="eof"><code>eof</code></h2>
 <p>Terminates reading of the current file. Allows for keeping untested code or documentations below the <code>eof</code> mark. Has to be on a line by itself without leading spaces.</p>
-<h2 id="eq"><code>eq [ &lt;op-exp&gt; ]: &lt;term&gt; = &lt;term&gt; .</code></h2>
+<h2 id="eq"><code>eq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></h2>
 <p>Declares an axiom, or equation.</p>
 <p>Spaces around the <code>=</code> are necessary to separate the left from the right hand side. The terms given must belong to the same connected component in the graph defined by the sort ordering.</p>
 <p>In simple words, the objects determined by the terms must be interpretable as of the same sort.</p>
-<p>The optional part <code>&lt;op-exp&gt;</code> serves two purposes, one is to give an axiom an identifier, and one is to modify its behavior. The <code>&lt;op-exp&gt;</code> is of the form:</p>
+<p>The optional part <code>&lt;label-exp&gt;</code> serves two purposes, one is to give an axiom an identifier, and one is to modify its behavior. The <code>&lt;label-exp&gt;</code> is of the form:</p>
 <p><code>[ &lt;modifier&gt; &lt;label&gt; ] :</code></p>
 <p>Warning: The square brackets here are <em>not</em> specifying optional components, but syntactical elements. Thus, a labeled axiom can look like:</p>
 <p><code>eq[foobar] : foo = bar .</code></p>
@@ -741,6 +745,8 @@ mod! PCLABEL {
   eq [:m-or]:  q2(N1:Nat NS:NatSet) = p1(N1) .</code></pre>
 <p>In this case an expression like <code>q1(1 2 3)</code> would reduce to <code>p1(1) and p1(2) and p1(3)</code> (modulo AC), and <code>q2(1 2 3)</code> into the same term with <code>or</code> instead.</p>
 <p>Related: <a href="#bceq"><code>bceq</code></a>, <a href="#beq"><code>beq</code></a>, <a href="#ceq"><code>ceq</code></a></p>
+<h2 id="citp-equation"><code>:equation</code></h2>
+<p>TODO</p>
 <h2 id="switch-exec-limit"><code>exec limit</code> switch</h2>
 <p>Possible values: integers, default limit 4611686018427387903.</p>
 <p>Controls the number of maximal transition steps.</p>
@@ -749,7 +755,7 @@ mod! PCLABEL {
 <p>Possible values: <code>on</code> <code>off, default</code>off`.</p>
 <p>controls whether further output is provided during reductions.</p>
 <p>Related: <a href="#reduce"><code>reduce</code></a></p>
-<h2 id="execute-dash"><code>exec!</code></h2>
+<h2 id="execute-dash"><code>exec! [ in &lt;mod-exp&gt; : ] &lt;term&gt; .</code></h2>
 <p>exec! [in <Modexpr> :] <Term> .</p>
 <h2 id="execute"><code>execute [ in &lt;mod-exp&gt; : ] &lt;term&gt; .</code></h2>
 <p>Reduce the given term in the given module, if <code>&lt;mod-exp&gt;</code> is given, otherwise in the current module.</p>
@@ -760,14 +766,16 @@ mod! PCLABEL {
 <p>Related: <a href="#using"><code>using</code></a>, <a href="#protecting"><code>protecting</code></a>, <a href="#including"><code>including</code></a></p>
 <h2 id="find"><code>find</code></h2>
 <h2 id="switch-find-all-rules"><code>find all rules</code> switch</h2>
-<h2 id="flag"><code>flag</code></h2>
+<h2 id="flag"><code>flag(&lt;name&gt;, { on | off })</code></h2>
 <p>(pignose)</p>
 <h2 id="fullreset"><code>full reset</code></h2>
 <p>Reinitializes the internal state of the system. All supplied modules definitions are lost.</p>
 <p>Related: <a href="#reset"><code>reset</code></a></p>
 <h2 id="gendoc"><code>gendoc &lt;pathname&gt;</code></h2>
 <p>generates reference manual from system's on line help documents, and save it to <code>pathname</code>.</p>
-<h2 id="goal"><code>goal</code></h2>
+<h2 id="citp-goal"><code>:goal { &lt;sentence&gt; . ... }</code></h2>
+<p>TODO</p>
+<h2 id="goal"><code>goal &lt;term&gt; .</code></h2>
 <p>(pignose)</p>
 <h2 id="imports"><code>imports { &lt;import-decl&gt; }</code></h2>
 <p>Block enclosing import of other modules (<code>protecting</code> etc). Other statements are not allowed within the <code>imports</code> block. Optional structuring of the statements in a module.</p>
@@ -783,9 +791,14 @@ mod! PCLABEL {
 <p>Imports the object specified by <code>modexp</code> into the current module.</p>
 <p>See <a href="#moduleexpression"><code>module expression</code></a> for format of <code>modexp</code>.</p>
 <p>Related: <a href="#moduleexpression">module expression</a>, <a href="#using"><code>using</code></a>, <a href="#protecting"><code>protecting</code></a>, <a href="#extending"><code>extending</code></a></p>
+<h2 id="citp-ind"><code>:ind on &lt;variable&gt; ... .</code></h2>
+<p>TODO</p>
+<h2 id="citp-init"><code>:init { &quot;[&quot; &lt;label&gt; &quot;]&quot; | &quot;(&quot; &lt;sentence&gt; &quot;&quot;)} &quot;{&quot; &lt;variable&gt; &lt;- &lt;term&gt;; ... &quot;}&quot;</code></h2>
+<p>TODO</p>
 <h2 id="input"><code>input &lt;pathname&gt;</code></h2>
 <p>Requests the system to read the file specified by the pathname. The file itself may contain <code>input</code> commands. CafeOBJ reads the file up to the end, or until it encounters a line that only contains (the literal) <code>eof</code>.</p>
-<h2 id="inspect"><code>inspect</code></h2>
+<h2 id="inspect"><code>inspect &lt;term&gt;</code></h2>
+<p>Inspect the internal structure of <term>.</p>
 <h2 id="instantiation">instantiation of parameterized modules</h2>
 <p>Parameterized modules allow for instantiation. The process of instantiation binds actual parameters to formal parameters. The result of an instantiation is a new module, obtained by replacing occurrences of parameter sorts and operators by their actual counterparts. If, as a result of instantiation, a module is imported twice, it is assumed to be imported once and shared throughout.</p>
 <p>Instantiation is done by</p>
@@ -815,10 +828,12 @@ mod! PCLABEL {
   protecting ( ILIST(SIMPLE-NAT { sort Elt -&gt; Nat },
                      DATATYPE   { sort Elt -&gt; Data }) )
 }</code></pre>
+<h2 id="citp-is"><code>:is</code></h2>
+<p>Boolean expression: <code>A :is B</code> where <code>A</code> is a term and <code>B</code> is a sort. Returns true if <code>A</code> is of sort <code>B</code>.</p>
 <h2 id="let"><code>let &lt;identifier&gt; = &lt;term&gt; .</code></h2>
 <p>Using <code>let</code> one can define aliases, or context variables. Bindings are local to the current module. Variable defined with <code>let</code> can be used in various commands like <code>reduce</code> and <code>parse</code>.</p>
 <p>Although <code>let</code> defined variable behave very similar to syntactic shorthands, they are not. The right hand side <code>&lt;term&gt;</code> needs to be a fully parsable expression.</p>
-<h2 id="lex"><code>lex</code></h2>
+<h2 id="lex"><code>lex (&lt;op&gt;, ..., &lt;op&gt;)</code></h2>
 <p>(pignose)</p>
 <h2 id="switch-libpath"><code>libpath</code> switch</h2>
 <p>Possible values: list of strings.</p>
@@ -834,7 +849,7 @@ set libpath - &lt;path1&gt;:&lt;path2&gt;:...</code></pre>
 (+ 4 5) -&gt; 9</code></pre>
 <h2 id="lispq"><code>lispq</code></h2>
 <p>Evaluates the following quoted lisp expression. (TODO ???)</p>
-<h2 id="list"><code>list</code></h2>
+<h2 id="list"><code>list { axiom | sos | usable | flag | param | option | demod }</code></h2>
 <p>(pignose)</p>
 <h2 id="lookup"><code>look up &lt;something&gt;</code></h2>
 <p>TODO (memory-fault on sbcl)</p>
@@ -861,7 +876,7 @@ set libpath - &lt;path1&gt;:&lt;path2&gt;:...</code></pre>
 <p><code>module*</code> introduces a loose semantic based module.</p>
 <p><code>module!</code> introduces a strict semantic based module.</p>
 <p><code>module</code> introduces a module without specified semantic type.</p>
-<p>If <code>params</code> are given, it is a parameterized module. See <code>parameterized module</code> for more details.</p>
+<p>If <code>params</code> are given, it is a parameterized module. See <a href="#parameterizedmodule"><code>parameterized module</code></a> for more details.</p>
 <p>If <code>principal_sort_spec</code> is given, it has to be of the form <code>principal-sort &lt;sortname&gt;</code> (or <code>p-sort &lt;sortname&gt;</code>). The principal sort of the module is specified, which allows more concise <code>view</code>s from single-sort modules as the sort mapping needs not be given.</p>
 <h2 id="moduleexpression"><code>module expression</code></h2>
 <p>In various syntax elements not only module names itself, but whole module expressions can appear. A typical example is</p>
@@ -869,7 +884,7 @@ set libpath - &lt;path1&gt;:&lt;path2&gt;:...</code></pre>
 <p>which opens a module expression. The following constructs are supported:</p>
 <dl>
 <dt>module name</dt>
-<dd><p>using the name of a module</p>
+<dd>using the name of a module
 </dd>
 <dt>renaming</dt>
 <dd><p><code>&lt;mod_exp&gt; * { &lt;mappings&gt; }</code></p>
@@ -880,8 +895,13 @@ set libpath - &lt;path1&gt;:&lt;path2&gt;:...</code></pre>
 <p>This expression describes a module consisting of all the module elements of the summands. If a submodule is imported more than once, it is assumed to be shared.</p>
 </dd>
 </dl>
-<h2 id="names"><code>names</code></h2>
-<p>show</p>
+<h2 id="names"><code>names &lt;mod-exp&gt;</code> .</h2>
+<p>List up all the named objects in module <mod-exp>.</p>
+<h2 id="no-autoload"><code>no autoload &lt;module-name&gt;</code></h2>
+<p>Stop <code>autoload</code> of module with the name <module-name> . Please refer to <code>autoload</code> command.</p>
+<p>Related: <a href="#autoload"><code>autoload</code></a></p>
+<h2 id="citp-normalize"><code>:normalize { on | off}</code></h2>
+<p>Normalize the LHS of an instance of the axiom generated by :init command.</p>
 <h2 id="onthefly">on-the-fly declarations</h2>
 <p>Variables and constants can be declared <em>on-the-fly</em> (or <em>inline</em>). If an equation contains a qualified variable (see <a href="#qualified">qualified term</a>), i.e., <code>&lt;name&gt;:&lt;sort-name&gt;</code>, then from this point on <em>within</em> the current equation only <code>&lt;name&gt;</code> is declared as a variable of sort <code>&lt;sort-name&gt;</code>.</p>
 <p>It is allowed to redeclare a previously defined variable name via an on-the-fly declaration, but as mentioned above, not via an explicit redeclaration.</p>
@@ -896,9 +916,8 @@ set libpath - &lt;path1&gt;:&lt;path2&gt;:...</code></pre>
 <dl>
 <dt>prefix-spec</dt>
 <dd><p>the <code>&lt;op-spec&gt;</code> does not contain a literal <code>_</code>: This defines a normal prefix operator with domain <code>&lt;sorts&gt;</code> and co-domain <code>&lt;sort&gt;</code></p>
-Example: <code>op f : S T -&gt; U</code>
+<p>Example: <code>op f : S T -&gt; U</code> mixfix-spec</p>
 </dd>
-<dt>mixfix-spec</dt>
 <dd><p>the <code>&lt;op-spec&gt;</code> contains exactly as many literal <code>_</code> as there are sort names in <code>&lt;sorts&gt;</code>: This defines an arbitrary mixfix (including postfix) operator where the arguments are inserted into the positions designated by the underbars.</p>
 <p>Example: <code>op _+_ : S S -&gt; S</code></p>
 </dd>
@@ -911,28 +930,25 @@ Example: <code>op f : S T -&gt; U</code>
 <p>In the specification of an operator using the <a href="#op"><code>op</code></a> (and related) keyword, attributes of the operator can be specified. An <code>&lt;attribute-list&gt;</code> is a space-separate list of single attribute definitions. Currently the following attributes are supported</p>
 <dl>
 <dt><code>associative</code></dt>
-<dd><p>specifies an associative operator, alias <code>assoc</code></p>
+<dd>specifies an associative operator, alias <code>assoc</code>
 </dd>
 <dt><code>commutative</code></dt>
-<dd><p>specifies a commutative operator, alias <code>comm</code></p>
+<dd>specifies a commutative operator, alias <code>comm</code>
 </dd>
 <dt><code>itempotence</code></dt>
-<dd><p>specifies an idempotent operator, alias <code>idem</code></p>
+<dd>specifies an idempotent operator, alias <code>idem</code>
 </dd>
 <dt><code>id: &lt;const&gt;</code></dt>
-<dd><p>specifies that an identity of the operator exists and that it is <code>&lt;const&gt;</code></p>
+<dd>specifies that an identity of the operator exists and that it is <code>&lt;const&gt;</code>
 </dd>
 <dt><code>prec: &lt;int&gt;</code></dt>
-<dd><p>specifies the parsing precedence of the operator, an integer <int>. Smaller precedence values designate stronger binding. See <a href="#opprec">operator precedence</a> for details of the predefined operator precedence values.</p>
+<dd>specifies the parsing precedence of the operator, an integer <int>. Smaller precedence values designate stronger binding. See <a href="#opprec">operator precedence</a> for details of the predefined operator precedence values.
 </dd>
 <dt><code>l-assoc</code> and <code>r-assoc</code></dt>
-<dd>specifies that the operator is left-associative or
+<dd>specifies that the operator is left-associative or right-associative
 </dd>
-</dl>
-<p>right-associative</p>
-<dl>
 <dt><code>constr</code></dt>
-<dd><p>specifies that the operator is a constructor of the coarity sort. (not evaluated at the moment)</p>
+<dd>specifies that the operator is a constructor of the coarity sort. (not evaluated at the moment)
 </dd>
 <dt><code>strat: ( &lt;int-list&gt; )</code></dt>
 <dd><p>specifies the evaluation strategy. Each integer in the list refers to an argument of the operator, where <code>0</code> refers to the whole term, <code>1</code> for the first argument, etc. Evaluation proceeds in order of the <code>&lt;int-list&gt;</code>. Example:</p>
@@ -941,7 +957,7 @@ Example: <code>op f : S T -&gt; U</code>
 <p>Using negative values allows for lazy evaluation of the corresponding arguments.</p>
 </dd>
 <dt><code>memo</code></dt>
-<dd><p>tells the system to remember the results of evaluations where the operator appeared. See <a href="#switch-memo"><code>memo</code> switch</a> for details.</p>
+<dd>tells the system to remember the results of evaluations where the operator appeared. See <a href="#switch-memo"><code>memo</code> switch</a> for details.
 </dd>
 </dl>
 <p>Remarks:</p>
@@ -963,9 +979,9 @@ Example: <code>op f : S T -&gt; U</code>
 <li>all other operators (constants, operators of the form <code>a _ b</code>, etc.) receive precedence 0.</li>
 </ul>
 <p>Related: <a href="#opattr">operator attributes</a></p>
-<h2 id="option"><code>option</code></h2>
+<h2 id="option"><code>option { reset | = &lt;name&gt; }</code></h2>
 <p>(pignose)</p>
-<h2 id="param"><code>param</code></h2>
+<h2 id="param"><code>param(&lt;name&gt;, &lt;value&gt;)</code></h2>
 <p>(pignose)</p>
 <h2 id="parameterizedmodule"><code>parameterized module</code></h2>
 <p>A module with a parameter list (see <code>module</code>) is a parameterized module. Parameters are given as a comma (<code>,</code>) separated list. Each parameter is of the form <code>[ &lt;import_mode&gt; ] &lt;param_name&gt; :: &lt;module_name&gt;</code> (spaces around <code>::</code> are obligatory).</p>
@@ -986,6 +1002,10 @@ mod! TWICE(X :: C) {
 <p>In case of ambiguous terms, i.e., different possible parse trees, the command will prompt for one of the trees.</p>
 <p>Related: <a href="#qualified"><code>qualified term</code></a></p>
 <h2 id="switch-parse-normalize"><code>parse normalize</code> switch</h2>
+<h2 id="citp-pctf"><code>:pctf { &lt;bool-term&gt; . ... &lt;bool-term&gt; .}</code></h2>
+<p>TODO</p>
+<h2 id="citp-pctf-"><code>:pctf- { &lt;bool-term&gt; . ... &lt;bool-term&gt; . }</code></h2>
+<p>TODO</p>
 <h2 id="popd"><code>popd</code></h2>
 <h2 id="pred"><code>pred &lt;op-spec&gt; : &lt;sorts&gt;</code></h2>
 <p>Short hand for <code>op &lt;op-spec&gt; : &lt;sorts&gt; -&gt; Bool</code> defining a predicate.</p>
@@ -1005,14 +1025,15 @@ mod! TWICE(X :: C) {
 <p>Protect a module from being overwritten. Some modules vital for the system are initially protected. Can be reversed with <code>unprotect</code>.</p>
 <p>Related: <a href="#unprotect"><code>unprotect</code></a></p>
 <h2 id="protecting"><code>protecting ( &lt;modexp&gt; )</code></h2>
-<p>Imports the object specified by <code>modexp</code> into the current module, preserving all intended models as they are. See <code>module expression</code> for format of <code>modexp</code>.</p>
+<p>Imports the object specified by <code>modexp</code> into the current module, preserving all intended models as they are. See <a href="#moduleexpression"><code>module expression</code></a> for format of <code>modexp</code>.</p>
 <p>Related: <a href="#including"><code>including</code></a>, <a href="#using"><code>using</code></a>, <a href="#extending"><code>extending</code></a></p>
 <h2 id="provide"><code>provide &lt;feature&gt;</code></h2>
 <p>Discharges a feature requirement: once <code>provide</code>d, all the subsequent <code>require</code>ments of a feature are assumed to have been fulfilled already.</p>
 <p>Related: <a href="#require"><code>require</code></a></p>
-<h2 id="pushd"><code>pushd</code></h2>
-<h2 id="pvar"><code>pvar</code></h2>
+<h2 id="pushd"><code>pushd &lt;directory&gt;</code></h2>
+<h2 id="pvar"><code>pvar &lt;var-name&gt; : &lt;sort-name&gt;</code></h2>
 <p>(pignose)</p>
+<p>Related: <a href="#var"><code>vars</code></a>, <a href="#var"><code>var</code></a></p>
 <h2 id="pwd"><code>pwd</code></h2>
 <p>Prints the current working directory.</p>
 <p>Related: <a href="#ls"><code>ls</code></a>, <a href="#cd"><code>cd</code></a></p>
@@ -1025,13 +1046,15 @@ mod! TWICE(X :: C) {
 <p>In case that a term can be parsed into different sort, it is possible to qualify the term to one of the possible sorts by affixing it with <code>: &lt;sort-name&gt;</code> (spaces before and after the <code>:</code> are optional).</p>
 <p>Related: <a href="#parse"><code>parse</code></a></p>
 <h3 id="example-3">Example</h3>
-<p><code>1:NzNat</code> <code>2:Nat</code></p>
+<p><code>(1):NzNat</code> <code>(2):Nat</code></p>
 <h2 id="switch-quiet"><code>quiet</code> switch</h2>
 <p>Possible values: <code>on</code> <code>off</code>, default <code>off</code></p>
 <p>If set to <code>on</code>, the system only issues error messages.</p>
 <p>Related: <a href="#switch-verbose"><code>verbose</code></a></p>
 <h2 id="quit"><code>quit</code></h2>
 <p>Leaves the CafeOBJ interpreter.</p>
+<h2 id="citp-red"><code>{ :red | :exec | :bred } [in &lt;goal-name&gt; :] &lt;term&gt; .</code></h2>
+<p>reduce the term in specified goal <goal-name>.</p>
 <h2 id="reduce"><code>reduce [ in &lt;mod-exp&gt; : ] &lt;term&gt; .</code></h2>
 <p>Reduce the given term in the given module, if <code>&lt;mod-exp&gt;</code> is given, otherwise in the current module.</p>
 <p>For <code>reduce</code> only equations and conditional equations are taken into account for reduction.</p>
@@ -1051,7 +1074,7 @@ mod! TWICE(X :: C) {
 <h2 id="reset"><code>reset</code></h2>
 <p>Restores the definitions of built-in modules and preludes, but does not affect other modules.</p>
 <p>Related: <a href="#fullreset"><code>full reset</code></a></p>
-<h2 id="resolve"><code>resolve</code></h2>
+<h2 id="resolve"><code>resolve {. | &lt;file-path&gt; }</code></h2>
 <p>(pignose)</p>
 <h2 id="restore"><code>restore &lt;pathname&gt;</code></h2>
 <p>Restores module definitions from the designated file <code>pathname</code> which has been saved with the <code>save</code> command. <code>input</code> can also be used but the effects might be different.</p>
@@ -1061,18 +1084,23 @@ mod! TWICE(X :: C) {
 <p>Possible values: positive integers, default not specified.</p>
 <p>Allows limiting the number of rewrite steps during a step-wise execution.</p>
 <p>Related: <a href="#switch-step"><code>step switch</code></a></p>
-<h2 id="rl"><code>rl</code></h2>
-<h2 id="rule"><code>rule</code></h2>
+<h2 id="citp-roll"><code>:roll back</code></h2>
+<p>TODO</p>
+<h2 id="citp-rule"><code>:rule</code></h2>
+<p>TODO</p>
+<h2 id="rule"><code>rule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></h2>
+<p>Synonym of 'trans'.</p>
+<p>Related: <a href="#trans"><code>trans</code></a></p>
 <h2 id="save"><code>save &lt;pathname&gt;</code></h2>
 <p>Saves module definitions into the designated file <code>pathname</code>. File names should be suffixed with <code>.bin</code>.</p>
 <p><code>save</code> also saves the contents of prelude files as well as module definitions given in the current session.</p>
 <p>Related: <a href="#save-system"><code>save-system</code></a>, <a href="#restore"><code>restore</code></a>, <a href="#input"><code>input</code></a></p>
-<h2 id="save-option"><code>save-option</code></h2>
+<h2 id="save-option"><code>save-option &lt;name&gt;</code></h2>
 <p>(pignose)</p>
 <h2 id="save-system"><code>save-system &lt;pathname&gt;</code></h2>
 <p>Dumps the image of the whole system into a file. This is functionality provided by the underlying Common Lisp system and might carry some restrictions.</p>
 <p>Related: <a href="#restore"><code>restore</code></a>, <a href="#save"><code>save</code></a>, <a href="#input"><code>input</code></a></p>
-<h2 id="scase"><code>scase</code></h2>
+<h2 id="scase"><code>scase (&lt;term&gt;) in (&lt;mod-exp&gt;) as &lt;name&gt; { &lt;decl&gt; ..} : &lt;term&gt; .</code></h2>
 <h2 id="searchpredicate"><code>search predicates</code></h2>
 <p>CafeOBJ provides a whole set of search predicates, that searches the reachable states starting from a given state, optionally checking additional conditions. All of them based on the following three basic ones:</p>
 <ul>
@@ -1090,14 +1118,16 @@ mod! TWICE(X :: C) {
 <p>There are two orthogonal extension to this search predicate, one adds a <code>suchThat</code> clause, one adds a <code>withStateEq</code> clause.</p>
 <dl>
 <dt><code>S =(n,m)=&gt;* SS [if Pred1] suchThat Pred2</code></dt>
-<dd><p>(and similar for <code>!</code> and <code>+</code>) In this case not only the existence, of a transition sequence is tested, but also whether the predicate <code>Pred2</code>, which normally takes <code>S</code> and <code>SS</code> as arguments, holds.</p>
+<dd>(and similar for <code>!</code> and <code>+</code>) In this case not only the existence, of a transition sequence is tested, but also whether the predicate <code>Pred2</code>, which normally takes <code>S</code> and <code>SS</code> as arguments, holds.
 </dd>
 <dt><code>S =(n,m)=&gt;* SS [if Pred1] withStateEq Pred2</code></dt>
-<dd><p>(and similar for <code>!</code> and <code>+</code>) TODO</p>
+<dd>(and similar for <code>!</code> and <code>+</code>) TODO
 </dd>
 </dl>
 <p>These two cases can also be combined into</p>
 <p><code>S =(n,m)=&gt;* SS [if Pred1] suchThat Pred2 withStateEq Pred3</code></p>
+<h2 id="citp-select"><code>:select &lt;goal-name&gt;</code></h2>
+<p>TODO</p>
 <h2 id="select"><code>select &lt;mod_exp&gt; .</code></h2>
 <p>Selects a module given by the module expression <code>&lt;mod_exp&gt;</code> as the current module. All further operations are carried out within the given module. In contrast to <code>open</code> this does not allow for modification of the module, e.g., addition of new sorts etc.</p>
 <p>Related: <a href="#moduleexpression"><code>module expression</code></a>, <a href="#open"><code>open</code></a></p>
@@ -1105,6 +1135,9 @@ mod! TWICE(X :: C) {
 <p>Depending on the type of the switch, options and value specification varies. Possible value types for switches are Boolean (<code>on</code>, <code>off</code>), string (<code>&quot;value&quot;</code>), integers (5434443), lists (lisp syntax).</p>
 <p>For a list of all available switches, use <code>set ?</code>. To see the current values, use <code>show switches</code>. To single out two general purpose switches, <code>verbose</code> and <code>quiet</code> tell the system to behave in the respective way.</p>
 <p>Related: <a href="#switches"><code>switches</code></a>, <a href="#show"><code>show</code></a></p>
+<h2 id="citp-show"><code>:show &lt;something&gt;</code></h2>
+<p>TODO</p>
+<p>Related: <a href="#citp-describe"><code>:describe</code></a></p>
 <h2 id="show"><code>show &lt;something&gt;</code></h2>
 <p>The <code>show</code> command provides various ways to inspect all kind of objects of the CafeOBJ language. For a full list call <code>show ?</code>.</p>
 <p>Some of the more important (but far from complete list) ways to call the <code>show</code> command are:</p>
@@ -1114,12 +1147,12 @@ mod! TWICE(X :: C) {
 <li><code>show switches</code> - lists all possible switches</li>
 <li><code>show term [ tree ]</code> - displays a term, possible in tree format</li>
 </ul>
-<p>See the entry for <code>switches</code> for a full list.</p>
+<p>See the entry for <a href="#switches"><code>switches</code></a> for a full list.</p>
 <p>Related: <a href="#describe"><code>describe</code></a>, <a href="#switches"><code>switches</code></a></p>
 <h2 id="switch-show-mode"><code>show mode</code> switch</h2>
 <p>Possible values for <code>set show mode &lt;mode&gt;</code> are <code>cafeobj</code> and <code>meta</code>.</p>
 <p>TODO no further information on what this changes</p>
-<h2 id="sigmatch"><code>sigmatch</code></h2>
+<h2 id="sigmatch"><code>sigmatch (&lt;mod-exp&gt;) to (&lt;mod-exp&gt;)</code></h2>
 <p>(pignose)</p>
 <h2 id="signature"><code>signature { &lt;sig-decl&gt; }</code></h2>
 <p>Block enclosing declarations of sorts and operators. Other statements are not allowed within the <code>signature</code> block. Optional structuring of the statements in a module.</p>
@@ -1135,8 +1168,10 @@ mod! TWICE(X :: C) {
 <h3 id="example-4">Example</h3>
 <pre><code>  [ A B , C D &lt; A &lt; E, B &lt; D ]</code></pre>
 <p>defines five sorts <code>A</code>,...,<code>E</code>, with the following relations: <code>C &lt; A</code>, <code>D &lt; A</code>, <code>A &lt; E</code>, <code>B &lt; D</code>.</p>
-<h2 id="sos"><code>sos</code></h2>
+<h2 id="sos"><code>sos { = | + | - } { &lt;clause&gt; , ... }</code></h2>
 <p>(pignose)</p>
+<h2 id="citp-spoiler"><code>:spoiler { on | off}</code></h2>
+<p>TODO</p>
 <h2 id="start"><code>start &lt;term&gt; .</code></h2>
 <p>Sets the focus onto the given term <code>&lt;term&gt;</code> of the currently opened module or context. Commands like <code>apply</code>, <code>choose</code>, or <code>match</code> will then operate on this term.</p>
 <p>Related: <a href="#match"><code>match</code></a>, <a href="#choose"><code>choose</code></a>, <a href="#apply"><code>apply</code></a></p>
@@ -1148,36 +1183,26 @@ mod! TWICE(X :: C) {
 <p>With this switch turned on, rewriting proceeds in steps and prompts the user interactively. At each prompt the following commands can be given to the stepper (with our without leading colon <code>:</code>):</p>
 <dl>
 <dt><code>help</code></dt>
-<dd>(<code>h</code>, <code>?</code>) print out help page
+<dd>(<code>h</code>, <code>?</code>) print out help page <code>next</code>
 </dd>
-<dt><code>next</code></dt>
-<dd>(<code>n</code>) go one step
+<dd>(<code>n</code>) go one step <code>continue</code>
 </dd>
-<dt><code>continue</code></dt>
-<dd>(<code>c</code>) continue rewriting without stepping
+<dd>(<code>c</code>) continue rewriting without stepping <code>quit</code>
 </dd>
-<dt><code>quit</code></dt>
-<dd>(<code>q</code>) leave stepper continuing rewrite
+<dd>(<code>q</code>) leave stepper continuing rewrite <code>abort</code>
 </dd>
-<dt><code>abort</code></dt>
-<dd>(<code>a</code>) abort rewriting
+<dd>(<code>a</code>) abort rewriting <code>rule</code>
 </dd>
-<dt><code>rule</code></dt>
-<dd>(<code>r</code>) print out current rewrite rule
+<dd>(<code>r</code>) print out current rewrite rule <code>subst</code>
 </dd>
-<dt><code>subst</code></dt>
-<dd>(<code>s</code>) print out substitution
+<dd>(<code>s</code>) print out substitution <code>limit</code>
 </dd>
-<dt><code>limit</code></dt>
-<dd>(<code>l</code>) print out rewrite limit count
+<dd>(<code>l</code>) print out rewrite limit count <code>pattern</code>
 </dd>
-<dt><code>pattern</code></dt>
-<dd>(<code>p</code>) print out stop pattern
+<dd>(<code>p</code>) print out stop pattern <code>stop [&lt;term&gt;] .</code>
 </dd>
-<dt><code>stop [&lt;term&gt;] .</code></dt>
-<dd>set (or unset) stop pattern
+<dd>set (or unset) stop pattern <code>rwt [&lt;number&gt;] .</code>
 </dd>
-<dt><code>rwt [&lt;number&gt;] .</code></dt>
 <dd>set (or unset) max number of rewrite
 </dd>
 </dl>
@@ -1214,12 +1239,14 @@ mod! TWICE(X :: C) {
 <p>Remove overwrite protection from a module that has been protected with the <code>protect</code> call. Some modules vital for the system are initially protected.</p>
 <p>Related: <a href="#protect"><code>protect</code></a></p>
 <h2 id="using"><code>using ( &lt;modexp&gt; )</code></h2>
-<p>Imports the object specified by <code>modexp</code> into the current module without any restrictions on the models. See <code>module expression</code> for format of <code>modexp</code>.</p>
+<p>Imports the object specified by <code>modexp</code> into the current module without any restrictions on the models. See <a href="#moduleexpression"><code>module expression</code></a> for format of <code>modexp</code>.</p>
 <p>Related: <a href="#protecting"><code>protecting</code></a>, <a href="#including"><code>including</code></a>, <a href="#extending"><code>extending</code></a></p>
 <h2 id="var"><code>var &lt;var-name&gt; : &lt;sort-name&gt;</code></h2>
 <p>Declares a variable <code>&lt;var-name&gt;</code> to be of sort <code>&lt;sort-name&gt;</code>. The scope of the variable is the current module. Redeclarations of variable names are not allowed. Several variable of the same sort can be declared at the same time using the <code>vars</code> construct:</p>
 <p><code>vars &lt;var-name&gt; ... : &lt;sort-name&gt;</code></p>
 <p>Related: <a href="#onthefly"><code>on-the-fly</code></a>, <a href="#qualified"><code>qualified term</code></a>, <a href="#op"><code>op</code></a></p>
+<h2 id="citp-verbose"><code>:verbose { on | off }</code></h2>
+<p>TODO</p>
 <h2 id="switch-verbose"><code>verbose</code> switch</h2>
 <p>Possible values: <code>on</code> <code>off</code>, default <code>off</code>.</p>
 <p>If turn <code>on</code>, the system is much more verbose in many commands.</p>
