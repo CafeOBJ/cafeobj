@@ -42,23 +42,26 @@
 ;;; -------------------
 (defvar .trace-or-step. nil)
 
-;;; -------
-;;; MEMOIZE
-;;; -------
+ ;;; -------
+ ;;; MEMOIZE
+ ;;; -------
+
+(deftype term-hash-key () '(unsigned-byte 29))
 
 (defconstant term-hash-mask #x1FFFFFFF)
 
-(declaim (type fixnum term-hash-size))
 (defconstant term-hash-size 9001)
 
 (defmacro method-has-memo-safe (m)
   `(and (method-p ,m) (method-has-memo ,m)))
 
 #-GCL (declaim (inline term-hash-equal))
-
-#-GCL
-(defun term-hash-equal (x) (sxhash x))
-
+#-(or GCL CMU)
+(defun term-hash-equal (x)
+  (logand term-hash-mask (sxhash x)))
+#+CMU
+(defun term-hash-equal (x)
+  (sxhash x))
 #+GCL
 (si:define-inline-function term-hash-equal (x) (sxhash x))
 
@@ -74,43 +77,75 @@
 #-GCL
 (declaim (inline term-hash-eq))
 #-GCL
-(defun term-hash-eq (object) (truncate (addr-of object) 4))
+(defun term-hash-eq (object)
+  (ash (+ (the term-hash-key
+	    (logand term-hash-mask
+		    (the (unsigned-byte 32) (addr-of object))))
+	  3)
+       -3))
 
 #-GCL
 (declaim (inline term-hash-comb))
+
+#||
+(defun term-hash-comb (x y)
+  ;; (declare (type term-hash-key x y))
+  (the term-hash-key
+    (logxor (the term-hash-key (ash x -5))
+	    y
+	    (the term-hash-key
+	      (logand term-hash-mask
+		      (the term-hash-key (ash (logand x 31) 26)))))))
+||#
+
 #-GCL
 (defun term-hash-comb (x y)
-  (logxor (ash x -5) y (ash (logand x 31) 26)))
+  ;; (declare (type term-hash-key x y))
+  (the term-hash-key (logand term-hash-mask (logand term-hash-mask (+ x y)))))
+
+                                        ;#+GCL
+                                        ;(si:define-inline-function term-hash-comb (x y)
+                                        ;  (make-and term-hash-mask (+ x y)))
+
+;;; #+GCL
+;;; (si:define-inline-function term-hash-comb (x y)
+;;;   (make-xor (ash x -5) y (ash (make-and x 31) 26))
+;;;  )
 
 ;;;
 ;;; term-hash
 ;;;
+;;; (defvar *on-term-hash-debug* nil)
+
+(defstruct term-hash
+  (size term-hash-size :type (unsigned-byte 14) :read-only t)
+  (table nil :type (or null simple-array)) )
+
 (defun hash-term (term)
   (cond ((term-is-applform? term)
-          (let ((res (sxhash (the symbol (method-id-symbol (term-head term))))))
-            (dolist (subterm (term-subterms term))
-              (setq res (term-hash-comb res (hash-term subterm))))
-            res))
-         ((term-is-builtin-constant? term)
-          (term-hash-comb (sxhash (the symbol (sort-id (term-sort term))))
-                          (term-hash-equal (term-builtin-value term))))
-         ((term-is-variable? term) (term-hash-eq term))))
+         (let ((res (sxhash (the symbol (method-id-symbol (term-head term))))))
+           (dolist (subterm (term-subterms term))
+             (setq res (term-hash-comb res (hash-term subterm))))
+           res))
+        ((term-is-builtin-constant? term)
+         (term-hash-comb (sxhash (the symbol (sort-id (term-sort term))))
+                         (term-hash-equal (term-builtin-value term))))
+        ((term-is-variable? term) (term-hash-eq term))))
 
-(defun dump-term-hash (term-hash &optional (size term-hash-size) (module *current-module*))
-  (with-in-module (module)
-    (dotimes (x size)
-      (let ((ent (svref term-hash x)))
-        (when ent
-          (format t "~%[~3d]: ~d entrie(s)" x (length ent))
-          (dotimes (y (length ent))
-            (let ((e (nth y ent)))
-              (format t "~%(~d)" y)
-              (let ((*print-indent* (+ 2 *print-indent*)))
-                (term-print (car e))
-                (print-next)
-                (princ "==>")
-                (print-next)
-                (term-print (cdr e))))))))))
+(defun dump-term-hash (term-hash &optional (size term-hash-size))
+  (dotimes (x size)
+    (let ((ent (svref term-hash x)))
+      (when ent
+        (format t "~%[~3d]: ~d entrie(s)" x (length ent))
+        (dotimes (y (length ent))
+          (let ((e (nth y ent)))
+            (format t "~%(~d)" y)
+            (let ((*print-indent* (+ 2 *print-indent*)))
+              (term-print (car e))
+              (print-next)
+              (princ "==>")
+              (print-next)
+              (term-print (cdr e)))))))))
 
 #-GCL
 (declaim (inline get-hashed-term))
@@ -119,8 +154,8 @@
  get-hashed-term (term term-hash)
  (let ((val (hash-term term)))
    (let* ((ent (svref term-hash
-                      (mod val term-hash-size)))
-          (val (cdr (assoc term ent :test #'term-is-similar?))))
+		      (mod val term-hash-size)))
+	  (val (cdr (assoc term ent :test #'term-is-similar?))))
      (when val (incf *term-memo-hash-hit*))
      val)))
 
@@ -130,11 +165,11 @@
 (#-GCL defun #+GCL si:define-inline-function
  set-hashed-term (term term-hash value)
  (let ((val (hash-term term)))
-    (let ((ind (mod val term-hash-size)))
-      (let ((ent (svref term-hash ind)))
-        (let ((pr (assoc term ent :test #'term-is-similar?)))
-          (if pr (rplacd pr value)
-            (setf (svref term-hash ind) (cons (cons term value) ent))) )))))
+   (let ((ind (mod val term-hash-size)))
+     (let ((ent (svref term-hash ind)))
+       (let ((pr (assoc term ent :test #'term-is-similar?)))
+         (if pr (rplacd pr value)
+           (setf (svref term-hash ind) (cons (cons term value) ent))) )))))
 
 ;;; *TERM-MEMO-TABLE*
 
@@ -151,7 +186,7 @@
     (setf (svref table x) nil))
   table)
 
-;;;                   BASIC COMMON ROUTINES FOR REWRITING
+;;;		      BASIC COMMON ROUTINES FOR REWRITING
 
 (defvar *cafein-current-rule* nil)
 (defvar *cafein-current-subst* nil)
