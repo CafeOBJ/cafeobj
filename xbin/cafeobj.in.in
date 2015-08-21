@@ -2,8 +2,8 @@
 #
 # cafeobj wrapper script
 #
-# Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
-# Copyright (c) 2014, Norbert Preining. All rights reserved.
+# Copyright (c) 2000-2014 Toshimi Sawada. All rights reserved.
+# Copyright (c) 2014-2015 Norbert Preining. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -61,12 +61,16 @@ binpath=`dirname "$0"`
 libpath="$binpath/../@LIBPATH@"
 sharepath="$binpath/../@SHAREPATH@"
 
+dohelp=0
+
 engine=@FIRSTCHOICE@
 
 while [ $# -gt 0 ]
 do
   key="$1"
   case $key in
+    # don't shift away, will be handled by the cafeobj interpreter
+    -h|-help|--help) dohelp=1 ; break ;;
     -engine|--engine) shift ; engine="$1" ; shift ;;
     -wrapper-libpath|--wrapper-libpath) shift ; libpath="$1" ; shift ;;
     -wrapper-sharepath|--wrapper-sharepath) shift ; sharepath="$1" ; shift ;;
@@ -87,6 +91,18 @@ do
     *) break ;;
   esac
 done
+
+if [ "$dohelp" = 1 ] ; then
+  echo '
+Usage: cafeobj [wrapper-options] [options] files ...
+
+Wrapper options:
+ -engine NAME      select the underlying Common Lisp engine.
+ -list-engines     lists all available common lisp engines
+ -wrapper-libpath PATH   sets the path to memory dumps
+ -wrapper-sharepath PATH sets the path to CafeOBJ initialization files
+'
+fi
 
 case "x$engine" in
 xacl)

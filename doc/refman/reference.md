@@ -8,7 +8,7 @@
 On Unix only, forks a shell and executes the given `<command>`.
 
 
-## `#define` ## {#sharp-define}
+## `#define <symbol> := <term> .` ## {#sharp-define}
 
 
 
@@ -36,86 +36,6 @@ Related: [comments](#comments), [`**`](#starstar)
 
 Do nothing.
 
-
-## `:apply (<tactic> ...) [to <goal-name>]` ## {#:apply}
-
-TODO
-
-## `:auto` ## {#:auto}
-
-TODO
-
-## `:backward equation` ## {#:backward}
-
-TODO
-
-## `:cp { "[" <label> "]" | "(" <axiom> . ")" } >< { "[" <label> "]" | "(" <axiom> .")" }` ## {#:cp}
-
-TODO
-
-## `:csp { eq [ <op-exp>]: <term> = <term> . ...}` ## {#:csp}
-
-TODO
-
-## `:ctf { eq [ <op-exp> ]: <term> = <term> .` ## {#:ctf}
-
-TODO
-
-## `:describe <something>` ## {#:describe}
-
-Similar to the `:show` command but with more details. See `:describe ?` for
-the possible set of invocations.
-
-
-Related: [`:show`](#:show)
-
-## `:equation` ## {#:equation}
-
-TODO
-
-## `:goal { <axiom> . ... }` ## {#:goal}
-
-TODO
-
-## `:ind on <variable> ... .` ## {#:ind}
-
-TODO
-
-## `:init { "[" <label> "]" | "(" <axiom> "")} "{" <variable> <- <term>; ... "}"` ## {#:init}
-
-TODO
-
-## `:is` ## {#:is}
-
-Boolean expression: `A :is B` where `A` is a term and
-`B` is a sort. Returns true if `A` is of sort `B`.
-
-
-## `:lred <term> .` ## {#:red}
-
-TODO
-
-## `:roll back` ## {#:roll}
-
-TODO
-
-## `:rule` ## {#:rule}
-
-TODO
-
-## `:select <goal-name>` ## {#:select}
-
-TODO
-
-## `:show <something>` ## {#:show}
-
-TODO
-
-Related: [`:describe`](#:describe)
-
-## `:verbose { on | off }` ## {#:verbose}
-
-TODO
 
 ## `=` ## {#axeq}
 
@@ -166,7 +86,7 @@ Related: [search predicates](#searchpredicate), [`trans`](#trans)
 
 ## `? [<term>]` ## {#help}
 
-Without any argument, lists all top-level commands.
+Without any argument, shows the brief guide of online help system.
 With argument gives the reference manual description of `term`.
 In addition to this, many commands allow for passing `?` as argument
 to obtain further help.
@@ -204,6 +124,14 @@ CafeOBJ> ?ap foo att[er]
 will search for entries that contain the string `foo` as well as
 either the string `atte` or `attr`.
 
+## `?com [ <term> ]` ## {#help-commands}
+
+List commands or declarations categorized by the key <term>.
+<term> is one of 'decl', 'module', 'parse', 'rewrite', 
+'inspect', 'switch', 'proof', 'system', 'inspect', 'library', 'help', 'io' or 'misc'.
+If <term> is omitted, the list of available <term> will be printed.
+    
+
 ## `[` ## {#sortsymbol}
 
 Starts a sort declaration. See [sort declaration](#sort) for details.
@@ -230,6 +158,10 @@ the [`memo`](#opattr) operator attribute.
 
 
 Related: [operator attributes](#opattr), [`memo`](#switch-memo)
+
+## `:apply (<tactic> ...) [to <goal-name>]` ## {#citp-apply}
+
+TODO
 
 ## `apply <action> [ <subst> ] <range> <selection>` ## {#apply}
 
@@ -303,6 +235,10 @@ where each `<selector>` is one of
 
 Related: [`start`](#start), [`choose`](#choose)
 
+## `:auto` ## {#citp-auto}
+
+TODO
+
 ## `auto context` switch ## {#switch-auto-context}
 
 Possible values: `on` or `off`, default is `off`.
@@ -312,12 +248,16 @@ the most recent module, i.e., defining a module or inspecting
 a module's content will switch the current module.
 
 
-## `autoload` ## {#autoload}
+## `autoload <module-name> <file-name>` ## {#autoload}
+
+When evaluating a <module-name> and found that
+it is not yet declared, the system read in <file-name> then 
+retries the evaluation.
 
 
+Related: [`no autoload`](#no-autoload)
 
-
-## `ax` ## {#ax}
+## `ax [ <label-exp> ] <term> = <term>` . ## {#ax}
 
 (pignose)
 
@@ -332,17 +272,28 @@ Optional structuring of the statements in a module.
 
 Related: [`trans`](#trans), [`eq`](#eq), [`var`](#var), [`imports`](#imports), [`signature`](#signature)
 
-## `bax` ## {#bax}
+## `:backward equation` ## {#citp-backward}
+
+TODO
+
+## `bax [ <label-exp> ] <term> = <term>` . ## {#bax}
 
 (pignose)
 
 
-## `bceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#bceq}
+## `bceq [ <label-exp> ] <term> = <term> if <boolterm> .` ## {#bceq}
 
 Defines a behavioral conditional equation. For details see [`ceq`](#ceq).
 
 
 Related: [`beq`](#beq), [`ceq`](#ceq), [`eq`](#eq)
+
+## `bcrule [ <label-exp> ] <term> => <term> if <term> .` ## {#bcrule}
+
+Synonym of 'bctrans'
+
+
+Related: [`bctrans`](#bctrans)
 
 ## `bctrans [ <label-exp> ] <term> => <term> if <bool> .` ## {#bctrans}
 
@@ -352,17 +303,25 @@ For details see [`ctrans`](#ctrans).
 
 Related: [`btrans`](#btrans), [`ctrans`](#ctrans), [`trans`](#trans)
 
-## `beq [ <op-exp> ] <term> = <term> .` ## {#beq}
+## `beq [ <label-exp> ] <term> = <term> .` ## {#beq}
 
 Defines a behavioral equation. For details see [`eq`](#eq).
 
 
 Related: [`bceq`](#bceq), [`ceq`](#ceq), [`eq`](#eq)
 
-## `bgoal` ## {#bgoal}
+## `bgoal <term> .` ## {#bgoal}
 
 (pignose)
 
+
+## `binspect [in <module-name> :] <boolean-term> .` ## {#binspect}
+
+TODO
+
+## `:binspect [in <goal-name> :] <boolean-term> .` ## {#citp-binspect}
+
+TODO
 
 ## `bop <op-spec> : <sorts> -> <sort>` ## {#bop}
 
@@ -394,15 +353,20 @@ into account for reduction.
 
 Related: [`reduce`](#reduce), [`execute`](#execute)
 
-## `brl` ## {#brl}
+## `{binspect | :binspect}` ## {#bresolve}
+
+TODO
+
+## `brule [ <label-exp> ] <term> => <term> .` ## {#brule}
+
+Synonym of 'btrans'.
 
 
+Related: [`btrans`](#btrans)
 
+## `{bshow | :bshow} [tree]` ## {#bshow}
 
-## `brule` ## {#brule}
-
-
-
+TODO
 
 ## `bsort` ## {#bsort}
 
@@ -416,7 +380,7 @@ Defines a behavioral transition. For details see [`trans`](#trans).
 
 Related: [`bctrans`](#bctrans), [`ctrans`](#ctrans), [`trans`](#trans)
 
-## `cbred` ## {#cbred}
+## `cbred [ in <mod-exp> :] <term> .` ## {#cbred}
 
 
 
@@ -429,7 +393,7 @@ The argument is necessary. No kind of expansion or substitution is done.
 
 Related: [`ls`](#ls), [`pwd`](#pwd)
 
-## `ceq [ <op-exp> ] <term> = <term> if <boolterm> .` ## {#ceq}
+## `ceq [ <label-exp> ] <term> = <term> if <boolterm> .` ## {#ceq}
 
 Defines a conditional equation. Spaces around the `if` are obligatory.
 `<boolterm>` needs to be a Boolean term. For other requirements
@@ -490,7 +454,7 @@ for details on `<selection>`.
 
 Related: [`strat` in operator attributes](#opattr), [`start`](#start), [`apply`](#apply)
 
-## `clause` ## {#clause}
+## `clause <term> .` ## {#clause}
 
 (pignose)
 
@@ -517,6 +481,11 @@ This command closes a modification of a module started by `open`.
 
 Related: [`open`](#open)
 
+## `commands` ## {#help}
+
+Print outs the list of main toplevel commands.
+
+
 ## comments ## {#comments}
 
 The interpreter accepts the following strings as start of a comment
@@ -538,7 +507,34 @@ Related: [`--`](#starstar), [`**`](#starstar)
 
 
 
-## `ctrans [ <label-exp> ] <term> => <term> .` ## {#ctrans}
+## `:cp { "[" <label> "]" | "(" <sentense> . ")" } >< { "[" <label> "]" | "(" <sentence> .")" }` ## {#citp-cp}
+
+TODO
+
+## `crule [ <label-exp> ] <term> => <term> if <term> .` ## {#crule}
+
+Synonym of 'ctrans'
+
+
+Related: [`rule`](#rule), [`ctrans`](#ctrans)
+
+## `:csp { eq [ <label-exp>] <term> = <term> . ...}` ## {#citp-csp}
+
+TODO
+
+## `:csp { eq [ <label-exp>] <term> = <term> . ...}` ## {#citp-csp-}
+
+TODO
+
+## `:ctf { eq [ <label-exp> ] <term> = <term> .}` ## {#citp-ctf}
+
+TODO
+
+## `:ctf { eq [ <label-exp> ] <term> = <term> .}` ## {#citp-ctf-}
+
+TODO
+
+## `ctrans [ <label-exp> ] <term> => <term> if <term> .` ## {#ctrans}
 
 Defines a conditional transition. For details see [`trans`](#trans)
 and [`ceq`](#ceq).
@@ -546,12 +542,7 @@ and [`ceq`](#ceq).
 
 Related: [`bctrans`](#bctrans), [`btrans`](#btrans), [`trans`](#trans)
 
-## `db` ## {#db}
-
-(pignose)
-
-
-## `dbpred` ## {#dbpred}
+## `db reset` ## {#db}
 
 (pignose)
 
@@ -561,9 +552,17 @@ Related: [`bctrans`](#bctrans), [`btrans`](#btrans), [`trans`](#trans)
 (pignose)
 
 
+## `:describe <something>` ## {#citp-describe}
+
+Similar to the `:show` command but with more details. Call `:describe ?` for
+the possible set of invocations.
+
+
+Related: [`:show`](#citp-show)
+
 ## `describe <something>` ## {#describe}
 
-Similar to the `show` command but with more details. See `describe ?` for
+Similar to the `show` command but with more details. Call `describe ?` for
 the possible set of invocations.
 
 
@@ -572,11 +571,6 @@ Related: [`show`](#show)
 ## `dirs` ## {#dirs}
 
 
-
-
-## `dpred` ## {#dpred}
-
-(pignose)
 
 
 ## `dribble` ## {#dribble}
@@ -591,7 +585,7 @@ untested code or documentations below the `eof` mark. Has
 to be on a line by itself without leading spaces.
 
 
-## `eq [ <op-exp> ]: <term> = <term> .` ## {#eq}
+## `eq [ <label-exp> ] <term> = <term> .` ## {#eq}
 
 Declares an axiom, or equation.
 
@@ -602,9 +596,9 @@ same connected component in the graph defined by the sort ordering.
 In simple words, the objects determined by the terms must be
 interpretable as of the same sort.
 
-The optional part `<op-exp>` serves two purposes, one is to give
+The optional part `<label-exp>` serves two purposes, one is to give
 an axiom an identifier, and one is to modify its behavior. The
-`<op-exp>` is of the form:
+`<label-exp>` is of the form:
 
 ` [ <modifier> <label> ] : `
 
@@ -642,6 +636,10 @@ the same term with `or` instead.
 
 Related: [`bceq`](#bceq), [`beq`](#beq), [`ceq`](#ceq)
 
+## `:equation` ## {#citp-equation}
+
+TODO
+
 ## `exec limit` switch ## {#switch-exec-limit}
 
 Possible values: integers, default limit 4611686018427387903.
@@ -660,7 +658,7 @@ controls whether further output is provided during reductions.
 
 Related: [`reduce`](#reduce)
 
-## `exec!` ## {#execute-dash}
+## `exec! [ in <mod-exp> : ] <term> .` ## {#execute-dash}
 
 
 exec! [in <Modexpr> :] <Term> .
@@ -696,7 +694,7 @@ Related: [`using`](#using), [`protecting`](#protecting), [`including`](#includin
 
 
 
-## `flag` ## {#flag}
+## `flag(<name>, { on | off })` ## {#flag}
 
 (pignose)
 
@@ -715,7 +713,11 @@ generates reference manual from system's on line help documents,
 and save it to `pathname`.
 
 
-## `goal` ## {#goal}
+## `:goal { <sentence> . ... }` ## {#citp-goal}
+
+TODO
+
+## `goal <term> .` ## {#goal}
 
 (pignose)
 
@@ -758,6 +760,14 @@ See [`module expression`](#moduleexpression) for format of `modexp`.
 
 Related: [module expression](#moduleexpression), [`using`](#using), [`protecting`](#protecting), [`extending`](#extending)
 
+## `:ind on <variable> ... .` ## {#citp-ind}
+
+TODO
+
+## `:init { "[" <label> "]" | "(" <sentence> "")} "{" <variable> <- <term>; ... "}"` ## {#citp-init}
+
+TODO
+
 ## `input <pathname>` ## {#input}
 
 Requests the system to read the file specified by the
@@ -766,9 +776,9 @@ CafeOBJ reads the file up to the end, or until it encounters
 a line that only contains (the literal) `eof`.
 
 
-## `inspect` ## {#inspect}
+## `inspect <term>` ## {#inspect}
 
-
+Inspect the internal structure of <term>.
 
 
 ## instantiation of parameterized modules ## {#instantiation}
@@ -830,6 +840,12 @@ module NAT-ILIST {
 
 
 
+## `:is` ## {#citp-is}
+
+Boolean expression: `A :is B` where `A` is a term and
+`B` is a sort. Returns true if `A` is of sort `B`.
+
+
 ## `let <identifier> = <term> .` ## {#let}
 
 Using `let` one can define aliases, or context variables. Bindings
@@ -841,7 +857,7 @@ shorthands, they are not. The right hand side `<term>` needs to
 be a fully parsable expression.
 
 
-## `lex` ## {#lex}
+## `lex (<op>, ..., <op>)` ## {#lex}
 
 (pignose)
 
@@ -882,7 +898,7 @@ CafeOBJ> lisp (+ 4 5)
 Evaluates the following quoted lisp expression. (TODO ???)
 
 
-## `list` ## {#list}
+## `list { axiom | sos | usable | flag | param | option | demod }` ## {#list}
 
 (pignose)
 
@@ -949,8 +965,8 @@ are declarations of
 
 `module` introduces a module without specified semantic type.
 
-If `params` are given, it is a parameterized module. See `parameterized module`
-for more details.
+If `params` are given, it is a parameterized module. 
+See [`parameterized module`](#parameterizedmodule) for more details.
 
 If `principal_sort_spec` is given, it has to be of the form
 `principal-sort <sortname>` (or `p-sort <sortname>`). The principal
@@ -990,11 +1006,22 @@ summation
     once, it is assumed to be shared.
 
 
-## `names` ## {#names}
+## `names <mod-exp>` . ## {#names}
+
+List up all the named objects in module <mod-exp>.
 
 
-show
+## `no autoload <module-name>` ## {#no-autoload}
 
+Stop `autoload` of module with the name <module-name> .
+Please refer to `autoload` command.
+
+
+Related: [`autoload`](#autoload)
+
+## `:normalize { on | off}` ## {#citp-normalize}
+
+Normalize the LHS of an instance of the axiom generated by :init command.
 
 ## on-the-fly declarations ## {#onthefly}
 
@@ -1163,12 +1190,12 @@ the following rules:
 
 Related: [operator attributes](#opattr)
 
-## `option` ## {#option}
+## `option { reset | = <name> }` ## {#option}
 
 (pignose)
 
 
-## `param` ## {#param}
+## `param(<name>, <value>)` ## {#param}
 
 (pignose)
 
@@ -1219,6 +1246,14 @@ Related: [`qualified term`](#qualified)
 
 
 
+
+## `:pctf { <bool-term> . ... <bool-term> .}` ## {#citp-pctf}
+
+TODO
+
+## `:pctf- { <bool-term> . ... <bool-term> . }` ## {#citp-pctf-}
+
+TODO
 
 ## `popd` ## {#popd}
 
@@ -1273,8 +1308,8 @@ Related: [`unprotect`](#unprotect)
 ## `protecting ( <modexp> )` ## {#protecting}
 
 Imports the object specified by `modexp` into the current
-module, preserving all intended models as they are. See `module expression`
-for format of `modexp`.
+module, preserving all intended models as they are. 
+See [`module expression`](#moduleexpression) for format of `modexp`.
 
 
 Related: [`including`](#including), [`using`](#using), [`extending`](#extending)
@@ -1288,15 +1323,17 @@ already.
 
 Related: [`require`](#require)
 
-## `pushd` ## {#pushd}
+## `pushd <directory>` ## {#pushd}
 
 
 
 
-## `pvar` ## {#pvar}
+## `pvar <var-name> : <sort-name>` ## {#pvar}
 
 (pignose)
 
+
+Related: [`vars`](#var), [`var`](#var)
 
 ## `pwd` ## {#pwd}
 
@@ -1338,7 +1375,7 @@ Related: [`parse`](#parse)
 
 ### Example ###
 
-`1:NzNat` `2:Nat`
+`(1):NzNat` `(2):Nat`
 
 ## `quiet` switch ## {#switch-quiet}
 
@@ -1353,6 +1390,10 @@ Related: [`verbose`](#switch-verbose)
 
 Leaves the CafeOBJ interpreter.
 
+
+## `{ :red | :exec | :bred } [in <goal-name> :] <term> .` ## {#citp-red}
+
+reduce the term in specified goal <goal-name>. 
 
 ## `reduce [ in <mod-exp> : ] <term> .` ## {#reduce}
 
@@ -1410,7 +1451,7 @@ affect other modules.
 
 Related: [`full reset`](#fullreset)
 
-## `resolve` ## {#resolve}
+## `resolve {. | <file-path> }` ## {#resolve}
 
 (pignose)
 
@@ -1436,15 +1477,20 @@ execution.
 
 Related: [`step switch`](#switch-step)
 
-## `rl` ## {#rl}
+## `:roll back` ## {#citp-roll}
+
+TODO
+
+## `:rule` ## {#citp-rule}
+
+TODO
+
+## `rule [ <label-exp> ] <term> => <term> .` ## {#rule}
+
+Synonym of 'trans'.
 
 
-
-
-## `rule` ## {#rule}
-
-
-
+Related: [`trans`](#trans)
 
 ## `save <pathname>` ## {#save}
 
@@ -1457,7 +1503,7 @@ given in the current session.
 
 Related: [`save-system`](#save-system), [`restore`](#restore), [`input`](#input)
 
-## `save-option` ## {#save-option}
+## `save-option <name>` ## {#save-option}
 
 (pignose)
 
@@ -1471,7 +1517,7 @@ restrictions.
 
 Related: [`restore`](#restore), [`save`](#save), [`input`](#input)
 
-## `scase` ## {#scase}
+## `scase (<term>) in (<mod-exp>) as <name> { <decl> ..} : <term> .` ## {#scase}
 
 
 
@@ -1519,6 +1565,10 @@ These two cases can also be combined into
 `S =(n,m)=>* SS [if Pred1] suchThat Pred2 withStateEq Pred3`
 
 
+## `:select <goal-name>` ## {#citp-select}
+
+TODO
+
 ## `select <mod_exp> . ` ## {#select}
 
 Selects a module given by the module expression `<mod_exp>` as the
@@ -1542,6 +1592,12 @@ values, use `show switches`. To single out two general purpose switches,
 
 Related: [`switches`](#switches), [`show`](#show)
 
+## `:show <something>` ## {#citp-show}
+
+TODO
+
+Related: [`:describe`](#citp-describe)
+
 ## `show <something>` ## {#show}
 
 The `show` command provides various ways to inspect all kind of objects
@@ -1551,12 +1607,12 @@ Some of the more important (but far from complete list) ways to call
 the `show` command are:
 
   - `show [ <modexp> ]` - describes the current modules of the one specified
-	as argument
+        as argument
   - `show module tree [ <modexp> ]` - displays submodules of <modexp> in tree format
   - `show switches` - lists all possible switches
   - `show term [ tree ]` - displays a term, possible in tree format
 
-See the entry for `switches` for a full list.
+See the entry for [`switches`](#switches) for a full list.
 
 
 Related: [`describe`](#describe), [`switches`](#switches)
@@ -1568,7 +1624,7 @@ Possible values for `set show mode <mode>` are `cafeobj` and `meta`.
 TODO no further information on what this changes
 
 
-## `sigmatch` ## {#sigmatch}
+## `sigmatch (<mod-exp>) to (<mod-exp>)` ## {#sigmatch}
 
 (pignose)
 
@@ -1616,10 +1672,14 @@ defines five sorts `A`,...,`E`, with the following relations:
 `C < A`, `D < A`, `A < E`, `B < D`.
 
 
-## `sos` ## {#sos}
+## `sos { = | + | - } { <clause> , ... }` ## {#sos}
 
 (pignose)
 
+
+## `:spoiler { on | off}` ## {#citp-spoiler}
+
+TODO
 
 ## `start <term> .` ## {#start}
 
@@ -1763,7 +1823,7 @@ Related: [`protect`](#protect)
 
 Imports the object specified by `modexp` into the current
 module without any restrictions on the models.
-See `module expression` for format of `modexp`.
+See [`module expression`](#moduleexpression) for format of `modexp`.
 
 
 Related: [`protecting`](#protecting), [`including`](#including), [`extending`](#extending)
@@ -1780,6 +1840,10 @@ using the `vars` construct:
 
 
 Related: [`on-the-fly`](#onthefly), [`qualified term`](#qualified), [`op`](#op)
+
+## `:verbose { on | off }` ## {#citp-verbose}
+
+TODO
 
 ## `verbose` switch ## {#switch-verbose}
 
