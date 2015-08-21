@@ -883,7 +883,8 @@
           (princ "*"))))
     (let ((subnodes (ptree-node-subnodes node)))
       (when subnodes
-        (let ((*print-indent* (+ 4 *print-indent*)))
+        (let (;; (*print-indent* (+ 4 *print-indent*))
+              )
           (dolist (sub subnodes)
             (print-next-prefix #\Space)
             (!print-proof-horizontal sub next-target stream)))))))
