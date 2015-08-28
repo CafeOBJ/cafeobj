@@ -137,6 +137,12 @@
   (declare (type (or simple-string pathname) path)
            (type list suffixes)
            (values list))
+  #+:SBCL
+  (when (position #\. (if (pathnamep path)
+                          (pathname-name path)
+                        path) 
+                  :from-end t)
+    (return-from supply-suffixes (list path)))
   (mapcar #'pathname
           (mapcar #'(lambda (x) (concatenate 'string
                                   (namestring path)
