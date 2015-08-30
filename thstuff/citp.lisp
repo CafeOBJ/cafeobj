@@ -461,9 +461,10 @@
           ((member target '("." "current") :test #'equal)
            (check-ptree)
            (print-current-goal describe))
-          ((member target '(":def" ":define" "def" "define") :test #'equal)
+          ((member target '(":def" ":define" "def" "define" ":defs" "defs") :test #'equal)
            (check-ptree)
-           (print-defs describe))
+           (let ((goal-name (first rest-args)))
+             (print-defs describe goal-name)))
           (t (with-output-chaos-error ('unknown)
                (format t "Unknown parameter to :show/:describe ~S" target))))))
 
@@ -477,9 +478,7 @@
 
 ;;; :def
 ;;;  :define Foo = :ctf[ N:Nat = 1 .] 
-
 ;;;  :define Foo = :ctf{ eq L = R .}
-
 ;;;  :define Foo = :csp{ eq A = B . eq C = D .}
 
 (defun eval-citp-define (arg)
@@ -522,7 +521,7 @@
                 (t ;; internal error
                  (with-output-chaos-error ('internal-error)
                    (format t "Invalid :def parameter ~s" tactic-name))))
-          (format t "~%Done: ")
+          (format t "~&defined : ")
           (princ tactic)
           (setf (goal-defs goal)
             (nconc (goal-defs goal) (list tactic)))))

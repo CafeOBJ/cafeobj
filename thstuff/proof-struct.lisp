@@ -1000,9 +1000,11 @@
 
 ;;; print-defs
 ;;; 
-(defun print-defs (describe)
+(defun print-defs (describe &optional goal-name)
   (declare (ignore describe))
-  (let ((current (get-next-proof-context *proof-tree*)))
+  (let ((current (if goal-name
+                     (find-goal-node *proof-tree* goal-name)
+                   (get-next-proof-context *proof-tree*))))
     (if current
         (let* ((goal (ptree-node-goal current))
                (defs (goal-defs goal)))
