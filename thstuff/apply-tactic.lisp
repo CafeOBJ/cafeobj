@@ -1473,7 +1473,7 @@
         (values t (list (or next-goal cur-goal)))
       (values result nil))))
 
-(defun apply-rd (ptree-node &optional tactic)
+(defun apply-rd (ptree-node &optional (tactic .tactic-rd.))
   (declare (type ptree-node ptree-node)
            (type tactic tactic))
   (let ((*citp-spoiler* t)
