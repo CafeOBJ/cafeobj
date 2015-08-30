@@ -2378,6 +2378,14 @@ Do nothing.
     :doc "TODO"
     )
 
+(define (":def" ":define")
+    :category :proof
+    :parser citp-parse-define
+    :evaluator eval-citp-define
+    :title "`:def <symbol> = { <ctf> | <csp>}`"
+    :doc "TODO"
+    )
+
 (define  (":show" ":sh")
     :category :inspect
     :parser citp-parse-show

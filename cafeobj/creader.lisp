@@ -70,7 +70,7 @@
 ;;; VISIBLE SORTS
 
   (defparameter SortDeclaration
-      ' (|[| (:upto (< |,| |]|) :sorts)
+      '(|[| (:upto (< |,| |]|) :sorts)
              :append (:seq-of (:one-of (<) (|,|))
                               (:upto (< |,| |]|) :sorts))
              |]|))
@@ -238,16 +238,6 @@
         |}|))
 
 ;;;-----------------------------------------------------------------------------
-;;; RECORD DECLARATION
-;;; *NOTE* class is not part of CafeOBJ language.
-;;;-----------------------------------------------------------------------------
-#|| -- this is obsolete
-  (defparameter R-C-Declaration
-      '((:+ record class) :symbol (:optional (:! Supers)) |{|
-        (:optional (:! Sv-pairs))
-        |}|))
-||# 
-;;;-----------------------------------------------------------------------------
 ;;; LET
 ;;;-----------------------------------------------------------------------------
 
@@ -280,8 +270,6 @@
 
   (defparameter EqDeclaration
       '(eq :term = :term |.|))
-;;  (defparameter EqDeclaration
-;;      '(eq (:optional |[| (:seq-of :symbol (:upto (|]|))) |:|) :term = :term |.|))
   (defparameter BEqDeclaration
       '((:+ beq bq) :term = :term |.|))
   (defparameter CEQDeclaration
@@ -318,6 +306,29 @@
       '((:+ inc including) (:if-present as :symbol) |(| :modexp |)|))
 
   )
+
+;;;-----------------------------------------------------------------------------
+;;; CITP tactics
+;;;-----------------------------------------------------------------------------
+(eval-when (:execute :compile-toplevel :load-toplevel)
+  (defparameter CTF
+      '((:+ |:ctf| |:ctf-|)
+        (:one-of (|{| (:one-of #.EqDeclaration 
+                               #.BeqDeclaration
+                               #.FoplAXDeclaration)
+                  |}|)
+               (\[ :term |.| \]))))
+
+  (defparameter CSP
+      '((:+ |:csp| |:csp-|)
+        |{| (:many-of  #.EqDeclaration
+                       #.RlDeclaration
+                       #.BeqDeclaration
+                       #.BRLDeclaration
+                       #.FoplAXDeclaration)
+        |}|))
+
+)
 
 ;;;-----------------------------------------------------------------------------
 ;;; THE SCHEME OF WHOLE ALLOWABLE INPUTS
@@ -801,23 +812,13 @@
          (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
         (|:verbose| :symbol)
         ;; (|:normalize| :symbol)
-        ((:+ |:ctf| |:ctf-|)
-         (:one-of (|{| (:one-of #.EqDeclaration 
-                                #.BeqDeclaration
-                                #.FoplAXDeclaration)
-                   
-                       |}|)
-                  (\[ :term |.| \]))) 
+        #.CTF
         ((:+ |:pctf| |:pctf-|)
          |{| (:many-of (\[ :term |.| \])) |}|)
-        ((:+ |:csp| |:csp-|)
-         |{| (:many-of  #.EqDeclaration
-                        #.RlDeclaration
-                        #.BeqDeclaration
-                        #.BRLDeclaration
-                        #.FoplAXDeclaration)
-                 |}|)
+        #.CSP
         ((:+ |:show| |:sh| |:describe| |:desc|) :args)
+        ((:+ |:def| |:define|) :symbol = (:one-of #.CTF
+                                                  #.CSP))
         (|:spoiler| (:one-of (on) (off) (|.|)))
         (|:binspect|
          (:rdr #..term-delimiting-chars. (:if-present in :symbol |:|)) (:seq-of :term) |.|)
