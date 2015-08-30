@@ -237,6 +237,16 @@
       (push elem ax-decls))
     (cons (nreverse ax-decls) dash?)))
 
+;;; citp-parse-define
+;;; :def <symbol> = <ctf> | <csp>
+;;;
+;;; (":def" "cf1" "=" (":ctf" ("[" ("1" "+" "1" "=" "0") "." "]"))))
+(defun citp-parse-define (args)
+  (let ((name (second args))
+        (command (first (fourth args)))
+        (body-form (second (fourth args))))
+    (list command name body-form)))
+
 ;;; { :show | :describe } <something>
 ;;;
 (defun citp-parse-show (inp)
@@ -451,9 +461,11 @@
           ((member target '("." "current") :test #'equal)
            (check-ptree)
            (print-current-goal describe))
+          ((member target '(":def" ":define" "def" "define") :test #'equal)
+           (check-ptree)
+           (print-defs describe))
           (t (with-output-chaos-error ('unknown)
                (format t "Unknown parameter to :show/:describe ~S" target))))))
-
 
 ;;; :binspect
 ;;;
@@ -462,5 +474,58 @@
         (goal-or-mod (second args))
         (preterm (third args)))
   (binspect-in mode goal-or-mod preterm)))
+
+;;; :def
+;;;  :define Foo = :ctf[ N:Nat = 1 .] 
+
+;;;  :define Foo = :ctf{ eq L = R .}
+
+;;;  :define Foo = :csp{ eq A = B . eq C = D .}
+
+(defun eval-citp-define (arg)
+  (check-ptree)
+  (let ((name (second arg))
+        (tactic-name (first arg))
+        (tactic nil))
+    (when (tactic-name-is-builtin? name)
+      (with-output-chaos-error ('invalid-name)
+        (format t "You can not use the name of builtin tactic ~a." name)))
+    (when (existing-def-name? *proof-tree* name)
+      (with-output-chaos-warning ()
+        (format t "The name ~a is already defined in the current proof context." name)
+        (format t "~%Please use the different name.")
+        (return-from eval-citp-define nil)))
+    (let ((current (get-next-proof-context *proof-tree*))
+          (goal nil))
+      (unless current
+        (with-output-chaos-error ('no-context)
+          (format t "No target goal.")))
+      (setq goal (ptree-node-goal current))
+      (with-in-module ((goal-context goal))
+        (let ((*chaos-quiet* t))
+          (cond ((member tactic-name '(":ctf" ":ctf-") :test #'equal)
+                 ;; ctf
+                 (setq tactic (make-tactic-ctf :name name
+                                               :form (parse-axiom-or-term (second (third arg)) 
+                                                                          (equal "[" (first (third arg))))
+                                               :context *current-module*
+                                               :minus (equal tactic-name ":ctf-"))))
+                ((member tactic-name '(":csp" ":csp-") :test #'equal)
+                 ;; csp
+                 (let ((forms nil))
+                   (dolist (ax (second (third arg)))
+                     (push (parse-axiom-declaration (parse-module-element-1 ax)) forms))
+                   (setq tactic (make-tactic-csp :name name
+                                                 :forms (nreverse forms)
+                                                 :minus (equal tactic-name ":csp-")
+                                                 :context *current-module*))))
+                (t ;; internal error
+                 (with-output-chaos-error ('internal-error)
+                   (format t "Invalid :def parameter ~s" tactic-name))))
+          (format t "~%Done: ")
+          (princ tactic)
+          (setf (goal-defs goal)
+            (nconc (goal-defs goal) (list tactic)))))
+          (push (canonicalize-tactic-name name) (ptree-defs-so-far *proof-tree*)))))
 
 ;;; EOF

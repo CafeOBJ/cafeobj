@@ -86,7 +86,6 @@
   ;;
   (defvar .user-defined-tactics. nil)
 
-
   )
 
 (defun canonicalize-tactic-name (name)
@@ -106,33 +105,75 @@
   (setq name (canonicalize-tactic-name name))
   (find-if #'(lambda (x) (string-equal name (symbol-name (tactic-name x)))) .all-builtin-tactics.))
 
+;;; tactic-name-is-builtin? : name -> bool
 ;;;
+(defun tactic-name-is-builtin? (name)
+  (get-builtin-tactic name))
+
+;;; :ctf/:csp as tactic
+;;;
+(defstruct (tactic-ctf (:include tactic (executor 'apply-ctf-tactic))
+            (:print-function pr-tactic-ctf))
+  (minus nil :type (or null t))         ; t iff :ctf-
+  (form nil)                            ; term or equation
+  (context nil)                         ; context module
+  )
+
+(defun pr-tactic-ctf (obj stream &rest ignore)
+  (declare (type tactic-ctf obj)
+           (ignore ignore))
+  (let ((form (tactic-ctf-form obj)))
+    (format stream ":def ~a = :ctf" (tactic-ctf-name obj))
+    (when (tactic-ctf-minus obj)
+      (princ "-" stream))
+    (with-in-module ((tactic-ctf-context obj))
+      (cond ((axiom-p form)
+             (princ "{" stream)
+             (print-axiom-brief form stream)
+             (princ " .}"))
+            (t                          ; term
+             (princ "[" stream)
+             (term-print form stream)
+             (princ " .]"))))))
+
+(defstruct (tactic-csp (:include tactic (executor 'apply-csp-tactic))
+            (:print-function pr-tactic-csp))
+  (minus nil :type (or null t))         ; t iff :csp-
+  (forms nil)                           ; list of equations
+  (context nil)                         ; context module
+  )
+
+(defun pr-tactic-csp (obj stream &rest ignore)
+  (declare (type tactic-csp obj)
+           (ignore ignore))
+  (let ((forms (tactic-csp-forms obj)))
+    (format stream ":def ~a = :csp" (tactic-csp-name obj))
+    (when (tactic-csp-minus obj)
+      (princ "-" stream))
+    (princ "{" stream)
+    (dolist (ax forms)
+      (print-axiom-brief ax stream)
+      (princ " ." stream))
+    (princ "}" stream)))
+
 ;;; get-user-defined-tactic
 ;;;
 (defun get-user-defined-tactic (name)
   (setq name (canonicalize-tactic-name name))
   (cdr (assoc name .user-defined-tactics.)))
 
+;;; get-defined-tactic
 ;;;
+(defun get-defined-tactic (goal name)
+  (setq name (canonicalize-tactic-name name))
+  (let ((defs (goal-defs goal)))
+    (find-if #'(lambda (x) (string-equal name (canonicalize-tactic-name (tactic-name x)))) defs)))
+
 ;;; get-default-tactics
 ;;; returns the default tactics, i.e. (:si :ca :cs :tc :ip)
 ;;;
 (defun get-default-tactics () .default-tactics.)
 
-;;;
-;;; get-tactic : name -> LIST(tactic)
-;;;
-(defun get-tactic (name)
-  (let ((tactic (or (get-user-defined-tactic name)
-                    (get-builtin-tactic name))))
-    (unless tactic
-      (with-output-chaos-error ('no-such-tactic)
-        (format t "No such tactic is defined with the name ~s" name)))
-    (if (atom tactic)
-        (list tactic)
-      tactic)))
-
-;;;
 ;;; make user defined tactic
 ;;;
 (defun declare-tactic (name &rest tactic-names)
@@ -147,7 +188,6 @@
     (setq .user-defined-tactics.
       (acons name (nreverse tactics) .user-defined-tactics.))))
 
-;;; 
 ;;; for debugging
 ;;;
 (eval-when (:compile-toplevel :execute :load-toplevel)
@@ -180,6 +220,7 @@
   (targets nil :type list)              ; axioms to be proved
   (proved nil :type list)               ; proved targets
   (critical-pairs nil :type list)       ; list of critical pairs not yet axiomatized
+  (defs nil :type list)                 ; list of :defined tactics
   )
 
 (defun goal-is-discharged (goal)
@@ -290,7 +331,6 @@
 (defmacro ptree-node-goal (ptree-node)
   `(ptree-node-datum ,ptree-node))
 
-;;;
 ;;; initialize-ptree-node : ptree-node -> ptree-node
 ;;; discard existing child nodes. 
 ;;; 
@@ -305,7 +345,6 @@
         (ptree-node-subnodes node) nil)
   node)
 
-;;;
 ;;; node-is-discharged? : ptree-node -> Bool
 ;;; returns if the node's goal is discharged,
 ;;; i.e., own goal has no target axioms to be proved,
@@ -336,7 +375,6 @@
           (format nil "~a-~d" p-name my-num)))
     "root"))
 
-;;;
 ;;; context module creator
 ;;;
 (defparameter .next-context-module. (%module-decl* "next-context-dummy" :object :user nil))
@@ -345,7 +383,6 @@
   (declare (type string goal-name))
   (format nil "#Goal-~a" goal-name))
 
-;;;
 ;;; prepare-next-goal : ptree-node -> goal
 ;;; prepare next goal structure with associated context module
 ;;;
@@ -370,12 +407,12 @@
             (goal-ind-constants next-goal) (goal-ind-constants cur-goal)
             (goal-indvars next-goal) (goal-indvars cur-goal)
             (goal-skolems next-goal) (goal-skolems cur-goal)
-            (goal-assumptions next-goal) (goal-assumptions cur-goal))
+            (goal-assumptions next-goal) (goal-assumptions cur-goal)
+            (goal-defs next-goal) (goal-defs cur-goal))
       (prepare-for-parsing next-context)
       (setq *next-default-proof-node* nil) ; we reset the next default target
       next-goal)))
 
-;;;
 ;;; give-goal-name-each-in-order : ptree-node List(goal) -> void
 ;;; this is used for renaming goals and their context modules
 ;;; after applied a tactic.
@@ -387,7 +424,6 @@
       (setf (goal-name goal) gname)
       (setf (module-name (goal-context goal)) mod-name))))
 
-;;;
 ;;; make-ptree-root : module goal -> ptree-node
 ;;;
 (defun make-ptree-root (context-module initial-goals)
@@ -401,7 +437,6 @@
                  :targets initial-goals))
     root-node))
 
-;;;
 ;;; add-ptree-child : ptree-node module List(axiom) -> List(goal)
 ;;;
 (defun add-ptree-child (parent-node child-goal)
@@ -448,6 +483,7 @@
   (root    nil :type (or null ptree-node)) ; root goal
   (indvar-subst nil :type list)
   (var-subst nil :type list)
+  (defs-so-far nil :type list)          ; :defined name so far
   )
 
 (defun pr-ptree (ptree &optional (stream *standard-output*) &rest ignore)
@@ -486,6 +522,10 @@
         (ptree-indvar-subst ptree) nil
         (ptree-var-subst ptree) nil))
 
+(defun existing-def-name? (ptree name)
+  (setq name (canonicalize-tactic-name name))
+  (member name (ptree-defs-so-far ptree) :test #'equal))
+
 ;;; intro-const-returns-subst : module name variable -> (variable . constant-term)
 ;;; introduces a new constant of sort(variable) into a module.
 ;;; returns a pair (variable . constant-term)
@@ -504,21 +544,12 @@
     (prepare-for-parsing module t t)    ; force 
     (cons variable (make-applform-simple (variable-sort variable) meth nil))))
 
-;;;
 ;;; make-tc-const-name : proof-tree prefix -> string
 ;;;
-#||
-(defun make-tc-const-name (variable)
-  (format nil "~:@(~a~)~d@~a" 
-          (variable-name variable) 
-          (incf (ptree-num-gen-const *proof-tree*)))
-          (string (sort-name (variable-sort variable))))
-||#
-
 (defun make-tc-const-name (variable)
   (format nil "~:@(~a~)@~a" (variable-name variable)
           (string (sort-name (variable-sort variable)))))
-;;; 
+
 ;;; variable->constant : goal variable -> term
 ;;;
 (defun find-variable-subst-in (alist variable)
@@ -541,7 +572,6 @@
           (push v-const (goal-constants goal))
           (cdr v-const)))))
 
-;;;
 ;;; variable->constructor : goal variable op -> term
 ;;;
 (defun make-ind-const-name (name-prefix sort)
@@ -772,6 +802,21 @@
              (format t "~%>> setting next default goal to ~s" (goal-name (ptree-node-goal node)))
              node))))
 
+;;; Getting TACTIC
+;;; get-tactic : name -> LIST(tactic)
+;;;
+(defun get-tactic (name)
+  (let ((context (get-next-proof-context *proof-tree*)))
+    (let ((tactic (or (and context (get-defined-tactic (ptree-node-goal context) name))
+                      (get-user-defined-tactic name)
+                      (get-builtin-tactic name))))
+    (unless tactic
+      (with-output-chaos-error ('no-such-tactic)
+        (format t "No such tactic is defined with the name ~s" name)))
+    (if (atom tactic)
+        (list tactic)
+      tactic))))
+
 ;;; ====================
 ;;; TOP LEVEL FUNCTIONS
 ;;; ====================
@@ -942,7 +987,6 @@
               (print-next-prefix #\.)
               (describe-proof-tree sub))))))))
 
-;;;
 ;;; print-current-goal : mode -> void
 ;;;
 (defun print-current-goal (describe)
@@ -953,5 +997,22 @@
           (format t "~%The current goal is ~a" (goal-name (ptree-node-goal current))))
       (with-output-chaos-warning ()
         (format t "All goals have been discharged.")))))
+
+;;; print-defs
+;;; 
+(defun print-defs (describe)
+  (declare (ignore describe))
+  (let ((current (get-next-proof-context *proof-tree*)))
+    (if current
+        (let* ((goal (ptree-node-goal current))
+               (defs (goal-defs goal)))
+          (unless defs
+            (format t "~%The goal ~a has no defs.~%" (goal-name goal))
+            (return-from print-defs nil))
+          (dolist (def defs)
+            (princ def)
+            (print-next)))
+      (with-output-chaos-warning ()
+        (format t "No current goal.")))))
 
 ;;; EOF

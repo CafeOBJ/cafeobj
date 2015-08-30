@@ -869,8 +869,9 @@
 (defun generate-ip-derived-axioms (module axiom)
   (condition->axioms module (axiom-condition axiom) 'ip))
 
-(defun apply-ip (ptree-node)
-  (declare (type ptree-node ptree-node))
+(defun apply-ip (ptree-node &rest ignore)
+  (declare (type ptree-node ptree-node)
+           (ignore ignore))
   (with-in-context (ptree-node)
     (let ((original-goal (ptree-node-goal ptree-node)))
       (flet ((push-next-goal (goal)
@@ -931,8 +932,9 @@
       (print-substitution subst))
     subst))
 
-(defun apply-tc (ptree-node)
-  (declare (type ptree-node ptree-node))
+(defun apply-tc (ptree-node &rest ignore)
+  (declare (type ptree-node ptree-node)
+           (ignore ignore))
   (with-in-context (ptree-node)
     (let ((original-goal .cur-goal.))
         (flet ((push-next-goal (goal)
@@ -1427,10 +1429,11 @@
         (values nil nil)))))
 
 ;;;
-;;; apply-si : ptree-node -> (applied? . List(goal))
+;;; apply-si : ptree-node tactic -> (applied? . List(goal))
 ;;;
-(defun apply-si (ptree-node)
-  (declare (type ptree-node ptree-node))
+(defun apply-si (ptree-node &rest ignore)
+  (declare (type ptree-node ptree-node)
+           (ignore ignore))
   (let ((cur-goal (ptree-node-goal ptree-node)))
     (unless (and (goal-indvars cur-goal) (goal-targets cur-goal))
       (return-from apply-si nil))
@@ -1448,14 +1451,15 @@
   (let ((cur-targets (goal-targets cur-goal))
         (reduced-targets nil)
         (discharged nil)
-        (result nil))
+        (result nil)
+        (tactic-name (tactic-name tactic)))
     (when cur-targets
       (compile-module (goal-context cur-goal) t)
       (when next-goal
         (compile-module (goal-context next-goal) t))
       (dolist (target cur-targets)
         (multiple-value-bind (c-result cur-target original-sentence)
-            (do-check-sentence target (or next-goal cur-goal) tactic)
+            (do-check-sentence target (or next-goal cur-goal) tactic-name)
           (cond (c-result               ; satisfied or contradition
                  (setq result t)
                  (push original-sentence discharged))
@@ -1464,13 +1468,14 @@
       (setf (goal-proved cur-goal) (nreverse discharged))
       (unless reduced-targets
         (setf (goal-targets cur-goal) nil)
-        (format t "~%[~a] discharged goal ~s." tactic (goal-name cur-goal))))
+        (format t "~%[~a] discharged goal ~s." tactic-name (goal-name cur-goal))))
     (if reduced-targets
         (values t (list (or next-goal cur-goal)))
       (values result nil))))
 
-(defun apply-rd (ptree-node &optional (tactic 'rd))
-  (declare (type ptree-node ptree-node))
+(defun apply-rd (ptree-node &optional tactic)
+  (declare (type ptree-node ptree-node)
+           (type tactic tactic))
   (let ((*citp-spoiler* t)
         (cur-goal (ptree-node-goal ptree-node)))
     (when (goal-is-discharged cur-goal)
@@ -1861,8 +1866,9 @@
 (defun get-ca-rules (module)
   (remove-if-not #'rule-is-for-case (module-all-rules module)))
 
-(defun apply-ca (ptree-node)
-  (declare (type ptree-node ptree-node))
+(defun apply-ca (ptree-node &rest ignore)
+  (declare (type ptree-node ptree-node)
+           (ignore ignore))
   (with-in-context (ptree-node)
     (with-in-module ((goal-context .cur-goal.))
       (let ((crules (get-ca-rules *current-module*))
@@ -1910,7 +1916,8 @@
 ;;; TACTIC: Case Analysis on Sequence [CS]
 ;;; TODO
 ;;; ======================================
-(defun apply-cs (ptree-node)
+(defun apply-cs (ptree-node &rest ignore)
+  (declare (ignore ignore))
   ptree-node)
 
 ;;; ==========================================
@@ -2270,8 +2277,9 @@
 ;;; TACTIC: :NF
 ;;; compute normal form of targets and assumptions.
 ;;; ===========
-(defun apply-nf (ptree-node)
-  (declare (type ptree-node ptree-node))
+(defun apply-nf (ptree-node &rest ignore)
+  (declare (type ptree-node ptree-node)
+           (ignore ignore))
   (let ((.cur-goal. (ptree-node-goal ptree-node)))
     (when (goal-is-discharged .cur-goal.)
       (with-output-chaos-warning ()
@@ -2300,8 +2308,9 @@
 ;;; TACTIC: :CT
 ;;; do contradiction check, can dischage the goal
 ;;; ===========
-(defun apply-ct (ptree-node)
-  (declare (type ptree-node ptree-node))
+(defun apply-ct (ptree-node &rest ignore)
+  (declare (type ptree-node ptree-node)
+           (ignore ignore))
   (let ((.cur-goal. (ptree-node-goal ptree-node)))
     (when (goal-is-discharged .cur-goal.)
       (with-output-chaos-warning ()
@@ -2451,7 +2460,7 @@
           (when *citp-spoiler*
             ;; apply implicit rd
             (dolist (ngoal next-goals)
-              (do-apply-rd ngoal nil 'ctf)
+              (do-apply-rd ngoal nil .tactic-ctf.)
               (when (and dash? (goal-targets ngoal))
                 ;; reset target
                 (setf (goal-targets ngoal)
@@ -2489,7 +2498,7 @@
           (when *citp-spoiler*
             ;; apply implicit rd
             (dolist (ngoal next-goals)
-              (do-apply-rd ngoal nil 'ctf)
+              (do-apply-rd ngoal nil .tactic-ctf.)
               (when (and dash? (goal-targets ngoal))
                 ;; reset target
                 (setf (goal-targets ngoal)
@@ -2521,6 +2530,30 @@
     (end-rewrite)
     (report-citp-stat)
     (check-success ptree)))
+
+;;; -----------------------------------------------------
+;;; :defined :ctf, :ctf-
+;;;
+(defun apply-ctf-tactic (ptree-node tactic)
+  (declare (type ptree-node ptree-node)
+           (type tactic-ctf tactic))
+  (let ((goal (ptree-node-goal ptree-node)))
+    (with-in-module ((goal-context goal))
+      (let ((*chaos-quiet* t))
+        (multiple-value-bind (applied next-goals)
+            (do-apply-ctf ptree-node (tactic-ctf-form tactic))
+          (declare (ignore applied))
+          (unless next-goals
+            (return-from apply-ctf-tactic nil))
+          (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
+          (when *citp-spoiler*
+            ;; apply implicit rd
+            (dolist (ngoal next-goals)
+              (do-apply-rd ngoal nil tactic)
+              (when (and (tactic-ctf-minus tactic) (goal-targets ngoal))
+                ;; reset target
+                (setf (goal-targets ngoal) (goal-targets goal)))))
+          (values t next-goals))))))
 
 ;;; -----------------------------------------------------
 ;;; :csp or :csp-
@@ -2562,7 +2595,7 @@
           (when *citp-spoiler*
             ;; apply implicit rd
             (dolist (ngoal next-goals)
-              (do-apply-rd ngoal nil 'csp)
+              (do-apply-rd ngoal nil .tactic-csp.)
               (when (and dash? (goal-targets ngoal))
                 ;; reset target
                 (setf (goal-targets ngoal)
@@ -2574,6 +2607,33 @@
               (pr-goal (ptree-node-goal gn))))
           (ptree-node-subnodes ptree-node))))))
 
+;;; -------------------------------------------------------------
+;;; :defined :csp, :csp-
+;;;
+(defun apply-csp-tactic (ptree-node tactic)
+  (declare (type ptree-node ptree-node)
+           (type tactic-csp tactic))
+  (let ((goal (ptree-node-goal ptree-node)))
+    (with-in-module ((goal-context goal))
+      (let ((*chaos-quiet* t))
+        (multiple-value-bind (applied next-goals)
+            (do-apply-csp ptree-node (tactic-csp-forms tactic))
+          (declare (ignore applied))
+          (unless next-goals
+            (return-from apply-csp-tactic nil))
+          (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
+          (when *citp-spoiler*
+            ;; apply implicit rd
+            (dolist (ngoal next-goals)
+              (do-apply-rd ngoal nil tactic)
+              (when (and (tactic-csp-minus tactic) (goal-targets ngoal))
+                ;; reset target
+                (setf (goal-targets ngoal) (goal-targets goal)))))
+          (values t next-goals))))))
+
+;;; -----------------------------------------------------------
+;;; report-cit-stat
+;;;
 (defun report-citp-stat ()
   (when *show-stats*
     (format t "~%~a" (generate-statistics-form-rewriting-only))))
@@ -2593,12 +2653,14 @@
       (with-output-chaos-warning ()
         (format t "** The goal ~s has already been proved!." (goal-name (ptree-node-goal ptree-node)))
         (return-from apply-tactic nil)))
-    ;; 
-    (format t "~%~a=> :goal{~a}" tactic (goal-name (ptree-node-goal ptree-node)))
+    (format t "~%[~a]=> :goal{~a}" (tactic-name tactic) (goal-name (ptree-node-goal ptree-node)))
     (initialize-ptree-node ptree-node)
     (compile-module (goal-context (ptree-node-goal ptree-node)) t)
+    (with-citp-debug ()
+      (let ((exe (tactic-executor tactic)))
+        (format t "~%Funcalling ~a" exe)))
     (multiple-value-bind (applied next-goals)
-        (funcall (tactic-executor tactic) ptree-node)
+        (funcall (tactic-executor tactic) ptree-node tactic)
       (declare (type (or null t) applied)
                (type list next-goals))
       (unless applied (return-from apply-tactic nil))
