@@ -148,13 +148,14 @@
            (ignore ignore))
   (let ((forms (tactic-csp-forms obj)))
     (format stream ":def ~a = :csp" (tactic-csp-name obj))
-    (when (tactic-csp-minus obj)
-      (princ "-" stream))
-    (princ "{" stream)
-    (dolist (ax forms)
-      (print-axiom-brief ax stream)
-      (princ " ." stream))
-    (princ "}" stream)))
+    (with-in-module ((tactic-csp-context obj))
+      (when (tactic-csp-minus obj)
+        (princ "-" stream))
+      (princ "{" stream)
+      (dolist (ax forms)
+        (print-axiom-brief ax stream)
+        (princ " . " stream))
+      (princ "}" stream))))
 
 ;;; get-user-defined-tactic
 ;;;

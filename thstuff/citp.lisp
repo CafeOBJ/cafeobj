@@ -240,12 +240,28 @@
 ;;; citp-parse-define
 ;;; :def <symbol> = <ctf> | <csp>
 ;;;
-;;; (":def" "cf1" "=" (":ctf" ("[" ("1" "+" "1" "=" "0") "." "]"))))
+;;; (":def" "cf1" "=" (":ctf" ("[" (<Term>) "." "]")))
+;;; ==> (:ctf "cf1" nil (:term (<Term>)))
+;;; (":def" "cf2" "=" (":ctf-" ("{" (<Equation>) "." "}")))
+;;; ==> (:ctf "cf2" t   (:eq (<Equation>)))
+;;; (":def" "sp1" "=" (":csp" "{" ((<Equation> ".") (<Equation> ".")) "}"))
+;;; ==> (:csp "sp1" nil ((<Equation> ".") (<Equation> ".")))
+;;;
 (defun citp-parse-define (args)
-  (let ((name (second args))
-        (command (first (fourth args)))
-        (body-form (second (fourth args))))
-    (list command name body-form)))
+  (flet ((name-to-com (name)
+           (if (equal (subseq name 0 4) ":ctf")
+               :ctf
+             :csp)))
+    (let* ((name (second args))
+           (com-name (first (fourth args)))
+           (command (name-to-com com-name))
+           (dash (> (length com-name) 4))
+           (body-form (if (eq command :ctf)
+                          (if (equal "[" (first (second (fourth args))))
+                              (list :term (second (second (fourth args))))
+                            (list :eq (second (second (fourth args)))))
+                        (third (fourth args)))))
+    (list command name dash body-form))))
 
 ;;; { :show | :describe } <something>
 ;;;
@@ -476,15 +492,18 @@
         (preterm (third args)))
   (binspect-in mode goal-or-mod preterm)))
 
-;;; :def
-;;;  :define Foo = :ctf[ N:Nat = 1 .] 
-;;;  :define Foo = :ctf{ eq L = R .}
-;;;  :define Foo = :csp{ eq A = B . eq C = D .}
-
+;;; eval-citp-define : arg -> tactic-ctf or tactic-csp
+;;; (:ctf "cf1" nil (:term (<Term>)))
+;;; (:ctf "cf2" t   (:eq (<Equation>)))
+;;; (:csp "sp1" nil ((<Equation> ".") ...))
+;;; (:csp "sp2" t   ((<Equation> ".") ...))
+;;;
 (defun eval-citp-define (arg)
   (check-ptree)
-  (let ((name (second arg))
-        (tactic-name (first arg))
+  (let ((tactic-name (first arg))
+        (name (second arg))
+        (dash (third arg))
+        (form (fourth arg))
         (tactic nil))
     (when (tactic-name-is-builtin? name)
       (with-output-chaos-error ('invalid-name)
@@ -502,26 +521,26 @@
       (setq goal (ptree-node-goal current))
       (with-in-module ((goal-context goal))
         (let ((*chaos-quiet* t))
-          (cond ((member tactic-name '(":ctf" ":ctf-") :test #'equal)
+          (cond ((eq tactic-name :ctf)
                  ;; ctf
                  (setq tactic (make-tactic-ctf :name name
-                                               :form (parse-axiom-or-term (second (third arg)) 
-                                                                          (equal "[" (first (third arg))))
+                                               :form (parse-axiom-or-term (second form)
+                                                                          (eq :term (first form)))
                                                :context *current-module*
-                                               :minus (equal tactic-name ":ctf-"))))
-                ((member tactic-name '(":csp" ":csp-") :test #'equal)
+                                               :minus dash)))
+                ((eq tactic-name :csp)
                  ;; csp
                  (let ((forms nil))
-                   (dolist (ax (second (third arg)))
+                   (dolist (ax form)
                      (push (parse-axiom-declaration (parse-module-element-1 ax)) forms))
                    (setq tactic (make-tactic-csp :name name
                                                  :forms (nreverse forms)
-                                                 :minus (equal tactic-name ":csp-")
+                                                 :minus dash
                                                  :context *current-module*))))
                 (t ;; internal error
                  (with-output-chaos-error ('internal-error)
                    (format t "Invalid :def parameter ~s" tactic-name))))
-          (format t "~&defined : ")
+          (format t "~&~a defined as " name)
           (princ tactic)
           (setf (goal-defs goal)
             (nconc (goal-defs goal) (list tactic)))))

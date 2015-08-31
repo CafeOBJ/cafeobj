@@ -81,7 +81,7 @@
 ;;; rule-copy-cononicalized : rule module -> rule
 ;;; copy rule with all variables are renewed and noralized.
 ;;;
-(defun rule-copy-canonicalized (rule module)
+(defun rule-copy-canonicalized (rule module &optional label)
   (with-in-module (module)
     (let* ((new-rule (rule-copy rule))
            (canon (canonicalize-variables (list (rule-lhs new-rule)
@@ -91,6 +91,8 @@
       (setf (rule-lhs new-rule) (first canon)
             (rule-rhs new-rule) (second canon)
             (rule-condition new-rule) (third canon))
+      (when label
+        (setf (rule-labels new-rule) (append (rule-labels rule) (list label))))
       new-rule)))
 
 ;;;
@@ -582,7 +584,7 @@
         (format t "~%=> ")
         (format t "~%LHS: ")(term-print-with-sort r-lhs)
         (format t "~%RHS: ")(term-print-with-sort r-rhs)
-        (format t "~%type: ") type))
+        (format t "~%type: ~a" type)))
     (if r-lhs
         (values r-lhs r-rhs type)
       (values nil nil nil))))
@@ -2362,7 +2364,12 @@
       (unless constructors
         (with-output-chaos-error ('no-constructors)
           (format t "Sort ~a has no constructors." (sort-name sort))))
-      (dolist (const constructors)
+      (dolist (const (sort constructors 
+                           #'(lambda (x y) 
+                               (let ((prec (op-lex-precedence x y)))
+                                 (if (eq prec :greater)
+                                     t
+                                   nil)))))
         (let ((n-goal nil)
               (const-pat (make-ctf-constructor-pattern const)))
           (when const-pat
@@ -2386,6 +2393,11 @@
                     (setf (goal-targets n-goal) (goal-targets cur-goal))
                     (setf (goal-assumptions n-goal)
                       (append (goal-assumptions cur-goal) (list ax))))))))))
+      (with-citp-debug ()
+        (format t "~%ctf to constructors generated:")
+        (dolist (g (reverse goals))
+          (print-next)
+          (pr-goal g)))
       (if goals
           (values t (nreverse goals))
         (values nil nil)))))
@@ -2431,6 +2443,13 @@
             ;; false case
             (unless (add-assumption f-goal lhs *bool-false*)
               (setq f-goal nil))))
+        (with-citp-debug ()
+          (format t "~%citp from equation: generated")
+          (print-next)
+          (when t-goal
+            (pr-goal t-goal))
+          (when f-goal
+            (pr-goal f-goal)))
         (if (and t-goal f-goal)
             (values t (list t-goal f-goal))
           (if t-goal
@@ -2545,7 +2564,6 @@
           (declare (ignore applied))
           (unless next-goals
             (return-from apply-ctf-tactic nil))
-          (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
           (when *citp-spoiler*
             ;; apply implicit rd
             (dolist (ngoal next-goals)
@@ -2567,7 +2585,8 @@
         (format t "** The goal ~s has already been proved!." (goal-name (ptree-node-goal cur-node)))
         (return-from do-apply-csp nil)))
     (let ((ngoals nil))
-      (dolist (ax axs)
+      (dolist (ax (mapcar #'(lambda (x) (rule-copy-canonicalized x (goal-context cur-goal) "CSP"))
+                          axs))
         (let ((n-goal (prepare-next-goal cur-node .tactic-csp.)))
           ;; add a given assumption
           (with-in-module ((goal-context n-goal))
@@ -2577,6 +2596,11 @@
           (setf (goal-targets n-goal) (goal-targets cur-goal))
           (setf (goal-assumptions n-goal) (append (goal-assumptions cur-goal) (list ax)))
           (push n-goal ngoals)))
+      (with-citp-debug ()
+        (format t "~%CSP generated:")
+        (dolist (g (reverse ngoals))
+          (print-next)
+          (pr-goal g)))
       (values t (nreverse ngoals)))))
 
 (defun apply-csp (ax-forms dash? &optional (verbose *citp-verbose*))
@@ -2621,7 +2645,6 @@
           (declare (ignore applied))
           (unless next-goals
             (return-from apply-csp-tactic nil))
-          (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
           (when *citp-spoiler*
             ;; apply implicit rd
             (dolist (ngoal next-goals)
