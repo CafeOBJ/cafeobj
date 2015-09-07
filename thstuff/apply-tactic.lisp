@@ -59,7 +59,7 @@
 ;;; if this is 'false', CITP does only introduces proof schems defined.
 (defvar *citp-spoiler* t)
 
-;;; *****************************************************************************
+;;; ****************************************************************************
 ;;; UTILITIES
 ;;; ****************************************************************************
 
@@ -95,7 +95,6 @@
         (setf (rule-labels new-rule) (append (rule-labels rule) (list label))))
       new-rule)))
 
-;;;
 ;;; apply-substitution-to-axiom : subst axiom [label] [add] -> axiom'
 ;;;
 (defun apply-substitution-to-axiom (subst axiom &optional label add)
@@ -113,13 +112,11 @@
       (setf (rule-labels axiom) label)))
   axiom)
 
-;;;
 ;;; copy-constant-term
 ;;;
 (defun copy-constant-term (constant)
   (make-applform-simple (term-sort constant) (term-head constant) nil))
 
-;;;
 ;;; select-comb-elems : List(List) -> List
 ;;; 
 (defun select-combs-aux (max-idx list-of-list)
@@ -177,7 +174,6 @@
         (select-combs-aux-indexed max-idx list-of-list 0)
       (select-combs-aux max-idx list-of-list))))
 
-;;;
 ;;; axiom-variables : axiom -> List(variable)
 ;;; returns a list of variables contained in the given axiom
 ;;;
@@ -192,7 +188,6 @@
                                  (term-variables cond))))
     (delete-duplicates result :test #'variable-equal)))
 
-;;;
 ;;; normalize-term-in : module term -> term Bool
 ;;; reduces the ground terms in given term by rewriting.
 ;;; if rewritten, returned term is distructively changed.
@@ -210,14 +205,6 @@
             (block next
               (when (term-is-reduced? gt) 
                 (return-from next nil))
-              #||
-              (with-citp-debug ()
-                (with-in-module (module)
-                  (print-chaos-object (term-head gt))
-                  (terpri)
-                  (print-chaos-object module)
-                  (format t "~%strat: ~a" (method-rewrite-strategy (term-head gt)))))
-              ||#
               (reducer-no-stat gt module reduction-mode)
               (unless (= rule-count-save (number-rewritings))
                 (setq applied? t))))
@@ -278,7 +265,6 @@
               (values target app?))))
       (values target nil))))
 
-;;;
 ;;; is-contradiction : term term -> Bool
 ;;; returns true if true ~ false, or false ~ true
 ;;;
@@ -291,7 +277,6 @@
   (declare (ignore t1 t2))
   nil)
 
-;;;
 ;;; sentence-is-satisfied : axiom module -> { :satisfied | :ct | nil }
 ;;;
 (defun sentence-is-satisfied (sentence module)
@@ -387,7 +372,6 @@
                 (return-from check-contradiction t))))))
       nil)))
 
-;;;
 ;;; check-le : goal -> goal'
 ;;;
 (defun check-le (goal)
@@ -454,7 +438,6 @@
             (do-check ls-r (term-head .ls-pat.))
             (do-check le-r (term-head .le-pat.))))))))
 
-;;;
 ;;; make-new-assumption : module lhs rhs -> new-lhs new-rhs axiom-type
 ;;;
 (defun boolean-constant? (term)
@@ -622,7 +605,6 @@
           (print-axiom-brief axiom))
         axiom))))
 
-;;;
 ;;; condition->axioms : module term -> List(axiom)
 ;;;
 (defun condition->axioms (module condition &optional (rule-label nil))
@@ -766,14 +748,12 @@
               ;; could not discharge
               (otherwise (values nil target sentence)))))))))
 
-;;;
 ;;; set-operator-rewrite-rule : module axiom -> void
 ;;;
 (defun set-operator-rewrite-rule (module axiom)
   (when (term-is-applform? (rule-lhs axiom))
     (add-rule-to-method axiom (term-head (rule-lhs axiom)) (module-opinfo-table module))))
 
-;;;
 ;;; check-goal-is-satisfied : goal -> ( <result> <normalized-target> <possibly-marked-target> )
 ;;;
 (defun check-goal-is-satisfied (goal &optional (report-header nil))
@@ -814,7 +794,6 @@
              ))
       (values result norm-target marked-target))))
 
-;;;
 ;;; try-prove-with-axioms : module List(axiom) axiom : -> { :satisfied | :ct | nil }
 ;;;
 (defparameter .trial-context-module. (%module-decl* "trial-dummy" :object :user nil))
@@ -999,7 +978,6 @@
       (term-print-with-sort var) (princ " "))
     ind-vars))
 
-;;;
 ;;; set-induction-variables
 ;;; top level function.
 (defun set-induction-variables (variables)
@@ -1010,7 +988,6 @@
         (format t "There is no unproved goals.")))
     (set-indvars node variables)))
 
-;;;
 ;;; gather-constructor-ops : module -> List(constructor)
 ;;; list up all the constructor ops in a given module
 ;;;
@@ -1023,7 +1000,6 @@
             (push meth res))))
       res)))
 
-;;;
 ;;; get-induction-variable-constructors : variable -> List(constructor)
 ;;; returns a list of constructors of a given induction variable
 ;;;
@@ -1039,7 +1015,6 @@
     ;; this is important for generating step cases properly.
     (sort ops #'(lambda (x y) (< (length (method-arity x)) (length (method-arity y)))))))
 
-;;;
 ;;; get-indvar-constructors
 ;;; returns a list of (indvar . const1 const2 ...constn) for an induction variable indvar.
 ;;; (((idvar-1 . const-1) ... (idvar-1 ... const-n))
@@ -1055,7 +1030,6 @@
             ivar-map))
     (nreverse ivar-map)))
 
-;;;
 ;;; make-indvar-comb-substitutions : List(variable) List(constructor) -> List(substitution)
 ;;; returns all possible substitution patterns of induction variables.
 ;;; ex. for induction variables A, B, C, there are constructors 
@@ -1075,7 +1049,6 @@
     (declare (type list list-of-alist))
     (select-comb-elems list-of-alist)))
 
-;;;
 ;;; get-induction-base-substitutions : List(substitution) -> List(substitution)
 ;;;
 (defun get-induction-base-substitutions (all-subst)
@@ -1090,7 +1063,6 @@
         (print-substitution sub)))
     (nreverse res)))
 
-;;;
 ;;; get-induction-step-substitutions : List(substitution) -> List(substitution)
 ;;;
 (defun get-induction-step-substitutions (all-subst)
@@ -1105,7 +1077,6 @@
         (print-substitution sub)))
     (nreverse res)))
 
-;;;
 ;;; get-real-target-variable : variable List(variable) -> { variable | null }
 ;;; finds an variable from a list of variables.
 ;;;
@@ -1114,7 +1085,6 @@
                               (equal (variable-name m) (variable-name indvar))))
            axiom-variables))
 
-;;;
 ;;; make-real-induction-subst
 ;;;
 (defun make-real-induction-subst (subst axiom-vars)
@@ -1127,7 +1097,6 @@
           (setq rsubst (acons rv (make-applform-simple (method-coarity op) op nil) rsubst)))))
     rsubst))
 
-;;;
 ;;; set-base-cases
 ;;; generates base case axioms for a given target 
 ;;;
@@ -1145,23 +1114,8 @@
     (setf (goal-targets goal) (nconc (goal-targets goal) all-targets))
     app?))
 
-;;;
 ;;; make-step-constructor-term
 ;;;
-#||
-(defun make-step-constructor-term (goal op one-arg variable)
-  (with-in-module ((goal-context goal))
-    (let ((arity (method-arity op))
-          (arg-list nil))
-      (dolist (s arity)
-        (cond ((sort<= (term-sort one-arg) s *current-sort-order*)
-               (push one-arg arg-list)
-               (setq one-arg (make-variable-term *cosmos* 'dummy))) ; make ......
-              (t (let ((constant (variable->constructor goal variable :sort s)))
-                   (push constant arg-list)))))
-      (let ((res (make-applform-simple (method-coarity op) op (nreverse arg-list))))
-        res))))
-||#
 (defun make-step-constructor-term (goal op one-arg variable)
   (with-in-module ((goal-context goal))
     (let ((arity (method-arity op))
@@ -1187,7 +1141,7 @@
                    (push constant arg-list)))))
       (let ((res (make-applform-simple (method-coarity op) op (nreverse arg-list))))
         res))))
-;;;
+
 ;;; make-induction-step-subst : goal axiom (var . op) -> substitution
 ;;; 
 (defun make-induction-step-subst (goal target v-op-list)
@@ -1300,7 +1254,6 @@
         ;;
         (mapcar #'make-proper-alist all-subst)))))
 
-;;;
 ;;; add-hypothesis
 ;;; Note: assumes computing module context is established.
 ;;;
@@ -1341,7 +1294,6 @@
             (print-axiom-brief hypo))
           (setf (goal-assumptions step-goal) (append (goal-assumptions step-goal) (list hypo))))))))
 
-;;;
 ;;; add-step-cases
 ;;; Note: assumes computing module context is established.
 ;;;
@@ -1355,7 +1307,6 @@
       (apply-substitution-to-axiom subst new-target)
       (setf (goal-targets step-goal) (nconc (goal-targets step-goal) (list new-target))))))
                                 
-;;;
 ;;; induction-cases
 ;;; Note: assumes there properly set induction variables in the current goal.
 ;;;
@@ -1430,7 +1381,6 @@
           (values t step-goals)
         (values nil nil)))))
 
-;;;
 ;;; apply-si : ptree-node tactic -> (applied? . List(goal))
 ;;;
 (defun apply-si (ptree-node &rest ignore)
@@ -1588,7 +1538,6 @@
                      (push cond-instance .subst-so-far.)
                      (push cond-instance res))
                     (t 
-                     ;; (push cond-instance res) ; ***
                      (push cond-instance rejected)))
               (loop 
                 (let ((n-subst nil)
@@ -1625,7 +1574,6 @@
     ;;
     (remove-duplicates res :test #'term-equational-equal)))
 
-;;;
 ;;; generate-case-axioms : goal List(< rule . subst >) -> List(axiom)
 ;;;
 (defvar .new-axs-so-far. nil)
@@ -1719,7 +1667,7 @@
             (unless case (return-from next nil))
             (dolist (c case)
               (setq all-cases (delete c all-cases :test #'term-equational-equal)))
-            ;; then divide /\ in each cases
+            ;; then divide /\ into each cases
             (let ((dcase nil))
               (dolist (c case)
                 (setq dcase (nconc dcase (distribute-cond c))))
@@ -1805,7 +1753,6 @@
                       (term-print-with-sort (cdr rr)))))
               (format t "NONE.")))
           ;; eliminate exclusive combinations and dupulicated cases.
-          ;;
           (setq rv-combs (normalize-cases rv-combs ptree-node all-cases))
           
           (with-citp-debug ()
@@ -1868,6 +1815,8 @@
 (defun get-ca-rules (module)
   (remove-if-not #'rule-is-for-case (module-all-rules module)))
 
+;;; apply-ca
+;;; toplevel of :ca
 (defun apply-ca (ptree-node &rest ignore)
   (declare (type ptree-node ptree-node)
            (ignore ignore))
@@ -1996,7 +1945,6 @@
     (apply-substitution-to-axiom rsubst new-axiom '(init))
     new-axiom))
 
-;;;
 ;;; instanciate-axiom
 ;;; 
 (defun instanciate-axiom (target-form subst-form)
@@ -2034,7 +1982,7 @@
           (compile-module *current-module* t))))))
 
 ;;; ==============
-;;; CRITICAL PAIRS
+;;; CRITICAL PAIRS [:cp]
 ;;; ==============
 
 (defun citp-rename-term-variables (suffix list-vars)
@@ -2108,7 +2056,6 @@
     (term-replace target repl-term)
     term))
 
-;;;
 ;;; compute-all-overwrapps : axiom axiom -> List(cpp)
 ;;;
 (defun compute-axiom-overwrapps (ax-1 ax-2)
@@ -2336,27 +2283,15 @@
 ;;; ==============
 ;;; :ctf or :ctf-
 ;;; ==============
-(defun do-apply-ctf (cur-node term-or-equation)
-  (let ((*chaos-quiet* t)
-        (*rwl-search-no-state-report* t)
-        (cur-goal (ptree-node-goal cur-node)))
-    (when (goal-is-discharged cur-goal)
-      (with-output-chaos-warning ()
-        (format t "** The goal ~s has already been proved!."
-                (goal-name cur-goal)))
-      (return-from do-apply-ctf nil))
-    (if (termp term-or-equation)
-        (do-apply-ctf-with-constructors cur-node term-or-equation)
-      (do-apply-ctf-to-equation cur-node term-or-equation))))
 
 (defun make-ctf-constructor-pattern (const-op)
   (when (method-arity const-op)
     (with-output-chaos-warning ()
-      (format t "Constructor with arguments is not supported yet. Sorry!")
+      (format t "Only constant constructors are supported. Sorry!")
       (return-from make-ctf-constructor-pattern nil)))
   (make-applform-simple (method-coarity const-op) const-op nil))
 
-(defun do-apply-ctf-with-constructors (cur-node term)
+(defun do-apply-ctf-with-constructors (cur-node term tactic)
   (let ((cur-goal (ptree-node-goal cur-node))
         (sort (term-sort term))
         (goals nil))
@@ -2373,7 +2308,7 @@
         (let ((n-goal nil)
               (const-pat (make-ctf-constructor-pattern const)))
           (when const-pat
-            (setq n-goal (prepare-next-goal cur-node .tactic-ctf.))
+            (setq n-goal (prepare-next-goal cur-node tactic))
             (with-in-module ((goal-context n-goal))
               (multiple-value-bind (lhs rhs type)
                   (if (sort= (term-sort term) *bool-sort*)
@@ -2384,7 +2319,7 @@
                                        :rhs rhs
                                        :condition *bool-true*
                                        :type type
-                                       :labels '(:ctf)
+                                       :labels (list (tactic-name tactic))
                                        :behavioural nil)))
                     (adjoin-axiom-to-module *current-module* ax)
                     (set-operator-rewrite-rule *current-module* ax)
@@ -2402,7 +2337,7 @@
           (values t (nreverse goals))
         (values nil nil)))))
 
-(defun do-apply-ctf-to-equation (cur-node equation)
+(defun do-apply-ctf-to-equation (cur-node equation tactic)
   (let ((cur-goal (ptree-node-goal cur-node)))
     (flet ((add-assumption (goal lhs rhs)
              (let (n-axiom)
@@ -2414,7 +2349,7 @@
                                                  :condition *bool-true*
                                                  :type type
                                                  :behavioural nil
-                                                 :labels '(:ctf)))
+                                                 :labels (list(tactic-name tactic))))
                         (with-in-module ((goal-context goal))
                           (adjoin-axiom-to-module *current-module* n-axiom)
                           (set-operator-rewrite-rule *current-module* n-axiom)
@@ -2430,8 +2365,8 @@
                           (print-next)
                           (format t "...ignored.")
                           nil)))))))
-      (let ((t-goal (prepare-next-goal cur-node .tactic-ctf.))
-            (f-goal (prepare-next-goal cur-node .tactic-ctf.)))
+      (let ((t-goal (prepare-next-goal cur-node tactic))
+            (f-goal (prepare-next-goal cur-node tactic)))
         (with-in-module ((goal-context cur-goal))
           (let ((lhs (make-applform-simple *bool-sort* 
                                            *eql-op*
@@ -2465,6 +2400,21 @@
           res))
     (parse-axiom-declaration (parse-module-element-1 form))))
 
+(defun do-apply-ctf (cur-node term-or-equation &optional (tactic .tactic-ctf.))
+  (let ((*chaos-quiet* t)
+        (*rwl-search-no-state-report* t)
+        (cur-goal (ptree-node-goal cur-node)))
+    (when (goal-is-discharged cur-goal)
+      (with-output-chaos-warning ()
+        (format t "** The goal ~s has already been proved!."
+                (goal-name cur-goal)))
+      (return-from do-apply-ctf nil))
+    (if (termp term-or-equation)
+        (do-apply-ctf-with-constructors cur-node term-or-equation tactic)
+      (do-apply-ctf-to-equation cur-node term-or-equation tactic))))
+
+;;; :ctf(-) toplevel function
+;;;
 (defun apply-ctf (s-form term? dash? &optional (verbose *citp-verbose*))
   (let ((ptree-node (get-next-proof-context *proof-tree*)))
     (with-in-module ((goal-context (ptree-node-goal ptree-node)))
@@ -2491,8 +2441,10 @@
               (pr-goal (ptree-node-goal gn))))
           (ptree-node-subnodes ptree-node))))))
       
+;;; ===============
 ;;; :pctf or :pctf-
-;;;
+;;; *NOTE* Obsolete 
+;;; ===============
 (defun apply-pctf-internal (ptree-node s-form dash? &optional verbose)
   (declare (type ptree-node ptree-node))
   (let ((*chaos-quiet* t)
@@ -2507,7 +2459,7 @@
     (with-in-module ((goal-context (ptree-node-goal ptree-node)))
       (let ((term (simple-parse *current-module* s-form *cosmos*)))
         (multiple-value-bind (applied next-goals)
-            (do-apply-ctf-with-constructors ptree-node term)
+            (do-apply-ctf-with-constructors ptree-node term .tactic-ctf.)
           (unless applied (return-from apply-pctf-internal nil))
           (unless next-goals
             ;; cancel side effects
@@ -2550,9 +2502,9 @@
     (report-citp-stat)
     (check-success ptree)))
 
-;;; -----------------------------------------------------
+;;;=====================
 ;;; :defined :ctf, :ctf-
-;;;
+;;;=====================
 (defun apply-ctf-tactic (ptree-node tactic)
   (declare (type ptree-node ptree-node)
            (type tactic-ctf tactic))
@@ -2560,7 +2512,7 @@
     (with-in-module ((goal-context goal))
       (let ((*chaos-quiet* t))
         (multiple-value-bind (applied next-goals)
-            (do-apply-ctf ptree-node (tactic-ctf-form tactic))
+            (do-apply-ctf ptree-node (tactic-ctf-form tactic) tactic)
           (declare (ignore applied))
           (unless next-goals
             (return-from apply-ctf-tactic nil))
@@ -2573,10 +2525,10 @@
                 (setf (goal-targets ngoal) (goal-targets goal)))))
           (values t next-goals))))))
 
-;;; -----------------------------------------------------
+;;;==============
 ;;; :csp or :csp-
-;;;
-(defun do-apply-csp (cur-node axs)
+;;;==============
+(defun do-apply-csp (cur-node axs &optional (tactic .tactic-csp.))
   (let ((*chaos-quiet* t)
         (*rwl-search-no-state-report* t)
         (cur-goal (ptree-node-goal cur-node)))
@@ -2585,9 +2537,9 @@
         (format t "** The goal ~s has already been proved!." (goal-name (ptree-node-goal cur-node)))
         (return-from do-apply-csp nil)))
     (let ((ngoals nil))
-      (dolist (ax (mapcar #'(lambda (x) (rule-copy-canonicalized x (goal-context cur-goal) "CSP"))
+      (dolist (ax (mapcar #'(lambda (x) (rule-copy-canonicalized x (goal-context cur-goal) (tactic-name tactic)))
                           axs))
-        (let ((n-goal (prepare-next-goal cur-node .tactic-csp.)))
+        (let ((n-goal (prepare-next-goal cur-node tactic)))
           ;; add a given assumption
           (with-in-module ((goal-context n-goal))
             (adjoin-axiom-to-module *current-module* ax)
@@ -2631,9 +2583,9 @@
               (pr-goal (ptree-node-goal gn))))
           (ptree-node-subnodes ptree-node))))))
 
-;;; -------------------------------------------------------------
+;;;=====================
 ;;; :defined :csp, :csp-
-;;;
+;;;=====================
 (defun apply-csp-tactic (ptree-node tactic)
   (declare (type ptree-node ptree-node)
            (type tactic-csp tactic))
@@ -2641,7 +2593,7 @@
     (with-in-module ((goal-context goal))
       (let ((*chaos-quiet* t))
         (multiple-value-bind (applied next-goals)
-            (do-apply-csp ptree-node (tactic-csp-forms tactic))
+            (do-apply-csp ptree-node (tactic-csp-forms tactic) tactic)
           (declare (ignore applied))
           (unless next-goals
             (return-from apply-csp-tactic nil))
@@ -2655,18 +2607,20 @@
           (values t next-goals))))))
 
 ;;; -----------------------------------------------------------
-;;; report-cit-stat
+;;; report-citp-stat
 ;;;
 (defun report-citp-stat ()
   (when *show-stats*
     (format t "~%~a" (generate-statistics-form-rewriting-only))))
 
-;;; *****************************************************
+;;; ******
+;;; :apply
+;;; ******
+
 ;;; APPLY-TACTIC
 ;;; apply-tactic : ptree-node tactic -> List(ptree-node)
 ;;; returns the list of generated goal nodes.
-;;; -----------------------------------------------------
-
+;;;
 (defun apply-tactic (ptree-node tactic &optional (verbose nil))
   (declare (type ptree-node ptree-node)
            (type tactic tactic))
@@ -2699,7 +2653,6 @@
           (pr-goal (ptree-node-goal gn))))
       (ptree-node-subnodes ptree-node))))
 
-;;;
 ;;; apply-tactics-to-node
 ;;;
 (defun apply-tactics-to-node (target-node tactics &optional (verbose *citp-verbose*))
@@ -2710,7 +2663,6 @@
           (apply-tactics-to-node target (cdr tactics) verbose))
       (apply-tactics-to-node target-node (cdr tactics) verbose))))
 
-;;;
 ;;; apply-tactics 
 ;;;
 (defun apply-tactics (ptree tactics &optional (verbose *citp-verbose*))
@@ -2727,7 +2679,6 @@
     (report-citp-stat)
     (check-success ptree)))
 
-;;;
 ;;; apply-auto
 ;;;
 (defun apply-auto (ptree &optional (tactics .default-tactics.) (verbose *citp-verbose*))
@@ -2747,7 +2698,6 @@
     (report-citp-stat)
     (check-success ptree)))
 
-;;;
 ;;; apply-tactics-to-goal
 ;;;
 (defun apply-tactics-to-goal (ptree name tactics &optional (verbose *citp-verbose*))

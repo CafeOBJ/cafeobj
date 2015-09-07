@@ -203,8 +203,9 @@
   (let ((*standard-output* stream))
     (format t "SCH-NODE:~A" (dag-node-datum node))))
 
+;;; ******************
 ;;; RWL-SCH-NODE utils
-;;;
+;;; ******************
 
 ;;; print the rule & state
 ;;;
@@ -317,8 +318,9 @@
 ;;;  moved to comlib/globals.lisp
 ;;; (defvar .rwl-sch-context. nil)
 
+;;; *********************
 ;;; SEARCH CONTEXT UTILS
-;;;
+;;; *********************
 
 ;;; show-rwl-sch-graph
 ;;;
@@ -518,6 +520,7 @@
 
 (defun if-binding-should-be-printed (sch-context)
   (and (rwl-sch-context-if sch-context)
+       ;; (not *rwl-search-no-state-report*)
        (<= (rwl-sch-context-cur-depth sch-context) (rwl-sch-context-max-depth sch-context))))
 
 ;;; rwl-sch-check-conditions (node rwl-sch-context)
@@ -628,19 +631,21 @@
     (unless *print-exec-rule*
       (when (member (axiom-kind rule) .ext-rule-kinds.)
         (return-from pr-used-rule nil)))
-    (format t "~%=> ")
-    (print-axiom-brief rule)
+    (unless *rwl-search-no-state-report*
+      (format t "~%=> ")
+      (print-axiom-brief rule))
     t))
 
 (defun print-subst-if-binding-result (state sub sch-context)
   (declare (ignore state))
   (setf (rwl-sch-context-pr-out? sch-context) t)
-  (format t "~%    ") (print-substitution sub)
-  (when (rwl-sch-context-bind sch-context)
-    (let ((bimg (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
-      (normalize-term bimg)
-      (format t "~%    --> ")
-      (term-print-with-sort bimg))))
+  (unless *rwl-search-no-state-report*
+    (format t "~%    ") (print-substitution sub)
+    (when (rwl-sch-context-bind sch-context)
+      (let ((bimg (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
+        (normalize-term bimg)
+        (format t "~%    --> ")
+        (term-print-with-sort bimg)))))
 
 ;;; ******************
 ;;; SOME UTILs on TERM
@@ -1084,7 +1089,7 @@
                        :no-more)))))
 
 ;;; *********
-;;; TOP LEVEL
+;;; TOP LEVEL functions
 ;;; *********
 (defun make-anything-is-ok-term ()
   (make-variable-term *cosmos* (gensym "Univ")))
@@ -1227,8 +1232,9 @@
             ;; one step deeper
             (when (> (rwl-sch-context-cur-depth sch-context)
                      (rwl-sch-context-max-depth sch-context))
-              (format t "~%-- reached to the specified search depth ~D."
-                      (rwl-sch-context-max-depth sch-context))
+              (unless *rwl-search-no-state-report*
+                (format t "~%-- reached to the specified search depth ~D."
+                        (rwl-sch-context-max-depth sch-context)))
               (return-from rwl-search*
                 (if (rwl-sch-context-if sch-context)
                     (if (rwl-sch-context-pr-out? sch-context)
@@ -1355,7 +1361,6 @@
       (report-rwl-result 
        (rwl-search* term pattern max-r max-d zero? final? cond pred module bind if)))))
 
-;;; 
 ;;; rwl-check-one-step-reachability : term term -> { t | nil }
 ;;; working hourse of =>
 ;;;
@@ -1380,7 +1385,6 @@
 (defun rwl-cont (ast)
   (rwl-continue+ (%continue-num ast)))
 
-;;;
 ;;; for downward compatibility
 ;;;
 (defun nat*-to-max-option (term &optional (infinite most-positive-fixnum))
