@@ -808,7 +808,7 @@
    returns an AC-state, which is suitable for framing
    or passing to 'AC-next-state'"
   (declare (type list sys env))
-  (when *match-debug*
+  (with-match-debug ()
     (format t "~%** match-ac-state-initialize -------------------------------------")
     (print-next)
     (print-match-system-sys sys)
@@ -836,9 +836,7 @@
                (rhs-1 (equation-t2 equation))
                (lhs-op (term-head lhs-1))
                (rhs-op (term-head rhs-1)))
-          (declare (type term lhs-1 rhs-1)
-                   ;; (type method lhs-op rhs-op)
-                   )
+          (declare (type term lhs-1 rhs-1))
           ;; quick failure cases.
           (unless (and (theory-contains-AC (method-theory lhs-op))
                        (not (term-is-builtin-constant? rhs-1))
@@ -858,13 +856,9 @@
             (declare (type list lhs-subs rhs-subs lhs-vars lhs-constants
                            lhs-funs rhs-constants rhs-funs))
             ;; quick failure cases
-            ;; #||
             (when (> (the fixnum (length lhs-subs))
                      (the fixnum (length rhs-subs)))
-              ;; (format t "~&failure case #2")
               (return-from FAIL (values nil t))) ; no possible match
-            ;; ||#  
-            ;;
             (unless sys-operators
               (setq sys-operators (alloc-svec (the fixnum (length sys)))))
             (setf (svref sys-operators eqn-number) lhs-op)
@@ -940,10 +934,7 @@
                         (and (< lhs-v-count 1) ; no variables remain on lhs
                              (> rhs-c-count 0)) ; and constants remain on rhs
                         (> lhs-f-count rhs-f-count)) ; too many funs to match
-                ;; (break "1")
-                ;; (format t "~&failure case #5")
                 (return-from FAIL (values nil t))) ; FAIL most miserably
-              ;;
               (setq all-lhs-funs (nconc lhs-funs all-lhs-funs))
               (setq all-lhs-vars (nconc lhs-vars all-lhs-vars))
               (setq all-rhs-constants (nconc rhs-constants all-rhs-constants))
@@ -1010,8 +1001,6 @@
               ;; one more easy failure check
               (when (or (> l-m r-m)     ; a lhs item is repeated more than any rhs
                         (not (integerp (/ r-gcd l-gcd))))
-                ;; (deallocate-ac-state state)
-                ;; (break "2")
                 (return-from FAIL (values nil t))) ; FAIL most miserably
               ;; NOW, get down to the real work....
               ;; setup the repeat mask (first of v's)
@@ -1151,16 +1140,11 @@
                     (ac-state-no-more state) nil
                     (ac-state-ac-state-p state) 'ac-state )
               ;;
-              (when *match-debug* (format t "~%*** done initialization"))
+              (with-match-debug () (format t "~%*** done initialization"))
               (values state nil))))))))
 
 (defun match-AC-next-state (state)
   (declare (type #+GCL vector #-GCL simple-vector state))
-  ;; #||
-  (when *match-debug*
-    (format t "~%match-ac-next-state ---------------------------------------------")
-    (ac-unparse-ac-state state))
-  ;; ||#
   (if (not (AC-state-p state))
       (progn (format t "~% AC-Next-State given non-ac-state:~A~%" state)
              (values nil nil t))        ; failing is default behavior...
@@ -1175,8 +1159,7 @@
                 (rhs-f-compat (AC-state-rhs-f-compat state))
                 (rhs-f-count (AC-state-rhs-f-count state))
                 (rhs-full-bits (AC-state-rhs-full-bits state))
-                (lhs-r-mask (AC-state-lhs-r-mask state))
-                )
+                (lhs-r-mask (AC-state-lhs-r-mask state)))
                (nil)                    ; forever
             (declare (type fixnum
                            n rhs-f-count rhs-f-max lhs-r-mask rhs-full-bits)
@@ -1198,8 +1181,7 @@
                            (progn
                              ;; failed at f-level
                              ;; (deallocate-ac-state state)
-                             (return (values nil nil t)))
-                           )
+                             (return (values nil nil t))))
                      (setq n (1- n))))
                   ((< n 0)
                    (let ((temp (AC-state-LHS-mask state)))

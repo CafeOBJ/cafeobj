@@ -1,4 +1,4 @@
-;;;-*- Mode:LISP; Package:CAFEIN; Base:10; Syntax:Common-lisp -*-
+;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
 ;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
 ;;;
@@ -36,6 +36,15 @@
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
+
+;;; For Debug
+;;;
+(defmacro with-match-debug (&rest body)
+  `(when *match-debug*
+     (let ((*print-indent* (+ 2 *print-indent*))
+           (*print-line-limit* 90))
+       (declare (type fixnum *print-indent* *print-line-limit*))
+       ,@body)))
 
 ;;; POSSIBLY-MATCHES : PATTERN TARGET -> BOOL
 ;;;-----------------------------------------------------------------------------

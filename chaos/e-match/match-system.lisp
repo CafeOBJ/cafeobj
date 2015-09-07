@@ -192,28 +192,11 @@ Based on the implementation of OBJ3 system.
          (when (occurs-in t1 t2)
            (return-from !match-decompose-unify t))
          ;;
-         (if
-             #||
-             (is-in-same-connected-component (term-sort t1)
-                                             (term-sort t2)
-                                             *current-sort-order*)
-           ||#
-           (sort<= (term-sort t2) (term-sort t1) *current-sort-order*)
+         (if (sort<= (term-sort t2) (term-sort t1) *current-sort-order*)
              (let ((cval (variable-image (cdr res) t1)))
                (if cval 
                    (progn
-                     #||
-                     (with-output-simple-msg ()
-                       (format t "* rec!match-dec: t1=")
-                       (term-print t1)
-                       (print-next)
-                       (format t " t2 = ")
-                       (term-print t2)
-                       (print-next)
-                       (print-substitution (cdr res)))
-                     ||#
-                     (!match-decompose-unify cval t2 res)
-                     )
+                     (!match-decompose-unify cval t2 res))
                  (cond ((term-is-variable? t2)
                         (setq cval (variable-image (cdr res) t2))
                         (if (not cval)
@@ -235,11 +218,6 @@ Based on the implementation of OBJ3 system.
 
         ((term-is-builtin-constant? t1)
          (not (term-builtin-equal t1 t2)))
-
-        #||
-        ((term-is-builtin-constant? t2)
-         t)
-        ||#
 
         ;; [4] t1 & t2 is application form.
         (t (let* ((t1-top (term-head t1))
@@ -276,8 +254,6 @@ Based on the implementation of OBJ3 system.
                ;;
                ;; the different top level
                ;; possibly maches only when zero case...
-               ;;
-               ;; #||
                (if (or (test-theory .Z. (theory-info-code th-info))
                        (test-theory .Z. (theory-info-code
                                          (method-theory-info-for-matching!
@@ -285,43 +261,51 @@ Based on the implementation of OBJ3 system.
                    (progn (push (make-equation t1 t2) (cdr res))
                           nil)
                  ;; will never match
-                 t)
-               ;;||#
-               ;;t
-               )
-             ))))
+                 t))))))
 
 (defun !match-decompose-match (t1 t2 res)
   (declare (type term t1 t2)
            (type list res)
            (values (or null t)))
+  (with-match-debug ()
+    (princ "** !match-decompose-match:")
+    (print-next)
+    (princ "-t1") (term-print-with-sort t1)
+    (print-next)
+    (princ "-t2") (term-print-with-sort t2)
+    (print-next)
+    (princ "-result:")
+    (dolist (x res)
+      (print-next)
+      (print-chaos-object x)))
   (cond
     ;; [1] t1 is variable
     ((term-is-variable? t1)
      ;; OS sort check.
      (if (sort<= (term-sort t2) (term-sort t1) *current-sort-order*)
-         (progn (push (make-equation t1 t2) (cdr res))
-                nil)
+         (progn 
+           (push (make-equation t1 t2) (cdr res))
+           nil)
        ;; try again after possible on-demand reduction of t2.
        (!match-decompose-on-demand t1 t2 res)))
     
     ;; [2] t1 is not variable, t2 is variable.
-
     ((term-is-variable? t2) 
      (if *one-way-match*
-         t                              ; fail
-       (!match-decompose-match t2 t1 res))
-     )
+         (progn
+           (with-match-debug ()
+             (princ ">> FAIL for t2 is variable."))
+           t)                            ; fail
+       (!match-decompose-match t2 t1 res)))
     
     ;; [3] t1 or t2 is builtin constant.
-
     ((term-is-builtin-constant? t1)
-     (not (term-builtin-equal t1 t2)))
-
-    #||
-    ((term-is-builtin-constant? t2)
-     t)
-    ||#
+     (let ((ans (not (term-builtin-equal t1 t2))))
+       (with-match-debug ()
+         (if ans
+             (princ ">> SUCCESS, builtin-equal.")
+           (princ ">> FAIL, builtin not equal.")))
+       ans))
 
     ;; [4] t1 is an application form.
     (t (let* ((t1-top (term-head t1))
@@ -330,7 +314,10 @@ Based on the implementation of OBJ3 system.
              (if (not (theory-info-empty-for-matching th-info))
                  (progn (push (make-equation t1 t2) (cdr res))
                         nil)
-               t)
+               (progn
+                 (with-match-debug ()
+                   (princ ">> FAIL, t2 is builtin."))
+                 t))
            ;; t2 also is an application form.
            (let ((t2-top (term-head t2)))
              ;; since it is OS-matching, we only
@@ -344,6 +331,8 @@ Based on the implementation of OBJ3 system.
                      (let ((t1-subterms (term-subterms t1))
                            (t2-subterms (term-subterms t2)))
                        (declare (type list t1-subterms t2-subterms))
+                       (with-match-debug ()
+                         (print ">> empty theory: do the full decompose..."))
                        (loop            ; for each subterm try decomposition.
                          (unless t1-subterms (return nil))
                          (let ((ng (!match-decompose-match (car t1-subterms)
@@ -360,6 +349,8 @@ Based on the implementation of OBJ3 system.
                    ;; perform full decomposition.
                    ;;
                    (progn
+                     (with-match-debug ()
+                       (print ">> has theory: add their pair."))
                      (push (make-equation t1 t2) (cdr res))
                      nil))
            
@@ -367,9 +358,10 @@ Based on the implementation of OBJ3 system.
                ;; the different top level
                ;; possibly maches only when zero case or on-demand. 
                ;;
-               ;; #|| too danderous: many cases of rewriting rush into infinite loop.
                (if (term-is-on-demand? t2)
                    (progn
+                     (with-match-debug ()
+                       (print ">> term t2 is on demand."))
                      (mark-term-as-not-on-demand t2)
                      (if (normalize-term t2)
                          ;; no reduction has been performed.
@@ -388,8 +380,11 @@ Based on the implementation of OBJ3 system.
                          (test-theory .Z. (theory-info-code
                                            (method-theory-info-for-matching!
                                             (term-head t2)))))
-                     (progn (push (make-equation t1 t2) (cdr res))
-                            nil)
+                     (progn 
+                       (with-match-debug ()
+                         (print ">> theory Z."))
+                       (push (make-equation t1 t2) (cdr res))
+                       nil)
                    ;; will never match
                    t)) )))))))
 
@@ -673,12 +668,12 @@ Based on the implementation of OBJ3 system.
   (once-only (?_!env)
     `(if (null (car ,?_!env))
          (cdr ,?_!env)
-          ,?_!env)))
+       ,?_!env)))
    
 (defun add-equation-to-environment (env eq)
   (if (null (car env))
       (rplaca env eq)
-      (rplacd env (push eq (cdr env)))))
+    (rplacd env (push eq (cdr env)))))
 
 (defmacro environment-copy1 (___?env) `(copy-list ,___?env))
 
@@ -688,7 +683,7 @@ Based on the implementation of OBJ3 system.
   (once-only (??_?env ??_?var)
     `(if (null (car ,??_?env))
          (cdr (assoc ,??_?var (cdr ,??_?env) :test #'variable-eq))
-         (cdr (assoc ,??_?var ,??_?env :test #'variable-eq)))))
+       (cdr (assoc ,??_?var ,??_?env :test #'variable-eq)))))
 
 ;;;  { ... x == t ...} U { ... x == t' ...} 
 ;;;
@@ -699,53 +694,114 @@ Based on the implementation of OBJ3 system.
 ;;; must not be modified. 
 ;;; U: used by "match-system.dec-merg" and "match-add-m-system"
 
-(defun match-insert-if-coherent-with (new-env test-env new-sys eq-list
-                                              &optional check-match)
+; (defun match-insert-if-coherent-with (new-env test-env new-sys eq-list &optional (check-match nil))
+;   ;; note that new-env and new-sys are both initialy of the form (nil.nil)
+;   (block the-end
+;     (with-match-debug ()
+;       (format T "~%insert:--------------------------------------")
+;       (print-next)
+;       (format t "new-env = ")
+;       (if (car new-env)
+;           (dolist (eq new-env)
+;             (print-next)
+;             (format t "  LHS = ") (term-print-with-sort (equation-t1 eq))(terpri)
+;             (print-next)
+;             (format t "  RHS = ") (term-print-with-sort (equation-t2 eq))(terpri))
+;         (princ "empty"))
+;       (print-next)
+;       (format t "test-env = ")
+;       (if (car test-env)
+;           (dolist (eq test-env)
+;             (print-next)
+;             (format t "  LHS = ") (term-print-with-sort (equation-t1 eq)) (terpri)
+;             (print-next)
+;             (format t "  RHS = ") (term-print-with-sort (equation-t2 eq)) (terpri))
+;         (princ "empty")))
+;     (dolist (eq eq-list)
+;       (let ((t1 (equation-t1 eq))
+;             (t2 (equation-t2 eq)))
+;         (with-match-debug ()
+;           (print-next)
+;           (format t " t1 = ") (term-print-with-sort t1) (terpri)
+;           (print-next)
+;           (format t " t2 = ") (term-print-with-sort t2) (terpri))
+;         (cond ((term-is-variable? t1)
+;                ;; checking of the sort information; redundant with
+;                ;; `decompose-equation'.
+;                (unless (sort<= (term-sort t2) (variable-sort t1)
+;                                *current-sort-order*)
+;                  (with-match-debug ()
+;                    (print-next)
+;                    (format t "-- non coherent, sort match fail."))
+;                  (return-from the-end t))
+;                ;; new-env may be  modified.
+;                (let ((image-of-t1 (variable-image test-env t1)))
+;                  (if image-of-t1
+;                      (unless (term-equational-equal image-of-t1 t2)
+;                        (with-match-debug ()
+;                          (format t "~%-- non coherent, var binding conflicts in env."))
+;                        (return-from the-end t)) ; i.e  no-coherent
+;                    (let ((image-of-t1-in-new (variable-image new-env t1)))
+;                      (if image-of-t1-in-new
+;                          (unless (term-equational-equal image-of-t1-in-new
+;                                                         t2)
+;                            (with-match-debug ()
+;                              (format t "~%-- non coherent, var binding in new-env."))
+;                            (return-from the-end t))
+;                        (add-equation-to-environment new-env eq))))))
+;               (check-match
+;                (when (term-is-variable? t2)
+;                  (return-from the-end t))
+;                (if (and (term-is-applform? t2)
+;                         (term-is-applform? t1))
+;                    (let ((t1-head (term-head t1))
+;                          (t2-head (term-head t2)))
+;                      (if (method-is-of-same-operator+ t1-head t2-head)
+;                          (add-equation-to-m-system new-sys eq)
+;                        (let ((match-info (method-theory-info-for-matching! t1-head)))
+;                          (if (test-theory .Z. (theory-info-code match-info))
+;                              (add-equation-to-m-system new-sys eq)
+;                            (progn
+;                              (with-match-debug ()
+;                                (format t "~%-- non coherent, func conflict."))
+;                              (return-from the-end t))))))
+;                  (add-equation-to-m-system new-sys eq)))
+;               ;;
+;               (t (add-equation-to-m-system new-sys eq)))))
+
+;     ;; add now all the equation of test-env into new-env (copy test-env)
+;     (cond ((null (car test-env)) ())
+;           ((null (car new-env))
+;            (let ((l (environment-copy1 test-env)))
+;              (rplaca new-env (car l))
+;              (rplacd new-env (cdr l))) )
+;           (t (nconc new-env test-env)))
+;     (with-match-debug ()
+;       (format t "~% insert: return -- coherent -------------------"))
+;     nil                                 ; i.e. the new-env is coherent
+                                        ;     ))
+(defun match-insert-if-coherent-with (new-env test-env new-sys eq-list &optional (check-match nil))
   ;; note that new-env and new-sys are both initialy of the form (nil.nil)
   (block the-end
-    (when *match-debug*
-      (format T "~%insert:--------------------------------------")
-      (format t "~& new-env = ")
-      (if (car new-env)
-          (dolist (eq new-env)
-            (format t "~%  LHS = ") (term-print-with-sort (equation-t1 eq))(terpri)
-            (format t "~%  RHS = ") (term-print-with-sort (equation-t2 eq))(terpri))
-        (princ "empty"))
-      (format t "~& test-env = ")
-      (if (car test-env)
-          (dolist (eq test-env)
-            (format t "~%  LHS = ") (term-print-with-sort (equation-t1 eq)) (terpri)
-            (format t "~%  RHS = ") (term-print-with-sort (equation-t2 eq)) (terpri))
-        (princ "empty")))
     (dolist (eq eq-list)
       (let ((t1 (equation-t1 eq))
             (t2 (equation-t2 eq)))
-        (when *match-debug*
-          (format t "~% t1 = ") (term-print-with-sort t1) (terpri)
-          (format t "~& t2 = ") (term-print-with-sort t2) (terpri))
         (cond ((term-is-variable? t1)
                ;; checking of the sort information; redundant with
                ;; `decompose-equation'.
                (unless (sort<= (term-sort t2) (variable-sort t1)
                                *current-sort-order*)
-                 (when *match-debug*
-                   (format t "~%-- non coherent, sort match fail."))
                  (return-from the-end t))
                ;; new-env may be  modified.
                (let ((image-of-t1 (variable-image test-env t1)))
                  (if image-of-t1
                      (unless (term-equational-equal image-of-t1 t2)
-                       (when *match-debug*
-                         (format t "~%-- non coherent, var binding conflicts in env."))
                        (return-from the-end t)) ; i.e  no-coherent
-                     (let ((image-of-t1-in-new (variable-image new-env t1)))
-                       (if image-of-t1-in-new
-                           (unless (term-equational-equal image-of-t1-in-new
-                                                          t2)
-                             (when *match-debug*
-                               (format t "~%-- non coherent, var binding in new-env."))
-                             (return-from the-end t))
-                           (add-equation-to-environment new-env eq))))))
+                   (let ((image-of-t1-in-new (variable-image new-env t1)))
+                     (if image-of-t1-in-new
+                         (unless (term-equational-equal image-of-t1-in-new t2)
+                           (return-from the-end t))
+                       (add-equation-to-environment new-env eq))))))
               (check-match
                (when (term-is-variable? t2)
                  (return-from the-end t))
@@ -755,14 +811,12 @@ Based on the implementation of OBJ3 system.
                          (t2-head (term-head t2)))
                      (if (method-is-of-same-operator+ t1-head t2-head)
                          (add-equation-to-m-system new-sys eq)
-                         (let ((match-info (method-theory-info-for-matching! t1-head)))
-                           (if (test-theory .Z. (theory-info-code match-info))
-                               (add-equation-to-m-system new-sys eq)
-                               (progn
-                                 (when *match-debug*
-                                   (format t "~%-- non coherent, func conflict."))
-                                 (return-from the-end t))))))
-                   (add-equation-to-m-system new-sys eq)))
+                       (let ((match-info (method-theory-info-for-matching! t1-head)))
+                         (if (test-theory .Z. (theory-info-code match-info))
+                             (add-equation-to-m-system new-sys eq)
+                           (progn
+                             (return-from the-end t))))))
+                 (add-equation-to-m-system new-sys eq)))
               ;;
               (t (add-equation-to-m-system new-sys eq)))))
 
@@ -773,8 +827,6 @@ Based on the implementation of OBJ3 system.
              (rplaca new-env (car l))
              (rplacd new-env (cdr l))) )
           (t (nconc new-env test-env)))
-    (when *match-debug*
-      (format t "~% insert: return -- coherent -------------------"))
     nil                                 ; i.e. the new-env is coherent
     ))
 
