@@ -355,7 +355,7 @@
   (declare (type module module)
            (type (or null t) clean)
            (values t))
-  ;; (check-module-rules module)
+  (check-module-rules module)
   (when (module-terms-to-be-fixed module)
     (with-in-module (module)
       (let ((name (module-name module))
