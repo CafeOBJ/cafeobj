@@ -17,6 +17,8 @@
 *.status
 *.ilg
 *.ind
+*.bbl
+*.blg
 *.out
 *.toc
 *.synctex.gz
