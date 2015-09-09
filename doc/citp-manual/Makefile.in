@@ -1,0 +1,11 @@
+
+citp.pdf: citp.tex
+	xelatex citp
+	xelatex citp
+	xelatex citp
+
+clean:
+	rm -f *.aux citp.log citp.toc citp.out
+
+distclean:
+

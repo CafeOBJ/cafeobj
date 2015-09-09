@@ -1,6 +1,6 @@
 #
 # Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
-# Copyright (c) 2014, Norbert Preining. All rights reserved.
+# Copyright (c) 2014-2015, Norbert Preining. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -180,7 +180,8 @@ ifeq ($(enable_rebuild_doc),yes)
 		doc/manual/manual.pdf			\
 		doc/RefCard/interp.pdf			\
 		doc/RefCard/syntax.pdf			\
-		doc/PigNose/pnguide.pdf
+		doc/PigNose/pnguide.pdf			\
+		doc/citp-manual/citp.pdf
 endif
 
 #
@@ -276,6 +277,7 @@ endif
 		doc/RefCard/interp.pdf			\
 		doc/RefCard/syntax.pdf			\
 		doc/refman/reference-manual.pdf		\
+		doc/citp-manual/citp.pdf		\
 		doc/etc/cafe-citp.txt			\
 		elisp/cafeobj-mode.el			\
 		lib/icons/cafeobj-logo.png		\
@@ -296,6 +298,8 @@ doc/RefCard/interp.pdf:
 	$(MAKE) -C doc/RefCard interp.pdf
 doc/RefCard/syntax.pdf:
 	$(MAKE) -C doc/RefCard syntax.pdf
+doc/citp-manual/citp.pdf:
+	$(MAKE) -C doc/citp-manual citp.pdf
 
 
 
@@ -304,6 +308,7 @@ clean:
 	-test -f doc/manual/Makefile && $(MAKE) -C doc/manual clean
 	-test -f doc/PigNose/Makefile && $(MAKE) -C doc/PigNose clean
 	-test -f doc/RefCard/Makefile && $(MAKE) -C doc/RefCard clean
+	-test -f doc/citp-manual/Makefile && $(MAKE) -C doc/citp-manual clean
 	rm -rf dumps
 	rm -f stamp-windows-prepare stamp-windows-build
 	rm -f build-stamp

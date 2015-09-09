@@ -357,5 +357,6 @@ AC_CONFIG_FILES([
   doc/manual/Makefile
   doc/RefCard/Makefile
   doc/PigNose/Makefile
+  doc/citp-manual/Makefile
 ])
 AC_OUTPUT()
