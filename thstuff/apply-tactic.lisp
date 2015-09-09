@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -36,28 +36,6 @@
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
-
-;;;
-;;; with-in-context : ptree-node
-;;; construct a lexical environment for applying a tactic.
-;;;
-(eval-when (:compile-toplevel :execute :load-toplevel)
-(defmacro with-in-context ((ptree-node) &rest body)
-  (once-only (ptree-node)
-    `(block :exit
-       (let* ((.cur-goal. (ptree-node-goal ,ptree-node))
-              (.cur-targets. (goal-targets .cur-goal.))
-              (.next-goals. nil))
-         (unless .cur-targets. (return-from :exit nil))
-         ,@body))))
-
-)
-
-;;; This variable controlls implicit applications of tactics.
-;;; 'true' means CITP cares application of implicite applicatins of tactics
-;;;  such as 'normalization of the goal', 'contradiction check ('true = false')'.
-;;; if this is 'false', CITP does only introduces proof schems defined.
-(defvar *citp-spoiler* t)
 
 ;;; ****************************************************************************
 ;;; UTILITIES
@@ -216,10 +194,11 @@
 ;;; NOTE: given axiom is preserved (not changed).
 ;;;
 (defun normalize-sentence (ax module)
-  (let ((target (rule-copy-canonicalized ax module)))
-    (if *citp-spoiler*
-        (with-in-module (module)
-          (let ((lhs (rule-lhs target))
+  (if-spoiler-on 
+   ;; normalize sentence only if :spoiler is on
+   :then (let ((target (rule-copy-canonicalized ax module)))
+           (with-in-module (module)
+             (let ((lhs (rule-lhs target))
                 (rhs (rule-rhs target))
                 (condition (rule-condition target))
                 (reduction-mode (if (eq (rule-type ax) :equation)
@@ -262,8 +241,9 @@
                     (print-next)
                     (princ "==> ") (print-axiom-brief target))))
               ;;
-              (values target app?))))
-      (values target nil))))
+              (return-from normalize-sentence (values target app?))))))
+   ;; do nothing if :spoiler is off
+   :else (values nil nil)))
 
 ;;; is-contradiction : term term -> Bool
 ;;; returns true if true ~ false, or false ~ true
@@ -754,21 +734,31 @@
   (when (term-is-applform? (rule-lhs axiom))
     (add-rule-to-method axiom (term-head (rule-lhs axiom)) (module-opinfo-table module))))
 
+;;; add-assumptions-to-goal : goal assumptions -> void
+;;;
+(defun add-assumptions-to-goal (goal assumptions)
+  (let ((module (goal-context goal)))
+    (with-in-module (module)
+      (dolist (ax assumptions)
+        (adjoin-axiom-to-module module ax)
+        (set-operator-rewrite-rule module ax))
+      (compile-module module t))))
+
 ;;; check-goal-is-satisfied : goal -> ( <result> <normalized-target> <possibly-marked-target> )
 ;;;
 (defun check-goal-is-satisfied (goal &optional (report-header nil))
   (when (cdr (goal-targets goal))
     (with-output-chaos-error ('invalid-proof-seq)
       (format t "Internal error. more than one target!")))
-  (if *citp-spoiler*
-      (let ((target (car (goal-targets goal))))
-        (multiple-value-bind (discharged normalized-target original-target)
-            (do-check-sentence target goal report-header)
-          (when discharged
-            (setf (goal-targets goal) nil
-                  (goal-proved goal) (list original-target)))
-          (values discharged normalized-target original-target)))
-    (values nil nil (car (goal-targets goal)))))
+  (if-spoiler-on
+   :then (let ((target (car (goal-targets goal))))
+           (multiple-value-bind (discharged normalized-target original-target)
+               (do-check-sentence target goal report-header)
+             (when discharged
+               (setf (goal-targets goal) nil
+                     (goal-proved goal) (list original-target)))
+             (values discharged normalized-target original-target)))
+   :else (values nil nil (car (goal-targets goal)))))
 
 (defun do-check-sentence (target goal &optional report-header)
   (let ((mod (goal-context goal)))
@@ -813,6 +803,21 @@
               :ct
             ;; the module is consistent, try
             (sentence-is-satisfied target tmodule)))))))
+
+;;; already-proved? : 
+;;;
+(defun already-proved? (node-or-goal &optional (warn t))
+  (declare (type (or ptree-node goal) node-or-goal))
+  (let ((goal (if (ptree-node-p node-or-goal)
+                  (ptree-node-goal node-or-goal)
+                node-or-goal)))
+    (unless (goal-is-discharged goal)
+      (return-from already-proved? nil))
+    (when warn
+      (with-output-chaos-warning ()
+        (format t "** The goal ~s has already been proved!."
+                (goal-name goal))))
+    t))
 
 ;;; ****************************************************************************
 ;;; Tactic executors
@@ -1399,45 +1404,85 @@
 ;;; TACTIC: REDUCTION [RD]
 ;;; =======================
 
+;;; do-apply-rd
+;;; 
 (defun do-apply-rd (cur-goal next-goal tactic)
-  (let ((cur-targets (goal-targets cur-goal))
-        (reduced-targets nil)
-        (discharged nil)
-        (result nil)
-        (tactic-name (tactic-name tactic)))
-    (when cur-targets
-      (compile-module (goal-context cur-goal) t)
-      (when next-goal
-        (compile-module (goal-context next-goal) t))
-      (dolist (target cur-targets)
-        (multiple-value-bind (c-result cur-target original-sentence)
-            (do-check-sentence target (or next-goal cur-goal) tactic-name)
-          (cond (c-result               ; satisfied or contradition
-                 (setq result t)
-                 (push original-sentence discharged))
-                (t (push cur-target reduced-targets)))))
-      (setf (goal-targets (or next-goal cur-goal)) (nreverse reduced-targets))
-      (setf (goal-proved cur-goal) (nreverse discharged))
-      (unless reduced-targets
-        (setf (goal-targets cur-goal) nil)
-        (format t "~%[~a] discharged goal ~s." tactic-name (goal-name cur-goal))))
-    (if reduced-targets
-        (values t (list (or next-goal cur-goal)))
-      (values result nil))))
+  (let* ((target-goal (or next-goal cur-goal))
+         (cur-targets (goal-targets target-goal))
+         (reduced-targets nil)
+         (discharged nil)
+         (result nil)
+         (tactic-name (tactic-name tactic)))
+    (unless cur-targets 
+      (with-citp-debug ()
+        (format t "~%[rd] no target sentences."))
+      (return-from do-apply-rd (values nil nil)))
+    (compile-module (goal-context target-goal) t)
+    (dolist (target cur-targets)
+      (multiple-value-bind (c-result cur-target original-sentence)
+          (do-check-sentence target (or next-goal cur-goal) tactic-name)
+        (cond (c-result                 ; satisfied or contradition
+               (setq result t)
+               (push original-sentence discharged))
+              ;; reduced but not discharged
+              (t (push cur-target reduced-targets)))))
+    ;; set new (reduced sentences) as targets
+    (setf (goal-targets target-goal) (nreverse reduced-targets))
+    ;; set discharged sentences 
+    (setf (goal-proved cur-goal) (nreverse discharged))
+    (unless reduced-targets
+      ;; this means all sentences are discharged
+      (setf (goal-targets cur-goal) nil)
+      (format t "~%[~a] discharged goal ~s." tactic-name (goal-name cur-goal))
+      (return-from do-apply-rd (values result nil)))
+    ;; there remains 
+    (values t (list (or next-goal cur-goal)))))
 
+;;; apply-rd
+;;; explicit application of tactic RD.
 (defun apply-rd (ptree-node &optional (tactic .tactic-rd.))
   (declare (type ptree-node ptree-node)
            (type tactic tactic))
-  (let ((*citp-spoiler* t)
-        (cur-goal (ptree-node-goal ptree-node)))
-    (when (goal-is-discharged cur-goal)
-      (with-output-chaos-warning ()
-        (format t "** The goal ~s has already been proved!"
-                (goal-name cur-goal)))
-      (return-from apply-rd (values nil nil)))
-    (if (goal-targets cur-goal)
-        (do-apply-rd cur-goal (prepare-next-goal ptree-node .tactic-rd.) tactic)
-      (values nil nil))))
+  ;; we set :spoiler on
+  (with-spoiler-on ()                   ; force application of implicit tactcs(NF, CF, e.t.c.)
+    (let ((cur-goal (ptree-node-goal ptree-node)))
+      (when (goal-is-discharged cur-goal)
+        (with-output-chaos-warning ()
+          (format t "** The goal ~s has already been proved!"
+                  (goal-name cur-goal)))
+        (return-from apply-rd (values nil nil)))
+      (unless (goal-targets cur-goal)
+        (return-from apply-rd nil))
+      (let ((undo? (the-goal-needs-undo cur-goal))
+            (original-target (ptree-node-goal (ptree-node-parent ptree-node))))
+        ;; undo? = true means the current goal is generatd by 
+        ;; :defined :ctf- or :csp-, AND
+        ;; this RD application follows it, i.e., :apply(... ctf-n rd ...)
+        ;; in this case we don't prepare next-goal and ..
+        (let ((next-goal (if undo?
+                             nil
+                           (prepare-next-goal ptree-node .tactic-rd.))))
+          (unless undo?
+            (setf (goal-targets next-goal) (goal-targets cur-goal)))
+          (with-citp-debug ()
+            (format t "~%[rd] target: ~a" (if next-goal
+                                              (goal-name next-goal)
+                                            (goal-name cur-goal))))
+          (multiple-value-bind (applied next-goals)
+              (do-apply-rd cur-goal next-goal tactic)
+            (declare (ignore applied))
+            (when undo? 
+              (dolist (ngoal next-goals)
+                (when (goal-targets ngoal)
+                  ;; reset target
+                  (with-citp-verbose ()
+                    (format t "~%[rd] ~a rollback to original goal ~a" 
+                            (goal-name ngoal)(goal-name original-target)))
+                  (setf (goal-targets ngoal) (goal-targets original-target)))))
+            (if undo?
+                ;; the original goal rolled back, no new goal is needed.
+                (values next-goals nil)
+              (values next-goals next-goals))))))))
 
 ;;; ==========================
 ;;; TACTIC: Case Analysis [CA]
@@ -1960,11 +2005,11 @@
         ;;
         (setq instance (make-axiom-instance *current-module* subst target-axiom))
         ;; we normalize the LHS of the instance
-        (when *citp-spoiler*
-          (multiple-value-bind (n-lhs applied?)
-              (normalize-term-in *current-module* (axiom-lhs instance))
-            (when applied?
-              (setf (axiom-lhs instance) n-lhs))))
+        (when-spoiler-on
+         (multiple-value-bind (n-lhs applied?)
+             (normalize-term-in *current-module* (axiom-lhs instance))
+           (when applied?
+             (setf (axiom-lhs instance) n-lhs))))
           
         ;; input the instance to current context
         (let ((goal (ptree-node-goal context)))
@@ -1975,7 +2020,7 @@
                 (*print-xmode* :fancy))
             (print-next)
             (print-axiom-brief instance))
-          (when *citp-verbose* 
+          (with-citp-verbose ()
             (pr-goal (ptree-node-goal context)))
           (set-operator-rewrite-rule *current-module* instance)
           (adjoin-axiom-to-module *current-module* instance)
@@ -2224,7 +2269,8 @@
 
 ;;; ===========
 ;;; TACTIC: :NF
-;;; compute normal form of targets and assumptions.
+;;; explicit application of NF (compute normal form of targets).
+;;; 
 ;;; ===========
 (defun apply-nf (ptree-node &rest ignore)
   (declare (type ptree-node ptree-node)
@@ -2235,23 +2281,23 @@
         (format t "** The goal ~s has already been proved!."
                 (goal-name .cur-goal.)))
       (return-from apply-nf nil))
-    (with-in-module ((goal-context .cur-goal.))
-      (let ((n-targets nil)
-            (*citp-spoiler* t)
-            (*chaos-quiet* t)
-            (applied nil))
-        ;; normalize goal sentences
-        (dolist (sen (goal-targets .cur-goal.))
-          (multiple-value-bind (ngoal app?)
-              (normalize-sentence sen *current-module*)
-            (if app?
-                (progn (setq applied t) (push ngoal n-targets))
-              (push sen n-targets))))
-        (when applied
-          (let ((next-goal (prepare-next-goal ptree-node 'nf)))
-            (setf (goal-targets next-goal) (nreverse n-targets))
-            (return-from apply-nf (values t (list next-goal)))))
-        (values nil nil)))))
+    (with-spoiler-on ()
+      (with-in-module ((goal-context .cur-goal.))
+        (let ((n-targets nil)
+              (*chaos-quiet* t)
+              (applied nil))
+          ;; normalize goal sentences
+          (dolist (sen (goal-targets .cur-goal.))
+            (multiple-value-bind (ngoal app?)
+                (normalize-sentence sen *current-module*)
+              (if app?
+                  (progn (setq applied t) (push ngoal n-targets))
+                (push sen n-targets))))
+          (when applied
+            (let ((next-goal (prepare-next-goal ptree-node 'nf)))
+              (setf (goal-targets next-goal) (nreverse n-targets))
+              (return-from apply-nf (values t (list next-goal)))))
+          (values nil nil))))))
 
 ;;; ===========
 ;;; TACTIC: :CT
@@ -2404,10 +2450,7 @@
   (let ((*chaos-quiet* t)
         (*rwl-search-no-state-report* t)
         (cur-goal (ptree-node-goal cur-node)))
-    (when (goal-is-discharged cur-goal)
-      (with-output-chaos-warning ()
-        (format t "** The goal ~s has already been proved!."
-                (goal-name cur-goal)))
+    (when (already-proved? cur-goal)
       (return-from do-apply-ctf nil))
     (if (termp term-or-equation)
         (do-apply-ctf-with-constructors cur-node term-or-equation tactic)
@@ -2510,50 +2553,46 @@
            (type tactic-ctf tactic))
   (let ((goal (ptree-node-goal ptree-node)))
     (with-in-module ((goal-context goal))
-      (let ((*chaos-quiet* t))
-        (multiple-value-bind (applied next-goals)
-            (do-apply-ctf ptree-node (tactic-ctf-form tactic) tactic)
-          (declare (ignore applied))
-          (unless next-goals
-            (return-from apply-ctf-tactic nil))
-          (when *citp-spoiler*
-            ;; apply implicit rd
-            (dolist (ngoal next-goals)
-              (do-apply-rd ngoal nil tactic)
-              (when (and (tactic-ctf-minus tactic) (goal-targets ngoal))
-                ;; reset target
-                (setf (goal-targets ngoal) (goal-targets goal)))))
-          (values t next-goals))))))
+       (multiple-value-bind (applied next-goals)
+           (do-apply-ctf ptree-node (tactic-ctf-form tactic) tactic)
+         (declare (ignore applied))
+         (unless next-goals
+           (return-from apply-ctf-tactic nil))
+         (when *citp-spoiler*
+           ;; apply implicit rd
+           (dolist (ngoal next-goals)
+             (do-apply-rd ngoal nil tactic)
+             (when (and (tactic-ctf-minus tactic) (goal-targets ngoal))
+               ;; reset target
+               (setf (goal-targets ngoal) (goal-targets goal)))))
+         (values t next-goals)))))
 
 ;;;==============
 ;;; :csp or :csp-
 ;;;==============
 (defun do-apply-csp (cur-node axs &optional (tactic .tactic-csp.))
-  (let ((*chaos-quiet* t)
-        (*rwl-search-no-state-report* t)
-        (cur-goal (ptree-node-goal cur-node)))
-    (when (goal-is-discharged cur-goal)
-      (with-output-chaos-warning ()
-        (format t "** The goal ~s has already been proved!." (goal-name (ptree-node-goal cur-node)))
-        (return-from do-apply-csp nil)))
-    (let ((ngoals nil))
-      (dolist (ax (mapcar #'(lambda (x) (rule-copy-canonicalized x (goal-context cur-goal) (tactic-name tactic)))
-                          axs))
-        (let ((n-goal (prepare-next-goal cur-node tactic)))
-          ;; add a given assumption
-          (with-in-module ((goal-context n-goal))
-            (adjoin-axiom-to-module *current-module* ax)
-            (set-operator-rewrite-rule *current-module* ax)
-            (compile-module *current-module*))
-          (setf (goal-targets n-goal) (goal-targets cur-goal))
-          (setf (goal-assumptions n-goal) (append (goal-assumptions cur-goal) (list ax)))
-          (push n-goal ngoals)))
-      (with-citp-debug ()
-        (format t "~%CSP generated:")
-        (dolist (g (reverse ngoals))
-          (print-next)
-          (pr-goal g)))
-      (values t (nreverse ngoals)))))
+  (with-citp-silent-mode ()
+    (unless (already-proved? cur-node)
+      (let ((cur-goal (ptree-node-goal cur-node))
+            (ngoals nil))
+        ;; add given assumptions with generating child nodes
+        (dolist (ax (mapcar #'(lambda (x) 
+                                (rule-copy-canonicalized x (goal-context cur-goal) (tactic-name tactic)))
+                            axs))
+          (let ((n-goal (prepare-next-goal cur-node tactic)))
+            (with-in-module ((goal-context n-goal))
+              (adjoin-axiom-to-module *current-module* ax)
+              (set-operator-rewrite-rule *current-module* ax)
+              (compile-module *current-module*))
+            (setf (goal-targets n-goal) (goal-targets cur-goal))
+            (setf (goal-assumptions n-goal) (append (goal-assumptions cur-goal) (list ax)))
+            (push n-goal ngoals)))
+        (with-citp-debug ()
+          (format t "~%~a generated:" (tactic-name tactic))
+          (dolist (g (reverse ngoals))
+            (print-next)
+            (pr-goal g)))
+        (values t (nreverse ngoals))))))
 
 (defun apply-csp (ax-forms dash? &optional (verbose *citp-verbose*))
   (let ((ptree-node (get-next-proof-context *proof-tree*)))
