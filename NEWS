@@ -1,3 +1,11 @@
+* CafeOBJ 1.5.4 (DEV)
+===============
+
+  - CITP changes
+    . new commands :ctf- and :csp-
+    . new command :def(ine) to turn :ctf(-) and :csp(-) into proper
+      tactics for :apply
+
 * CafeOBJ 1.5.3
 ===============
 
