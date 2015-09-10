@@ -13,6 +13,7 @@
 \usepackage{amssymb}
 \usepackage{bussproofs}
 
+
 %%% Japanese
 \usepackage{fontspec}
 \usepackage{indentfirst}
@@ -44,6 +45,10 @@
 %%%% hyperref
 %\usepackage[dvipdfm,colorlinks=true,linkcolor=blue]{hyperref} 
 \usepackage[colorlinks=true,linkcolor=blue]{hyperref} 
+
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+
 %%%%%%%%%%syntax
 \makeatletter
 % terminal - used for terminal symbols, argument is characters appear in sf.
@@ -232,7 +237,8 @@ $G$ から各 $G_i (i = 1 \cdots n)$ への枝は，全て適用した戦略$T$�
 \end{itemize}
 \begin{figure}[hbt]
   \centering
-\includegraphics[scale=1.0]{proof-tree.pdf}  
+%\includegraphics[scale=1.0]{proof-tree.pdf}  
+  \input proof-tree.tikz
   \caption{証明木}
   \label{fig:proof-tree}
 \end{figure}
@@ -740,10 +746,10 @@ QLOCK(X)> :equation
     \end{simplev}
   \end{vvtm}
 \end{itemize}
-
 \begin{figure}[hbt]
   \centering
-  \includegraphics[scale=0.6]{ctf.pdf}
+%  \includegraphics[scale=0.6]{ctf.pdf}
+  \input ctf.tikz
   \caption{:ctf の動作}
   \label{fig:ctf}
 \end{figure}
@@ -773,7 +779,8 @@ QLOCK(X)> :equation
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[scale=0.6]{csp.pdf}
+%  \includegraphics[scale=0.6]{csp.pdf}
+  \input csp.tikz
   \caption{:csp の動作}
   \label{fig:csp}
 \end{figure}
