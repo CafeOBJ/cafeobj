@@ -813,12 +813,11 @@
         (|:verbose| :symbol)
         ;; (|:normalize| :symbol)
         #.CTF
-        ((:+ |:pctf| |:pctf-|)
-         |{| (:many-of (\[ :term |.| \])) |}|)
         #.CSP
         ((:+ |:show| |:sh| |:describe| |:desc|) :args)
         ((:+ |:def| |:define|) :symbol = (:one-of #.CTF
-                                                  #.CSP))
+                                                  #.CSP
+                                                  (|(| (:seq-of :symbol) |)|)))
         (|:spoiler| (:one-of (on) (off) (|.|)))
         (|:binspect|
          (:rdr #..term-delimiting-chars. (:if-present in :symbol |:|)) (:seq-of :term) |.|)
@@ -826,6 +825,7 @@
          (:rdr #..term-delimiting-chars. (:if-present  in :modexp |:|)) (:seq-of :term) |.|)
         ((:+ |:bresolve| bresolve))
         ((:+ |:bshow| bshow) :args)
+        (|:set| |(| :symbol |,| (:+ on off set clear ? show) |)|)z
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.

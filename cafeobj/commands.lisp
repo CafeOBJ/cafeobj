@@ -2221,7 +2221,7 @@ Do nothing.
 (define ("citp")
     :type :doc-only
     :title "CITP"
-    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":pctf" ":pctf-" ":define")
+    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":define")
     :doc "Constructor Based Induction Theorem Prover
 
 The sub-system provides a certain level of automatization for theorem proving.
@@ -2373,24 +2373,6 @@ the current goal, or the goal given as `<goal-name>`."
     :doc "TODO"
     )
 
-(define (":pctf")
-    :category :proof
-    :parser citp-parse-pctf
-    :evaluator eval-citp-pctf
-    :related ("citp")
-    :title "`:pctf { <bool-term> . ... <bool-term> .}`"
-    :doc "TODO"
-    )
-
-(define (":pctf-")
-    :category :proof
-    :parser citp-parse-pctf
-    :evaluator eval-citp-pctf
-    :related ("citp")
-    :title "`:pctf- { <bool-term> . ... <bool-term> . }`"
-    :doc "TODO"
-    )
-
 (define (":csp")
     :category :proof
     :parser citp-parse-csp
@@ -2453,6 +2435,14 @@ the possible set of invocations.
     :title "`:spoiler { on | off}`"
     :doc "TODO"
     )
+
+(define (":set")
+    :category :proof
+    :parser citp-parse-set
+    :evaluator citp-eval-set
+    :title "`:set(<name>, { on | off | show | ? })`"
+    :doc "Set or show various flags of CITP CafeOBJ.
+")
 
 (define (":binspect")
     :category :proof
