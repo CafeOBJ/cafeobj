@@ -110,6 +110,20 @@
 (defun tactic-name-is-builtin? (name)
   (get-builtin-tactic name))
 
+;;; sequence of tactic :defined
+;;; :def <name> = (<tactic-name> ...)
+;;;
+(defstruct (tactic-seq (:include tactic)
+            (:print-function pr-tactic-seq))
+  (tactics nil :type list)              ; list of tactics
+  )
+
+(defun pr-tactic-seq (obj stream &rest ignore)
+  (declare (type tactic-seq obj)
+           (ignore ignore))
+  (let ((tactics (tactic-seq-tactics obj)))
+    (format stream "( ~{~a~^ ~a ~} )" (mapcar #'(lambda (x) (tactic-name x)) tactics))))
+
 ;;; :ctf/:csp as tactic
 ;;;
 (defstruct (tactic-ctfp-common (:include tactic))
@@ -158,12 +172,6 @@
         (princ " . " stream))
       (princ "}" stream))))
 
-;;; get-user-defined-tactic
-;;;
-(defun get-user-defined-tactic (name)
-  (setq name (canonicalize-tactic-name name))
-  (cdr (assoc name .user-defined-tactics.)))
-
 ;;; get-defined-tactic
 ;;;
 (defun get-defined-tactic (goal name)
@@ -190,11 +198,160 @@
     (setq .user-defined-tactics.
       (acons name (nreverse tactics) .user-defined-tactics.))))
 
+;;; =====
+;;; FLAGS
+;;; =====
+(defvar *citp-show-rwl* nil)
+
+;;; -------------------------------------------------------------------------------
+;;; Various utils which controll 'switch' affected behaviour of the system .
+;;;
+
+;;; with-in-context : ptree-node
+;;; construct a lexical environment for applying a tactic.
+;;;
+(eval-when (:compile-toplevel :execute :load-toplevel)
+
+(defmacro with-in-context ((ptree-node) &rest body)
+  (once-only (ptree-node)
+    `(block :exit
+       (let* ((.cur-goal. (ptree-node-goal ,ptree-node))
+              (.cur-targets. (goal-targets .cur-goal.))
+              (.next-goals. nil))
+         (unless .cur-targets. (return-from :exit nil))
+         ,@body))))
+
+)
+
+;;; This variable controlls implicit applications of tactics.
+;;; 'true' means CITP cares application of implicite applicatins of tactics
+;;;  such as 'normalization of the goal', 'contradiction check ('true = false')'.
+;;; if this is 'false', CITP does only introduces proof schems defined.
+(defvar *citp-spoiler* nil)
+
+(eval-when (:compile-toplevel :execute :load-toplevel)
+  
+(defmacro if-spoiler-on (&key then else)
+  `(if *citp-spoiler*
+       (progn ,then)
+     (progn ,else)))
+
+(defmacro when-spoiler-on (&rest body)
+  `(when *citp-spoiler*
+     ,@body))
+
+(defmacro with-spoiler-on (&rest body)
+  `(let ((*citp-spoiler* t))
+     ,@body))
+
+)
+
+(declaim (type fixnum *citp-max-flags*))
+(defparameter *citp-max-flags* 10)
+
+(defstruct (citp-flag-struct)
+  (name "" :type simple-string)
+  (value nil)
+  (hook #'(lambda(name value) 
+            (declare (ignore name value))
+            nil) 
+        :type (or function symbol)))
+
+(declaim (type (simple-array * (10)) *citp-flags*))
+(defvar *citp-flags*)
+(eval-when (:execute :load-toplevel)
+  (setq *citp-flags* (make-array *citp-max-flags*)))
+
+(defmacro citp-flag-struct (flag-index)
+  `(aref *citp-flags* ,flag-index))
+
+(defmacro citp-flag (flag-index)
+  `(citp-flag-struct-value (aref *citp-flags* ,flag-index)))
+
+(defmacro citp-flag-name (flag-index)
+  `(citp-flag-struct-name (aref *citp-flags* ,flag-index)))
+
+(defmacro citp-flag-hook (flag-index)
+  `(citp-flag-struct-hook (aref *citp-flags* ,flag-index)))
+
+;;; flag indexes
+(defconstant citp-all 0)
+(defconstant citp-verbose 1)
+(defconstant citp-show-rwl  2)
+(defconstant citp-spoiler 3)
+(defconstant citp-print-message 4)
+
+;;; FIND-CITP-FLAG-INDEX : Name -> Index
+;;;
+(defun find-citp-flag-index (given-name)
+  (declare (type simple-string given-name)
+           (values (or null fixnum)))
+  (let ((i 0)
+        (name (concatenate 'string "citp-" given-name)))
+    (declare (type fixnum i))
+    (dotimes (x *citp-max-flags*)
+      (when (string= name (citp-flag-name x))
+        (return-from find-citp-flag-index i))
+      (incf i))
+    nil))
+
+;;; print-citp-flag : index -> void
+;;;
+(defun print-citp-flag (index)
+  (if (= index citp-all)
+      (do ((idx 1 (1+ idx)))
+          ((<= *citp-max-flags* idx))
+        (pr-citp-flag-internal idx))
+    (pr-citp-flag-internal index)))
+
+(defun pr-citp-flag-internal (index)
+  (unless (equal "" (citp-flag-name index))
+    (format t "~&Flag ~a is ~a" (subseq (citp-flag-name index) 5) (if (citp-flag index) "on" "off"))))
+
+;;; help-citp-flag : index
+;;;
+(defun help-citp-flag (index)
+  (let ((flag (citp-flag-struct index)))
+    flag))
+
+;;; flag initialization
+;;;
+(defun initialize-citp-flag ()
+  (dotimes (idx *citp-max-flags*)
+    (setf (citp-flag-struct idx) (make-citp-flag-struct :value nil)))
+  (setf (citp-flag-name citp-all) "citp-all"
+        (citp-flag-name citp-verbose) "citp-verbose"
+        (citp-flag-name citp-show-rwl) "citp-show-rwl"
+        (citp-flag-name citp-spoiler) "citp-spoiler"
+        (citp-flag-name citp-print-message) "citp-print-message")
+  ;; set default
+  (setf (citp-flag citp-print-message) t) ; others are 'off'
+  ;; verbose flag hook
+  (setf (citp-flag-hook citp-verbose)
+    #'(lambda (name value)
+        (declare (ignore name))
+        (setf *citp-verbose* value)))
+  ;; show-rwl hook
+  (setf (citp-flag-hook citp-show-rwl)
+    #'(lambda (name value)
+        (declare (ignore name))
+        (setf *citp-show-rwl* value)))
+  ;; citp-spoiler hook
+  (setf (citp-flag-hook citp-spoiler)
+    #'(lambda (name value)
+        (declare (ignore name))
+        (setf *citp-spoiler* value)))
+  )
+
+(eval-when (:execute :load-toplevel)
+  (initialize-citp-flag)
+  )
+
 ;;; messaing when :verbose on
 ;;;
 (eval-when (:compile-toplevel :execute :load-toplevel)
 
-  (defmacro with-citp-verbose (&rest body)
+  (defmacro when-citp-verbose (&rest body)
     `(when *citp-verbose*
        (let ((*print-indent* (+ 2 *print-indent*))
              (*print-line-limit* 90))
@@ -202,6 +359,24 @@
          ,@body)))
   
 )
+
+;;; citp standard running env.
+;;;
+(defvar *citp-silent* t)
+(eval-when (:compile-toplevel :execute :load-toplevel)
+(defmacro with-citp-env (&rest body)
+  `(if *citp-silent*
+       (let ((*chaos-quiet* t)
+             (*rwl-search-no-state-report* 
+              (if *citp-show-rwl*
+                  nil
+                t))
+             (*citp-spoiler* (citp-flag citp-spoiler)))
+         ,@body)
+     (let ((*citp-spoiler* (citp-flag citp-spoiler)))
+       ,@body)))
+)
+
 ;;; for debugging
 ;;;
 (eval-when (:compile-toplevel :execute :load-toplevel)
@@ -850,7 +1025,6 @@
 (defun get-tactic (name)
   (let ((context (get-next-proof-context *proof-tree*)))
     (let ((tactic (or (and context (get-defined-tactic (ptree-node-goal context) name))
-                      (get-user-defined-tactic name)
                       (get-builtin-tactic name))))
     (unless tactic
       (with-output-chaos-error ('no-such-tactic)
@@ -1120,61 +1294,5 @@
       (with-output-chaos-warning ()
         (format t "No current goal.")))))
 
-;;; -------------------------------------------------------------------------------
-;;; Various utils which controll 'switch' affected behaviour of the system .
-;;;
-
-;;; with-in-context : ptree-node
-;;; construct a lexical environment for applying a tactic.
-;;;
-(eval-when (:compile-toplevel :execute :load-toplevel)
-
-(defmacro with-in-context ((ptree-node) &rest body)
-  (once-only (ptree-node)
-    `(block :exit
-       (let* ((.cur-goal. (ptree-node-goal ,ptree-node))
-              (.cur-targets. (goal-targets .cur-goal.))
-              (.next-goals. nil))
-         (unless .cur-targets. (return-from :exit nil))
-         ,@body))))
-
-)
-
-;;; This variable controlls implicit applications of tactics.
-;;; 'true' means CITP cares application of implicite applicatins of tactics
-;;;  such as 'normalization of the goal', 'contradiction check ('true = false')'.
-;;; if this is 'false', CITP does only introduces proof schems defined.
-(defvar *citp-spoiler* nil)
-
-(eval-when (:compile-toplevel :execute :load-toplevel)
-  
-(defmacro if-spoiler-on (&key then else)
-  `(if *citp-spoiler*
-       (progn ,then)
-     (progn ,else)))
-
-(defmacro when-spoiler-on (&rest body)
-  `(when *citp-spoiler*
-     ,@body))
-
-(defmacro with-spoiler-on (&rest body)
-  `(let ((*citp-spoiler* t))
-     ,@body))
-
-)
-
-;;; with-citp-silent-mode
-;;; make the CafeOBJ system being say only few words.
-;;; TODO: mesages from search predicate should be controlled by a switch.
-;;;
-(defvar *citp-silent* t)
-
-(defmacro with-citp-silent-mode (&rest body)
-  `(if *citp-silent*
-       (let ((*chaos-quiet* t)
-             (*rwl-search-no-state-report* t))
-         ,@body)
-     (progn
-       ,@body)))
 
 ;;; EOF

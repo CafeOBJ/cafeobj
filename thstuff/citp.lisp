@@ -215,18 +215,6 @@
         (cons form (cons term? :dash))
       (cons form (cons term? nil)))))
 
-;;; citp-parse-pctf
-;;; :pctf { [<term> .] ... [<term> . ] }
-;;; (":pctf" "{" (("[" (<Term>1) "." "]") ... ("[" (<Termn>) "." "]")) "}")
-;;; ==> (:pctf-? <Term1> ... <Termn>)
-(defun citp-parse-pctf (args)
-  (let ((pctf-minus? (equal (car args) ":pctf-"))
-        (list-terms (third args))
-        (pre-terms nil))
-    (dolist (lt list-terms)
-      (push (second lt) pre-terms))
-    (cons pctf-minus? (nreverse pre-terms))))
-
 ;;; citp-parse-csp
 ;;; :csp { <axiom> ... }
 ;;;
@@ -246,12 +234,19 @@
 ;;; ==> (:ctf "cf2" t   (:eq (<Equation>)))
 ;;; (":def" "sp1" "=" (":csp" "{" ((<Equation> ".") (<Equation> ".")) "}"))
 ;;; ==> (:csp "sp1" nil ((<Equation> ".") (<Equation> ".")))
+;;; (":def" "tactic-1" "=" ("(" ("si" "rd" "tc") ")"))
+;;; ==> (:seq "tactic-1" ("si" "rd" "tc"))
 ;;;
 (defun citp-parse-define (args)
   (flet ((name-to-com (name)
-           (if (equal (subseq name 0 4) ":ctf")
-               :ctf
-             :csp)))
+           (cond ((equal name "(")
+                  :seq)
+                 ((equal (subseq name 0 4) ":ctf")
+                  :ctf)
+                 ((equal (subseq name 0 4) ":csp")
+                  :csp)
+                 (t (with-output-chaos-error ('invalid-def)
+                      (format t "Internal error, :def accepted ~a" name))))))
     (let* ((name (second args))
            (com-name (first (fourth args)))
            (command (name-to-com com-name))
@@ -260,8 +255,11 @@
                           (if (equal "[" (first (second (fourth args))))
                               (list :term (second (second (fourth args))))
                             (list :eq (second (second (fourth args)))))
-                        (third (fourth args)))))
-    (list command name dash body-form))))
+                        (if (eq command :csp)
+                            (third (fourth args))
+                          ;; :seq
+                          (second (fourth args))))))
+      (list command name dash body-form))))
 
 ;;; { :show | :describe } <something>
 ;;;
@@ -280,13 +278,15 @@
 ;;; :spoiler { on | off }
 ;;;
 (defun citp-parse-spoiler (form)
-  (let ((on-off (second form)))
-    (if (equal on-off '("on"))
-        (setq *citp-spoiler* t)
-      (if (equal on-off '("off"))
-          (setq *citp-spoiler* nil)
-        ;; 
-        (format t "~&:spoiler flag is ~s" (if *citp-spoiler* "on" "off"))))
+  (let* ((on-off (second form))
+         (value (if (equal on-off '("on"))
+                    t
+                  (if (equal on-off '("off"))
+                      nil
+                    (progn (format t "~&:spoiler flag is ~s" (if *citp-spoiler* "on" "off"))
+                           (return-from citp-parse-spoiler nil))))))
+    (setq *citp-spoiler* value)
+    (setf (citp-flag citp-spoiler) value)
     t))
 
 ;;;
@@ -313,6 +313,14 @@
 (defun citp-parse-bshow (args)
   (let ((param (cadr args)))
     (or param ".")))
+
+;;; :set(<name>, {on | off | show | ? })
+;;;
+(defun citp-parse-set (inp)
+  (declare (type list inp))
+  (let ((name (third inp))
+        (value (fifth inp)))
+    (list name value)))
 
 
 
@@ -433,18 +441,6 @@
     (report-citp-stat)
     (check-success *proof-tree*)))
 
-;;; :pctf
-;;; ax-form ::= (pctf-? . forms) .
-(defun eval-citp-pctf (ax-form)
-  (check-ptree)
-  (with-in-module (*current-module*)
-    (reset-rewrite-counters)
-    (begin-rewrite)
-    (apply-pctf *proof-tree* (car ax-form) (cdr ax-form))
-    (end-rewrite)
-    (report-citp-stat)
-    (check-success *proof-tree*)))
-
 ;;; :csp
 (defun eval-citp-csp (goal-ax-decls)
   (check-ptree)
@@ -497,6 +493,7 @@
 ;;; (:ctf "cf2" t   (:eq (<Equation>)))
 ;;; (:csp "sp1" nil ((<Equation> ".") ...))
 ;;; (:csp "sp2" t   ((<Equation> ".") ...))
+;;; (:seq "tactic-1" nil (<tactic-name> ....))
 ;;;
 (defun eval-citp-define (arg)
   (check-ptree)
@@ -537,6 +534,14 @@
                                                  :forms (nreverse forms)
                                                  :minus dash
                                                  :context *current-module*))))
+                ((eq tactic-name :seq)
+                 (setq tactic (make-tactic-seq :name name
+                                               :tactics (mapcar #'(lambda (x)
+                                                                    (or (get-defined-tactic goal x)
+                                                                        (get-builtin-tactic x)
+                                                                        (with-output-chaos-error ('no-such-tactic)
+                                                                          (format t "No such tactic ~a" x))))
+                                                                form))))
                 (t ;; internal error
                  (with-output-chaos-error ('internal-error)
                    (format t "Invalid :def parameter ~s" tactic-name))))
@@ -545,5 +550,35 @@
           (setf (goal-defs goal)
             (nconc (goal-defs goal) (list tactic)))))
           (push (canonicalize-tactic-name name) (ptree-defs-so-far *proof-tree*)))))
+
+;;; 
+;;; SET-FLAG/CLEAR-FLAG
+;;;
+(defun citp-eval-set (args)
+  (let ((name (first args))
+        (given-value (second args)))
+    (let ((value nil)
+          (index (find-citp-flag-index name)))
+      (unless index
+        (with-output-chaos-error ('no-such-flag)
+          (format t "No such flag ~a" name)))
+      (cond ((or (equal given-value "on")
+                 (equal given-value "set"))
+             (setq value t))
+            ((equal given-value "show")
+             (print-citp-flag index)
+             (return-from citp-eval-set nil))
+            ((equal given-value "?")
+             (help-citp-flag index)
+             (return-from citp-eval-set nil)))
+      (when (citp-flag citp-print-message)
+        (with-output-msg ()
+          (format t "setting flag ~a to ~a" name given-value)))
+      (if (= citp-all index)
+          (dotimes (x *citp-max-flags*)
+            (setf (citp-flag x) value))
+        (setf (citp-flag index) value))
+      ;; run hook
+      (funcall (citp-flag-hook index) name value))))
 
 ;;; EOF
