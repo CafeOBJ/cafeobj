@@ -825,7 +825,7 @@
          (:rdr #..term-delimiting-chars. (:if-present  in :modexp |:|)) (:seq-of :term) |.|)
         ((:+ |:bresolve| bresolve))
         ((:+ |:bshow| bshow) :args)
-        (|:set| |(| :symbol |,| (:+ on off set clear ? show) |)|)z
+        (|:set| |(| :symbol |,| (:+ on off set clear ? show) |)|)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.
