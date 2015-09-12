@@ -222,13 +222,6 @@
   ` (when (eq *reader-input* *reader-void*)
       (setq *reader-input* (read-sym))))
 
-(defmacro reader-is-at-eof ()
-  `(eq *lex-eof* *reader-input*))
-
-(defmacro at-eof-or-control-d ()
-  `(or (reader-is-at-eof)
-       (equal *reader-input* control-d-string)))
-
 ;;; !READ-DISCARD
 ;;; discard the last input token.
 ;;;
@@ -329,21 +322,27 @@
 (defvar .default-escape-char. #\\)
 
 ;;; 
-#-CMU (defparameter control-d #\^D)
-#+CMU (defparameter control-d #\)
+(defparameter control-d #\Eot)
 (defparameter control-d-string "")
 (defparameter input-escape #\esc)
 (defparameter input-escape-string "")
 
-(defmacro at-eof () `(eq *lex-eof* .reader-ch.))
-
 (defmacro see-ctrl-d ()
   `(eq .reader-ch. control-d))
 
+(defmacro reader-is-at-eof ()
+  `(eq *lex-eof* *reader-input*))
+
+(defmacro at-eof () `(or (see-ctrl-d) (eq *lex-eof* .reader-ch.)))
+
+(defmacro at-eof-or-control-d ()
+  `(or (at-eof)
+       (equal *reader-input* control-d-string)))
+
+
+
 (defmacro see-input-escape ()
   `(eq .reader-ch. input-escape))
-;; (defmacro see-input-escape ()
-;;  `(eq .reader-ch. control-d))
   
 (defun str-match? (x y)
   (declare (type t x)
