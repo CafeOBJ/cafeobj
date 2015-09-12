@@ -2440,7 +2440,7 @@ the possible set of invocations.
     :category :proof
     :parser citp-parse-set
     :evaluator citp-eval-set
-    :title "`:set(<name>, { on | off | show | ? })`"
+    :title "`:set(<name>, { on | off | show })`"
     :doc "Set or show various flags of CITP CafeOBJ.
 ")
 
