@@ -50,23 +50,6 @@
 ;;; 1 means that the decomposition has been already done and that there is 
 ;;; no more next state
 
-#|
-(defstruct (match-empty-state (:constructor create-match-empty-state (flag sys)))
-  (flag 0 :type bit)
-  sys )
-
-(defmacro match-empty-state-flag (_s*) `(car ,_s*))
-(defmacro match-empty-state-sys (s_*) `(cdr ,s_*))
-(defmacro create-match-empty-state (_***flag _***sys) `(cons ,_***flag ,_***sys))
-
-(defvar .match-empty-state. nil)
-(eval-when (:execute :load-toplevel)
-  (setq .match-empty-state. (create-match-empty-state 0 nil)))
-
-(defun the-match-empty-state () .match-empty-state.)
-
-|#
-
 ;;; INITIALIZATION
 
 ;;; Initialize an empty state. It check if the top symbols of each equation of
@@ -80,51 +63,41 @@
     (dolist (equation (m-system-to-list sys))
       (let ((lhs (equation-t1 equation))
             (rhs (equation-t2 equation)))
-        #||
-        (when (or (term-is-builtin-constant? rhs)
-                  (term-is-variable? rhs))
-          (return-from no-match (values nil t)))
-        ||#
         (unless (term-type-eq lhs rhs)
           (return-from no-match (values nil t)))
         (unless (or (match-empty-equal lhs rhs)
                     (and (term-is-application-form? lhs)
                          (method-is-of-same-operator+ (term-head lhs)
                                                       (term-head rhs))))
-          (return-from no-match (values nil t))))
-      )
+          (return-from no-match (values nil t)))))
     (values (create-match-empty-state 0 sys) nil)))
-
 
 ;;; NEXT STATE
 
 (defun match-empty-next-state (empty-st)
-  (declare (type list empty-st)
-           (values list list (or null t)))
-  #||
-  (unless empty-st
-    (with-output-chaos-warning ()
-      (format t "match empty next PANIC: illegal situation, the null state!"))
-    (break)
-    (return-from match-empty-next-state (values nil nil t)))
-  ||#
+  (declare (type list empty-st))
   (let ((flag (match-empty-state-flag empty-st))
         (sys (match-empty-state-sys empty-st)))
     (declare (type fixnum flag)
              (type list sys))
+
+    (with-match-debug ()
+      (format t "~%[empty-next-state] : given m-system~%")
+      (print-match-system-sys sys))
+
     (if (= flag 1)
         ;; no more state
         (values nil nil t)
-        (multiple-value-bind (new-m-sys no-match)
-            (match-decompose&merge (create-match-system (new-environment)
-                                                        sys))
-          (if no-match
-              (values nil nil t)
-              (progn
-                (setf (match-empty-state-flag empty-st) 1)
-                (values (match-system-to-m-system new-m-sys) 
-                        empty-st
-                        nil)))))))
+      (multiple-value-bind (new-m-sys no-match)
+          (match-decompose&merge (create-match-system (new-environment)
+                                                      sys))
+        (if no-match
+            (values nil nil t)
+          (progn
+            (setf (match-empty-state-flag empty-st) 1)
+            (values (match-system-to-m-system new-m-sys) 
+                    empty-st
+                    nil)))))))
 
 ;;; EQUALITY
 

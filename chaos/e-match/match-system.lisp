@@ -268,16 +268,11 @@ Based on the implementation of OBJ3 system.
            (type list res)
            (values (or null t)))
   (with-match-debug ()
-    (princ "** !match-decompose-match:")
+    (format t "~%** !match-decompose-match:")
     (print-next)
-    (princ "-t1") (term-print-with-sort t1)
+    (princ "-t1: ") (term-print-with-sort t1)
     (print-next)
-    (princ "-t2") (term-print-with-sort t2)
-    (print-next)
-    (princ "-result:")
-    (dolist (x res)
-      (print-next)
-      (print-chaos-object x)))
+    (princ "-t2: ") (term-print-with-sort t2))
   (cond
     ;; [1] t1 is variable
     ((term-is-variable? t1)
@@ -294,6 +289,7 @@ Based on the implementation of OBJ3 system.
      (if *one-way-match*
          (progn
            (with-match-debug ()
+             (print-next)
              (princ ">> FAIL for t2 is variable."))
            t)                            ; fail
        (!match-decompose-match t2 t1 res)))
@@ -302,6 +298,7 @@ Based on the implementation of OBJ3 system.
     ((term-is-builtin-constant? t1)
      (let ((ans (not (term-builtin-equal t1 t2))))
        (with-match-debug ()
+         (print-next)
          (if ans
              (princ ">> SUCCESS, builtin-equal.")
            (princ ">> FAIL, builtin not equal.")))
@@ -316,6 +313,7 @@ Based on the implementation of OBJ3 system.
                         nil)
                (progn
                  (with-match-debug ()
+                   (print-next)
                    (princ ">> FAIL, t2 is builtin."))
                  t))
            ;; t2 also is an application form.
@@ -332,7 +330,7 @@ Based on the implementation of OBJ3 system.
                            (t2-subterms (term-subterms t2)))
                        (declare (type list t1-subterms t2-subterms))
                        (with-match-debug ()
-                         (print ">> empty theory: do the full decompose..."))
+                         (format t "~%>> empty theory: do the full decompose..."))
                        (loop            ; for each subterm try decomposition.
                          (unless t1-subterms (return nil))
                          (let ((ng (!match-decompose-match (car t1-subterms)
@@ -350,7 +348,7 @@ Based on the implementation of OBJ3 system.
                    ;;
                    (progn
                      (with-match-debug ()
-                       (print ">> has theory: add their pair."))
+                       (format t "~%>> has theory: add their pair."))
                      (push (make-equation t1 t2) (cdr res))
                      nil))
            
@@ -361,7 +359,7 @@ Based on the implementation of OBJ3 system.
                (if (term-is-on-demand? t2)
                    (progn
                      (with-match-debug ()
-                       (print ">> term t2 is on demand."))
+                       (format t "~%>> term t2 is on demand."))
                      (mark-term-as-not-on-demand t2)
                      (if (normalize-term t2)
                          ;; no reduction has been performed.
@@ -382,13 +380,12 @@ Based on the implementation of OBJ3 system.
                                             (term-head t2)))))
                      (progn 
                        (with-match-debug ()
-                         (print ">> theory Z."))
+                         (format t "~%>> theory Z."))
                        (push (make-equation t1 t2) (cdr res))
                        nil)
                    ;; will never match
                    t)) )))))))
 
-;; (declaim (inline match-decompose-equation))
 
 (defun match-decompose-equation (t1 t2 &optional (sigma nil))
   (declare (type term t1 t2))
@@ -533,7 +530,7 @@ Based on the implementation of OBJ3 system.
   (dolist (e m)
     (let ((t1 (equation-t1 e))
           (t2 (equation-t2 e)))
-      (format t "~%===========")
+      (format t "~%[m-system]===========")
       (format t "~&t1 = ") (term-print-with-sort t1)
       (format t "~&t2 = ") (term-print-with-sort t2))))
 
@@ -694,92 +691,93 @@ Based on the implementation of OBJ3 system.
 ;;; must not be modified. 
 ;;; U: used by "match-system.dec-merg" and "match-add-m-system"
 
-; (defun match-insert-if-coherent-with (new-env test-env new-sys eq-list &optional (check-match nil))
-;   ;; note that new-env and new-sys are both initialy of the form (nil.nil)
-;   (block the-end
-;     (with-match-debug ()
-;       (format T "~%insert:--------------------------------------")
-;       (print-next)
-;       (format t "new-env = ")
-;       (if (car new-env)
-;           (dolist (eq new-env)
-;             (print-next)
-;             (format t "  LHS = ") (term-print-with-sort (equation-t1 eq))(terpri)
-;             (print-next)
-;             (format t "  RHS = ") (term-print-with-sort (equation-t2 eq))(terpri))
-;         (princ "empty"))
-;       (print-next)
-;       (format t "test-env = ")
-;       (if (car test-env)
-;           (dolist (eq test-env)
-;             (print-next)
-;             (format t "  LHS = ") (term-print-with-sort (equation-t1 eq)) (terpri)
-;             (print-next)
-;             (format t "  RHS = ") (term-print-with-sort (equation-t2 eq)) (terpri))
-;         (princ "empty")))
-;     (dolist (eq eq-list)
-;       (let ((t1 (equation-t1 eq))
-;             (t2 (equation-t2 eq)))
-;         (with-match-debug ()
-;           (print-next)
-;           (format t " t1 = ") (term-print-with-sort t1) (terpri)
-;           (print-next)
-;           (format t " t2 = ") (term-print-with-sort t2) (terpri))
-;         (cond ((term-is-variable? t1)
-;                ;; checking of the sort information; redundant with
-;                ;; `decompose-equation'.
-;                (unless (sort<= (term-sort t2) (variable-sort t1)
-;                                *current-sort-order*)
-;                  (with-match-debug ()
-;                    (print-next)
-;                    (format t "-- non coherent, sort match fail."))
-;                  (return-from the-end t))
-;                ;; new-env may be  modified.
-;                (let ((image-of-t1 (variable-image test-env t1)))
-;                  (if image-of-t1
-;                      (unless (term-equational-equal image-of-t1 t2)
-;                        (with-match-debug ()
-;                          (format t "~%-- non coherent, var binding conflicts in env."))
-;                        (return-from the-end t)) ; i.e  no-coherent
-;                    (let ((image-of-t1-in-new (variable-image new-env t1)))
-;                      (if image-of-t1-in-new
-;                          (unless (term-equational-equal image-of-t1-in-new
-;                                                         t2)
-;                            (with-match-debug ()
-;                              (format t "~%-- non coherent, var binding in new-env."))
-;                            (return-from the-end t))
-;                        (add-equation-to-environment new-env eq))))))
-;               (check-match
-;                (when (term-is-variable? t2)
-;                  (return-from the-end t))
-;                (if (and (term-is-applform? t2)
-;                         (term-is-applform? t1))
-;                    (let ((t1-head (term-head t1))
-;                          (t2-head (term-head t2)))
-;                      (if (method-is-of-same-operator+ t1-head t2-head)
-;                          (add-equation-to-m-system new-sys eq)
-;                        (let ((match-info (method-theory-info-for-matching! t1-head)))
-;                          (if (test-theory .Z. (theory-info-code match-info))
-;                              (add-equation-to-m-system new-sys eq)
-;                            (progn
-;                              (with-match-debug ()
-;                                (format t "~%-- non coherent, func conflict."))
-;                              (return-from the-end t))))))
-;                  (add-equation-to-m-system new-sys eq)))
-;               ;;
-;               (t (add-equation-to-m-system new-sys eq)))))
+(defun match-insert-if-coherent-with (new-env test-env new-sys eq-list &optional (check-match nil))
+  ;; note that new-env and new-sys are both initialy of the form (nil.nil)
+  (block the-end
+    (with-match-debug ()
+      (format T "~%insert:--------------------------------------")
+      (print-next)
+      (format t "new-env = ")
+      (if (car new-env)
+          (dolist (eq new-env)
+            (print-next)
+            (format t "~%  LHS = ") (term-print-with-sort (equation-t1 eq))
+            (print-next)
+            (format t "  RHS = ") (term-print-with-sort (equation-t2 eq))
+        (princ "empty")))
+      (print-next)
+      (format t "test-env = ")
+      (if (car test-env)
+          (dolist (eq test-env)
+            (format t "~%  LHS = ") (term-print-with-sort (equation-t1 eq))
+            (print-next)
+            (format t "  RHS = ") (term-print-with-sort (equation-t2 eq)))
+        (princ "empty"))
+      (terpri))
+    (dolist (eq eq-list)
+      (let ((t1 (equation-t1 eq))
+            (t2 (equation-t2 eq)))
+        (cond ((term-is-variable? t1)
+               ;; checking of the sort information; redundant with
+               ;; `decompose-equation'.
+               (unless (sort<= (term-sort t2) (variable-sort t1)
+                               *current-sort-order*)
+                 (with-match-debug ()
+                   (print-next)
+                   (format t "-- non coherent, sort match fail."))
+                 (return-from the-end t))
+               ;; new-env may be  modified.
+               (let ((image-of-t1 (variable-image test-env t1)))
+                 (if image-of-t1
+                     (unless (term-equational-equal image-of-t1 t2)
+                       (with-match-debug ()
+                         (format t "~%-- non coherent, var binding conflicts in env."))
+                       (return-from the-end t)) ; i.e  no-coherent
+                   (let ((image-of-t1-in-new (variable-image new-env t1)))
+                     (if image-of-t1-in-new
+                         (unless (term-equational-equal image-of-t1-in-new
+                                                        t2)
+                           (with-match-debug ()
+                             (format t "~%-- non coherent, var binding in new-env."))
+                           (return-from the-end t))
+                       (add-equation-to-environment new-env eq))))))
+              (check-match
+               (when (term-is-variable? t2)
+                 (with-match-debug ()
+                   (format t "~%-- non coherent, t2 is variable."))
+                 (return-from the-end t))
+               (if (and (term-is-applform? t2)
+                        (term-is-applform? t1))
+                   (let ((t1-head (term-head t1))
+                         (t2-head (term-head t2)))
+                     (if (method-is-of-same-operator+ t1-head t2-head)
+                         (add-equation-to-m-system new-sys eq)
+                       (let ((match-info (method-theory-info-for-matching! t1-head)))
+                         (if (test-theory .Z. (theory-info-code match-info))
+                             (add-equation-to-m-system new-sys eq)
+                           (progn
+                             (with-match-debug ()
+                               (format t "~%-- non coherent, func conflict."))
+                             (return-from the-end t))))))
+                 (add-equation-to-m-system new-sys eq)))
+              ;;
+              (t (add-equation-to-m-system new-sys eq)))))
 
-;     ;; add now all the equation of test-env into new-env (copy test-env)
-;     (cond ((null (car test-env)) ())
-;           ((null (car new-env))
-;            (let ((l (environment-copy1 test-env)))
-;              (rplaca new-env (car l))
-;              (rplacd new-env (cdr l))) )
-;           (t (nconc new-env test-env)))
-;     (with-match-debug ()
-;       (format t "~% insert: return -- coherent -------------------"))
-;     nil                                 ; i.e. the new-env is coherent
-                                        ;     ))
+    ;; add now all the equation of test-env into new-env (copy test-env)
+    (cond ((null (car test-env)) ())
+          ((null (car new-env))
+           (let ((l (environment-copy1 test-env)))
+             (rplaca new-env (car l))
+             (rplacd new-env (cdr l))) )
+          (t (nconc new-env test-env)))
+    (with-match-debug ()
+      (format t "~%insert: return -- coherent -------------------")
+      
+      )
+    nil                                 ; i.e. the new-env is coherent
+    ))
+
+#||
 (defun match-insert-if-coherent-with (new-env test-env new-sys eq-list &optional (check-match nil))
   ;; note that new-env and new-sys are both initialy of the form (nil.nil)
   (block the-end
@@ -829,6 +827,7 @@ Based on the implementation of OBJ3 system.
           (t (nconc new-env test-env)))
     nil                                 ; i.e. the new-env is coherent
     ))
+||#
 
 ;;; MATCH-SYSTEM ===========================================================
 ;;;
@@ -896,8 +895,8 @@ Based on the implementation of OBJ3 system.
   (if (term-is-variable? term1)
       (create-match-system (create-environment term1 term2)
                            (new-m-system))
-      (create-match-system (new-environment)
-                           (create-m-system term1 term2))))
+    (create-match-system (new-environment)
+                         (create-m-system term1 term2))))
 
 ;;; returns from a match-system a system (equivalent)
 ;;;
@@ -944,12 +943,25 @@ Based on the implementation of OBJ3 system.
                                            )
         (return-from no-match (values nil t)))
 
+      (with-match-debug ()
+        (format t "~%[Match-add-m-system]: given ---------------~%")
+        (print-match-system match-system)
+        (format t "~% m-sys")
+        (dolist (eq (m-system-to-list m-sys))
+          (let ((t1 (equation-t1 eq))
+                (t2 (equation-t2 eq)))
+            (print-next)
+            (princ "t1: ")(term-print-with-sort t1)
+            (print-next)
+            (princ "t2: ")(term-print-with-sort t2))))
+
       ;; new-system is modified but not match-system
       (setq new-system (add-m-system new-system (match-system-sys match-system)))
-      (return-from no-match 
-        (values (create-match-system new-environment
-                                     new-system)
-                nil)))))
+      (let ((nsys (create-match-system new-environment new-system)))
+        (with-match-debug ()
+          (format t "~%[MATCH-ADD-M-SYSTEM]: generated new sys ----~%")
+          (print-match-system nsys))
+        (return-from no-match (values nsys nil))))))
 
 ;;; Decompose&Merge
 ;;; Returns the decompose and merging of the given match-system
@@ -957,23 +969,26 @@ Based on the implementation of OBJ3 system.
 (defun match-decompose&merge (m-sys &optional sigma)
   (block no-match
     (let ((sys (match-system-sys m-sys))
-           (env (match-system-env m-sys))
-           (new-env (new-environment) )
-           (new-sys (new-m-system)))
+          (env (match-system-env m-sys))
+          (new-env (new-environment) )
+          (new-sys (new-m-system)))
       (declare (type list new-env new-sys))
       (dolist (eq (m-system-to-list sys))
         (multiple-value-bind (eq-list clash-of-symbol)
             (match-decompose-equation (equation-t1 eq) (equation-t2 eq) sigma)
           (if clash-of-symbol
               (return-from no-match (values nil t))
-              (when (match-insert-if-coherent-with new-env 
-                                                   env 
-                                                   new-sys 
-                                                   eq-list)
-                    (return-from no-match (values nil t))))))
-      (values (create-match-system new-env
-                                   new-sys)
-              nil))))
+            (when (match-insert-if-coherent-with new-env 
+                                                 env 
+                                                 new-sys 
+                                                 eq-list)
+              (return-from no-match (values nil t))))))
+      (let ((msys (create-match-system new-env new-sys)))
+        (with-match-debug ()
+          (format t "~%[Match-Decompose&Merge]: match system created: ----~%")
+          (print-match-system msys))
+        (values msys nil)))))
+
 
 ;;; Extracts from the non fully decomposed part of "m-s" the biggest system to
 ;;; be solved into the theory "th". "th" and "sys" are returned.

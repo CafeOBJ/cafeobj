@@ -74,15 +74,16 @@
 (defun first-match (t1 t2 &optional (sigma nil))
   (declare (type term t1 t2)
            (values list list (or null t) (or null t)))
-  (when *match-debug*
-    (format t "~%* First Match --------------------------------~%")
-    (princ " t1 = ") (term-print-with-sort t1)
-    (terpri)
-    (princ " t2 = ") (term-print-with-sort t2)
-    (terpri)
-    (format t " unify? = ~s" *do-unify*)
-    (terpri)
-    (format t " one way match? = ~s" *one-way-match*)
+  (with-match-debug ()
+    (format t "~%* First Match --------------------------------")
+    (print-next)
+    (princ "t1 = ") (term-print-with-sort t1)
+    (print-next)
+    (princ "t2 = ") (term-print-with-sort t2)
+    (print-next)
+    (format t "unify? = ~s" *do-unify*)
+    (print-next)
+    (format t "one way match? = ~s" *one-way-match*)
     (force-output))
   ;;
   (multiple-value-bind (m-sys no-match) 
@@ -90,7 +91,7 @@
       (match-decompose&merge (create-match-system (new-environment)
                                                   (create-m-system t1 t2))
                              sigma)
-    (when *match-debug*
+    (with-match-debug()
       (format t "~%result of match-deocmpose&merge, no-match=~a" no-match)
       (force-output))
     ;; Note: if the two terms are similar then "m-sys" is empty.
@@ -99,10 +100,10 @@
       (let ((gst (new-global-state)))
         (declare (type list gst))
         (cond ((m-system-is-empty? (match-system-sys m-sys))
-               (when *match-debug*
+               (with-match-debug ()
                  (format t "~% return with success"))
                (let ((subst (match-system-to-substitution m-sys)))
-                 (when *match-debug*
+                 (with-match-debug ()
                    (print-substitution subst))
                  (values gst 
                          subst
@@ -113,7 +114,7 @@
               (t (multiple-value-bind (sys theory-info)
                      (match-system-extract-one m-sys)
                    (declare (type list sys) (type theory-info theory-info))
-                   (when *match-debug*
+                   (with-match-debug()
                      (format t "~% extracted a system ")
                      (print-m-system sys)
                      (format t "~% theory = ")
@@ -128,7 +129,7 @@
                      (if no-match
                          (values nil nil t nil)
                        (let ((next-gst nil))
-                         (when *match-debug*
+                         (with-match-debug ()
                            (format t "~%First match calls next-match")
                            (format t "~% old gst: ")
                            (print-global-state gst)
@@ -141,7 +142,7 @@
                                                sys
                                                theory-info
                                                th-st)))
-                         (when *match-debug*
+                         (with-match-debug ()
                            (format t "~% next gst :")
                            (print-global-state next-gst))
                          (multiple-value-bind (new-gst subst no-match)
@@ -159,7 +160,7 @@
   (block the-end 
     (let (st)
       (while (global-state-is-not-empty gst)
-        (when *match-debug*
+        (with-match-debug() 
           (format t "~%* Next-match : global-state = ")
           (print-global-state gst))
         (setq st (global-state-top gst))
@@ -167,7 +168,7 @@
             (next-match-state st)
           (declare (type (or null match-state) new-st)
                    (type (or null t) no-more))
-          (when *match-debug*
+          (with-match-debug ()
             (format t "~%** Next-match : next-match-state returns no-more = ~a" no-more)
             (unless no-more
               (format t "~%-- new state =")
@@ -184,13 +185,13 @@
                      ;; popping: the reasoning is that a successful state
                      ;; also terminates .
                      (setq gst (global-state-pop gst))
-                     (when *match-debug*
+                     (with-match-debug ()
                        (format t "~%* Next-match : return-with subst"))
                      (return-from the-end
                        (values gst
                                (match-system-to-substitution m-sys)
                                nil)))))))))
-    (when *match-debug*
+    (with-match-debug ()
       (format t "~%* Next-match : return with no-match"))
     ;; no match
     (values nil nil t)))

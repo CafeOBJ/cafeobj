@@ -390,63 +390,56 @@
 
 ;;; x = term
 ;;; y = ((term . eqn-num) ... )
-#||
-(defun delete-one-term
-       (x y)
+;;; #||
+(defun delete-one-term (x y)
   (block exit
     (if (null y)
         'none
-        (if (term-is-applform? x)
-            ;; application form
-            (let ((head (term-head x))
-                  (pos nil))
-              (setq pos
-                    (position-if
-                     #'(lambda (tv)
-                         (let ((term (car tv)))
-                           (and (term-is-applform? term)
-                                (method-is-of-same-operator head
-                                                            (term-head term)))))
-                     (the list y)))
+      (if (term-is-applform? x)
+          ;; application form
+          (let ((head (term-head x))
+                (pos nil))
+            (setq pos (position-if #'(lambda (tv)
+                                       (let ((term (car tv)))
+                                         (and (term-is-applform? term)
+                                              (method-is-of-same-operator head
+                                                                          (term-head term)))))
+                                   (the list y)))
               ;; (break "0")
-              (unless pos
+            (unless pos
                 (return-from exit :never-match))
-              (if  (zerop pos)
-                   (if (term-equational-equal x (caar y))
-                       (return-from exit (cdr y))
-                       (return-from exit 'none))
-                   (let ((last y)
-                         (rest (cdr y))
-                         (cur-pos 1))
-                     (declare (type fixnum cur-pos))
-                     (loop
-                         (when (= cur-pos pos)
-                           (if (term-equational-equal x
-                                                      (caar rest))
-                               (progn
-                                 ;; delete pattern
-                                 (rplacd last (cdr rest))
-                                 (return-from exit y))
-                               (return-from exit 'none)))
-                         (incf cur-pos)
-                       (setq last rest rest (cdr rest))))
-                   ))
-            ;;
-            (if (term-equational-equal x (caar y))
-                (cdr y)
-                (let ((last y) (rest (cdr y)))
-                  (loop (when (null rest) (return 'none))
-                      (when (term-equational-equal x (caar rest))
-                        ;; delete pattern
-                        (rplacd last (cdr rest))
-                        ;; new
-                        (return y))
-                    (setq last rest  rest (cdr rest))))
-                ))
-        )))
-||#
+            (if  (zerop pos)
+                (if (term-equational-equal x (caar y))
+                    (return-from exit (cdr y))
+                  (return-from exit 'none))
+              (let ((last y)
+                    (rest (cdr y))
+                    (cur-pos 1))
+                (declare (type fixnum cur-pos))
+                (loop
+                  (when (= cur-pos pos)
+                    (if (term-equational-equal x (caar rest))
+                        (progn
+                          ;; delete pattern
+                          (rplacd last (cdr rest))
+                          (return-from exit y))
+                      (return-from exit 'none)))
+                  (incf cur-pos)
+                  (setq last rest rest (cdr rest))))))
+        ;; term is not application form
+        (if (term-equational-equal x (caar y))
+            (cdr y)
+          (let ((last y) (rest (cdr y)))
+            (loop (when (null rest) (return 'none))
+              (when (term-equational-equal x (caar rest))
+                ;; delete pattern
+                (rplacd last (cdr rest))
+                ;; new
+                (return y))
+              (setq last rest  rest (cdr rest)))))))
+    ))
 
-;; #||
+#||
 (defun delete-one-term
        (x y)
   (if (null y)
@@ -463,7 +456,7 @@
               (setq last rest  rest (cdr rest))))
           ))
   )
-;; ||#
+||#
 
 (defvar *ac-failure-eq* nil)
 
@@ -559,7 +552,7 @@
                            .z. (theory-info-code minfo-2)))
                       (push (make-equation t1 t2) new-eqns)
                       (progn
-                        (when *match-debug*
+                        (with-match-debug ()
                           (setq *ac-failure-eq* (cons t1 t2)))
                         (setq new-eqns nil)
                         (return nil)) )))))))
@@ -568,18 +561,17 @@
         (progn
           (dolist (eq (nreverse new-eqns))
             (add-equation-to-m-system new-sys eq))
-          (when *match-debug*
+          (with-match-debug ()
             (format t "~%** ac-solution-from-state")
             (print-m-system new-sys))
           new-sys)
         (progn
-          (when *match-debug*
+          (with-match-debug ()
             (format t "~%** no ac solution")
             (print-next)
             (princ " - t1 = ") (term-print (car *ac-failure-eq*))
             (print-next)
-            (princ " - t2 = ") (term-print (cdr *ac-failure-eq*))
-            )
+            (princ " - t2 = ") (term-print (cdr *ac-failure-eq*)))
           nil))))
 
 (#+GCL si:define-inline-function #-GCL defun test_same_term_list (x y)
@@ -644,43 +636,19 @@
   (declare (type list list))
   (let ((ms-list nil))
     (declare (type list ms-list))
-    #||
-    (when *match-debug*
-      (mapc #'(lambda (x) (format t "~&,,,~s" x)) list))
-    ||#
     (dolist (x list) ;;(copy-tree list)
       (declare (type list x))
       (let ((ms-elt (assoc-if #'(lambda (y) 
                                   (declare (type list y))
-                                  #||
-                                  (when *match-debug*
-                                    (format t "~%..x|~d| " (cdr x))
-                                    (term-print (car x))
-                                    (format t "~&..y|~d| " (cdr y))
-                                    (term-print (car y))
-                                    (trace term-equational-equal))
-                                  ||# 
                                   (and (= (the fixnum (cdr x))
                                           (the fixnum (cdr y)))
                                        (term-equational-equal (car y) (car x))))
                               ms-list)))
         (if ms-elt
             (progn
-              #||
-              (when *match-debug*
-                (format t "~%..inc: ~s" ms-elt))
-              ||#
               (incf (the fixnum (cdr ms-elt))))
           (progn
-            #||
-            (when *match-debug*
-              (format t "~%..add: ~s" x))
-            ||#
             (push (cons x 1) ms-list)))))
-    #||
-    (when *match-debug*
-      (untrace term-equational-equal))
-    ||#
     ms-list))
 
 ;;; check for multi-set equality
@@ -901,7 +869,7 @@
                                    (push (cons term eqn-number)
                                          rhs-constants)
                                    (progn
-                                     (when *match-debug*
+                                     (with-match-debug ()
                                        (format t "~%- :never-match : lhs-vars ")
                                        (print-chaos-object lhs-vars))
                                      ;; (format t "~&failure case #3")
@@ -915,7 +883,7 @@
                                      (push (cons term eqn-number)
                                            rhs-funs)
                                    (progn
-                                     (when *match-debug*
+                                     (with-match-debug ()
                                        (format t "~%- :never-match : lhs-vars ")
                                        (print-chaos-object lhs-vars))
                                      ;; (format t "~&failure case #4")
@@ -995,9 +963,9 @@
                        (type fixnum rhs-c-max rhs-f-max rhs-full-bits
                              dummy-bit lhs-r-mask))
               ;;
-              (when *match-debug*
-                (format t "~%..lhs-f-ms=~s, lhs-f-r=~s lhs-v-ms=~s, lhs-v-r=~s, l-m=~d l-gcd=~d" lhs-f-ms lhs-f-r lhs-v-ms lhs-v-r l-m l-gcd)
-                (format t "~&..all-rhs-funs=~s, rhs-c-ms=~s, rhs-c-r=~s, rhs-f-ms=~s, rhs-f-r=~s, r-m=~d, r-gcd=~d" all-rhs-funs rhs-c-ms rhs-c-r rhs-f-ms rhs-f-r r-m r-gcd))
+              ;; (when *match-debug*
+              ;;  (format t "~%..lhs-f-ms=~s, lhs-f-r=~s lhs-v-ms=~s, lhs-v-r=~s, l-m=~d l-gcd=~d" lhs-f-ms lhs-f-r lhs-v-ms lhs-v-r l-m l-gcd)
+              ;;  (format t "~&..all-rhs-funs=~s, rhs-c-ms=~s, rhs-c-r=~s, rhs-f-ms=~s, rhs-f-r=~s, r-m=~d, r-gcd=~d" all-rhs-funs rhs-c-ms rhs-c-r rhs-f-ms rhs-f-r r-m r-gcd))
               ;; one more easy failure check
               (when (or (> l-m r-m)     ; a lhs item is repeated more than any rhs
                         (not (integerp (/ r-gcd l-gcd))))

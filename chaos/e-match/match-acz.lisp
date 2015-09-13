@@ -259,30 +259,8 @@
       (when (term-equational-equal ,term_!* $$_term2)
         (return t))))
 
-;;; acz-state-pool
-
-#||
-(defvar .acz-state-pool. nil)
-
-(defmacro allocate-acz-state ()
-  ` (if .acz-state-pool.
-        (pop .acz-state-pool.)
-        (make-match-ACZ-state)))
-
-(defmacro deallocate-acz-state (acz-state)
-  `(push ,acz-state .acz-state-pool.))
-
-(eval-when (:execute :load-toplevel)
-  (dotimes (x 20) (push (make-match-ACZ-state) .acz-state-pool.)))
-||#
-
 (defmacro allocate-acz-state ()
   (make-match-ACZ-state))
-
-#||
-(defmacro deallocate-acz-state (acz-state)
-  nil)
-||#
 
 #+CMU (declaim (ext:start-block match-acz-state-initialize
                                 match-acz-next-state
@@ -295,8 +273,7 @@
       (unless (eq (car x) (car y))
         (return nil))
     (setq x (cdr x))
-    (setq y (cdr y))
-    ))
+    (setq y (cdr y))))
 
 ;;; NOTE  this is a version for ACZ-internal use only.
 ;;; it simply takes care of the "from which equation" info.
@@ -574,19 +551,16 @@
             (when *match-debug* 
               (format t "~%*** acz solution: ")
               (print-m-system new-sys)
-              (format t "~%***")
-              )
+              (format t "~%***"))
             (values new-sys made-zero))
           (progn
-            (when *match-debug*
-              (format t "~%*** no possible solution in this case")
+            (with-match-debug()
+              (format t "~%***[acz] no possible solution in this case")
               (print-next)
               (princ "t1 = ") (term-print (car *acz-failure-pat*))
               (print-next)
-              (princ "t2 = ") (term-print (cdr *acz-failure-pat*))
-              )
-            (values nil nil)))
-      )))
+              (princ "t2 = ") (term-print (cdr *acz-failure-pat*)))
+            (values nil nil))))))
 
 
 ;;; ACZ State Intialization
@@ -598,6 +572,12 @@
 
 (defun match-ACZ-state-initialize (sys env)
   (declare (type list sys env))
+  (with-match-debug ()
+    (format t "~%** match-acz-state-initialize -------------------------------------")
+    (print-next)
+    (print-match-system-sys sys)
+    (print-next)
+    (print-match-system-env env))
   (block TOP
     (let ((eqn-number -1)
           (sys-methods (alloc-svec (length sys)))
@@ -612,31 +592,28 @@
                (type list all-lhs-vars all-lhs-funs all-rhs-constants
                      all-rhs-funs))
       (dolist (equation sys)
-        (setf eqn-number
-              (1+ eqn-number))
+        (setf eqn-number (1+ eqn-number))
         (let* ((lhs-1 (equation-t1 equation))
                (rhs-1 (equation-t2 equation))
                (lh-meth (term-method lhs-1))
-               (rhs-meth (if (and (term-is-applform? rhs-1)
-                                  (not (term-is-builtin-constant? rhs-1)))
+               (rhs-meth (if (term-is-applform? rhs-1)
                              (term-method rhs-1)
-                             nil))
+                           nil))
                (lhs-2 (list-ACZ-subterms lhs-1 lh-meth))
-               (rhs-2
-                (if (and rhs-meth
-                         (method-is-AC-restriction-of rhs-meth lh-meth))
-                    (list-ACZ-subterms rhs-1 rhs-meth)
-                    (list rhs-1)))
+               (rhs-2 (if (and rhs-meth
+                               (method-is-AC-restriction-of rhs-meth lh-meth))
+                          (list-ACZ-subterms rhs-1 rhs-meth)
+                        (list rhs-1)))
                (lhs-vars nil)
                (lhs-constants nil)
                (lhs-funs nil)
                (rhs-constants nil)
-               (rhs-funs nil)
-               )
+               (rhs-funs nil))
           (declare (type term rhs-1 rhs-1)
                    (type method lh-meth)
                    (type (or null method) rhs-meth)
-                   (type list lhs-2 rhs-2 lhs-vars lhs-constants lhs-funs
+                   (type list lhs-2 rhs-2 lhs-vars 
+                         lhs-constants lhs-funs
                          rhs-constants rhs-funs))
           ;;
           (setf (svref sys-methods eqn-number) lh-meth)
@@ -645,7 +622,6 @@
           (dolist (term lhs-2)
             ;; for each subterm of lhs
             ;; note: unit elements are already eliminated from lhs-2.
-            ;;
             (cond ((term-is-variable? term)
                    (let ((image (if env (environment-image env term) term)))
                      (cond ((null image) 
@@ -656,8 +632,7 @@
                             (push (cons image eqn-number) lhs-constants))
                            ((method-is-AC-restriction-of lh-meth
                                                          (term-method image))
-                            (dolist (term2 (list-ACZ-subterms
-                                            image (term-head image)))
+                            (dolist (term2 (list-ACZ-subterms image (term-head image)))
                               (cond ((term-is-variable? term2)
                                      (push (cons term2 eqn-number)
                                            lhs-vars))
@@ -675,6 +650,18 @@
                    (push (cons term eqn-number) lhs-constants)
                    )
                   (t (push (cons term eqn-number) lhs-funs))))
+          (with-match-debug ()
+            (format t "~%[acz] lhs-funs = ~d, lhs-constants = ~d, lhs-vars = ~d"
+                    (length lhs-funs) (length lhs-constants) (length lhs-vars))
+            (format t "~%[acz] lhs-funs")
+            (dolist (lf lhs-funs)
+              (print lf))
+            (format t "~%[acz] lhs-constants")
+            (dolist (lc lhs-constants)
+              (print lc))
+            (format t "~%[acz] lhs-vars")
+            (dolist (lv lhs-vars)
+              (print lv)))
           ;;
           ;; now that the lhs is partitioned - lets play with the rhs
           ;;
@@ -689,23 +676,28 @@
                            (if (eq new :never-match)
                                (if lhs-vars
                                    (push (cons term eqn-number) rhs-constants)
-                                   (return-from TOP (values nil t)))
-                               (setq lhs-constants new))))))
+                                 (progn
+                                   (with-match-debug ()
+                                     (format t "~%++ :never-match 1"))
+                                   (return-from TOP (values nil t))))
+                             (setq lhs-constants new))))))
                   (t (let ((new (delete-one-term term lhs-funs)))
                        (if (eq 'none new)
                            (push (cons term eqn-number) rhs-funs)
-                           (if (eq new :never-match)
-                               (if lhs-vars
-                                   (push (cons term eqn-number) rhs-funs)
-                                   (return-from TOP (values nil t)))
-                               (setq lhs-funs new)))))))
+                         (if (eq new :never-match)
+                             (if lhs-vars
+                                 (push (cons term eqn-number) rhs-funs)
+                               (progn
+                                 (with-match-debug ()
+                                   (format t "~%++ :never-match 2"))
+                                 (return-from TOP (values nil t))))
+                           (setq lhs-funs new)))))))
           ;; now there are no duplicates (things appearing on both sides)
           (let ((lhs-c-count (length lhs-constants))
                 (lhs-f-count (length lhs-funs))
                 (lhs-v-count (length lhs-vars))
                 (rhs-c-count (length rhs-constants))
-                (rhs-f-count (length rhs-funs))
-                )
+                (rhs-f-count (length rhs-funs)))
             (declare (type fixnum lhs-c-count lhs-f-count lhs-v-count
                            rhs-c-count rhs-f-count))
             ;; check trivial failure conditions
@@ -715,6 +707,8 @@
                       (> lhs-f-count rhs-f-count)) ; too many funs to match
               ;; this assumption may be dubius in ACZ --- can arbitrary 
               ;; funs eventually reduce to identity?
+              (with-match-debug ()
+                (format t "~%++ fail exit 1"))
               (return-from TOP (values nil t))) ; FAIL most miserably
             (setq all-lhs-funs (nconc lhs-funs all-lhs-funs))
             (setq all-lhs-vars (nconc lhs-vars all-lhs-vars))
@@ -726,9 +720,15 @@
                   (null all-lhs-vars))
              (if (and (null all-rhs-constants) ; this is rare
                       (null all-rhs-funs))
-                 (return-from TOP (values (make-trivial-match-ACZ-state 
-                                           :sys (new-m-system)) nil))
-                 (return-from TOP (values nil t))))
+                 (progn
+                   (with-match-debug ()
+                     (format t "~%++ done 1"))
+                   (return-from TOP (values (make-trivial-match-ACZ-state :sys (new-m-system)) 
+                                            nil)))
+               (progn
+                 (with-match-debug ()
+                   (format t "~%++ nomatch done 1"))
+                 (return-from TOP (values nil t)))))
             ;; maybe check for more simple cases, like one-var vs the world.
             ((and *use-one-var-opt*
                   (null all-lhs-funs)   ; only one var left on lhs
@@ -742,8 +742,9 @@
                                                      (cdar all-lhs-vars))
                                            (nconc all-rhs-constants
                                                   all-rhs-funs))))
-               (return-from TOP (values (make-trivial-match-ACZ-state :sys fresh-sys) 
-                                        nil))))
+               (with-match-debug ()
+                 (format t "~%++ done 2"))
+               (return-from TOP (values (make-trivial-match-ACZ-state :sys fresh-sys) nil))))
             (t
              (let* ((lhs-f-count (length all-lhs-funs))
                     (lhs-v-count (1+ (length all-lhs-vars))) ; note this is "wrong"
@@ -802,7 +803,8 @@
                ;; TCW 14 Mar 91 need to restrict this for ACZ
                (when (or (> l-f-m r-m)  ; a lhs item is repeated more than any rhs
                          (not (integerp (/ r-gcd l-gcd))))
-                 ;; (deallocate-acz-state state)
+                 (with-match-debug ()
+                   (format t "~%++ nomatch done 4"))
                  (return-from TOP (values nil t))) ; FAIL most miserably
                ;; NOW, get down to the real work....
                ;; setup the repeat mask (first of v's)
@@ -882,8 +884,10 @@
                        (declare (type fixnum my-compat))
                        (do ()
                            ((> dummy-bit rhs-c-max) 
-                            (progn ;; (deallocate-acz-state state)
-                                   (return-from TOP (values nil t))))
+                            (progn
+                              (with-match-debug ()
+                                (format t "~%++ nomatch done 5"))
+                              (return-from TOP (values nil t))))
                          (unless (zerop (make-and dummy-bit my-compat))
                            (setf (svref rhs-c-sol i) dummy-bit)
                            (return))
@@ -898,7 +902,8 @@
                        (do ()
                            ((> dummy-bit rhs-f-max)
                             (progn
-                              ;; (deallocate-acz-state state)
+                              (with-match-debug ()
+                                (format t "~%++ nomatch-done 6"))
                               (return-from TOP (values nil t))))
                          (unless (zerop (make-and dummy-bit my-compat))
                            (setf (svref rhs-f-sol i) dummy-bit)
@@ -945,18 +950,12 @@
                (setf (match-ACZ-state-no-more state) nil)
                (setf (match-ACZ-state-acz-state-p state) 'acz-state)
                ;;
-               (when *match-debug*
+               (with-match-debug ()
                  (format t "~%acz-init: state=~&")
                  (match-ACZ-unparse-match-ACZ-state state))
                ;;
                (values state nil)))))))
 
-#||
-
-(defun match-ACZ-state-initialize (sys env)
-  (match-AC-state-initialize sys env :have-unit))
-||#
-  
 (defun match-ACZ-next-state-sub (state)
   (do* ((m 0)                           ; only initialize these vars 
         (rhs-c-sol (match-ACZ-state-rhs-c-sol state))
@@ -1008,7 +1007,7 @@
           (values (trivial-match-ACZ-state-sys state) nil nil)))
     (if (not (match-ACZ-state-p state))    
         (progn (format t "~% match-ACZ-Next-State given non match-ACZ-state:~A~%" state)
-               (values nil t nil))
+               (values nil nil t))
       (let ((sys nil)
             (no-more (match-acz-state-no-more state))
             (zero nil))
@@ -1027,14 +1026,10 @@
               )
             (if no-more
                 (match-acz-next-state state)
-              (values sys state nil)
-              )
-            )
-          )
-      ))))
+              (values sys state nil))))))))
           
 (defun match-acz-next-state-aux (state)
-  (when *match-debug*
+  (with-match-debug ()
     (format t "~%** ACZ next state"))
   (if (match-ACZ-state-no-more state)
       (progn
@@ -1048,8 +1043,7 @@
           (rhs-f-count (match-ACZ-state-rhs-f-count state))
           ;;   (rhs-full-bits (match-ACZ-state-rhs-full-bits state)) ;@@
           (lhs-r-mask (match-ACZ-state-lhs-r-mask state))
-          (made-zero nil)
-          )
+          (made-zero nil))
         (nil)                           ; do forever
       (declare (type fixnum n rhs-f-count rhs-f-max lhs-r-mask)
                (type #+GCL vector #-GCL simple-vector
@@ -1088,16 +1082,8 @@
                             (dotimes (i (length lhs-v) t)
                               (declare (type fixnum i))
                               (if (< i 1) nil
-                                (unless (sort<=
-                                         (term-sort
-                                          (car (theory-zero
-                                                (method-theory (svref
-                                                                ops
-                                                                (cdr
-                                                                 (svref
-                                                                  lhs-v
-                                                                  i)))))))
-                                         (term-sort (car (svref lhs-v i))))
+                                (unless (sort<= (term-sort (car (theory-zero (method-theory (svref ops (cdr (svref lhs-v i)))))))
+                                                (term-sort (car (svref lhs-v i))))
                                   (return nil))))))
                      (let ((sol nil))
                        (multiple-value-setq (sol made-zero)
@@ -1109,8 +1095,7 @@
                      ;; failed at f-level
                      ;; (deallocate-acz-state state)
                      (return (values nil t nil))))
-               (setq n (1- n)))
-             )
+               (setq n (1- n))))
             ((< (the fixnum (svref rhs-f-sol n)) rhs-f-max)
              (match-ACZ-Rotate-Left rhs-f-sol n)
              (when (and                 ; this is a compatible position for this bit
@@ -1131,65 +1116,59 @@
              (setf (svref rhs-f-sol n) 1) ; reset this row to one
              (setq n (1+ n)))))))
 
-#||
-(defun match-ACZ-next-state (state)
-  (match-AC-next-state state))
-||#
-
 #+CMU (declaim (ext:end-block))
 
 ;; printout of important parts of ACZ state.
 (defun match-ACZ-unparse-match-ACZ-state (ACZ-st)
-  (format t "~%no more=~A~%" (match-ACZ-state-no-more ACZ-st))
-  (format t "operators: ~%")
-  (map nil #'print-chaos-object(match-ACZ-state-methods ACZ-st))
-  (format t "RHS-f: ~%")
-  (map nil #'print-chaos-object (match-ACZ-state-RHS-f ACZ-st))
-  (format t "RHS-c: ~%")
-  (map nil #'print-chaos-object (match-ACZ-state-RHS-c ACZ-st))
-  (format t "LHS-v: ~%")
-  (map nil #'print-chaos-object (match-ACZ-state-LHS-v ACZ-st)) 
-  (format t "LHS-f: ~%")
-  (map nil #'print-chaos-object (match-ACZ-state-LHS-f ACZ-st))
-  (format t " rhs-c-count=~A, rhs-f-count=~A~%"
-          (match-ACZ-state-RHS-c-count ACZ-st) 
-          (match-ACZ-state-RHS-f-count ACZ-st))
-  (format t " lhs-c-count=~A, lhs-f-count=~A, lhs-v-count=~A~%"
-          (match-ACZ-state-LHS-c-count ACZ-st) 
-          (match-ACZ-state-LHS-f-count ACZ-st) 
-          (match-ACZ-state-LHS-v-count ACZ-st))
-  (let ((*print-base* 2)) ; these be bitvectors, print them as such
-    (format t "-------------------~%rhs-c-sol= ~A~&rhs-f-sol=~A~%"
-            (match-ACZ-state-RHS-c-sol ACZ-st) (match-ACZ-state-RHS-f-sol ACZ-st))
-    (format t " rhs-c-max=~A, rhs-f-max=~A, rhs-full-bits=~A~%"
-            (match-ACZ-state-RHS-c-max ACZ-st) 
-            (match-ACZ-state-RHS-f-max ACZ-st)
-            (match-ACZ-state-RHS-full-bits ACZ-st))
-    (format t " rhs-c-compat=~A, rhs-f-compat=~A~%"
-            (match-ACZ-state-RHS-c-compat ACZ-st) 
-            (match-ACZ-state-RHS-f-compat ACZ-st))
-    (format t " rhs-c-r=~A, rhs-f-r=~A~%"
-            (match-ACZ-state-RHS-c-r ACZ-st) 
-            (match-ACZ-state-RHS-f-r ACZ-st))
-    (format t " lhs-f-r=~A, lhs-v-r=~A~%"
-            (match-ACZ-state-LHS-f-r ACZ-st) 
-            (match-ACZ-state-LHS-v-r ACZ-st))
-    (format t " lhs-mask=~A~%"
-            (match-ACZ-state-LHS-mask ACZ-st))
-    (terpri)
-    (format t " lhs-f-mask=~A~%"
-            (match-ACZ-state-LHS-f-mask ACZ-st))
-    (format t " lhs-r-mask=~A~%"
-            (match-ACZ-state-LHS-r-mask ACZ-st))
-    ))
+  (format t "[ACZ State]")
+  (let ((*print-indent* (+ 2 *print-indent*)))
+    (format t "~%no more=~A" (match-ACZ-state-no-more ACZ-st))
+    (format t "~%operators:")
+    (map nil #'(lambda (x) (print-next) (print-chaos-object x))(match-ACZ-state-methods ACZ-st))
+    (format t "~%RHS-f:")
+    (map nil #'(lambda (x) (print-next) (print-chaos-object x)) (match-ACZ-state-RHS-f ACZ-st))
+    (format t "~%RHS-c:")
+    (map nil #'(lambda (x) (print-next) (print-chaos-object x)) (match-ACZ-state-RHS-c ACZ-st))
+    (format t "~%LHS-v:")
+    (map nil #'(lambda (x) (print-next) (print-chaos-object x)) (match-ACZ-state-LHS-v ACZ-st)) 
+    (format t "~%LHS-f:")
+    (map nil #'(lambda (x) (print-next) (print-chaos-object x)) (match-ACZ-state-LHS-f ACZ-st))
+    (format t "~%rhs-c-count=~A, rhs-f-count=~A"
+            (match-ACZ-state-RHS-c-count ACZ-st) 
+            (match-ACZ-state-RHS-f-count ACZ-st))
+    (format t "~%lhs-c-count=~A, lhs-f-count=~A, lhs-v-count=~A"
+            (match-ACZ-state-LHS-c-count ACZ-st) 
+            (match-ACZ-state-LHS-f-count ACZ-st) 
+            (match-ACZ-state-LHS-v-count ACZ-st))
+    (let ((*print-base* 2))             ; these be bitvectors, print them as such
+      (format t "-------------------~%rhs-c-sol= ~A~&rhs-f-sol=~A~%"
+              (match-ACZ-state-RHS-c-sol ACZ-st) (match-ACZ-state-RHS-f-sol ACZ-st))
+      (format t " rhs-c-max=~A, rhs-f-max=~A, rhs-full-bits=~A~%"
+              (match-ACZ-state-RHS-c-max ACZ-st) 
+              (match-ACZ-state-RHS-f-max ACZ-st)
+              (match-ACZ-state-RHS-full-bits ACZ-st))
+      (format t " rhs-c-compat=~s, rhs-f-compat=~s~%"
+              (match-ACZ-state-RHS-c-compat ACZ-st) 
+              (match-ACZ-state-RHS-f-compat ACZ-st))
+      (format t " rhs-c-r=~s, rhs-f-r=~s~%"
+              (match-ACZ-state-RHS-c-r ACZ-st) 
+              (match-ACZ-state-RHS-f-r ACZ-st))
+      (format t " lhs-f-r=~s, lhs-v-r=~s~%"
+              (match-ACZ-state-LHS-f-r ACZ-st) 
+              (match-ACZ-state-LHS-v-r ACZ-st))
+      (format t " lhs-mask=~s~%"
+              (match-ACZ-state-LHS-mask ACZ-st))
+      (format t " lhs-f-mask=~s~%"
+              (match-ACZ-state-LHS-f-mask ACZ-st))
+      (format t " lhs-r-mask=~s~%"
+              (match-ACZ-state-LHS-r-mask ACZ-st))
+      )))
 
 (defun match-ACZ-trivial-unparse (state)
   (let ((sys (trivial-match-ACZ-state-sys state))
         (no-more-p (trivial-match-ACZ-state-no-more-p state)))
     sys
-    (format t "~% acz-unparse-trivial no-more-p = ~A~%" no-more-p)
-    )
-  )
+    (format t "~% acz-unparse-trivial no-more-p = ~A~%" no-more-p)))
 
 (defun match-ACZ-args-nss (x) (match-ACZ-unparse-match-ACZ-state (car x)) (terpri))
 (setf (get 'match-ACZ-next-state-sub 'print-args) 'match-ACZ-args-nss)

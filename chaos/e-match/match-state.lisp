@@ -125,18 +125,6 @@
 ;;; Initialize a match-state in which a match system "m-sys" has been inserted.
 ;;; "m-s" is supposed to be merged and ready for mutation i.e. decomposed
 ;;;
-;;; *NOT-USED*
-;;;(defun match-state-initialize (t1 t2) 
-;;;  (multiple-value-bind (m-sys no-match) 
-;;;      (match-system.dec-merg (match-system.new t1 t2))
-;;;    (if no-match 
-;;;        (values nil t)
-;;;        (multiple-value-bind (sys th-info) 
-;;;            (match-system.extract-one-system m-sys)
-;;;          (values (match-state-create
-;;;                   m-sys sys th-info (theory-state-match-initialize th-info sys))
-;;;                  nil)
-;;;          ))))
 
 ;;; EMPTY-STATE, see "match-e.lisp"
 
@@ -166,48 +154,52 @@
     ;; computes the next solution of th-match-state we quit this loop either if
     ;; there is no more new th-match-state or a new match system has been computed.
     (loop
-     (multiple-value-bind (sys  new-th-match-state no-more)
-         (theory-state-match-next-state theory-info th-match-state)
-       (declare (type list sys)
-                (type t new-th-match-state)
-                (type (or null t) no-more))
-       (if no-more 
-           (return (values nil t))
-           ;; "match-add-m-system" performs the decomposition and merging
-           ;; and must not destroy the current match system.
-           (multiple-value-bind (new-m-sys no-match)
-               ;; create a new merged match-system containing the old one 
-               ;; and add sys.
-               (match-add-m-system (match-state-match-system st) sys)
-             ;; if there is no-match, continue (the loop)
-             ;; else try to returns the new match-state.
-             (unless no-match
-               (multiple-value-bind (sys-to-solve theory-info) 
-                   (m-system-extract-one-system (match-system-sys  new-m-sys))
-                 (declare (type list sys-to-solve)
-                          (type theory-info theory-info))
-                 (if (null sys-to-solve)
-                     (return (values (match-state-create new-m-sys
-                                                         nil
-                                                         (theory-info *the-empty-theory*)
-                                                         (the-match-empty-state))
-                                     nil))
-                     (multiple-value-bind (th-st no-match)
-                         (theory-state-match-initialize theory-info
-                                                        sys-to-solve
-                                                        (match-system-env new-m-sys))
-                       ;; if no match, try another theory-state
-                       (unless no-match 
-                         ;; else modify the th-match-state of st
-                         (setf (match-state-theory-state st) new-th-match-state)
-                         ;; and returns
-                         (return (values (match-state-create
-                                          (match-system-modif-m-sys
-                                           new-m-sys 
-                                           sys-to-solve)
-                                          sys-to-solve
-                                          theory-info
-                                          th-st)
-                                         nil))))))))
-           )))))
+      (multiple-value-bind (sys  new-th-match-state no-more)
+          (theory-state-match-next-state theory-info th-match-state)
+        (declare (type list sys)
+                 (type t new-th-match-state)
+                 (type (or null t) no-more))
+        (if no-more 
+            (return (values nil t))
+          ;; "match-add-m-system" performs the decomposition and merging
+          ;; and must not destroy the current match system.
+          (multiple-value-bind (new-m-sys no-match)
+              ;; create a new merged match-system containing the old one 
+              ;; and add sys.
+              (match-add-m-system (match-state-match-system st) sys)
+            ;;
+            (with-match-debug ()
+              (let ((fun (theory-info-match-next-fun theory-info)))
+                (format t "~%<--[Match-next-state] funcalled ~s" fun)))
+            ;; if there is no-match, continue (the loop)
+            ;; else try to returns the new match-state.
+            (with-match-debug ()
+              (if no-match
+                  (format t "[NEXT-MATCH-STATE] retun with no-match.")))
+            (unless no-match
+              (multiple-value-bind (sys-to-solve theory-info) 
+                  (m-system-extract-one-system (match-system-sys  new-m-sys))
+                (declare (type list sys-to-solve)
+                         (type theory-info theory-info))
+                (if (null sys-to-solve)
+                    (return (values (match-state-create new-m-sys
+                                                        nil
+                                                        (theory-info *the-empty-theory*)
+                                                        (the-match-empty-state))
+                                    nil))
+                  (multiple-value-bind (th-st no-match)
+                      (theory-state-match-initialize theory-info
+                                                     sys-to-solve
+                                                     (match-system-env new-m-sys))
+                    ;; if no match, try another theory-state
+                    (unless no-match 
+                      ;; else modify the th-match-state of st
+                      (setf (match-state-theory-state st) new-th-match-state)
+                      ;; and returns
+                      (return (values (match-state-create (match-system-modif-m-sys new-m-sys sys-to-solve)
+                                                          sys-to-solve
+                                                          theory-info
+                                                          th-st)
+                                      nil))))))))
+          )))))
 ;;; EOF
