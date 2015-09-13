@@ -149,7 +149,7 @@
     ;; print out prelude message
     (unless *chaos-quiet*
       (with-in-module (mod)
-        (format t "~%-- ~a in " (if (eq mode :exec)
+        (format t "~&-- ~a in " (if (eq mode :exec)
                                     "execute"
                                   (if (eq mode :exec+)
                                       "execute!"
@@ -163,6 +163,8 @@
           (term-print-with-sort term))
         (flush-all)))
     ;; do the rewriting
+    (let ((*chaos-quiet* t))
+      (compile-module mod))
     (setq result (reducer term mod mode))
     ;; print out the resultant term
     (with-in-module (mod)
@@ -264,7 +266,7 @@
         (target-term nil))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
-        (princ "incorrect module expression, not such module: ")
+        (princ "incorrect module expression, no such module: ")
         (print-chaos-object modexp)))
     ;;
     (context-push-and-move (get-context-module t) mod)
@@ -456,7 +458,7 @@
     (setf mod (eval-modexp modexp))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
-        (format t "incorrect module expression, unknown module?")
+        (format t "incorrect module expression, or unknown module: ")
         (print-modexp modexp)))
     (describe-module mod)))
 
@@ -473,7 +475,7 @@
                 (eval-modexp modexp)))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
-        (princ "incorrect module expression or uknown module")
+        (princ "incorrect module expression or uknown module ")
         (print-modexp modexp)))
     ;;
     (unless mod

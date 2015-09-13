@@ -249,6 +249,8 @@
   ;;    (reset-rewrite-counters)-(begin-rewrite)-(end-rewrite)
   (defun reducer-no-stat (term context-module rewrite-mode)
     (with-in-module ((prepare-reduction-env term context-module rewrite-mode nil))
+      ;; be ready for rewriting
+      (!setup-reduction *current-module*)
       (catch 'rewrite-abort
         (if *rewrite-exec-mode*
             (rewrite-exec $$target-term *current-module* rewrite-mode)
