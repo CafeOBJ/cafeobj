@@ -390,7 +390,7 @@
 
 ;;; x = term
 ;;; y = ((term . eqn-num) ... )
-;;; #||
+#||
 (defun delete-one-term (x y)
   (block exit
     (if (null y)
@@ -438,8 +438,8 @@
                 (return y))
               (setq last rest  rest (cdr rest)))))))
     ))
+||#
 
-#||
 (defun delete-one-term
        (x y)
   (if (null y)
@@ -456,7 +456,6 @@
               (setq last rest  rest (cdr rest))))
           ))
   )
-||#
 
 (defvar *ac-failure-eq* nil)
 

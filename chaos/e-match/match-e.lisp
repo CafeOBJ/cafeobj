@@ -60,6 +60,9 @@
            (type list sys)
            (values (or null t) (or null t)))
   (block no-match
+    (with-match-debug ()
+      (format t "~%[empty initialize]-----------~%")
+      (print-match-equations (m-system-to-list sys)))
     (dolist (equation (m-system-to-list sys))
       (let ((lhs (equation-t1 equation))
             (rhs (equation-t2 equation)))
