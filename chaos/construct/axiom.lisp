@@ -979,7 +979,7 @@
                (cond-e (term-error-operators&variables cond nil)))
           (when (and (or lhs-e rhs-e cond-e)
                      message?)
-            (when *chaos-verbose*
+            (when t                     ; *chaos-verbose* ; should always be reported.
               (with-output-chaos-warning ()
                 (format t "axiom : ")
                 (print-chaos-object axiom)
