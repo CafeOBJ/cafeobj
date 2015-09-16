@@ -470,7 +470,7 @@ The sub-system provides a certain level of automatization for theorem proving.
 TODO TODO
 
 
-Related: [`:define`](#citp-def), [`:pctf-`](#citp-pctf-), [`:pctf`](#citp-pctf), [`:ctf-`](#citp-ctf-), [`:ctf`](#citp-ctf), [`:csp-`](#citp-csp-), [`:csp`](#citp-csp), [`:red`](#citp-red), [`:select`](#citp-select), [`:backward`](#citp-backward), [`:rule`](#citp-rule), [`:equation`](#citp-equation), [`:cp`](#citp-cp), [`:init`](#citp-init), [`:roll`](#citp-roll), [`:auto`](#citp-auto), [`:ind`](#citp-ind), [`:apply`](#citp-apply), [`:goal`](#citp-goal)
+Related: [`:define`](#citp-def), [`:ctf-`](#citp-ctf-), [`:ctf`](#citp-ctf), [`:csp-`](#citp-csp-), [`:csp`](#citp-csp), [`:red`](#citp-red), [`:select`](#citp-select), [`:backward`](#citp-backward), [`:rule`](#citp-rule), [`:equation`](#citp-equation), [`:cp`](#citp-cp), [`:init`](#citp-init), [`:roll`](#citp-roll), [`:auto`](#citp-auto), [`:ind`](#citp-ind), [`:apply`](#citp-apply), [`:goal`](#citp-goal)
 
 ## `clause <term> .` ## {#clause}
 
@@ -1301,18 +1301,6 @@ Related: [`qualified term`](#qualified)
 
 
 
-## `:pctf { <bool-term> . ... <bool-term> .}` ## {#citp-pctf}
-
-TODO
-
-Related: [`citp`](#citp)
-
-## `:pctf- { <bool-term> . ... <bool-term> . }` ## {#citp-pctf-}
-
-TODO
-
-Related: [`citp`](#citp)
-
 ## `popd` ## {#popd}
 
 
@@ -1644,6 +1632,11 @@ modification of the module, e.g., addition of new sorts etc.
 
 
 Related: [`module expression`](#moduleexpression), [`open`](#open)
+
+## `:set(<name>, { on | off | show })` ## {#citp-set}
+
+Set or show various flags of CITP CafeOBJ.
+
 
 ## `set <name> [option] <value>` ## {#set}
 
