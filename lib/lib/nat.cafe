@@ -38,7 +38,7 @@ sys:mod! NAT
     pred _ > _ : Nat Nat  { demod prec: 51 }
     pred _ <= _ : Nat Nat  { demod prec: 51 }
     pred _ < _ : Nat Nat  { demod prec: 51 }
-    op _ * _ : Nat Nat -> Nat { strat: (2 0 1) assoc comm demod prec: 31 }
+    op _ * _ : Nat Nat -> Nat { assoc comm idr: 1 demod prec: 31 }
     op _ + _ : Nat Nat -> Nat { assoc comm idr: 0 demod prec: 33 }
     op sd : Nat Nat -> Nat { comm demod prec: 0 }
     op _ quo _ : Nat NzNat -> Nat { demod prec: 31 }

@@ -40,7 +40,7 @@ sys:mod! RAT
     pred _ > _ : Rat Rat  { demod prec: 41 }
     pred _ <= _ : Rat Rat  { demod prec: 41 }
     pred _ < _ : Rat Rat  { demod prec: 41 }
-    op _ * _ : Rat Rat -> Rat { assoc comm demod prec: 41 }
+    op _ * _ : Rat Rat -> Rat { assoc comm idr: 1 demod prec: 41 }
     op _ + _ : Rat Rat -> Rat { assoc comm idr: 0 demod prec: 41 }
     op _ rem _ : Rat NzRat -> Rat { demod prec: 41 }
     op _ / _ : Rat NzRat -> Rat { demod prec: 31 l-assoc }
