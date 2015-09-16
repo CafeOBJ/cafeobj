@@ -1189,7 +1189,8 @@
                                                                src-method))
                                          nil)))
                    (declare (ignore arity-mapped))
-                   (unless (sort= coarity-mapped (term-sort dst-pat))
+                   (unless (sort<= (term-sort dst-pat) coarity-mapped
+                                   (module-sort-order dst-mod))
                      (with-output-chaos-warning ()
                      (princ "operator mapping is not strict wrt sort map:")
                      (print-next)
