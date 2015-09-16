@@ -516,7 +516,7 @@
           open-mod)
       (setf (%module-decl-kind *module-open-form*) (module-kind mod))
       (setq open-mod (eval-ast *module-open-form*))
-      (import-module open-mod :using mod)
+      (import-module open-mod :using (compile-module mod))
       (compile-module open-mod)
       (change-context *last-before-open* open-mod)
       open-mod)))

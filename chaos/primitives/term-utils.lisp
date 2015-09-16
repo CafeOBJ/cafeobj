@@ -253,7 +253,8 @@
 (defun update-lowest-parse (term)
   (declare (type term term)
            (values t))
-  (let ((body (term-body term)))
+  (let ((body (term-body term))
+        (assoc-applied nil))
     (unless (or (term$is-variable? body) (term$is-psuedo-constant? body)
                 (term-is-an-error term))
       ;;
@@ -345,16 +346,6 @@
             (when *term-debug*
               (format t "~&[ULP] head operator was changed =======")))
           ;;
-          #||
-          (if (eq (term-head term) *bool-if*)
-              (progn
-                (set-if-then-else-sort term)
-                ;; (setq sort (term-sort term))
-                )
-            ;; (setq sort (setf (term$sort body) (method-coarity (term$head body))))
-            )
-          ||#
-          ;;
           (setq head new-head)
           (when (method-is-associative head)
               ;; &&&& the following transformation tends to put
@@ -376,9 +367,10 @@
                 ;;       s'    s              s   s
                 ;; so:
                 (setf (term$subterms body)
-                      (list (term$arg-1 son)
-                            (update-lowest-parse (make-term-with-sort-check-bin head (list t1 t2))))))
-                                        ; (make-applform (method-coarity head) head (list t1 t2))
+                  (list (term$arg-1 son)
+                        (update-lowest-parse (make-term-with-sort-check-bin head (list t1 t2)))))
+                (setq assoc-applied t))
+
               ;; would only like to do the following if the
               ;; sort really decreases
               (when (and (not (or (term$is-variable? (setq son (term-body
@@ -388,8 +380,7 @@
                          (sort= (term-sort (setq t1 (term$arg-1 body)))
                                 (term-sort (setq t2 (term$arg-1 son))))
                          (sort< (term-sort t1) (term-sort (term$arg-2 son)) sort-order))
-                (when *term-debug*
-                  (format t "~&[ULP] ASSOCIATIVITY 2"))
+                
                 ;; we are in the following configuration
                 ;;              fs'       ->       fs'
                 ;;            s     fs'         fs     s'
@@ -399,7 +390,12 @@
                       (list (update-lowest-parse
                                         ;(make-applform (method-coarity head) head (list t1 t2))
                              (make-term-with-sort-check-bin head (list t1 t2)))
-                            (term$arg-2 son)))))
+                            (term$arg-2 son)))
+                (when *term-debug*
+                  (format t "~&[ULP] ASSOCIATIVITY 2~%=> ")
+                  (term-print-with-sort term))
+                ;; we mark 
+                (setf assoc-applied t)))
 
           ;;  necesary to have true lowest parse
 
@@ -409,10 +405,10 @@
                    (alt-op (lowest-method head
                                           (list (term-sort t2) (term-sort t1)))))
               (when (not (eq alt-op head))
-                (term-replace term ;(make-applform (method-coarity alt-op) alt-op (list t2 t1))
+                (term-replace term
                               (make-term-with-sort-check-bin alt-op (list t2 t1))))))
           (mark-term-as-lowest-parsed term)
-          term)))))
+          (values term assoc-applied))))))
 
 #||
 (defun update-lowest-parse (term)
@@ -459,8 +455,6 @@
             ;;; (setf (term$sort body) (method-coarity (term$head body)))
             (setf (term-sort term) (method-coarity (term-head term)))
             
-            ;; ;;;;; FOR NOW;;;;;;;;;;;;;
-            ;; (return-from update-lowest-parse term)
             ;; extensions for associativity: if s and s' are sorts s.t. s < s' then
             (when (method-is-associative head)
               ;; &&&& the following transformation tends to put

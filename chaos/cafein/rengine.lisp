@@ -634,7 +634,7 @@
            (values (or null t)))
   (labels ((apply-rules-internal ()
              (let ((top nil))
-               (unless (term-is-lowest-parsed? term) (update-lowest-parse term))
+               ;; (unless (term-is-lowest-parsed? term) (update-lowest-parse term))
                (setq top (term-head term))
                ;; apply same top rules
                (apply-rules-with-same-top term (method-rules-with-same-top top))
@@ -856,13 +856,15 @@
     (cond ((null strategy)
            ;; no strat, or exhausted.
            (unless (term-is-lowest-parsed? term)
-             (update-lowest-parse term)
-             (unless (method= (term-method term) top)
-               (when *rewrite-debug*
-                 (with-output-msg ()
-                   (format t "- resetting reduced flag ...")))
+             (multiple-value-bind (xterm assoc?)
+                 (update-lowest-parse term)
+               (when (or assoc?
+                         (not (method= (term-method term) top)))
+                 (when *rewrite-debug*
+                   (with-output-msg ()
+                     (format t "- resetting reduced flag ...")))
                (reset-reduced-flag term)
-               (return-from reduce-term (normalize-term term))))
+               (return-from reduce-term (normalize-term term)))))
            (unless (or *rewrite-semantic-reduce*
                        *beh-rewrite*)
              (mark-term-as-reduced term)))
@@ -1013,8 +1015,8 @@
 (defun normalize-term (term)
   (declare (type term term)
            (values (or null t)))
-  (unless (term-is-lowest-parsed? term)
-    (update-lowest-parse term))
+  ;; (unless (term-is-lowest-parsed? term)
+  ;;  (update-lowest-parse term))
   (when *rewrite-debug*
     (with-output-simple-msg ()
       (format t "[normalize-term]:(NF=~A,LP=~A,OD=~A) "
