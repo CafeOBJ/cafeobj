@@ -133,6 +133,19 @@
             nil))
       (error "is-simple-file-name? : given non string arg ~a" path))))
 
+(defun is-relative-file-name? (path)
+  (declare (type (or simple-string pathname) path)
+           (values (or null t)))
+  (let ((pn (if (pathnamep path)
+		path
+	      (if (stringp path)
+		  (pathname path)
+		(error "is-relative-file-name? : given non string arg ~a" path)))))
+    (if (or (null (pathname-directory pn))
+	   (member ':relative (pathname-directory pn) :test #'equal))
+	t
+      nil)))
+
 (defun supply-suffixes (path suffixes)
   (declare (type (or simple-string pathname) path)
            (type list suffixes)
@@ -162,7 +175,7 @@
   (when (and load-path (atom load-path))
     (setq load-path (list load-path)))
   ;;
-  (cond ((is-simple-file-name? file)
+  (cond ((is-relative-file-name? file)
          (let ((file-path (chaos-get-relative-path*
                            (concatenate 'string "./" file)))
                (res nil))

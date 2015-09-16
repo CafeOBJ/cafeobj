@@ -806,7 +806,8 @@
           (chaos-to-top)))
       (if file
           (funcall proc file)
-        (funcall proc feature)))))
+        (funcall proc (format nil "~{~A~^/~}"
+                              (cl-ppcre:split "::" feature)))))))
 
 ;;; *******
 ;;; PROTECT
