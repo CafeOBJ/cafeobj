@@ -264,28 +264,6 @@
 ;;; BASIC PROCS for REWRITE RULE APPLICATION
 (defvar *memo-debug* nil)
 
-#| NOT USED
-(defmacro term-replace-with-memo (old new)
-  (once-only (old new)
-     ` (if (and (not (term-is-builtin-constant? ,old))
-                (or *always-memo*
-                    (method-has-memo (term-head ,old))))
-           (let ((term-memo (simple-copy-term ,old)))
-             (when *memo-debug*
-               (when (term-equational-equal term-memo ,new)
-                 (with-output-chaos-warning ()
-                   (format t "E-E term is about to hashed!")
-                   (terpri)
-                   (term-print-with-sort ,new)))
-               (format t "~%[memo]: ")
-               (term-print-with-sort term-memo)
-               (format t "~% ==> ")
-               (term-print-with-sort ,new))
-             (set-hashed-term term-memo *term-memo-table* ,new)
-             (term-replace ,old ,new))
-         (term-replace ,old ,new))))
-|#
-
 (declaim (inline term-replace-dd-simple))
 #-gcl
 (defun term-replace-dd-simple (old new)
@@ -340,7 +318,16 @@
              (rhs-instance nil))
         (multiple-value-bind (global-state subst no-match E-equal)
             ;; first we find matching rewrite rule 
-            (funcall (rule-first-match-method rule) (rule-lhs rule) term)
+            (funcall (or (rule-first-match-method rule)
+                         (progn
+                           (with-output-chaos-warning ()
+                             (format t "Internal, no 'matching-mehod' is assigned for:")
+                             (print-next)
+                             (print-axiom-brief rule))
+                           (compute-rule-method rule)
+                           (rule-first-match-method rule)))
+                     (rule-lhs rule)
+                     term)
           ;; stat, count up number of matching trials
           (incf $$matches)
           (setq *cafein-current-subst* subst) ; I don't remember for what this is used
@@ -817,17 +804,6 @@
     ;; return t iff the rule is applied.
     is-applied))
 
-#|| -- moved to reducer.lisp
-(defun simplify-on-top (term)
-  (declare (type term term)
-           (values t))
-  (if (term-is-application-form? term)
-      (apply-rules-with-different-top term
-                                      (method-rules-with-different-top
-                                       (term-method term)))
-    term))
-||#
-
 ;;;
 ;;;                              REWRITE ENGINE
 ;;;
@@ -844,7 +820,6 @@
   (declare (type term term)
            (type list strategy)
            (values (or null t)))
-  ;;
   (when *rewrite-debug*
     (with-output-simple-msg ()
       (format t "[reduce-term](NF=~a,LP=~a): " (term-is-reduced? term) (term-is-lowest-parsed? term))
@@ -858,6 +833,7 @@
            (unless (term-is-lowest-parsed? term)
              (multiple-value-bind (xterm assoc?)
                  (update-lowest-parse term)
+               (declare (ignore xterm))
                (when (or assoc?
                          (not (method= (term-method term) top)))
                  (when *rewrite-debug*
@@ -1643,13 +1619,6 @@
         ;;
         (setq $$term saved-$$term)
         term))))
-
-;;; ****
-;;; INIT
-;;; ****
-;;;(eval-when (:execute :load-toplevel)
-;;;  (setf (symbol-function 'apply-one-rule)
-;;;     #'apply-one-rule-simple))
 
 ;;; EOF
 

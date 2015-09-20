@@ -402,6 +402,6 @@
             (set-needs-rule module))))))
 
 (defun beh-rewrite (term mod)
-  (reducer term mod :red))
+  (reducer-no-stat term mod :red))
 
 ;;; EOF

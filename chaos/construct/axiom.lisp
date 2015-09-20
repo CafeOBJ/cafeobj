@@ -472,14 +472,18 @@
 ;;;
 (defun compute-rule-method (rule)
   (declare (type axiom rule)
-           (values t))
+	   (values t))
+  (when *on-axiom-debug*
+    (format t "~%[CRM] compute rule method")
+    (format t "~% (~x) " (addr-of rule))
+    (print-axiom-brief rule))
   (let ((m (choose-match-method (axiom-lhs rule)
-                                (axiom-condition rule)
-                                (axiom-kind rule))))
+				(axiom-condition rule)
+				(axiom-kind rule))))
     (setf (axiom-first-match-method rule) (car m))
     (setf (axiom-next-match-method rule) (cdr m))
     rule))
-         
+
 ;;; RULE-COPY : rule -> rule
 ;;;-----------------------------------------------------------------------------
 ;;; Returns a copy of "rule". The variable occuring in the rule are also
@@ -615,9 +619,9 @@
            (values list))
   (do* ((lst rs (cdr lst))
         (r (car lst) (car lst)))
-       ((null lst) (cons rule rs))
+      ((null lst) (cons rule rs))
     (when (rule-is-similar? rule r)
-      (when (and *chaos-verbose*
+      (when (and (or *chaos-verbose* *on-axiom-debug*)
                  (not (eq rule r))
                  (not (member (axiom-kind rule) .ext-rule-kinds.)))
         (with-output-msg ()
@@ -631,10 +635,10 @@
       (let ((newlhs (axiom-lhs rule))
             (oldlhs (axiom-lhs r)))
         (when (and (not (term-is-variable? newlhs))
-                   (not (term-is-variable? oldlhs))
-                   (not (method= (term-method newlhs) (term-method oldlhs)))
-                   (sort<= (term-sort oldlhs) (term-sort newlhs)))
-          (rplaca lst rule))
+                 (not (term-is-variable? oldlhs))
+                 (not (method= (term-method newlhs) (term-method oldlhs)))
+                 (sort<= (term-sort oldlhs) (term-sort newlhs)))
+              (rplaca lst rule))
         (return-from adjoin-rule rs)))))
 
 ;;; RULE-OCCURS : rule ruleset -> Bool
@@ -715,21 +719,23 @@
   (declare (type module module)
            (type axiom ax)
            (values t))
-  (if (memq (axiom-type ax) '(:equation :pignose-axiom :pignose-goal))
-      (setf (module-equations module)
-            (adjoin-rule ax (module-equations module)))
+  (with-in-module (module)
+    (if (memq (axiom-type ax) '(:equation :pignose-axiom :pignose-goal))
+        (setf (module-equations module)
+          (adjoin-rule ax (module-equations module)))
       (setf (module-rules module)
-            (adjoin-rule ax (module-rules module)))))
+        (adjoin-rule ax (module-rules module))))))
 
 (defun add-rule-to-module (module rule)
   (declare (type module module)
            (type axiom rule)
            (values t))
-  (add-rule-to-method rule
-                      (term-head (axiom-lhs rule))
-                      (module-opinfo-table module))
-  (pushnew rule (module-rewrite-rules module)
-           :test #'rule-is-similar?)) 
+  (with-in-module (module)
+    (add-rule-to-method rule
+                        (term-head (axiom-lhs rule))
+                        (module-opinfo-table module))
+    (pushnew rule (module-rewrite-rules module)
+             :test #'rule-is-similar?)))
 
 (defun add-rule-to-method (rule method
                                 &optional (opinfo-table *current-opinfo-table*))
