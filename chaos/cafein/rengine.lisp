@@ -320,10 +320,11 @@
             ;; first we find matching rewrite rule 
             (funcall (or (rule-first-match-method rule)
                          (progn
-                           (with-output-chaos-warning ()
-                             (format t "Internal, no 'matching-mehod' is assigned for:")
-                             (print-next)
-                             (print-axiom-brief rule))
+                           (when *chaos-verbose*
+                             (with-output-chaos-warning ()
+                               (format t "Internal, no 'matching-mehod' is assigned for:")
+                               (print-next)
+                               (print-axiom-brief rule)))
                            (compute-rule-method rule)
                            (rule-first-match-method rule)))
                      (rule-lhs rule)
