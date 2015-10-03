@@ -1,6 +1,6 @@
 % !TEX TS-program = xelatex
 % !TEX encoding = UTF-8
-% 2014H1: CITP for CafeOBJ
+% 2015F1: CITP for CafeOBJ
 % toshi.swd@gmail.com
 %
 \documentclass[a4paper,oneside,10pt,here]{memoir}
@@ -12,18 +12,16 @@
 \usepackage{fancyvrb}
 \usepackage{amssymb}
 \usepackage{bussproofs}
-
-
 %%% Japanese
 \usepackage{fontspec}
 \usepackage{indentfirst}
 \setmainfont[Mapping=tex-text]{M+ 2p regular}
 \setsansfont[Mapping=tex-text]{M+ 2c regular}
 \setmonofont[Mapping=tex-text]{M+ 2m medium}
-%\setmainfont[Ligatures=TeX]{Meiryo}
-%\setsansfont[Ligatures=TeX]{Hiragino Kaku Gothic ProN W3}
-%\setmonofont[Ligatures=TeX]{Osaka-Mono}
-\XeTeXlinebreaklocale "ja"
+% \setmainfont[Ligatures=TeX]{Meiryo}
+% \setsansfont[Ligatures=TeX]{Hiragino Kaku Gothic ProN W3}
+% \setmonofont[Ligatures=TeX]{Osaka-Mono}
+\XeTeXlinebreaklocale "ja_JP"
 \XeTeXlinebreakskip=0em plus 0.1em minus 0.01em
 \XeTeXlinebreakpenalty=0
 \renewcommand{\baselinestretch}{1.4}
@@ -126,12 +124,13 @@
 \frontmatter
 \pagestyle{empty}
 % 表紙 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{証明譜作成支援機構 CITP for CafeOBJ}
+\title{CITP for CafeOBJ \\
+ver. 1.0}
 \vfill
 \author{澤田 寿実\\
   (株) 考作舎\\
   tswd@kosakusha.com}
-\date{2015/3/10}
+\date{2015/10/1}
 \maketitle
 \vfill
 \begin{center}
@@ -148,37 +147,49 @@
 \tableofcontents
 \EnableBpAbbreviations
 \newpage
-\chapter{CITP for Cafe の新規コマンド}\label{chap:new-commands}
-本章では CITP for Cafe で新たに導入されたコマンド群の仕様について述べる．
+\chapter{用語}\label{sec:terms}
+本書は証明論について基礎的な知識を持つ CafeOBJ ユーザーを対象とした，
+CITP for CafeOBJ と呼ばれる証明譜支援システムの利用ガイドである．
+本書で記述する CITP for CafeOBJ の機能は version 1.5.4 以降の
+CafeOBJ システムで利用可能である\footnote{最新版の CafeOBJ システムは http://cafeobj.org/download/ からダウンロード可能である)}．
 
-\section{用語}\label{sec:terms}
 表\ref{table:terms}に以下で使用するいくつかの用語の定義を示す．
-
 \begin{table}
 \caption{用語の定義}
 \label{table:terms}
 \begin{center}
-\begin{tabular}[tbhp]{|l|p{0.6\textwidth}|}\hline
+\begin{tabular}[htb]{|l|p{0.6\textwidth}|}\hline
 用語 & 定義 \\\hline\hline
 文(sentence)   & 自由変数を含まない(条件付き)等式($t = t' if C$) あるいは、(条件付き)遷移規則 ($t \Rightarrow t'$)．
 CafeOBJ の等式宣言や遷移規則宣言のフォームで表記する． \\\hline 
-文脈(context) & 証明を実施するモジュール．\\\hline
+文脈(context) & 証明を実施するモジュール．CafeOBJ で提供されているコマンドには，
+ある特定のモジュールを対象としたコマンドが多数存在する．
+CITP for CafeOBJ で提供されるコマンドも多くがそうであり，
+それらのコマンドを使う際に，一々対象とするモジュールを指定するのは煩わしいために%
+導入されたのが\textbf{文脈}という概念である．
+文脈は ``select'' や ``open'' コマンドによって設定され，
+モジュールをパラメータとして持つコマンドの適用先を暗黙的に指定した--つまりパラメータを省略した際に適用先として%
+採用されるモジュール--となる．
+\\\hline
 ゴール(goal) & 四つ組 $<M,G,C,H>$． 文脈($M$)とそこで証明したい文の集合($G$)，
 証明に際して使用した戦略(tactic)により導入された定数(constants)の集合($C$)と
 仮定(hypothesis)$H$(文の集合)．単に証明対象とする文(の集合)をゴールと呼ぶことがある．\\\hline
-戦略(tactic) & tactic．証明で用いる演繹規則およびそれらを組み合わせたものを戦略(tactic)と呼ぶ．\\\hline
+戦略(tactic) & 証明で用いる演繹規則およびそれらを組み合わせたものを戦略(tactic)と呼ぶ．\\\hline
 基底項(ground term) & 変数を含まない項. \\\hline
 \end{tabular}
 \end{center}
 \end{table}
 
+
+\chapter{CITP for CafeOBJ のコマンド}\label{chap:new-commands}
+本章では CITP for CafeOBJ で提供されるコマンドの挙動について述べる．
+厳密な動作の理解のためには参考文献を参照されたい．
 \section{証明の開始(ゴールの設定)} \label{sec:start-proof}
-ある特定のモジュール $M$ を文脈として，その中で証明したい文の集合 $G$ がすべて
-成立することを演繹規則(戦略)を順次適用することによって証明することが本システムの
-目標となる．
+ある特定のモジュール $M$ を文脈として，その中で証明したい文の集合 $G$ がすべて成立することを％
+演繹規則(戦略)を順次適用することによって証明することが本システムの目標である．
 
 \begin{itemize}
-\item 証明を開始するには，証明を行う文脈を設定し証明したい文の集合を宣言する．\\
+\item 証明を開始するには，証明を行う文脈を設定し，次いで証明したい文の集合を宣言する．\\
   文脈の設定は，既存の CafeOBJ コマンド \verb|select <ModuleExpression> .| あるいは \verb|open <ModuleExpression> .|
   によって行う．
 \item 証明を実施する文脈の設定後，下に示す \verb|:goal| コマンドによって証明したい文の集合を指定する．\\
@@ -187,12 +198,13 @@ CafeOBJ の等式宣言や遷移規則宣言のフォームで表記する． \\
     goal コマンド ::= :goal { <sentence> .  ...  <sentence> . }      
     \end{simplev}
   \end{vvtm}
-  \verb|sentence| は，CafeOBJ の(条件付き)等式あるいは(条件付き)遷移規則のいずれかで
-  表記する．
 \end{itemize}
+\verb|sentence| は，CafeOBJ の(条件付き)等式あるいは(条件付き)遷移規則のいずれかで表記する．
+
+
 \subsubsection{文脈とゴールの設定例}
-\begin{vvtm}
-  \begin{simplev}
+%\begin{vvtm}
+  \begin{examplev}
  select CLOUD . 
  :goal {
   ceq [inv1 :nonexec]: true = false if statusp(S:Sys,I:Client) = updated /\
@@ -206,8 +218,8 @@ CafeOBJ の等式宣言や遷移規則宣言のフォームで表記する． \\
                                        statusp(S:Sys,I:Client) = gotval .
   ceq [inv5 :nonexec]: true = false if (I:Client ~ J:Client) = false /\
        statusp(S:Sys,J:Client)= updated /\ statusp(S:Sys,I:Client)= updated .}
-  \end{simplev}
-\end{vvtm}
+  \end{examplev}
+%\end{vvtm}
 
 \section{証明木の構造}\label{sec:proof-struct}
 ここでは他のコマンドを説明する前に，CITP for CafeOBJ の構成する
@@ -230,7 +242,7 @@ $G$ から各 $G_i (i = 1 \cdots n)$ への枝は，全て適用した戦略$T$�
 \item 各ゴールには次のように名前が付加される:
   \begin{itemize}
     \item 初期ゴールには root という名前が付けられる．
-    \item root 直下のゴールには自然数 $1, 2, \ldots n$ と名前が付けられる．
+    \item root 直下のゴールには自然数 $1, 2, \ldots ,n$ と名前が付けられる．
     \item 以下，あるゴールの名称が N であったとすると，そのゴールには
       N-1, N-2, $\ldots$ N-m のように名前が付けられる．
   \end{itemize}
@@ -243,45 +255,63 @@ $G$ から各 $G_i (i = 1 \cdots n)$ への枝は，全て適用した戦略$T$�
   \label{fig:proof-tree}
 \end{figure}
 
-上のような構造の証明木において， ``ゴールが証明される''とは以下の事を言う:
+このような構造を持つ証明木において，\textbf{ゴールが証明される}とは以下の事を言う:
 \begin{itemize}
 \item あるゴールの子ゴールが全て証明されたとき，そのゴールも証明される
-\item ここで ``証明される'' とは以下の事を言う
-  \begin{itemize}
-  \item 文が充足(satisfied)される
+\item ここで\textbf{証明される}とは以下の事を言う
+  \begin{enumerate}
+  \item 文が充足(satisfied)された場合，あるいは
   \item 矛盾(contradiction)が発見される: すなわち
     \begin{itemize}
     \item その文脈において true = false が演繹可能(deducible)となる
     \item 遷移的な関係で矛盾が生ずる．例えば $X < Y < Z$ の時に
       $Z \le Y$ が演繹できる．
     \end{itemize}
-  \item これらのいずれかが成立した時，そのゴールに含まれる当該文はゴールから
-    取り去られる (dischage されると言う)．
-  \item ゴールから証明対象の文がすべてなくなった時，
-    そのゴールは証明されたと言う．
-  \end{itemize}
+  \end{enumerate}
+  これらのいずれかが成立した時，そのゴールに含まれる当該文はゴールから
+  取り去られる (dischage されると言う)．
+  ゴールから証明対象の文がすべてなくなった時，そのゴールは証明されたと言う．
 \end{itemize}
 
 \section{戦略の適用}\label{sec:apply}
 
 \begin{itemize}
 \item 初期ゴールが設定された後では，:apply コマンドによって，指定の戦略をゴールに適用できるようになる．
-  ゴールが設定されていない場合，:apply コマンドの適用はエラーとして扱う．
+  ゴールが設定されていない場合，:apply コマンドの適用はエラーとして扱われる．
 \item 構文
   \begin{vvtm}
     \begin{simplev}
     apply コマンド ::= :apply [ to <GoalName> : ] (<Tactic> ... <Tactic> )
     <GoalName>     ::= ゴールに付与された名前
-    <Tactic>       ::= SI | CA | TC | IP | RD
+    <Tactic>       ::= SI | CA | TC | IP | RD | <DefinedTactic>
     \end{simplev}
   \end{vvtm}
 
 \item \verb|<Tactic>| の指定で，大文字と小文字の区別はしない．
 \item \verb|to <GoalName>| が省略された場合は，現在のデフォルトゴール(後述)に対して適用される．
+\item \verb|<DefinedTactic>| は\ref{sec:def-command}章で説明する \verb|:def| コマンドによって定義された戦略の名前である．
 \end{itemize}
-各戦略の意味と挙動については後述する．
 
-\subsubsection{戦略の適用順序}
+\subsection{戦略}\label{sec:predefined-tactics}
+CITP for CafeOBJ で提供される戦略を表~\ref{tab:tactics} に示す．
+各戦略の具体的な挙動については，\ref{sec:tactic-behaviour}章で説明する．
+
+\begin{table}
+\label{tab:tactics}
+\caption{戦略一覧}
+\begin{center}
+\begin{tabular}[htbp]{|l|l|}\hline
+戦略名 & 演繹規則 \\\hline\hline
+SI & Simultaneous Induction (同時帰納法) \\\hline
+CA & Case Analysis (場合分け)\\\hline
+TC & Theorem of Constants  \\\hline
+IP & Implication (含意)\\\hline
+RD & Reduction (簡約化) \\\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{戦略の適用順序}\label{sec:order-of-tatic-application}
 
 \begin{figure}[htbp]
 \begin{center}
@@ -297,26 +327,7 @@ $G$ から各 $G_i (i = 1 \cdots n)$ への枝は，全て適用した戦略$T$�
 このとき最初の戦略 $T_1$ によって複数の小ゴール $N_1 \ldots N_m$ が生成されたとした時，
 次の戦略 $T_2$ はこれらの小ゴール全てに対して適用される．以下同様である．
 
-\subsubsection{戦略}
-CITP for Cafe で提供される戦略を表~\ref{tab:tactics} に示す．
-各戦略の具体的な挙動については，後に章を改めて説明する．
-
-\begin{table}
-\label{tab:tactics}
-\caption{戦略一覧}
-\begin{center}
-\begin{tabular}[tbhp]{|l|l|}\hline
-戦略 & 演繹規則 \\\hline\hline
-SI & Simultaneous Induction (同時帰納法) \\\hline
-CA & Case Analysis (場合分け)\\\hline
-TC & Theorem of Constants  \\\hline
-IP & Implication \\\hline
-RD & Reduction (簡約化) \\\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-\subsubsection{自動戦略} 
+\subsection{自動戦略} \label{sec:tactic-auto}
 経験則から一般的に有効(うまく証明ができることが多い)と考える事のできる一連の戦略を予め用意し，
 これを簡便に使用できると便利である．
 このためにコマンド :auto が用意されている．
@@ -332,14 +343,23 @@ RD & Reduction (簡約化) \\\hline
 \end{itemize}
 
 \section{ターゲット・ゴール}\label{sec:default-goal}
-現在戦略適用の対象となっているゴールを，ターゲット・ゴールと呼ぶ．
-
+:apply コマンドは戦略を適用するゴールの引数を省略することができる(\ref{sec:apply})．
+この時，指定した戦略の適用対象となるゴールを\textbf{ターゲット・ゴール}と呼ぶ．
+システムはこれを次の規則によって決定する．
 \begin{itemize}
 \item 初期のゴールが \verb|:goal| コマンドによって設定された直後は 
   \verb|root| がターゲット・ゴールである．
 \item ある戦略をゴールに適用した後は，証明木の構造上最も左の
-  末端ノードがターゲットゴールとなる．
-\item ターゲット・ゴールは，\verb|:select| コマンドによって陽に設定することが可能である．
+  末端ノードがターゲット・ゴールとなる．
+\end{itemize}
+
+ターゲット・ゴールは :apply コマンドの暗黙的な対象となるゴールだけでなく，
+ゴールを引数に持つコマンドで，それが省略された際に%
+適用対象とするゴールとして扱われる．
+
+\subsection{ターゲット・ゴールの指定}
+ターゲット・ゴールは，\verb|:select| コマンドによって設定することが可能である．
+\begin{itemize}
 \item 構文:
   \begin{vvtm}
     \begin{simplev}
@@ -347,69 +367,17 @@ RD & Reduction (簡約化) \\\hline
     \end{simplev}
   \end{vvtm}
 \end{itemize}
-
-\section{暗黙的戦略}\label{sec:implicit-tactic}
-\verb|:apply| コマンドによって指定することはできないが，
-システム内部で自動的に適用される戦略がある．
-以下ではこれらについて説明する．
-
-\begin{itemize}
-\item ある戦略を適用した後にゴールに含まれる証明対象の文に
-  含まれる基底項(ground term)は全て既約形(normal form)にされる．
-  その後，以下の戦略が暗黙的に適用される．
-\end{itemize}
-
-\subsubsection{CT: contradiction の検知}\label{sec:CT}
-ゴール 内で true = false が演繹可能かどうかを調べる．
-
-\begin{prooftree}
-  \AXC{$\SP \vdash \tr \Rightarrow \fs$}
-  \LeftLabel{[CT]}
-  \UIC{$\SP \vdash \rho$}
-\end{prooftree}
-
-これが可能な場合，矛盾なので任意の証明対象の文が discharge される．
-
-\subsubsection{VD: 文が成立することの検査}\label{sec:VD}
-
-証明対象の文が成り立つかどうか(valid)かを調べる．
-具体的には，証明対象の文がすべて基底項から構成されている場合に以下を行う．
-証明対象の文を \texttt{ l = r if C} とする：
-\begin{enumerate}
-\item 条件部 \texttt{C} の既約形(normal form)を求める．
-  結果が \texttt{true} ならば次へ進む(条件部が存在しない場合は \texttt{true} とみなされる）．
-  結果が \texttt{true} でなければ文はまだ成立しないとみなす．
-\item 文の左辺 \texttt{l} の規約形を求める．
-\item 文の右辺 \texttt{r} の規約形を求める．
-\item 左右両辺の既約形が「等しい」かどうかを調べる．
-  ここで，等しいとは以下のことを言う：
-    \begin{itemize}
-    \item 項の形が同じ．
-    \item 項のトップオペレータが(associative, commutative)などのセオリー属性を持っていた場合，
-      その意味で等しい．
-    \end{itemize}
-\item 等しければ成立する．等しく無ければ成立しない，とする．
-\end{enumerate}
-
-\begin{itemize}
-\item CT と VD は，IP および TC で得られたゴールに対して自動的に適用される．
-\item CA を適用したがケースが生成されなかったゴール対しても CT と VDが適用される．
-\end{itemize}
-
-\subsubsection{LE: 順序関係で互いに矛盾する公理の存在有無を調べる}\label{sec:LE}
-
-\begin{itemize}
-\item 現在は組込の INT モジュールで定義されている，整数の大小関係
-  \verb|<| と \verb|<=| についてのみ検査が実施される．
-\item LE は，CA のケースわけによって生成された公理(仮定)を検査対象とする．
-\end{itemize}
-
-\begin{prooftree}
-  \AXC{}
-  \LeftLabel{[LE]}
-  \UIC{$\SP \vdash \rho$}
-\end{prooftree}
-
+\verb|:select| コマンドで指定されたゴールが子ゴールを持っていた場合，
+それらの子ゴールは証明木から削除される．
+\begin{figure}[hbt]
+  \centering
+  \input selected.tikz
+  \caption{:select}
+  \label{fig:selected-proof-tree}
+\end{figure}
+図\ref{fig:selected-proof-tree} はゴール1-1がターゲット・ゴールとなっている状態で
+\verb|:select| コマンドでゴール2を指定した結果ゴール2がターゲット・ゴールとなり
+それまでゴール2の子ゴールだった既存のゴール2-1と2-2が削除された様子を示したものである．
 
 \section{各戦略の挙動}\label{sec:tactic-behaviour}
 本章では先に述べた各戦略の挙動について述べる．
@@ -452,7 +420,7 @@ instantiationについて成り立つなら $(\forall X)\varepsilon$ が成り�
 \item induction variables は \verb|:ind on| コマンドによって指定する．
   \begin{vvtm}
     \begin{simplev}
-    :ind コマンド ::= :in on ( <変数> ... )      
+    :ind コマンド ::= :ind on ( <変数> ... )      
     \end{simplev}
   \end{vvtm}
    \verb|<変数>| は on-the-fly の変数宣言形式で指定する．
@@ -482,7 +450,7 @@ instantiationについて成り立つなら $(\forall X)\varepsilon$ が成り�
 
 CITP CafeOBJ ではこの演繹規則に対応するものを戦略として提供する．
 [TC]によって新たに導入する定数名は，既存の定数名と衝突が無いように考慮し，
-規則的に命名するものとする．
+規則的に命名される．
 
 \begin{itemize}
 \item 適用先のゴールに複数の証明対象の文が含まれている場合は，
@@ -501,7 +469,7 @@ CITP CafeOBJ ではこの演繹規則に対応するものを戦略として提�
    op X@Foo : -> Foo .
 \end{verbatim}
   のように宣言されたのと等価である．
-\item 上記を実施した後，生成したゴールに対して暗黙的戦略 CT および ST を適用する．
+%%% spoiler \item 上記を実施した後，生成したゴールに対して暗黙的戦略 CT および ST を適用する．
 \end{itemize}
 
 \subsection{IP: Implication}\label{sec:IP}
@@ -532,7 +500,7 @@ CITP CafeOBJ ではこの演繹規則に対応するものを戦略として提�
     結合された形の場合は分離し，個々の \verb|c1| $\ldots$ \verb|cn| を
     公理として導入する．
   \end{itemize}
-\item 以上を実施した後，生成されたゴールに対して暗黙の戦略 CT および ST を適用する．
+%%% spoiler \item 以上を実施した後，生成されたゴールに対して暗黙の戦略 CT および ST を適用する．
 \end{itemize}
 
 \subsection{CA: Case Analysis}\label{sec:CA}
@@ -586,16 +554,102 @@ CA は次のように動作する:
 \item 上で述べた CA 処理を実施するする前に，適用対象のゴールに複数の
   証明対象の文が含まれていたら，それらを個々の小ゴールに分配し，
   その後，上の CA 処理を実施する．
-\item CA で生成された各ゴールに追加された公理については，
-  暗黙的戦略 LE による整数の順序関係に関する矛盾の有無を検査し，
-  矛盾が発見されたら直ちにそのゴールを discharge する．
+%%%% spoiler
+% \item CA で生成された各ゴールに追加された公理については，
+%   暗黙的戦略 LE による整数の順序関係に関する矛盾の有無を検査し，
+%   矛盾が発見されたら直ちにそのゴールを discharge する．
 \end{itemize}
 
 \subsection{RD: Reduction}\label{sec:RD}
 
-戦略 RD は，先に暗黙的戦略(\ref{sec:implicit-tactic}で述べた CT と VD を実行するものである．
+戦略 RD は，以下を実施する：
+\begin{enumerate}
+\item ゴール内で true = false が演繹可能かどうかを調べる．
+  \begin{prooftree}
+    \AXC{$\SP \vdash \tr \Rightarrow \fs$}
+    \LeftLabel{[CT]}
+    \UIC{$\SP \vdash \rho$}
+  \end{prooftree}
+  これが可能な場合，矛盾なのでゴールに含まれるすべての証明対象としている文を discharge する．
+\item ゴールに含まれる証明対象の文すべてについて以下を行う．
+  ここで，証明対象の文を \texttt{ l = r if C} とする.
+  \begin{enumerate}
+    \item l，r あるいは C のどれかが基底項でなければなにもしない．
+      これらのすべてが基底項の場合にのみ以下を実施する．
+    \item 条件部 \texttt{C} の既約形(normal form)を求める．
+      結果が \texttt{true} ならば次へ進む(条件部が存在しない場合は \texttt{true} とみなされる）．
+      結果が \texttt{true} でなければ文はまだ成立しないとみなす．
+    \item 文の左辺 \texttt{l} の規約形を求める．
+    \item 文の右辺 \texttt{r} の規約形を求める．
+    \item 左右両辺の既約形が「等しい」かどうかを調べる．
+      ここで，等しいとは以下のことを言う：
+      \begin{itemize}
+      \item 項の形が同じ．
+      \item 項のトップオペレータがセオリー属性(associative, commutative など)を持っていた場合，
+        その意味で等しい．
+      \end{itemize}
+    \item 等しければ成立するとし，その文を discharge する．等しく無ければ成立しない，とする．
+    \end{enumerate}
+  \item ゴールに含まれるすべての文が discharge された場合，そのゴールは証明されたものとする．
+\end{enumerate}
 
-\section{その他の新規導入コマンド}\label{sec:other-commands}
+他の戦略は証明できるかどうかを直接調べないが，戦略 RD はゴールが証明できるかどうかを上のようにして調べる．
+
+\section{:spoiler : 暗黙的 RD 適用の制御} \label{sec:spoiler-flag}
+
+\ref{sec:tactic-behaviour} でシステムに組み込みの各戦略の動作を述べた．
+RD 以外の戦略はその戦略に応じた新たな仮定を導入したりするなどするが，
+その結果ゴールに含まれる文が成立するかどうかは調べない．
+システムは \verb|:spoiler| という名称のフラグを持っており，
+これを on に設定することにより，戦略適用後の状態でゴールが証明可能かを%
+調べるよう指示することができる．
+ただし戦略 SI はこの対象外であり，
+このフラグが on の場合でも\ref{sec:SI}で述べた以上の処理は行わない．
+
+このフラグの設定は \verb|:spoiler| コマンドによって行う．
+  \begin{vvtm}
+    \begin{simplev}
+  :spoiler コマンド ::= :spoiler { on | off }
+    \end{simplev}
+  \end{vvtm}
+
+フラグの初期値は off である．
+
+このフラグが on の場合の各戦略(SIおよびRDを除く)の挙動は，%
+\ref{sec:tactic-behaviour} で説明した処理を実施後に戦略 RD を実施するのと等価である．
+
+\subsubsection{:auto の動作}\label{sec:auto-and-spoiler}
+\texttt{:auto} コマンドによる戦略適用の場合は，
+:spoiler フラグが on の状態で実行される．
+:auto コマンドの実行が終了後はフラグは元の状態となる．
+
+\section{補助的戦略}\label{sec:suppliment}
+ここでは演繹規則として位置付けられるものではないが，
+証明過程で有用と考えられる補助的な戦略について説明する．
+
+\subsection{NF:証明対象文の既約形}\label{sec:normal-form}
+
+\begin{itemize}
+\item ある戦略を適用した後にゴールに含まれる証明対象の文に
+  含まれる基底項(ground term)を全て既約形(normal form)にする．
+\end{itemize}
+NF は \verb|:apply| コマンドの引数として与えることができる．
+
+% \subsubsection{LE: 順序関係で互いに矛盾する公理の存在有無を調べる}\label{sec:LE}
+
+% \begin{itemize}
+% \item 現在は組込の INT モジュールで定義されている，整数の大小関係
+%   \verb|<| と \verb|<=| についてのみ検査が実施される．
+% \item LE は，CA のケースわけによって生成された公理(仮定)を検査対象とする．
+% \end{itemize}
+
+% \begin{prooftree}
+%   \AXC{}
+%   \LeftLabel{[LE]}
+%   \UIC{$\SP \vdash \rho$}
+% \end{prooftree}
+
+\section{その他のコマンド}\label{sec:other-commands}
 
 \subsection{:init コマンド} 
 
@@ -619,19 +673,19 @@ CA は次のように動作する:
 \subsubsection{:init コマンドの例}
 
 文脈となっているモジュールに，次のような公理があったとする．
-\begin{verbatim}
+\begin{examplev}
 ceq[inv3 :nonexec]: true = false if statusp(S:Sys,J:Client) = updated /\ 
                                               statusp(S:Sys,I:Client) = gotval .
-\end{verbatim}
+\end{examplev}
 これに対して下のような :init コマンドを適用できる．
-\begin{verbatim}
+\begin{examplev}
   :init [inv3] by {S:Sys <- S#Sys ; J:Client <- I@Client ; I:Client <- S#Client ;}
-\end{verbatim}
+\end{examplev}
 これを実行することによって，新たな公理
-\begin{verbatim}
+\begin{examplev}
 ceq [INIT]: true = false if statusp(S#Sys, I@Client) = updated /\
                                   statusp(S#Sys, S#Client) = gotval .
-\end{verbatim}
+\end{examplev}
 が，追加される．
 
 \subsection{:roll back コマンド}
@@ -695,7 +749,7 @@ ceq [INIT]: true = false if statusp(S#Sys, I@Client) = updated /\
 
 \subsubsection{:equation コマンドの使用例}
 下は :cp コマンドによるクリティカル・ペアを等式としてターゲット・ゴールへ追加する例である．
-\begin{verbatim}
+\begin{examplev}
 QLOCK(X) > :cp (eq I@Pid = S#Pid .) >< (eq S#Pid ~ I@Pid = false .)
 [cp] :
   (1) (true):Bool
@@ -724,7 +778,7 @@ QLOCK(X)> :equation
   -- axiom to be proved
     eq [TC :noexec]: top(get(sq(S#Sys))) = I@Pid .
 }
-\end{verbatim}
+\end{examplev}
 追加される公理は，:cp コマンドの結果追加された事が後で判別できるよう，
 ラベルに CP が付けられる．
 
@@ -734,38 +788,89 @@ QLOCK(X)> :equation
 ターゲット・ゴールへ導入する．
 
 \subsection{:ctf コマンド}\label{sec:ctf}
-\texttt{:ctf} コマンドはある等式あるいは遷移規則が成立する場合と成立しない場合の2ケースで，
-現在のターゲットゴールを2つのサブゴールに分割する．
-このようなサブゴールに分割後，それぞれのサブゴールで暗黙的に
-戦略 \texttt{RD} (\ref{sec:RD}) を実行する．
+\texttt{:ctf} コマンドは，指定した等式や遷移規則規則の成立・不成立，
+あるいは指定した項が定数構成子に等しいか否かによる場合分けを行う．
+
+\subsubsection{等式／遷移規則による場合分け}
+\texttt{:ctf} コマンドの下に示す構文はある等式あるいは遷移規則が成立する場合と成立しない場合の2ケースで，
+現在のターゲット・ゴールを2つのサブゴールに分割する．
 \begin{itemize}
-\item 構文
+\item 構文1：等式あるいは遷移規則の成立／不成立による場合分け
   \begin{vvtm}
     \begin{simplev}
-      true/falseによる分割 ::= :ctr "{" { <Equation> . | <Transition> . } "}"
+      true/falseによる場合分け ::= :ctf "{" { <Equation> . | <Transition> . } "}"
     \end{simplev}
   \end{vvtm}
 \end{itemize}
+
 \begin{figure}[hbt]
   \centering
 %  \includegraphics[scale=0.6]{ctf.pdf}
   \input ctf.tikz
-  \caption{:ctf の動作}
+  \caption{:ctf の動作 -- 等式／遷移規則の成立・不成立による場合分け}
   \label{fig:ctf}
 \end{figure}
-\paragraph{図\ref{fig:ctf} の説明}
-　ゴール g が現在のターゲットゴールとする．この状態で
+図\ref{fig:ctf} はゴール g がターゲット・ゴールの状態で
   \begin{simplev}
     :ctf {eq l = r . }
   \end{simplev}
-  とすると，ゴール g に \texttt{eq l = r .} を仮定として追加した g-1 (true の場合)と，
+とした時の場合分けの様子を示したものである．
+ゴール g に \texttt{eq l = r .} を仮定として追加した g-1 (true の場合)と，
   \texttt{eq (l = r) = false .} を追加した g-2 (false の場合)を作成し，
   ゴール g の子ゴールとする．
-  その後，g-1 と g-2 のそれぞれに対して戦略 RD を適用する．
+%  その後，g-1 と g-2 のそれぞれに対して戦略 RD を適用する．
+
+\subsubsection{定数構成子による場合分け}
+\texttt{:ctf} コマンドは構成子として定数項のみを持つソートの項を指定し，
+その定数項による場合分けを行うこともできる．その場合の構文は下のとおりである．
+\begin{itemize}
+\item 構文2：定数構成子による場合分け
+  \begin{vvtm}
+    \begin{simplev}
+      定数構成子による場合分け ::= :ctf "[" <項> . "]"
+    \end{simplev}
+  \end{vvtm}
+\end{itemize}
+図\ref{fig:ctf2} はゴール g がターゲット・ゴールの状態で
+ \texttt{:ctf [ t . ]} として指定した項 \texttt{t} が
+組み込みのソート\texttt{Bool} の項である場合の例を示したものである．
+\texttt{t} が \texttt{true} の場合と \texttt{false} の場合に場合分けされている．
+\begin{figure}[hbt]
+  \centering
+  \input ctf2.tikz
+  \caption{:ctf の動作 -- 定数構成子による場合分け}
+  \label{fig:ctf2}
+\end{figure}
+
+
+\subsubsection{:spoiler on の場合の挙動}
+:spoiler フラグが on の場合，このようなサブゴールに分割後，それぞれのサブゴールで暗黙的に
+戦略 \texttt{RD} (\ref{sec:RD}) を実行する．
+
+\subsection{:ctf- コマンド}\label{sec:ctf-}
+
+\texttt{:ctf-} は \texttt{:ctf} コマンドと場合わけの機能については全く同じである．
+しかし作成された子ゴールに対して \texttt{RD} を適用した結果，
+証明対象の文が discharge \textbf{されなかった}場合に次のような違いがある：
+\begin{itemize}
+\item \texttt{:ctf} コマンドの場合\\
+  証明対象の文は \texttt{RD} の適用によって簡約化された状態のままとなる
+\item \texttt{:ctf-} コマンドの場合\\
+  証明対象の文は \texttt{RD} が適用される前の状態に戻される
+\end{itemize}
+
+一般に \texttt{RD} の適用により証明対象の文は破壊的に書き換えられるため，
+場合分けを連続的に実施していくような証明の過程で \texttt{RD} 戦略を
+適用した場合\footnote{:spoiler フラグが on の場合は常にそうなる}，
+うまく discharge できなかった際は元の証明対象の文に戻して
+さらに場合分けを続けていきたい．
+これを自動的に行うのに \texttt{:ctf-} が便利である．
+
 
 \subsection{:csp コマンド}\label{sec:csp}
-\texttt{:ctf} コマンドは複数の等式または遷移規則を指定し，
+\texttt{:csp} コマンドは複数の等式または遷移規則を指定し，
 各々が成立するとした小ゴールを作成する．
+もし :spoiler フラグが on の場合は，
 その後，各小ゴールに対して暗黙的に戦略 RD (\ref{sec:RD}) を適用する．
 
 \begin{itemize}
@@ -789,7 +894,56 @@ QLOCK(X)> :equation
 ターゲットゴールが g だとする．”:csp { \textit{eq1} . \textit{eq2} . \textit{eq3} . }” のようにして
 3つの等式 eq1, eq2, および eq3 を指定した場合，:csp は3個の小ゴール g-1, g-2, g-3 を生成し，
 それぞれに対して一つづつ指定された等式を配分する．
-その後これらの小ゴールに対して暗黙的に戦略 RD を適用する．
+図は :spoiler フラグが on の状態を示しており，
+生成された小ゴールに対して暗黙的に戦略 RD を適用する様子も示している．
+
+\subsection{:csp- コマンド}\label{sec:csp-}
+\texttt{:csp-} コマンドは場合わけの機能については \texttt{:csp} コマンドと全く同じである．
+構文も同様ででキーワード \texttt{:csp} に代わって \texttt{:csp-} を指定する．
+違いは \texttt{:ctf} と \texttt{:ctf-} の違いと同じである．
+すなわち，生成された子ゴールに対して適用された \texttt{RD} 戦略の結果
+discharge されなかった場合に，元の証明対象の文に戻す(\texttt{:csp-})か
+戻さない(\texttt{:csp})かの違いである．
+
+\subsection{:def コマンド}\label{sec:def-command}
+\subsubsection{連続した戦略の適用に名前をつける}
+\texttt{:def} コマンドは一連した戦略適用に名前をつけ \texttt{:apply} コマンドの
+引数として与えることができるようにする．
+  \begin{vvtm}
+    \begin{simplev}
+    一連の戦略定義 ::= :def <name> = ( <戦略1> ... <戦略n> )
+  \end{simplev}
+  \end{vvtm}
+
+下は戦略 \texttt{IP} に引き続いて \texttt{RD} を適用することに
+\texttt{ip+rd} という名前をつけたものである．
+\begin{examplev}
+  :def ip+rd = ( IP RD )
+\end{examplev}
+上のようにすることにより，\texttt{:apply} コマンドの引数として \texttt{ip+rd} を
+指定することができるようになる．
+\begin{examplev}
+  :apply (... ip+rd ...)
+\end{examplev}
+上の \texttt{ip+rd} の定義は :spoiler フラグが on の場合の戦略 \texttt{IP} の
+挙動と同じである．このように :spoiler フラグが off の状態(デフォルト) で
+\texttt{RD} を自動的に実行したい場合はこのような定義をしておくことで
+簡便にこれを行うことができる．
+
+\subsubsection{\texttt{:ctf} などの戦略的な使用}
+また，\texttt{:ctf} コマンドの指定や \texttt{:csp} コマンドの指定に名前をつけ，
+\texttt{:apply} コマンドの引数として与えることができるようにする．
+  \begin{vvtm}
+   \begin{simplev}
+:ctf 戦略定義 ::= :def <name> = :ctf "{" { <Equation> . | <Transition> . } "}"
+              |   :def <name> = :ctf [ <Term> . ]
+:csp 戦略定義 ::= :def <name> = :csp "{" { <Equation> . | <Transition> .}+ "}"
+  \end{simplev}
+  \end{vvtm}
+\texttt{:ctf-} や \texttt{:csp-} も同じである．
+
+このようにすることで，\texttt{:ctf-} などのコマンドの適用を，他の戦略と組み合わせて
+\texttt{:apply} コマンドの引数として与えることができる．
 
 \subsection{:show コマンド}
 証明の進行状況などを確認するために有用と思われる情報をみるため，
@@ -866,7 +1020,7 @@ QLOCK(X)> :equation
 \chapter{例題}
 \label{chap:prototype}
 
-本章では~\ref{chap:new-commands}で説明した CITP for Cafe の基本的な機能を網羅した例題について，
+本章では~\ref{chap:new-commands}で説明した CITP for CafeOBJ の基本的な機能を網羅した例題について，
 その実行例と合わせて説明する．
 
 \section{足し算の性質の帰納法による証明}
@@ -951,7 +1105,8 @@ select PNAT .
 \end{vvtm}
 
 
-証明は戦略 \texttt{:auto} で行う．これは戦略 \texttt{(SI CA TC IP RD)} と等価である．
+証明は戦略 \texttt{:auto} で行う．これは戦略 \texttt{(SI CA TC IP RD)} と等価である(\ref{sec:tactic-auto})．
+また，\texttt{:auto} の実行中は，:spoiler フラグが on の状態で戦略が適用される(\ref{sec:auto-and-spoiler})．
 
 \begin{vvtm}
 \begin{simplev}
@@ -1150,20 +1305,20 @@ tc は続いてゴール2-2をターゲットとして実行するが，
 \end{vvtm}
 
 以上の証明において，戦略が適用されどのようにゴールが生成されたかは，
-\verb|show proof| コマンドによってみることが出来る．
+\verb|:show proof| コマンドによってみることが出来る．
 下に実行例を示す．
 
 \begin{vvtm}
   \begin{simplev}
-PNAT> show proof
-                    root*                     
-          /                       \            
-       [si] 1*                 [si] 2*        
-    /           \           /           \      
-[ca] 1-1*   [ca] 1-2*   [ca] 2-1*   [ca] 2-2* 
-                |                       |      
-           [tc] 1-2-1*             [tc] 2-2-1*
-
+root*
+[si]  1*
+[ca]  1-1*
+[ca]  1-2*
+[tc]  1-2-1*
+[si]  2*
+[ca]  2-1*
+[ca]  2-2*
+[tc]  2-2-1*
   \end{simplev}
 \end{vvtm}
 
@@ -1325,7 +1480,7 @@ dischage する事が出来た．証明木のノードに \verb|*| が付加さ�
 \end{vvtm}
 これで，交換則の証明が完了した．
 
-SI と TC は \verb|:apply (SI TC)| のようにして続けて自動で適用するようにできる．
+以上の証明は \verb|:apply (SI TC RD)| のようにして続けて自動で適用するようにできる．
 この場合は，上の実施例のように TC を2度指定する必要はなくなる．
 下の例ではシステムの印字を抑制するため \verb|:verbose off| としている．
 \begin{vvtm}
@@ -1448,7 +1603,7 @@ X が 8 以上かつ 4 以下という条件のためあり得ない．
 従ってシステムはこの組み合わせについてはこれを検知し，
 当該の条件を含むゴールを discharge できなければならない．
 
-\subsection{CITP for Cafe による証明}
+\subsection{CITP for CafeOBJ による証明}
 
 先に示したモジュール FG-FUN を文脈として証明を実施した例を以下に示す．
 個々の戦略の適用で作成されたゴールを見たいため，\verb|:verbose on| として実施した．
