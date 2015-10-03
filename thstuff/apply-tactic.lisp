@@ -243,7 +243,7 @@
               ;;
               (return-from normalize-sentence (values target app?))))))
    ;; do nothing if :spoiler is off
-   :else (values nil nil)))
+   :else (values ax nil)))
 
 ;;; is-contradiction : term term -> Bool
 ;;; returns true if true ~ false, or false ~ true
@@ -705,7 +705,7 @@
             ;; discharged by certain reson
             (setq sentence (rule-copy-canonicalized sentence *current-module*)))
           (with-in-module (module)
-            ;; check how we did dischage.
+            ;; check how did we did dischage
             (case res
               (:st (when report-header
                      (format t "~%[~a] discharged: " report-header)
@@ -949,7 +949,7 @@
             ;; check goal is satisfied or not
             (dolist (cgoal .next-goals.)
               (multiple-value-bind (res sentence osentence)
-                  (check-goal-is-satisfied cgoal 'rd)
+                  (check-goal-is-satisfied cgoal 'tc)
                 (declare (ignore osentence sentence))
                 (when res
                   (format t "~%[tc] discharged the goal ~s" (goal-name cgoal)))))
@@ -1830,17 +1830,19 @@
           (multiple-value-bind (app? nop-goals)
               (apply-nil-internal ptree-node (reverse remainings) nil .tactic-ca.)
             (declare (ignore app?))
-            (dolist(ng nop-goals)
-              (let ((target (car (goal-targets ng))))
-                ;; no case is generated: apply normalization & check the result
-                (multiple-value-bind (discharged normalized-target original-target)
-                    (do-check-sentence target ng)
-                  (when discharged
-                    (format t "~%[ca] discharged: ")
-                    (print-axiom-brief normalized-target)
-                    (setf (goal-targets ng) nil
-                          (goal-proved ng) (list original-target))))
-                (push ng next-goals))))))
+            (if-spoiler-on
+             :then (dolist(ng nop-goals)
+                     (let ((target (car (goal-targets ng))))
+                       ;; no case is generated: apply normalization & check the result
+                       (multiple-value-bind (discharged normalized-target original-target)
+                           (do-check-sentence target ng)
+                         (when discharged
+                           (format t "~%[ca] discharged: ")
+                           (print-axiom-brief normalized-target)
+                           (setf (goal-targets ng) nil
+                                 (goal-proved ng) (list original-target))))
+                       (push ng next-goals)))
+             :else (setq next-goals nop-goals)))))
       ;; check LE
       (setq next-goals (nreverse next-goals))
       (dolist (goal next-goals)
