@@ -57,8 +57,10 @@
                                          :executor 'apply-tc)) ; Theorem of Constants
   (defparameter .tactic-ip. (make-tactic :name :ip
                                          :executor 'apply-ip)) ; Implication
+#||
   (defparameter .tactic-cs. (make-tactic :name :cs
                                          :executor 'apply-cs)) ; Case Analysis on Sequences
+||#
   (defparameter .tactic-rd. (make-tactic :name :rd
                                          :executor 'apply-rd)) ; Reduction
 
@@ -71,10 +73,10 @@
   (defparameter .tactic-nil. (make-tactic :name :nop
                                           :executor 'apply-nil)) ; Do nothing, used internally.
 
-  (defparameter .all-builtin-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-cs. .tactic-rd. .tactic-nf. .tactic-ct.))
+  (defparameter .all-builtin-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd. .tactic-nf. .tactic-ct.))
 
-  ;; default tatics is a seriase of SI CA CS TC IP.
-  (defparameter .default-tactics. (list .tactic-si. .tactic-ca. .tactic-cs. .tactic-tc. .tactic-ip. .tactic-rd.))
+  ;; default tatics is a seriase of SI CA TC IP.
+  (defparameter .default-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd.))
   ;; this is not an ordinary tactic but a command, but it generates goals
   (defparameter .tactic-ctf. (make-tactic :name :ctf
                                           :executor 'apply-ctf))
@@ -227,6 +229,7 @@
 ;;; 'true' means CITP cares application of implicite applicatins of tactics
 ;;;  such as 'normalization of the goal', 'contradiction check ('true = false')'.
 ;;; if this is 'false', CITP does only introduces proof schems defined.
+(declaim (special *citp-spoiler*))
 (defvar *citp-spoiler* nil)
 
 (eval-when (:compile-toplevel :execute :load-toplevel)
@@ -242,6 +245,7 @@
 
 (defmacro with-spoiler-on (&rest body)
   `(let ((*citp-spoiler* t))
+     (declare (special *citp-spoiler*))
      ,@body))
 
 )
@@ -370,10 +374,9 @@
              (*rwl-search-no-state-report* 
               (if *citp-show-rwl*
                   nil
-                t))
-             (*citp-spoiler* (citp-flag citp-spoiler)))
+                t)))
          ,@body)
-     (let ((*citp-spoiler* (citp-flag citp-spoiler)))
+     (progn
        ,@body)))
 )
 
