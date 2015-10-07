@@ -1124,7 +1124,7 @@ select PNAT .
   -- context module: PNAT
   -- induction variable
     M:PNat
-  -- axioms to be proved
+  -- sentences to be proved
     eq [lemma-1]: 0 + 0 = 0 .
     eq [lemma-2]: 0 + s N:PNat = s (0 + N) .
 }
@@ -1138,7 +1138,7 @@ select PNAT .
   -- introduced axioms
     eq [SI lemma-1]: M#PNat + 0 = M#PNat .
     eq [SI lemma-2]: M#PNat + s N:PNat = s (M#PNat + N) .
-  -- axioms to be proved
+  -- sentences to be proved
     eq [lemma-1]: s M#PNat + 0 = s M#PNat .
     eq [lemma-2]: s M#PNat + s N:PNat = s (s M#PNat + N) .
 }
@@ -1164,20 +1164,20 @@ ca はまず最初にゴール1に対して適用される．
 この場合ケースわけは実行されなかった(ケースわけの対象とする
 公理は宣言されていない)．
 
-ca はケースわけ分析が終了した後に，暗黙的に文の充足性(ST)と
-矛盾の有無(CT)を調べるが，その結果一つの文が充足されており
-その旨出力する．具体的な出力は次のようになる．
+ca はケースわけ分析が終了した後に，:spoiler フラグが on の場合に限って
+暗黙的に戦略RDに相当する処理(文の充足性と矛盾の有無の調査)を行うが，
+その結果一つの文が充足されておりその旨出力する．
+具体的な出力は次のようになる．
 
 \begin{vvtm}
 \begin{simplev}
 [ca]=> :goal{1}
 [ca] discharged: eq [lemma-1]: 0 = 0
-
 ** Generated 2 goals
 [ca]=>
 :goal { ** 1-1 -----------------------------------------
   -- context module: PNAT
-  -- discharged axiom
+  -- discharged sentence
     eq [ST lemma-1]: 0 = 0 .
   -- induction variable
     M:PNat
@@ -1187,13 +1187,48 @@ ca はケースわけ分析が終了した後に，暗黙的に文の充足性(S
   -- context module: PNAT
   -- induction variable
     M:PNat
-  -- axiom to be proved
+  -- sentence to be proved
     eq [lemma-2]: 0 + s N:PNat = s (0 + N) .
 }
 \end{simplev}
 \end{vvtm}
+:auto は一連の戦略適用 (SI CA TC IP RD) に等しいことを先に述べたが、
+戦略CAで生成されたゴール 1-1 および 1-2 に対してCA以降の戦略が
+順に適用されて行く。1-1 は既に今回のCAの適用によって discharge
+されているため、各戦略は何もしない。
+1-2 はまだ証明すべき文が残っているため、戦略適用の対象となる。
+\begin{vvtm}
+\begin{simplev}
+[tc]=> :goal{1-1}
+[ip]=> :goal{1-1}
+[rd]=> :goal{1-1}
+[tc]=> :goal{1-2}
+[tc] discharged: 
+  eq [TC lemma-2]: s N@PNat = s N@PNat
+[tc] discharged the goal "1-2-1"
+** Generated 1 goal
+[tc]=>
+:goal { ** 1-2-1 -----------------------------------------
+  -- context module: PNAT
+  -- discharged sentence
+    eq [TC TC lemma-2]: s N@PNat = s N@PNat .
+  -- induction variable
+    M:PNat
+  -- introduced constant
+    op N@PNat : -> PNat { prec: 0 }
+} << proved >>
+[ip]=> :goal{1-2-1}
+[rd]=> :goal{1-2-1}
+\end{simplev}
+\end{vvtm}
+TCは証明対象の文の変数を定数項で置き換えた後，
+もし :spoiler フラグが on であれば文が成立するか否かを調べる．
+現在は :auto で実行しており、従って :spoiler が on の状態であるため,
+上の実行の様子のとおりゴール 1-2 の文が成立するかを確かめ,
+その結果 discharge に成功している．
 
-ca はゴール 1 の処理を終了後，残っているゴール2を対象ととして処理を続ける．
+ここまでで，システムはゴール 1 およびその子ゴールに対して順次戦略を適用し終わっている．
+その後，残っているゴール2に対して再び ca 以降の戦略を順次適用する．
 その実行の様子は次のようになる．
 ここでも複数の証明対象を別々の小ゴールに分割してから，
 それぞれでケース分け処理を実施する．
@@ -1208,7 +1243,7 @@ ca はゴール 1 の処理を終了後，残っているゴール2を対象と�
 [ca]=>
 :goal { ** 2-1 -----------------------------------------
   -- context module: PNAT
-  -- discharged axiom
+  -- discharged sentence
     eq [ST lemma-1]: s M#PNat = s M#PNat .
   -- induction variable
     M:PNat
@@ -1228,57 +1263,21 @@ ca はゴール 1 の処理を終了後，残っているゴール2を対象と�
   -- introduced axioms
     eq [SI lemma-1]: M#PNat + 0 = M#PNat .
     eq [SI lemma-2]: M#PNat + s N:PNat = s (M#PNat + N) .
-  -- axiom to be proved
+  -- sentence to be proved
     eq [lemma-2]: s M#PNat + s N:PNat = s (s M#PNat + N) .
 }
 \end{simplev}
 \end{vvtm}
-
-この時点で残っているゴールは 1-2 と 2-2 である．
-未だ適用されていない戦略 (TC IP RD) がこの順にこれらに対して
-適用されていく．
-
-TCは証明対象の文に含まれる変数を全て定数に置き換え，
-その後結果となった文の充足性(ST)と矛盾の有無(CT)を調べる．
-下の実行例ではまず残ったゴール1-2に対してこれが実施され，
-文が充足されていることが確認できている．
+以降、ゴール１の場合と同様に残りの戦略が順次適用されていく.
+実行の様子を下に示す.新たに説明すべき挙動は無い．
 
 \begin{vvtm}
 \begin{simplev}
-[tc]=> :goal{1-2}
-[rd] discharged: 
-  eq [TC lemma-2]: s N@PNat = s N@PNat
-[tc] discharged the goal "1-2-1"
-** Generated 1 goal
-[tc]=>
-:goal { ** 1-2-1 -----------------------------------------
-  -- context module: PNAT
-  -- discharged axiom
-    eq [RD TC lemma-2]: s N@PNat = s N@PNat .
-  -- induction variable
-    M:PNat
-  -- introduced constant
-    op N@PNat : -> PNat { prec: 0 }
-} << proved >>
-\end{simplev}
-\end{vvtm}
-
-tc は続いてゴール2-2をターゲットとして実行するが，
-同様に変数を定数に置き換えた結果の証明対象の文が
-充足されるか，またゴール内の矛盾の有無を調べ，
-ここでも文が充足されることが確認できている．
-
-この時点で，ほかに証明対象とすべきゴールが存在しないため，
-残りの戦略 (IP RD) は適用されない．
-システムは全てのゴールが discharge され，
-当初の証明対象が証明できたことを印字して，
-:auto コマンドの処理を終了する．
-実行の様子は次の通りである．
-
-\begin{vvtm}
-\begin{simplev}
+[tc]=> :goal{2-1}
+[ip]=> :goal{2-1}
+[rd]=> :goal{2-1}
 [tc]=> :goal{2-2}
-[rd] discharged: 
+[tc] discharged: 
   eq [TC lemma-2]: s (s (M#PNat + N@PNat))
       = s (s (M#PNat + N@PNat))
 [tc] discharged the goal "2-2-1"
@@ -1286,8 +1285,8 @@ tc は続いてゴール2-2をターゲットとして実行するが，
 [tc]=>
 :goal { ** 2-2-1 -----------------------------------------
   -- context module: PNAT
-  -- discharged axiom
-    eq [RD TC lemma-2]: s (s (M#PNat + N@PNat))
+  -- discharged sentence
+    eq [TC TC lemma-2]: s (s (M#PNat + N@PNat))
         = s (s (M#PNat + N@PNat)) .
   -- induction variable
     M:PNat
@@ -1299,10 +1298,16 @@ tc は続いてゴール2-2をターゲットとして実行するが，
     eq [SI lemma-1]: M#PNat + 0 = M#PNat .
     eq [SI lemma-2]: M#PNat + s N:PNat = s (M#PNat + N) .
 } << proved >>
+[ip]=> :goal{2-2-1}
+[rd]=> :goal{2-2-1}
+(consumed 0.0280 sec, including 16 rewrites + 58 matches)
 ** All goals are successfully discharged.
-
-  \end{simplev}
+}
+\end{simplev}
 \end{vvtm}
+システムは全てのゴールが discharge され，
+当初の証明対象が証明できたことを印字して，
+:auto コマンドの処理を終了している．
 
 以上の証明において，戦略が適用されどのようにゴールが生成されたかは，
 \verb|:show proof| コマンドによってみることが出来る．
@@ -1321,6 +1326,9 @@ root*
 [tc]  2-2-1*
   \end{simplev}
 \end{vvtm}
+ゴール名の右側の \verb|*| は，そのゴールに含まれるすべての
+証明対象の文が discharge されていること，すなわち
+証明されていることを示す．
 
 \subsection{交換則と結合則の証明}
 引き続いて，足し算 \texttt{+} の交換則と結合則を証明する．
@@ -1385,7 +1393,7 @@ open PNAT-L .
   -- context module: %
   -- induction variable
     M:PNat
-  -- axiom to be proved
+  -- sentence to be proved
     eq 0 + N:PNat = N + 0 .
 }
 [si]=>
@@ -1397,9 +1405,10 @@ open PNAT-L .
     op M#PNat : -> PNat { prec: 0 }
   -- introduced axiom
     eq [SI]: M#PNat + N:PNat = N + M#PNat .
-  -- axiom to be proved
+  -- sentence to be proved
     eq s M#PNat + N:PNat = N + s M#PNat .
 }
+(consumed 0.0000 sec, including 0 rewrites + 0 matches)
 >> Next target goal is "1".
 >> Remaining 2 goals.
   \end{simplev}
@@ -1410,99 +1419,119 @@ open PNAT-L .
 \begin{vvtm}
   \begin{simplev}
 %PNAT-L> show proof
-     root      
-   /        \   
->[si] 1  [si] 2
+root
+>[si] 1
+[si]  2
   \end{simplev}
 \end{vvtm}
 
-デフォルトで次の戦略の適用対象となるゴールには，証明木のノードに
-\verb|>| と表示してそれと分かるようになっている．
-次に適用する戦略として TC を選択した例を下に示す．
-
+デフォルトで次の戦略の適用対象となるゴール,
+すなわちターゲット・ゴールには，
+証明木のノードに \verb|>| と表示してそれと分かるようになっている．
+次に適用する戦略として TC を指定した例を下に示す．
+生成されるゴールが一々印字されるのを抑制するため,
+\texttt{:verbose off} としている.
 \begin{vvtm}
   \begin{simplev}
+%PNAT-L> :verbose off
+
 %PNAT-L> :apply (tc)
-[tc]=> :goal{1}
-[rd] discharged: 
-  eq [TC]: N@PNat = N@PNat
-[tc] discharged the goal "1-1"
+
+[tc]=> :goal{root}
 ** Generated 1 goal
-[tc]=>
-:goal { ** 1-1 -----------------------------------------
-  -- context module: %
-  -- discharged axiom
-    eq [RD TC]: N@PNat = N@PNat .
-  -- induction variable
-    M:PNat
-  -- introduced constant
-    op N@PNat : -> PNat { prec: 0 }
-} << proved >>
+(consumed 0.0200 sec, including 0 rewrites + 0 matches)
+>> Next target goal is "1".
+>> Remaining 1 goal.
+
+%PNAT-L> :show proof
+root
+>[tc] 1
+  \end{simplev}
+\end{vvtm}
+TCの適用によって１つの子ゴールが生成され，
+それが次のターゲット・ゴールとなっている．
+これに対して戦略RDを適用して証明を試みる.
+\begin{vvtm}
+\begin{simplev}
+%PNAT-L> :apply(rd)
+
+[rd]=> :goal{1-1}
+[rd] discharged: 
+  eq [TC]: 0 + N@PNat = N@PNat + 0
+[rd] discharged goal "1-1".
+(consumed 0.0160 sec, including 3 rewrites + 6 matches)
 >> Next target goal is "2".
 >> Remaining 1 goal.
 
-%PNAT-L> sh proof
-       root       
-    /         \    
- [si] 1*   >[si] 2
-    |              
-[tc] 1-1*        
-  \end{simplev}
+%PNAT-L> :show proof
+root
+[si]  1*
+[tc]  1-1*
+>[si] 2
+\end{simplev}
 \end{vvtm}
+
 dischage する事が出来た．証明木のノードに \verb|*| が付加されているのは
 それが discharge されている事を示したものである．
 
-残りのゴール 2 に対しても TC で証明を試みる．結果は次のようになる．
+残りのゴール 2 に対しても TC および RD で証明を試みる．
+今度はTCとRDをまとめて :apply の引数として指定する.
 \begin{vvtm}
   \begin{simplev}
-%PNAT-L> :apply (TC)
+%PNAT-L> :apply(tc rd)
+
 [tc]=> :goal{2}
-[rd] discharged: 
-  eq [TC]: s (N@PNat + M#PNat) = s (N@PNat + M#PNat)
-[tc] discharged the goal "2-1"
 ** Generated 1 goal
-[tc]=>
-:goal { ** 2-1 -----------------------------------------
-  -- context module: %
-  -- discharged axiom
-    eq [RD TC]: s (N@PNat + M#PNat) = s (N@PNat + M#PNat) .
-  -- induction variable
-    M:PNat
-  -- introduced constant
-    op N@PNat : -> PNat { prec: 0 }
-  -- constant for induction
-    op M#PNat : -> PNat { prec: 0 }
-  -- introduced axiom
-    eq [SI]: M#PNat + N:PNat = N + M#PNat .
-} << proved >>
+[rd]=> :goal{2-1}
+[rd] discharged: 
+  eq [TC]: s M#PNat + N@PNat = N@PNat + s M#PNat
+[rd] discharged goal "2-1".
+(consumed 0.0200 sec, including 4 rewrites + 31 matches)
 ** All goals are successfully discharged.
+
+%PNAT-L> :show proof
+root*
+[si]  1*
+[tc]  1-1*
+[si]  2*
+[tc]  2-1*
   \end{simplev}
 \end{vvtm}
 これで，交換則の証明が完了した．
 
 以上の証明は \verb|:apply (SI TC RD)| のようにして続けて自動で適用するようにできる．
 この場合は，上の実施例のように TC を2度指定する必要はなくなる．
-下の例ではシステムの印字を抑制するため \verb|:verbose off| としている．
+
+下の実行例で，:apply コマンドでノード指定(この場合 root)を指定している事に注意されたい.
+ノードを指定すると，そのノードに対して引数の戦略を適用する.
+この場合 root を指定しているため，これまで行った戦略適用をキャンセルし
+再び証明を開始するのに等しい.
+
 \begin{vvtm}
   \begin{simplev}
-%PNAT-L> :verbose off
+%PNAT-L> :apply to root (SI TC RD)
 
-%PNAT-L> :apply (SI TC)
 [si]=> :goal{root}
 ** Generated 2 goals
 [tc]=> :goal{1}
-[rd] discharged: 
-  eq [TC]: N@PNat = N@PNat
-[tc] discharged the goal "1-1"
 ** Generated 1 goal
+[rd]=> :goal{1-1}
+[rd] discharged: 
+  eq [TC]: 0 + N@PNat = N@PNat + 0
+[rd] discharged goal "1-1".
 [tc]=> :goal{2}
-[rd] discharged: 
-  eq [TC]: s (N@PNat + M#PNat) = s (N@PNat + M#PNat)
-[tc] discharged the goal "2-1"
 ** Generated 1 goal
+[rd]=> :goal{2-1}
+[rd] discharged: 
+  eq [TC]: s M#PNat + N@PNat = N@PNat + s M#PNat
+[rd] discharged goal "2-1".
+(consumed 0.0320 sec, including 7 rewrites + 37 matches)
 ** All goals are successfully discharged.
   \end{simplev}
 \end{vvtm}
+
+上と同じことは，一旦 :select root として root をターゲット・ゴールとし，
+次いで :apply (si tc rd) としてもできる.
 
 \subsubsection{結合則の証明}
 これまでと同じく，結合則も帰納法を用いて証明する．
@@ -1519,29 +1548,34 @@ dischage する事が出来た．証明木のノードに \verb|*| が付加さ�
 ** Initial goal (root) is generated. **
 %PNAT-L> :ind on (M:PNat)
 **> Induction will be conducted on M:PNat 
-%PNAT-L> :auto
 [si]=> :goal{root}
 ** Generated 2 goals
-[cs]=> :goal{1}
-[cs]=> :goal{2}
+[ca]=> :goal{1}
 [tc]=> :goal{1}
-[rd] discharged: 
+[tc] discharged: 
   eq [TC]: N@PNat + P@PNat = N@PNat + P@PNat
 [tc] discharged the goal "1-1"
 ** Generated 1 goal
+[ip]=> :goal{1-1}
+[rd]=> :goal{1-1}
+[ca]=> :goal{2}
 [tc]=> :goal{2}
-[rd] discharged: 
+[tc] discharged: 
   eq [TC]: s (N@PNat + (M#PNat + P@PNat))
       = s (N@PNat + (M#PNat + P@PNat))
 [tc] discharged the goal "2-1"
 ** Generated 1 goal
+[ip]=> :goal{2-1}
+[rd]=> :goal{2-1}
+(consumed 0.0320 sec, including 9 rewrites + 128 matches)
 ** All goals are successfully discharged.
-%PNAT-L> show proof
-       root*        
-    /          \     
- [si] 1*    [si] 2* 
-    |          |     
-[tc] 1-1*  [tc] 2-1*
+
+%PNAT-L> :show proof
+root*
+[si]  1*
+[tc]  1-1*
+[si]  2*
+[tc]  2-1*
   \end{simplev}
 \end{vvtm}
 
@@ -1608,13 +1642,15 @@ X が 8 以上かつ 4 以下という条件のためあり得ない．
 先に示したモジュール FG-FUN を文脈として証明を実施した例を以下に示す．
 個々の戦略の適用で作成されたゴールを見たいため，\verb|:verbose on| として実施した．
 
+また,各戦略で自動的に
+
 \begin{vvtm}
   \begin{simplev}
 FG-FUN> :goal { eq 9 <= G(F(X:Nat)) + G(X:Nat) = true . }
 
 :goal { ** root -----------------------------------------
   -- context module: FG-FUN
-  -- axiom to be proved
+  -- sentence to be proved
     eq 9 <= (G(F(X:Nat)) + G(X)) = true .
 }
 ** Initial goal (root) is generated. **
@@ -1636,8 +1672,8 @@ FG-FUN> :apply (TC CA RD)
   -- context module: FG-FUN
   -- introduced constant
     op X@Nat : -> Nat { prec: 0 }
-  -- axiom to be proved
-    eq [TC]: 9 <= (G(F(X@Nat)) + G(X@Nat))
+  -- sentence to be proved
+    eq [TC]: 9 <= G(F(X@Nat)) + G(X@Nat)
         = true .
 }
 \end{simplev}
@@ -1651,7 +1687,8 @@ FG-FUN> :apply (TC CA RD)
 次にこのゴール1に対して戦略 CA が適用され，先に見た4つのケース毎に
 ゴールが生成されている．
 CAはケースを新たな公理として導入後，それらの間に矛盾が無いかどうかを
-チェックする．現在は暗黙的戦略 LE のみが実装されているが，
+チェックする．
+現在は整数の順序関係の定義に矛盾が無いかどうかのみが検査される.
 これによってゴール1-3が discharge されている．
 
 \begin{vvtm}
@@ -1674,10 +1711,11 @@ CAはケースを新たな公理として導入後，それらの間に矛盾が
   -- introduced axioms
     eq [CA]: 5 <= X@Nat = true .
     eq [CA]: X@Nat <= 7 = true .
-  -- axiom to be proved
-    eq [TC]: 9 <= (G(F(X@Nat)) + G(X@Nat))
+  -- sentence to be proved
+    eq [TC]: 9 <= G(F(X@Nat)) + G(X@Nat)
         = true .
 }
+[ca]=>
 \end{simplev}
 \end{vvtm}
 ゴール1-1は先の表~\ref{tab:cases}に示した(2)のケースに対応する．
@@ -1700,9 +1738,10 @@ CAはケースを新たな公理として導入後，それらの間に矛盾が
   -- introduced axioms
     eq [CA]: 5 <= X@Nat = true .
     eq [CA]: 8 <= X@Nat = true .
-  -- axiom to be proved
-    eq [TC]: 9 <= (G(F(X@Nat)) + G(X@Nat))
+  -- sentence to be proved
+    eq [TC]: 9 <= G(F(X@Nat)) + G(X@Nat)
         = true .
+}
 }
 \end{simplev}
 \end{vvtm}
@@ -1710,11 +1749,10 @@ CAはケースを新たな公理として導入後，それらの間に矛盾が
 
 \begin{vvtm}
 \begin{simplev}
-[ca]=>
 :goal { ** 1-3 -----------------------------------------
   -- context module: FG-FUN
-  -- discharged axiom
-    eq [LE TC]: 9 <= (G(F(X@Nat)) + G(X@Nat))
+  -- discharged sentence
+    eq [LE TC]: 9 <= G(F(X@Nat)) + G(X@Nat)
         = true .
   -- introduced constant
     op X@Nat : -> Nat { prec: 0 }
@@ -1740,8 +1778,8 @@ discharge された証明対象であった文は，
   -- introduced axioms
     eq [CA]: X@Nat <= 4 = true .
     eq [CA]: X@Nat <= 7 = true .
-  -- axiom to be proved
-    eq [TC]: 9 <= (G(F(X@Nat)) + G(X@Nat))
+  -- sentence to be proved
+    eq [TC]: 9 <= G(F(X@Nat)) + G(X@Nat)
         = true .
 }
 \end{simplev}
@@ -1751,27 +1789,24 @@ CAが生成した最後にのゴール1-4は表~\ref{tab:cases}に示したケ�
 
 以上のCAが生成した4つのゴールのうち，1個(1-3)は既に CA の
 内部処理によって discharge されている．残りの3ゴールに対して
-RD が適用される．RD が行うことは文の充足性検査と矛盾の検査であり，
-暗黙的戦略 ST と CT を実施することと実質的に等価である．
+RD が適用される．RD が行うことは文の充足性検査と矛盾の検査であった.
 
 \begin{vvtm}
 \begin{simplev}
 [rd]=> :goal{1-1}
 [rd] discharged: 
-  eq [TC]: 9 <= (G(F(X@Nat)) + G(X@Nat))
-      = true
+  eq [TC]: 9 <= G(F(X@Nat)) + G(X@Nat) = true
 [rd] discharged goal "1-1".
 [rd]=> :goal{1-2}
 [rd] discharged: 
-  eq [TC]: 9 <= (G(F(X@Nat)) + G(X@Nat))
-      = true
+  eq [TC]: 9 <= G(F(X@Nat)) + G(X@Nat) = true
 [rd] discharged goal "1-2".
 [rd]=> :goal{1-3}
 [rd]=> :goal{1-4}
 [rd] discharged: 
-  eq [TC]: 9 <= (G(F(X@Nat)) + G(X@Nat))
-      = true
+  eq [TC]: 9 <= G(F(X@Nat)) + G(X@Nat) = true
 [rd] discharged goal "1-4".
+(consumed 0.0320 sec, including 35 rewrites + 117 matches)
 ** All goals are successfully discharged.
   \end{simplev}
 \end{vvtm}
@@ -1781,24 +1816,26 @@ RD が適用される．RD が行うことは文の充足性検査と矛盾の�
 以上の証明の結果に対応する証明木を表示すると次のようになる．
 \begin{vvtm}
   \begin{simplev}
-FG-FUN> show proof
-                  root*                   
-                    |                      
-                 [tc] 1*                  
-    /          |          |          \     
-[ca] 1-1*  [ca] 1-2*  [ca] 1-3*  [ca] 1-4*
+FG-FUN> :show proof
+root*
+[tc]  1*
+[ca]  1-1*
+[ca]  1-2*
+[ca]  1-3*
+[ca]  1-4*
   \end{simplev}
 \end{vvtm}
 RD はゴールを生成しないため，証明木上で新たなノードは表示されていない．
 結果を確認するため，ゴール1-1を表示してみると次のようになる．
 \begin{vvtm}
   \begin{simplev}
-FG-FUN> show goal 1-1
+FG-FUN> :show goal 1-1
+
 [ca]=>
 :goal { ** 1-1 -----------------------------------------
   -- context module: FG-FUN
-  -- discharged axiom
-    eq [RD TC]: 9 <= (G(F(X@Nat)) + G(X@Nat))
+  -- discharged sentence
+    eq [RD TC]: 9 <= G(F(X@Nat)) + G(X@Nat)
         = true .
   -- introduced constant
     op X@Nat : -> Nat { prec: 0 }

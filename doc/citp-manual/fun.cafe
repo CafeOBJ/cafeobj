@@ -1,4 +1,3 @@
--- 日本語のコメントを入れてみる
 ** CITP on Maude
 -- (fmod FG-FUN is
 --  protecting NAT .
@@ -21,7 +20,6 @@ mod! FG-FUN {
   ceq [CA-4]: G(Y:Nat) = 7 if 5 <= Y .
 }
 
--- (goal FG-FUN |- eq 9 <= G(F(X:Nat)) + G(X:Nat) = true ;) 
 select FG-FUN .
 :set(spoiler, off)
 **> ':verbose on' => print out every generated goal in the process of proof

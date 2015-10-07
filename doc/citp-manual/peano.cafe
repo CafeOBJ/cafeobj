@@ -38,22 +38,32 @@ mod! PNAT-L {
 
 open PNAT-L .
 :goal { eq M:PNat + N:PNat = N:PNat + M:PNat . }
-
+--> induction on variable M:PNat
 :ind on (M:PNat)
+--> :apply (si)
 :apply (SI)
+--> :show proof should shows base case and induction step
 :show proof
+--> :apply (tc)
+:verbose off
 :apply (TC)
+--> :apply (rd) 
 :apply (RD)
+--> :show proof
 :show proof
+--> rest :apply (tc rd)
 :apply (TC RD)
+--> done for all
 :show proof
 **> we redo the same proof by one :apply
 :apply to root (SI TC RD)
 **> the above is equvalent to the followings
+--> select root 
 :select root
 :apply (SI TC RD)
 
 ** associativity
+--> use :auto
 :goal {eq (M:PNat + N:PNat) + P:PNat  = N:PNat + (M:PNat + P:PNat) . }
 :ind on (M:PNat)
 :auto
