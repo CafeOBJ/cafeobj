@@ -140,6 +140,9 @@
 ;;;
 (defun citp-parse-imp (args)
   (citp-parse-init args))
+(defun eval-citp-imp (arg)
+  (declare (ignore arg))
+  nil)
 
 ;;; :cp
 ;;; (":cp" ("[" ("label-1") "]") "><" ("[" ("label-2") "]")) 
