@@ -2007,7 +2007,7 @@
           ;;
           (setq instance (make-axiom-instance *current-module* subst target-axiom))
           ;; we normalize the LHS of the instance
-          (when-spoiler-on
+          (with-spoiler-on
            (multiple-value-bind (n-lhs applied?)
                (normalize-term-in *current-module* (axiom-lhs instance))
              (when applied?
@@ -2027,6 +2027,11 @@
             (set-operator-rewrite-rule *current-module* instance)
             (adjoin-axiom-to-module *current-module* instance)
             (compile-module *current-module* t)))))))
+
+;;; ================================
+;;; Target sentence T -> A implies T [:ip]
+;;; ================================
+
 
 ;;; ==============
 ;;; CRITICAL PAIRS [:cp]

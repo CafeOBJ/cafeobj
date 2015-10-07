@@ -136,6 +136,11 @@
       (format t "~%        subst  = ~s" subst-pairs))
     (list target-form subst-pairs)))
 
+;;; :imply [<label>] by { <var> <- <term>; ...<var> <- <term>; }
+;;;
+(defun citp-parse-imp (args)
+  (citp-parse-init args))
+
 ;;; :cp
 ;;; (":cp" ("[" ("label-1") "]") "><" ("[" ("label-2") "]")) 
 ;;; (":cp" ("(" ("ceq" ("LHS") "=" ("RHS") "if" ("C") ".") ")")

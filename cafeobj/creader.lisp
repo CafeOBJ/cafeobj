@@ -782,6 +782,8 @@
                                |)|)
                           (\[ (:symbol) \]))
                  |by| |{| ((:! SubstList)) |}|)
+        ((:+ |:imply| |:imp|) (\[ (:symbol) \])
+                              |by| |{| ((:! SubstList)) |}|)
         (|:cp| (:one-of (|(| (:one-of #.EqDeclaration
                                       #.CeqDeclaration
                                       #.RlDeclaration
@@ -844,30 +846,6 @@
                ((:+ ex extending us using pr protecting inc including)
                 :symbols |::| (:upto (|,| \] \)) :modexp))))
 
-      ;; importation modexp
-      #|| not used
-      (ImportModexp (:symbol :modexp))
-      (IM (:one-of-default
-           (:modexp)
-           (|::| :modexp)))
-      ||#
-      ;; (sortConst
-      ;;  (:one-of-default
-      ;;   (:sorts)
-      ;;  (:symbol = { :term |:| :sorts })))
-
-      #|| obsolete
-      ;; super reference.
-      (Supers (\[ (:! Super) :append (:seq-of |,| (:! Super)) \]))
-      (Super ((:upto (|,| \]) :super)))
-      ;; slot/value pairs
-      (SV-Pairs ((:! Sv-pair) :append  (:seq-of (:! Sv-pair))))
-      (Sv-Pair (:one-of-default
-                (:symbol (:upto (|}|))  (:one-of (|:| :sort)
-                                                 (= |(| :term |)| |:| :sort)))
-                ((:+ -- **) :comment)
-                ((:+ --> **>) :comment)))
-      ||#
       ;; Substitution
       ;;  variable-1 <- term-1; ... variable-n <- term-n;
       ;; (SubstList ((:! Subst) :append (:seq-of (:! Subst) (:upto (|}|)))))
