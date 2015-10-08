@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: COMMON-LISP-USER; Base:10; Syntax:Common-Lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -102,23 +102,23 @@
 
 (defpackage "CHAOS"
     (:shadow "METHOD-NAME"
-	     "METHOD"
-	     "MAKE-METHOD"
-	     #-:GCL "OBJECT"
-	     ;; #+(:ALLEGRO-VERSION>= 7.0) "WHILE"
-	     #+:EXCL
-	     "CLASS"
-	     "TIMER"
-	     "MODULE"
-	     "MODULE-P"
-	     "LOAD-FILE"
-	     )
+             "METHOD"
+             "MAKE-METHOD"
+             #-:GCL "OBJECT"
+             ;; #+(:ALLEGRO-VERSION>= 7.0) "WHILE"
+             #+:EXCL
+             "CLASS"
+             "TIMER"
+             "MODULE"
+             "MODULE-P"
+             "LOAD-FILE"
+             )
   (:use #+:GCL "LISP" #-:GCL "COMMON-LISP"
-	;; "FMCS"
-	#+:MCL "CCL" #+:EXCL "EXCL"
-	#+:GCL "DEFPACKAGE"
-	;; #+:common-graphics "COMMON-GRAPHICS"
-	)
+        ;; "FMCS"
+        #+:MCL "CCL" #+:EXCL "EXCL"
+        #+:GCL "DEFPACKAGE"
+        ;; #+:common-graphics "COMMON-GRAPHICS"
+        )
   )
 
       

@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -61,13 +61,13 @@
   (setf (sort-is-hidden *huniversal-sort*) t)
   (setf (sort-is-hidden *hbottom-sort*) t)
   (setq sup-universal-sort-name
-	(intern
-	 (concatenate 'string (string (sort-id *universal-sort*))
+        (intern
+         (concatenate 'string (string (sort-id *universal-sort*))
                   "."
                   (make-module-print-name2 (sort-module *universal-sort*)))))
   (setq sup-huniversal-sort-name
-	(intern
-	 (concatenate 'string (string (sort-id *huniversal-sort*))
+        (intern
+         (concatenate 'string (string (sort-id *huniversal-sort*))
                   "."
                   (make-module-print-name2 (sort-module *huniversal-sort*)))))
   (compile-module *universal-module*))
@@ -80,7 +80,7 @@
     ;; Sorts for syntax errors
     (let ((syntax-err (define-builtin-sort '|SyntaxErr| *parser-module*))
           (type-err (define-builtin-sort '|TypeErr| *parser-module*))
-	  (sort-id (define-builtin-sort '|SortId| *parser-module*)))
+          (sort-id (define-builtin-sort '|SortId| *parser-module*)))
       (setf *syntax-err-sort* syntax-err)
       (setf *type-err-sort* type-err)
       (setf *sort-id-sort* sort-id)
@@ -155,7 +155,7 @@
 
 (defun print-ast-dict ()
   (maphash #'(lambda (x y)
-               (format t "~&key=~a, entries -------------------" x)
+               (format t "~%key=~a, entries -------------------" x)
                (dolist (elt y)
                  (let ((ee (cdr elt)))
                    (terpri)
@@ -187,7 +187,7 @@
 (defun install-chaos-hard-wired-modules ()
   (setq *dribble-ast* nil)
   (setq *ast-log* nil)
-  (setq *last-module* nil *current-module* nil)
+  (reset-context-module)
   (setq *include-bool* nil)
   (setq *include-rwl* nil)
   (setq *regularize-signature* nil)
@@ -199,8 +199,8 @@
   (eval-ast-if-need '(%module-decl "TRUTH-VALUE" :object :hard
                       ((%psort-decl (%sort-ref "Bool" nil))
                        (%sort-decl (%sort-ref "Bool" nil) nil)
-		       (%sort-decl (%sort-ref "*Condition*" nil) nil)
-		       (%subsort-decl (nil (%sort-ref "Bool" nil) :< (%sort-ref "*Condition*" nil)))
+                       (%sort-decl (%sort-ref "*Condition*" nil) nil)
+                       (%subsort-decl (nil (%sort-ref "Bool" nil) :< (%sort-ref "*Condition*" nil)))
                        (%op-decl ("false") nil (%sort-ref "Bool" nil)
                         (%opattrs nil nil nil nil nil t nil nil)
                         nil)
@@ -281,8 +281,7 @@
                        (%bsort-decl "String" nil nil prin1 stringp nil))))
   (install-string)
   ;;
-  ;;
-  (setq *last-module* nil *current-module* nil)
+  (reset-context-module)
   (setq *include-bool* t)
   (setq *include-rwl* t)
   )
@@ -303,12 +302,11 @@
     (setq *ast-log* nil)
     (setq *include-bool* t)
     (setq *include-rwl* t)
-    (setq *last-module* nil
-          *current-module* nil)
+    (reset-context-module)
     (setq *regularize-signature* nil)
     ;; set recover proc.
     (setq *system-soft-wired*
-	  '((%lisp-eval (install-chaos-soft-wired-modules))))
+          '((%lisp-eval (install-chaos-soft-wired-modules))))
     ))
 
 (defun chaos-misc-init ()
@@ -383,20 +381,20 @@
   (setq *z-string-value* (get-z-module-or-panic "STRING-VALUE"))
                                         ; (setq *z-string* (get-z-module-or-panic "STRING"))
   (setq *tram-builtin-modules*
-	(list *z-nznat-value*
-	      *z-nat-value*
-	      *z-int-value*
+        (list *z-nznat-value*
+              *z-nat-value*
+              *z-int-value*
                                         ; *z-nznat* *z-nat* *z-int*
-	      *z-rat-value*
+              *z-rat-value*
                                         ; *z-rat*
-	      *z-float-value*
+              *z-float-value*
                                         ; *z-float*
-	      ;; *z-qid*
-	      *z-char-value*
+              ;; *z-qid*
+              *z-char-value*
                                         ; *z-char*
-	      *z-string-value*
+              *z-string-value*
                                         ; *z-string*
-	      ))
+              ))
   (setup-tram-bool-modules))
 
 ;;;

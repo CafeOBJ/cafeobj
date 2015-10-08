@@ -1,0 +1,123 @@
+**
+** polynomial.cafe
+**
+** parametrized polynomials over commutative rings
+**
+**
+** Copyright (c) 2015, Norbert Preining. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+
+mod* RING {
+  [ Elem ]
+  op OO : -> Elem { constr }
+  op II : -> Elem { constr }
+  op _ + _ : Elem Elem -> Elem { comm assoc }.
+  op _ - _ : Elem Elem -> Elem .
+  op _ * _ : Elem Elem -> Elem { comm assoc }.
+  eq OO + E:Elem = E .
+  eq II * E:Elem = E .
+}
+
+mod! POLYNOMIAL ( COEFF :: RING ) {
+  pr(INT)
+  [ Elem < Poly ]
+  vars I I1 I2 I3 : Elem .
+  vars N N1 N2 N3 : Nat .
+  vars M M1 M2 M3 : Nat .
+  vars IP IP1 IP2 IP3 IP4 : Poly .
+
+  op X^_ : Nat -> Poly {constr} .
+
+  op _ + _ : Poly Poly -> Poly { assoc comm } .
+  op _ - _ : Poly Poly -> Poly .
+  op - _   : Poly -> Poly .
+  op _ * _ : Poly Poly -> Poly { assoc comm } .
+
+  eq OO + IP = IP .
+  eq II * IP = IP .
+
+
+  eq ( IP - IP1 ) = ( IP + ( - IP1 ) ) .
+  eq IP + (- IP) = OO .
+  eq X^ 0 = II .
+
+  -- normalization of polynomial expressions
+  eq ( I1 * ( X^ N ) ) + ( I2 * ( X^ N ) ) = ( I1 + I2 ) * ( X^ N ) .
+  -- we have to treat the implicite 1 * explicitly
+  eq ( X^ N ) + ( I2 * ( X^ N ) ) = ( II + I2 ) * ( X^ N ) .
+  eq ( ( X^ N ) * ( X^ N1 ) ) = X^ ( N + N1 ) .
+  
+  -- now for the polynom operation
+  eq ( IP1 + IP2 ) * IP3 = (IP1 * IP3) + (IP2 * IP3) .
+
+  op max : Nat Nat -> Nat { strat: (1 2 0) } .
+  ceq max ( N , M ) = N if ( N >= M ) .
+  ceq max ( N , M ) = M if ( M >= N ) .
+
+  op rank : Poly -> Nat .
+  eq rank ( I * IP ) = rank ( IP ) .
+  eq rank ( I ) = 0 .
+  eq rank ( X^ N ) = N .
+  eq rank ( IP + IP2 ) = max ( rank ( IP ) , rank ( IP2 ) ) .
+}
+
+
+** end of the input file
+eof
+
+**
+** for testing and usage, see below examples
+**
+
+view INT-AS-RING from RING to INT {
+  sort Elem -> Int,
+  op   OO   -> 0,
+  op   II   -> 1
+}
+
+open POLYNOMIAL(COEFF <= INT-AS-RING) .
+red 3 * X^ 2 + 5 * X^ 2 .
+red 4 * X^ 2 - 2 * X^ 2 .
+red ( 3 * X^ 1 * 4 * X^ 3 )  .
+red ( 3 * X^ 1 * -4 * X^ 3 ) .
+red ( ( 3 * X^ 2 + X^ 1 + 2 * X^ 0 ) * ( X^ 1 + X^ 0 ) ) . 
+-- set trace whole on 
+red ( ( 3 * X^ 2 + X^ 1 + 2 * X^ 0 ) * ( X^ 1 - X^ 0 ) ) . 
+close
+
+view RAT-AS-RING from RING to RAT {
+  sort Elem -> Rat,
+  op   OO   -> 0,
+  op   II   -> 1
+}
+
+open POLYNOMIAL(COEFF <= RAT-AS-RING) .
+red ( ( 3/2 * X^ 2 + X^ 1 + 2/5 * X^ 0 ) * ( X^ 1 - 3/2 * X^ 0 ) ) .
+red ( X^ 3 - X^ 1 + 5/3 ) * ( X^ 2 + 2/9 * X^ 1 - 7/3 ) .
+
+red rank ( ( 3/2 * X^ 2 + X^ 1 + 2/5 * X^ 0 ) * ( X^ 1 - 3/2 * X^ 0 ) ) .
+

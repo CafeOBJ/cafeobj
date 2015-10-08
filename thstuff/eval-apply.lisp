@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-System: CHAOS
-Module: thstuff
-File: eval-apply.lisp
+                               System: CHAOS
+                              Module: thstuff
+                           File: eval-apply.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -42,13 +42,13 @@ File: eval-apply.lisp
 ;;; *****
 
 (defun eval-start-command (ast)
-  (do-eval-start-th (%start-target ast) *last-module*))
+  (do-eval-start-th (%start-target ast) (get-context-module)))
 
 (defun do-eval-start-th (pre-term &optional context)
   (catch 'apply-context-error
     (let ((mod (if context
                    (eval-modexp context)
-                 *last-module*)))
+                 (get-context-module))))
       (if (or (null mod) (modexp-is-error mod))
           (if (null mod)
               (with-output-chaos-error ('invalid-module)
@@ -65,20 +65,18 @@ File: eval-apply.lisp
                          (setq target (get-bound-value (car pre-term))))
                        (unless target
                          (return-from do-eval-start-th nil))
-                       (when (eq mod *last-module*)
-                         (setq $$action-stack nil))
+                       (setq $$action-stack nil)
                        (reset-reduced-flag target)
-                       (reset-target-term target *last-module* mod)))
+                       (reset-target-term target *current-module* mod)))
                     (t 
                      (let ((*parse-variables* nil))
                        (let ((res (simple-parse *current-module*
-						pre-term
+                                                pre-term
                                                 *cosmos*)))
                          (when (term-is-an-error res)
                            (return-from do-eval-start-th nil))
-                         (when (eq *last-module* mod)
-                           (setq $$action-stack nil))
-                         (reset-target-term res *last-module* mod))))))
+                         (setq $$action-stack nil)
+                         (reset-target-term res *current-module* mod))))))
           ;; try use $$term
           (progn
             (when (or (null $$term) (eq 'void $$term))
@@ -86,12 +84,9 @@ File: eval-apply.lisp
                 (format t "no target term is given!")
                 (return-from do-eval-start-th nil)))
             (check-apply-context mod)
-            (when (eq *last-module* mod)
-              (setq $$action-stack nil))
+            (setq $$action-stack nil)
             (reset-reduced-flag $$term)
-            (reset-target-term $$term *last-module* mod)
-            )))
-      ;; (clear-found-rules)
+            (reset-target-term $$term (get-context-module) mod))))
       (when (command-final) (command-display))
       t)))
 
@@ -112,7 +107,7 @@ File: eval-apply.lisp
       (setq $$subterm $$term)
       (setq $$selection-stack nil)
       (return-from eval-choose-command nil))
-    (with-in-module (*last-module*)
+    (with-in-module ((get-context-module))
       (multiple-value-bind (subterm-sort subterm)
           (compute-selection $$subterm selectors)
         (declare (ignore subterm-sort))
@@ -149,84 +144,78 @@ File: eval-apply.lisp
         (where-spec (%apply-where-spec ast))
         (selectors (%apply-selectors ast)))
     (catch 'apply-context-error
-      (if (eq action :help)
-          (apply-help)
-        (progn
-          ;; check some evaluation env
-          (when (or (null $$term) (eq 'void $$term))
-            (with-output-chaos-error ('invalid-term)
-              (princ "term to be applied is not defined.")
-              ))
-          (unless *last-module*
-            (with-output-chaos-error ('no-context-module)
-              (princ "no current module.")
-              ))
-          ;; real work begins here ------------------------------
-          (with-in-module (*last-module*)
-            (multiple-value-bind (subterm-sort subterm)
-                (compute-selection $$term selectors)
-              (setq *-applied-* t)
-              (case action
-                (:reduce                ; full reduction on selections.
-                 (!setup-reduction *last-module*)
-                 (let ((*rewrite-semantic-reduce*
-                        (module-has-behavioural-axioms *last-module*))
-                       (*rewrite-exec-mode* nil))
-                   (term-replace subterm (@copy-term subterm))
-                   (reset-reduced-flag subterm)
-                   (rewrite subterm *last-module*)))
-                (:breduce
-                 (!setup-reduction *last-module*)
-                 (let ((*rewrite-semantic-reduce* nil)
-                       (*rewrite-exec-mode* nil))
-                   (term-replace subterm (@copy-term subterm))
-                   (reset-reduced-flag subterm)
-                   (rewrite subterm *last-module*)))
-                (:exec
-                 (!setup-reduction *last-module*)
-                 (let ((*rewrite-semantic-reduce*
-                        (module-has-behavioural-axioms *last-module*))
-                       (*rewrite-exec-mode* t))
-                   (term-replace subterm (@copy-term subterm))
-                   (reset-reduced-flag subterm)
-                   (rewrite subterm *last-module*)))
-                ;;
-                (:print                 ; print selections.
-                 (format t "~&term ")
-                 (disp-term subterm)
-                 (format t "~&tree form")
-                 (print-term-tree subterm))
-                (:apply                 ; apply specified rule.
-                 (setq *-applied-* nil)
-                 (let* ((actrule (compute-action-rule rule-spec
-                                                      substitution
-                                                      selectors))
-                        (*-inside-apply-with-extensions-*
-                         (and
-                          (let ((arlhs (rule-lhs actrule)))
-                            (and (term-is-application-form? arlhs)
-                                 (method-is-associative (term-head arlhs)))))))
-                   (if (eq :within where-spec)
-                       (let ((*-inside-apply-all-* t))
-                         (catch 'apply-all-quit
-                           (@apply-all actrule subterm-sort subterm)))
-                     (@apply-rule actrule subterm-sort subterm)))
-                 (when *-applied-*
-		   (update-lowest-parse $$term)
-                   (when (nth 2 rule-spec) ; reverse order
-                     (setq $$term (@copy-term $$term)))
-                   (reset-target-term $$term *last-module* *last-module*))
-                 )                      ; end :apply
-                (t (with-output-panic-message ()
-                     (format t "unknown apply action : ~a" action)
-                     (chaos-error 'unknown-action))))
-              ;;
-              (unless *-applied-*
-                (with-output-chaos-warning ()
-                  (princ "rule not applied")))
-              ;;
-              (command-final)
-              (command-display))))))))
+      (when (eq action :help)
+        (apply-help)
+        (return-from eval-apply-command nil))
+      ;; check some evaluation env
+      (when (or (null $$term) (eq 'void $$term))
+        (with-output-chaos-error ('invalid-term)
+          (princ "term to be applied is not defined.")))
+      ;; real work begins here ------------------------------
+      (with-in-module ((get-context-module))
+        (multiple-value-bind (subterm-sort subterm)
+            (compute-selection $$term selectors)
+          (setq *-applied-* t)
+          (case action
+            (:reduce                    ; full reduction on selections.
+             (!setup-reduction *current-module*)
+             (let ((*rewrite-semantic-reduce*
+                    (module-has-behavioural-axioms *current-module*))
+                   (*rewrite-exec-mode* nil))
+               (term-replace subterm (@copy-term subterm))
+               (reset-reduced-flag subterm)
+               (rewrite subterm *current-module*)))
+            (:breduce
+             (!setup-reduction *current-module*)
+             (let ((*rewrite-semantic-reduce* nil)
+                   (*rewrite-exec-mode* nil))
+               (term-replace subterm (@copy-term subterm))
+               (reset-reduced-flag subterm)
+               (rewrite subterm *current-module*)))
+            (:exec
+             (!setup-reduction *current-module*)
+             (let ((*rewrite-semantic-reduce*
+                    (module-has-behavioural-axioms *current-module*))
+                   (*rewrite-exec-mode* t))
+               (term-replace subterm (@copy-term subterm))
+               (reset-reduced-flag subterm)
+               (rewrite subterm *current-module*)))
+            ;;
+            (:print                     ; print selections.
+             (format t "~%term ")
+             (disp-term subterm)
+             (format t "~&tree form")
+             (print-term-tree subterm))
+            (:apply                     ; apply specified rule.
+             (setq *-applied-* nil)
+             (let* ((actrule (compute-action-rule rule-spec
+                                                  substitution
+                                                  selectors))
+                    (*-inside-apply-with-extensions-*
+                     (and
+                      (let ((arlhs (rule-lhs actrule)))
+                        (and (term-is-application-form? arlhs)
+                             (method-is-associative (term-head arlhs)))))))
+               (if (eq :within where-spec)
+                   (let ((*-inside-apply-all-* t))
+                     (catch 'apply-all-quit
+                       (@apply-all actrule subterm-sort subterm)))
+                 (@apply-rule actrule subterm-sort subterm)))
+             (when *-applied-*
+               (update-lowest-parse $$term)
+               (when (nth 2 rule-spec)  ; reverse order
+                 (setq $$term (@copy-term $$term)))
+               (reset-target-term $$term *current-module* *current-module*))) ; end :apply
+            (t (with-output-panic-message ()
+                 (format t "unknown apply action : ~a" action)
+                 (chaos-error 'unknown-action))))
+          ;;
+          (unless *-applied-*
+            (with-output-chaos-warning ()
+              (princ "rule not applied")))
+          ;;
+          (command-final)
+          (command-display))))))
 
 (defvar *copy-conditions*)
 (declaim (special *copy-conditons*))
@@ -236,7 +225,7 @@ File: eval-apply.lisp
   (when *apply-debug*
     (princ "* @apply-one-rule : rule = ")
     (print-chaos-object rule)
-    (format t "~&- sort = ") (print-sort-name sort)
+    (format t "~%- sort = ") (print-sort-name sort)
     (format t "~&- term = ") (term-print term))
   (let ((*self* term))
     (let ((cond (rule-condition rule)))
@@ -275,7 +264,7 @@ File: eval-apply.lisp
             (when eeq (setq sub nil))
             (unless no
               (setq *-applied-* t)
-              (format t "~&shifting focus to condition")
+              (format t "~%shifting focus to condition")
               (force-output)
               (let ((cond-inst (@copy-term (substitution-image! sub cond)))
                     (rhs-inst
@@ -286,7 +275,7 @@ File: eval-apply.lisp
                    $$action-stack))
                 (setq $$term cond-inst)
                 (when *-inside-apply-all-*
-                  (format t "~&-- applying rule only at first position found: ")
+                  (format t "~%-- applying rule only at first position found: ")
                   (term-print term)
                   (force-output)
                   (throw 'apply-all-quit nil))))))))))
@@ -305,13 +294,13 @@ File: eval-apply.lisp
   (block the-end
     (let ((condition nil)
           next-match-method
-	  ;; (*do-unify* t)
+          ;; (*do-unify* t)
           (*self* term))
       (multiple-value-bind (global-state subst nomatch Eequal)
           (funcall (rule-first-match-method rule) (rule-lhs rule) term)
         (when nomatch (return-from the-end nil))
         (when *apply-debug*
-          (format t "~&[apply-one-rule] : ")
+          (format t "~%[apply-one-rule] : ")
           (format t "~%  subst = ")
           (print-substitution subst)
           (format t "~%  Eequal = ~a" eequal))
@@ -421,19 +410,19 @@ File: eval-apply.lisp
 ;;;
 (defun apply-print-rule (x)
   (unless x
-    (format t "~&That dosen't make sense as a rule specification.")
+    (format t "~%That dosen't make sense as a rule specification.")
     (return-from apply-print-rule t))
   (let* ((act (get-apply-action x))
          (rule-spec (if (eq act :apply)
                         (parse-rule-spec x))))
     ;;
     (if (eq :reduce act)
-        (format t "~&special rule for reduction of a selected subterm.")
+        (format t "~%special rule for reduction of a selected subterm.")
       (if (eq :print act)
-          (format t "~&special rule to print-the selected subterm.")
+          (format t "~%special rule to print-the selected subterm.")
         (progn
           (when (or (eq :error rule-spec) (null rule-spec))
-            (format t "~&That doesn't make sense as a rule specification.")
+            (format t "~%That doesn't make sense as a rule specification.")
             (return-from apply-print-rule t))
           (let ((num (cadr rule-spec))
                 (mod (car rule-spec))
@@ -450,10 +439,10 @@ File: eval-apply.lisp
                 (print-chaos-object rule)
                 (when (and rev (or (rule-is-builtin rule)
                                    (eq (axiom-type rule) :rule)))
-                  (format t "~&This rule cannot be applied reversed."))
-                (when (and *last-module*
+                  (format t "~%This rule cannot be applied reversed."))
+                (when (and (get-context-module t)
                            (not (rule-is-builtin rule)))
-                  (format t "~&(This rule rewrites up.)"))))))))
+                  (format t "~%(This rule rewrites up.)"))))))))
     t))
 
 ;;; EOF

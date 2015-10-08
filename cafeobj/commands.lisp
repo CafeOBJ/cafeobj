@@ -5,7 +5,7 @@
                          File: commands.lisp
 ==============================================================================|#
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -90,8 +90,9 @@
 ")
 
 (define ("#define")
-    :category :module-element
+    :category :element
     :parser identity
+    :title "`#define <symbol> := <term> .`"
     :mdkey "sharp-define"
     :evaluator cafeobj-eval-module-element-proc
     :doc "
@@ -99,7 +100,7 @@
 )
 
 (define ("--" "**")
-    :category :decl-toplevel
+    :category :decl
     :parser parse-comment-command
     :evaluator identity
     :title "`**`, `**>`"
@@ -112,7 +113,7 @@ evaluated by the interpreter.
 
 
 (define ("-->" "**>")
-    :category :decl-toplevel
+    :category :decl
     :parser parse-comment-command
     :evaluator eval-ast
     :title "`--`, `-->`"
@@ -189,7 +190,7 @@ difficult - see TODO for [`=*=`](#bequality)
     :evaluator cafeobj-top-level-help
     :title "`? [<term>]`"
     :mdkey "help" 
-    :doc "Without any argument, lists all top-level commands.
+    :doc "Without any argument, shows the brief guide of online help system.
 With argument gives the reference manual description of `term`.
 In addition to this, many commands allow for passing `?` as argument
 to obtain further help.
@@ -335,11 +336,25 @@ a module's content will switch the current module.
     :category :library
     :parser parse-autoload-command
     :evaluator eval-ast
-    :doc "
+    :title "`autoload <module-name> <file-name>`"
+    :related ("no autoload")
+    :doc "When evaluating a <module-name> and found that
+it is not yet declared, the system read in <file-name> then 
+retries the evaluation.
+")
+
+(define ("no-autoload")
+    :category :library
+    :parser parse-no-autoload-command
+    :evaluator eval-ast
+    :title "`no autoload <module-name>`"
+    :related ("autoload")
+    :doc "Stop `autoload` of module with the name <module-name> .
+Please refer to `autoload` command.
 ")
 
 (define ("axioms" "axiom" "axs")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`axioms { <decls> }`"
@@ -351,25 +366,25 @@ Optional structuring of the statements in a module.
 ")
 
 (define ("bceq" "bcq")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :title "`bceq [ <op-exp> ] <term> = <term> if <boolterm> .`"
+    :title "`bceq [ <label-exp> ] <term> = <term> if <boolterm> .`"
     :related ("eq" "ceq" "beq")
     :doc "Defines a behavioral conditional equation. For details see [`ceq`](#ceq).
 ")
 
 (define ("beq")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :title "`beq [ <op-exp> ] <term> = <term> .`"
+    :title "`beq [ <label-exp> ] <term> = <term> .`"
     :related ("eq" "ceq" "bceq")
     :doc "Defines a behavioral equation. For details see [`eq`](#eq).
 ")
 
 (define ("bctrans" "bctr")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`bctrans [ <label-exp> ] <term> => <term> if <bool> .`"
@@ -379,7 +394,7 @@ For details see [`ctrans`](#ctrans).
 ")
 
 (define ("bop" "bops")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`bop <op-spec> : <sorts> -> <sort>`"
@@ -392,7 +407,7 @@ For `<op-spec>` see the explanations of [`op`](#op).
 ")
 
 (define ("bpred" "bpreds" "bpd" "bpds")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`bpred <op-spec> : <sorts>`"
@@ -415,7 +430,7 @@ into account for reduction.
 ")
 
 (define ("btrans" "btr")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`btrans [ <label-exp> ] <term> => <term> .`"
@@ -427,6 +442,7 @@ into account for reduction.
     :category :rewrite
     :parser parse-cbred-command
     :evaluator eval-ast
+    :title "`cbred [ in <mod-exp> :] <term> .`"
     :doc "
 ")
 
@@ -441,10 +457,10 @@ The argument is necessary. No kind of expansion or substitution is done.
 ")
 
 (define ("ceq" "cq")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :title "`ceq [ <op-exp> ] <term> = <term> if <boolterm> .`"
+    :title "`ceq [ <label-exp> ] <term> = <term> if <boolterm> .`"
     :related ("eq" "beq" "bceq")
     :doc "Defines a conditional equation. Spaces around the `if` are obligatory.
 `<boolterm>` needs to be a Boolean term. For other requirements
@@ -514,6 +530,7 @@ for details on `<selection>`.
     :category :rewrite
     :parser identity
     :evaluator cafeobj-eval-clear-memo-proc
+    :title "`clean memo`"
     :mdkey "cleanmemo"
     :related (("clean memo switch" "`clean memo` switch"))
     :doc "Resets (clears) the memo storage of the system. Memorized computations 
@@ -533,6 +550,7 @@ tells the system to be forgetful.
     :category :proof
     :parser parse-close-command
     :evaluator eval-ast
+    :title "`close`"
     :related ("open")
     :doc "This command closes a modification of a module started by `open`.
 ")
@@ -556,10 +574,10 @@ displayed when run through the interpreter.
 ")
 
 (define ("ctrans" "ctr")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :title "`ctrans [ <label-exp> ] <term> => <term> .`"
+    :title "`ctrans [ <label-exp> ] <term> => <term> if <term> .`"
     :related ("trans" "btrans" "bctrans")
     :doc "Defines a conditional transition. For details see [`trans`](#trans)
 and [`ceq`](#ceq).
@@ -571,7 +589,7 @@ and [`ceq`](#ceq).
     :evaluator eval-ast
     :title "`describe <something>`"
     :related ("show")
-    :doc "Similar to the `show` command but with more details. See `describe ?` for
+    :doc "Similar to the `show` command but with more details. Call `describe ?` for
 the possible set of invocations.
 ")
 
@@ -583,10 +601,10 @@ to be on a line by itself without leading spaces.
 ")
 
 (define ("eq")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :title "`eq [ <op-exp> ]: <term> = <term> .`"
+    :title "`eq [ <label-exp> ] <term> = <term> .`"
     :related ("ceq" "beq" "bceq")
     :doc "Declares an axiom, or equation.
 
@@ -597,9 +615,9 @@ same connected component in the graph defined by the sort ordering.
 In simple words, the objects determined by the terms must be
 interpretable as of the same sort.
 
-The optional part `<op-exp>` serves two purposes, one is to give
+The optional part `<label-exp>` serves two purposes, one is to give
 an axiom an identifier, and one is to modify its behavior. The
-`<op-exp>` is of the form:
+`<label-exp>` is of the form:
 
 ` [ <modifier> <label> ] : `
 
@@ -672,7 +690,7 @@ into account for reduction.
 
 
 (define ("extending" "ex")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`extending ( <modexp> )`"
@@ -718,12 +736,12 @@ and save it to `pathname`.
 ")
 
 (define ("imports")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`imports { <import-decl> }`"
     :related ("signature" "axioms" "extending" "including" "protecting"
-	      "using")
+              "using")
     :doc "Block enclosing import of other modules (`protecting` etc). 
 Other statements are not allowed within the `imports` block.
 Optional structuring of the statements in a module.
@@ -753,7 +771,7 @@ This switch allows to disable automatic inclusion of RWL.
 ")
 
 (define ("including" "inc")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`including ( <modexp> )`"
@@ -837,7 +855,7 @@ module NAT-ILIST {
 
 
 (define ("let") 
-    :category :decl-toplevel
+    :category :decl
     :parser process-let-declaration-form
     :evaluator eval-ast
     :title "`let <identifier> = <term> .`"
@@ -921,7 +939,7 @@ the matching substitution is printed.
 ")
 
 (define ("module" "mod" "module*" "mod*" "module!" "mod!" "sys:mod!" "sys:module!" "sys:mod*" "sys:module*")
-    :category :decl-toplevel
+    :category :decl
     :parser process-module-declaration-form
     :evaluator eval-ast
     :title "`[sys:]module[!|*] <modname> [ ( <params> ) ] [ <principal_sort_spec> ] { mod_elements ... }`"
@@ -942,8 +960,8 @@ are declarations of
 
 `module` introduces a module without specified semantic type.
 
-If `params` are given, it is a parameterized module. See `parameterized module`
-for more details.
+If `params` are given, it is a parameterized module. 
+See [`parameterized module`](#parameterizedmodule) for more details.
 
 If `principal_sort_spec` is given, it has to be of the form
 `principal-sort <sortname>` (or `p-sort <sortname>`). The principal
@@ -1055,7 +1073,7 @@ definitions are quite common in proof scores.
 ")
 
 (define ("op" "ops")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`op <op-spec> : <sorts> -> <sort> { <attribute-list> }`"
@@ -1216,7 +1234,7 @@ command will prompt for one of the trees.
 ")
 
 (define ("pred" "pd" "preds" "pds")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`pred <op-spec> : <sorts>`"
@@ -1255,7 +1273,7 @@ If set to `on`, print the rules used during reduction of
 
 
 (define ("protect")
-    :category :system
+    :category :switch
     :parser parse-protect-command
     :evaluator eval-ast
     :title "`protect <module-name>`"
@@ -1266,14 +1284,14 @@ Can be reversed with `unprotect`.
 ")
 
 (define ("protecting" "pr")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`protecting ( <modexp> )`"
     :related ("extending" "using" "including")
     :doc "Imports the object specified by `modexp` into the current
-module, preserving all intended models as they are. See `module expression`
-for format of `modexp`.
+module, preserving all intended models as they are. 
+See [`module expression`](#moduleexpression) for format of `modexp`.
 ")
 
 (define  ("provide") 
@@ -1322,7 +1340,7 @@ case the number can be specified after an affixed `/`:
 (define ("qualified term")
     :type :doc-only
     :mdkey "qualified"
-    :example "`1:NzNat` `2:Nat`"
+    :example "`(1):NzNat` `(2):Nat`"
     :related ("parse")
     :doc "In case that a term can be parsed into different sort, it is possible to
 qualify the term to one of the possible sorts by affixing it with 
@@ -1371,7 +1389,7 @@ equations.
 ")
 
 (define ("regularize")
-    :category :module
+    :category :misc
     :parser parse-regularize-command
     :evaluator eval-ast
     :title "`regularize <mod-name>`"
@@ -1452,7 +1470,7 @@ given in the current session.
 ")
 
 
-(define ("save-system" "save system")	; NOTE. this is obsolete.
+(define ("save-system" "save system")   ; NOTE. this is obsolete.
     :type :doc-only
     :title "`save-system <pathname>`"
     :related ("input" "save" "restore")
@@ -1548,12 +1566,12 @@ Some of the more important (but far from complete list) ways to call
 the `show` command are:
 
   - `show [ <modexp> ]` - describes the current modules of the one specified
-	as argument
+        as argument
   - `show module tree [ <modexp> ]` - displays submodules of <modexp> in tree format
   - `show switches` - lists all possible switches
   - `show term [ tree ]` - displays a term, possible in tree format
 
-See the entry for `switches` for a full list.
+See the entry for [`switches`](#switches) for a full list.
 ")
 
 (define ("show mode switch")
@@ -1567,7 +1585,7 @@ TODO no further information on what this changes
 
 
 (define ("signature" "sig")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`signature { <sig-decl> }`"
@@ -1728,7 +1746,7 @@ which rule, substitution, and replacement are used.
 ")
 
 (define ("trans" "tr")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`trans [ <label-exp> ] <term> => <term> .`"
@@ -1747,7 +1765,7 @@ from a given term.
 ")
 
 (define ("unprotect") 
-    :category :system
+    :category :switch
     :parser parse-unprotect-command
     :evaluator eval-ast
     :title "`unprotect <module-name>`"
@@ -1758,18 +1776,18 @@ are initially protected.
 ")
 
 (define ("using" "us")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`using ( <modexp> )`"
     :related ("extending" "including" "protecting")
     :doc "Imports the object specified by `modexp` into the current
 module without any restrictions on the models.
-See `module expression` for format of `modexp`.
+See [`module expression`](#moduleexpression) for format of `modexp`.
 ")
 
 (define ("var" "vars")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`var <var-name> : <sort-name>`"
@@ -1802,7 +1820,7 @@ If turn `on`, the system is much more verbose in many commands.
 ")
 
 (define ("view")
-    :category :decl-toplevel
+    :category :decl
     :parser process-view-declaration-form
     :evaluator eval-ast
     :title "`view <name> from <modname> to <modname> { <viewelems> }`"
@@ -1870,6 +1888,7 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
     :category :rewrite
     :parser parse-exec+-command
     :evaluator eval-ast
+    :title "`exec! [ in <mod-exp> : ] <term> .`"
     :mdkey "execute-dash"
     :doc "
 exec! [in <Modexpr> :] <Term> .
@@ -1902,7 +1921,7 @@ CafeOBJ> lisp (+ 4 5)
 ")
 
 (define ("make")
-    :category :decl-toplevel
+    :category :decl
     :parser parse-make-command
     :evaluator eval-ast
     :doc "
@@ -1916,7 +1935,7 @@ CafeOBJ> lisp (+ 4 5)
 ")
 
 (define ("[")
-    :category :module-element
+    :category :element
     :parser identity
     :mdkey "sortsymbol"
     :evaluator cafeobj-eval-module-element-proc
@@ -1924,108 +1943,125 @@ CafeOBJ> lisp (+ 4 5)
 ")
 
 (define ("*")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
 )
 
 (define ("bsort")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :doc "
 ")
 
-(define ("dpred")		; only for pignose
-    :category :module-element
+
+; seems these are obsolete, 
+; (define ("dpred")             ; only for pignose
+;     :category :element
+;     :parser identity
+;     :evaluator cafeobj-eval-module-element-proc
+;     :doc "(pignose)
+; ")
+
+; (define ("dbpred")            ; only for pignose
+;     :category :element
+;     :parser identity
+;     :evaluator cafeobj-eval-module-element-proc
+;     :doc "(pignose)
+; ")
+
+(define ("ax")                  ; pignose
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
+    :title "`ax [ <label-exp> ] <term> = <term>` ."
     :doc "(pignose)
 ")
 
-(define ("dbpred")		; only for pignose
-    :category :module-element
+(define ("bax")                 ; pignose
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
+    :title "`bax [ <label-exp> ] <term> = <term>` ."
     :doc "(pignose)
 ")
 
-
-(define ("ax")			; pignose
-    :category :module-element
+(define ("goal")                ; pignose
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
+    :title "`goal <term> .`"
     :doc "(pignose)
 ")
 
-(define ("bax")			; pignose
-    :category :module-element
+(define ("bgoal")               ; pignose
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "(pignose)
-")
-
-(define ("goal")		; pignose
-    :category :module-element
-    :parser identity
-    :evaluator cafeobj-eval-module-element-proc
-    :doc "(pignose)
-")
-
-(define ("bgoal")		; pignose
-    :category :module-element
-    :parser identity
-    :evaluator cafeobj-eval-module-element-proc
+    :title "`bgoal <term> .`"
     :doc "(pignose)
 ")
 
 (define ("pvar" "pvars")
-    :category :module-element
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
+    :title "`pvar <var-name> : <sort-name>`"
+    :related ("var" "vars")
     :doc "(pignose)
 ")
   
 
-(define ("rule" "crule")
-    :category :module-element
+(define ("rule" "rl" )
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :title "`rule [ <label-exp> ] <term> => <term> .`"
+    :related ("trans")
+    :doc "Synonym of 'trans'.
 ")
 
-(define ("rl" "crl")
-    :category :module-element
+(define ("crule" "crl")
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :title "`crule [ <label-exp> ] <term> => <term> if <term> .`"
+    :related ("ctrans" "rule")
+    :doc "Synonym of 'ctrans'
 ")
 
-(define ("brule" "bcrule")
-    :category :module-element
+(define ("brule" "brl")
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :related ("btrans")
+    :title "`brule [ <label-exp> ] <term> => <term> .`"
+    :doc "Synonym of 'btrans'.
 ")
 
-(define ("brl" "bcrl")
-    :category :module-element
+(define ("bcrule" "bcrl")
+    :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
+    :related ("bctrans")
+    :title "`bcrule [ <label-exp> ] <term> => <term> if <term> .`"
+    :doc "Synonym of 'bctrans'
 ")
 
-(define ("inspect")
+(define ("inspect" "inspect-term")
     :category :proof
     :parser parse-inspect-term-command
     :evaluator eval-ast
-    :doc "
+    :title "`inspect <term>`"
+    :doc "Inspect the internal structure of <term>.
 ")
 
 (define ("pushd")
     :category :misc
     :parser parse-pushd-command
     :evaluator eval-ast
+    :title "`pushd <directory>`"
     :doc "
 ")
 
@@ -2033,6 +2069,7 @@ CafeOBJ> lisp (+ 4 5)
     :category :misc
     :parser parse-popd-command
     :evaluator eval-ast
+    :title "`popd`"
     :doc "
 ")
 
@@ -2063,14 +2100,15 @@ CafeOBJ> lisp (+ 4 5)
     :category :inspect
     :parser parse-name-command
     :evaluator eval-ast
-    :doc "
-show
+    :title "`names <mod-exp>` ."
+    :doc "List up all the named objects in module <mod-exp>.
 ")
 
 (define ("scase")
     :category :proof
     :parser parse-case-command
     :evaluator eval-ast
+    :title "`scase (<term>) in (<mod-exp>) as <name> { <decl> ..} : <term> .`"
     :doc "
 ")
 
@@ -2078,6 +2116,7 @@ show
     :category :proof
     :parser pignose-parse-sos
     :evaluator eval-ast
+    :title "`sos { = | + | - } { <clause> , ... }`"
     :doc "(pignose)
 ")
 
@@ -2085,6 +2124,7 @@ show
     :category :proof
     :parser pignose-parse-db
     :evaluator eval-ast
+    :title "`db reset`"
     :doc "(pignose)
 ")
 
@@ -2092,6 +2132,7 @@ show
     :category :proof
     :parser pignose-parse-clause
     :evaluator eval-ast
+    :title "`clause <term> .`"
     :doc "(pignose)
 ")
 
@@ -2099,6 +2140,7 @@ show
     :category :proof
     :parser pignose-parse-list-command
     :evaluator eval-ast
+    :title "`list { axiom | sos | usable | flag | param | option | demod }`"
     :doc "(pignose)
 ")
 
@@ -2106,6 +2148,7 @@ show
     :category :proof
     :parser pignose-parse-flag
     :evaluator eval-ast
+    :title "`flag(<name>, { on | off })`"
     :doc "(pignose)
 ")
 
@@ -2113,6 +2156,7 @@ show
     :category :proof
     :parser pignose-parse-param
     :evaluator eval-ast
+    :title "`param(<name>, <value>)`"
     :doc "(pignose)
 ")
 
@@ -2120,6 +2164,7 @@ show
     :category :proof
     :parser pignose-parse-option
     :evaluator eval-ast
+    :title "`option { reset | = <name> }`"
     :doc "(pignose)
 ")
 
@@ -2127,6 +2172,7 @@ show
     :category :proof
     :parser pignose-parse-resolve
     :evaluator eval-ast
+    :title "`resolve {. | <file-path> }`"
     :doc "(pignose)
 ")
 
@@ -2141,6 +2187,7 @@ show
     :category :proof
     :parser pignose-parse-save-option
     :evaluator eval-ast
+    :title "`save-option <name>`"
     :doc "(pignose)
 ")
 
@@ -2148,6 +2195,7 @@ show
   :category :proof
   :parser pignose-parse-sigmatch
   :evaluator eval-ast
+  :title "`sigmatch (<mod-exp>) to (<mod-exp>)`"
   :doc "(pignose)
 ")
 
@@ -2155,6 +2203,7 @@ show
     :category :proof
     :parser pignose-parse-lex
     :evaluator eval-ast
+    :title "`lex (<op>, ..., <op>)`"
     :doc "(pignose)
 ")
 
@@ -2169,11 +2218,22 @@ Do nothing.
 ")
 
 ;;; CITP commands
+(define ("citp")
+    :type :doc-only
+    :title "CITP"
+    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":def" ":imp")
+    :doc "Constructor Based Induction Theorem Prover
+
+The sub-system provides a certain level of automatization for theorem proving.
+
+TODO TODO
+")
+
 (define (":goal")
     :category :proof
     :parser citp-parse-goal
     :evaluator eval-citp-goal
-    :title "`:goal { <axiom> . ... }`"
+    :title "`:goal { <sentence> . ... }`"
     :doc "TODO"
     )
 
@@ -2181,30 +2241,35 @@ Do nothing.
     :category :proof
     :parser citp-parse-apply
     :evaluator eval-citp-apply
+    :related ("citp")
     :title "`:apply (<tactic> ...) [to <goal-name>]`"
-    :doc "TODO"
+    :doc "Apply the list of tactics given within parenthesis to either
+the current goal, or the goal given as `<goal-name>`."
     )
 
 (define (":ind")
     :category :proof
     :parser citp-parse-ind-on
     :evaluator eval-citp-ind-on
+    :related ("citp")
     :title "`:ind on <variable> ... .`"
-    :doc "TODO"
+    :doc "Defines the variable for the induction tactic of CITP."
     )
 
 (define (":auto")
     :category :proof
     :parser citp-parse-auto
     :evaluator eval-citp-apply
+    :related ("citp")
     :title "`:auto`"
-    :doc "TODO"
+    :doc "Applies the following set of tactics: `(SI CA TC IP RD)`."
     )
 
 (define (":roll")
     :category :proof
     :parser citp-parse-roll-back
     :evaluator eval-citp-roll-back
+    :related ("citp")
     :title "`:roll back`"
     :doc "TODO"
     )
@@ -2213,7 +2278,17 @@ Do nothing.
     :category :proof
     :parser citp-parse-init
     :evaluator eval-citp-init
-    :title "`:init { \"[\" <label> \"]\" | \"(\" <axiom> \"\")} \"{\" <variable> <- <term>; ... \"}\"`"
+    :related ("citp")
+    :title "`:init { \"[\" <label> \"]\" | \"(\" <sentence> \"\")} by \"{\" <variable> <- <term>; ... \"}\"`"
+    :doc "TODO"
+    )
+
+(define (":imply" ":imp")
+    :category :proof
+    :parser citp-parse-imp
+    :evaluator eval-citp-imp
+    :related ("citp")
+    :title "`:imp \"[\" <label> \"]\" by \"{\" <variable> <- <term>; ...\"}\"`"
     :doc "TODO"
     )
 
@@ -2221,8 +2296,9 @@ Do nothing.
     :category :proof
     :parser citp-parse-critical-pair
     :evaluator eval-citp-critical-pair
-    :title "`:cp { \"[\" <label> \"]\" | \"(\" <axiom> . \")\" } >< { \"[\" <label> \"]\" | \"(\" <axiom> .\")\" }`"
-    :doc "TODO"
+    :related ("citp")
+    :title "`:cp { \"[\" <label> \"]\" | \"(\" <sentense> . \")\" } >< { \"[\" <label> \"]\" | \"(\" <sentence> .\")\" }`"
+    :doc "TODO specify critical pair"
     )
 
 (define (":equation")
@@ -2230,6 +2306,7 @@ Do nothing.
     :parser citp-parse-equation
     :evaluator eval-citp-equation
     :title "`:equation`"
+    :related ("citp")
     :doc "TODO"
     )
 
@@ -2238,6 +2315,7 @@ Do nothing.
     :parser citp-parse-equation
     :evaluator eval-citp-equation
     :title "`:rule`"
+    :related ("citp")
     :doc "TODO"
     )
 
@@ -2246,6 +2324,7 @@ Do nothing.
     :parser citp-parse-backward
     :evaluator eval-citp-backward
     :title "`:backward equation`"
+    :related ("citp")
     :doc "TODO"
     )
 
@@ -2254,15 +2333,17 @@ Do nothing.
     :parser citp-parse-select
     :evaluator eval-citp-select
     :title "`:select <goal-name>`"
-    :doc "TODO"
+    :related ("citp")
+    :doc "Select a goal for further application of tactics."
     )
 
 (define (":red" ":exec" ":bred")
     :category :proof
     :parser citp-parse-red
     :evaluator eval-citp-red
-    :title "`:lred <term> .`"
-    :doc "TODO"
+    :title "`{ :red | :exec | :bred } [in <goal-name> :] <term> .`"
+    :related ("citp")
+    :doc "reduce the term in specified goal <goal-name>. "
     )
 
 (define (":verbose")
@@ -2270,14 +2351,34 @@ Do nothing.
     :parser citp-parse-verbose
     :evaluator eval-citp-verbose
     :title "`:verbose { on | off }`"
-    :doc "TODO"
+    :related ("citp")
+    :doc "Turns on verbose reporting of the CITP subsystem."
+    )
+
+(define (":normalize")
+    :category :proof
+    :parser citp-parse-normalize
+    :evaluator eval-citp-normalize
+    :title "`:normalize { on | off}`"
+    :related ("citp")
+    :doc "Normalize the LHS of an instance of the axiom generated by :init command."
     )
 
 (define (":ctf")
     :category :proof
     :parser citp-parse-ctf
     :evaluator eval-citp-ctf
-    :title "`:ctf { eq [ <op-exp> ]: <term> = <term> .`"
+    :related ("citp" ":ctf-")
+    :title "`:ctf { eq [ <label-exp> ] <term> = <term> .}`"
+    :doc "TODO Applies case splitting after a set of boolean expressions."
+    )
+
+(define (":ctf-")
+    :category :proof
+    :parser citp-parse-ctf
+    :evaluator eval-citp-ctf
+    :related ("citp" ":ctf")
+    :title "`:ctf- { eq [ <label-exp> ] <term> = <term> .}`"
     :doc "TODO"
     )
 
@@ -2285,8 +2386,36 @@ Do nothing.
     :category :proof
     :parser citp-parse-csp
     :evaluator eval-citp-csp
-    :title "`:csp { eq [ <op-exp>]: <term> = <term> . ...}`"
+    :related ("citp" ":csp-")
+    :title "`:csp { eq [ <label-exp>] <term> = <term> . ...}`"
+    :doc "TODO applies case splitting after general equations TODO"
+    )
+
+(define (":csp-")
+    :category :proof
+    :parser citp-parse-csp
+    :evaluator eval-citp-csp
+    :related ("citp" ":csp")
+    :title "`:csp- { eq [ <label-exp>] <term> = <term> . ...}`"
     :doc "TODO"
+    )
+
+(define (":def" ":define")
+    :category :proof
+    :parser citp-parse-define
+    :evaluator eval-citp-define
+    :related ("citp")
+    :title "`:def <symbol> = { <ctf> | <csp>}`"
+    :doc "Assigns a name to a specific case splitting (`ctf` or `csp`),
+so that it can be used as tactics in `:apply`."
+    :example "`````
+:def name-1 = ctf [ <Term> . ]
+:def name-2 = ctf-{ eq LHS = RHS . }
+:def name-3 = csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
+:def name-4 = csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
+:apply(SI TC name-1 name-2 name-3 name-4)
+`````
+"
     )
 
 (define  (":show" ":sh")
@@ -2294,7 +2423,7 @@ Do nothing.
     :parser citp-parse-show
     :evaluator eval-citp-show
     :title "`:show <something>`"
-    :related (":describe")
+    :related ("citp" ":describe")
     :doc "TODO")
 
 (define (":describe" ":desc")
@@ -2302,11 +2431,83 @@ Do nothing.
     :parser citp-parse-show
     :evaluator eval-citp-show
     :title "`:describe <something>`"
-    :related (":show")
-    :doc "Similar to the `:show` command but with more details. See `:describe ?` for
+    :related ("citp" ":show")
+    :doc "Similar to the `:show` command but with more details. Call `:describe ?` for
 the possible set of invocations.
 ")
 
+(define (":spoiler")
+    :category :proof
+    :parser citp-parse-spoiler
+    :evaluator identity
+    :related ("citp")
+    :title "`:spoiler { on | off}`"
+    :doc "TODO"
+    )
+
+(define (":set")
+    :category :proof
+    :parser citp-parse-set
+    :evaluator citp-eval-set
+    :title "`:set(<name>, { on | off | show })`"
+    :related ("citp")
+    :doc "Set or show various flags of CITP CafeOBJ.
+")
+
+(define (":binspect")
+    :category :proof
+    :parser parse-citp-binspect
+    :evaluator eval-citp-binspect
+    :title "`:binspect [in <goal-name> :] <boolean-term> .`"
+    :doc "TODO"
+    )
+
+(define ("binspect")
+    :category :proof
+    :parser parse-citp-binspect
+    :evaluator eval-citp-binspect
+    :title "`binspect [in <module-name> :] <boolean-term> .`"
+    :doc "TODO"
+    )
+
+(define ("bresolve" ":bresolve")
+    :category :proof
+    :parser identity
+    :evaluator bresolve
+    :title "`{bresolve | :bresolve}`"
+    :doc "TODO"
+    )
+
+(define ("bshow" ":bshow")
+    :category :proof
+    :parser citp-parse-bshow
+    :evaluator bshow
+    :title "`{bshow | :bshow} [tree]`"
+    :doc "TODO"
+    )
 ;;;
-)					; end eval-when
+
+(define ("commands" "com")
+    :category :help
+    :parser identity
+    :evaluator show-cafeobj-main-commands
+    :title "`commands`"
+    :mdkey "help"
+    :doc "Print outs the list of main toplevel commands.
+")
+
+(define ("?com" "?command")
+    :category :help
+    :parser identity
+    :evaluator cafeobj-top-level-help
+    :mdkey "help-commands"
+    :title "`?com [ <term> ]`"
+    :doc "List commands or declarations categorized by the key <term>.
+<term> is one of 'decl', 'module', 'parse', 'rewrite', 
+'inspect', 'switch', 'proof', 'system', 'inspect', 'library', 'help', 'io' or 'misc'.
+If <term> is omitted, the list of available <term> will be printed.
+    ")
+
+;;;
+)                                      ; end eval-when
 ;;; EOF

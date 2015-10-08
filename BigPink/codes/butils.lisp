@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -29,9 +29,9 @@
 ;;; 
 (in-package :chaos)
 #|=============================================================================
-System:Chaos
-Module:BigPink
-File:butils.lisp
+                            System:Chaos
+                           Module:BigPink
+                          File:butils.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -39,7 +39,7 @@ File:butils.lisp
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 ;;; **************************************************************************
-;;; 			    BASIC UTILITY FUNCTIONS
+;;;                         BASIC UTILITY FUNCTIONS
 ;;; **************************************************************************
 
 ;;; function specs
@@ -113,7 +113,7 @@ File:butils.lisp
          (let ((var (find-if #'(lambda (x) (variable-eq term x)) variables)))
            (if var
                var
-	     #||
+             #||
              (if variables
                  (with-output-panic-message-n (:p-pn-0010 (list (variable-name term)))
                    ;; (format t "copying term, could not find var ~a"
@@ -121,8 +121,8 @@ File:butils.lisp
                    (break "type in :q for returning to top-level.")
                    )
                term)
-	     ||#
-	     term )))
+             ||#
+             term )))
         ((term-is-application-form? term)
          (@create-application-form-term
           (term-head term)
@@ -216,9 +216,9 @@ File:butils.lisp
 
 ;;; IS-SKOLEM : method module -> Bool
 ;;;
-(defun is-skolem (meth &optional (module (or *current-module* *last-module*)))
+(defun is-skolem (meth &optional (module (get-context-module)))
   (declare (type method meth)
-           (type module module)
+           (type (or null module) module)
            (values boolean))
   (memq meth (module-skolem-functions module)))
 
@@ -828,13 +828,13 @@ File:butils.lisp
           (max-kept? (pn-parameter max-kept)))
       (declare (type fixnum max-given? max-gen? max-seconds? max-kept?))
       (cond ((and (not (= max-given? -1)) (>= given max-given?))
-	     (setq stat :max-given-exit))
-	    ((and (not (= max-seconds? -1)) (>= seconds (float max-seconds?)))
-	     (setq stat :max-seconds-exit))
-	    ((and (not (= max-gen? -1)) (>= gen max-gen?))
+             (setq stat :max-given-exit))
+            ((and (not (= max-seconds? -1)) (>= seconds (float max-seconds?)))
+             (setq stat :max-seconds-exit))
+            ((and (not (= max-gen? -1)) (>= gen max-gen?))
               (setq stat :max-gen-exit))
             ((and (not (= max-kept? -1)) (>= kept max-kept?))
-	     (setq stat :max-kept-exit)))
+             (setq stat :max-kept-exit)))
       stat)))
 
 ;;; CHECK-FOR-PROOF : Clause -> Clause
@@ -1391,8 +1391,8 @@ File:butils.lisp
                (print-next)
                (princ "strategy will be knuth-bendix with positive clauses in sos.")))
            ||#
-	   ;; (auto-change-flag kb3 t) **************************
-	   (auto-change-flag kb2 t)
+           ;; (auto-change-flag kb3 t) **************************
+           (auto-change-flag kb2 t)
            (when (every #'positive-clause? *usable*)
              (when (pn-flag print-message)
                (with-output-msg ()
@@ -1443,8 +1443,8 @@ File:butils.lisp
                (print-next)
                (princ "clauses in usable")))
            ||#
-	   ;; (auto-change-flag kb3 t)
-	   (auto-change-flag kb2 t)
+           ;; (auto-change-flag kb3 t)
+           (auto-change-flag kb2 t)
            (auto-change-flag hyper-res t)
            (auto-change-flag unit-deletion t)
            (auto-change-flag factor t)
@@ -1788,8 +1788,7 @@ File:butils.lisp
                  (princ "---"))
              *full-lit-table*)))
 
-(defun show-demodulators (&optional (mod (or *current-module*
-                                             *last-module*)))
+(defun show-demodulators (&optional (mod (get-context-module t)))
   (unless mod (return-from show-demodulators nil))
   (with-in-module (mod)
     (let* ((psys (module-proof-system mod))
@@ -1853,9 +1852,9 @@ File:butils.lisp
     (format t "  factor simplify~20t~,3f sec."
             (time-in-seconds (pn-clock-value factor-simp-time)))
     ;;(format t "  wight cl time~20t,~3f sec."
-    ;;	    (time-in-seconds (pn-clock-value weigh-cl-time)))
+    ;;      (time-in-seconds (pn-clock-value weigh-cl-time)))
     ;; (format t "  sort lits time~20t~,3f sec."
-    ;;	    (time-in-seconds (pn-clock-value sort-lits-time)))
+    ;;      (time-in-seconds (pn-clock-value sort-lits-time)))
     (print-next)
     (format t "  forward subsume~20t~,3f sec."
             (time-in-seconds (pn-clock-value for-sub-time)))

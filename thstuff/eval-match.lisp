@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-System: CHAOS
-Module: thstuff
-File: eval-match.lisp
+                               System: CHAOS
+                              Module: thstuff
+                           File: eval-match.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -47,9 +47,6 @@ File: eval-match.lisp
 ;;; ******
 
 (defun eval-match-command (ast)
-  (unless *last-module*
-    (with-output-chaos-error ('no-current-module)
-      (princ "no current module.")))
   (let ((type (%match-type ast))
         (target (case (%match-target ast)
                   (:top $$term)
@@ -58,7 +55,7 @@ File: eval-match.lisp
                            $$subterm
                          $$term))
                   (t (let* ((*parse-variables* nil)
-                            (parsed (with-in-module (*last-module*)
+                            (parsed (with-in-module ((get-context-module))
                                       (simple-parse *current-module*
                                                     (%match-target ast)
                                                     *cosmos*))))
@@ -85,15 +82,15 @@ File: eval-match.lisp
 
 (defun find-rewrite-rules-top (target what &optional (type :match))  
   (let* ((real-target (supply-psuedo-variables target))
-         (patterns (find-matching-rules what real-target *last-module* type)))
+         (patterns (find-matching-rules what real-target (get-context-module) type)))
     (unless patterns
-      (with-in-module (*last-module*)
-        (format t "~&no rules found for term : ")
+      (with-in-module ((get-context-module))
+        (format t "~%no rules found for term : ")
         (term-print target))
       (return-from find-rewrite-rules-top nil))
     ;; report the result
-    (format t "~&== matching rules to term : ")
-    (with-in-module (*last-module*)
+    (format t "~%== matching rules to term : ")
+    (with-in-module ((get-context-module))
       (let ((*fancy-print* nil))
         (term-print target))
       (dolist (pat patterns)
@@ -118,25 +115,25 @@ File: eval-match.lisp
             (princ " }"))
           (princ " is ")
           (print-axiom-brief rule *standard-output* nil t)
-          (format t "~& substitution : ")
+          (format t "~% substitution : ")
           (let ((*print-indent* (+ *print-indent* 4)))
             (print-substitution subst))
           (when extra
-            (format t "~& extra variables : ")
+            (format t "~% extra variables : ")
             (format t "~{~a~^ ~}" (mapcar #'(lambda (x) (string (variable-name x)))
                                           extra))))))))
 
 (defun find-rewrite-rules-all (target what &optional (type :match))  
   (let* ((real-target (supply-psuedo-variables target))
-         (patterns (find-matching-rules-all what real-target *last-module* type)))
+         (patterns (find-matching-rules-all what real-target (get-context-module) type)))
     (unless patterns
-      (with-in-module (*last-module*)
-        (format t "~&no rules found for term : ")
+      (with-in-module ((get-context-module))
+        (format t "~%no rules found for term : ")
         (term-print target))
       (return-from find-rewrite-rules-all nil))
     ;; report the result
-    (format t "~&== matching rules to term : ")
-    (with-in-module (*last-module*)
+    (format t "~%== matching rules to term : ")
+    (with-in-module ((get-context-module))
       (let ((*fancy-print* nil))
         (term-print target))
       (dolist (pat patterns)
@@ -193,7 +190,7 @@ File: eval-match.lisp
                                    nil
                                  'next-match)
                              'next-unify)))
-      (with-in-module (*last-module*)
+      (with-in-module ((get-context-module))
         (let* ((*parse-variables* (mapcar #'(lambda (x)
                                               (cons (variable-name x) x))
                                           (term-variables target)))
@@ -214,16 +211,16 @@ File: eval-match.lisp
               (funcall first-match-meth pattern real-target)
             (when no-match
               (if (eq type :match)
-                  (format t "~&-- no match")
-                (format t "~&-- no unify"))
+                  (format t "~%-- no match")
+                (format t "~%-- no unify"))
               (return-from perform-match nil))
             (if (eq type :match)
-                (format t "~&-- match success.")
-              (format t "~&-- unify success."))
+                (format t "~%-- match success.")
+              (format t "~%-- unify success."))
             (when e-equal
-              (format t "~&-- given terms are equational equal.")
+              (format t "~%-- given terms are equational equal.")
               (return-from perform-match nil))
-            (format t "~& substitution : ")
+            (format t "~% substitution : ")
             (let ((*print-indent* (+ *print-indent* 4)))
               (print-substitution subst))
             ;; ---- next matches
@@ -233,10 +230,10 @@ File: eval-match.lisp
               (while (not no-match)
                 (cond ((y-or-n-p-wait #\y 20 ">> More? [y/n] : ")
                        (if (eq type :match)
-                           (format t "~&-- match success : ")
-                         (format t "~&-- unify success : "))
+                           (format t "~%-- match success : ")
+                         (format t "~%-- unify success : "))
                        (let ((*print-indent* (+ 4 *print-indent*)))
-                         (format t "~& * substitution : ")
+                         (format t "~% * substitution : ")
                          (print-substitution subst))
                        (print-next))
                       (t (return-from end)))

@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: Chaos; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: Chaos
-			   Module: primitives.chaos
-				File: term2.lisp
+                                 System: Chaos
+                           Module: primitives.chaos
+                                File: term2.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -57,7 +57,7 @@
 ;;;
 (defmacro termp (obj)
   (once-only (obj)
-	     `(and (consp ,obj) (consp (car ,obj)) (integerp (caar ,obj)))))
+             `(and (consp ,obj) (consp (car ,obj)) (integerp (caar ,obj)))))
 
 (defun is-term? (obj) (termp obj))
 
@@ -151,21 +151,21 @@
 (defconstant pure-builtin-constant-type #x020)
 (defconstant system-object-type #x040)
 (defconstant builtin-constant-type (logior psuedo-constant-type
-					   pure-builtin-constant-type
-					   system-object-type))
+                                           pure-builtin-constant-type
+                                           system-object-type))
 (defconstant pre-encode-bit #x100)
 (defconstant pre-variable-type (logior pre-encode-bit variable-type))
 (defconstant pre-application-form-type (logior pre-encode-bit
-					       application-form-type))
+                                               application-form-type))
 (defconstant pre-simple-lisp-code-type (logior pre-encode-bit
-					       simple-lisp-code-type))
+                                               simple-lisp-code-type))
 (defconstant pre-general-lisp-code-type (logior pre-encode-bit
-						general-lisp-code-type))
+                                                general-lisp-code-type))
 (defconstant pre-lisp-code-type (logior pre-encode-bit lisp-code-type))
 (defconstant pre-psuedo-constant-type
   (logior pre-encode-bit psuedo-constant-type))
 (defconstant pre-builtin-constant-type (logior pre-encode-bit
-					       builtin-constant-type))
+                                               builtin-constant-type))
 (defconstant pre-pure-builtin-constant-type
   (logior pre-encode-bit pure-builtin-constant-type))
 (defconstant pre-system-object-type (logior pre-encode-bit system-object-type))
@@ -226,13 +226,13 @@
 (defun term-type (t1)
   (let ((code (term-code t1)))
     (cond ((test-and code variable-type) :variable)
-	  ((test-and code application-form-type) :applform)
-	  ((test-and code simple-lisp-code-type) :lisp)
-	  ((test-and code general-lisp-code-type) :glisp)
-	  ((test-and code system-object-type) :sysobject)
-	  ((test-and code builtin-constant-type) :builtin)
-	  ((test-and code psuedo-constant-type) :literal)
-	  (t nil))))
+          ((test-and code application-form-type) :applform)
+          ((test-and code simple-lisp-code-type) :lisp)
+          ((test-and code general-lisp-code-type) :glisp)
+          ((test-and code system-object-type) :sysobject)
+          ((test-and code builtin-constant-type) :builtin)
+          ((test-and code psuedo-constant-type) :literal)
+          (t nil))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; SORT/SORT-CODE : the 3rd part
@@ -329,11 +329,11 @@
 (defmacro term$lisp-code-original-form (_term-body)
   `(body-4th ,_term-body))
 (defmacro term$lisp-form-original-form (_term-body)
-  `(body-4th ,_term-body))		; synonym
+  `(body-4th ,_term-body))              ; synonym
 (defmacro lisp-code-original-form (_term)
   `(term-4th ,_term))
 (defmacro lisp-form-original-form (_term)
-  `(term-4th ,_term))			; synonym
+  `(term-4th ,_term))                   ; synonym
 
 ;;; APPLICATION FORM :
 ;;; all are setf'able
@@ -355,7 +355,7 @@
 (defmacro term-arg-4 (_term) `(cadddr (term-subterms ,_term)))
 (defmacro term-arg-n (_term n)
   ` (nth (the fixnum ,n)
-	 (term-subterms ,_term)))
+         (term-subterms ,_term)))
 
 ;;; *****************
 ;;; term type testers___________________________________________________________
@@ -441,10 +441,10 @@
   `(term-code$is-system-object? (term-code ,_term)))
 (defmacro term-is-chaos-expr? (_term)
   `(and (term-is-builtin-constant? ,_term)
-	(eq *chaos-value-sort* (term-sort ,_term))
-	(let ((value (term-builtin-value ,_term)))
-	  (and (consp value)
-	       (eq (car value) '|%Chaos|)))))
+        (eq *chaos-value-sort* (term-sort ,_term))
+        (let ((value (term-builtin-value ,_term)))
+          (and (consp value)
+               (eq (car value) '|%Chaos|)))))
 
 ;;; ******************
 ;;; TERM STATE TESTERS _________________________________________________________
@@ -463,7 +463,7 @@
   `(test-and reduced-flag (term$state-flag ,*term-body)))
 (defmacro term-test-reduced-flag (*term)
   `(test-and reduced-flag (term-state-flag ,*term)))
-(defmacro term-is-reduced? (_term)	; synonym
+(defmacro term-is-reduced? (_term)      ; synonym
   `(term-test-reduced-flag ,_term))
 
 ;;; red flag
@@ -481,7 +481,7 @@
   `(test-and lowest-parsed-flag (term$state-flag ,*term-body)))
 (defmacro term-test-lowest-parsed-flag (*term)
   `(test-and lowest-parsed-flag (term-state-flag ,*term)))
-(defmacro term-is-lowest-parsed? (_term)	; synonym
+(defmacro term-is-lowest-parsed? (_term)        ; synonym
   `(term-test-lowest-parsed-flag ,_term))
 
 ;;; on demand flag
@@ -490,7 +490,7 @@
   `(test-and on-demand-flag (term$state-flag ,*term-body)))
 (defmacro term-test-on-demand-flag (*term)
   `(test-and on-demand-flag (term-state-flag ,*term)))
-(defmacro term-is-on-demand? (_term)	; synonym
+(defmacro term-is-on-demand? (_term)    ; synonym
   `(term-test-on-demand-flag ,_term))
 
 ;;; STATE SETTERS
@@ -504,7 +504,7 @@
   (once-only (*term)
     `(setf (term-state-flag ,*term)
            (make-or reduced-flag (term-state-flag ,*term)))))
-(defmacro mark-term-as-reduced (_term)	; synonym
+(defmacro mark-term-as-reduced (_term)  ; synonym
   `(term-set-reduced-flag ,_term))
 
 (defconstant .not-reduced-bit. (logand #xffff (lognot reduced-flag)))
@@ -525,24 +525,24 @@
 ;;; red flag
 (defmacro term$set-red-flag (*term-body)
   (once-only (*term-body)
-	     `(setf (term$state-flag ,*term-body)
-		(make-or red-flag (term$state-flag ,*term-body)))))
+             `(setf (term$state-flag ,*term-body)
+                (make-or red-flag (term$state-flag ,*term-body)))))
 
 (defmacro term-set-red (*term)
   (once-only (*term)
-	     `(setf (term-state-flag ,*term)
-		(make-or red-flag (term-state-flag ,*term)))))
+             `(setf (term-state-flag ,*term)
+                (make-or red-flag (term-state-flag ,*term)))))
 
 (defconstant .green-bit. (logand #xffff (lognot red-flag)))
 (defmacro term$set-green (*term-body)
   (once-only (*term-body)
-	     `(setf (term$state-falag ,*term-body)
-		(make-and .green-bit. (term$state-flag ,*term-body)))))
+             `(setf (term$state-falag ,*term-body)
+                (make-and .green-bit. (term$state-flag ,*term-body)))))
 
 (defmacro term-set-green (*term)
   (once-only (*term)
-	     `(setf (term-state-flag ,*term)
-		(make-and .green-bit. (term-state-flag ,*term)))))
+             `(setf (term-state-flag ,*term)
+                (make-and .green-bit. (term-state-flag ,*term)))))
   
 ;;; lowest parsed flag :
 
@@ -550,15 +550,15 @@
   (once-only (*term-body)
     `(setf (term$state-flag ,*term-body)
            (make-or lowest-parsed-flag 
-	            (term$state-flag ,*term-body)))))
+                    (term$state-flag ,*term-body)))))
 
 (defmacro term-set-lowest-parsed-flag (*term)
   (once-only (*term)
     `(setf (term-state-flag ,*term)
            (make-or lowest-parsed-flag
-	            (term-state-flag ,*term)))))
+                    (term-state-flag ,*term)))))
 
-(defmacro mark-term-as-lowest-parsed (_term)	; synonym
+(defmacro mark-term-as-lowest-parsed (_term)    ; synonym
   `(term-set-lowest-parsed-flag ,_term))
 
 (defconstant .not-lowest-parsed-bit. (logand #xffff (lognot lowest-parsed-flag)))
@@ -573,9 +573,9 @@
   (once-only (*term)
     `(setf (term-state-flag ,*term)
            (make-and .not-lowest-parsed-bit.
-	             (term-state-flag ,*term)))))
+                     (term-state-flag ,*term)))))
 
-(defmacro mark-term-as-not-lowest-parsed (_term)	; synonym
+(defmacro mark-term-as-not-lowest-parsed (_term)        ; synonym
   `(term-unset-lowest-parsed-flag ,_term))
 
 ;;; on demand flag :
@@ -584,15 +584,15 @@
   (once-only (*term-body)
    `(setf (term$state-flag ,*term-body)
           (make-or on-demand-flag
-	           (term$state-flag ,*term-body)))))
+                   (term$state-flag ,*term-body)))))
 
 (defmacro term-set-on-demand-flag (*term)
   (once-only (*term)
     `(setf (term-state-flag ,*term)
            (make-or on-demand-flag
-	            (term-state-flag ,*term)))))
+                    (term-state-flag ,*term)))))
 
-(defmacro mark-term-as-on-demand (_term)	; synonym
+(defmacro mark-term-as-on-demand (_term)        ; synonym
   `(term-set-on-demand-flag ,_term))
 
 (defconstant .not-on-demand-bit. (logand #xffff (lognot on-demand-flag)))
@@ -601,13 +601,13 @@
   (once-only (*term-body)
    `(setf (term$state-flag ,*term-body)
           (make-and .not-on-demand-bit.
-	           (term$state-flag ,*term-body)))))
+                   (term$state-flag ,*term-body)))))
 
 (defmacro term-unset-on-demand-flag (*term)
   (once-only (*term)
     `(setf (term-state-flag ,*term)
            (make-and .not-on-demand-bit.
-	             (term-state-flag ,*term)))))
+                     (term-state-flag ,*term)))))
 
 (defmacro mark-term-as-not-on-demand (_term) ; synonym
   `(term-unset-on-demand-flag ,_term))
@@ -634,29 +634,29 @@
 ;;;   `(create-term (vector pre-var-const-code ,__variable-name ,__sort nil)))
 
 (defmacro @create-variable-term (__variable-name __sort
-				 &optional (p_name __variable-name))
+                                 &optional (p_name __variable-name))
   ` (create-term (list pre-var-const-code ,__variable-name ,__sort
-		       ,p_name)))
+                       ,p_name)))
 
 (defmacro make-variable-term (__sort __variable-name
-			      &optional (_print_name __variable-name))
+                              &optional (_print_name __variable-name))
   `(create-term (list pre-var-const-code
-		      ,__variable-name
-		      ,__sort
-		      ,_print_name)))
+                      ,__variable-name
+                      ,__sort
+                      ,_print_name)))
 
 
 (defmacro variable-copy (var)
   (once-only (var)
     `(make-variable-term (variable-sort ,var)
-			 (variable-name ,var)
-			 (variable-print-name ,var))))
+                         (variable-name ,var)
+                         (variable-print-name ,var))))
 
 (defmacro variable-copy-x (var)
   (once-only (var)
-	     `(make-variable-term (variable-sort ,var)
-				  (intern (concatenate 'string (string (variable-name ,var)) "'"))
-				  (variable-print-name ,var))))
+             `(make-variable-term (variable-sort ,var)
+                                  (intern (concatenate 'string (string (variable-name ,var)) "'"))
+                                  (variable-print-name ,var))))
 
 ;;; ****************
 ;;; APPLICATION-FORM ___________________________________________________________
@@ -665,29 +665,29 @@
 #||
 (defmacro create-application-form-term (_operator-code _sort-id-code _subterms)
   ` (create-term (vector applicatin-form-type
-			 ,_operator-code
-			 ,_sort-id-code
-			 ,_subterms)))
+                         ,_operator-code
+                         ,_sort-id-code
+                         ,_subterms)))
 
 (defmacro @create-application-form-term (_method _sort _subterms)
   ` (create-term (vector pre-application-form-type
-			 ,_method
-			 ,_sort
-			 ,_subterms)))
+                         ,_method
+                         ,_sort
+                         ,_subterms)))
 
 ||#
 
 (defmacro create-application-form-term (_operator-code _sort-id-code _subterms)
   ` (create-term (list applicatin-form-type
-		       ,_operator-code
-		       ,_sort-id-code
-		       ,_subterms)))
+                       ,_operator-code
+                       ,_sort-id-code
+                       ,_subterms)))
 
 (defmacro @create-application-form-term (_method _sort _subterms)
   ` (create-term (list pre-application-form-type
-		       ,_method
-		       ,_sort
-		       ,_subterms)))
+                       ,_method
+                       ,_sort
+                       ,_subterms)))
 
 ;;; ****************
 ;;; SIMPLE-LISP-CODE ___________________________________________________________
@@ -703,29 +703,29 @@
 #||
 (defmacro create-simple-lisp-code-term (_function &optional _sort-id-code)
   ` (create-term (vector simple-lisp-const-code
-			 ,_function
-			 ,_sort-id-code
-			 nil)))
+                         ,_function
+                         ,_sort-id-code
+                         nil)))
 
 (defmacro make-simple-lisp-form-term (__original-form)
   ` (create-term (vector pre-simple-lisp-const-code
-			 nil
-			 *cosmos*
-			 ,__original-form)))
+                         nil
+                         *cosmos*
+                         ,__original-form)))
     
 ||#
 
 (defmacro create-simple-lisp-code-term (_function &optional _sort-id-code)
   ` (create-term (list simple-lisp-const-code
-		       ,_function
-		       ,_sort-id-code
-		       nil)))
+                       ,_function
+                       ,_sort-id-code
+                       nil)))
 
 (defmacro make-simple-lisp-form-term (__original-form)
   ` (create-term (list pre-simple-lisp-const-code
-		       nil
-		       *cosmos*
-		       ,__original-form)))
+                       nil
+                       *cosmos*
+                       ,__original-form)))
 
 ;;; *****************
 ;;; GENERAL-LISP-CODE __________________________________________________________
@@ -741,41 +741,41 @@
 #||
 (defmacro create-general-lisp-code-term (_function _sort-id-code)
   ` (create-term (vector general-lisp-const-code
-			 ,_function
-			 ,_sort-id-code
-			 nil)))
+                         ,_function
+                         ,_sort-id-code
+                         nil)))
 
 (defmacro @create-general-lisp-code-term (_function _original-form _sort)
   ` (create-term (vector pre-general-lisp-const-code
-			  ,_function
-			  ,_sort
-			  ,_original-form)))
+                          ,_function
+                          ,_sort
+                          ,_original-form)))
 
 (defmacro make-general-lisp-form-term (_original-form)
   ` (create-term (vector pre-general-lisp-const-code
-			 nil
-			 *cosmos*
-			 ,_original-form)))
+                         nil
+                         *cosmos*
+                         ,_original-form)))
 
 ||#
 
 (defmacro create-general-lisp-code-term (_function _sort-id-code)
   ` (create-term (list general-lisp-const-code
-		       ,_function
-		       ,_sort-id-code
-		       nil)))
+                       ,_function
+                       ,_sort-id-code
+                       nil)))
 
 (defmacro @create-general-lisp-code-term (_function _original-form _sort)
   ` (create-term (list pre-general-lisp-const-code
-		       ,_function
-		       ,_sort
-		       ,_original-form)))
+                       ,_function
+                       ,_sort
+                       ,_original-form)))
 
 (defmacro make-general-lisp-form-term (_original-form)
   ` (create-term (list pre-general-lisp-const-code
-		       nil
-		       *cosmos*
-		       ,_original-form)))
+                       nil
+                       *cosmos*
+                       ,_original-form)))
 
 ;;; ****************
 ;;; BUILTIN CONSTANT ___________________________________________________________
@@ -792,16 +792,16 @@
 #||
 (defmacro make-bconst-term (_sort_ _value_)
   ` (create-term (vector pre-builtin-constr-code
-			 ,_value_
-			 ,_sort_
-			 nil)))
+                         ,_value_
+                         ,_sort_
+                         nil)))
 ||#
 
 (defmacro make-bconst-term (_sort_ _value_)
   ` (create-term (list pre-builtin-constr-code
-		       ,_value_
-		       ,_sort_
-		       nil)))
+                       ,_value_
+                       ,_sort_
+                       nil)))
 
 ;;; ***************
 ;;; PSUEDO CONSTANT____________________________________________________________
@@ -817,20 +817,20 @@
 
 (defmacro make-psuedo-constant-term (_sort _name)
   ` (create-term (list pre-psuedo-constant-const-code
-		       ,_name
-		       ,_sort
-		       nil)))
+                       ,_name
+                       ,_sort
+                       nil)))
 
 (defmacro make-pvariable-term (_sort _name &optional (_p-name _name))
   ` (create-term (list pre-psuedo-constant-const-code
-		       ,_name
-		       ,_sort
-		       ,_p-name)))
+                       ,_name
+                       ,_sort
+                       ,_p-name)))
 
 (defmacro pvariable-copy (var)
   (once-only (var)
     `(make-pvariable-term (variable-sort ,var) (variable-name ,var)
-			  (variable-print-name ,var))))
+                          (variable-print-name ,var))))
 
 
 ;;; *************
@@ -846,17 +846,17 @@
 #||
 (defmacro make-system-object-term (__value __sort)
   ` (create-term (vector pre-system-object-const-code
-			 ,__value
-			 ,__sort
-			 nil)))
+                         ,__value
+                         ,__sort
+                         nil)))
 
 ||#
 
 (defmacro make-system-object-term (__value __sort)
   ` (create-term (list pre-system-object-const-code
-		       ,__value
-		       ,__sort
-		       nil)))
+                       ,__value
+                       ,__sort
+                       nil)))
 
 ;;;*****************************************************************************
 ;;; BASIC UTILITIES
@@ -864,7 +864,7 @@
 
 (defconstant all-term-code
   (logior variable-type application-form-type lisp-code-type
-	  builtin-constant-type psuedo-constant-type system-object-type))
+          builtin-constant-type psuedo-constant-type system-object-type))
 
 ;;; TERM? : object -> bool
 ;;; we don't need fast predicate, this is not used as rewriting nor parsing.
@@ -873,15 +873,15 @@
 (defmacro term? (!object) 
   (once-only (!object)
     ` (and (consp ,!object)
-	   (simple-vector-p (car ,!object))
-	   (= 4 (the fixnum (length (car ,!object)))))))
+           (simple-vector-p (car ,!object))
+           (= 4 (the fixnum (length (car ,!object)))))))
 ||#
 
 (defmacro term? (!object) 
   (once-only (!object)
     ` (and (consp ,!object)
-	   (consp (car ,!object))
-	   (typep (caar ,!object) 'fixnum))))
+           (consp (car ,!object))
+           (typep (caar ,!object) 'fixnum))))
 
 ;;; TERM-BUILTIN-EQUAL : term1 term2 -> bool
 ;;; assume term1 is builtin constant term
@@ -889,8 +889,8 @@
 (defmacro term$builtin-equal (*_builtin-body *_term-body)
   (once-only (*_term-body)
     ` (and (term$is-builtin-constant? ,*_term-body)
-	   (equal (term$builtin-value ,*_builtin-body)
-		  (term$builtin-value ,*_term-body)))))
+           (equal (term$builtin-value ,*_builtin-body)
+                  (term$builtin-value ,*_term-body)))))
 
 (defmacro term-builtin-equal (*_bi-term *_term)
   `(term$builtin-equal (term-body ,*_bi-term) (term-body ,*_term)))
@@ -900,8 +900,8 @@
 ;;;
 (defconstant priori-constant-type
   (logior variable-type lisp-code-type builtin-constant-type
-	  psuedo-constant-type
-	  system-object-type))
+          psuedo-constant-type
+          system-object-type))
 
 (defmacro term$is-constant? (*_body)
   (once-only (*_body)
@@ -917,21 +917,21 @@
 (defun term-variables (term)
   (let ((body (term-body term)))
     (cond ((term$is-variable? body) (list term))
-	  ((term$is-constant? body) nil)
-	  (t (let ((res nil))
-	       (dolist (st (term$subterms body) res)
-		 (setq res (nunion res (term-variables st) :test #'!term-eq))))))))
+          ((term$is-constant? body) nil)
+          (t (let ((res nil))
+               (dolist (st (term$subterms body) res)
+                 (setq res (nunion res (term-variables st) :test #'!term-eq))))))))
 ||#
 
 (defun term-variables (term)
   (let ((body (term-body term)))
     (cond ((term$is-variable? body) (list term))
-	  ((term$is-constant? body) nil)
-	  (t (let ((res nil))
-	       (declare (list res))
-	       (dolist (st (term$subterms body) res)
-		 (setq res (delete-duplicates (append res (term-variables st))
-					      :test #'!term-eq))))))))
+          ((term$is-constant? body) nil)
+          (t (let ((res nil))
+               (declare (list res))
+               (dolist (st (term$subterms body) res)
+                 (setq res (delete-duplicates (append res (term-variables st))
+                                              :test #'!term-eq))))))))
 
 (declaim (inline variables-occur-at-top?))
 
@@ -940,29 +940,29 @@
   (block variables-occur-at-top-exit
     (dolist (st (term-subterms term))
       (when (term-is-variable? st)
-	(return-from variables-occur-at-top-exit t)))))
+        (return-from variables-occur-at-top-exit t)))))
 
 #-GCL
 (defun variables-occur-at-top? (term)
   (block variables-occur-at-top-exit
     (dolist (st (term-subterms term))
       (when (term-is-variable? st)
-	(return-from variables-occur-at-top-exit t)))))
+        (return-from variables-occur-at-top-exit t)))))
   
 ;;; TERM-IS-GROUND? : term -> bool
 ;;;
-(defconstant apriori-ground-type	; not used now.
+(defconstant apriori-ground-type        ; not used now.
   (logior lisp-code-type builtin-constant-type system-object-type))
 
 (defmacro term$is-ground? (*_body)
   (once-only (*_body)
     ` (block success
-	(cond ((term$is-variable? ,*_body) (return-from success nil))
-	      ((term$is-application-form? ,*_body)
-	       (dolist (st (term$subterms ,*_body) t)
-		 (unless (term-is-ground? st)
-		   (return-from success nil))))
-	      (t t)))))
+        (cond ((term$is-variable? ,*_body) (return-from success nil))
+              ((term$is-application-form? ,*_body)
+               (dolist (st (term$subterms ,*_body) t)
+                 (unless (term-is-ground? st)
+                   (return-from success nil))))
+              (t t)))))
 
 (defun term-is-ground? (xx_term)
   (term$is-ground? (term-body xx_term)))
@@ -974,12 +974,12 @@
 #||
 (defun simple-copy-term (term)
   (create-term (let ((x (make-array 4))
-		     (body (term-body term)))
-		 (declare (type simple-vector x))
-		 (dotimes (i 4)
-		   (declare (type fixnum i))
-		   (setf (%svref x i) (%svref body i)))
-		 x)))
+                     (body (term-body term)))
+                 (declare (type simple-vector x))
+                 (dotimes (i 4)
+                   (declare (type fixnum i))
+                   (setf (%svref x i) (%svref body i)))
+                 x)))
 ||#
 
 (declaim (inline simple-copy-term))
@@ -995,11 +995,11 @@
 (defmacro !term-variable-match (*_variable-body *_term-body)
   (once-only (*_variable-body *_term-body)
   ` (test-and (term$sort-code ,*_variable-body)
-	      (term$sort-code ,*_term-body))))
+              (term$sort-code ,*_term-body))))
 
 (defmacro term-variable-match (*_variable_ *_term_)
   ` (!term-variable-match (term-body ,*_variable_)
-			  (term-body ,*_term_)))
+                          (term-body ,*_term_)))
 
 ;;; TERM-OPERATOR-EQ : term -> bool
 ;;;
@@ -1014,7 +1014,7 @@
 (defmacro !term-operator-equal (__*term-body1 __*term-body2)
   (once-only (__*term-body1 __*term-body2)
   ` (and (term$operator-eq ,__*term-body1 ,__*term-body2)
-	 (= (term$sort-code ,__*term-body1) (term$sort-code ,__*term-body2)))))
+         (= (term$sort-code ,__*term-body1) (term$sort-code ,__*term-body2)))))
 
 (defmacro term-operator-equal (__*term1_ __*term2_)
   `(!term-operator-equal (term-body ,__*term1_) (term-body ,__*term2_)))

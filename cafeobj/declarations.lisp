@@ -5,7 +5,7 @@
                        File: declarations.lisp
 ==============================================================================|#
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -146,8 +146,8 @@
     :evaluator eval-ast)
 
 (define ("eq" "cq" "ceq" "rule" "rl" "crl" "crule" "trans" "ctrans" "tr" "ctr"
-	       "beq" "bceq" "brule" "brl" "bcrule" "bcrl" "btrans" "btr"
-	       "bctrans" "bctr")
+               "beq" "bceq" "brule" "brl" "bcrule" "bcrl" "btrans" "btr"
+               "bctrans" "bctr")
     :type :inner-module
     :category :axiom
     :parser process-axiom-form
@@ -238,5 +238,5 @@
     :evaluator eval-decl-do-nothing)
 
 ;;;
-)					; end eval-when
+)                                       ; end eval-when
 ;;; EOF

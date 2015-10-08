@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -25,14 +25,22 @@
 ;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;;;
-;;; defsystem
-;;:ld sysdef
-;; (mk:compile-system :chaosx) --or --
-(require :asdf)
-(load "cl-ppcre/cl-ppcre.asd")
-(asdf:oos 'asdf:load-op :cl-ppcre)
-(load "sysdef.cl")
-(excl:compile-system :chaosx :recompile t)
-(in-package :chaos)
-(set-cafeobj-libpath "/usr/local/cafeobj-1.4")
-(cafeobj)
+
+;;; HOW TO compile the system by hand.
+
+; way 1 : use asdf, can be used in all supported Lisp platforms.
+;(require :asdf)
+;(load "cl-ppcre/cl-ppcre.asd")
+;(asdf:oos 'asdf:load-op :cl-ppcre)
+
+; way 2 : if you are using Allgegro, you can also do this way
+;(load "sysdef.cl")
+;(excl:compile-system :chaosx :recompile t)
+
+;;; Starting CafeOBJ interpreter.
+
+; after comilation, the following invokes CafeOBJ intepreter
+;(in-package :chaos)
+; NOTE: specify the path to your installed CafeOBJ library
+;(set-cafeobj-libpath "/usr/local/share/cafeobj-1.5")
+;(cafeobj)

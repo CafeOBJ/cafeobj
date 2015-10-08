@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-			       Module: primitives
-			       File: bmodexp.lisp
+                                 System: CHAOS
+                               Module: primitives
+                               File: bmodexp.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -92,11 +92,11 @@
 (deftype modexp () '(or simple-string list))
 
 (defparameter .modexp-keywords. '(%modexp %error %plus %rename %instantiation %view))
-				  
+                                  
 (defun is-modexp? (object)
   (or (stringp object)
       (and (listp object)
-	   (memq (car object) .modexp-keywords.))))
+           (memq (car object) .modexp-keywords.))))
 
 (defterm modexp (%ast)
   :visible (value)
@@ -116,12 +116,12 @@
 ;;;     - source : sort-ref
 ;;;     - target : string representing new sort name.
 ;;;
-(defterm ren-sort (%ast)		; visible sort
+(defterm ren-sort (%ast)                ; visible sort
   ;; :visible (source target)
   :visible (&rest maps)
   :print print-ren-sort)
 
-(defterm ren-hsort (%ast)		; hidden sort
+(defterm ren-hsort (%ast)               ; hidden sort
   ;; :visible (source target)
   :visible (&rest maps)
   :print print-ren-sort)
@@ -131,12 +131,12 @@
 ;;;    - source : op-ref.
 ;;;   -  target : string or list of string representing new operator name.
 ;;;
-(defterm ren-op (%ast)			; functional operator
+(defterm ren-op (%ast)                  ; functional operator
   ;; :visible (source target)
   :visible (&rest maps)
   :print print-ren-op)
 
-(defterm ren-bop (%ast)			; behavioural operator
+(defterm ren-bop (%ast)                 ; behavioural operator
   ;; :visible (source target)
   :visible (&rest maps)
   :print print-ren-op)
@@ -205,7 +205,7 @@
 
 (defun modexp-is-?name? (modexp)
   (declare (type t modexp)
-	   (values (or null t)))
+           (values (or null t)))
   (and (consp modexp) (eq (car modexp) ':?name)))
 
 (defun ?name-name (modexp)
@@ -217,7 +217,7 @@
 ;;;
 (defun modexp-is-parameter-theory (e)
   (declare (type t e)
-	   (values (or null t)))
+           (values (or null t)))
   (and (consp e)
        (equal "::" (cadr e))))
 
@@ -226,9 +226,9 @@
 ;;; ****
 
 (defterm view (%ast)
-  :visible (module			; theory module
-	    target			; target module
-	    map)			; mappings
+  :visible (module                      ; theory module
+            target                      ; target module
+            map)                        ; mappings
   :print print-view-modexp)
 
 ;;; ********************
@@ -241,7 +241,7 @@
 ;;;
 (defun modexp-is-error (val)
   (declare (type t)
-	   (values (or null t)))
+           (values (or null t)))
   (and (consp val) (eq :error (car val))))
 
 ;;; MODEXP-IS-SIMPLE-NAME : object -> Bool
@@ -249,7 +249,7 @@
 ;;;
 (defun modexp-is-simple-name (x)
   (declare (type (or atom modexp) x)
-	   (values (or null t)))
+           (values (or null t)))
   (or (stringp x)
       (symbolp x)
       (modexp-is-parameter-theory x)))
@@ -281,7 +281,7 @@
 
 (defun find-view-in-env (view)
   (declare (type modexp view)
-	   (values (or null t)))
+           (values (or null t)))
   (find-in-assoc-table *modexp-view-table* view))
 
 (defun add-view-defn (view value)
@@ -301,12 +301,12 @@
 ;;; module : module replacement, assoc list of (module . module).
 ;;;
 (defstruct (modmorph (:constructor create-modmorph (name sort op module)))
-   (name nil :type t)			; name of mapping; e.g. name of view or
-					; module. (taken from may be more than
-					; one view).
-   (sort nil :type list)		; sort map.
-   (op nil :type list)			; operator map, really is a method map.
-   (module nil :type list)		; module map
+   (name nil :type t)                   ; name of mapping; e.g. name of view or
+                                        ; module. (taken from may be more than
+                                        ; one view).
+   (sort nil :type list)                ; sort map.
+   (op nil :type list)                  ; operator map, really is a method map.
+   (module nil :type list)              ; module map
    )
 
 ;;; TODO : ugly
@@ -320,9 +320,9 @@
 
 (defmacro modmorph-assoc-images (_assoc-list _lst)
   ` (mapcar #'(lambda (x)
-		(or (cdr (assq x ,_assoc-list))
-		    x))
-	    ,_lst))
+                (or (cdr (assq x ,_assoc-list))
+                    x))
+            ,_lst))
 
 ;;; ******************************
 ;;; TOPLEVEL MODEXP INTERNAL FORMS

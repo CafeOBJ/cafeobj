@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:Common-Lisp; Package:CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :CHAOS)
 #|==============================================================================
-				 System: Chaos
-				 Module: comlib
-				File: misc.lisp
+                                 System: Chaos
+                                 Module: comlib
+                                File: misc.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -57,7 +57,7 @@
 
 (defun make-keyword (name)
   (declare (type (or symbol simple-string) name)
-	   (values symbol))
+           (values symbol))
   (if (stringp name)
       (intern name *keyword-package*)
       ;; name must be a symbol
@@ -68,19 +68,19 @@
 ;;; the key it is returned.
 
 (defun extract-keyword (key arglist &optional (default nil)
-			    &key (no-value nil))
+                            &key (no-value nil))
   (declare (type list arglist)
-	   (type t default)
-	   (type keyword key)
-	   (values symbol)
-	   )
+           (type t default)
+           (type keyword key)
+           (values symbol)
+           )
   (let ((binding (member key arglist :test #'eql)))
     (cond ((and (null binding) no-value)
-	   no-value)
-	  ((cdr binding)
-	   (cadr binding))
-	  (t
-	   default))))
+           no-value)
+          ((cdr binding)
+           (cadr binding))
+          (t
+           default))))
 
 ;;; *****************
 ;;; OBJECT ALLOCATION____________________________________________________________
@@ -229,67 +229,67 @@ object alloc_svec_fixnum (size)
   (declare (type t x y))
   (typecase x
     (integer (typecase y
-	       (integer (if (< (the integer x) (the integer y))
-			    :lt
-			  (if (< (the integer y) (the integer x))
-			      :gt
-			    :eq)))
-	       (otherwise :lt)))
+               (integer (if (< (the integer x) (the integer y))
+                            :lt
+                          (if (< (the integer y) (the integer x))
+                              :gt
+                            :eq)))
+               (otherwise :lt)))
     (symbol (typecase y
-	      (symbol (if (eq x y)
-			  :eq
-			(if (string-lessp (string (the symbol x))
-					  (string (the symbol y)))
-			    :lt
-			  :gt)))
-	      (integer :gt)
-	      (otherwise :lt)))
+              (symbol (if (eq x y)
+                          :eq
+                        (if (string-lessp (string (the symbol x))
+                                          (string (the symbol y)))
+                            :lt
+                          :gt)))
+              (integer :gt)
+              (otherwise :lt)))
     (cons (typecase y
-	    (cons (let ((comp-car (ob-compare (car x ) (car y))))
-		    (if (eq :eq comp-car)
-			(ob-compare (cdr x) (cdr y))
-		      comp-car)))
-	    ((or symbol integer) :gt)
-	    (otherwise :lt)))
+            (cons (let ((comp-car (ob-compare (car x ) (car y))))
+                    (if (eq :eq comp-car)
+                        (ob-compare (cdr x) (cdr y))
+                      comp-car)))
+            ((or symbol integer) :gt)
+            (otherwise :lt)))
     (number (typecase y
-	      (number (if (< (the number x) (the number y))
-			  :lt
-			(if (< (the number y) (the number x))
-			    :gt
-			  :eq)))
-	      ((or symbol integer cons) :gt)
-	      (otherwise :lt)))
+              (number (if (< (the number x) (the number y))
+                          :lt
+                        (if (< (the number y) (the number x))
+                            :gt
+                          :eq)))
+              ((or symbol integer cons) :gt)
+              (otherwise :lt)))
     (character (typecase y
-		 (character (if (char< (the character x)
-				       (the character y))
-				:lt
-			      (if (char< (the character y)
-					 (the character x))
-				  :gt
-				:eq)))
-		 ((or number cons symbol) :gt)
-		 (otherwise :lt)))
+                 (character (if (char< (the character x)
+                                       (the character y))
+                                :lt
+                              (if (char< (the character y)
+                                         (the character x))
+                                  :gt
+                                :eq)))
+                 ((or number cons symbol) :gt)
+                 (otherwise :lt)))
     (string (typecase y
-	      (string (if (string-lessp (the string x) (the string y))
-			  :lt
-			(if (string-lessp (the string y) (the string x))
-			    :gt
-			  :eq)))
-	      ((or character number cons symbol) :gt)
-	      (otherwise :lt)))
+              (string (if (string-lessp (the string x) (the string y))
+                          :lt
+                        (if (string-lessp (the string y) (the string x))
+                            :gt
+                          :eq)))
+              ((or character number cons symbol) :gt)
+              (otherwise :lt)))
     (sequence (typecase y
-		(sequence (let ((lenx (length (the sequence x)))
-				(leny (length (the sequence y))))
-			    (declare (type fixnum lenx leny))
-			    (dotimes (i (min lenx leny) (ob-compare lenx leny))
-			      (declare (type fixnum i))
-			      (let ((xi (elt x i))
-				    (yi (elt y i)))
-				(let ((cmp (ob-compare xi yi)))
-				  (unless (eq :eq cmp)
-				    (return cmp)))))
-			    :eq))
-		(otherwise :gt)))
+                (sequence (let ((lenx (length (the sequence x)))
+                                (leny (length (the sequence y))))
+                            (declare (type fixnum lenx leny))
+                            (dotimes (i (min lenx leny) (ob-compare lenx leny))
+                              (declare (type fixnum i))
+                              (let ((xi (elt x i))
+                                    (yi (elt y i)))
+                                (let ((cmp (ob-compare xi yi)))
+                                  (unless (eq :eq cmp)
+                                    (return cmp)))))
+                            :eq))
+                (otherwise :gt)))
     (otherwise :lt)
     ;; (structure :lt)
     ;;
@@ -307,20 +307,20 @@ object alloc_svec_fixnum (size)
 ;;;
 (defun topo-sort (lst pred)
   (declare (type list lst)
-	   (type (or symbol function) pred))
-  (let ((res lst))			; save original list as final value
+           (type (or symbol function) pred))
+  (let ((res lst))                      ; save original list as final value
   ;; run through the positions of lst successively filling them in
   (loop
     (when (null lst) (return))
     ;; pos is location of val which is current minimal value
     (let ((pos lst) (val (car lst)) (rest (cdr lst)))
       ;; scan through remainder of list rest updating pos and val
-      (loop				; -- select minimal
-	(when (null rest) (return))
-	(let ((valr (car rest)))
-	  (when (funcall pred valr val)
-	    (setq pos rest val valr)))	; have found new minimal value
-	(setq rest (cdr rest)))		; loop -- select minimal
+      (loop                             ; -- select minimal
+        (when (null rest) (return))
+        (let ((valr (car rest)))
+          (when (funcall pred valr val)
+            (setq pos rest val valr)))  ; have found new minimal value
+        (setq rest (cdr rest)))         ; loop -- select minimal
       ;; swap values at front of lst and at pos
       (rplaca pos (car lst))
       (rplaca lst val))
@@ -377,7 +377,7 @@ object alloc_svec_fixnum (size)
 ;;; QUERY-INPUT_________________________________________________________________
 ;;; ************
 (defun query-input (&optional (default #\y) (timeout 20) 
-			      format-string &rest args)
+                              format-string &rest args)
   (clear-input *query-io*)
   (when format-string
     (fresh-line *query-io*)
@@ -388,8 +388,8 @@ object alloc_svec_fixnum (size)
     (finish-output *query-io*))
   (let ((read-char (read-char-wait timeout *query-io*)))
     (cond ((null read-char) (return-from query-input default))
-	  (t (unread-char read-char *query-io*)
-	     (read *query-io*)))))
+          (t (unread-char read-char *query-io*)
+             (read *query-io*)))))
 
 ;;; *************
 ;;; Y-OR-N-P-WAIT________________________________________________________________
@@ -399,12 +399,12 @@ object alloc_svec_fixnum (size)
 (defun internal-real-time-in-seconds ()
   (declare (values float))
   (float (/ (get-internal-real-time) 
-	    internal-time-units-per-second)))
+            internal-time-units-per-second)))
 
 (defun read-char-wait (&optional (timeout 20) input-stream &aux char)
   (do ((start (internal-real-time-in-seconds)))
       ((or (setq char (read-char-no-hang input-stream nil)) ;(listen *query-io*)
-	   (< (+ start timeout) (internal-real-time-in-seconds)))
+           (< (+ start timeout) (internal-real-time-in-seconds)))
        char)))
 
 (defvar *use-timeouts* t
@@ -423,7 +423,7 @@ object alloc_svec_fixnum (size)
 ;;;  you enter any other characters.
 
 (defun y-or-n-p-wait (&optional (default #\y) (timeout 20) 
-				format-string &rest args)
+                                format-string &rest args)
   (when *clear-input-before-query* (clear-input *query-io*))
   (when format-string
     (fresh-line *query-io*)
@@ -434,9 +434,9 @@ object alloc_svec_fixnum (size)
     (finish-output *query-io*))
   (loop
    (let* ((read-char (if *use-timeouts*
-			 (read-char-wait timeout *query-io*)
-			 (read-char *query-io*)))
-	  (char (or read-char default)))
+                         (read-char-wait timeout *query-io*)
+                         (read-char *query-io*)))
+          (char (or read-char default)))
      ;; We need to ignore #\newline because otherwise the bugs in 
      ;; clear-input will cause y-or-n-p-wait to print the "Type ..."
      ;; message every time... *sigh*
@@ -444,18 +444,18 @@ object alloc_svec_fixnum (size)
      ;; clear-input is fixed.
      (unless (find char '(#\tab #\newline #\return))
        (when (null read-char) 
-	 (format *query-io* "~@[~A~]" default)
-	 (finish-output *query-io*))
+         (format *query-io* "~@[~A~]" default)
+         (finish-output *query-io*))
        (cond ((null char) (return t))
-	     ((find char '(#\y #\Y #\space) :test #'char=) (return t))
-	     ((find char '(#\n #\N) :test #'char=) (return nil))
-	     (t 
-	      (when *clear-input-before-query* (clear-input *query-io*))
-	      (format *query-io* "~&Type \"y\" for yes or \"n\" for no. ")
-	      (when format-string
-		(fresh-line *query-io*)
-		(apply #'format *query-io* format-string args))
-	      (finish-output *query-io*)))))))
+             ((find char '(#\y #\Y #\space) :test #'char=) (return t))
+             ((find char '(#\n #\N) :test #'char=) (return nil))
+             (t 
+              (when *clear-input-before-query* (clear-input *query-io*))
+              (format *query-io* "~%Type \"y\" for yes or \"n\" for no. ")
+              (when format-string
+                (fresh-line *query-io*)
+                (apply #'format *query-io* format-string args))
+              (finish-output *query-io*)))))))
 
 ;;; ********
 ;;; MULTISET____________________________________________________________________
@@ -473,11 +473,11 @@ object alloc_svec_fixnum (size)
 ;;;  a multiset itself is represented as a list of this pairs.
 
 (defstruct (multiset (:conc-name "MULTISET-")
-		     (:constructor multiset-create (equal-fun elements))
-		     (:copier nil))
-  (equal-fun #'eq :type function)	; predicate which determines the equality
-					; of the objects.
-  (elements nil :type list))		; list of pair (object . count).
+                     (:constructor multiset-create (equal-fun elements))
+                     (:copier nil))
+  (equal-fun #'eq :type function)       ; predicate which determines the equality
+                                        ; of the objects.
+  (elements nil :type list))            ; list of pair (object . count).
 
 ;;; MULTISET-NEW
 ;;; creates the new empty multiset-
@@ -495,11 +495,11 @@ object alloc_svec_fixnum (size)
 (defmacro multiset-insert (ms e)
   (once-only (ms)
     `(let* ((elems (multiset-elements ,ms))
-	    (pair (assoc ,e elems :test (multiset-equal-fun ,ms))))
+            (pair (assoc ,e elems :test (multiset-equal-fun ,ms))))
       (if pair
-	  (incf (the fixnum (cdr pair)))
-	  (setf (multiset-elements ,ms)
-		(push (cons e 1) elems))))))
+          (incf (the fixnum (cdr pair)))
+          (setf (multiset-elements ,ms)
+                (push (cons e 1) elems))))))
 
 ;;; LIST-TO-MULTISET list
 ;;; returns a new multiset consisting of the elements in list.
@@ -508,7 +508,7 @@ object alloc_svec_fixnum (size)
   ` (let ((ms (multiset-new ,equal-fun)))
       (declare (type multiset ms))
       (dolist (e ,list)
-	(multiset-insert ms e))
+        (multiset-insert ms e))
       ms))
 
 ;;; MULTISET-TO-SET ms
@@ -522,11 +522,11 @@ object alloc_svec_fixnum (size)
 (defmacro multiset-delete (ms e)
   (once-only (ms)
    `(let* ((elems (multiset-elements ,ms))
-	   (pair (assoc ,e elems :test (multiset-equal-fun ,ms))))
+           (pair (assoc ,e elems :test (multiset-equal-fun ,ms))))
      (when pair
        (when (zerop (decf (the fixnum (cdr pair))))
-	 (setf (multiset-elements ,ms)
-	       (delete e elems :test (multiset-equal-fun ,ms) :key #'car)))))))
+         (setf (multiset-elements ,ms)
+               (delete e elems :test (multiset-equal-fun ,ms) :key #'car)))))))
 
 ;;; MULTISET-MERGE m1 m2
 ;;; inserts each elements of m2 into m1. leaves m2 unchanged.
@@ -535,12 +535,12 @@ object alloc_svec_fixnum (size)
 (defmacro multiset-merge (m1 m2)
   (once-only (m1)
     `(let ((m1-elems (multiset-elements ,m1))
-	   (equal-fun (multiset-equal-fun ,m1)))
+           (equal-fun (multiset-equal-fun ,m1)))
       (dolist (e2 (multiset-elements ,m2))
-	(let ((pair (assoc (car e2) m1-elems :test equal-fun)))
-	  (if pair
-	      (incf (the fixnum (cdr m1-elems)) (the fixnum (cdr pair)))
-	      (push e2 m1-elems)))))))
+        (let ((pair (assoc (car e2) m1-elems :test equal-fun)))
+          (if pair
+              (incf (the fixnum (cdr m1-elems)) (the fixnum (cdr pair)))
+              (push e2 m1-elems)))))))
 
 ;;; MULTISET-INTERSECTION m1 m2
 ;;; returns a new multiset with all elements that occur in both m1 and m2,
@@ -550,13 +550,13 @@ object alloc_svec_fixnum (size)
 (defmacro multiset-intersectin (m1 m2)
   (once-only (m1)
      `(let ((m1-elems (multiset-elements ,m1))
-	    (equal-fun (multiset-equal-fun ,m1))
-	    (new-elems nil))
+            (equal-fun (multiset-equal-fun ,m1))
+            (new-elems nil))
        (dolist (e2 (multiset-elements ,m2))
-	 (let ((pair (assoc (car e2) m1-elems :test equal-fun)))
-	   (when pair
-	     (push (cons (car pair) (min (cdr pair) (cdr e2)))
-		   new-elems))))
+         (let ((pair (assoc (car e2) m1-elems :test equal-fun)))
+           (when pair
+             (push (cons (car pair) (min (cdr pair) (cdr e2)))
+                   new-elems))))
        (multiset-create equal-fun new-elems))))
 
 ;;; MULTISET-DIFF m1 m2
@@ -567,15 +567,15 @@ object alloc_svec_fixnum (size)
 (defmacro multiset-diff (m1 m2)
   (once-only (m1)
     `(let ((m1-elems (multiset-elements ,m1))
-	   (equal-fun (multiset-equal-fun ,m1))
-	   (new-elems nil))
+           (equal-fun (multiset-equal-fun ,m1))
+           (new-elems nil))
       (dolist (e2 (multiset-elements ,m2))
-	(let ((pair (assoc (car e2) m1-elems :test equal-fun)))
-	  (if pair
-	      (let ((count (- (cdr pair) (cdr e2))))
-		(when (< 0 count)
-		  (push (cons (car pair) count) new-elems)))
-	      (push (cons (car par) (cdr pair)) new-elems))))
+        (let ((pair (assoc (car e2) m1-elems :test equal-fun)))
+          (if pair
+              (let ((count (- (cdr pair) (cdr e2))))
+                (when (< 0 count)
+                  (push (cons (car pair) count) new-elems)))
+              (push (cons (car par) (cdr pair)) new-elems))))
       (multiset-create equal-fun new-elems))))
 
 ;;; MULTISET-COUNT m e
@@ -585,8 +585,8 @@ object alloc_svec_fixnum (size)
   (once-only (m)
     `(let ((pair (assoc ,e (multiset-elements ,m) :test (multiset-equal-fun ,m))))
       (if pair
-	  (cdr pair)
-	  0))))
+          (cdr pair)
+          0))))
 
 ;;; MULTISET-COPY m
 ;;; returns a new multiset with the same contents and the same equality function as m.
@@ -619,11 +619,11 @@ object alloc_svec_fixnum (size)
          ,@(let (code-result)
              (dolist (pred (cdr predicates))
                (push `(cond
-			((and (setq ,temp ,pred)
-			      ,result)
-			 (return-from ,block-name nil))
-			(,temp
-			 (setq ,result ,temp)))
+                        ((and (setq ,temp ,pred)
+                              ,result)
+                         (return-from ,block-name nil))
+                        (,temp
+                         (setq ,result ,temp)))
                      code-result))
              (nreverse code-result))
          ,result))))
@@ -640,7 +640,7 @@ object alloc_svec_fixnum (size)
              (push `(if (not ,pred)
                         (return-from ,block-name t))
                    code-result))
-	   (nreverse code-result))
+           (nreverse code-result))
        nil)))
 
 ;;; nor
@@ -655,7 +655,7 @@ object alloc_svec_fixnum (size)
              (push `(if ,pred
                         (return-from ,block-name nil))
                    code-result))
-	   (nreverse code-result))
+           (nreverse code-result))
        t)))
 
 
@@ -669,14 +669,14 @@ object alloc_svec_fixnum (size)
       (decode-universal-time universal-time 0) ; GMT time
     (declare (type fixnum dow month))
     (format nil "~d ~a ~d ~a ~d:~2,'0d:~2,'0d GMT"
-	    year
-	    (%svref '#(0 "Jan" "Feb" "Mar" "Apr" "May"
-			"Jun" "Jul" "Aug" "Sep" "Oct"
-			"Nov" "Dec")
-		    month)
-	    date
-	    (%svref '#("Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun") dow)
-	    hour min secs)
+            year
+            (%svref '#(0 "Jan" "Feb" "Mar" "Apr" "May"
+                        "Jun" "Jul" "Aug" "Sep" "Oct"
+                        "Nov" "Dec")
+                    month)
+            date
+            (%svref '#("Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun") dow)
+            hour min secs)
     ))
 
 ;;; elapsed-time-in-seconds
@@ -687,14 +687,14 @@ object alloc_svec_fixnum (size)
 
 (defun elapsed-time-in-seconds (base now)
   (declare (type integer base now)
-	   (values single-float))
+           (values single-float))
   (coerce (/ (- now base)
-	     internal-time-units-per-second)
-	  'single-float))
+             internal-time-units-per-second)
+          'single-float))
 
 (defun time-in-seconds (sum)
   (declare (type integer sum)
-	   (values single-float))
+           (values single-float))
   (coerce (/ sum internal-time-units-per-second) 'single-float))
 
 ;;; ****
@@ -703,24 +703,24 @@ object alloc_svec_fixnum (size)
 
 (defmacro every2len (fn l1 l2)
   (let* ((lmbd (cadr fn))
-	 (args (cadr lmbd))
-	 (bdy (cddr lmbd)))
+         (args (cadr lmbd))
+         (bdy (cddr lmbd)))
     ` (let ((lst1 ,l1) (lst2 ,l2) ,@args)
-	(loop
-	 (when (null lst1) (return (null lst2)))
-	 (when (null lst2) (return (null lst1)))
-	 (setq ,(car args) (car lst1))
-	 (setq ,(cadr args) (car lst2))
-	 (unless (progn ,@bdy) (return nil))
-	 (setq lst1 (cdr lst1))
-	 (setq lst2 (cdr lst2))
-	 )
-	)))
+        (loop
+         (when (null lst1) (return (null lst2)))
+         (when (null lst2) (return (null lst1)))
+         (setq ,(car args) (car lst1))
+         (setq ,(cadr args) (car lst2))
+         (unless (progn ,@bdy) (return nil))
+         (setq lst1 (cdr lst1))
+         (setq lst2 (cdr lst2))
+         )
+        )))
 
 (defun list2array (list)
   (declare (type list list)
-	   #-GCL (values simple-vector)
-	   )
+           #-GCL (values simple-vector)
+           )
   #-GCL
   (make-array (length list) :initial-contents list)
   #+GCL
@@ -732,7 +732,7 @@ object alloc_svec_fixnum (size)
 
 (defun make-list-1-n (n)
   (declare (type fixnum n)
-	   (values list))
+           (values list))
   (let ((result nil))
     (dotimes-fixnum (x n)
       (push (+ x 1) result))
@@ -740,7 +740,7 @@ object alloc_svec_fixnum (size)
 
 (defun make-list-1-n-0 (n)
   (declare (type fixnum n)
-	   (values list))
+           (values list))
   (let ((result nil))
     (dotimes-fixnum (x n)
       (push (+ x 1) result))
@@ -759,21 +759,21 @@ object alloc_svec_fixnum (size)
 (defmacro delete-entry-from-assoc-table (table key &optional (test '#'equal))
   ` (let ((entry (assoc ,key ,table :test ,test)))
       (when entry
-	(setq ,table (delete entry ,table :test #'eq)))))
+        (setq ,table (delete entry ,table :test #'eq)))))
 
 (defmacro delete-object-from-assoc-table (table object &optional (test '#'eq))
   ` (let ((entry (rassoc ,object ,table :test ,test)))
       (when entry
-	(setq ,table (delete entry ,table :test #'eq)))))
+        (setq ,table (delete entry ,table :test #'eq)))))
 
 (defmacro add-to-assoc-table (table key value &optional (test '#'equal))
   (once-only (table key value)
     ` (let ((entry (get-entry-in-assoc-table ,table ,key ,test)))
-	(if entry
-	    (setf (cdr entry) ,value)
-	    (prog1
-		,value
-	      (push (cons ,key ,value) ,table))))))
+        (if entry
+            (setf (cdr entry) ,value)
+            (prog1
+                ,value
+              (push (cons ,key ,value) ,table))))))
 
 (defmacro object-is-in-assoc-table? (table object &optional (test '#'eq))
   `(rassoc ,object ,table :test ,test))
@@ -852,7 +852,7 @@ object alloc_svec_fixnum (size)
      1<<20, 1<<21, 1<<22, 1<<23, 1<<24, 1<<25, 1<<26, 1<<27, 1<<28, 1<<29,
      1<<30, 1<<31,
  };"
-	)
+        )
 
 #+gcl
 (Clines "static object expt2 (a) object a;
@@ -862,7 +862,7 @@ object alloc_svec_fixnum (size)
            return (make_fixnum(bit_vector[x]));
         } else { FEerror(\"aho\");}
        }"
-	)
+        )
 
 #+gcl
 (defentry expt2 (object)(object expt2))

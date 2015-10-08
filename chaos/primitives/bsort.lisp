@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: Chaos; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: Chaos
-			       Module: primitives
-				File: bsort.lisp
+                                 System: Chaos
+                               Module: primitives
+                                File: bsort.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -38,7 +38,7 @@
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 ;;;=============================================================================
-;;;				      SORT
+;;;                                   SORT
 ;;;=============================================================================
 
 ;;; ****************************************************************************
@@ -58,36 +58,22 @@
 ;;;       never be created as a term body (abstract class).
 ;;;
 
-#||
-(defterm sort-struct (object)		; (static-object)
-  ;; :name ""
-  :visible (id				; sort name, symbol.
-	    hidden)			; flag, t iff the sort is hidden sort.
-
-  :hidden (module			; module in which the sort is declared.
-					; type = module object.
-	   constructor			; the list of constructor methods of the
-					; sort. not used.
-	   inhabited			; temporary flag used for regularizing
-					; the signature of a module. 
-	   )
-  :int-printer print-sort-internal
-  :print print-sort-internal)
-||#
-
 (defstruct (sort-struct (:conc-name "SORT-STRUCT-")
-			(:include object (-type 'sort-struct))
-			(:copier nil)
-			(:print-function print-sort-internal)
-			(:constructor make-sort-struct)
-			(:constructor sort-struct* (id hidden)))
+                        (:include object (-type 'sort-struct))
+                        (:copier nil)
+                        (:print-function print-sort-internal)
+                        (:constructor make-sort-struct)
+                        (:constructor sort-struct* (id hidden)))
   (id nil :type symbol)
   (hidden nil :type (or null t))
-  (module nil :type (or null module))
   (constructor nil :type list)
   (inhabited nil :type (or null t))
-  (derived-from nil :type (or null sort-struct))
-  )
+  (derived-from nil :type (or null sort-struct)))
+
+(eval-when (:execute :load-toplevel :compile-toplevel)
+(defmacro sort-module (sort)
+  `(object-context-mod ,sort))
+)
 
 (eval-when (:execute :load-toplevel)
   (setf (symbol-function 'sort-sort-struct) (symbol-function 'sort-struct-p))
@@ -103,12 +89,12 @@
 ;;;-----------------------------------------------------------------------------
 
 (defstruct (sort* (:include sort-struct (-type 'sort))
-		  (:conc-name "SORT-")
-		  (:copier nil)
-		  (:constructor make-sort)
-		  (:constructor sort* (id &optional hidden))
-		  (:predicate sort-p)
-		  (:print-function print-sort-object))
+                  (:conc-name "SORT-")
+                  (:copier nil)
+                  (:constructor make-sort)
+                  (:constructor sort* (id &optional hidden))
+                  (:predicate sort-p)
+                  (:print-function print-sort-object))
   )
 
 (eval-when (:execute :load-toplevel)
@@ -135,15 +121,15 @@
 (defun sort-is-derived-from (sort)
   (let ((df (sort-derived-from sort)))
     (if df
-	(or (sort-is-derived-from df)
-	    df)
-	nil)))
+        (or (sort-is-derived-from df)
+            df)
+        nil)))
 
 (defun get-original-sort (sort)
   (let ((res sort))
     (loop (if (null (sort-derived-from res))
-	      (return nil)
-	      (setq res (sort-derived-from res))))
+              (return nil)
+              (setq res (sort-derived-from res))))
     res))
 
 ;;; Type predicates -----------------------------------------------------------
@@ -155,7 +141,7 @@
 
 (defun sort-visible-type-print (sort)
   (declare (type sort-struct sort)
-	   (values symbol))
+           (values symbol))
   (if (sort-is-hidden sort)
       :h
       :v))
@@ -164,44 +150,35 @@
   (declare (ignore ignore))
   (let ((name (concatenate 'string (string (sort-id obj)) "." (module-print-name (sort-module obj)))))
     (if (sort-is-hidden obj)
-	(format stream ":hsort[~s]" name)
+        (format stream ":hsort[~s]" name)
       (format stream ":sort[~s]" name))))
 
 ;;; Constructor ----------------------------------------------------------------
 (defun new-general-sort (id module &optional hidden)
   (declare (type symbol id)
-	   (type module module)
-	   (type (or null t) hidden))
+           (type module module)
+           (type (or null t) hidden))
   (let ((sort (sort* id hidden)))
     (setf (sort-module sort) module)
-    (set-context-module sort module)
+    (set-object-context-module sort module)
     sort))
 
 ;;; *SORT-TABLE*
-#||
-(defvar *sort-table* (make-hash-table :test #'equal))
-(defmacro get-sort-named (sort-name_ module_)
-  `(gethash (cons ,sort-name_ ,module_) *sort-table*))
-(defun clear-all-sorts () (clrhash *sort-table*))
-(defun register-sort (sort)
-  (setf (gethash (cons (sort-id sort) (sort-module sort)) *sort-table*) sort))
-
-||#
 
 (defvar *sort-table* nil)
 (defun get-sort-named (sort-name module)
   (declare (type symbol sort-name)
-	   (type module module)
-	   (values (or null sort-struct)))
+           (type module module)
+           (values (or null sort-struct)))
   (find-in-assoc-table *sort-table* (cons sort-name module)))
 
 (defun clear-tmp-sort-cache () (setq *sort-table* nil))
 (defun register-sort-cache (sort)
   (declare (type sort-struct sort)
-	   (values t))
+           (values t))
   (add-to-assoc-table *sort-table* (cons (sort-id sort)
-					(sort-module sort))
-		      sort))
+                                        (sort-module sort))
+                      sort))
 
 ;;; ************
 ;;; RECORD&CLASS________________
@@ -231,16 +208,16 @@
 ;;; 
 
 (defstruct (crsort (:include sort* (-type 'crsort))
-		   (:copier nil)
-		   (:constructor make-crsort)
-		   (:constructor crsort* (id &optional hidden))
-		   (:print-function print-cr-sort-object))
-  (slots nil :type list)		; slot informations.
-  (idconstr nil :type list)		; id constructor info.
-  (constr nil :type t)			; term constructor method.
-  (maker nil :type list)		; list of methods for `make.Foo'
-					; operations. 
-  (copy	nil :type (or null t))		; t iff the sort is a copy.
+                   (:copier nil)
+                   (:constructor make-crsort)
+                   (:constructor crsort* (id &optional hidden))
+                   (:print-function print-cr-sort-object))
+  (slots nil :type list)                ; slot informations.
+  (idconstr nil :type list)             ; id constructor info.
+  (constr nil :type t)                  ; term constructor method.
+  (maker nil :type list)                ; list of methods for `make.Foo'
+                                        ; operations. 
+  (copy nil :type (or null t))          ; t iff the sort is a copy.
   )
 
 (eval-when (:execute :load-toplevel)
@@ -256,10 +233,10 @@
 ;;;           
 
 (defstruct (class-sort (:include crsort (-type 'class-sort))
-		       (:copier nil)
-		       (:constructor make-class-sort)
-		       (:constructor class-sort* (id &optional hidden))
-		       (:print-function print-class-sort-object))
+                       (:copier nil)
+                       (:constructor make-class-sort)
+                       (:constructor class-sort* (id &optional hidden))
+                       (:print-function print-class-sort-object))
   )
 
 (eval-when (:execute :load-toplevel)
@@ -273,18 +250,18 @@
 ;;; Record sort ________________
 
 (defstruct (record-sort (:include crsort (-type 'record-sort))
-			(:constructor make-record-sort)
-			(:constructor record-sort* (id &optional hidden))
-			(:print-function print-record-sort-object)
-			(:copier nil))
+                        (:constructor make-record-sort)
+                        (:constructor record-sort* (id &optional hidden))
+                        (:print-function print-record-sort-object)
+                        (:copier nil))
   )
 
 (eval-when (:execute :load-toplevel)
   (setf (get 'record-sort :type-predicate)
-	(symbol-function 'record-sort-p))
+        (symbol-function 'record-sort-p))
   (setf (get 'record-sort :print) 'print-sort-internal)
   (setf (symbol-function 'is-record-sort)
-	(symbol-function 'record-sort-p)))
+        (symbol-function 'record-sort-p)))
 
 (defun print-record-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
@@ -311,63 +288,63 @@
 
 (defun create-cr-sort (p-type id module constructor inhabited slots hidden)
   (declare (type symbol p-type id)
-	   (type module module)
-	   (type t constructor)
-	   (type (or null t) inhabited hidden)
-	   (type list slots)
-	   (values crsort))
+           (type module module)
+           (type t constructor)
+           (type (or null t) inhabited hidden)
+           (type list slots)
+           (values crsort))
   (let ((s (if (eq p-type 'class-sort)
-	       (class-sort* id)
-	       (record-sort* id))))
+               (class-sort* id)
+               (record-sort* id))))
     (setf (sort-module s) module
-	  (sort-constructor s) constructor
-	  (sort-inhabited s) inhabited
-	  (crsort-slots s) slots
-	  (crsort-hidden s) hidden)
+          (sort-constructor s) constructor
+          (sort-inhabited s) inhabited
+          (crsort-slots s) slots
+          (crsort-hidden s) hidden)
     (setf (crsort-maker s) (if (eq p-type 'class-sort)
-			       (list nil nil nil nil)
-			       (list nil nil)))
-    (set-context-module s module)
+                               (list nil nil nil nil)
+                               (list nil nil)))
+    (set-object-context-module s module)
     s))
   
 (defun new-record-sort (id module &optional hidden)
   (declare (type symbol id)
-	   (type module module)
-	   (type (or null t) hidden)
-	   (values crsort))
-  (create-cr-sort 'record-sort		; type
-		  id			; id
-		  module		; 
-		  nil			; constructor
-		  nil			; inhabited
-		  nil			; slots
-		  hidden))
+           (type module module)
+           (type (or null t) hidden)
+           (values crsort))
+  (create-cr-sort 'record-sort          ; type
+                  id                    ; id
+                  module                ; 
+                  nil                   ; constructor
+                  nil                   ; inhabited
+                  nil                   ; slots
+                  hidden))
 
 (defun new-class-sort (id module &optional hidden)
   (declare (type symbol id)
-	   (type module module)
-	   (type (or null t) hidden)
-	   (values crsort))
+           (type module module)
+           (type (or null t) hidden)
+           (values crsort))
   (create-cr-sort 'class-sort
-		  id
-		  module
-		  nil
-		  nil
-		  nil
-		  hidden))
+                  id
+                  module
+                  nil
+                  nil
+                  nil
+                  hidden))
 
 ;;; Type Predicates ------------------------------------------------------------
 
 ;;; (defmacro crsort-p (_s)
 ;;;   `(and (chaos-object? ,_s) (memq (object-type ,_s) '(record-sort
-;;; 						          class-sort)))) 
+;;;                                                       class-sort)))) 
 ;;; (defmacro record-sort-p (_s) `(is-record-sort ,_s))
 ;;; (defmacro class-sort-p (_s)  `(is-class-sort ,_s))
 
 ;;; Accessors For Slot Informations --------------------------------------------
 
 (defmacro find-slot-info (slot-name sort) ` (assoc ,slot-name (crsort-slots ,sort)
-						   :test #'equal))
+                                                   :test #'equal))
 (defmacro cr-slot-name (_slot-info) `(car ,_slot-info))
 (defmacro cr-slot-sort (_slot-info) `(cadr ,_slot-info))
 (defmacro cr-slot-default (_slot-info) `(caddr ,_slot-info))
@@ -403,10 +380,10 @@
 ;;;
 
 (defstruct (bsort (:include sort* (-type 'bsort))
-		  (:copier nil)
-		  (:constructor make-bsort)
-		  (:constructor bsort* (id &optional hidden))
-		  (:print-function print-bsort-object))
+                  (:copier nil)
+                  (:constructor make-bsort)
+                  (:constructor bsort* (id &optional hidden))
+                  (:print-function print-bsort-object))
   (info nil :type list))
 
 (eval-when (:execute :load-toplevel)
@@ -424,14 +401,14 @@
 
 (defun new-bi-sort (id module &optional info hidden)
   (declare (type symbol id)
-	   (type module module)
-	   (type list info)
-	   (type (or null t) hidden)
-	   (values bsort))
+           (type module module)
+           (type list info)
+           (type (or null t) hidden)
+           (values bsort))
   (let ((bs (bsort* id hidden)))
     (setf (sort-module bs) module
-	  (bsort-info bs) info)
-    (set-context-module bs module)
+          (bsort-info bs) info)
+    (set-object-context-module bs module)
     bs))
 
 ;;; Predicate ------------------------------------------------------------------
@@ -460,12 +437,12 @@
 
 (defun get-builtin-sort-named (sort-name)
   (declare (type symbol sort-name)
-	   (values (or null bsort)))
+           (values (or null bsort)))
   (find-in-assoc-table *builtin-sort-table* sort-name #'eq))
 
 (defun register-builtin-sort (sort)
   (declare (type bsort sort)
-	   (values t))
+           (values t))
   (add-to-assoc-table *builtin-sort-table* (sort-id sort) sort #'eq))
 
 (defun clear-builtin-sorts ()
@@ -482,19 +459,19 @@
 ;;;
 
 (defstruct (and-sort (:include sort* (-type 'and-sort))
-		     (:copier nil)
-		     (:constructor make-and-sort)
-		     (:constructor and-sort* (id &optional hidden))
-		     (:print-function print-and-sort-object))
+                     (:copier nil)
+                     (:constructor make-and-sort)
+                     (:constructor and-sort* (id &optional hidden))
+                     (:print-function print-and-sort-object))
   (components nil :type list))
 
 (eval-when (:execute :load-toplevel)
   (setf (get 'and-sort :type-predicate)
-	(symbol-function 'and-sort-p))
+        (symbol-function 'and-sort-p))
   (setf (symbol-function 'is-and-sort)
-	(symbol-function 'and-sort-p))
+        (symbol-function 'and-sort-p))
   (setf (get 'and-sort :print)
-	'print-and-sort-internal))
+        'print-and-sort-internal))
 
 (defun print-and-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
@@ -507,14 +484,14 @@
 
 (defun new-and-sort (id &optional module and-components hidden)
   (declare (type symbol id)
-	   (type (or null module) module)
-	   (type list and-components)
-	   (type (or null t) hidden)
-	   (values and-sort))
+           (type (or null module) module)
+           (type list and-components)
+           (type (or null t) hidden)
+           (values and-sort))
   (let ((as (and-sort* id hidden)))
     (setf (sort-module as) module
-	  (and-sort-components as) and-components)
-    (set-context-module as module)
+          (and-sort-components as) and-components)
+    (set-object-context-module as module)
     as))
 
 ;;; Predicates -----------------------------------------------------------------
@@ -537,17 +514,17 @@
 ;;;
 
 (defstruct (or-sort (:include sort* (-type 'or-sort))
-		    (:copier nil)
-		    (:constructor make-or-sort)
-		    (:constructor or-sort* (id &optional hidden))
-		    (:print-function print-or-sort-object))
+                    (:copier nil)
+                    (:constructor make-or-sort)
+                    (:constructor or-sort* (id &optional hidden))
+                    (:print-function print-or-sort-object))
   (components nil :type list))
 
 (eval-when (:execute :load-toplevel)
   (setf (get 'or-sort :type-predicate) (symbol-function 'or-sort-p))
   (setf (get 'or-sort :print) 'print-or-sort-internal)
   (setf (symbol-function 'is-or-sort)
-	(symbol-function 'or-sort-p)))
+        (symbol-function 'or-sort-p)))
 
 (defun print-or-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
@@ -561,14 +538,14 @@
 
 (defun new-or-sort (id &optional module or-components hidden)
   (declare (type symbol id)
-	   (type (or null module) module)
-	   (type list or-components)
-	   (type (or null t) hidden)
-	   (values or-sort))
+           (type (or null module) module)
+           (type list or-components)
+           (type (or null t) hidden)
+           (values or-sort))
   (let ((os (or-sort* id hidden)))
     (setf (sort-module os) module
-	  (or-sort-components os) or-components)
-    (set-context-module os module)
+          (or-sort-components os) or-components)
+    (set-object-context-module os module)
     os))
 
 ;;; Predicate ------------------------------------------------------------------
@@ -584,10 +561,10 @@
 ;;;
 
 (defstruct (err-sort (:include sort* (-type 'err-sort))
-		     (:copier nil)
-		     (:constructor make-err-sort)
-		     (:constructor err-sort* (id &optional hidden))
-		     (:print-function print-err-sort-object))
+                     (:copier nil)
+                     (:constructor make-err-sort)
+                     (:constructor err-sort* (id &optional hidden))
+                     (:print-function print-err-sort-object))
   (components nil :type list)
   (lowers nil :type list))
 
@@ -611,15 +588,15 @@
 
 (defun new-err-sort (id &optional module components lowers hidden)
   (declare (type symbol id)
-	   (type (or null module) module)
-	   (type list components lowers)
-	   (type (or null t) hidden)
-	   (values err-sort))
+           (type (or null module) module)
+           (type list components lowers)
+           (type (or null t) hidden)
+           (values err-sort))
   (let ((es (err-sort* id hidden)))
     (setf (sort-module es) module
-	  (err-sort-components es) components
-	  (err-sort-lowers es) lowers)
-    (set-context-module es module)
+          (err-sort-components es) components
+          (err-sort-lowers es) lowers)
+    (set-object-context-module es module)
     es))
 
 ;;; Predicates ----------------------------------------------------------------
@@ -642,13 +619,13 @@
 (defmacro sort-set-equal (_s1 _s2)
   (once-only (_s1 _s2)
    ` (if (< (length ,_s1) (length ,_s2))
-	 (null (set-difference ,_s2 ,_s1 :test #'sort=*))
-	 (null (set-difference ,_s1 ,_s2 :test #'sort=*)))))
+         (null (set-difference ,_s2 ,_s1 :test #'sort=*))
+         (null (set-difference ,_s1 ,_s2 :test #'sort=*)))))
 
 (defmacro sort-list= (sl1_ sl2_) `(equal ,sl1_ ,sl2_))
 
 ;;;=============================================================================
-;;;			   SORT RELATION & SORT ORDER
+;;;                        SORT RELATION & SORT ORDER
 ;;;=============================================================================
 
 ;;;   All of the sorts of a signature is gathered and stored in order according
@@ -694,20 +671,20 @@
 
 (defun elim-sys-sorts-from-relation (sl)
   (declare (type list sl)
-	   (values list))
+           (values list))
   (macrolet ((pure? (_sl)
-	       ` (dolist (_s ,_sl t)
-		   (when (sort-is-for-regularity? _s) (return nil))))
-	     (rem-sys (_sl)
-	       `(remove-if #'(lambda (x) (sort-is-for-regularity? x)) ,_sl)))
+               ` (dolist (_s ,_sl t)
+                   (when (sort-is-for-regularity? _s) (return nil))))
+             (rem-sys (_sl)
+               `(remove-if #'(lambda (x) (sort-is-for-regularity? x)) ,_sl)))
     (let ((s (sort-relation-sort sl))
-	  (subs (_subsorts sl))
-	  (sups (_supersorts sl)))
+          (subs (_subsorts sl))
+          (sups (_supersorts sl)))
       (when (sort-is-for-regularity? s)
-	(return-from elim-sys-sorts-from-relation nil))
+        (return-from elim-sys-sorts-from-relation nil))
       (make-sort-relation s
-			  (if (pure? subs) subs (rem-sys subs))
-			  (if (pure? sups) sups (rem-sys sups))))))
+                          (if (pure? subs) subs (rem-sys subs))
+                          (if (pure? sups) sups (rem-sys sups))))))
 
 ;;; **********
 ;;; SORT-ORDER__________________
@@ -722,7 +699,7 @@
 
 (defun clear-sort-order (sorder)
   (declare (type sort-order sorder)
-	   (values t))
+           (values t))
   (clrhash sorder))
 
 ;;; GET SORT'S RELATION FROM SORT ORDER.
@@ -737,21 +714,21 @@
 
 (defun copy-sort-order (sort-order)
   (declare (type sort-order sort-order)
-	   (values sort-order))
+           (values sort-order))
   (let ((new-order (allocate-sort-order)))
     (maphash #'(lambda (s sl)
-		 (setf (gethash s new-order) (copy-list sl)))
-	     sort-order)
+                 (setf (gethash s new-order) (copy-list sl)))
+             sort-order)
     new-order))
 
 (defun get-all-sorts (sort-order)
   (declare (type sort-order sort-order)
-	   (values list))
+           (values list))
   (let ((res nil))
     (maphash #'(lambda (ss sl)
-		 (declare (ignore sl))
-		 (push ss res))
-	     sort-order)
+                 (declare (ignore sl))
+                 (push ss res))
+             sort-order)
     res))
 
 ;;; ACCESSORS via SORT
@@ -759,54 +736,54 @@
 (defmacro subsorts (_sort &optional (_sort-order '*current-sort-order*))
   (once-only (_sort)
     ` (if (err-sort-p ,_sort)
-	  (err-sort-lowers ,_sort)
-	  (_subsorts (get-sort-relation ,_sort ,_sort-order)))))
+          (err-sort-lowers ,_sort)
+          (_subsorts (get-sort-relation ,_sort ,_sort-order)))))
 
 (defmacro sub-or-equal-sorts (_sort &optional (_sort-order '*current-sort-order*))
   (once-only (_sort)
     ` (if (err-sort-p ,_sort)
-	  (cons ,_sort (err-sort-lowers ,_sort))
-	  (let ((.sort-relation. (get-sort-relation ,_sort ,_sort-order)))
-	    (cons ,_sort
-		  (_subsorts .sort-relation.))))))
+          (cons ,_sort (err-sort-lowers ,_sort))
+          (let ((.sort-relation. (get-sort-relation ,_sort ,_sort-order)))
+            (cons ,_sort
+                  (_subsorts .sort-relation.))))))
 
 (defmacro supersorts (_sort &optional (_sort-order '*current-sort-order*))
    (once-only (_sort _sort-order)
      ` (if (err-sort-p ,_sort)
-	   nil
-	   (let (($sl (get-sort-relation ,_sort ,_sort-order)))
-	     (or (and (_err-sort $sl)
-		      (cons (_err-sort $sl) (_supersorts $sl)))
-		 (_supersorts $sl))))))
+           nil
+           (let (($sl (get-sort-relation ,_sort ,_sort-order)))
+             (or (and (_err-sort $sl)
+                      (cons (_err-sort $sl) (_supersorts $sl)))
+                 (_supersorts $sl))))))
 
 (defmacro supersorts-no-err (_sort &optional (_sort-order '*current-sort-order*))
   (once-only (_sort _sort-order)
     ` (if (err-sort-p ,_sort)
-	  nil
-	  (let (($sl (get-sort-relation ,_sort ,_sort-order)))
-	    (_supersorts $sl)))))
+          nil
+          (let (($sl (get-sort-relation ,_sort ,_sort-order)))
+            (_supersorts $sl)))))
 
 (defmacro super-or-equal-sorts (_sort &optional (_sort-order '*current-sort-order*))
   (once-only (_sort)
     ` (if (err-sort-p ,_sort)
-	  (list ,_sort)
-	  (let ((.sort-relation. (get-sort-relation ,_sort ,_sort-order)))
-	    (cons ,_sort
-		  (or (and (_err-sort .sort-relation.)
-			   (cons (_err-sort .sort-relation.)
-				 (_supersorts .sort-relation.)))
-		      (_supersorts .sort-relation.)))))))
+          (list ,_sort)
+          (let ((.sort-relation. (get-sort-relation ,_sort ,_sort-order)))
+            (cons ,_sort
+                  (or (and (_err-sort .sort-relation.)
+                           (cons (_err-sort .sort-relation.)
+                                 (_supersorts .sort-relation.)))
+                      (_supersorts .sort-relation.)))))))
 
 (defun the-err-sort (sort &optional (sort-order *current-sort-order*))
   (declare (type sort* sort)
-	   (type sort-order sort-order))
+           (type sort-order sort-order))
   (cond ((sort= sort *universal-sort*) sort)
-	((sort= sort *huniversal-sort*) sort)
-	((sort= sort *cosmos*) sort)
-	((sort= sort *bottom-sort*) sort)
-	(t (if (err-sort-p sort)
-	       sort
-	     (_err-sort (get-sort-relation sort sort-order))))))
+        ((sort= sort *huniversal-sort*) sort)
+        ((sort= sort *cosmos*) sort)
+        ((sort= sort *bottom-sort*) sort)
+        (t (if (err-sort-p sort)
+               sort
+             (_err-sort (get-sort-relation sort sort-order))))))
 
 (defsetf the-err-sort (__sort &optional (__sort-order *current-sort-order*))
     (__value)
@@ -822,52 +799,52 @@
 #-GCL
 (defun sort< (s1 s2 &optional (sort-order *current-sort-order*))
   (declare (type sort* s1 s2)
-	   (type sort-order sort-order)
-	   (values (or null t)))
+           (type sort-order sort-order)
+           (values (or null t)))
   (and (not (sort= s1 s2))
        (or (sort= s2 *cosmos*)
-	   (if (sort-is-hidden s1)
-	       (if (sort= s2 *huniversal-sort*)
-		   t
-		 (if (sort= s1 *huniversal-sort*)
-		     nil
-		   (memq s2 (supersorts s1 sort-order))))
-	     (if (sort= s2 *universal-sort*)
-		 t
-	       (if (sort= s1 *universal-sort*)
-		   nil
-		 (if (sort= s1 *bottom-sort*)
-		     t
-		   (if (sort= s2 *bottom-sort*)
-		       nil
-		     (memq s2 (supersorts s1 sort-order))))))))))
+           (if (sort-is-hidden s1)
+               (if (sort= s2 *huniversal-sort*)
+                   t
+                 (if (sort= s1 *huniversal-sort*)
+                     nil
+                   (memq s2 (supersorts s1 sort-order))))
+             (if (sort= s2 *universal-sort*)
+                 t
+               (if (sort= s1 *universal-sort*)
+                   nil
+                 (if (sort= s1 *bottom-sort*)
+                     t
+                   (if (sort= s2 *bottom-sort*)
+                       nil
+                     (memq s2 (supersorts s1 sort-order))))))))))
   
 #+GCL
 (defmacro sort< (s1 s2 &optional (sort-order '*current-sort-order*))
   (once-only (s1 s2)
     ` (and (not (sort= ,s1 ,s2))
-	   (or (sort= ,s2 *cosmos*)
-	       (if (sort-is-hidden ,s1)
-		   (if (sort= ,s2 *huniversal-sort*)
-		       t
-		     (if (sort= ,s1 *huniversal-sort*)
-			 nil
-		       (memq ,s2 (supersorts ,s1 ,sort-order))))
-		 (if (sort= ,s2 *universal-sort*)
-		     t
-		   (if (sort= ,s1 *universal-sort*)
-		       nil
-		     (if (sort= ,s1 *bottom-sort*)
-			 t
-		       (if (sort= ,s2 *bottom-sort*)
-			   nil
-			 (memq ,s2 (supersorts ,s1 ,sort-order)))))))))))
+           (or (sort= ,s2 *cosmos*)
+               (if (sort-is-hidden ,s1)
+                   (if (sort= ,s2 *huniversal-sort*)
+                       t
+                     (if (sort= ,s1 *huniversal-sort*)
+                         nil
+                       (memq ,s2 (supersorts ,s1 ,sort-order))))
+                 (if (sort= ,s2 *universal-sort*)
+                     t
+                   (if (sort= ,s1 *universal-sort*)
+                       nil
+                     (if (sort= ,s1 *bottom-sort*)
+                         t
+                       (if (sort= ,s2 *bottom-sort*)
+                           nil
+                         (memq ,s2 (supersorts ,s1 ,sort-order)))))))))))
 
 ;;; function version
 (defun sort<* (s1 s2 &optional (sort-order *current-sort-order*))
   (declare (type sort* s1 s2)
-	   (type sort-order sort-order)
-	   (values (or null t)))
+           (type sort-order sort-order)
+           (values (or null t)))
   (sort< s1 s2 sort-order))
 
 ;;; SORT<= sort1 sort2 sort-order
@@ -876,13 +853,13 @@
 (defmacro sort<= (_s1 _s2 &optional (_sort-order '*current-sort-order*))
   (once-only (_s1 _s2)
     ` (or (sort= ,_s1 ,_s2)
-	  (sort< ,_s1 ,_s2 ,_sort-order))))
+          (sort< ,_s1 ,_s2 ,_sort-order))))
 
 ;;; it's function version.
 (defun sort<=* (s1 s2 &optional (sort-order *current-sort-order*))
   (declare (type sort* s1 s2)
-	   (type sort-order sort-order)
-	   (values (or null t)))
+           (type sort-order sort-order)
+           (values (or null t)))
   (or (sort= s1 s2) (sort< s1 s2 sort-order)))
 
 ;;; SORT-IS-IN sort sort-set sort-order
@@ -893,11 +870,11 @@
 (defmacro sort-is-in (_s _sort-set &optional (_sort-order '*current-sort-order*))
   (once-only (_s _sort-set _sort-order)
     ` (and ,_sort-set
-	   (dolist (.s1. ,_sort-set nil)
-	     (if (or (sort= ,_s .s1.)
-		     (member ,_s (subsorts .s1. ,_sort-order) :test #'eq)
-		     (member ,_s (supersorts .s1. ,_sort-order) :test #'eq))
-		 (return t))))))
+           (dolist (.s1. ,_sort-set nil)
+             (if (or (sort= ,_s .s1.)
+                     (member ,_s (subsorts .s1. ,_sort-order) :test #'eq)
+                     (member ,_s (supersorts .s1. ,_sort-order) :test #'eq))
+                 (return t))))))
 
 ;;; SORT-LIST<= sort-list1 sort-list2 sort-order
 ;;;  returns t iff each elements of sort-list1 is a subsort of
@@ -905,26 +882,26 @@
 ;;;
 (defun sort-list<= (lst1 lst2 &optional (so *current-sort-order*))
   (declare (type list lst1 lst2)
-	   (type sort-order so)
-	   (values (or null t)))
+           (type sort-order so)
+           (values (or null t)))
   (loop (when (null lst1)(return (null lst2)))
-	(when (null lst2)(return (null lst1)))
-	(unless (sort<= (car lst1) (car lst2) so)
-	  (return nil))
-	(setq lst1 (cdr lst1))
-	(setq lst2 (cdr lst2))))
+        (when (null lst2)(return (null lst1)))
+        (unless (sort<= (car lst1) (car lst2) so)
+          (return nil))
+        (setq lst1 (cdr lst1))
+        (setq lst2 (cdr lst2))))
 
 (defun sort-list<=-any (lst1 lst2 &optional (so *current-sort-order*))
   (declare (type list lst1 lst2)
-	   (type sort-order so)
-	   (values (or null t)))
+           (type sort-order so)
+           (values (or null t)))
   (loop (when (null lst1)(return (null lst2)))
-	(when (null lst2)(return (null lst1)))
+        (when (null lst2)(return (null lst1)))
     (unless (or (sort= *cosmos* (car lst1))
-		(sort<= (car lst1) (car lst2) so))
-	  (return nil))
-	(setq lst1 (cdr lst1))
-	(setq lst2 (cdr lst2))))
+                (sort<= (car lst1) (car lst2) so))
+          (return nil))
+        (setq lst1 (cdr lst1))
+        (setq lst2 (cdr lst2))))
 
 
 ;;; SORT-LIST< sort-list1 sort-list2 sort-order
@@ -933,14 +910,14 @@
 ;;;
 (defun sort-list< (lst1 lst2 &optional (so *current-sort-order*))
   (declare (type list lst1 lst2)
-	   (type sort-order so)
-	   (values (or null t)))
+           (type sort-order so)
+           (values (or null t)))
   (loop (when (null lst1)(return (null lst2)))
-	(when (null lst2)(return (null lst1)))
-	(unless (sort< (car lst1) (car lst2) so)
-	  (return nil))
-	(setq lst1 (cdr lst1))
-	(setq lst2 (cdr lst2))))
+        (when (null lst2)(return (null lst1)))
+        (unless (sort< (car lst1) (car lst2) so)
+          (return nil))
+        (setq lst1 (cdr lst1))
+        (setq lst2 (cdr lst2))))
 
 ;;; ********************
 ;;; SORT-ORDER UTILITIES______________
@@ -952,8 +929,8 @@
 ;;;
 (defun add-sort-to-order (sort &optional (sort-order *current-sort-order*))
   (declare (type sort* sort)
-	   (type sort-order sort-order)
-	   (values t))
+           (type sort-order sort-order)
+           (values t))
   (let ((ent (get-sort-relation sort sort-order)))
     (unless ent
       (add-relation-to-order (make-sort-relation sort nil nil) sort-order))))
@@ -962,71 +939,71 @@
 ;;; adds the sort-relation to sort-order.
 ;;;
 (defun gather-connected-relations-from-order (relation
-					      &optional
-					      (sort-order *current-sort-order*))
+                                              &optional
+                                              (sort-order *current-sort-order*))
   (declare (type list relation)
-	   (type sort-order sort-order)
-	   (values list))
+           (type sort-order sort-order)
+           (values list))
   (macrolet ((pushnew-relation (__?rel __?res)
-	       ` (pushnew ,__?rel ,__?res :test #'eq)))
+               ` (pushnew ,__?rel ,__?res :test #'eq)))
     (let ((res nil)
-	  (s (sort-relation-sort relation))
-	  (subs (_subsorts relation))
-	  (sups (_supersorts relation)))
+          (s (sort-relation-sort relation))
+          (subs (_subsorts relation))
+          (sups (_supersorts relation)))
       (pushnew-relation (get-sort-relation s sort-order) res)
       (dolist (ls subs)
-	(pushnew-relation (get-sort-relation ls sort-order) res))
+        (pushnew-relation (get-sort-relation ls sort-order) res))
       (dolist (gs sups)
-	(pushnew-relation (get-sort-relation gs sort-order) res))
+        (pushnew-relation (get-sort-relation gs sort-order) res))
       res)))
 
 (defun add-relation-to-order (sort-relation
-			      &optional (sort-order *current-sort-order*))
+                              &optional (sort-order *current-sort-order*))
   (declare (type list sort-relation)
-	   (type sort-order sort-order)
-	   (values sort-order))
+           (type sort-order sort-order)
+           (values sort-order))
   (let* ((sort (sort-relation-sort sort-relation))
-	 (subs (_subsorts sort-relation))
-	 (supers (_supersorts sort-relation)))
+         (subs (_subsorts sort-relation))
+         (supers (_supersorts sort-relation)))
     (declare (type sort* sort)
-	     (type list subs supers))
+             (type list subs supers))
     (when (or (sort= sort *universal-sort*) (sort= sort *bottom-sort*)
-	      (sort= sort *huniversal-sort*) (sort= sort *hbottom-sort*)
-	      (sort= sort *cosmos*))
+              (sort= sort *huniversal-sort*) (sort= sort *hbottom-sort*)
+              (sort= sort *cosmos*))
       (return-from add-relation-to-order sort-order))
     ;;
     (macrolet ((ls-union (_s _ls)
-		 ` (let ((..sl (get-sort-relation ,_s sort-order)))
-		     (pushnew ,_ls (_subsorts ..sl) :test #'eq)))
-	       (gs-union (_s _gs)
-		 ` (let ((..sl (get-sort-relation ,_s sort-order)))
-		     (pushnew ,_gs (_supersorts ..sl) :test #'eq))))
+                 ` (let ((..sl (get-sort-relation ,_s sort-order)))
+                     (pushnew ,_ls (_subsorts ..sl) :test #'eq)))
+               (gs-union (_s _gs)
+                 ` (let ((..sl (get-sort-relation ,_s sort-order)))
+                     (pushnew ,_gs (_supersorts ..sl) :test #'eq))))
       ;; merge new realtion
       (let ((o-sort-rel (get-sort-relation sort sort-order)))
-	(declare (type list o-sort-rel))
-	(if o-sort-rel
-	    (progn
-	      (setf (_subsorts o-sort-rel)
-		    (union subs (_subsorts o-sort-rel) :test #'eq))
-	      (setf (_supersorts o-sort-rel)
-		    (union supers (_supersorts o-sort-rel) :test #'eq)))
-	    (progn
-	      (setf (get-sort-relation sort sort-order) sort-relation)
-	      (setf o-sort-rel sort-relation
-		    subs (_subsorts sort-relation)
-		    supers (_supersorts sort-relation)))))
+        (declare (type list o-sort-rel))
+        (if o-sort-rel
+            (progn
+              (setf (_subsorts o-sort-rel)
+                    (union subs (_subsorts o-sort-rel) :test #'eq))
+              (setf (_supersorts o-sort-rel)
+                    (union supers (_supersorts o-sort-rel) :test #'eq)))
+            (progn
+              (setf (get-sort-relation sort sort-order) sort-relation)
+              (setf o-sort-rel sort-relation
+                    subs (_subsorts sort-relation)
+                    supers (_supersorts sort-relation)))))
       ;; we must gather relations which can be affected by new relation,
       ;; then compute transitive relations among them.
       (let ((rels (gather-connected-relations-from-order sort-relation sort-order)))
-	(declare (type list rels))
-	(dolist (sl rels)
-	  (let ((nsubs (_subsorts sl))
-		(nsups (_supersorts sl)))
-	    (declare (type list nsubs nsups))
-	    (dolist (s1 nsubs)
-	      (dolist (s2 nsups)
-		(ls-union s2 s1)
-		  (gs-union s1 s2))))))
+        (declare (type list rels))
+        (dolist (sl rels)
+          (let ((nsubs (_subsorts sl))
+                (nsups (_supersorts sl)))
+            (declare (type list nsubs nsups))
+            (dolist (s1 nsubs)
+              (dolist (s2 nsups)
+                (ls-union s2 s1)
+                  (gs-union s1 s2))))))
       sort-order)))
 
 ;;; MAX-MINORANTS sort-set sort-order
@@ -1035,26 +1012,26 @@
 ;;;
 (defun max-minorants (sort-set order)
   (declare (type sort-order order)
-	   (type list sort-set)
-	   (values list))
+           (type list sort-set)
+           (values list))
   (labels ((inter-lower (set)
-	     (declare (type list set)
-		      (values list))
-	     ;;  compute the set of lower bounds of a given set of sorts.
-	     ;;  If this set is empty returns nil.
-	     (if (cdr set)
-		 (intersection (sub-or-equal-sorts (car set) order)
-			       (inter-lower (cdr set))
-			       :test #'sort=*)
-		 (if set
-		     (sub-or-equal-sorts (car set) order)
-		     nil))))
+             (declare (type list set)
+                      (values list))
+             ;;  compute the set of lower bounds of a given set of sorts.
+             ;;  If this set is empty returns nil.
+             (if (cdr set)
+                 (intersection (sub-or-equal-sorts (car set) order)
+                               (inter-lower (cdr set))
+                               :test #'sort=*)
+                 (if set
+                     (sub-or-equal-sorts (car set) order)
+                     nil))))
     (let ((max-min nil)
-	  (lower-bounds (inter-lower sort-set)))
+          (lower-bounds (inter-lower sort-set)))
       (declare (type list max-min lower-bounds))
       (dolist (s lower-bounds max-min)
-	(unless (intersection (supersorts s order) lower-bounds :test #'eq)
-	  (setq max-min (adjoin s max-min :test #'sort=*)))))))
+        (unless (intersection (supersorts s order) lower-bounds :test #'eq)
+          (setq max-min (adjoin s max-min :test #'sort=*)))))))
 
 ;;; MAXIMAL-SORTS sorts order
 ;;; Finds all the sorts in a list which are greater than all other comparable
@@ -1062,21 +1039,21 @@
 ;;;
 (defun maximal-sorts (sorts order)
   (declare (type list sorts)
-	   (type sort-order order)
-	   (values list))
+           (type sort-order order)
+           (values list))
   (let ((maximal nil))
     (dolist (s sorts maximal)
       (unless (intersection (supersorts s order) sorts :test #'eq)
-	(pushnew s maximal :test #'eq)))))
+        (pushnew s maximal :test #'eq)))))
 
 (defun maximal-sorts-no-error (sorts order) ; version avoiding error sorts.
   (declare (type list sorts)
-	   (type sort-order order)
-	   (values list))
+           (type sort-order order)
+           (values list))
   (let ((maximal nil))
     (dolist (s sorts maximal)
       (unless (intersection (supersorts-no-err s order) sorts :test #'eq)
-	(pushnew s maximal :test #'eq)))))
+        (pushnew s maximal :test #'eq)))))
 
 ;;; MINIMAL-SORTS sorts order
 ;;; Finds all the sorts in a list which are lesser than all other comparable
@@ -1084,13 +1061,13 @@
 ;;;
 (defun minimal-sorts (sorts order)
   (declare (type list sorts)
-	   (type sort-order order)
-	   (values list))
+           (type sort-order order)
+           (values list))
   (let ((minimal nil))
     (declare (type list minimal))
     (dolist (s sorts minimal)
       (unless (intersection (subsorts s order) sorts :test #'eq)
-	(pushnew s minimal :test #'eq)))))
+        (pushnew s minimal :test #'eq)))))
 
 ;;; MEET-OF-SORTS sort1 sort2 order
 ;;; Finds the list of sorts which are maximal but less than or equal to
@@ -1100,30 +1077,30 @@
 ;;;
 (defun meet-of-sorts (sort1 sort2 &optional (sort-order *current-sort-order*))
   (declare (type sort* sort1 sort2)
-	   (type sort-order sort-order))
+           (type sort-order sort-order))
   (cond ((sort<= sort1 sort2) (list sort1))
-	((sort< sort2 sort1 sort-order) (list sort2))
-	(t (maximal-sorts (intersection (subsorts sort1) (subsorts sort2))
-			  sort-order))))
+        ((sort< sort2 sort1 sort-order) (list sort2))
+        (t (maximal-sorts (intersection (subsorts sort1) (subsorts sort2))
+                          sort-order))))
 
 ;;; MERGET-SORT-RELATIONS sort-relations1 sort-relations2
 ;;; *NOTE* sort-relations2 is destructively modified.
 ;;;
 (defun merge-sort-relations (sl1 sl2)
   (declare (type list sl1 sl2)
-	   (values list))
+           (values list))
   (unless sl1 (return-from merge-sort-relations sl2))
   (dolist (sort-relation sl1)
     (let ((xsort-rel (assq (sort-relation-sort sort-relation) sl2)))
       (if xsort-rel
-	  (progn
-	    (setf (_subsorts xsort-rel)
-		  (union (_subsorts sort-relation)
-			 (_subsorts xsort-rel) :test #'eq))
-	    (setf (_supersorts xsort-rel)
-		  (union (_supersorts sort-relation)
-			 (_supersorts xsort-rel) :test #'eq)))
-	  (push sort-relation sl2))))
+          (progn
+            (setf (_subsorts xsort-rel)
+                  (union (_subsorts sort-relation)
+                         (_subsorts xsort-rel) :test #'eq))
+            (setf (_supersorts xsort-rel)
+                  (union (_supersorts sort-relation)
+                         (_supersorts xsort-rel) :test #'eq)))
+          (push sort-relation sl2))))
   sl2)
 
 ;;; MERGE-SORT-ORDER order1 order2
@@ -1132,89 +1109,89 @@
 ;;;
 (defun merge-sort-order (order1 order2)
   (declare (type (or null sort-order) order1)
-	   (type sort-order order2)
-	   (values sort-order))
+           (type sort-order order2)
+           (values sort-order))
   (unless order1 (return-from merge-sort-order order2))
   (maphash #'(lambda (sort sort-relation)
-	       (declare (type sort* sort)
-			(type list sort-relation)
-			(values t))
-	       (let ((xsort-rel (get-sort-relation sort order2)))
-		 (if xsort-rel
-		     (progn
-		       (setf (_subsorts xsort-rel)
-			     (union (_subsorts sort-relation)
-				    (_subsorts xsort-rel) :test #'eq))
-		       (setf (_supersorts xsort-rel)
-			     (union (_supersorts sort-relation)
-				    (_supersorts xsort-rel) :test #'eq)))
-		     (setf (get-sort-relation sort order2) sort-relation))))
-	   order1)
+               (declare (type sort* sort)
+                        (type list sort-relation)
+                        (values t))
+               (let ((xsort-rel (get-sort-relation sort order2)))
+                 (if xsort-rel
+                     (progn
+                       (setf (_subsorts xsort-rel)
+                             (union (_subsorts sort-relation)
+                                    (_subsorts xsort-rel) :test #'eq))
+                       (setf (_supersorts xsort-rel)
+                             (union (_supersorts sort-relation)
+                                    (_supersorts xsort-rel) :test #'eq)))
+                     (setf (get-sort-relation sort order2) sort-relation))))
+           order1)
   order2)
 
 (defun merge-sort-order-no-extra (order1 order2)
   (declare (type (or null sort-order) order1)
-	   (type sort-order order2)
-	   (values sort-order))
+           (type sort-order order2)
+           (values sort-order))
   (unless order1 (return-from merge-sort-order-no-extra order2))
   (macrolet ((filter-out-ordinal-sorts (___sort-list)
-	       ` (remove-if #'(lambda (s) (sort-is-for-regularity? s))
-			    ,___sort-list)))
+               ` (remove-if #'(lambda (s) (sort-is-for-regularity? s))
+                            ,___sort-list)))
     (maphash #'(lambda (sort sort-relation)
-		 (declare (type sort* sort)
-			  (type list sort-relation))
-		 (unless (or (and-sort-p sort) (or-sort-p sort))
-		   (let ((xsort-rel (get-sort-relation sort order2)))
-		     (declare (type list xsort-rel))
-		     (if xsort-rel
-			 (progn
-			   (setf (_subsorts xsort-rel)
-				 (filter-out-ordinal-sorts
-				  (union (_subsorts sort-relation)
-					 (_subsorts xsort-rel) :test #'eq)))
-			 (setf (_supersorts xsort-rel)
-			       (filter-out-ordinal-sorts
-				(union (_supersorts sort-relation)
-				       (_supersorts xsort-rel) :test #'eq))))
-		       (setf (get-sort-relation sort order2) sort-relation)))))
-	   order1)
+                 (declare (type sort* sort)
+                          (type list sort-relation))
+                 (unless (or (and-sort-p sort) (or-sort-p sort))
+                   (let ((xsort-rel (get-sort-relation sort order2)))
+                     (declare (type list xsort-rel))
+                     (if xsort-rel
+                         (progn
+                           (setf (_subsorts xsort-rel)
+                                 (filter-out-ordinal-sorts
+                                  (union (_subsorts sort-relation)
+                                         (_subsorts xsort-rel) :test #'eq)))
+                         (setf (_supersorts xsort-rel)
+                               (filter-out-ordinal-sorts
+                                (union (_supersorts sort-relation)
+                                       (_supersorts xsort-rel) :test #'eq))))
+                       (setf (get-sort-relation sort order2) sort-relation)))))
+           order1)
   order2))
 
 ;;;  IS-IN-SAME-CONNECTED-COMPONENT : sort1 sort2 sort-order -> Bool
-;;;	check if sort1 and sort2 is in same sort hierarchy
+;;;     check if sort1 and sort2 is in same sort hierarchy
 ;;;  *NOTE* : assume error sorts are already genrated.
 ;;;
 (defun is-in-same-connected-component (s1 s2 sort-order)
   (declare (type sort* s1 s2)
-	   (type sort-order sort-order)
-	   (values (or null t)))
+           (type sort-order sort-order)
+           (values (or null t)))
   (or (sort= s1 s2)
       (if (or (sort= s1 *cosmos*) (sort= s2 *cosmos*))
-	  t
-	(and (eq (sort-is-hidden s1) (sort-is-hidden s2))
-	     (or (if (sort-is-hidden s1)
-		     (or (sort= *huniversal-sort* s1)
-			 (sort= *huniversal-sort* s2)
-			 (sort= *hbottom-sort* s1)
-			 (sort= *hbottom-sort* s2))
-		   (or (sort= *universal-sort* s1)
-		       (sort= *universal-sort* s2)
-		       (sort= *bottom-sort* s1)
-		       (sort= *bottom-sort* s2)))
-		 (if (err-sort-p s1)
-		     (sort= s1 (the-err-sort s2 sort-order))
-		   (if (err-sort-p s2)
-		       (sort= (the-err-sort s1 sort-order) s2)
-		     (sort= (the-err-sort s1 sort-order)
-			    (the-err-sort s2 sort-order)))))))))
+          t
+        (and (eq (sort-is-hidden s1) (sort-is-hidden s2))
+             (or (if (sort-is-hidden s1)
+                     (or (sort= *huniversal-sort* s1)
+                         (sort= *huniversal-sort* s2)
+                         (sort= *hbottom-sort* s1)
+                         (sort= *hbottom-sort* s2))
+                   (or (sort= *universal-sort* s1)
+                       (sort= *universal-sort* s2)
+                       (sort= *bottom-sort* s1)
+                       (sort= *bottom-sort* s2)))
+                 (if (err-sort-p s1)
+                     (sort= s1 (the-err-sort s2 sort-order))
+                   (if (err-sort-p s2)
+                       (sort= (the-err-sort s1 sort-order) s2)
+                     (sort= (the-err-sort s1 sort-order)
+                            (the-err-sort s2 sort-order)))))))))
 
 ;;; COMPONENT-TOP  : sort sort-order -> sort
 ;;;  returns the greatest sorts of given sort
 ;;;
 (defun component-top (sort sort-order)
   (declare (type sort* sort)
-	   (type sort-order sort-order)
-	   (values list))
+           (type sort-order sort-order)
+           (values list))
   (maximal-sorts (supersorts-no-err sort sort-order) sort-order))
 
 ;;; IS-IN-SAME-CONNECTED-COMPONENT* : Sort Sort SortOrder -> Bool
@@ -1223,46 +1200,46 @@
 ;;;
 (defun is-in-same-connected-component* (s1 s2 so)
   (declare (type sort* s1 s2)
-	   (type sort-order so)
-	   (values (or null t)))
+           (type sort-order so)
+           (values (or null t)))
   (or (eq s1 s2)
       (if (or (eq s1 *cosmos*) (eq s2 *cosmos*))
-	  t
-	  (and (eq (sort-is-hidden s1) (sort-is-hidden s2))
-	       (cond ((err-sort-p s1)
-		      (if (err-sort-p s2)
-			  nil
-			  (let ((lowers (err-sort-lowers s1)))
-			    (intersection lowers
-					  (sub-or-equal-sorts s2 so)))))
-		     ((err-sort-p s2)
-		      (let ((lowers (err-sort-lowers s2)))
-			(intersection lowers
-				      (sub-or-equal-sorts s1 so))))
-		     (t (or (if (sort-is-hidden s1)
-				(or (sort= *huniversal-sort* s1)
-				    (sort= *huniversal-sort* s2)
-				    (sort= *hbottom-sort* s1)
-				    (sort= *hbottom-sort* s2))
-				(or (sort= *universal-sort* s1)
-				    (sort= *universal-sort* s2)
-				    (sort= *bottom-sort* s1)
-				    (sort= *bottom-sort* s2)))
-			    (sort<= s1 s2 so)
-			    (sort<= s2 s1 so)
-			    (have-common-subsort s1 s2 so)
-			    (let ((t1 (component-top s1 so)))
-			      (and t1 (sort-set-equal t1
-						      (component-top s2 so)))))))))))
+          t
+          (and (eq (sort-is-hidden s1) (sort-is-hidden s2))
+               (cond ((err-sort-p s1)
+                      (if (err-sort-p s2)
+                          nil
+                          (let ((lowers (err-sort-lowers s1)))
+                            (intersection lowers
+                                          (sub-or-equal-sorts s2 so)))))
+                     ((err-sort-p s2)
+                      (let ((lowers (err-sort-lowers s2)))
+                        (intersection lowers
+                                      (sub-or-equal-sorts s1 so))))
+                     (t (or (if (sort-is-hidden s1)
+                                (or (sort= *huniversal-sort* s1)
+                                    (sort= *huniversal-sort* s2)
+                                    (sort= *hbottom-sort* s1)
+                                    (sort= *hbottom-sort* s2))
+                                (or (sort= *universal-sort* s1)
+                                    (sort= *universal-sort* s2)
+                                    (sort= *bottom-sort* s1)
+                                    (sort= *bottom-sort* s2)))
+                            (sort<= s1 s2 so)
+                            (sort<= s2 s1 so)
+                            (have-common-subsort s1 s2 so)
+                            (let ((t1 (component-top s1 so)))
+                              (and t1 (sort-set-equal t1
+                                                      (component-top s2 so)))))))))))
 
 ;;; HAVE-COMMON-SUBSORT : Sort Sort SortOrder -> Bool
 ;;;
 (defun have-common-subsort (s1 s2 so)
   (declare (type sort* s1 s2)
-	   (type sort-order so)
-	   (values (or null t)))
+           (type sort-order so)
+           (values (or null t)))
   (let ((ss1 (subsorts s1 so))
-	(ss2 (subsorts s2 so)))
+        (ss2 (subsorts s2 so)))
     (dolist (s ss1 nil)
       (declare (type sort* s))
       (when (memq s ss2) (return t)))))
@@ -1271,63 +1248,63 @@
 ;;;
 (defun all-sorts-in-order (&optional (sort-order *current-sort-order*))
   (declare (type sort-order sort-order)
-	   (values list))
+           (values list))
   (let ((res nil))
     (maphash #'(lambda (sort relation)
-		 (declare (ignore relation))
-		 (push sort res))
-	     sort-order)
+                 (declare (ignore relation))
+                 (push sort res))
+             sort-order)
     res))
 
 ;;; TOP-COMPONENTS sort-order
 ;;;
 (defun top-components (&optional (sort-order *current-sort-order*))
   (declare (type sort-order sort-order)
-	   (values list))
+           (values list))
   (maximal-sorts (let ((res nil))
-		   (maphash #'(lambda (sort relation)
-				(declare (ignore relation))
-				(push sort res))
-			    sort-order)
-		   res)
-		 sort-order))
+                   (maphash #'(lambda (sort relation)
+                                (declare (ignore relation))
+                                (push sort res))
+                            sort-order)
+                   res)
+                 sort-order))
 
 ;;; BOTTOM-COMPONENTS sort-order
 ;;;
 (defun bottom-components (&optional (sort-order *current-sort-order*))
   (declare (type sort-order sort-order)
-	   (values list))
+           (values list))
   (minimal-sorts (let ((res nil))
-		   (maphash #'(lambda (sort relation)
-				(declare (ignore relation))
-				(push sort res))
-			    sort-order)
-		   res)
-		 sort-order))
+                   (maphash #'(lambda (sort relation)
+                                (declare (ignore relation))
+                                (push sort res))
+                            sort-order)
+                   res)
+                 sort-order))
 
 ;;; DIRECT-SUBSORTS sort sort-order
 ;;; returns the list of sorts which are direct subsorts
 ;;;
 (defun direct-subsorts (sort &optional (sort-order *current-sort-order*))
   (declare (type sort* sort)
-	   (type sort-order sort-order)
-	   (values list))
+           (type sort-order sort-order)
+           (values list))
   (maximal-sorts (subsorts sort sort-order) sort-order))
 
 ;;; DIRECT-SUPERSORTS sort sort-order
 ;;;
 (defun direct-supersorts (sort &optional (sort-order *current-sort-order*))
   (declare (type sort*)
-	   (type sort-order sort-order)
-	   (values list))
+           (type sort-order sort-order)
+           (values list))
   (minimal-sorts (supersorts sort sort-order) sort-order))
 
 ;;; DIRECT-SUPERSORTS-NO-ERR
 ;;;
 (defun direct-supersorts-no-err (sort &optional (sort-order *current-sort-order*))
   (declare (type sort* sort)
-	   (type sort-order sort-order)
-	   (values list))
+           (type sort-order sort-order)
+           (values list))
   (minimal-sorts (supersorts-no-err sort sort-order) sort-order))
 
 #||
@@ -1337,12 +1314,12 @@
  (defun delete-sort-from-order (sort sort-order)
    (remhash sort sort-order)
    (maphash #'(lambda (ss sort-rel)
-		  (declare (ignore ss))
-		  (setf (_subsorts sort-rel)
-			(delete sort (_subsorts sort-rel) :test #'eq))
-		  (setf (_supersorts sort-rel)
-		      (delete sort (_supersorts sort-rel) :test #'eq)))
-	     sort-order)
+                  (declare (ignore ss))
+                  (setf (_subsorts sort-rel)
+                        (delete sort (_subsorts sort-rel) :test #'eq))
+                  (setf (_supersorts sort-rel)
+                      (delete sort (_supersorts sort-rel) :test #'eq)))
+             sort-order)
    (update-sort-order sort-order)
    sort-order)
 ||#
@@ -1353,27 +1330,27 @@
 #||
 (defun sort-order-transitive-closure (previous-order new-order)
   (flet ((ls-union (order s ls)
-	   ;; make the union of the sorts lower than "s" with ls.
-	   (let ((sl (get-sort-relation s order)))
-	     (setf (_subsorts sl)
-		   (union (_subsorts sl) ls :test #'eq))))
-	 (gs-union (order s gs)
-	   ;; make the union of the sorts greater than "s" with gs.
-	   (let ((sl (get-sort-relation s order)))
-	     (setf (_supersorts sl)
-		   (union (_supersorts sl) gs :test #'eq)))))
+           ;; make the union of the sorts lower than "s" with ls.
+           (let ((sl (get-sort-relation s order)))
+             (setf (_subsorts sl)
+                   (union (_subsorts sl) ls :test #'eq))))
+         (gs-union (order s gs)
+           ;; make the union of the sorts greater than "s" with gs.
+           (let ((sl (get-sort-relation s order)))
+             (setf (_supersorts sl)
+                   (union (_supersorts sl) gs :test #'eq)))))
     (let ((closure (merge-sort-order previous-order new-order)))
       (declare (type sort-order closure))
       (maphash #'(lambda (sort sort-rel)
-		   (declare (ignore sort))
-		   (let ((ls (_subsorts sort-rel))
-			 (gs (_supersorts sort-rel)))
-		     (dolist (s1 ls)
-		       (dolist (s2 gs)
-			 (declare (type sort* s2))
-			 (ls-union closure s2 (list s1))
-			 (gs-union closure s1 (list s2))))))
-	       closure)
+                   (declare (ignore sort))
+                   (let ((ls (_subsorts sort-rel))
+                         (gs (_supersorts sort-rel)))
+                     (dolist (s1 ls)
+                       (dolist (s2 gs)
+                         (declare (type sort* s2))
+                         (ls-union closure s2 (list s1))
+                         (gs-union closure s1 (list s2))))))
+               closure)
       ;; generates erro sorts.
       (generate-err-sorts closure)
       closure)))
@@ -1382,58 +1359,58 @@
 
 (defun sort-relations-transitive-closure (sl1 sl2)
   (declare (type list sl1 sl2)
-	   (values list))
+           (values list))
   (flet ((ls-union (relations s ls)
-	   (declare (type list relations ls)
-		    (type sort* s)
-		    (values list))
-	   ;; make the union of the sorts lower than "s" with ls.
-	   (let ((sl (assq s relations)))
-	     (declare (type list sl))
-	     (unless sl (break "Panic no sort relation(ls)!"))
-	     (setf (_subsorts sl)
-		   (union (_subsorts sl) ls :test #'eq))))
-	 (gs-union (relations s gs)
-	   (declare (type list relations gs)
-		    (type sort* s)
-		    (values list))
-	   ;; make the union of the sorts greater than "s" with gs.
-	   (let ((sl (assq s relations)))
-	     (declare (type list sl))
-	     (unless sl (break "Panic no sort relation(gs)!"))
-	     (setf (_supersorts sl)
-		   (union (_supersorts sl) gs :test #'eq)))))
+           (declare (type list relations ls)
+                    (type sort* s)
+                    (values list))
+           ;; make the union of the sorts lower than "s" with ls.
+           (let ((sl (assq s relations)))
+             (declare (type list sl))
+             (unless sl (break "Panic no sort relation(ls)!"))
+             (setf (_subsorts sl)
+                   (union (_subsorts sl) ls :test #'eq))))
+         (gs-union (relations s gs)
+           (declare (type list relations gs)
+                    (type sort* s)
+                    (values list))
+           ;; make the union of the sorts greater than "s" with gs.
+           (let ((sl (assq s relations)))
+             (declare (type list sl))
+             (unless sl (break "Panic no sort relation(gs)!"))
+             (setf (_supersorts sl)
+                   (union (_supersorts sl) gs :test #'eq)))))
     (let ((p-closure (merge-sort-relations sl1 sl2)))
       (declare (type list p-closure))
       (dolist (sort-rel p-closure) 
-	(let ((ls (_subsorts sort-rel))
-	      (gs (_supersorts sort-rel)))
-	  (declare (type list ls gs))
-	  (dolist (s1 ls)
-	    (declare (type sort* s1))
-	    (dolist (s2 gs)
-	      (declare (type sort* s2))
-	      (ls-union p-closure s2 (list s1))
-	      (gs-union p-closure s1 (list s2))))))
+        (let ((ls (_subsorts sort-rel))
+              (gs (_supersorts sort-rel)))
+          (declare (type list ls gs))
+          (dolist (s1 ls)
+            (declare (type sort* s1))
+            (dolist (s2 gs)
+              (declare (type sort* s2))
+              (ls-union p-closure s2 (list s1))
+              (gs-union p-closure s1 (list s2))))))
       p-closure)))
 
 (defun sort-relations-transitive-closure1 (sl)
   (declare (type list sl)
-	   (values list))
+           (values list))
   (sort-relations-transitive-closure nil sl))
 
 ;;; CHECK-CYCLIC-SORT-ORDER sort-order
 ;;;
 (defun check-cyclic-sort-order (sort-order)
   (declare (type sort-order sort-order)
-	   (values t))
+           (values t))
   (maphash #'(lambda (ss sort-relation)
-	       (when (member ss (_subsorts sort-relation) :test #'eq)
-		 (with-output-chaos-warning ()
-		   (princ "cycle in sort order structure : ")
-		   (princ (string (sort-id ss)))
-		   (princ " appears in its lowers."))))
-	   sort-order))
+               (when (member ss (_subsorts sort-relation) :test #'eq)
+                 (with-output-chaos-warning ()
+                   (princ "cycle in sort order structure : ")
+                   (princ (string (sort-id ss)))
+                   (princ " appears in its lowers."))))
+           sort-order))
 
 ;;; ERROR SORT UTILS
 
@@ -1441,64 +1418,64 @@
 ;;;
 (defun clear-err-sorts (sort-order)
   (declare (type sort-order sort-order)
-	   (values t))
+           (values t))
   (maphash #'(lambda (s sl)
-	       (declare (ignore s))
-	       (setf (_err-sort sl) nil))
-	   sort-order)
+               (declare (ignore s))
+               (setf (_err-sort sl) nil))
+           sort-order)
   sort-order)
 
 ;;; GET-KINDS  : SortOrder -> LIST[(err-sort subsort-list)]
 ;;;
 (defun get-kinds (sort-order)
   (declare (type sort-order sort-order)
-	   (values list))
+           (values list))
   (let ((res nil))
     (maphash #'(lambda (s sl)
-		 (declare (type sort* s)
-			  (type list sl))
-		 (let ((es (_err-sort sl)))
-		   (declare (type (or null err-sort) es))
-		   (when (and es (not (or (eq s *universal-sort*)
-					  (eq s *bottom-sort*)
-					  (eq s *huniversal-sort*)
-					  (eq s *hbottom-sort*)
-					  (eq s *cosmos*))))
-		     (let ((pre (assoc es res :test #'eq)))
-		       (declare (type list pre))
-		       (if pre
-			   (pushnew s (cdr pre) :test #'eq)
-			   (push (cons es (list s)) res))))))
-	     sort-order)
+                 (declare (type sort* s)
+                          (type list sl))
+                 (let ((es (_err-sort sl)))
+                   (declare (type (or null err-sort) es))
+                   (when (and es (not (or (eq s *universal-sort*)
+                                          (eq s *bottom-sort*)
+                                          (eq s *huniversal-sort*)
+                                          (eq s *hbottom-sort*)
+                                          (eq s *cosmos*))))
+                     (let ((pre (assoc es res :test #'eq)))
+                       (declare (type list pre))
+                       (if pre
+                           (pushnew s (cdr pre) :test #'eq)
+                           (push (cons es (list s)) res))))))
+             sort-order)
     res))
 
 ;;; GET-ERR-SORTS
 ;;;
 (defun get-err-sorts (sort-order)
   (declare (type sort-order sort-order)
-	   (values list))
+           (values list))
   (let ((res nil))
     (maphash #'(lambda (s sl)
-		 (declare (ignore s))
-		 (let ((es (_err-sort sl)))
-		   (when es (pushnew es res :test #'eq))))
-	     sort-order)
+                 (declare (ignore s))
+                 (let ((es (_err-sort sl)))
+                   (when es (pushnew es res :test #'eq))))
+             sort-order)
     res))
 
 ;;; GET-FAMILY : ErroSort SortOrder -> List[Sort]
 ;;;
 (defun get-family (err-sort so)
   (declare (type err-sort err-sort)
-	   (type sort-order so)
-	   (values list))
+           (type sort-order so)
+           (values list))
   (let ((res nil))
     (maphash #'(lambda (s sl)
-		 (declare (type sort* s)
-			  (type list sl)
-			  (values list))
-		 (when (sort= err-sort (_err-sort sl))
-		   (pushnew s res :test #'eq)))
-	     so)
+                 (declare (type sort* s)
+                          (type list sl)
+                          (values list))
+                 (when (sort= err-sort (_err-sort sl))
+                   (pushnew s res :test #'eq)))
+             so)
     res))
 
 

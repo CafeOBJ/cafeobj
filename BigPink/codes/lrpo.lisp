@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -29,9 +29,9 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-			     System:Chaos
-			    Module:BigPink
-			    File:lrpo.lisp
+                             System:Chaos
+                            Module:BigPink
+                            File:lrpo.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -45,24 +45,24 @@
 (defun lrpo-lex (t1 t2)
   (declare (type term t1 t2))
   (let ((subs1 (term-subterms t1))
-	(subs2 (term-subterms t2)))
+        (subs2 (term-subterms t2)))
     (loop (unless subs1 (return))
       (unless (term-is-identical (car subs1)
-				 (car subs2))
-	(return))
+                                 (car subs2))
+        (return))
       (setq subs1 (cdr subs1)
-	    subs2 (cdr subs2)))
+            subs2 (cdr subs2)))
     (if (null subs1)
-	nil				; identical
+        nil                             ; identical
       (if (lrpo (car subs1) (car subs2))
-	  ;; is t1 > each remaining arg of t2
-	  (every #'(lambda (x)(lrpo t1 x))
-		 (cdr subs2))
-	;; is there a remaining arg of t1 s.t. arg == t2 or arg > t2 ?
-	(dolist (ra (cdr subs1) nil)
-	  (when (or (term-is-identical ra t2)
-		    (lrpo ra t2))
-	    (return-from lrpo-lex t)))))))
+          ;; is t1 > each remaining arg of t2
+          (every #'(lambda (x)(lrpo t1 x))
+                 (cdr subs2))
+        ;; is there a remaining arg of t1 s.t. arg == t2 or arg > t2 ?
+        (dolist (ra (cdr subs1) nil)
+          (when (or (term-is-identical ra t2)
+                    (lrpo ra t2))
+            (return-from lrpo-lex t)))))))
 
 ;;; num-occurrences
 ;;;
@@ -70,26 +70,26 @@
 
 (defun num-occurrences (arg term)
   (declare (type term arg term)
-	   (values fixnum))
+           (values fixnum))
   (let ((i 0))
     (declare (type fixnum i))
     (dolist (sub (term-subterms term))
       (when (term-is-identical sub arg)
-	(incf i)))
+        (incf i)))
     i))
 
 ;;; term-multiset-diff t1 t2
 (defun term-multiset-diff (t1 t2)
   (declare (type term t1 t2))
   (let ((done nil)
-	(diff nil))
+        (diff nil))
     (declare (type list diff))
     (dolist (sub (term-subterms t1))
       (unless (member sub done :test #'term-is-identical)
-	(push sub done)
-	(when (> (num-occurrences sub t1)
-		 (num-occurrences sub t2))
-	  (push sub diff))))
+        (push sub done)
+        (when (> (num-occurrences sub t1)
+                 (num-occurrences sub t2))
+          (push sub diff))))
     diff))
 
 ;;; lrpo-multiset
@@ -97,24 +97,24 @@
 (defun lrpo-multiset (t1 t2)
   (declare (type term t1 t2))
   (let ((t1-sub (term-subterms t1))
-	(t2-sub (term-subterms t2)))
+        (t2-sub (term-subterms t2)))
     (declare (type list t1-sub t2-sub))
     (unless t1-sub (return-from lrpo-multiset nil))
     (unless t2-sub (return-from lrpo-multiset t))
     (let ((diff1 (term-multiset-diff t1 t2))
-	  (diff2 (term-multiset-diff t2 t1))
-	  (ok t))
+          (diff2 (term-multiset-diff t2 t1))
+          (ok t))
       (declare (type list diff1 diff2))
       (if diff2
-	  (progn
-	    (dolist (r2 diff2 )
-	      (unless ok (return))
-	      (setq ok nil)
-	      (dolist (r1 diff1)
-		(when (setq ok (lrpo r1 r2))
-		  (return))))
-	    ok)
-	nil)
+          (progn
+            (dolist (r2 diff2 )
+              (unless ok (return))
+              (setq ok nil)
+              (dolist (r1 diff1)
+                (when (setq ok (lrpo r1 r2))
+                  (return))))
+            ok)
+        nil)
       )))
 
 ;;; LRPO
@@ -122,7 +122,7 @@
 (defun lrpo (t1 t2)
   (declare (type term t1 t2))
   (let ((s1 (term-sort t1))
-	(s2 (term-sort t2)))
+        (s2 (term-sort t2)))
     (declare (type sort* s1 s2))
     (when (sort< s1 s2 *current-sort-order*)
       (return-from lrpo nil))
@@ -142,21 +142,21 @@
       (return-from lrpo (occurs-in t2 t1)))
     ;;
     (if (method-is-of-same-operator (term-head t1) (term-head t2))
-	(lrpo-lex t1 t2)
-	;; (lrpo-multiset t1 t2)
+        (lrpo-lex t1 t2)
+        ;; (lrpo-multiset t1 t2)
       (let ((prec (op-lex-precedence (term-head t1) (term-head t2))))
-	(declare (type symbol prec))
-	(if (eq prec :same)
-	    (lrpo-multiset t1 t2)
-	  (if (eq prec :greater)
-	      ;; t1 > each arg of t2
-	      (every #'(lambda (x) (lrpo t1 x))
-		     (term-subterms t2))
-	    ;; there is an arg of t1 s.t. arg = t2 or arg > t2.
-	    (some #'(lambda (x)
-		      (or (term-is-identical x t2)
-			  (lrpo x t2)))
-		  (term-subterms t1))))))
+        (declare (type symbol prec))
+        (if (eq prec :same)
+            (lrpo-multiset t1 t2)
+          (if (eq prec :greater)
+              ;; t1 > each arg of t2
+              (every #'(lambda (x) (lrpo t1 x))
+                     (term-subterms t2))
+            ;; there is an arg of t1 s.t. arg = t2 or arg > t2.
+            (some #'(lambda (x)
+                      (or (term-is-identical x t2)
+                          (lrpo x t2)))
+                  (term-subterms t1))))))
     ))
 
 (declaim (inline lrpo-greater))
@@ -167,24 +167,24 @@
 
 (defun order-equalities-lrpo (clause &optional input?)
   (declare (type clause clause)
-	   (ignore input?))
+           (ignore input?))
   (dolist (lit (clause-literals clause))
     (declare (type literal lit))
     (when (eq-literal? lit)
       (let* ((eq (literal-atom lit))
-	     (alpha (term-arg-1 eq))
-	     (beta (term-arg-2 eq)))
-	(declare (type term eq alpha beta))
-	(if (lrpo-greater alpha beta)
-	    (set-bit (literal-stat-bits lit) oriented-eq-bit)
-	  (if (lrpo-greater beta alpha)
-	      (let ((new-atom
-		     (make-term-with-sort-check *fopl-eq*
-						(list beta alpha))))
-		(setf (literal-atom lit) new-atom)
-		(set-bit (literal-stat-bits lit) scratch-bit)
-		(set-bit (literal-stat-bits lit) oriented-eq-bit)
-		)))))))
+             (alpha (term-arg-1 eq))
+             (beta (term-arg-2 eq)))
+        (declare (type term eq alpha beta))
+        (if (lrpo-greater alpha beta)
+            (set-bit (literal-stat-bits lit) oriented-eq-bit)
+          (if (lrpo-greater beta alpha)
+              (let ((new-atom
+                     (make-term-with-sort-check *fopl-eq*
+                                                (list beta alpha))))
+                (setf (literal-atom lit) new-atom)
+                (set-bit (literal-stat-bits lit) scratch-bit)
+                (set-bit (literal-stat-bits lit) oriented-eq-bit)
+                )))))))
 
 ;;; 
 (defun pn-orient-term-pair (module pair)
@@ -196,10 +196,10 @@
       (reset-module-proof-system module)))
   (with-proof-context (module)
     (if (lrpo (car pair) (cdr pair))
-	(values (car pair) (cdr pair))
+        (values (car pair) (cdr pair))
       (if (lrpo (cdr pair) (car pair))
-	  (values (cdr pair) (car pair))
-	(values (car pair) (cdr pair)))))
+          (values (cdr pair) (car pair))
+        (values (car pair) (cdr pair)))))
   )
 
 ;;; EOF

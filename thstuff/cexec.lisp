@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -37,9 +37,6 @@
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
-;;; set t if you want a debug mode --> set debug exec on.
-;;; (defvar *cexec-debug* nil)
-
 ;;;
 (declaim (special $$cexec-term))        ; the target term
 
@@ -54,12 +51,12 @@
 ;;; - SUBST: the substitution
 ;;;
 (defstruct (rule-pat (:print-function print-rule-pattern))
-  (pos nil :type list)			; matched position
-  (rule nil)				; matched rule
-  (subst nil)				; variable substitution
-  (cond-ok t)				; t iff condition part of the rule is satisfied
-  (condition nil)			; resulting condition part ('if') when cond-ok = nil
-  (num 0 :type fixnum)			; sequential #, used for debugging
+  (pos nil :type list)                  ; matched position
+  (rule nil)                            ; matched rule
+  (subst nil)                           ; variable substitution
+  (cond-ok t)                           ; t iff condition part of the rule is satisfied
+  (condition nil)                       ; resulting condition part ('if') when cond-ok = nil
+  (num 0 :type fixnum)                  ; sequential #, used for debugging
   )
 
 (defvar .rules-so-far. 0)
@@ -74,53 +71,41 @@
 
 (defun make-rule-pat-with-check (pos rule subst sch-context)
   (when (rule-non-exec rule)
+    ;; the rule is marked as non-executable
     (return-from make-rule-pat-with-check nil))
   (let ((condition (rule-condition rule)))
-    (unless condition
-      (return-from make-rule-pat-with-check (make-rule-pat :pos pos :rule rule :subst subst)))
-    ;; pre check the condition part is satisfied or not
+    ;; pre check whether the condition part is satisfied or not
     (when (and (is-true? condition)
                (null (rule-id-condition rule)))
+      ;; rule is not conditional
       (return-from make-rule-pat-with-check
         (make-rule-pat :pos pos :rule rule :subst subst :num (incf .rules-so-far.))))
+    ;; check the condition
     (let (($$term nil)
-	  ($$cond (set-term-color
-		   #||
-		   (substitution-image-simplifying subst
-						   condition
-						   t
-						   :slow)
-		   ||#
-		   (substitution-image-cp subst condition)
-		   )))
+          ($$cond (set-term-color (substitution-image-cp subst condition))))
+
       (when *cexec-debug*
-	(format t "~%rule: cond ") (term-print-with-sort $$cond)
-	(format t "~%      subst") (print-substitution subst)
-	(let ((vars (term-variables $$cond)))
-	  (dolist (v vars)
-	    (format t "~% var ") (term-print-with-sort v))))
+        (format t "~%rule: cond ") (term-print-with-sort $$cond)
+        (format t "~%      subst") (print-substitution subst)
+        (let ((vars (term-variables $$cond)))
+          (dolist (v vars)
+            (format t "~% var ") (term-print-with-sort v))))
 
       (catch 'rule-failure
-	(if (and (or (null (rule-id-condition rule))
+        (if (and (or (null (rule-id-condition rule))
                      (rule-eval-id-condition subst
                                              (rule-id-condition rule)
                                              :slow))
                  (is-true? (progn (normalize-term $$cond) $$cond)))
-	    ;; the condition is satisfied
-	    (return-from make-rule-pat-with-check 
-	      (make-rule-pat :pos pos :rule rule :subst subst :cond-ok t :condition $$cond :num (incf .rules-so-far.)))
-	  (if (rwl-sch-context-if sch-context)
-	      ;; rule condition fail & there exists 'if'
-	      (return-from make-rule-pat-with-check
-		(make-rule-pat :pos pos :rule rule :subst subst :cond-ok nil :condition $$cond :num (incf .rules-so-far.)))
-	    (return-from make-rule-pat-with-check nil))))
+            ;; the condition is satisfied
+            (return-from make-rule-pat-with-check 
+              (make-rule-pat :pos pos :rule rule :subst subst :cond-ok t :condition $$cond :num (incf .rules-so-far.)))
+          (if (rwl-sch-context-if sch-context)
+              ;; rule condition fail & there exists 'if'
+              (return-from make-rule-pat-with-check
+                (make-rule-pat :pos pos :rule rule :subst subst :cond-ok nil :condition $$cond :num (incf .rules-so-far.)))
+            (return-from make-rule-pat-with-check nil))))
       nil)))
-
-#||
-(defmacro rule-pat-pos (pat) `(car ,pat))
-(defmacro rule-pat-rule (pat) `(cadr ,pat))
-(defmacro rule-pat-subst (pat) `(caddr ,pat))
-||#
 
 (defun rule-pat-equal (pat1 pat2)
   (and (equal (rule-pat-pos pat1) (rule-pat-pos pat2))
@@ -139,18 +124,18 @@
   (state 0 :type fixnum)                ; fixnum value identifying this state
   (term nil)                            ; a term
   (trans-rules nil)                     ; applicable rules to this state
-  (rule-pat nil)			; the rule-pat which derived this state
+  (rule-pat nil)                        ; the rule-pat which derived this state
   (subst nil)                           ; list of substitution !!
   (is-final nil)                        ; t iff the state is a final state
   (loop nil)                            ; t iff the same state occurs more than once
-  (condition nil)			;
+  (condition nil)                       ;
   )
 
 (defun state-is-valid-transition (state)
   (let ((cond (rwl-state-condition state)))
     (and (not (rwl-state-loop state))
-	 (or (null cond)
-	     (is-true? cond)))))
+         (or (null cond)
+             (is-true? cond)))))
 
 (defun pr-rwl-state (state &optional (stream *standard-output*) &rest ignore)
   (declare (ignore ignore))
@@ -169,15 +154,15 @@
            (type rwl-state state)
            (type stream stream))
   (let ((*standard-output* stream))
-    (format t "~&[state ~D] " (rwl-state-state state))
+    (format t "~%[state ~D] " (rwl-state-state state))
     (let ((*print-indent* (+ 4 *print-indent*)))
       (term-print-with-sort (rwl-state-term state))
       (when *cexec-trace*
         (format t "~& matched with the substitution "))
       (let ((*print-indent* (+ 4 *print-indent*)))
-	(dolist (subst (rwl-state-subst state))
-	  (print-next)
-	  (print-substitution subst)))
+        (dolist (subst (rwl-state-subst state))
+          (print-next)
+          (print-substitution subst)))
       (flush-all))))
 
 (defun print-state-transition (state sub-states &optional (stream *standard-output*))
@@ -187,15 +172,14 @@
   (let ((*standard-output* stream)
         (arc-num 0))
     (declare (type fixnum arc-num))
-    (format t "~&[state ~D] " (rwl-state-state state))
+    (format t "~%[state ~D] " (rwl-state-state state))
     (term-print-with-sort (rwl-state-term state))
     (dolist (sub sub-states)
       (format t "~&  arc ~D --> [state ~D] " arc-num (rwl-state-state sub))
       (let ((*print-indent* (+ 4 *print-indent*)))
         (print-next)
         (print-axiom-brief (rule-pat-rule (rwl-state-rule-pat sub))))
-      (incf arc-num))
-    ))
+      (incf arc-num))))
 
 ;;; ***********
 ;;; SEARCH TREE
@@ -219,8 +203,9 @@
   (let ((*standard-output* stream))
     (format t "SCH-NODE:~A" (dag-node-datum node))))
 
+;;; ******************
 ;;; RWL-SCH-NODE utils
-;;;
+;;; ******************
 
 ;;; print the rule & state
 ;;;
@@ -235,16 +220,16 @@
       (princ "  ")
       (let ((*print-indent* (+ 8 *print-indent*)))
         (print-axiom-brief rl)))
-    (format t "~&[state ~D] " state)
+    (format t "~%[state ~D] " state)
     (term-print-with-sort term)
     (dolist (sub (rwl-state-subst st))
       (format t "~&    ")
       (print-substitution sub)
       (when bind-pattern
-	(let ((bimage (substitution-image-simplifying sub bind-pattern)))
-	  (normalize-term bimage)
-	  (format t "~%    => ")
-	  (term-print-with-sort bimage))))))
+        (let ((bimage (substitution-image-simplifying sub bind-pattern)))
+          (normalize-term bimage)
+          (format t "~%    => ")
+          (term-print-with-sort bimage))))))
 
 ;;; print the label of a rule which derived a state
 ;;; that denode contains.
@@ -286,9 +271,9 @@
   (state-predicate nil)                 ; STATE equality predicate
   (answers nil)                         ; list of STATEs satisfying specified
                                         ; conditions.
-  (bind nil)				; ....
-  (if nil)				;
-  (pr-out? nil)				;
+  (bind nil)                            ; ....
+  (if nil)                              ;
+  (pr-out? nil)                         ;
   )
 
 (defun print-sch-context (ctxt &optional (stream *standard-output*) &rest ignore)
@@ -296,7 +281,7 @@
   (let ((*standard-output* stream)
         (mod (rwl-sch-context-module ctxt)))
     (with-in-module (mod)
-      (format t "~&<< sch context >>")
+      (format t "~%<< sch context >>")
       (format t "~%   module: ")
       (print-chaos-object (rwl-sch-context-module ctxt))
       (format t "~%   term: ")
@@ -323,59 +308,60 @@
       (dolist (x (reverse (rwl-sch-context-answers ctxt)))
         (term-print-with-sort (rwl-state-term x)))
       (when (rwl-sch-context-bind ctxt)
-	(format t "~%   bind pattern: ")
-	(term-print-with-sort (rwl-sch-context-bind ctxt)))
+        (format t "~%   bind pattern: ")
+        (term-print-with-sort (rwl-sch-context-bind ctxt)))
       (when (rwl-sch-context-if ctxt)
-	(format t "~%   if: ")
-	(term-print-with-sort (rwl-sch-context-if ctxt))))))
+        (format t "~%   if: ")
+        (term-print-with-sort (rwl-sch-context-if ctxt))))))
 
 ;;; .RWL-SCH-CONTEXT.
 ;;;  moved to comlib/globals.lisp
 ;;; (defvar .rwl-sch-context. nil)
 
+;;; *********************
 ;;; SEARCH CONTEXT UTILS
-;;;
+;;; *********************
 
 ;;; show-rwl-sch-graph
 ;;;
 (defun show-rwl-sch-graph (&optional num)
   (let ((c-num (if num
-		   (read-from-string num)
-		 0))
-	(sch-context nil))
+                   (read-from-string num)
+                 0))
+        (sch-context nil))
     (unless (integerp c-num)
       (with-output-chaos-error ('invalid-context-number)
-	(format t "invalid search graph number ~s" num)))
+        (format t "invalid search graph number ~s" num)))
     (setq sch-context (nth c-num (reverse .rwl-context-stack.)))
     (unless sch-context
       (with-output-chaos-error ('no-such-context)
-	(format t "no such search graph ~d" num)))
+        (format t "no such search graph ~d" num)))
     (let ((mod (rwl-sch-context-module sch-context))
-	  (root (rwl-sch-context-root sch-context)))
+          (root (rwl-sch-context-root sch-context)))
       (unless mod
-	(with-output-chaos-error ('no-context)
-	  (format t "no context module...")))
+        (with-output-chaos-error ('no-context)
+          (format t "no context module...")))
       (unless root
-	(with-output-chaos-error ('no-root)
-	  (format t "no search result exists...")))
+        (with-output-chaos-error ('no-root)
+          (format t "no search result exists...")))
       (when (and *current-module*
-		 (not (eq *current-module* mod)))
-	(with-output-chaos-warning ()
-	  (format t "the context(module) of search graph is different from the current module.")))
+                 (not (eq *current-module* mod)))
+        (with-output-chaos-warning ()
+          (format t "the context(module) of search graph is different from the current module.")))
       ;;
       (with-in-module (mod)
-	(let ((state-hash (make-hash-table)))
-	  (dag-wfs root
-		   #'(lambda (d)
-		       (let* ((state-node (dag-node-datum d))
-			      (state (rwl-state-state state-node)))
-			 (unless (gethash state state-hash)
-			   (setf (gethash state state-hash) t)
-			   (print-state-transition
-			    state-node
-			    (mapcar #'(lambda (sd)
-					(dag-node-datum sd))
-				    (dag-node-subnodes d))))))))))))
+        (let ((state-hash (make-hash-table)))
+          (dag-wfs root
+                   #'(lambda (d)
+                       (let* ((state-node (dag-node-datum d))
+                              (state (rwl-state-state state-node)))
+                         (unless (gethash state state-hash)
+                           (setf (gethash state state-hash) t)
+                           (print-state-transition
+                            state-node
+                            (mapcar #'(lambda (sd)
+                                        (dag-node-datum sd))
+                                    (dag-node-subnodes d))))))))))))
 
 (defun find-rwl-sch-state (num &optional (sch-context .rwl-sch-context.))
   (declare (type fixnum num))
@@ -401,7 +387,7 @@
 
 (defun show-rwl-sch-path (num-tok &optional (label? nil)
                                             (sch-context .rwl-sch-context.)
-					    (state-only? nil))
+                                            (state-only? nil))
   (unless num-tok
     (return-from show-rwl-sch-path
       (format t "~%nothing to be reported...")))
@@ -413,7 +399,7 @@
       (with-output-chaos-error ()
         (format t "state must be a positive integer value.")))
     (multiple-value-bind (sch-context dag)
-	(find-rwl-sch-state-globally num)
+        (find-rwl-sch-state-globally num)
       (unless dag
         (with-output-chaos-error ('no-state)
           (format t "no such state ~D" num)))
@@ -423,30 +409,20 @@
           (with-output-chaos-warning ()
             (format t "the context(module) of search result is different from the current module.")))
         (with-in-module (mod)
-	  (cond (state-only? (show-rwl-sch-state dag nil (rwl-sch-context-bind sch-context)))
-		(t (let ((parents (get-bdag-parents dag)))
-		     (cond (label?
-			    (dolist (p (cdr parents)) ;root has no transition
-			      (show-rwl-sch-label p))
-			    (show-rwl-sch-label dag))
-			   (t (dolist (p parents)
-				(show-rwl-sch-state p t (rwl-sch-context-bind sch-context)))
-			      (show-rwl-sch-state dag t (rwl-sch-context-bind sch-context))))))))))))
+          (cond (state-only? (show-rwl-sch-state dag nil (rwl-sch-context-bind sch-context)))
+                (t (let ((parents (get-bdag-parents dag)))
+                     (cond (label?
+                            (dolist (p (cdr parents)) ;root has no transition
+                              (show-rwl-sch-label p))
+                            (show-rwl-sch-label dag))
+                           (t (dolist (p parents)
+                                (show-rwl-sch-state p t (rwl-sch-context-bind sch-context)))
+                              (show-rwl-sch-state dag t (rwl-sch-context-bind sch-context))))))))))))
 
 
 ;;; *************
 ;;; PATTERN MATCH
 ;;; *************
-
-;;; matcher
-;;; 
-#|| not used
-(defun cexec-pat-match (pat target)
-  (multiple-value-bind (gs sub no eeq)
-      (@matcher pat target :match)
-    (declare (ignore eeq))
-    (null no)))
-||# 
 
 ;;; finds all transition rules possibly applicable to the given target term
 ;;;
@@ -454,47 +430,30 @@
   (let ((module (rwl-sch-context-module sch-context)))
     (when start-pos
       (setq target (get-target-subterm target start-pos)))
-    ;;
     (with-in-module (module)
       (let* ((*module-all-rules-every* t)
-	     (rules (get-module-axioms *current-module* t))
-	     (rls nil)
-	     (res nil))
-	(dolist (rule rules)
-	  (when (rule-is-rule rule)
-	    (push rule rls)
-	    ;; add extensions also if any
-	    ;; needless because 'apply-rule' applies extensions
-	    #||
-	    (let ((a-extensions (give-A-extensions rule))
-		  (ac-extension (give-ac-extension rule)))
-	      (dolist (rl a-extensions)
-		(when rl
-		  (push rl rls)))
-	      (dolist (rl ac-extension)
-		(when rl
-		  (push rl rls))))
-	    ||#
-	    ))
-	;; gather rules
-	;; (clean-rule-table)
-	(setq res (find-matching-rules-for-exec* target rls start-pos sch-context))
-	(setq res (delete-duplicates res
-				     :test #'rule-pat-equal))
-	;;
-	(when *cexec-debug*
-	  (format t "~%** ~D rules were found for term: "
-		  (length res))
-	  (term-print target)
-	  (terpri)
-	  (dolist (r res)
-	    (print-rule-pattern r)))
-	;;
-	res ))))
+             (rules (get-module-axioms *current-module* t))
+             (rls nil)
+             (res nil))
+        (dolist (rule rules)
+          (when (rule-is-rule rule)
+            (push rule rls)))
+        ;; gather rules
+        (setq res (find-matching-rules-for-exec* target rls start-pos sch-context))
+        (setq res (delete-duplicates res
+                                     :test #'rule-pat-equal))
+        (when *cexec-debug*
+          (format t "~%** ~D rules were found for term: "
+                  (length res))
+          (term-print target)
+          (terpri)
+          (dolist (r res)
+            (print-rule-pattern r)))
+        res ))))
 
 (defun find-matching-rules-for-exec* (target rules pos sch-context)
   (when *cexec-debug*
-    (format t "~&find matching rules. ")
+    (format t "~%find matching rules. ")
     (term-print target)
     (terpri))
   (if (term-is-application-form? target)
@@ -508,10 +467,8 @@
                  (head (if (term-is-variable? lhs)
                            nil
                          (term-head lhs))))
-            ;;::
-            ;;(unless rule (break "HANA !!!"))
             (push rule patterns)
-	    ;; #|| ------- apply-rule always applies extensions
+            ;; ------- apply-rule always applies extensions
             (when head
               (when (method-is-associative head)
                 (if (method-is-commutative head)
@@ -524,19 +481,12 @@
                   ;;
                   (let ((a-exts (give-A-extensions rule)))
                     (dolist (r a-exts)
-                      ;; (unless r (break "HANA 2"))
                       (when r
                         (push r patterns)))))))
-	    ;; ------------ ||#
-            ;;
+            ;; ------------
             (dolist (pat patterns)
               (block next
-                ;; (break)
                 (unless pat (break "HANA my"))
-                #||
-                (when (cexec-pat-match (axiom-lhs pat) target)
-                  (push (make-rule-pat-with-check pos pat) res))
-                ||#
                 ;; find all possible subst
                 (multiple-value-bind (gs sub no-match eeq)
                     (@matcher (axiom-lhs pat) target :match)
@@ -551,15 +501,14 @@
                     (when no-match (return-from next))
                     (setq rule-pat (make-rule-pat-with-check pos pat sub sch-context))
                     (when rule-pat
-                      (push rule-pat res))))
-                ))
+                      (push rule-pat res))))))
             ))                          ; done for all rules
         ;; recursively find rules for subterms
         (dotimes (x (length (term-subterms target)))
           (let ((r (find-matching-rules-for-exec* (term-arg-n target x)
-						  rules
-						  (append pos (list x))
-						  sch-context)))
+                                                  rules
+                                                  (append pos (list x))
+                                                  sch-context)))
             (when r (setq res (nconc res r)))))
         ;;
         res)
@@ -570,14 +519,8 @@
 ;;; ****************
 
 (defun if-binding-should-be-printed (sch-context)
-  #||
-  (when *cexec-debug*
-    (format t "~%++ checking print or not:~%  if = ~s, current depth = ~d, max = ~d"
-	    (rwl-sch-context-if sch-context)
-	    (rwl-sch-context-cur-depth sch-context)
-	    (rwl-sch-context-max-depth sch-context)))
-  ||#
   (and (rwl-sch-context-if sch-context)
+       ;; (not *rwl-search-no-state-report*)
        (<= (rwl-sch-context-cur-depth sch-context) (rwl-sch-context-max-depth sch-context))))
 
 ;;; rwl-sch-check-conditions (node rwl-sch-context)
@@ -588,56 +531,56 @@
   (declare (type rwl-sch-node node)
            (type rwl-sch-context sch-context))
   (flet ((condition-check-ok (subst)
-	   (let ((cond (rwl-sch-context-condition sch-context))
-		 ($$term nil)
-		 ($$cond nil)
-		 (*rewrite-exec-mode* (if *rewrite-exec-condition*
-					  *rewrite-exec-mode*
-					nil)))
-	     (if (null cond)
-		 (setq $$cond *bool-true*)
-	       (setq $$cond (set-term-color
-			     (substitution-image-cp subst cond))))
-	     (when *cexec-debug*
-	       (format t "~&   subst:    ") (print-substitution subst)
-	       (format t "~&   suchThat: ") (term-print $$cond))
-	     (or (is-true? $$cond)
-		 (is-true? (progn
-			     (normalize-term $$cond)
-			     (when *cexec-debug*
-			       (format t " ---> ") (term-print $$cond)
-			       (format t "~& = ~s" (is-true? $$cond)))
-			     $$cond))))))
+           (let ((cond (rwl-sch-context-condition sch-context))
+                 ($$term nil)
+                 ($$cond nil)
+                 (*rewrite-exec-mode* (if *rewrite-exec-condition*
+                                          *rewrite-exec-mode*
+                                        nil)))
+             (if (null cond)
+                 (setq $$cond *bool-true*)
+               (setq $$cond (set-term-color
+                             (substitution-image-cp subst cond))))
+             (when *cexec-debug*
+               (format t "~%  subst     :") (print-substitution subst)
+               (format t "~&  suchThat  :") (term-print $$cond))
+             (or (is-true? $$cond)
+                 (is-true? (progn
+                             (if *cexec-debug*
+                                 (let (($$trace-rewrite t))
+                                   (print-term-tree $$cond t)
+                                   (normalize-term $$cond))
+                               (normalize-term $$cond))
+                             (when *cexec-debug*
+                               (format t " -C-> ") (term-print $$cond)
+                               (format t "~% = ~s" (is-true? $$cond)))
+                             $$cond))))))
     ;; if checked already, we return immediately as non.
     (when (and (sch-node-done node) (null (rwl-sch-context-if sch-context)))
       (return-from rwl-sch-check-conditions nil))
     ;;
     (let* ((state (dag-node-datum node))
-	   (if-var (rwl-sch-context-if sch-context))
-	   (rule-pat (rwl-state-rule-pat state)))
+           (if-var (rwl-sch-context-if sch-context))
+           (rule-pat (rwl-state-rule-pat state)))
       (declare (type rwl-state state))
-      ;;
+
       (when *chaos-verbose*
         (format t " ~D" (rwl-state-state state)))
-      ;;
+
       (setf (sch-node-done node) t)     ; mark checked already
-      ;;
-      ;; *** 
-      ;; (return-from rwl-sch-check-conditions nil)
+
       (when *cexec-debug* 
-	(when (rwl-sch-context-condition sch-context)
-	  (format t "~%** check condition ")
-	  (term-print-with-sort (rwl-sch-context-condition sch-context))
-	  (if rule-pat
-	      (print-rule-pattern rule-pat)
-	    (format t "~% no rule-pat."))))
+        (when (rwl-sch-context-condition sch-context)
+          (format t "~%** check condition ")
+          (term-print-with-sort (rwl-sch-context-condition sch-context))
+          (if rule-pat
+              (print-rule-pattern rule-pat)
+            (format t "~% no rule-pat."))))
       ;; 0 transition?
       (when (and (not (rwl-sch-context-zero-trans-allowed sch-context))
-                 ;; (= 0 (rwl-sch-context-cur-depth sch-context))
-		 (= 0 (rwl-sch-context-trans-so-far sch-context)))
-	;; (format t "~%Wow!")
-	(when *cexec-debug*
-	  (format t "~%.check condition return with 0 transition."))
+                 (= 0 (rwl-sch-context-trans-so-far sch-context)))
+        (when *cexec-debug*
+          (format t "~%.check condition return with 0 transition."))
         (return-from rwl-sch-check-conditions nil))
       ;; check with target pattern.
       (multiple-value-bind (gs sub no-match eeq)
@@ -646,61 +589,63 @@
                     :match)
         (declare (ignore eeq))
         (when no-match
-	  (when *cexec-debug*
-	    (format t "~%.check condition return with no-match."))
+          (when *cexec-debug*
+            (format t "~%.check condition return with no-match."))
           (return-from rwl-sch-check-conditions nil))
-	;; expand subst with 
-	(when rule-pat
-	  (setq sub (append sub (rule-pat-subst rule-pat))))
-	;; additionaly expand subst 'if' part bindings
-	(when if-var
-	  (setq sub (substitution-add sub if-var (or (rwl-state-condition state)
-						     *bool-true*))))
-	(when (condition-check-ok sub)
-	  (when	(if-binding-should-be-printed sch-context) ; if-var
-	    (pr-used-rule state)
-	    (print-subst-if-binding-result state sub sch-context))
-	  (when (state-is-valid-transition state)
-	    (push sub (rwl-state-subst state))))
+        ;; expand subst with 
+        (when rule-pat
+          (setq sub (append sub (rule-pat-subst rule-pat))))
+        ;; additionaly expand subst 'if' part bindings
+        (when if-var
+          (setq sub (substitution-add sub if-var (or (rwl-state-condition state)
+                                                     *bool-true*))))
+        (when (condition-check-ok sub)
+          (when (if-binding-should-be-printed sch-context) ; if-var
+            (pr-used-rule state)
+            (print-subst-if-binding-result state sub sch-context))
+          (when (state-is-valid-transition state)
+            (push sub (rwl-state-subst state))))
         ;; try other patterns untill there's no hope
         (loop
           (multiple-value-setq (gs sub no-match)
             (next-match gs))
           (when no-match (return))
-	  ;; expand subst with 
-	  (setq sub (append sub (rule-pat-subst rule-pat)))
-	  (when if-var
-	    (setq sub (substitution-add sub if-var (or (rwl-state-condition state)
-						       *bool-true*))))
-	  (when (condition-check-ok sub)
-	    (when (if-binding-should-be-printed sch-context) ; if-var
-	      (when (pr-used-rule state)
-		(print-subst-if-binding-result state sub sch-context)))
-	    (when (state-is-valid-transition state)
-	      (push sub (rwl-state-subst state))))))
+          ;; expand subst with 
+          (setq sub (append sub (rule-pat-subst rule-pat)))
+          (when if-var
+            (setq sub (substitution-add sub if-var (or (rwl-state-condition state)
+                                                       *bool-true*))))
+          (when (condition-check-ok sub)
+            (when (if-binding-should-be-printed sch-context) ; if-var
+              (when (pr-used-rule state)
+                (print-subst-if-binding-result state sub sch-context)))
+            (when (state-is-valid-transition state)
+              (push sub (rwl-state-subst state))))))
       (not (null (rwl-state-subst state))))))
 
 (defun pr-used-rule (state)
   (let ((rule-pat (rwl-state-rule-pat state))
-	(rule nil))
+        (rule nil))
     (unless rule-pat (return-from pr-used-rule nil))
     (setq rule (rule-pat-rule rule-pat))
     (unless *print-exec-rule*
       (when (member (axiom-kind rule) .ext-rule-kinds.)
-	(return-from pr-used-rule nil)))
-    (format t "~%=> ")
-    (print-axiom-brief rule)
+        (return-from pr-used-rule nil)))
+    (unless *rwl-search-no-state-report*
+      (format t "~%=> ")
+      (print-axiom-brief rule))
     t))
 
 (defun print-subst-if-binding-result (state sub sch-context)
   (declare (ignore state))
   (setf (rwl-sch-context-pr-out? sch-context) t)
-  (format t "~%    ") (print-substitution sub)
-  (when (rwl-sch-context-bind sch-context)
-    (let ((bimg (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
-      (normalize-term bimg)
-      (format t "~%    --> ")
-      (term-print-with-sort bimg))))
+  (unless *rwl-search-no-state-report*
+    (format t "~%    ") (print-substitution sub)
+    (when (rwl-sch-context-bind sch-context)
+      (let ((bimg (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
+        (normalize-term bimg)
+        (format t "~%    --> ")
+        (term-print-with-sort bimg)))))
 
 ;;; ******************
 ;;; SOME UTILs on TERM
@@ -770,21 +715,21 @@
         (res nil))
     ;; make substittion
     (if (sort<= (term-sort term) (term-sort (car vars)) *current-sort-order*)
-	(push (cons (car vars) term) subst)
+        (push (cons (car vars) term) subst)
       (with-output-chaos-error ('invalid-state)
-	(format t "withStateEq: sort of term does not match with variable:")
-	(format t "~%  variable: ")
-	(term-print-with-sort (car vars))
-	(format t "~%  term:  ")
-	(term-print-with-sort term)))
+        (format t "withStateEq: sort of term does not match with variable:")
+        (format t "~%  variable: ")
+        (term-print-with-sort (car vars))
+        (format t "~%  term:  ")
+        (term-print-with-sort term)))
     (if (sort<= (term-sort term) (term-sort (cadr vars)) *current-sort-order*)
-	(push (cons (cadr vars) t1) subst)
+        (push (cons (cadr vars) t1) subst)
       (with-output-chaos-error ('invalid-state)
-	(format t "withStateEq: sort of term does not match with variable:")
-	(format t "~%  variable: ")
-	(term-print-with-sort (cadr vars))
-	(format t "~%  term: ")
-	(term-print-with-sort t1)))
+        (format t "withStateEq: sort of term does not match with variable:")
+        (format t "~%  variable: ")
+        (term-print-with-sort (cadr vars))
+        (format t "~%  term: ")
+        (term-print-with-sort t1)))
       
     ;; apply subst with coping pred
     ;; then reduce
@@ -799,7 +744,7 @@
          (normalize-term $$cond)
          $$cond)))
     (when (and res *cexec-trace*)
-      (format t "~&state predicate returned `true'."))
+      (format t "~%** state predicate returned `true'."))
     res))
 
 (defun cexec-loop-check (term sch-context)
@@ -819,31 +764,30 @@
 ;;;
 (defun make-rwl-state-with-hash (target rule-pat sch-context)
   (let* ((ostate-num (cexec-loop-check target sch-context))
-	 ;; (rule (rule-pat-rule rule-pat))
-	 (condition (rule-pat-condition rule-pat))
-	 (new-state nil))
+         ;; (rule (rule-pat-rule rule-pat))
+         (condition (rule-pat-condition rule-pat))
+         (new-state nil))
     (cond (ostate-num
-	   ;; this means the same state has alredy been generated
-	   ;; from a node other than this node.
-	   ;; we create brand new state with the same state number
-	   (setq new-state (make-rwl-state :state ostate-num
-					   :term  target
-					   :rule-pat  rule-pat
-					   :subst  nil
-					   :condition condition))
-	   (when (or *cexec-trace* *chaos-verbose*)
-	     (format t "~&* loop"))
-	   (setf (rwl-state-loop new-state) t))
-          (t  (let (;; (state-num (incf (rwl-sch-context-states-so-far sch-context)))
-		    (state-num (incf .rwl-states-so-far.)))
+           ;; this means the same state has alredy been generated
+           ;; from a node other than this node.
+           ;; we create brand new state with the same state number
+           (setq new-state (make-rwl-state :state ostate-num
+                                           :term  target
+                                           :rule-pat  rule-pat
+                                           :subst  nil
+                                           :condition condition))
+           (when (or *cexec-trace* *chaos-verbose*)
+             (format t "~%* loop"))
+           (setf (rwl-state-loop new-state) t))
+          (t  (let ((state-num (incf .rwl-states-so-far.)))
                 (setq new-state (make-rwl-state :state state-num
                                                 :term  target
                                                 :rule-pat  rule-pat
                                                 :subst  nil
-						:condition  condition))
+                                                :condition  condition))
                 ;; register the term
-		(when *cexec-debug*
-		  (format t "~%** hasing state ~D" state-num))
+                (when *cexec-debug*
+                  (format t "~%** hashing state ~D" state-num))
                 (cexec-set-hashed-term target state-num))))
     ;;
     new-state))
@@ -864,51 +808,17 @@
 ;;; APPLY-RULE-CEXEC: rule target -> Bool
 ;;;
 (defun apply-rule-cexec (rule term subst)
-  (let ((condition (rule-condition rule))
-        (builtin-failure nil))
-    (when (and (is-true? condition)
-               (null (rule-id-condition rule)))
-      (setq builtin-failure
-        (catch 'rule-failure
-          (progn
-            (term-replace-dd-simple
-             term
-             (set-term-color
-              (substitution-image-simplifying subst
-                                              (rule-rhs rule)
-                                              (rule-need-copy rule)
-                                              :slow)))
-            (return-from apply-rule-cexec t)))))
-    (when builtin-failure
-      (return-from apply-rule-cexec nil))
-    ;; check condition
-    (catch 'rule-failure
-      (when t
-        #|| because we already check the condition is satisfied or not
-        
-        (and (or (null (rule-id-condition rule))
-                 (rule-eval-id-condition subst
-                                         (rule-id-condition rule)
-                                         :slow))
-             (is-true?
-              (let (($$cond (set-term-color
-                             (substitution-image-simplifying subst condition t :slow))))
-                (normalize-term $$cond)
-                $$cond)))
-        ||#
-        ;; the condition is satisfied
-        (progn
-          (term-replace-dd-simple
-           term
-           (set-term-color
-            (substitution-image-simplifying subst
-                                            (rule-rhs rule)
-                                            (rule-need-copy rule)
-                                            :slow)))
-          (return-from apply-rule-cexec t))
-        ))
-    ;; failure
-    nil))
+  (catch 'rule-failure
+    (progn
+      (term-replace-dd-simple
+       term
+       (set-term-color
+        (substitution-image-simplifying subst
+                                        (rule-rhs rule)
+                                        (rule-need-copy rule)
+                                        :slow)))
+      (return-from apply-rule-cexec t)))
+  nil)
 
 ;;; CEXEC-TERM-1 (state-as-dag)
 ;;;
@@ -946,12 +856,12 @@
                        (if (rwl-sch-context-zero-trans-allowed sch-context)
                            "*"
                          "+"))))
-	   (state-is-valid? (state)
-	     (let ((cond (rwl-state-condition state)))
-	       (or (null cond) (is-true? cond)))))
+           (state-is-valid? (state)
+             (let ((cond (rwl-state-condition state)))
+               (or (null cond) (is-true? cond)))))
       ;;
       (unless (state-is-valid? state)
-	(return-from cexec-term-1 nil))
+        (return-from cexec-term-1 nil))
       ;;
       (let ((xterm term)
             (ptrans? (dag-node-subnodes dag)))
@@ -968,17 +878,17 @@
         (let ((rule-pats (rwl-state-trans-rules state))
               (*rewrite-exec-mode* t)
               (sub-states nil)
-	      (real-pats nil))
-	  (setq real-pats (remove-if #'(lambda (x) (not (rule-pat-cond-ok x))) rule-pats))
-	  (when *cexec-debug*
-	    (format t "~%++ ~D rule patterns for state" (length rule-pats))
-	    (pr-rwl-state state))
-	  (when *chaos-verbose*
-	    (format t "~&-- from [state ~D] "
-		    (rwl-state-state state))
-	    (format t "~D possible transitions....."
+              (real-pats nil))
+          (setq real-pats (remove-if #'(lambda (x) (not (rule-pat-cond-ok x))) rule-pats))
+          (when *cexec-debug*
+            (format t "~%++ ~D rule patterns for state" (length rule-pats))
+            (pr-rwl-state state))
+          (when *chaos-verbose*
+            (format t "~%-- from [state ~D] "
+                    (rwl-state-state state))
+            (format t "~D possible transitions....."
                     (length real-pats)))
-	  ;;
+          ;;
           (unless rule-pats
             ;; no rules
             (no-more-transition)
@@ -995,7 +905,7 @@
           (do* ((rls rule-pats (cdr rls))
                 (rule-pat (car rls) (car rls)))
               ;; ((endp rls))
-	      ((null rule-pat))
+              ((null rule-pat))
             (let* ((target-whole (simple-copy-term xterm))
                    (target (get-target-subterm target-whole
                                                (rule-pat-pos rule-pat))))
@@ -1008,21 +918,21 @@
               (when (apply-rule-cexec (rule-pat-rule rule-pat)
                                       target
                                       (rule-pat-subst rule-pat))
-		#||
-		(when (rule-pat-cond-ok rule-pat)
-		  (incf (rwl-sch-context-trans-so-far sch-context)))
-		||#
-		(incf (rwl-sch-context-trans-so-far sch-context))
+                #||
+                (when (rule-pat-cond-ok rule-pat)
+                  (incf (rwl-sch-context-trans-so-far sch-context)))
+                ||#
+                (incf (rwl-sch-context-trans-so-far sch-context))
                 ;;
                 (when *cexec-normalize*
                   (when *cexec-debug*
-                    (format t "~&.. start doing normalization because cexec normalize is on.~%  -- ")
+                    (format t "~%.. start doing normalization because cexec normalize is on.~%  -- ")
                     (term-print target-whole))
                   (let ((*rewrite-exec-mode* nil)
                         (xterm (if (and *cexec-trace* *chaos-verbose*)
                                    (simple-copy-term target-whole)
                                  nil)))
-		    (mark-term-as-not-lowest-parsed target-whole)
+                    (mark-term-as-not-lowest-parsed target-whole)
                     (reset-reduced-flag target-whole)
                     (rewrite* target-whole)
                     (when *cexec-debug*
@@ -1045,11 +955,11 @@
                                                            rule-pat
                                                            sch-context)))
                   (when (and sub-state
-			     ;; (rule-pat-cond-ok rule-pat)
-			     t
-			     )
-		    (when *cexec-debug*
-		      (format t "~%** used rule pat = ~d" (rule-pat-num rule-pat)))
+                             ;; (rule-pat-cond-ok rule-pat)
+                             t
+                             )
+                    (when *cexec-debug*
+                      (format t "~%** used rule pat = ~d" (rule-pat-num rule-pat)))
                     (when *cexec-trace*
                       (print-next)
                       (flush-all)
@@ -1059,15 +969,12 @@
                         (exec-trace-form)
                         (format t " [state ~D] " (rwl-state-state sub-state))
                         (term-print-with-sort target-whole)
-			(print-next)
-			(print-axiom-brief (rule-pat-rule rule-pat))
-			(print-next)
-			(print-substitution (rule-pat-subst rule-pat))) ; ***
+                        (print-next)
+                        (print-axiom-brief (rule-pat-rule rule-pat))
+                        (print-next)
+                        (print-substitution (rule-pat-subst rule-pat))) ; ***
                       (flush-all))
-                    ;;
-                    (push sub-state sub-states)))))
-            )                           ; done apply all rules
-          ;;
+                    (push sub-state sub-states)))))) ; done apply all rules
           (if sub-states
               (progn
                 (when *chaos-verbose*
@@ -1093,7 +1000,7 @@
   (let ((to-do (rwl-sch-context-last-siblings sch-context))
         (found? nil))
     (when *chaos-verbose*
-      (format t "~&-- ~D state(s) to be examined --" (length to-do)))
+      (format t "~%-- ~D state(s) to be examined --" (length to-do)))
     ;;
     ;; 1. check for each state if it satisfies the target conditions
     ;;
@@ -1124,11 +1031,11 @@
                     (rwl-sch-context-answers sch-context))
               ;;
               (unless *rwl-search-no-state-report*
-                (format t "~&~%** Found [state ~D] " (rwl-state-state state))
+                (format t "~%** Found [state ~D] " (rwl-state-state state))
                 (term-print-with-sort (rwl-state-term state))
-		(dolist (sub (rwl-state-subst state))
-		  (print-subst-if-binding-result state sub sch-context)
-		  )
+                (dolist (sub (rwl-state-subst state))
+                  (print-subst-if-binding-result state sub sch-context)
+                  )
                 (format t "~&"))
               (setf (sch-node-is-solution node) t) ; mark the node as solution
               (incf (rwl-sch-context-sol-found sch-context))
@@ -1139,7 +1046,7 @@
                 ;; reaches to the # solutions required.
                 ;; mesg
                 (unless *rwl-search-no-state-report*
-                  (format t "~&-- found required number of solutions ~D."
+                  (format t "~%-- found required number of solutions ~D."
                           (rwl-sch-context-max-sol sch-context)))
                 (return-from rwl-step-forward-1 (values :max-solutions nil))))))
         )                               ; continue
@@ -1148,7 +1055,7 @@
     ;; 2. perform the next transitions for each node
     ;;
     (when *chaos-verbose*
-      (format t "~&** precompute the next all states......"))
+      (format t "~%** precompute the next all states......"))
     ;; increment depth
     (incf (rwl-sch-context-cur-depth sch-context))
     ;;
@@ -1164,27 +1071,25 @@
               (if (rwl-state-loop state)
                   ;; mark `done' if the state is already
                   ;; visited before..
-		  (progn
-		    (setf (sch-node-done dag) t)
-		    (when (rwl-sch-context-if sch-context)
-		      (when *cexec-debug*
-			(format t "~%** calling check condition for reporting only."))
-		      (rwl-sch-check-conditions dag sch-context))) ; for reporting only
+                  (progn
+                    (setf (sch-node-done dag) t)
+                    (when (rwl-sch-context-if sch-context)
+                      (when *cexec-debug*
+                        (format t "~%** calling check condition for reporting only."))
+                      (rwl-sch-check-conditions dag sch-context))) ; for reporting only
                 (push dag nexts))))
-          ;; (format t "~&nexts=~a" nexts)
           (setq next-subs (nconc next-subs nexts))))
       ;; 
       ;; 3. lastly, set the next states as `last-siblings'
       ;;
       (setf (rwl-sch-context-last-siblings sch-context) next-subs)
       ;;
-      ;; (or found? next-subs :no-more)
       (values found? (if next-subs
                          nil
                        :no-more)))))
 
 ;;; *********
-;;; TOP LEVEL
+;;; TOP LEVEL functions
 ;;; *********
 (defun make-anything-is-ok-term ()
   (make-variable-term *cosmos* (gensym "Univ")))
@@ -1193,158 +1098,159 @@
                     &optional cond
                               pred-pat
                               module
-			      bind
-			      if)
+                              bind
+                              if)
   (with-in-module (module)
     (unless t2
       (setq t2 (make-anything-is-ok-term)))
-    (let ((svars (term-variables t1))	; variables in source
-	  (pvars (term-variables t2))	; variables in pattern
-	  (cvars (if cond		; variables in suchThat
-		     (term-variables cond)
-		   nil))
-	  (predvars (if pred-pat	; variables in stateEq
-			(term-variables pred-pat)
-		      nil))
-	  (ifvars (if if
-		      (term-variables if)
-		    nil))
-	  (allvars nil)
-	  (.rules-so-far. 0))
+    ;; t1 and t2 must be in the same connected component
+    (let ((t1-sort (term-sort t1))
+          (t2-sort (term-sort t2)))
+      (unless (is-in-same-connected-component t1-sort t2-sort *current-sort-order*)
+        (with-output-chaos-error ('invalid-sort)
+          (format t "Sorts of the source term and the target pattern must be in the same connected component.")
+          (format t "~%  Source term : ")
+          (term-print-with-sort t1)
+          (format t "~&  Target pattern: ")
+          (term-print-with-sort t2))))
+    (let ((svars (term-variables t1))   ; variables in source
+          (pvars (term-variables t2))   ; variables in pattern
+          (cvars (if cond               ; variables in suchThat
+                     (term-variables cond)
+                   nil))
+          (predvars (if pred-pat        ; variables in stateEq
+                        (term-variables pred-pat)
+                      nil))
+          (ifvars (if if
+                      (term-variables if)
+                    nil))
+          (allvars nil)
+          (.rules-so-far. 0))
       (setq allvars (union svars (union pvars ifvars)))
       ;; check suchThat
       (when cvars
-	(unless (subsetp cvars allvars)
-	  (with-output-chaos-error ('invalid-such-that)
-	    (format t "`suchThat' introduces new variable(s)."))))
+        (unless (subsetp cvars allvars)
+          (with-output-chaos-error ('invalid-such-that)
+            (format t "`suchThat' introduces new variable(s)."))))
       ;; check variables
       (dolist (v svars)
-	(when (memq v pvars)
-	  (with-output-chaos-error ('subject-var-occus)
-	    (format t "Variable ")
-	    (term-print-with-sort v)
-	    ;; (format t " in subject term occurs in target pattern or coditions..")
-	    (format t " in subject term occurs in target pattern.")
-	    (format t "~& subject: ")
-	    (term-print-with-sort t1)
-	    (format t "~& pattern: ")
-	    (term-print-with-sort t2))))
+        (when (memq v pvars)
+          (with-output-chaos-error ('subject-var-occus)
+            (format t "Variable ")
+            (term-print-with-sort v)
+            ;; (format t " in subject term occurs in target pattern or coditions..")
+            (format t " in subject term occurs in target pattern.")
+            (format t "~& subject: ")
+            (term-print-with-sort t1)
+            (format t "~& pattern: ")
+            (term-print-with-sort t2))))
       (dolist (v predvars)
-	(when (or (memq v svars)
-		  (memq v pvars)
-		  (memq v cvars))
-	  (with-output-chaos-error ('invalid-stateEq)
-	    (format t "Variable ")
-	    (term-print-with-sort v)
-	    (format t " in 'stateEq' occurs in subject term or target pattern or 'suchThat'.."))))
+        (when (or (memq v svars)
+                  (memq v pvars)
+                  (memq v cvars))
+          (with-output-chaos-error ('invalid-stateEq)
+            (format t "Variable ")
+            (term-print-with-sort v)
+            (format t " in 'stateEq' occurs in subject term or target pattern or 'suchThat'.."))))
       ;;
       (let ((sch-context (make-rwl-sch-context
-			  :module module
-			  :term t1
-			  :pattern t2
-			  :condition cond
-			  :zero-trans-allowed zero?
-			  :final-check final?
-			  :max-sol max-result
-			  :max-depth max-depth
-			  :state-predicate nil
-			  :bind bind
-			  :if if))
-	    (root nil)
-	    (res nil)
-	    (no-more nil)
-	    (found? nil))
-	(flet ((make-state-pred-pat ()
-		 (cond (pred-pat
-			(let ((vars (term-variables pred-pat)))
-			  (unless (sort= (term-sort pred-pat)
-					 *Bool-sort*)
-			    (with-output-chaos-error ('invalid-sort)
-			      (format t "state equality must be of a term of sort Bool.")))
-			  (unless (= 2 (length vars))
-			    (with-output-chaos-error ('number-of-variables)
-			      (format t "state equality pattern must have exactly 2 different variables in it, but ~D given." (length vars))))
-			  #||
-			  (when (variable= (car vars) (cadr vars))
-			    (with-output-chaos-error ('invalid-variables)
-			      (format t "variables in state equality pattern must be diffrent from each other.")))
-			  ||#
-			  (unless (sort= (variable-sort (car vars))
-					 (variable-sort (cadr vars)))
-			    (with-output-chaos-error ('different-variable-sort)
-			      (format t "variables in state equality pattern must be of the same sort.")))
-			  (unless (sort<= (term-sort t2) (term-sort (car vars))
-					  *current-sort-order*)
-			    (with-output-chaos-error ('invalid-variable-sort)
-			      (format t "invalid sort of variable in state equality pattern.")))
-			  (cons pred-pat vars)))
-		       (t nil))))
-	  ;;
-	  ;; initialize search context
-	  ;;
-	  (setf (rwl-sch-context-cur-depth sch-context) 0)
-	  (setf (rwl-sch-context-sol-found sch-context) 0)
-	  ;; (setf (rwl-sch-context-states-so-far sch-context) 0)
-	  (setf (rwl-sch-context-trans-so-far sch-context) 0)
-	  (setq root (create-sch-node (make-rwl-state :state 0 :term t1)))
-	  (setf (rwl-sch-context-root sch-context) root)
-	  (setf (rwl-sch-context-last-siblings sch-context) (list root))
-	  (setf (rwl-sch-context-answers sch-context) nil)
-	  ;; state equality predicate
-	  (setf (rwl-sch-context-state-predicate sch-context)
-	    (make-state-pred-pat))
-	  ;; bind context to global for later use...
-	  (setq .rwl-sch-context. sch-context)
-	  (push sch-context .rwl-context-stack.)
-	  ;; term hash
-	  (initialize-cexec-term-hash)
-	  (cexec-set-hashed-term t1 0)
-	  ;;
-	  ;; do the search
-	  ;;
-	  (when *cexec-debug*
-	    (print sch-context))
-	  (loop
-	    (when *chaos-verbose*
-	      (format t "~&** << level ~D >>" (rwl-sch-context-cur-depth sch-context)))
-	    ;;
-	    (multiple-value-setq (res no-more)
-	      (rwl-step-forward-1 sch-context))
-	    ;; (setq res (rwl-step-forward-1 sch-context))
-	    (case res
-	      (:max-transitions (return nil)) ; exit loop
-	      (:max-solutions
-	       (setq found? t)
-	       (return nil))		; exit loop
-	      (:found
-	       (setq found? t))		; continue..
-	      (otherwise nil))
-	    (when no-more
-	      (unless *rwl-search-no-state-report*
-		(format t "~&~%** No more possible transitions."))
-	      (return nil))		; exit if no more ...
-	    ;; one step deeper
-	    (when (> (rwl-sch-context-cur-depth sch-context)
-		     (rwl-sch-context-max-depth sch-context))
-	      (format t "~&-- reached to the specified search depth ~D."
-		      (rwl-sch-context-max-depth sch-context))
-	      (return-from rwl-search*
-		(if (rwl-sch-context-if sch-context)
-		    (if (rwl-sch-context-pr-out? sch-context)
-			:found
-		      nil)
-		  (if found? :found :max-depth))))
-	    )				; end loop
-	  ;; any solution?
-	  (cond ((rwl-sch-context-if sch-context)
-		 (if (rwl-sch-context-pr-out? sch-context)
-		     :found
-		   nil))
-		(t (if found? 
-		       ;; yes
-		       :found
-		     ;; no
-		     res))))))))
+                          :module module
+                          :term t1
+                          :pattern t2
+                          :condition cond
+                          :zero-trans-allowed zero?
+                          :final-check final?
+                          :max-sol max-result
+                          :max-depth max-depth
+                          :state-predicate nil
+                          :bind bind
+                          :if if))
+            (root nil)
+            (res nil)
+            (no-more nil)
+            (found? nil))
+        (flet ((make-state-pred-pat ()
+                 (cond (pred-pat
+                        (let ((vars (term-variables pred-pat)))
+                          (unless (sort= (term-sort pred-pat)
+                                         *Bool-sort*)
+                            (with-output-chaos-error ('invalid-sort)
+                              (format t "state equality must be of a term of sort Bool.")))
+                          (unless (= 2 (length vars))
+                            (with-output-chaos-error ('number-of-variables)
+                              (format t "state equality pattern must have exactly 2 different variables in it, but ~D given." (length vars))))
+                          (unless (sort= (variable-sort (car vars))
+                                         (variable-sort (cadr vars)))
+                            (with-output-chaos-error ('different-variable-sort)
+                              (format t "variables in state equality pattern must be of the same sort.")))
+                          (unless (sort<= (term-sort t2) (term-sort (car vars))
+                                          *current-sort-order*)
+                            (with-output-chaos-error ('invalid-variable-sort)
+                              (format t "invalid sort of variable in state equality pattern.")))
+                          (cons pred-pat vars)))
+                       (t nil))))
+          ;;
+          ;; initialize search context
+          ;;
+          (setf (rwl-sch-context-cur-depth sch-context) 0
+                (rwl-sch-context-sol-found sch-context) 0
+                (rwl-sch-context-trans-so-far sch-context) 0
+                root (create-sch-node (make-rwl-state :state 0 :term t1)))
+          (setf (rwl-sch-context-root sch-context) root
+                (rwl-sch-context-last-siblings sch-context) (list root)
+                (rwl-sch-context-answers sch-context) nil)
+          ;; state equality predicate
+          (setf (rwl-sch-context-state-predicate sch-context) (make-state-pred-pat))
+          ;; bind context to global for later use...
+          (setf .rwl-sch-context. sch-context)
+          (push sch-context .rwl-context-stack.)
+          ;; term hash
+          (initialize-cexec-term-hash)
+          (cexec-set-hashed-term t1 0)
+          ;;
+          ;; do the search
+          ;;
+          (when *cexec-debug*
+            (print sch-context))
+          (loop
+            (when *chaos-verbose*
+              (format t "~%** << level ~D >>" (rwl-sch-context-cur-depth sch-context)))
+            (multiple-value-setq (res no-more)
+              (rwl-step-forward-1 sch-context))
+            (case res
+              (:max-transitions (return nil)) ; exit loop
+              (:max-solutions
+               (setq found? t)
+               (return nil))            ; exit loop
+              (:found
+               (setq found? t))         ; continue..
+              (otherwise nil))
+            (when no-more
+              (unless *rwl-search-no-state-report*
+                (format t "~%** No more possible transitions."))
+              (return nil))             ; exit if no more ...
+            ;; one step deeper
+            (when (> (rwl-sch-context-cur-depth sch-context)
+                     (rwl-sch-context-max-depth sch-context))
+              (unless *rwl-search-no-state-report*
+                (format t "~%-- reached to the specified search depth ~D."
+                        (rwl-sch-context-max-depth sch-context)))
+              (return-from rwl-search*
+                (if (rwl-sch-context-if sch-context)
+                    (if (rwl-sch-context-pr-out? sch-context)
+                        :found
+                      nil)
+                  (if found? :found :max-depth))))) ; end loop
+          ;; any solution?
+          (cond ((rwl-sch-context-if sch-context)
+                 (if (rwl-sch-context-pr-out? sch-context)
+                     :found
+                   nil))
+                (t (if found? 
+                       ;; yes
+                       :found
+                     ;; no
+                     res))))))))
 
 ;;; report-rwl-result
 ;;;
@@ -1402,8 +1308,7 @@
            (setq found? t))
           (otherwise nil))
         ;; one step deeper
-        (incf (rwl-sch-context-cur-depth sch-context))
-        )                               ; end loop
+        (incf (rwl-sch-context-cur-depth sch-context))) ; end loop
       (if found?
           :found
         res))))
@@ -1418,15 +1323,12 @@
                         (final? nil)
                         (cond nil)
                         (pred nil)
-			(bind nil)
-			;; the followings are experimental
-			(if nil))
-  (let ((module (or *current-module* *last-module*))
+                        (bind nil)
+                        ;; the followings are experimental
+                        (if nil))
+  (let ((module (get-context-module))
         max-r
         max-d)
-    (unless module
-      (with-output-chaos-error ('no-context)
-        (format t "no context module..")))
     (if (integerp max-result)
         (setq max-r max-result)
       (if (term-is-builtin-constant? max-result)
@@ -1439,10 +1341,10 @@
         (setq max-d most-positive-fixnum)))
     (when (and if (not (term-is-variable? if)))
       (with-output-chaos-warning ()
-	(format t "The `if' part is not a varible of sort BOOL, `if' binding is ignored : ")
-	(print-next)
-	(term-print if)
-	(setq if nil)))
+        (format t "The `if' part is not a varible of sort BOOL, `if' binding is ignored : ")
+        (print-next)
+        (term-print if)
+        (setq if nil)))
     ;; ***
     ;; (clear-term-memo-table *term-memo-table*)
     ;; ***
@@ -1452,21 +1354,20 @@
         (rewrite* term)))
     ;;
     (when *cexec-debug*
-      (format t "~&* CEXEC: ")
+      (format t "~%* CEXEC: ")
       (term-print-with-sort term))
     ;;
     (let ((*clean-memo-in-normalize* nil))
       (report-rwl-result 
        (rwl-search* term pattern max-r max-d zero? final? cond pred module bind if)))))
 
-;;; 
 ;;; rwl-check-one-step-reachability : term term -> { t | nil }
 ;;; working hourse of =>
 ;;;
 (defun rwl-check-one-step-reachability (X Y)
   (declare (type term X Y))
   (let ((*clean-memo-in-normalize* nil)
-	(*chaos-quiet* t))
+        (*chaos-quiet* t))
     (report-rwl-result
      (rwl-search* X Y 1 1 t nil nil nil *current-module* nil nil))))
 
@@ -1484,7 +1385,6 @@
 (defun rwl-cont (ast)
   (rwl-continue+ (%continue-num ast)))
 
-;;;
 ;;; for downward compatibility
 ;;;
 (defun nat*-to-max-option (term &optional (infinite most-positive-fixnum))
@@ -1496,8 +1396,7 @@
   (multiple-value-bind (max sym)
       (nat*-to-max-option max-depth)
     (let ((final? nil)
-          (zero? nil)
-          )
+          (zero? nil))
       (case-equal sym
                   ("!" (setq final? t))
                   ("*" (setq zero? t))

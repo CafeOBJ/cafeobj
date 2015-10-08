@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: COMMON-LISP-USER; Base:10; Syntax:Common-Lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -34,12 +34,12 @@
 (eval-when (:execute :load-toplevel)
   (unless (find-package :common-lisp)
     (rename-package :lisp :common-lisp
-		    (union '("CL" "LISP")
-			   (package-nicknames (find-package :lisp)) :test #'string=)))
+                    (union '("CL" "LISP")
+                           (package-nicknames (find-package :lisp)) :test #'string=)))
   (unless (find-package :common-lisp-user)
     (rename-package :user :common-lisp-user
-		    (union '("CL-USER" "USER")
-			   (package-nicknames (find-package :user)) :test #'string=)))
+                    (union '("CL-USER" "USER")
+                           (package-nicknames (find-package :user)) :test #'string=)))
   )
 
 #+LUCID (in-package "user")
@@ -62,7 +62,7 @@
 #+clisp
 (eval-when (:execute :load-toplevel)
   (setq *chaos-root* (namestring (car (directory (concatenate 'string
-						   *chaos-root* "/"))))))
+                                                   *chaos-root* "/"))))))
 
 (defvar chaos::*cafeobj-install-dir*)
 #-(or microsoft (and ccl (not :openmcl)))
@@ -117,10 +117,10 @@
   (chaos::set-cafeobj-standard-library-path)
   (setq *chaos-new* t)
   (ext:save-lisp path
-		 :purify t
-		 :init-function 'chaos::cafeobj-top-level
-		 :print-herald nil
-		 )
+                 :purify t
+                 :init-function 'chaos::cafeobj-top-level
+                 :print-herald nil
+                 )
   )
 
 #+SBCL
@@ -129,11 +129,11 @@
   (chaos::set-cafeobj-standard-library-path)
   (setq *chaos-new* t)
   (sb-ext:save-lisp-and-die path
-			    :toplevel 'chaos::cafeobj-top-level
-			    :purify t
-			    :executable t
-			    :save-runtime-options t
-			    )
+                            :toplevel 'chaos::cafeobj-top-level
+                            :purify t
+                            :executable t
+                            :save-runtime-options t
+                            )
   )
   
 
@@ -143,8 +143,8 @@
   (chaos::set-cafeobj-standard-library-path)
   (setq *chaos-new* t)
   (disksave path
-	    :full-gc t
-	    :restart-function 'chaos::cafeobj-top-level))
+            :full-gc t
+            :restart-function 'chaos::cafeobj-top-level))
 
 #+(and ccl (not :openmcl))
 (defun make-exec-image (path)
@@ -175,8 +175,8 @@
   #||
   (setq excl:*restart-init-function*
     #'(lambda ()
-	(excl:use-background-streams)
-	(excl:start-emacs-lisp-interface t)))
+        (excl:use-background-streams)
+        (excl:start-emacs-lisp-interface t)))
   ||#
   (setq excl:*print-startup-message* nil)
   (setq excl::.dump-lisp-suppress-allegro-cl-banner. t)
@@ -196,7 +196,7 @@
 
 (defun make-cafeobj (&optional chaos-root)
   (format t "~%** making CafeOBJ (~a)" (or chaos-root
-					   *chaos-root*))
+                                           *chaos-root*))
   (when chaos-root
     (setf *chaos-root* chaos-root))
   ;; (mk::operate-on-system :chaosx :compile)
@@ -207,17 +207,17 @@
   (asdf:oos 'asdf:load-op 'chaosx)
   (make-exec-image
    (concatenate 'string *chaos-root*
-		#+GCL "/dumps/gcl/@gcl_dump@"
-		#+microsoft "/dumps/dxl/cafeobj.dxl"
-		#+(and unix Allegro) "/dumps/acl/@acl_dump@"
-		#+CMU "/dumps/cmu/@cmu_dump@"
-		#+SBCL "/dumps/sbcl/@sbcl_dump@"
-		#+CLISP "/dumps/clisp/@clisp_dump@"
-		#+:openmcl "/dumps/ccl/@ccl_dump@"
-		;; patch by t-seino@jaist.ac.jp
-		;; patch by sawada@sra.co.jp
-		#+(and CCL (not :openmcl)) ":dumps:ccl:cafeobj.exe"
-		))
+                #+GCL "/dumps/gcl/@gcl_dump@"
+                #+microsoft "/dumps/dxl/cafeobj.dxl"
+                #+(and unix Allegro) "/dumps/acl/@acl_dump@"
+                #+CMU "/dumps/cmu/@cmu_dump@"
+                #+SBCL "/dumps/sbcl/@sbcl_dump@"
+                #+CLISP "/dumps/clisp/@clisp_dump@"
+                #+:openmcl "/dumps/ccl/@ccl_dump@"
+                ;; patch by t-seino@jaist.ac.jp
+                ;; patch by sawada@sra.co.jp
+                #+(and CCL (not :openmcl)) ":dumps:ccl:cafeobj.exe"
+                ))
   )
 
 (eval-when (:execute :load-toplevel)

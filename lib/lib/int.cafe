@@ -1,5 +1,5 @@
 **
-** Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
 ** modification, are permitted provided that the following conditions
@@ -33,15 +33,15 @@ sys:mod! INT
     protecting (INT-VALUE)
   }
   signature {
-    pred _ divides _ : NzInt Int  { demod prec: 41 }
-    op _ rem _ : Int NzInt -> Int { demod prec: 41 }
-    op _ quo _ : Int NzInt -> Int { demod prec: 41 }
-    op _ + _ : Int Int -> Int { idr: 0 demod prec: 41 }
-    op _ * _ : Int Int -> Int { demod prec: 41 }
-    pred _ < _ : Int Int  { demod prec: 41 }
-    pred _ <= _ : Int Int  { demod prec: 41 }
-    pred _ > _ : Int Int  { demod prec: 41 }
-    pred _ >= _ : Int Int  { demod prec: 41 }
+    pred _ divides _ : NzInt Int  { demod prec: 51 }
+    op _ rem _ : Int NzInt -> Int { demod prec: 31 }
+    op _ quo _ : Int NzInt -> Int { demod prec: 31 }
+    op _ + _ : Int Int -> Int { assoc comm idr: 0 demod prec: 33 }
+    op _ * _ : Int Int -> Int { assoc comm idr: 1 demod prec: 31 }
+    pred _ < _ : Int Int  { demod prec: 51 }
+    pred _ <= _ : Int Int  { demod prec: 51 }
+    pred _ > _ : Int Int  { demod prec: 51 }
+    pred _ >= _ : Int Int  { demod prec: 51 }
     op s _ : Int -> Int { strat: (0 1) demod prec: 15 }
     op _ - _ : Int Int -> Int { strat: (0 1 2) demod prec: 33 r-assoc }
     op - _ : Int -> Int { demod prec: 15 }

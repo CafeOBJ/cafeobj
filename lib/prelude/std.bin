@@ -7,7 +7,7 @@
 * NOTE : DO NOT MODIFY THIS FILE ULESS YOU REALLY KNOW WHAT YOU ARE DOING!.
 ||#
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -37,8 +37,7 @@
 (eval-when (:execute :load-toplevel)
 ;;; system standard prelude.
 (setq *include-bool* t)
-(setf *last-module* nil
-      *current-module* nil)
+(setf *current-module* nil)
 (setf *print-circle* nil)
 (setf *print-pretty* nil)
 (install-prelude)
@@ -54,18 +53,12 @@
     ("FLOAT" . "float")
     ("CHARACTER" . "character")
     ("FOPL-CLAUSE" . "fopl")
-    ("PROPC" . "propc")
+    ;; ("PROPC" . "propc")
     ("STRING" . "string")
     ("2TUPLE" . "2tuple")
     ("3TUPLE" . "3tuple")
     ("4TUPLE" . "4tuple")
     ("EQL" . "eql")
-    ("AVPAIR" . "reobject")
-    ("RECORD-STRUCTURE" . "reobject")
-    ("OBJECT-ID" . "reobject")
-    ("OBJECT" . "reobject")
-    ("STATE-CONFIGURATION" . "reobject")
-    ("ACZ-CONFIGURATION" . "reobject")
     ("QID" . "qid")
     ("META-LEVEL" . "metalevel")
     ))

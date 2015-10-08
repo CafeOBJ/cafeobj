@@ -17,6 +17,8 @@
 *.status
 *.ilg
 *.ind
+*.bbl
+*.blg
 *.out
 *.toc
 *.synctex.gz
@@ -44,3 +46,15 @@ manual/md/reference-manual.bbl
 manual/md/reference-manual.run.xml
 manual/md/reference-manual.tex
 auto
+build-stamp
+doc/refman/reference-manual.bcf
+doc/refman/reference-manual.epub
+doc/refman/reference-manual.odt
+doc/refman/reference-manual.run.xml
+doc/refman/reference-manual.tex
+install-stamp
+make-cafeobj.lisp
+tswd
+version.lisp
+xbin/cafeobj.in
+dumps

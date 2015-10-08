@@ -1,6 +1,6 @@
 ;;; -*- Mode: LISP; Syntax: Common-Lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -32,58 +32,58 @@
   )
 (defun make-app (path)
   (generate-application "CafeOBJ"
-			#-:mswindows
-			"dumps/acl-standalone/"
-			#+:mswindows
-			"dist/cafeobj-1.5/"
-			'("pignose.fasl"
-			  :emacs
-			  :eli
-			  :sock
-			  :process
-			  :acldns
-			  :collate
-			  :euc
-			  :ffcompat
-			  :list2
-			  :fileutil
-			  :foreign
-			  :trace
-			  :hmac
-			  :locale
-			  :regexp2
-			  #-:mswindows :sigio 
-			  :ssl
-			  :streama
-			  :streamm
-			  :streamc
-			  :streamp)
-			:application-type :exe
-			:print-startup-message nil
-			:allow-existing-directory t
-			:copy-shared-libraries t
-			:read-init-files nil
-			:restart-app-function 'chaos::cafeobj-top-level
-			;; :restart-init-function 'chaos::chaos-init-fun
-			:runtime :standard
-			:suppress-allegro-cl-banner t
-			:runtime-bundle t
-			:include-compiler nil
-			;; :record-source-file-info nil
-			;; :record-xref-info nil
-			;; :load-source-file-info nil
-			;; :load-xref-info nil
-			;; :load-local-names-info nil
-			:autoload-warning t
-			:discard-local-name-info t
-			:discard-source-file-info t
-			;; :discard-xref-into t
-			:discard-arglists t
-			:application-administration
-			'(#+:mswindows
-			  (:batch-file "cafeobj.bat")
-			  )
-			))
+                        #-:mswindows
+                        "dumps/acl-standalone/"
+                        #+:mswindows
+                        "dist/cafeobj-1.5/"
+                        '("pignose.fasl"
+                          :emacs
+                          :eli
+                          :sock
+                          :process
+                          :acldns
+                          :collate
+                          :euc
+                          :ffcompat
+                          :list2
+                          :fileutil
+                          :foreign
+                          :trace
+                          :hmac
+                          :locale
+                          :regexp2
+                          #-:mswindows :sigio 
+                          :ssl
+                          :streama
+                          :streamm
+                          :streamc
+                          :streamp)
+                        :application-type :exe
+                        :print-startup-message nil
+                        :allow-existing-directory t
+                        :copy-shared-libraries t
+                        :read-init-files nil
+                        :restart-app-function 'chaos::cafeobj-top-level
+                        ;; :restart-init-function 'chaos::chaos-init-fun
+                        :runtime :standard
+                        :suppress-allegro-cl-banner t
+                        :runtime-bundle t
+                        :include-compiler nil
+                        ;; :record-source-file-info nil
+                        ;; :record-xref-info nil
+                        ;; :load-source-file-info nil
+                        ;; :load-xref-info nil
+                        ;; :load-local-names-info nil
+                        :autoload-warning t
+                        :discard-local-name-info t
+                        :discard-source-file-info t
+                        ;; :discard-xref-into t
+                        :discard-arglists t
+                        :application-administration
+                        '(#+:mswindows
+                          (:batch-file "cafeobj.bat")
+                          )
+                        ))
 
 (eval-when (eval load)
   (make-app nil))

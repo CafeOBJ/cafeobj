@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				  System:Chaos
-				 Module:comlib
-				 File: lex.lisp
+                                  System:Chaos
+                                 Module:comlib
+                                 File: lex.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -46,7 +46,7 @@
 ;;;
 
 ;;;=============================================================================
-;;; 		  *** CHAOS BUILTIN LEXICAL CATEGORIES ***
+;;;               *** CHAOS BUILTIN LEXICAL CATEGORIES ***
 ;;;=============================================================================
 
 (eval-when (:execute :compile-toplevel :load-toplevel)
@@ -112,7 +112,7 @@
 (defvar *reader-read-table*)
 (eval-when (:execute :load-toplevel)
   (setf *reader-read-table* (make-array (list .reader-char-code-limit.)
-					:initial-element nil)))
+                                        :initial-element nil)))
 
 (defmacro !set-syntax (ch val)
   `(setf (aref *reader-read-table* (the fixnum (char-code ,ch))) ,val))
@@ -121,7 +121,7 @@
   (dotimes (x .reader-char-code-limit.)
     (let ((syntax (aref *reader-read-table* x)))
       (when syntax
-	(format stream "~&~S : ~S" (code-char x) syntax)))))
+        (format stream "~%~S : ~S" (code-char x) syntax)))))
 
 ;;; !INIT-READ-TABLE : List[Char] List[Char] List[Char] -> Void
 ;;; initialize Chaos read table.
@@ -131,7 +131,7 @@
 ;;;
 (defun !init-read-table (space return single)
   (declare (type list space return single)
-	   (values t))
+           (values t))
   #||
   (do ((i 0 (1+ i)))
       ((= i .reader-char-code-limit.))
@@ -162,21 +162,21 @@
 ;;;
 (defun !set-single-reader (l)
   (declare (type list l)
-	   (values t))
+           (values t))
   (mapcar #'(lambda (x)
-	      (declare (type (or simple-string character) x))
-	      (let ((chr (if (and (stringp x)
-				  (= (length x) 1))
-			     (char (the string x) 0)
-			   (if (characterp x)
-			       x
-			     (with-output-chaos-error ('invalid-str)
-			       (format t "delimiter must be a single character, but ~a is given" x))))))
-		(prog1
-		    (cons chr (reader-get-syntax chr))
-		  ;; (print chr)
-		  (!set-syntax chr (intern (string x))))))
-	  l))
+              (declare (type (or simple-string character) x))
+              (let ((chr (if (and (stringp x)
+                                  (= (length x) 1))
+                             (char (the string x) 0)
+                           (if (characterp x)
+                               x
+                             (with-output-chaos-error ('invalid-str)
+                               (format t "delimiter must be a single character, but ~a is given" x))))))
+                (prog1
+                    (cons chr (reader-get-syntax chr))
+                  ;; (print chr)
+                  (!set-syntax chr (intern (string x))))))
+          l))
 
 ;;; !SET-READER list-of-chars
 ;;; modify a sequence of characters for syntax as given by associated values.
@@ -184,17 +184,17 @@
 ;;;
 (defun !set-reader (l)
   (declare (type list l)
-	   (values t))
+           (values t))
   (mapc #'(lambda (x)
-	    (declare (type list x))
+            (declare (type list x))
             (let ((s (car x)))
-	      (declare (type (or simple-string character) s))
-	      (!set-syntax
-	       (if (stringp s)
-		   (char (the string s) 0)
-		   s)
-	       (cdr x))))
-	l))
+              (declare (type (or simple-string character) s))
+              (!set-syntax
+               (if (stringp s)
+                   (char (the string s) 0)
+                   s)
+               (cdr x))))
+        l))
 
 ;;; !READ-IN
 ;;; read a token iff the last input is not processed yet,
@@ -222,38 +222,31 @@
   ` (when (eq *reader-input* *reader-void*)
       (setq *reader-input* (read-sym))))
 
-(defmacro reader-is-at-eof ()
-  `(eq *lex-eof* *reader-input*))
-
-(defmacro at-eof-or-control-d ()
-  `(or (reader-is-at-eof)
-       (equal *reader-input* control-d-string)))
-
 ;;; !READ-DISCARD
 ;;; discard the last input token.
 ;;;
 (defmacro !read-discard ()
   `(progn ;; (clear-input)
-	  ;; (setq *token-buf* nil)
-	  (setq *reader-input* *reader-void*)))
+          ;; (setq *token-buf* nil)
+          (setq *reader-input* *reader-void*)))
 
 ;;; !READ-SYM
 ;;; read a token.
 ;;;
 (defun !read-sym ()
   (cond ((eq *reader-input* *reader-void*) (read-sym))
-	(t (prog1 *reader-input*
-	     (!read-discard)))))
+        (t (prog1 *reader-input*
+             (!read-discard)))))
 
 ;;;
 (defun test-lex (file)
   (!lex-read-init)
   (with-open-file (str file :direction :input)
     (let ((tok nil)
-	  (*standard-input* str))
+          (*standard-input* str))
       (while-not (eq tok *lex-eof*)
          (setf tok (!read-sym))
-	 (print tok)))))
+         (print tok)))))
 
 ;;; SIMPLE READER_______________________________________________________________
 ;;;
@@ -273,48 +266,48 @@
 
 (defun read-lines (&optional (stream *standard-input*))
   (declare (type stream stream)
-	   (values simple-string fixnum))
+           (values simple-string fixnum))
   (let (res
-	line
-	(ll 0)
-	l-char 
-	(l-total 0))
+        line
+        (ll 0)
+        l-char 
+        (l-total 0))
     (declare (type fixnum l-total ll))
     (loop (setq line (read-line stream nil .read-line-eof.))
       (when (eq line .read-line-eof.) (return))
       (when (<= (setq ll (length (the simple-string line))) 0)
-	(return))
+        (return))
       (incf l-total ll)
       (decf ll)
       (setq l-char (char line ll))
       (if (char= line-continue-char (the character l-char))
-	  (progn
-	    (setq res (concatenate 'string res
-				   (setq line (subseq (the simple-string line)
-						      0 ll))
-				   newline-string
-				   ))
-	    ;; (decf l-total)
-	    (when (at-top-level)
-	      (princ "> ")
-	      (force-output)))
-	(progn
-	  (setq res (concatenate 'string
-		      res
-		      (if (char= #\. (the character l-char))
-			  (progn
-			    ;; (decf l-total)
-			    (subseq line 0 ll))
-			line)))
-	  (return))))
+          (progn
+            (setq res (concatenate 'string res
+                                   (setq line (subseq (the simple-string line)
+                                                      0 ll))
+                                   newline-string
+                                   ))
+            ;; (decf l-total)
+            (when (at-top-level)
+              (princ "> ")
+              (force-output)))
+        (progn
+          (setq res (concatenate 'string
+                      res
+                      (if (char= #\. (the character l-char))
+                          (progn
+                            ;; (decf l-total)
+                            (subseq line 0 ll))
+                        line)))
+          (return))))
     (if (eq line .read-line-eof.)
-	(values *lex-eof* 0)
+        (values *lex-eof* 0)
       (let ((str (if res
-		     (if *live-newline*
-			 (add-new-line res)
-		       res)
-		   "")))
-	(values str (length str))))))
+                     (if *live-newline*
+                         (add-new-line res)
+                       res)
+                   "")))
+        (values str (length str))))))
 
 ;;; the global .reader-ch. holds the last char read.
 ;;; if the character has a property other than 'nil, the property value is set,
@@ -329,37 +322,43 @@
 (defvar .default-escape-char. #\\)
 
 ;;; 
-#-CMU (defparameter control-d #\^D)
-#+CMU (defparameter control-d #\)
+(defparameter control-d #\Eot)
 (defparameter control-d-string "")
 (defparameter input-escape #\esc)
 (defparameter input-escape-string "")
 
-(defmacro at-eof () `(eq *lex-eof* .reader-ch.))
-
 (defmacro see-ctrl-d ()
   `(eq .reader-ch. control-d))
 
+(defmacro reader-is-at-eof ()
+  `(eq *lex-eof* *reader-input*))
+
+(defmacro at-eof () `(or (see-ctrl-d) (eq *lex-eof* .reader-ch.)))
+
+(defmacro at-eof-or-control-d ()
+  `(or (at-eof)
+       (equal *reader-input* control-d-string)))
+
+
+
 (defmacro see-input-escape ()
   `(eq .reader-ch. input-escape))
-;; (defmacro see-input-escape ()
-;;  `(eq .reader-ch. control-d))
   
 (defun str-match? (x y)
   (declare (type t x)
-	   (type (or symbol simple-string) y)
-	   (values (or null t)))
+           (type (or symbol simple-string) y)
+           (values (or null t)))
   (or (eq x y)
       (and (stringp x)
-	   (string= (the simple-string x)
-		    (if (stringp y)
-			(the simple-string y)
-		      (string-downcase (string (the symbol y))))))))
+           (string= (the simple-string x)
+                    (if (stringp y)
+                        (the simple-string y)
+                      (string-downcase (string (the symbol y))))))))
 
 (defun lex-string-match(x y)
   (declare (type t x)
-	   (type (or atom list) y)
-	   (values (or null t)))
+           (type (or atom list) y)
+           (values (or null t)))
   (if (atom y)
       (str-match? x y)
       (member x y :test #'str-match?)))
@@ -368,8 +367,8 @@
 ;;; reads a one character from stream, set .reader-ch. handling ESCAPE sequence.
 ;;;
 (declaim (special .reader-escape.))
-(defvar .reader-escape. nil)		; flags indicating we are now in `escaped'
-					; status.
+(defvar .reader-escape. nil)            ; flags indicating we are now in `escaped'
+                                        ; status.
 
 ;; (defvar .read-buffer. nil)
 ;; (defvar .read-pos. 0)
@@ -380,53 +379,53 @@
 
 (defun reader-get-char (stream)
   (declare (type stream stream)
-	   (values t))
+           (values t))
   (let ((inch (read-char stream nil *lex-eof*)))
     (cond ((eq inch *lex-eof*)
-	   (setf .reader-ch. *lex-eof*))
-	  #||
-	  (.reader-escape.
-	   (setf .reader-ch. inch))
-	  ((char= .escape-char. inch)
-	   (let ((.reader-escape. t))
-	     (setf .reader-ch. 'space)
-	     (reader-get-char stream)))
-	  ||#
-	  (t (unless *chaos-input-source*
-	       ;; interactive session
-	       (if (and (char= inch #\newline)
-			*last-newline*)
-		   (incf .newline-count.)
-		 (if (char= inch #\newline)
-		     (setq *last-newline* t)
-		   (setf .newline-count. 0
-			 *last-newline* nil)))
-	       (when (> .newline-count. 2)
-		 (!read-discard)
-		 (clear-input)
-		 (setq *last-newline* nil)
-		 (setq .newline-count. 0)
-		 (throw :aborting-read :aborting-read)))
-	     ;;
-	     (let ((val (reader-get-syntax inch)))
-	       (setf .reader-ch. (if val val inch)))))))
+           (setf .reader-ch. *lex-eof*))
+          #||
+          (.reader-escape.
+           (setf .reader-ch. inch))
+          ((char= .escape-char. inch)
+           (let ((.reader-escape. t))
+             (setf .reader-ch. 'space)
+             (reader-get-char stream)))
+          ||#
+          (t (unless *chaos-input-source*
+               ;; interactive session
+               (if (and (char= inch #\newline)
+                        *last-newline*)
+                   (incf .newline-count.)
+                 (if (char= inch #\newline)
+                     (setq *last-newline* t)
+                   (setf .newline-count. 0
+                         *last-newline* nil)))
+               (when (> .newline-count. 2)
+                 (!read-discard)
+                 (clear-input)
+                 (setq *last-newline* nil)
+                 (setq .newline-count. 0)
+                 (throw :aborting-read :aborting-read)))
+             ;;
+             (let ((val (reader-get-syntax inch)))
+               (setf .reader-ch. (if val val inch)))))))
 
 ; (defun reader-get-char (stream)
 ;   (declare (type stream stream)
-; 	   (values t))
+;          (values t))
 ;   (let ((inch (read-char stream nil *lex-eof*)))
 ;     (cond ((eq inch *lex-eof*)
-; 	   (setf .reader-ch. *lex-eof*))
-; 	  #||
-; 	  (.reader-escape.
-; 	   (setf .reader-ch. inch))
-; 	  ((char= .escape-char. inch)
-; 	   (let ((.reader-escape. t))
-; 	     (setf .reader-ch. 'space)
-; 	     (reader-get-char stream)))
-; 	  ||#
-; 	  (t (let ((val (reader-get-syntax inch)))
-; 	       (setf .reader-ch. (if val val inch)))))))
+;          (setf .reader-ch. *lex-eof*))
+;         #||
+;         (.reader-escape.
+;          (setf .reader-ch. inch))
+;         ((char= .escape-char. inch)
+;          (let ((.reader-escape. t))
+;            (setf .reader-ch. 'space)
+;            (reader-get-char stream)))
+;         ||#
+;         (t (let ((val (reader-get-syntax inch)))
+;              (setf .reader-ch. (if val val inch)))))))
 
 ;;; READ-LEXICON : STREAM -> TOKEN
 ;;; read a lexicon.
@@ -446,28 +445,28 @@
 (defun read-lexicon (&optional (stream *standard-input*))
   (declare (type stream stream))
   (let ((p -1)
-	res)
+        res)
     (declare (type fixnum p)
-	     (type (or symbol list simple-string) res))
+             (type (or symbol list simple-string) res))
     (setq res
-	  (loop (cond ((member .reader-ch. '(#\Rubout #\Backspace))
-		       (if (<= 0 p)
-			   (decf p 1)))
-		      ((characterp .reader-ch.)
-		       (incf p)
-		       (setf (aref .reader-buf. p) .reader-ch.))
-		      (t (let ((c (string .reader-ch.)))
-			   (setq .reader-ch. 'space)
-			   (return c))))
-		(reader-get-char stream)
-		(when (at-eof)
-		  (if (<= 0 p)
-		      (progn (setq .reader-ch. 'space)
-			     (return (subseq .reader-buf. 0 (1+ p))))
-		      (return *lex-eof*)))
-		(when (symbolp .reader-ch.)
-		  (return (subseq .reader-buf. 0 (1+ p))))
-		))
+          (loop (cond ((member .reader-ch. '(#\Rubout #\Backspace))
+                       (if (<= 0 p)
+                           (decf p 1)))
+                      ((characterp .reader-ch.)
+                       (incf p)
+                       (setf (aref .reader-buf. p) .reader-ch.))
+                      (t (let ((c (string .reader-ch.)))
+                           (setq .reader-ch. 'space)
+                           (return c))))
+                (reader-get-char stream)
+                (when (at-eof)
+                  (if (<= 0 p)
+                      (progn (setq .reader-ch. 'space)
+                             (return (subseq .reader-buf. 0 (1+ p))))
+                      (return *lex-eof*)))
+                (when (symbolp .reader-ch.)
+                  (return (subseq .reader-buf. 0 (1+ p))))
+                ))
     ;;
     (lex-consider-token res)))
 
@@ -476,32 +475,32 @@
   (if (equal .chaos-simple-LISP-keyword. tok)
       (progn (reader-suppress-ch tok) (list .lisp-simple-sexpr. (read)))
     (if (equal .chaos-general-lisp-keyword. tok)
-	(progn (reader-suppress-ch tok) (list .lisp-general-sexpr. (read)))
+        (progn (reader-suppress-ch tok) (list .lisp-general-sexpr. (read)))
       (if (equal .chaos-value-keyword. tok)
-	  (progn (reader-suppress-ch tok) (list .chaos-value-sexpr. (read)))
-	tok))))
+          (progn (reader-suppress-ch tok) (list .chaos-value-sexpr. (read)))
+        tok))))
 
 (defun reader-suppress-ch (context &optional (stream *standard-input*))
   (declare (ignore context)
-	   (type stream stream)
-	   (values t))
+           (type stream stream)
+           (values t))
   (unless (at-eof)
     (unless (memq .reader-ch. '(space return))
       (unread-char (if (characterp .reader-ch.)
-		       .reader-ch.
-		       (char (the simple-string (string .reader-ch.)) 0))
-		   stream)
+                       .reader-ch.
+                       (char (the simple-string (string .reader-ch.)) 0))
+                   stream)
       (setq .reader-ch. 'space))))
 
 (defun reader-unread (ch stream)
   (declare (type (or symbol character) ch)
-	   (type stream stream)
-	   (values t))
+           (type stream stream)
+           (values t))
   (unless (memq ch '(space return))
     (unread-char (if (characterp ch)
-		     ch
-		     (char (the simple-string (string (the symbol ch))) 0))
-		 stream)
+                     ch
+                     (char (the simple-string (string (the symbol ch))) 0))
+                 stream)
     ch))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -511,22 +510,22 @@
     (loop
       (reader-get-char stream)
       (cond ((at-eof)
-	     (setf .reader-ch. 'space)
-	     (!read-discard)
-	     (return-from skip-multi-comment *lex-eof*))
-	    (t (case .reader-ch.
-		 (#\" (lex-read-string stream))
-		 (#\|
-		  (reader-get-char stream)
-		  (when (equal .reader-ch. #\#)
-		    (!read-discard)
-		    (setq .reader-ch. 'space)
-		    (return-from skip-multi-comment nil))
-		  (when (at-eof)
-		    (setf .reader-ch. 'space)
-		    (!read-discard)
-		    (return-from skip-multi-comment *lex-eof*))
-		  (reader-unread .reader-ch. stream))))))))
+             (setf .reader-ch. 'space)
+             (!read-discard)
+             (return-from skip-multi-comment *lex-eof*))
+            (t (case .reader-ch.
+                 (#\" (lex-read-string stream))
+                 (#\|
+                  (reader-get-char stream)
+                  (when (equal .reader-ch. #\#)
+                    (!read-discard)
+                    (setq .reader-ch. 'space)
+                    (return-from skip-multi-comment nil))
+                  (when (at-eof)
+                    (setf .reader-ch. 'space)
+                    (!read-discard)
+                    (return-from skip-multi-comment *lex-eof*))
+                  (reader-unread .reader-ch. stream))))))))
 
 ;;; READ-SYM : STREAM -> TOKEN
 ;;; read characters considered to be constructs of a token, returns
@@ -544,12 +543,12 @@
 
 (defun read-sym (&optional (stream *standard-input*) (parse-list nil))
   (declare (type stream stream)
-	   (type (or null t) parse-list))
+           (type (or null t) parse-list))
   (flet ((skip-whites ()
-	   ;; skip white chars.
-	   (while (memq .reader-ch. (if *live-newline* '(space)
-				      '(space return)))
-	     (reader-get-char stream))))
+           ;; skip white chars.
+           (while (memq .reader-ch. (if *live-newline* '(space)
+                                      '(space return)))
+             (reader-get-char stream))))
     (when *token-buf*
       (return-from read-sym (pop *token-buf*)))
     ;; skip white chars.
@@ -557,78 +556,78 @@
     ;; get token
     ;; (setq *last-token* nil)
     (cond ((at-eof) (setf .reader-ch. 'space)
-		    (!read-discard)
-		    (return-from read-sym (progn (setq *last-token* *reader-void*) *lex-eof*)))
-	  ((see-input-escape)
-	   ;; user forces aborting reading process.
-	   (setq .reader-ch. 'space)
-	   (!read-discard)
-	   (clear-input)
-	   (throw :aborting-read :aborting-read))
-	  (t (case .reader-ch.
-	       (|(| (if parse-list
-			(setq *last-token* (lex-read-list stream))
-		      (progn
-			(setq .reader-ch. 'space)
-			(setq *last-token* "(")))
-		   (return-from read-sym *last-token*))
-	       (return
-		 (setq .reader-ch. 'space)
-		 (setq *last-token* (if *live-newline*
-					'(return)
-				      *reader-void*))
-		 (return-from read-sym *last-token*))
-	       (#\"			; string
-		(return-from read-sym (setq *last-token* (list (lex-read-string stream)))))
-	       (#\#			; #! or #!!
-		(reader-get-char stream)
-		(cond ((memq .reader-ch. '(space return))
-		       (return-from read-sym (setq *last-token* '("#"))))
-		      ((eq .reader-ch. *lisp-escape-char*)
-		       (return-from read-sym (setq *last-token* (lex-read-lisp-escape stream))))
-		      ((eq .reader-ch. *chaos-escape-char*)
-		       (return-from read-sym (setq *last-token* (lex-read-chaos-value stream))))
-		      ((equal .reader-ch. #\|) ; begin multi comment
-		       (setq .lex-inner-multi-comment. t)
-		       (skip-multi-comment stream)
-		       (setq .lex-inner-multi-comment. nil)
-		       (skip-whites))
-		      (t (reader-unread .reader-ch. stream)
-			 (setq .reader-ch. #\#)
-			 (let ((tok (read-lexicon stream)))
-			   (if (equal tok *lex-eof*)
-			       (return-from read-sym
-				 (progn (setq *last-token* *reader-void*)
-					*lex-eof*))
-			     (return-from read-sym (setq *last-token* tok))))))))
-	     ;;
-	     (if (symbolp .reader-ch.)
-		 (let ((str (string .reader-ch.)))
-		   (setq .reader-ch. 'space)
-		   (return-from read-sym (setq *last-token* (lex-consider-token str))))
-	       (let ((tok (read-lexicon stream)))
-		 (if (eq tok *lex-eof*)
-		     (return-from read-sym
-		       (progn (setq *last-token* *reader-void*)
-			      *lex-eof*))
-		   (return-from read-sym (setq *last-token* tok)))))))))
+                    (!read-discard)
+                    (return-from read-sym (progn (setq *last-token* *reader-void*) *lex-eof*)))
+          ((see-input-escape)
+           ;; user forces aborting reading process.
+           (setq .reader-ch. 'space)
+           (!read-discard)
+           (clear-input)
+           (throw :aborting-read :aborting-read))
+          (t (case .reader-ch.
+               (|(| (if parse-list
+                        (setq *last-token* (lex-read-list stream))
+                      (progn
+                        (setq .reader-ch. 'space)
+                        (setq *last-token* "(")))
+                   (return-from read-sym *last-token*))
+               (return
+                 (setq .reader-ch. 'space)
+                 (setq *last-token* (if *live-newline*
+                                        '(return)
+                                      *reader-void*))
+                 (return-from read-sym *last-token*))
+               (#\"                     ; string
+                (return-from read-sym (setq *last-token* (list (lex-read-string stream)))))
+               (#\#                     ; #! or #!!
+                (reader-get-char stream)
+                (cond ((memq .reader-ch. '(space return))
+                       (return-from read-sym (setq *last-token* '("#"))))
+                      ((eq .reader-ch. *lisp-escape-char*)
+                       (return-from read-sym (setq *last-token* (lex-read-lisp-escape stream))))
+                      ((eq .reader-ch. *chaos-escape-char*)
+                       (return-from read-sym (setq *last-token* (lex-read-chaos-value stream))))
+                      ((equal .reader-ch. #\|) ; begin multi comment
+                       (setq .lex-inner-multi-comment. t)
+                       (skip-multi-comment stream)
+                       (setq .lex-inner-multi-comment. nil)
+                       (skip-whites))
+                      (t (reader-unread .reader-ch. stream)
+                         (setq .reader-ch. #\#)
+                         (let ((tok (read-lexicon stream)))
+                           (if (equal tok *lex-eof*)
+                               (return-from read-sym
+                                 (progn (setq *last-token* *reader-void*)
+                                        *lex-eof*))
+                             (return-from read-sym (setq *last-token* tok))))))))
+             ;;
+             (if (symbolp .reader-ch.)
+                 (let ((str (string .reader-ch.)))
+                   (setq .reader-ch. 'space)
+                   (return-from read-sym (setq *last-token* (lex-consider-token str))))
+               (let ((tok (read-lexicon stream)))
+                 (if (eq tok *lex-eof*)
+                     (return-from read-sym
+                       (progn (setq *last-token* *reader-void*)
+                              *lex-eof*))
+                   (return-from read-sym (setq *last-token* tok)))))))))
 
 ;;; builtin string reader
 (defun lex-read-string (stream)
   (declare (type stream stream)
-	   (values t))
+           (values t))
   (reader-unread .reader-ch. stream)
   (let ((str (read stream nil *lex-eof*)))
     (if (eq str *lex-eof*)
-	*lex-eof*
-	(prog1 
-	    (list .String-token. str)
-	  (setf .reader-ch. 'space)))))
+        *lex-eof*
+        (prog1 
+            (list .String-token. str)
+          (setf .reader-ch. 'space)))))
 
 ;; builtin lisp expression
 (defun lex-read-lisp-escape (stream)
   (declare (type stream stream)
-	   (values list))
+           (values list))
   (let ((nx nil))
     (setq nx (reader-get-char stream))
     (while (memq .reader-ch. '(space return))
@@ -637,32 +636,32 @@
       ((*lisp-escape-char* *chaos-escape-char*)
        ;; #!!
        (let ((expr (read stream nil *lex-eof*)))
-	 (setq .reader-ch. 'space)
-	 (if (equal expr *lex-eof*)
-	     (progn (setq *last-token* *reader-void*)
-		    (setq .reader-ch. 'space)
-		    *lex-eof*)
-	   (list .lisp-general-sexpr. expr))))
+         (setq .reader-ch. 'space)
+         (if (equal expr *lex-eof*)
+             (progn (setq *last-token* *reader-void*)
+                    (setq .reader-ch. 'space)
+                    *lex-eof*)
+           (list .lisp-general-sexpr. expr))))
       (otherwise
        ;; #!
        (let ((expr nil))
-	 (setq .reader-ch. 'space)
-	 (reader-unread nx stream)
-	 (setq expr (read stream nil *lex-eof*))
-	 (if (equal expr *lex-eof*)
-	     (progn (setq *last-token* *reader-void*)
-		    *lex-eof*)
-	   (list .lisp-simple-sexpr. expr))))))
+         (setq .reader-ch. 'space)
+         (reader-unread nx stream)
+         (setq expr (read stream nil *lex-eof*))
+         (if (equal expr *lex-eof*)
+             (progn (setq *last-token* *reader-void*)
+                    *lex-eof*)
+           (list .lisp-simple-sexpr. expr))))))
   )
 
 (defun lex-read-chaos-value (stream)
   (declare (type stream stream)
-	   (values list))
+           (values list))
   (let ((expr (read stream nil *lex-eof*)))
     (setq .reader-ch. 'space)
     (if (equal expr *lex-eof*)
-	(progn (setq *last-token* *reader-void*)
-	       *lex-eof*)
+        (progn (setq *last-token* *reader-void*)
+               *lex-eof*)
       (list .chaos-value-sexpr. expr))))
 
 ;;; builtin character reader : obsolate
@@ -670,23 +669,23 @@
 (defun lex-read-character (stream)
   (let ((char (read-char stream nil *lex-eof*)))
     (if (eq char *lex-eof*)
-	*lex-eof*
-	(progn
-	  (when (eql char #\\)		; escape char
-	    (let ((echar (read-char stream nil *lex-eof*)))
-	      (if (eq echar *lex-eof*)
-		  (return-from lex-read-character *lex-eof*)
-		  (setf char
-			(case echar
-			  (#\n #\Newline)
-			  (#\r #\Return)
-			  (#\t #\Tab)
-			  (#\s #\Space)
-			  (#\l #\LineFeed)
-			  (#\p #\Page)
-			  (otherwise echar))))))
-	  (setf .reader-ch. 'space)
-	  (list .Char-token. char)))))
+        *lex-eof*
+        (progn
+          (when (eql char #\\)          ; escape char
+            (let ((echar (read-char stream nil *lex-eof*)))
+              (if (eq echar *lex-eof*)
+                  (return-from lex-read-character *lex-eof*)
+                  (setf char
+                        (case echar
+                          (#\n #\Newline)
+                          (#\r #\Return)
+                          (#\t #\Tab)
+                          (#\s #\Space)
+                          (#\l #\LineFeed)
+                          (#\p #\Page)
+                          (otherwise echar))))))
+          (setf .reader-ch. 'space)
+          (list .Char-token. char)))))
 ||#
 
 ;;; read up to matching close parenthesis
@@ -698,55 +697,55 @@
 
 (defun lex-read-rest-of-list (&optional (stream *standard-input*))
   (declare (type stream stream)
-	   (values list))
+           (values list))
   (while (memq .reader-ch. '(space return))
     (reader-get-char stream))
   (if (at-eof)
       *lex-eof*
       (if (eq '|)| .reader-ch.)
-	  (progn
-	    (reader-get-char stream)
-	    (list "(" ")"))
-	  (let ((res (list "("))
-		x)
-	    (loop (setq x (lex-read stream))
-		  (when (eq *lex-eof* x)
-		    (return *lex-eof*))
-		  (setq res (append res x))
-		  ;; (wait-until-non-white stream)
-		  (while (memq .reader-ch. '(space return))
-		    (reader-get-char stream))
-		  (when (eq '|)| .reader-ch.)
-		    (reader-get-char stream)
-		    (return (nconc res (list ")"))))
-		  (when (at-eof)
-		    (return *lex-eof*)))
-	    ))))
+          (progn
+            (reader-get-char stream)
+            (list "(" ")"))
+          (let ((res (list "("))
+                x)
+            (loop (setq x (lex-read stream))
+                  (when (eq *lex-eof* x)
+                    (return *lex-eof*))
+                  (setq res (append res x))
+                  ;; (wait-until-non-white stream)
+                  (while (memq .reader-ch. '(space return))
+                    (reader-get-char stream))
+                  (when (eq '|)| .reader-ch.)
+                    (reader-get-char stream)
+                    (return (nconc res (list ")"))))
+                  (when (at-eof)
+                    (return *lex-eof*)))
+            ))))
 
 ;;; LEX-READ : STREAM -> List[Token]
 ;;; standard routine to get token from stream.
 ;;;
 (defun bi-token? (tok)
   (declare (type t tok)
-	   (values (or null t)))
+           (values (or null t)))
   (and (consp tok)
        (let ((tm (car tok)))
-	 (and (symbolp tm)
-	      (get tm ':bi-token)))))
+         (and (symbolp tm)
+              (get tm ':bi-token)))))
 
 (defun lex-read (&optional (stream *standard-input*))
   (declare (type stream stream)
-	   (values t))
+           (values t))
   (let ((tok (read-sym stream t)))
     (if (eq *lex-eof* tok)
-	*lex-eof*
-	(cond ((atom tok)
-	       (if tok
-		   (list tok)
-		   nil))
-	      (t (if (bi-token? tok)
-		     (list tok)
-		     tok))))))
+        *lex-eof*
+        (cond ((atom tok)
+               (if tok
+                   (list tok)
+                   nil))
+              (t (if (bi-token? tok)
+                     (list tok)
+                     tok))))))
 
 ;;; returns t iff the characters in the string are all digit char.
 
@@ -754,9 +753,9 @@
   (once-only (string)
    ` (the (or null t)
        (do ((s (the fixnum ,start) (1+ s)))
-	   ((>= s ,end) t)
-	 (declare (type fixnum s end))
-	 (if (not (digit-char-p (schar ,string s))) (return nil))))))
+           ((>= s ,end) t)
+         (declare (type fixnum s end))
+         (if (not (digit-char-p (schar ,string s))) (return nil))))))
     
 ;;; BUFFERED-INPUT______________________________________________________________
 ;;; one token is bufferd.
@@ -792,48 +791,48 @@
 
 (defun !force-single-reader (l)
   (declare (type list l)
-	   (values t))
+           (values t))
   (dolist (x l)
     (let* ((chr (if (and (stringp x)
-			(= (length x) 1))
-		   (char (the string x) 0)
-		 (if (characterp x)
-		     x
-		   (with-output-chaos-error ('invalid-str)
-		     (format t "delimiter must be a single character, but ~a is given" x)))))
-	   (sym (intern (string x))))
+                        (= (length x) 1))
+                   (char (the string x) 0)
+                 (if (characterp x)
+                     x
+                   (with-output-chaos-error ('invalid-str)
+                     (format t "delimiter must be a single character, but ~a is given" x)))))
+           (sym (intern (string x))))
       (format t "~&setting delimiters ~S : ~S" chr sym)
       (!set-syntax chr sym))))
 
 (defun !unset-single-reader (l)
   (declare (type list l)
-	   (values t))
+           (values t))
   (dolist (x l)
     (let ((chr (if (and (stringp x)
-			(= (length x) 1))
-		   (char (the string x) 0)
-		 (if (characterp x)
-			       x
-		   (with-output-chaos-error ('invalid-str)
-		     (format t "Delimiter must be a single character, but ~a is given" x))))))
+                        (= (length x) 1))
+                   (char (the string x) 0)
+                 (if (characterp x)
+                               x
+                   (with-output-chaos-error ('invalid-str)
+                     (format t "Delimiter must be a single character, but ~a is given" x))))))
       (if (assoc chr .default-single-chars.)
-	  (warn "Character '~A' is a hardwired self delimiting charcter, ignored."
-		    chr)
-	(progn
-	  (format t "~&unsetting delimiters ~S" chr)
-	  (!set-syntax chr nil))))))
+          (warn "Character '~A' is a hardwired self delimiting charcter, ignored."
+                    chr)
+        (progn
+          (format t "~&unsetting delimiters ~S" chr)
+          (!set-syntax chr nil))))))
 ;;;
 ;;;
 ;;;
 (defun !lex-read-init (&key (space .default-space-chars.)
-			    (return .default-return-chars.)
-			    (single .default-single-chars.)
-			    (escape .default-escape-char.))
+                            (return .default-return-chars.)
+                            (single .default-single-chars.)
+                            (escape .default-escape-char.))
   (!init-read-table space return single)
   (setq .escape-char. escape)
   (setq .reader-ch. 'space)
   (setq *reader-input* *reader-void*
-	*last-token* *reader-void*
-	*token-buf* nil))
+        *last-token* *reader-void*
+        *token-buf* nil))
 
 ;;; EOF

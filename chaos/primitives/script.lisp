@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-			       Module: primitives
-			       File: script.lisp
+                                 System: CHAOS
+                               Module: primitives
+                               File: script.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -58,8 +58,8 @@
 ;;; ERROR : represents error status
 ;;; *****
 (defterm error (%script)
-  :visible (type			; one of :warn, :error, :fatal?
-	    message)			; string
+  :visible (type                        ; one of :warn, :error, :fatal?
+            message)                    ; string
   :eval process-error)
   
 ;;; *********
@@ -83,7 +83,7 @@
 
 (defterm reduce (%script)
   :visible (term &optional (module *current-module*)
-		           (mode :red) return-text)
+                           (mode :red) return-text)
   :eval perform-reduction)
 
 ;;; ***********
@@ -91,7 +91,7 @@
 ;;; ***********
 (defterm test-reduce (%script)
   :visible (term expect &optional (module *current-module*)
-		                  (mode :red) return-text)
+                                  (mode :red) return-text)
   :eval perform-test-reduction)
 
 ;;; *****
@@ -99,7 +99,7 @@
 ;;; *****
 (defterm parse (%script)
   :visible (term &optional (module *current-module*)
-		           return-text)
+                           return-text)
   :eval do-parse-term)
 
 ;;; *****
@@ -107,10 +107,10 @@
 ;;; *****
 (defterm input (%script)
   :visible (file-name
-	    &optional (load-path *chaos-libpath*)
-   	              (proc 'process-cafeobj-input)
-		      (suffixes '(".bin" ".cafe" ".mod"))
-		      args)
+            &optional (load-path *chaos-libpath*)
+                      (proc 'process-cafeobj-input)
+                      (suffixes '(".bin" ".cafe" ".mod"))
+                      args)
   :eval eval-input-file)
 
 ;;; *****************
@@ -183,7 +183,7 @@
 ;;; ************
 (defterm load-prelude (%script)
   :visible (file &optional
-		 (processor 'process-cafeobj-input))
+                 (processor 'process-cafeobj-input))
   :eval eval-load-prelude)
 
 ;;; * Follwing two (start, apply) are defined in
@@ -195,7 +195,7 @@
 ;;; START
 ;;; *****
 (defterm start (%script)
-  :visible (target)			; terget term
+  :visible (target)                     ; terget term
   :eval eval-start-th
   )
 
@@ -203,12 +203,12 @@
 ;;; APPLY
 ;;; *****
 (defterm apply (%script)
-  :visible (action			; action to be performed, one-of
-					;  :apply, :reduce, :print, :help.
-	    rule			; rule specifier to be applied.
-	    bindings			; list of variable bindings.
-	    at				; one of :at, :within.
-	    selectors)			; list of selectors.
+  :visible (action                      ; action to be performed, one-of
+                                        ;  :apply, :reduce, :print, :help.
+            rule                        ; rule specifier to be applied.
+            bindings                    ; list of variable bindings.
+            at                          ; one of :at, :within.
+            selectors)                  ; list of selectors.
   :eval eval-apply-command)
 |#
 
@@ -216,25 +216,25 @@
 ;;; PROVIDE
 ;;; *******
 (defterm provide (%script)
-  :visible (feature)			; feature to be provided.
+  :visible (feature)                    ; feature to be provided.
   :eval eval-provide-command)
 
 ;;; *******
 ;;; REQUIRE
 ;;; *******
 (defterm require (%script)
-  :visible (feature			; required feature
-	    &optional
-	    (proc 'process-cafeobj-input) ; process to evaluating fomrs.
-	    file			; filename
-	    )
+  :visible (feature                     ; required feature
+            &optional
+            (proc 'process-cafeobj-input) ; process to evaluating fomrs.
+            file                        ; filename
+            )
   :eval eval-require-command)
 
 ;;; *************
 ;;; REWRITE-COUNT
 ;;; *************
 (defterm rewrite-count (%script)
-  :visible (limit)			; limitation
+  :visible (limit)                      ; limitation
   :eval eval-rewrite-count-limit)
 
 ;;; *******
@@ -248,9 +248,9 @@
 ;;; PROTECT-MODULE
 ;;; **************
 (defterm protect (%script)
-  :visible (module			; module to be set protect mode
-	    mode			; mode = :set | :unset
-	    )
+  :visible (module                      ; module to be set protect mode
+            mode                        ; mode = :set | :unset
+            )
   :eval eval-protect)
 
 ;;; *******
@@ -265,7 +265,7 @@
 ;;; **********
 (defterm save-chaos (%script)
   :visible (top
-	    file)
+            file)
   :eval eval-save-chaos)
 
 ;;; **
@@ -341,7 +341,7 @@
 ;;; ***
 (defterm set (%script)
   :visible (switch
-	    value)
+            value)
   :eval eval-set)
 
 ;;; **********
@@ -356,7 +356,7 @@
 ;;; *****
 (defterm check (%script)
   :visible (what
-	    args)
+            args)
   :eval eval-check)
 
 ;;; *************
@@ -364,9 +364,9 @@
 ;;; *************
 (defterm tram (%script)
   :visible (command
-	    modexp
-	    term
-	    debug)
+            modexp
+            term
+            debug)
   :eval eval-tram)
 
 ;;; *********
@@ -374,8 +374,15 @@
 ;;; *********
 (defterm autoload (%script)
   :visible (mod-name
-	    file)
+            file)
   :eval eval-autoload)
+
+;;; ***********
+;;; NO AUTOLOAD
+;;; ***********
+(defterm no-autoload (%script)
+  :visible (mod-name)
+  :eval eval-no-autoload)
 
 ;;; ******************************
 ;;; CIRCULAR COINDUCTIVE REWRITING
@@ -383,8 +390,8 @@
 
 (defterm cbred (%script)
   :visible (module
-	    lhs
-	    rhs)
+            lhs
+            rhs)
   :eval eval-cbred)
 
 ;;; **********************
@@ -430,9 +437,9 @@
 ;;; *********
 (defterm delimiter (%script)
   :visible (operation
-	    char-list)
+            char-list)
   :eval eval-delimiter)
-	    
+            
 ;;; ****
 ;;; CASE
 ;;; case (<Term>) on (<Modexp>) as (<Name>) : <GoalTerm> .

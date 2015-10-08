@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: Chaos; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: Chaos
-			       Module: primitives
-			       File: bmacro.lisp
+                                 System: Chaos
+                               Module: primitives
+                               File: bmacro.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -43,13 +43,13 @@
 
 (defun print-macro (macro stream &rest ignore)
   (declare (ignore ignore))
-  (let ((mod (or *last-module* *current-module*)))
+  (let ((mod (get-context-module t)))
     (if mod
-	(with-in-module (mod)
-	  (term-print (macro-lhs macro) stream)
-	  (terpri stream)
-	  (princ " ::= ")
-	  (term-print (macro-rhs macro) stream))
+        (with-in-module (mod)
+          (term-print (macro-lhs macro) stream)
+          (terpri stream)
+          (princ " ::= ")
+          (term-print (macro-rhs macro) stream))
       (format t "#<MacroDecl: ~D>" (addr-of macro)))))
 
 ;;; EOF

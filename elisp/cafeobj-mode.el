@@ -48,9 +48,9 @@
 ;;; cafeobj-mode invoked, when visiting .mod files (assuming this file is
 ;;; in your load-path):
 ;;;
-;;;	(autoload 'cafeobj-mode "cafeobj-mode" "CafeOBJ mode." t)
-;;;	(setq auto-mode-alist
-;;;	      (cons '("\\.mod$" . cafeobj-mode) auto-mode-alist))
+;;;     (autoload 'cafeobj-mode "cafeobj-mode" "CafeOBJ mode." t)
+;;;     (setq auto-mode-alist
+;;;           (cons '("\\.mod$" . cafeobj-mode) auto-mode-alist))
 ;;;
 ;;; and, also the following is handy for running CafeOBJ interpreter:
 ;;;
@@ -79,12 +79,12 @@
 ;;; prefix for major-mode commands.
 ;;; You can customise the keybindings either by setting `choas-prefix-key'
 ;;; or by putting the following in your .emacs
-;;; 	(setq cafeobj-mode-map (make-sparse-keymap))
+;;;     (setq cafeobj-mode-map (make-sparse-keymap))
 ;;; and
-;;; 	(define-key cafeobj-mode-map <your-key> <function>)
+;;;     (define-key cafeobj-mode-map <your-key> <function>)
 ;;; for all the functions you need.
 ;;;
-;;; ABBRIVE-MODE:
+;;; ABBREV-MODE:
 ;;; CafeOBJ mode provides a mode-specific abbrev table 'cafeobj-mode-abbrev-table',
 ;;; and there defined some abbriviations already.
 ;;; You can use abbrev by `M-x abbrev-mode' or putting the following in your
@@ -98,18 +98,18 @@
 ;;; To edit the entire table, `M-x edit-abbrevs' and `M-x write-abbrev-file'
 ;;; are handy. Here is an example of adding some extra abbreviations:
 ;;; I want the following abbreviations:
-;;;     "mod"	->  "module"
+;;;     "mod"   ->  "module"
 ;;;     "mod*"  ->  "module*"
 ;;;     "mod!"  ->  "module!"
-;;;     "obj"	->  "module!"
-;;;     "th"	->  "module*"
+;;;     "obj"   ->  "module!"
+;;;     "th"    ->  "module*"
 ;;; For this, we can use `M-x edit-abbrevs' and adds the above definitions in
 ;;; cafeobj-abbrev-table like this:
 ;;;
 ;;; (cafeobj-mode-abbrev-table)
 ;;;
-;;;    "mod"	 0     "module"
-;;;    "m*"	 0     "module* "
+;;;    "mod"     0     "module"
+;;;    "m*"      0     "module* "
 ;;;    "m!"      0     "module! "         
 ;;;    "obj"     0     "module!"
 ;;;    "th"      0     "module*"
@@ -118,7 +118,7 @@
 ;;;            :
 ;;; After editting, type `C-c C-c'(M-x edit-abbrevs-redefine) to install
 ;;; abbrev definitions as specified. 
-;;; Then use `M-x write-abbrev-file' specifying ~/.abbrev_deffs to
+;;; Then use `M-x write-abbrev-file' specifying ~/.abbrev_defs to
 ;;; the target file name, and adds a line in my .emacs
 ;;; (read-abbrev-file "~/.abbrev_defs").
 ;;; See Emacs manual of Infos for detail.
@@ -127,12 +127,12 @@
 ;;; You may want to customize the following variables, see the comment strings
 ;;; for the descriptions of these variables.
 ;;;
-;;; 	cafeobj-always-show
-;;;	cafeobj-mode-map
-;;;	cafeobj-prefix-key
-;;;	cafeobj-mode-hook
-;;; 	cafeobj-default-application
-;;; 	cafeobj-default-command-switches
+;;;     cafeobj-always-show
+;;;     cafeobj-mode-map
+;;;     cafeobj-prefix-key
+;;;     cafeobj-mode-hook
+;;;     cafeobj-default-application
+;;;     cafeobj-default-command-switches
 ;;;     cafeobj-decl-keyword-face
 ;;;     cafeobj-keyword-face
 ;;;     cafeobj-command-face
@@ -150,6 +150,8 @@
 (require 'comint)
 (require 'custom)
 (require 'font-lock)
+(require 'abbrev)
+(require 'imenu)
 
 (defgroup cafeobj nil
   "CafeOBJ code editting."
@@ -188,6 +190,28 @@
 Should be a list of strings which will be given to the cafeobj process when star up."
   :group 'cafeobj)
 
+;;; simple imenu support
+(defcustom cafeobj-imenu-generic-expression-alist
+  '(("Modules" "^mod.* \\(\\w+\\b\\)" 1)
+    ("Vars" "var.* \\(\\w+\\b\\):" 1)
+    )
+  "Alist of regular expressions for the imode index. 
+Each element form (submenu-name regexp index).
+Where submenu-name is the name of the submenu under which
+items matching regexp are placed. When submenu-name is nil
+the matching entries appear in the root imenu list.
+Regexp idex indicates which regexp text group defines the
+text entry. When the index is 0 the entire :text that matches
+regexp appers."
+  :type '(repeat (list (choice :tag "Submenu Name" string (const nil))
+                       regexp (integer :tag "Regexp index")))
+  :group 'cafeobj
+  )
+
+(add-hook 'cafeobj-mode-hook
+          (lambda ()
+            (setq imenu-generic-expression cafeobj-imenu-generic-expression-alist)))
+
 ;;; FACES for CafeOBJ/CafeOBJ-Process
 
 (defgroup cafeobj-faces nil
@@ -206,7 +230,7 @@ Should be a list of strings which will be given to the cafeobj process when star
   :group 'cafeobj-faces)
 
 (defface cafeobj-comment-face-2
-  '((((class color) (background dark)) (:foreground "gray80"))
+  '((((class color) (background dark)) (:foreground "honeydew3"))
     (((class color) (background light)) (:foreground "blue4"))
     (((class grayscale) (background light))
      (:foreground "DimGray" :bold t :italic t))
@@ -353,12 +377,12 @@ This is in addition to cafeobj-continued-statement-offset."
 (defmacro cafeobj-define-key (fsf-key definition &optional xemacs-key)
   `(define-key cafeobj-mode-map
     ,(if xemacs-key
-	 `(if cafeobj-xemacs-p ,xemacs-key ,fsf-key)
-	 fsf-key)
+         `(if cafeobj-xemacs-p ,xemacs-key ,fsf-key)
+         fsf-key)
     ,definition))
 
 (defvar del-back-ch (car (append (where-is-internal 'delete-backward-char)
-				 (where-is-internal 'backward-delete-char-untabify)))
+                                 (where-is-internal 'backward-delete-char-untabify)))
   "Character generated by key bound to delete-backward-char.")
 
 (and (vectorp del-back-ch) (= (length del-back-ch) 1) 
@@ -452,8 +476,8 @@ This is in addition to cafeobj-continued-statement-offset."
       ;; (concat "^[ \t]*" (regexp-opt cafeobj-keywords-2 t t) "\\>")
       (concat "^[ \t]*" (regexp-opt cafeobj-keywords-2 ) "\\>")
     (concat "^[ \t]*\\("
-	    (regexp-opt cafeobj-keywords-2)
-	    "\\)\\>")))
+            (regexp-opt cafeobj-keywords-2)
+            "\\)\\>")))
 
 
 (defconst cafeobj-keyword-pat-3
@@ -511,6 +535,8 @@ This is in addition to cafeobj-continued-statement-offset."
       "require"
       "provide"
       "resolve"
+      "full"
+      "reset"
       "option"
       "db"
       "sos"
@@ -523,8 +549,24 @@ This is in addition to cafeobj-continued-statement-offset."
       "lex"
       "name"
       "names"
+      "look"
       "inspect"
       "inspect-term"
+      ":goal"
+      ":apply"
+      ":auto"
+      ":ind"
+      ":init"
+      ":cp"
+      ":ctf"
+      ":csp"
+      ":show"
+      ":describe"
+      ":verbose"
+      ":backward"
+      ":equation"
+      ":rule"
+      ":select"
       )
   "CafeOBJ top-level commands")
 
@@ -544,38 +586,31 @@ This is in addition to cafeobj-continued-statement-offset."
 
 (defconst cafeobj-top-key-pat
     (concat "^\\<\\("
-	    (regexp-opt cafeobj-top-keywords)
-	    "\\)\\>"))
-
-;(defconst cafeobj-top-decl-pat
-;    (concat "^[ \t]*\\(?:"
-;	    "module\\*\\|mod\\*\\|"
-;	    (regexp-opt '("module" "mod" "module!" "mod!" "view"))
-;	    "\\>\\)"))
+            (regexp-opt cafeobj-top-keywords)
+            "\\)\\>"))
 
 (defconst cafeobj-top-decl-pat
     (concat "^[ \t]*\\("
-	    "module\\|module\\*\\|mod\\*\\|module\\|mod\\|module!\\|mod!\\|view\\|hwd:mod!\\|sys:mod!"
-	    "\\)\\>"))
+            "module\\|module\\*\\|mod\\*\\|module\\|mod\\|module!\\|mod!\\|view\\|hwd:mod!\\|sys:mod!"
+            "\\)\\>"))
 
 (defun looking-at-cafeobj-top-decl ()
-  (looking-at cafeobj-top-decl-pat)
-  )
+  (looking-at cafeobj-top-decl-pat))
 
 (defconst cafeobj-block-start-pat
     (concat "[ \t]*"
-	    (regexp-opt '("signature" "axioms" "imports" "record" "class")
-			t)
-	    "\\>"))
+            (regexp-opt '("signature" "axioms" "imports" "record" "class")
+                        t)
+            "\\>"))
 
 (defun looking-at-cafeobj-block-start-pat ()
   (looking-at cafeobj-block-start-pat))
        
 (defun looking-at-cafeobj-module-decl ()
   (looking-at (concat "^\\<\\("
-		      (regexp-opt '("module" "mod" "module*" "mod*"
-				    "module!" "mod!"))
-		      "\\)\\>")))
+                      (regexp-opt '("module" "mod" "module*" "mod*"
+                                    "module!" "mod!"))
+                      "\\)\\>")))
 
 (defun looking-at-cafeobj-view-decl ()
   (looking-at "^\\<view\\>"))
@@ -622,42 +657,42 @@ This is in addition to cafeobj-continued-statement-offset."
 
 (cond (cafeobj-xemacs-p
        (setq cafeobj-mode-popup-menu
-	     (purecopy '("CafeOBJ Interaction Menu"
-			 ["Evaluate This Declaration"
-			  cafeobj-send-decl          t]
-			 ["Evaluate Current Line" cafeobj-send-line  t]
-			 ["Evaluate Entire Buffer" cafeobj-send-buffer t]
-			 ["Evaluate Region"  cafeobj-send-region
-			  (region-exists-p)]
-			 "---"			 
-			 ["Comment Out Region"	comment-region	(region-exists-p)]
-			 ["Indent Region"	indent-region	(region-exists-p)]
-			 ["Indent Line"		cafeobj-indent-line t]
-			 ["Beginning of Declaration"
-			  cafeobj-beginning-of-decl t]
-			 )))
+             (purecopy '("CafeOBJ Interaction Menu"
+                         ["Evaluate This Declaration"
+                          cafeobj-send-decl          t]
+                         ["Evaluate Current Line" cafeobj-send-line  t]
+                         ["Evaluate Entire Buffer" cafeobj-send-buffer t]
+                         ["Evaluate Region"  cafeobj-send-region
+                          (region-exists-p)]
+                         "---"                   
+                         ["Comment Out Region"  comment-region  (region-exists-p)]
+                         ["Indent Region"       indent-region   (region-exists-p)]
+                         ["Indent Line"         cafeobj-indent-line t]
+                         ["Beginning of Declaration"
+                          cafeobj-beginning-of-decl t]
+                         )))
        (setq cafeobj-mode-menubar-menu
-	     (purecopy (cons "CafeOBJ" (cdr cafeobj-mode-popup-menu)))))
+             (purecopy (cons "CafeOBJ" (cdr cafeobj-mode-popup-menu)))))
       (t ;; 
        (setq cafeobj-mode-menu (make-sparse-keymap "CafeOBJ"))
-       (define-key cafeobj-mode-menu [choas-send-line]
-	 '("Evaluate Current Line" . cafeobj-send-current-line))
+       (define-key cafeobj-mode-menu [cafeobj-send-line]
+         '("Evaluate Current Line" . cafeobj-send-line))
        (define-key cafeobj-mode-menu [cafeobj-send-region]
-	 '("Evaluate Cafeobj-Region" . cafeobj-send-region))
+         '("Evaluate Cafeobj-Region" . cafeobj-send-region))
        (define-key cafeobj-mode-menu [cafeobj-send-proc]
-	 '("Evaluate This Declaration" . cafeobj-send-decl))
+         '("Evaluate This Declaration" . cafeobj-send-decl))
        (define-key cafeobj-mode-menu [cafeobj-send-buffer]
-	 '("Send Buffer" . cafeobj-send-buffer))
+         '("Send Buffer" . cafeobj-send-buffer))
        (define-key cafeobj-mode-menu [cafeobj-beginning-of-decl]
-	 '("Beginning Of Proc" . cafeobj-beginning-of-decl))
+         '("Beginning Of Proc" . cafeobj-beginning-of-decl))
        (define-key cafeobj-mode-menu [comment-region]
-	 '("Comment Out Region" . comment-region))
+         '("Comment Out Region" . comment-region))
        (define-key cafeobj-mode-menu [indent-region]
-	 '("Indent Region" . indent-region))
+         '("Indent Region" . indent-region))
        (define-key cafeobj-mode-menu [cafeobj-indent-line]
-	 '("Indent Line" . cafeobj-indent-line))
+         '("Indent Line" . cafeobj-indent-line))
        (define-key cafeobj-mode-menu [cafeobj-beginning-of-decl]
-	 '("Beginning of Declaration" . cafeobj-beginning-of-decl))
+         '("Beginning of Declaration" . cafeobj-beginning-of-decl))
        ))
 
 ;;; ------------
@@ -666,51 +701,102 @@ This is in addition to cafeobj-continued-statement-offset."
 
 (defvar cafeobj-mode-abbrev-table nil
   "Abbrev table in use in CafeOBJ mode.")
+
+;;; se use extended abbriv 
+(autoload 'expand-abbrev-hook "expand")
+
 ;;; some default abbreviations define here
 (if cafeobj-mode-abbrev-table
     nil
-    (define-abbrev-table 'cafeobj-mode-abbrev-table
-	'(("btrns" "btrans" nil 0)
-	  ("bcq" "bceq" nil 0)
-	  ("compat" "compatibility" nil 0)
-	  ("psort" "principal-sort" nil 0)
-	  ("req" "require" nil 0)
-	  ("sh" "show" nil 0)
-	  ("verb" "verbose" nil 0)
-	  ("reg" "regularize" nil 0)
-	  ("import" "imports" nil 0)
-	  ("cq" "ceq" nil 0)
-	  ("red" "reduce" nil 0)
-	  ("strat" "strategy" nil 0)
-	  ("us" "using" nil 0)
-	  ("btrn" "btrans" nil 0)
-	  ("btr" "btrans" nil 0)
-	  ("reconst" "reconstruct" nil 0)
-	  ("chk" "check" nil 0)
-	  ("trns" "trans" nil 0)
-	  ("swit" "swithces" nil 0)
-	  ("bq" "beq" nil 0)
-	  ("desc" "describe" nil 0)
-	  ("bctr" "bctrans" nil 0)
-	  ("incl" "include" nil 0)
-	  ("bctrn" "bctrans" nil 0)
-	  ("ex" "extending" nil 0)
-	  ;; ("axs" "axioms" nil 0)
-	  ("pr" "protecting" nil 0)
-	  ("bctrns" "bctrans" nil 0)
-	  ("pat" "pattern" nil 0)
-	  ("recon" "reconstruct" nil 0)
-	  ("prov" "provide" nil 0)
-	  ("sel" "select" nil 0)
-	  ("sig" "signature" nil 0)
-	  ("sign" "signature" nil 1)
-	  ("cond" "conditions" nil 0)
-	  ("imp" "imports" nil 0)
-	  ("comp" "compatibility" nil 0)
-	  ("swi" "switch" nil 0)
-	  ("reconstr" "reconstruct" nil 0)
-	  ))
-    )
+  (define-abbrev-table 'cafeobj-mode-abbrev-table
+    '(;; top level declaration
+      ("mod" ["module  {\n\n}\n" 5 () nil] expand-abbrev-hook 0)
+      ("pmod" ["module  () {\n\n}\n" 8 () nil] expand-abbrev-hook 0)
+      ("vw" ["view  {\n\n}\n" 5 () nil] expand-abbrev-hook 0)
+      ("mk" ["make  ()" 3 () nil] expand-abbrev-hook 0)
+      ;; module constructs
+      ("ps" "pricipal-sort" nil 0)
+      ;; imports
+      ("imp" ["imports {\n\n}\n" 3 () nil] expand-abbrev-hook 0)
+      ("pr" ["protecting()" 1 () nil]  expand-abbrev-hook 0)
+      ("pa" ["protecting as  ()" 3 () nil] expand-abbrev-hook 0)
+      ("ex" ["extending()" 1 () nil] expand-abbrev-hook 0)
+      ("ea" ["extending as ()" 2 () nil] expand-abbrev-hook 0)
+      ("us" ["using()" 1 () nil] expand-abbrev-hook 0)
+      ("ua" ["using as ()" 2 () nil] expand-abbrev-hook 0)
+      ("inc" ["including()" 1 () nil] expand-abbrev-hook 0)
+      ("ias" ["including as ()" 2 () nil] expand-abbrev-hook 0)
+      ;; signature
+      ("sig" ["signature {\n\n}\n" 3 () nil] expand-abbrev-hook 0)
+      ;; sort declarations
+      ("[" ["[]" 1 () nil] expand-abbrev-hook 0)
+      ("*[" ["*[]*" 2 () nil] expand-abbrev-hook 0)
+      ;; operator declaration
+      ("ope" ["op  :  ->   ." 10 () nil] expand-abbrev-hook 0)
+      ("opt" ["op  :  ->  {} ." 12 () nil] expand-abbrev-hook 0)
+      ("ops" ["ops  :  ->  ." 9 () nil] expand-abbrev-hook 0)
+      ("pred" ["pred  :  ." 4 () nil] expand-abbrev-hook 0)
+      ;; operator attributes
+      ("str" ["strat: ()" 1 () nil] expand-abbrev-hook 0)
+      ("ctr" "ctor" nil 0)
+      ("ra" "r-assoc" nil 0)
+      ("la" "l-assoc" nil 0)
+      ("pre" "prec:" nil 0)
+      ("ass" "assoc" nil 0)
+      ("com" "comm" nil 0)
+      ;; axiom
+      ("axi" ["axioms {\n\n}\n" 3 () nil] expand-abbrev-hook 0)
+      ("bt" ["btrans  =>   ." 7 () nil] expand-abbrev-hook 0)
+      ("bct"["bctrans  =>  if  ."  10 () nil] expand-abbrev-hook 0)
+      ("ctr" ["ctrans  =>  if  ." 10 () nil] expand-abbrev-hook 0)
+      ("tr" ["trans  =>   ." 7 () nil] expand-abbrev-hook 0)
+      ("eq" ["eq  =    ." 7 () nil] expand-abbrev-hook 0)
+      ("cq" ["ceq  =   if  ." 10 () nil] expand-abbrev-hook 0)
+      ("bq" ["beq  =   ." 7 () nil] expand-abbrev-hook 0)
+      ("bcq" ["bceq  =   if  ." 10 () nil] expand-abbrev-hook 0)
+      ("var" ["var  : " 3 () nil] expand-abbrev-hook 0)
+      ("vars" ["vars  : " 3 () nil] expand-abbrev-hook 0)
+      ;; commands   
+      ("ch" "check" nil 0)
+      ("comp" "compatibility " nil 0)
+      ("reg" "regularity " nil 0)
+      ("red" ["reduce  ." 2 () nil] expand-abbrev-hook 0)
+      ("rin" ["reduce in  :  ." 5 () nil] expand-abbrev-hook 0)
+      ("exe" ["execute  ." 2 () nil] expand-abbrev-hook 0)
+      ("ein" ["execute in   :  ." 5 () nil] expand-abbrev-hook 0)
+      ("par" ["parse  ." 2 () nil] expand-abbrev-hook 0)
+      ("parse" ["parse  ." 2 () nil] expand-abbrev-hook 0)
+      ("pin" ["parse in  :  ." 5 () nil] expand-abbrev-hook 0)
+      ("sh" "show" nil 0)
+      ("des" "describe " nil 0)
+      ("regu" "regualize " nil 0)
+      ("verb" "verbose" nil 0)
+      ("sw" "switch" nil 0)
+      ("sws" "switches" nil 0)
+      ("req" "require" nil 0)
+      ("prov" "provide" nil 0)
+      ("sel" ["select  ." 2 () nil] expand-abbrev-hook 0)
+      ;; CITP
+      (":goal" [":goal {}" 1 () nil] expand-abbrev-hook 0)
+      (":go"  [":goal {}" 1 () nil] expand-abbrev-hook 0)
+      (":apply" [":apply ()" 1 () nil] expand-abbrev-hook 0)
+      (":app" [":apply ()" 1 () nil] expand-abbrev-hook 0)
+      (":ind" [":ind on ()" 1 () nil] expand-abbrev-hook 0)
+      (":ini" [":init () by { ;}" 9 () nil]  expand-abbrev-hook 0)
+      (":inil" [":init [] by { ;}" 9 () nil] expand-abbrev-hook 0)
+      (":cp" [":cp () >< ()" 7 () nil] expand-abbrev-hook 0)
+      (":cpl" [":cp [] >< []" 7 () nil] expand-abbrev-hook 0)
+      (":eq" ":equation" nil 0)
+      (":rl" ":rule" nil 0)
+      (":bk" ":backward" nil 0)
+      (":vb" ":verbose" nil 0)
+      (":norm" ":normalize" nil 0)
+      (":ctf" [":ctf{}" 1 () nil] expand-abbrev-hook 0)
+      (":csp" [":csp{}" 1 () nil] expand-abbrev-hook 0)
+      (":sh" ":show" nil 0)
+      (":des" ":describe" nil 0)
+      ))
+  )
 
 
 (defvar cafeobj-mode-syntax-table nil
@@ -720,20 +806,24 @@ This is in addition to cafeobj-continued-statement-offset."
     ()
   (setq cafeobj-mode-syntax-table (make-syntax-table))
   (mapc (function
-	 (lambda (x) (modify-syntax-entry
-		      (car x) (cdr x) cafeobj-mode-syntax-table)))
-	'(( ?\( . "()" ) ( ?\) . ")(" )
-	  ( ?\[ . "(]" ) ( ?\] . ")[" )
-	  ( ?\{ . "(}" ) ( ?\} . "){" )
-	  ;; underscore etc. is word class
-	  ( ?\_ . "w" )
-	  ( ?\# . "w" )
-	  ( ?\! . "w" )
-	  ( ?\$ . "w" )
-	  ( ?\% . "w" )
-	  ( ?\" . "\"" )	; double quote is string quote too
-	  ( ?\n . ">"))
-	))
+         (lambda (x) (modify-syntax-entry
+                      (car x) (cdr x) cafeobj-mode-syntax-table)))
+        '((?\( . "()" ) ( ?\) . ")(" )
+          ;; ( ?\[ . "(]" ) ( ?\] . ")[" )
+          (?\{ . "(}" ) ( ?\} . "){" )
+          (?\[ . "w") (?\] . "w")
+          (?\* . "w")
+          ;; underscore etc. is word class
+          ( ?\_ . "w" )
+          ( ?\# . "w" )
+          ( ?\! . "w" )
+          ( ?\$ . "w" )
+          ( ?\% . "w" )
+          ( ?\: . "w")
+          ( ?\" . "\"" )        ; double quote is string quote too
+          ( ?\n . ">"))
+        ))
+(defvar mode-popup-menu) ;only for XEmacs
 
 (defun cafeobj-mode ()
   "Major mode for editing CafeOBJ programs.
@@ -752,20 +842,20 @@ The following keys are bound:
     (setq local-abbrev-table cafeobj-mode-abbrev-table)
     ;; settting menu.
     (if cafeobj-xemacs-p
-	(setq mode-popup-menu
-	      cafeobj-mode-popup-menu)
+        (setq mode-popup-menu
+              cafeobj-mode-popup-menu)
       (progn
-	(define-key cafeobj-mode-map [menu-bar cafeobj-mode]
-	  (cons "CafeOBJ" cafeobj-mode-menu))))
+        (define-key cafeobj-mode-map [menu-bar cafeobj-mode]
+          (cons "CafeOBJ" cafeobj-mode-menu))))
     ;;
     (set (make-local-variable 'cafeobj-process) nil)
     (set (make-local-variable 'cafeobj-process-buffer) nil)
     (make-local-variable 'cafeobj-default-command-switches)
     ;;
     (cond (cafeobj-xemacs-p
-    	   (make-local-variable 'font-lock-defaults))
-    	  (t (set (make-local-variable 'font-lock-keywords)
-    		  cafeobj-font-lock-keywords)))
+           (make-local-variable 'font-lock-defaults))
+          (t (set (make-local-variable 'font-lock-keywords)
+                  cafeobj-font-lock-keywords)))
     ;;
     (make-local-variable 'font-lock-defaults)
     (setq font-lock-defaults '(cafeobj-font-lock-keywords t))
@@ -790,54 +880,54 @@ The following keys are bound:
     (save-excursion
       (goto-char (point-min))
       (if (looking-at "#![ \t]*\\([^ \t]*\\)[ \t]\\(.*[ \t]\\)-f")
-	  (progn
-	    (set (make-local-variable 'cafeobj-application-name)
-		 (buffer-substring (match-beginning 1)
-				   (match-end 1)))
-	    (if (match-beginning 2)
-		(progn
-		  (goto-char (match-beginning 2))
-		  (set (make-local-variable 'cafeobj-default-command-switches) nil)
-		  (while (< (point) (match-end 2))
-		    (setq s (read (current-buffer)))
-		    (if (<= (point) (match-end 2))
-			(setq cafeobj-default-command-switches
-			      (append cafeobj-default-command-switches
-				      (list (prin1-to-string s)))))))))
-	;; if this fails, look for the #!/bin/csh ... exec hack
-	(while (eq (following-char) ?#)
-	  (forward-line 1))
-	(or (bobp)
-	    (forward-char -1))
-	(if (eq (preceding-char) ?\\)
-	    (progn
-	      (forward-char 1)
-	      (if (looking-at "exec[ \t]+\\([^ \t]*\\)[ \t]\\(.*[ \t]\\)*-f")
-		  (progn
-		    (set (make-local-variable 'cafeobj-application-name)
-			 (buffer-substring (match-beginning 1)
-					   (match-end 1)))
-		    (if (match-beginning 2)
-			(progn
-			  (goto-char (match-beginning 2))
-			  (set (make-local-variable
-				'cafeobj-default-command-switches)
-			       nil)
-			  (while (< (point) (match-end 2))
-			    (setq s (read (current-buffer)))
-			    (if (<= (point) (match-end 2))
-				(setq cafeobj-default-command-switches
-				      (append cafeobj-default-command-switches
-					      (list (prin1-to-string s)))))))))
-		)))))
+          (progn
+            (set (make-local-variable 'cafeobj-application-name)
+                 (buffer-substring (match-beginning 1)
+                                   (match-end 1)))
+            (if (match-beginning 2)
+                (progn
+                  (goto-char (match-beginning 2))
+                  (set (make-local-variable 'cafeobj-default-command-switches) nil)
+                  (while (< (point) (match-end 2))
+                    (setq s (read (current-buffer)))
+                    (if (<= (point) (match-end 2))
+                        (setq cafeobj-default-command-switches
+                              (append cafeobj-default-command-switches
+                                      (list (prin1-to-string s)))))))))
+        ;; if this fails, look for the #!/bin/csh ... exec hack
+        (while (eq (following-char) ?#)
+          (forward-line 1))
+        (or (bobp)
+            (forward-char -1))
+        (if (eq (preceding-char) ?\\)
+            (progn
+              (forward-char 1)
+              (if (looking-at "exec[ \t]+\\([^ \t]*\\)[ \t]\\(.*[ \t]\\)*-f")
+                  (progn
+                    (set (make-local-variable 'cafeobj-application-name)
+                         (buffer-substring (match-beginning 1)
+                                           (match-end 1)))
+                    (if (match-beginning 2)
+                        (progn
+                          (goto-char (match-beginning 2))
+                          (set (make-local-variable
+                                'cafeobj-default-command-switches)
+                               nil)
+                          (while (< (point) (match-end 2))
+                            (setq s (read (current-buffer)))
+                            (if (<= (point) (match-end 2))
+                                (setq cafeobj-default-command-switches
+                                      (append cafeobj-default-command-switches
+                                              (list (prin1-to-string s)))))))))
+                )))))
     ;;
     ;; (if (and (featurep 'menubar)
-    ;; 	     current-menubar)
-    ;; 	(progn
-    ;; 	  ;; make a local copy of the menubar, so our modes don't
-    ;; 	  ;; change the global menubar
-    ;; 	  (set-buffer-menubar current-menubar)
-    ;; 	  (add-submenu nil cafeobj-mode-menubar-menu)))
+    ;;       current-menubar)
+    ;;  (progn
+    ;;    ;; make a local copy of the menubar, so our modes don't
+    ;;    ;; change the global menubar
+    ;;    (set-buffer-menubar current-menubar)
+    ;;    (add-submenu nil cafeobj-mode-menubar-menu)))
     ;;
     (run-hooks 'cafeobj-mode-hook)))
 
@@ -852,15 +942,15 @@ to `cafeobj-mode-map', otherwise they are prefixed with `cafeobj-prefix-key'."
   (setq cafeobj-mode-map (make-sparse-keymap))
   ;; 
   (let ((map (if cafeobj-prefix-key
-		 (make-sparse-keymap)
-		 cafeobj-mode-map)))
+                 (make-sparse-keymap)
+                 cafeobj-mode-map)))
     ;; indentation
     (define-key cafeobj-mode-map [?}] 'cafeobj-electric-brace)
     ;; communication
-    (define-key map "i" 'cafeobj-send-line)
+    (define-key map "l" 'cafeobj-send-line)
     (define-key map "e" 'cafeobj-send-decl)
     (define-key map "r" 'cafeobj-send-region)
-    (define-key map "l" 'cafeobj-send-buffer)
+    (define-key map "b" 'cafeobj-send-buffer)
     (define-key map "[" 'cafeobj-beginning-of-decl)
     (define-key map "]" 'cafeobj-end-of-decl)
     (define-key map "q" 'cafeobj-kill-process)
@@ -868,7 +958,7 @@ to `cafeobj-mode-map', otherwise they are prefixed with `cafeobj-prefix-key'."
     (define-key map "h" 'cafeobj-hide-process-buffer)
     ;;
     (if cafeobj-prefix-key
-	(define-key cafeobj-mode-map cafeobj-prefix-key map))
+        (define-key cafeobj-mode-map cafeobj-prefix-key map))
     ))
 
 ;;; ----------------
@@ -888,31 +978,31 @@ regardless of where in the line point is when the TAB command is used.")
   (interactive "P")
   (let (insertpos)
     (if (and (not arg)
-	     (eolp)
-	     (or (save-excursion
-		   (skip-chars-backward " \t")
-		   (bolp))
-		 (if cafeobj-auto-newline
-		     (progn (cafeobj-indent-line) (newline) t)
-		     nil)))
-	(progn
-	  ;; (insert last-command-char)
-	  (insert last-command-event)
-	  (cafeobj-indent-line)
-	  (if cafeobj-auto-newline
-	      (progn
-		(newline)
-		;; (newline) may have done auto-fill
-		(setq insertpos (- (point) 2))
-		(cafeobj-indent-line)))
-	  (save-excursion
-	    (if insertpos (goto-char (1+ insertpos)))
-	    (delete-char -1))))
+             (eolp)
+             (or (save-excursion
+                   (skip-chars-backward " \t")
+                   (bolp))
+                 (if cafeobj-auto-newline
+                     (progn (cafeobj-indent-line) (newline) t)
+                     nil)))
+        (progn
+          ;; (insert last-command-char)
+          (insert last-command-event)
+          (cafeobj-indent-line)
+          (if cafeobj-auto-newline
+              (progn
+                (newline)
+                ;; (newline) may have done auto-fill
+                (setq insertpos (- (point) 2))
+                (cafeobj-indent-line)))
+          (save-excursion
+            (if insertpos (goto-char (1+ insertpos)))
+            (delete-char -1))))
     (if insertpos
-	(save-excursion
-	  (goto-char insertpos)
-	  (self-insert-command (prefix-numeric-value arg)))
-	(self-insert-command (prefix-numeric-value arg)))))
+        (save-excursion
+          (goto-char insertpos)
+          (self-insert-command (prefix-numeric-value arg)))
+        (self-insert-command (prefix-numeric-value arg)))))
 
 (defun cafeobj-beginning-of-block (&optional arg)
   "Move backward to the beginning of a CafeOBJ block structure.
@@ -922,23 +1012,23 @@ Returns t unless search stops due to beginning or end of buffer."
   (interactive "P")
   (or arg (setq arg 1))
   (let ((found nil)
-	(ret t))
+        (ret t))
     (if (and (< arg 0)
-	     (looking-at-cafeobj-block-start-pat))
-	(forward-char 1))
+             (looking-at-cafeobj-block-start-pat))
+        (forward-char 1))
     (while (< arg 0)
       (if (re-search-forward cafeobj-block-start-pat nil t)
-	  (setq arg (1+ arg)
-		found t)
-	(setq ret nil
-	      arg 0)))
+          (setq arg (1+ arg)
+                found t)
+        (setq ret nil
+              arg 0)))
     (if found
-	(beginning-of-line))
+        (beginning-of-line))
     (while (> arg 0)
       (if (re-search-backward cafeobj-block-start-pat nil t)
-	  (setq arg (1- arg))
-	  (setq ret nil
-		arg 0)))
+          (setq arg (1- arg))
+          (setq ret nil
+                arg 0)))
     ret))
 
 (defun cafeobj-beginning-of-decl (&optional arg)
@@ -949,23 +1039,23 @@ Returns t unless search stops due to beginning or end of buffer."
   (interactive "P")
          (or arg (setq arg 1))
   (let ((found nil)
-	(ret t))
+        (ret t))
     (if (and (< arg 0)
-	     (looking-at-cafeobj-top-decl))
-	(forward-char 1))
+             (looking-at-cafeobj-top-decl))
+        (forward-char 1))
     (while (< arg 0)
       (if (re-search-forward cafeobj-top-decl-pat nil t)
-	  (setq arg (1+ arg)
-		found t)
-	(setq ret nil
-	      arg 0)))
+          (setq arg (1+ arg)
+                found t)
+        (setq ret nil
+              arg 0)))
     (if found
-	(beginning-of-line))
+        (beginning-of-line))
     (while (> arg 0)
       (if (re-search-backward cafeobj-top-decl-pat nil t)
-	  (setq arg (1- arg))
-	  (setq ret nil
-		arg 0)))
+          (setq arg (1- arg))
+          (setq ret nil
+                arg 0)))
     ret))
 
 (defun cafeobj-end-of-decl (&optional arg)
@@ -978,27 +1068,27 @@ This function just searches for a `}' at the beginning of a line."
   (or arg
       (setq arg 1))
   (let ((found nil)
-	(ret t))
+        (ret t))
     (if (and (< arg 0)
-	     (not (bolp))
-	     (save-excursion
-	       (beginning-of-line)
-	       (eq (following-char) ?})))
-	(forward-char -1))
+             (not (bolp))
+             (save-excursion
+               (beginning-of-line)
+               (eq (following-char) ?})))
+        (forward-char -1))
     (while (> arg 0)
       (if (re-search-forward "^}" nil t)
-	  (setq arg (1- arg)
-		found t)
-	(setq ret nil
-	      arg 0)))
+          (setq arg (1- arg)
+                found t)
+        (setq ret nil
+              arg 0)))
     (while (< arg 0)
       (if (re-search-backward "^}" nil t)
-	  (setq arg (1+ arg)
-		found t)
-	(setq ret nil
-	      arg 0)))
+          (setq arg (1+ arg)
+                found t)
+        (setq ret nil
+              arg 0)))
     (if found
-	(end-of-line))
+        (end-of-line))
     ret))
 
 (defun cafeobj-outline-level ()
@@ -1009,11 +1099,11 @@ This function just searches for a `}' at the beginning of a line."
 (defun cafeobj-inside-parens-p ()
   (condition-case ()
       (save-excursion
-	(save-restriction
-	  (narrow-to-region (point)
-			    (progn (cafeobj-beginning-of-decl) (point)))
-	  (goto-char (point-max))
-	  (= (char-after (or (scan-lists (point) -1 1) (point-min))) ?\()))
+        (save-restriction
+          (narrow-to-region (point)
+                            (progn (cafeobj-beginning-of-decl) (point)))
+          (goto-char (point-max))
+          (= (char-after (or (scan-lists (point) -1 1) (point-min))) ?\()))
     (error nil)))
 
 (defun cafeobj-indent-command (&optional whole-exp)
@@ -1031,58 +1121,58 @@ expression are preserved."
       ;; If arg, always indent this line as CafeOBJ
       ;; and shift remaining lines of expression the same amount.
       (let ((shift-amt (cafeobj-indent-line))
-	    beg end)
-	(save-excursion
-	  (if cafeobj-tab-always-indent
-	      (beginning-of-line))
-	  ;; Find beginning of following line.
-	  (save-excursion
-	    (forward-line 1) (setq beg (point)))
-	  ;; Find first beginning-of-sexp for sexp extending past this line.
-	  (while (< (point) beg)
-	    (forward-sexp 1)
-	    (setq end (point))
-	    (skip-chars-forward " \t\n")))
-	(if (> end beg)
-	    (indent-code-rigidly beg end shift-amt "#")))
+            beg end)
+        (save-excursion
+          (if cafeobj-tab-always-indent
+              (beginning-of-line))
+          ;; Find beginning of following line.
+          (save-excursion
+            (forward-line 1) (setq beg (point)))
+          ;; Find first beginning-of-sexp for sexp extending past this line.
+          (while (< (point) beg)
+            (forward-sexp 1)
+            (setq end (point))
+            (skip-chars-forward " \t\n")))
+        (if (> end beg)
+            (indent-code-rigidly beg end shift-amt "#")))
     (if (and (not cafeobj-tab-always-indent)
-	     (save-excursion
-	       (skip-chars-backward " \t")
-	       (not (bolp))))
-	(insert-tab)
+             (save-excursion
+               (skip-chars-backward " \t")
+               (not (bolp))))
+        (insert-tab)
       (cafeobj-indent-line))))
 
 (defun cafeobj-indent-line ()
   "Indent current line as CafeOBJ code.
 Return the amount the indentation changed by."
   (let ((indent (calculate-cafeobj-indent nil))
-	beg shift-amt
-	(case-fold-search nil)
-	(pos (- (point-max) (point))))
+        beg shift-amt
+        (case-fold-search nil)
+        (pos (- (point-max) (point))))
     (beginning-of-line)
     (setq beg (point))
     (cond ((eq indent nil)
-	   (setq indent (current-indentation)))
-	  ((eq indent t)
-	   (setq indent (current-indentation)))
-	  (t
-	   (skip-chars-forward " \t")
-	   (if (listp indent) (setq indent (car indent)))
-	   (cond ((= (following-char) ?})
-		  (setq indent (- indent cafeobj-indent-level)))
-		 ((= (following-char) ?{)
-		  (setq indent (+ indent cafeobj-brace-offset))))))
+           (setq indent (current-indentation)))
+          ((eq indent t)
+           (setq indent (current-indentation)))
+          (t
+           (skip-chars-forward " \t")
+           (if (listp indent) (setq indent (car indent)))
+           (cond ((= (following-char) ?})
+                  (setq indent (- indent cafeobj-indent-level)))
+                 ((= (following-char) ?{)
+                  (setq indent (+ indent cafeobj-brace-offset))))))
     (skip-chars-forward " \t")
     (setq shift-amt (- indent (current-column)))
     (if (zerop shift-amt)
-	(if (> (- (point-max) pos) (point))
-	    (goto-char (- (point-max) pos)))
+        (if (> (- (point-max) pos) (point))
+            (goto-char (- (point-max) pos)))
       (delete-region beg (point))
       (indent-to indent)
       ;; If initial point was within line's indentation,
       ;; position after the indentation.  Else stay at same point in text.
       (if (> (- (point-max) pos) (point))
-	  (goto-char (- (point-max) pos))))
+          (goto-char (- (point-max) pos))))
     shift-amt))
 
 (defun calculate-cafeobj-indent (&optional parse-start)
@@ -1092,155 +1182,155 @@ Returns nil if line starts inside a string, t if in a comment."
   (save-excursion
     (beginning-of-line)
     (let ((indent-point (point))
-	  (case-fold-search nil)
-	  state
-	  containing-sexp)
+          (case-fold-search nil)
+          state
+          containing-sexp)
       (if parse-start
-	  (goto-char parse-start)
-	(cafeobj-beginning-of-decl))
+          (goto-char parse-start)
+        (cafeobj-beginning-of-decl))
       (while (< (point) indent-point)
-	(setq parse-start (point))
-	(setq state (parse-partial-sexp (point) indent-point 0))
-	(setq containing-sexp (car (cdr state))))
+        (setq parse-start (point))
+        (setq state (parse-partial-sexp (point) indent-point 0))
+        (setq containing-sexp (car (cdr state))))
       ;;
       (cond ((or (nth 3 state) (nth 4 state))
-	     ;; return nil or t if should not change this line
-	     (nth 4 state))		; t if inside a comment, else nil.
-	    ;; 
-	    ((null containing-sexp)	; we are at top-level
-	     ;; -- TOP-LEVEL------------------------------------------------
-	     ;; Line is at top level.  May be module/view declaration or
-	     ;; top-level commands.
-	     (goto-char indent-point)	; start from original pos.
-	     (skip-chars-forward " \t")
-	     (cond ((= (following-char) ?{) 0)
-		   ((looking-at-cafeobj-top-decl) 0)
-		   ((looking-at-cafeobj-comment-pat) (current-column))
-		   (t
-		    (cafeobj-backward-to-noncomment (or parse-start (point-min)))
-		    ;; Look at previous line that's at column 0
-		    ;; to determine whether we are in top-level decl.
-		    (let ((basic-indent
-			   (save-excursion
-			     (re-search-backward "^[^ \^L\t\n]" nil 'move)
-			     (if (and (looking-at-cafeobj-top-decl)
-				      (not (progn
-					     (condition-case nil
-						 (progn
-						   (search-forward "\{" parse-start)
-						   (forward-list))
-					       (error nil))
-					     (looking-at "\}"))))
-				 cafeobj-psort-indent
-				 0))))
-		      basic-indent))))
-	    ;; NON TOPLEVEL ----------------------------------------------
-	    ((and (/= (char-after containing-sexp) ?{)
-		  (< (car state) 2))
-	     ;; indent to just after the surrounding open.
-	     (goto-char (+ 2 containing-sexp))
-	     (current-column))
-	    ;; WITHIN A BRACE --------------------------------------------
-	    (t
-	     (goto-char indent-point)
-	     (if (and (not (is-cafeobj-beginning-of-statement))
-		      (progn (cafeobj-backward-to-noncomment containing-sexp)
-			     (not (memq (preceding-char)
-					'(0 ?\, ?\} ?\{ ?\. ?\] ?\)))))
-		      ;; don't treat a line with a close-brace
-		      ;; as a continuation. It is probably the
-		      ;; end of a block.
-		      (save-excursion
-			(goto-char indent-point)
-			(skip-chars-forward " \t")
-			(not (= (following-char) ?})))
-		      )
-		 ;; This line is continuation of preceding line's statement;
-		 ;; indent  cafeobj-continued-statement-offset  more than the
-		 ;; previous line of the statement.
-		 (progn
-		   (cafeobj-backward-to-start-of-continued-exp containing-sexp)
-		   (+ cafeobj-continued-statement-offset (current-column)
-		      (if (save-excursion (goto-char indent-point)
-					  (skip-chars-forward " \t")
-					  (eq (following-char) ?{))
-			  cafeobj-continued-brace-offset
-			  0)))
-		 ;; This line starts a new statement.
-		 ;; if we are looking at a comment line, leave it as is. 
-		 (if (progn
-		       (goto-char indent-point)
-		       (skip-chars-forward " \t")
-		       (looking-at-cafeobj-comment-pat))
-		     (current-column)
-		   (progn
-		     ;; Position following last unclosed open-brace.
-		     (goto-char containing-sexp)
-		     ;; Is line first statement after an open-brace?
-		     (or
-		      ;; If no, find that first statement and indent like it.
-		      (save-excursion
-			(forward-char 1)
-			(while (progn (skip-chars-forward " \t\n")
-				      (looking-at "--[ \t].*\\|\*\*[ \t].*"))
-			  (forward-line 1))
-			;; The first following code counts
-			;; if it is before the line we want to indent.
-			(skip-chars-forward " \t\n")
-			(and (< (point) indent-point)
-			     (- (current-column)
-				;; If prev stmt starts with open-brace, that
-				;; open brace was offset by cafeobj-brace-offset.
-				;; Compensate to get the column where
-				;; an ordinary statement would start.
-				(if (= (following-char) ?\{)
-				    cafeobj-brace-offset
-				  0))
-			     ))
-		      ;; If no previous statement,
-		      ;; indent it relative to line brace is on.
-		      ;; For open brace in column zero, don't let statement
-		      ;; start there too.  If cafeobj-indent-level is zero,
-		      ;; use cafeobj-brace-offset +
-		      ;; cafeobj-continued-statement-offset instead.
-		      ;; For open-braces not the first thing in a line,
-		      ;; add in cafeobj-brace-imaginary-offset.
-		      (+ (if (and (bolp) (zerop cafeobj-indent-level))
-			     (+ cafeobj-brace-offset
-				cafeobj-continued-statement-offset)
-			   cafeobj-indent-level)
-			 ;; Move back over whitespace before the openbrace.
-			 ;; If openbrace is not first nonwhite thing on the line,
-			 ;; add the cafeobj-brace-imaginary-offset.
-			 (progn (skip-chars-backward " \t")
-				(if (bolp)
-				    0
-				  cafeobj-brace-imaginary-offset))
-			 ;; If the openbrace is preceded by a parenthesized exp,
-			 ;; move to the beginning of that;
-			 ;; possibly a different line
-			 (progn
-			   (if (memq (preceding-char) '(?\) \]))
-			       (forward-sexp -1))
-			   ;; Get initial indentation of the line we are on.
-			   (current-indentation))))))))))))
+             ;; return nil or t if should not change this line
+             (nth 4 state))             ; t if inside a comment, else nil.
+            ;; 
+            ((null containing-sexp)     ; we are at top-level
+             ;; -- TOP-LEVEL------------------------------------------------
+             ;; Line is at top level.  May be module/view declaration or
+             ;; top-level commands.
+             (goto-char indent-point)   ; start from original pos.
+             (skip-chars-forward " \t")
+             (cond ((= (following-char) ?{) 0)
+                   ((looking-at-cafeobj-top-decl) 0)
+                   ((looking-at-cafeobj-comment-pat) (current-column))
+                   (t
+                    (cafeobj-backward-to-noncomment (or parse-start (point-min)))
+                    ;; Look at previous line that's at column 0
+                    ;; to determine whether we are in top-level decl.
+                    (let ((basic-indent
+                           (save-excursion
+                             (re-search-backward "^[^ \^L\t\n]" nil 'move)
+                             (if (and (looking-at-cafeobj-top-decl)
+                                      (not (progn
+                                             (condition-case nil
+                                                 (progn
+                                                   (search-forward "\{" parse-start)
+                                                   (forward-list))
+                                               (error nil))
+                                             (looking-at "\}"))))
+                                 cafeobj-psort-indent
+                                 0))))
+                      basic-indent))))
+            ;; NON TOPLEVEL ----------------------------------------------
+            ((and (/= (char-after containing-sexp) ?{)
+                  (< (car state) 2))
+             ;; indent to just after the surrounding open.
+             (goto-char (+ 2 containing-sexp))
+             (current-column))
+            ;; WITHIN A BRACE --------------------------------------------
+            (t
+             (goto-char indent-point)
+             (if (and (not (is-cafeobj-beginning-of-statement))
+                      (progn (cafeobj-backward-to-noncomment containing-sexp)
+                             (not (memq (preceding-char)
+                                        '(0 ?\, ?\} ?\{ ?\. ?\] ?\)))))
+                      ;; don't treat a line with a close-brace
+                      ;; as a continuation. It is probably the
+                      ;; end of a block.
+                      (save-excursion
+                        (goto-char indent-point)
+                        (skip-chars-forward " \t")
+                        (not (= (following-char) ?})))
+                      )
+                 ;; This line is continuation of preceding line's statement;
+                 ;; indent  cafeobj-continued-statement-offset  more than the
+                 ;; previous line of the statement.
+                 (progn
+                   (cafeobj-backward-to-start-of-continued-exp containing-sexp)
+                   (+ cafeobj-continued-statement-offset (current-column)
+                      (if (save-excursion (goto-char indent-point)
+                                          (skip-chars-forward " \t")
+                                          (eq (following-char) ?{))
+                          cafeobj-continued-brace-offset
+                          0)))
+                 ;; This line starts a new statement.
+                 ;; if we are looking at a comment line, leave it as is. 
+                 (if (progn
+                       (goto-char indent-point)
+                       (skip-chars-forward " \t")
+                       (looking-at-cafeobj-comment-pat))
+                     (current-column)
+                   (progn
+                     ;; Position following last unclosed open-brace.
+                     (goto-char containing-sexp)
+                     ;; Is line first statement after an open-brace?
+                     (or
+                      ;; If no, find that first statement and indent like it.
+                      (save-excursion
+                        (forward-char 1)
+                        (while (progn (skip-chars-forward " \t\n")
+                                      (looking-at "--[ \t].*\\|\*\*[ \t].*"))
+                          (forward-line 1))
+                        ;; The first following code counts
+                        ;; if it is before the line we want to indent.
+                        (skip-chars-forward " \t\n")
+                        (and (< (point) indent-point)
+                             (- (current-column)
+                                ;; If prev stmt starts with open-brace, that
+                                ;; open brace was offset by cafeobj-brace-offset.
+                                ;; Compensate to get the column where
+                                ;; an ordinary statement would start.
+                                (if (= (following-char) ?\{)
+                                    cafeobj-brace-offset
+                                  0))
+                             ))
+                      ;; If no previous statement,
+                      ;; indent it relative to line brace is on.
+                      ;; For open brace in column zero, don't let statement
+                      ;; start there too.  If cafeobj-indent-level is zero,
+                      ;; use cafeobj-brace-offset +
+                      ;; cafeobj-continued-statement-offset instead.
+                      ;; For open-braces not the first thing in a line,
+                      ;; add in cafeobj-brace-imaginary-offset.
+                      (+ (if (and (bolp) (zerop cafeobj-indent-level))
+                             (+ cafeobj-brace-offset
+                                cafeobj-continued-statement-offset)
+                           cafeobj-indent-level)
+                         ;; Move back over whitespace before the openbrace.
+                         ;; If openbrace is not first nonwhite thing on the line,
+                         ;; add the cafeobj-brace-imaginary-offset.
+                         (progn (skip-chars-backward " \t")
+                                (if (bolp)
+                                    0
+                                  cafeobj-brace-imaginary-offset))
+                         ;; If the openbrace is preceded by a parenthesized exp,
+                         ;; move to the beginning of that;
+                         ;; possibly a different line
+                         (progn
+                           (if (memq (preceding-char) '(?\) \]))
+                               (forward-sexp -1))
+                           ;; Get initial indentation of the line we are on.
+                           (current-indentation))))))))))))
 
 (defun is-cafeobj-beginning-of-statement ()
   (save-excursion
     (beginning-of-line)
     ;; (skip-chars-forward " \t")
     (or (looking-at-cafeobj-keyword-pat)
-	(looking-at-cafeobj-command-pat))))
+        (looking-at-cafeobj-command-pat))))
 
 (defun cafeobj-backward-to-noncomment (lim)
   (let (stop)
     (while (not stop)
       (skip-chars-backward " \t\n\f" lim)
       (setq stop (or (<= (point) lim)
-		     (save-excursion
-		       (beginning-of-line)
-		       (skip-chars-forward " \t")
-		       (not (looking-at-cafeobj-comment-pat)))))
+                     (save-excursion
+                       (beginning-of-line)
+                       (skip-chars-forward " \t")
+                       (not (looking-at-cafeobj-comment-pat)))))
       (or stop (beginning-of-line)))))
 
 (defun cafeobj-backward-to-start-of-continued-exp (lim)
@@ -1250,7 +1340,6 @@ Returns nil if line starts inside a string, t if in a comment."
   (if (<= (point) lim)
       (goto-char (1+ lim)))
   (skip-chars-forward " \t"))
-
 
 
 
@@ -1360,7 +1449,7 @@ This is used for directory tracking and does not do a perfect job."
     nil)
   "*If non-nil, is regexp used to track drive changes."
   :type '(choice regexp
-		 (const nil))
+                 (const nil))
   :group 'cafeobj-directories)
 
 (defcustom cafeobj-cd-regexp "cd"
@@ -1386,6 +1475,8 @@ for CafeOBJ process mode only."
   "List of directories saved by pushd in this buffer's CafeOBJ.
 Thus, this does not include the CafeOBJ's current directory.")
 
+(defvar cafeobj-dirstack-query nil)
+
 (defvar cafeobj-dirtrackp t
   "Non-nil in a CafeOBJ buffer means directory tracking is enabled.")
 
@@ -1396,29 +1487,31 @@ Thus, this does not include the CafeOBJ's current directory.")
 
 (cond ((not cafeobj-process-mode-map)
        (setq cafeobj-process-mode-map
-	     (nconc (make-sparse-keymap) comint-mode-map))
+             (nconc (make-sparse-keymap) comint-mode-map))
        (define-key cafeobj-process-mode-map
-	 "\C-c\C-f" 'cafeobj-forward-command)
+         "\C-c\C-f" 'cafeobj-forward-command)
        (define-key cafeobj-process-mode-map
-	 "\C-c\C-b" 'cafeobj-backward-command)
+         "\C-c\C-b" 'cafeobj-backward-command)
        (define-key cafeobj-process-mode-map
-	 "\t" 'comint-dynamic-complete)
+         "\t" 'comint-dynamic-complete)
        (define-key cafeobj-process-mode-map
-	 "\M-?"  'comint-dynamic-list-filename-completions)
+         "\M-?"  'comint-dynamic-list-filename-completions)
+       (define-key cafeobj-process-mode-map
+         "\C-c\C-g" 'cafeobj-put-esc-esc)
        (define-key cafeobj-process-mode-map [menu-bar completion]
-	 (cons "Complete"
-	       (copy-keymap (lookup-key comint-mode-map [menu-bar completion]))))
+         (cons "Complete"
+               (copy-keymap (lookup-key comint-mode-map [menu-bar completion]))))
        (define-key-after (lookup-key cafeobj-process-mode-map
-				     [menu-bar completion])
-	 [complete-env-variable] '("Complete Env. Variable Name" .
-				   cafeobj-dynamic-complete-environment-variable)
-	 'complete-file)
+                                     [menu-bar completion])
+         [complete-env-variable] '("Complete Env. Variable Name" .
+                                   cafeobj-dynamic-complete-environment-variable)
+         'complete-file)
        (define-key-after (lookup-key cafeobj-process-mode-map [menu-bar completion])
-	 [expand-directory] '("Expand Directory Reference" .
-			      cafeobj-replace-by-expanded-directory)
-	 'complete-expand)
+         [expand-directory] '("Expand Directory Reference" .
+                              cafeobj-replace-by-expanded-directory)
+         'complete-expand)
        (unless (featurep 'infodock)
-	 (define-key cafeobj-process-mode-map "\M-\C-m" 'cafeobj-resync-dirs))
+         (define-key cafeobj-process-mode-map "\M-\C-m" 'cafeobj-resync-dirs))
        ))
 
 (defcustom cafeobj-process-mode-hook nil
@@ -1502,50 +1595,51 @@ Thus, this does not include the CafeOBJ's current directory.")
   (setq cafeobj-process-font-lock-keywords
     (append
      (list '(eval . (cons cafeobj-prompt-pattern
-		     cafeobj-prompt-face))
-	   '("\\[Error\\]:" . cafeobj-error-face)
-	   '("\\[Warning\\]:" . cafeobj-warning-face)
-	   '("^\\[Properties .*$" . cafeobj-process-keyword-face)
-	   '("^\\[selected .*$" . cafeobj-comment-face-2)
-	   '("^\\* kept .*$" . cafeobj-comment-face-1)
-	   '("^\\*\\* success$" . cafeobj-message-3-face)
-	   '("^\\*\\* fail$" . cafeobj-message-3-face)
-	   '("^\\*\\* found .*$" . cafeobj-message-3-face)
-	   '("^\\*\\* ok, .*$" . cafeobj-message-3-face)
-	   '("\\<\\(trying .*\\)\\>:" 0 cafeobj-message-2-face)
-	   '("^\\*\\* check .*:" . cafeobj-message-2-face)
-	   '("^\\*\\* Fail.*$" . cafeobj-message-3-face)
-	   '("^\\*\\* fail!$" . cafeobj-message-3-face)
-	   '("^\\*\\* Predicate .*$". cafeobj-message-3-face)
-	   '("^\\*\\* PigNose .*$" . cafeobj-message-2-face)
-	   '("^\\*\\* Search .*$" . cafeobj-process-keyword-face)
-	   '("^\\(-- reduce in .* :\\) " 1 cafeobj-message-1-face)
-	   '("^\\(-- behavioural reduce in .* :\\) " 1 cafeobj-message-1-face)
-	   '("^\\(-- cbred in .* :\\)" 1 cafeobj-message-1-face)
-	   '("^\\(#[0-9]+\\)(" 1 cafeobj-comment-face-1)
-	   ;; '("\\<done.$" . cafeobj-message-2-face)
-	   '("^\\(case #.*:\\) " 1 cafeobj-message-1-face)
-	   '("^|  .*|$" . cafeobj-message-2-face)
-	   '("** __+$" . cafeobj-message-1-face)
-	   '("^\\*\\*.*$" . cafeobj-comment-face-1)
-	   '("^\\*\\* USABLE " . cafeobj-process-keyword-face)
-	   '("^\\*\\* SOS " . cafeobj-process-keyword-face)
-	   '("^\\*\\* PASSIVE " . cafeobj-process-keyword-face)
-	   '("^\\*\\* Starting PigNose " . cafeobj-process-keyword-face)
-	   '("^\\*\\* DEMODULATORS " . cafeobj-process-keyword-face)
-	   '("^\\*\\* PROOF " . cafeobj-process-keyword-face)
-	   '("^___+$" . cafeobj-message-2-face)
-	   '("^---+$" . cafeobj-message-2-face)
-	   '("^--.*$" . cafeobj-comment-face-2)
-	   '("^adding axiom:" . cafeobj-comment-face-2)
-	   '("^goal:" . cafeobj-message-1-face)
-	   '("^hypo:" . cafeobj-comment-face-2)
-	   '("^ax:" . cafeobj-message-1-face)
-	   '("^+.*$" . cafeobj-message-2-face)
-	   '("^==.*$" . cafeobj-message-2-face)
-	   '("[ \t]\\([+-][^ \t\n>]+\\)" 1 cafeobj-option-face)
-	   ;; '("^[^\n]+.*$" . cafeobj-output-face)
-	   )
+                     cafeobj-prompt-face))
+           '("\\[Error\\]:" . cafeobj-error-face)
+           '("\\[Warning\\]:" . cafeobj-warning-face)
+           '("^\\[Properties .*$" . cafeobj-process-keyword-face)
+           '("^\\[selected .*$" . cafeobj-comment-face-2)
+           '("^\\* kept .*$" . cafeobj-comment-face-1)
+           '("^\\*\\* success$" . cafeobj-message-3-face)
+           '("^\\*\\* fail$" . cafeobj-message-3-face)
+           '("^\\*\\* found .*$" . cafeobj-message-3-face)
+           '("^\\*\\* ok, .*$" . cafeobj-message-3-face)
+           '("\\<\\(trying .*\\)\\>:" 0 cafeobj-message-2-face)
+           '("^\\*\\* check .*:" . cafeobj-message-2-face)
+           '("^\\*\\* Fail.*$" . cafeobj-message-3-face)
+           '("^\\*\\* fail!$" . cafeobj-message-3-face)
+           '("^\\*\\* Predicate .*$". cafeobj-message-3-face)
+           '("^\\*\\* PigNose .*$" . cafeobj-message-2-face)
+           '("^\\*\\* Search .*$" . cafeobj-process-keyword-face)
+           ;; reduction
+           '("^\\(-- reduce in .* :\\) " 1 cafeobj-message-1-face)
+           '("^\\(-- behavioural reduce in .* :\\) " 1 cafeobj-message-1-face)
+           '("^\\(-- cbred in .* :\\)" 1 cafeobj-message-1-face)
+           '("^\\(#[0-9]+\\)(" 1 cafeobj-comment-face-1)
+           ;; CITP
+           '("^\\[.+\\].*$" . cafeobj-message-1-face)
+           ;; '("\\<done.$" . cafeobj-message-2-face)
+           '("^\\(case #.*:\\) " 1 cafeobj-message-1-face)
+           '("^|  .*|$" . cafeobj-message-2-face)
+           '("** __+$" . cafeobj-message-1-face)
+           ;; '("^\\*\\*.*$" . cafeobj-comment-face-1)
+           '("^\\*\\* USABLE " . cafeobj-process-keyword-face)
+           '("^\\*\\* SOS " . cafeobj-process-keyword-face)
+           '("^\\*\\* PASSIVE " . cafeobj-process-keyword-face)
+           '("^\\*\\* Starting PigNose " . cafeobj-process-keyword-face)
+           '("^\\*\\* DEMODULATORS " . cafeobj-process-keyword-face)
+           '("^\\*\\* PROOF " . cafeobj-process-keyword-face)
+           '("^___+$" . cafeobj-message-2-face)
+           '("^---+$" . cafeobj-message-2-face)
+           '("^adding axiom:" . cafeobj-comment-face-2)
+           '("^goal:" . cafeobj-message-1-face)
+           '("^hypo:" . cafeobj-comment-face-2)
+           '("^ax:" . cafeobj-message-1-face)
+           '("^==.*$" . cafeobj-message-2-face)
+           '("[ \t]\\([+-][^ \t\n>]+\\)" 1 cafeobj-option-face)
+           ;; '("^[^\n]+.*$" . cafeobj-output-face)
+           )
      cafeobj-font-lock-keywords)))
 
 (put 'cafeobj-process-mode 'font-lock-defaults
@@ -1600,18 +1694,47 @@ Thus, this does not include the CafeOBJ's current directory.")
   (setq cafeobj-process (get-buffer-process cafeobj-process-buffer))
   (save-excursion
     (set-buffer cafeobj-process-buffer)
-    (cafeobj-process-mode)
-    ))
+    (cafeobj-process-mode)))
+
+(defcustom cafeobj-logo-file "/usr/local/share/doc/cafeobj/cafeobj-logo-small.png"
+  "CafeOBJ's logo file displayed at start up time of the interpreter."
+  :type 'string
+  :group 'cafeobj)
+
+(defun cafeobj-startup-message (&optional x y)
+  "Insert startup message in current buffer."
+  (erase-buffer)
+  (when (and (display-graphic-p)
+             (file-exists-p cafeobj-logo-file))
+    (let* ((img (create-image cafeobj-logo-file))
+           (img-size (image-size img))
+           (char-per-pixel (/ (* 1.0 (window-width)) (window-pixel-width))))
+      (goto-char (point-min))
+      (insert " \n")
+      (insert-image img)
+      (while (not (eobp))
+        (insert (make-string (truncate (* (/ (max (- (window-pixel-width)
+                                                     (or x (car img-size)))
+                                                  0)
+                                             2)
+                                          char-per-pixel))
+                             ?\ ))
+        (forward-line 1))))
+  (goto-char (point-max))
+  (insert (make-string 2 ?\n))
+  (set-buffer-modified-p t))
 
 (defun cafeobj (&rest ignore)
   (interactive)
   (if (and cafeobj-process
-	   (eq (process-status cafeobj-process) 'run))
+           (eq (process-status cafeobj-process) 'run))
       (switch-to-buffer cafeobj-process-buffer)
     (progn
       (switch-to-buffer (get-buffer-create (concat "*" cafeobj-application-name "*")))
-      (cafeobj-start-process cafeobj-application-name cafeobj-default-application)
-      )))
+      ;; show cafeobj logo
+      (cafeobj-startup-message)
+      ;; start the process
+      (cafeobj-start-process cafeobj-application-name cafeobj-default-application))))
 
 (defun cafeobj-kill-process ()
   "Kill chaos subprocess and its buffer."
@@ -1634,25 +1757,26 @@ Thus, this does not include the CafeOBJ's current directory.")
 If `cafeobj-process' is nil or dead, start a new process first."
   (interactive)
   (let ((start (save-excursion (beginning-of-line) (point)))
-	(end (save-excursion (end-of-line) (point))))
+        (end (save-excursion (end-of-line) (point))))
     (or (and cafeobj-process
-	     (eq (process-status cafeobj-process) 'run))
-	(cafeobj-start-process cafeobj-application-name cafeobj-default-application))
+             (eq (process-status cafeobj-process) 'run))
+        (cafeobj-start-process cafeobj-application-name cafeobj-default-application))
     (comint-simple-send cafeobj-process (buffer-substring start end))
     (forward-line 1)
     (if cafeobj-always-show
-	(display-buffer cafeobj-process-buffer))))
+        (display-buffer cafeobj-process-buffer))))
 
 (defun cafeobj-send-region (start end)
   "Send region to chaos subprocess."
   (interactive "r")
-  (or (and cafeobj-process
-	   (comint-check-proc cafeobj-process-buffer))
-      (cafeobj-start-process cafeobj-application-name cafeobj-default-application))
-  (comint-simple-send cafeobj-process
-		      (concat (buffer-substring start end) "\n"))
-  (if cafeobj-always-show
-      (display-buffer cafeobj-process-buffer)))
+  (when (and start end) 
+    (or (and cafeobj-process
+             (comint-check-proc cafeobj-process-buffer))
+        (cafeobj-start-process cafeobj-application-name cafeobj-default-application))
+    (comint-simple-send cafeobj-process
+                        (concat (buffer-substring start end) "\n"))
+    (if cafeobj-always-show
+        (display-buffer cafeobj-process-buffer))))
 
 (defun cafeobj-send-decl ()
   "Send proc around point to chaos subprocess."
@@ -1664,28 +1788,28 @@ If `cafeobj-process' is nil or dead, start a new process first."
       (cafeobj-end-of-decl)
       (setq end (point)))
     (or (and cafeobj-process
-	     (comint-check-proc cafeobj-process-buffer))
-	(cafeobj-start-process cafeobj-application-name cafeobj-default-application))
+             (comint-check-proc cafeobj-process-buffer))
+        (cafeobj-start-process cafeobj-application-name cafeobj-default-application))
     (comint-simple-send cafeobj-process
-			(concat (buffer-substring beg end) "\n"))
+                        (concat (buffer-substring beg end) "\n"))
     (if cafeobj-always-show
-	(display-buffer cafeobj-process-buffer))))
+        (display-buffer cafeobj-process-buffer))))
 
 (defun cafeobj-send-buffer ()
   "Send whole buffer to chaos subprocess."
   (interactive)
   (or (and cafeobj-process
-	   (comint-check-proc cafeobj-process-buffer))
+           (comint-check-proc cafeobj-process-buffer))
       (cafeobj-start-process cafeobj-application-name cafeobj-default-application))
   (if (buffer-modified-p)
       (comint-simple-send cafeobj-process
-			  (concat
-			   (buffer-substring (point-min) (point-max))
-			   "\n"))
+                          (concat
+                           (buffer-substring (point-min) (point-max))
+                           "\n"))
     (comint-simple-send cafeobj-process
-			(concat "input "
-				(buffer-file-name)
-				"\n")))
+                        (concat "input "
+                                (buffer-file-name)
+                                "\n")))
   (if cafeobj-always-show
       (display-buffer cafeobj-process-buffer)))
 
@@ -1756,32 +1880,32 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   (if cafeobj-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
       (condition-case chdir-failure
-	  (let ((start (progn (string-match "^[; \t]*" str) ; skip whitespace
-			      (match-end 0)))
-		end cmd arg1)
-	    (while (string-match cafeobj-command-regexp str start)
-	      (setq end (match-end 0)
-		    cmd (comint-arguments (substring str start end) 0 0)
-		    arg1 (comint-arguments (substring str start end) 1 1))
-	      (cond ((string-match (concat "\\`\\(" cafeobj-popd-regexp
-					   "\\)\\($\\|[ \t]\\)")
-				   cmd)
-		     (cafeobj-process-popd (comint-substitute-in-file-name arg1)))
-		    ((string-match (concat "\\`\\(" cafeobj-pushd-regexp
-					   "\\)\\($\\|[ \t]\\)")
-				   cmd)
-		     (cafeobj-process-pushd (comint-substitute-in-file-name arg1)))
-		    ((string-match (concat "\\`\\(" cafeobj-cd-regexp
-					   "\\)\\($\\|[ \t]\\)")
-				   cmd)
-		     (cafeobj-process-cd (comint-substitute-in-file-name arg1)))
-		    ((and cafeobj-chdrive-regexp
-			  (string-match (concat "\\`\\(" cafeobj-chdrive-regexp
-						"\\)\\($\\|[ \t]\\)")
-					cmd))
-		     (cafeobj-process-cd (comint-substitute-in-file-name cmd))))
-	      (setq start (progn (string-match "[; \t]*" str end) ; skip again
-				 (match-end 0)))))
+          (let ((start (progn (string-match "^[; \t]*" str) ; skip whitespace
+                              (match-end 0)))
+                end cmd arg1)
+            (while (string-match cafeobj-command-regexp str start)
+              (setq end (match-end 0)
+                    cmd (comint-arguments (substring str start end) 0 0)
+                    arg1 (comint-arguments (substring str start end) 1 1))
+              (cond ((string-match (concat "\\`\\(" cafeobj-popd-regexp
+                                           "\\)\\($\\|[ \t]\\)")
+                                   cmd)
+                     (cafeobj-process-popd (comint-substitute-in-file-name arg1)))
+                    ((string-match (concat "\\`\\(" cafeobj-pushd-regexp
+                                           "\\)\\($\\|[ \t]\\)")
+                                   cmd)
+                     (cafeobj-process-pushd (comint-substitute-in-file-name arg1)))
+                    ((string-match (concat "\\`\\(" cafeobj-cd-regexp
+                                           "\\)\\($\\|[ \t]\\)")
+                                   cmd)
+                     (cafeobj-process-cd (comint-substitute-in-file-name arg1)))
+                    ((and cafeobj-chdrive-regexp
+                          (string-match (concat "\\`\\(" cafeobj-chdrive-regexp
+                                                "\\)\\($\\|[ \t]\\)")
+                                        cmd))
+                     (cafeobj-process-cd (comint-substitute-in-file-name cmd))))
+              (setq start (progn (string-match "[; \t]*" str end) ; skip again
+                                 (match-end 0)))))
     (error "Couldn't cd"))))
 
 
@@ -1789,12 +1913,12 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 (defun cafeobj-cd-1 (dir dirstack)
   (if cafeobj-dirtrackp
       (setq list-buffers-directory (file-name-as-directory
-				    (expand-file-name dir))))
+                                    (expand-file-name dir))))
   (condition-case nil
       (progn (if (file-name-absolute-p dir)
                  ;;(cd-absolute (concat comint-file-name-prefix dir))
-		 (cd-absolute dir)
-	       (cd dir))
+                 (cd-absolute dir)
+               (cd dir))
              (setq cafeobj-dirstack dirstack)
              (cafeobj-dirstack-message))
     (file-error (message "Couldn't cd."))))
@@ -1803,32 +1927,32 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 (defun cafeobj-process-popd (arg)
   (let ((num (or (cafeobj-extract-num arg) 0)))
     (cond ((and num (= num 0) cafeobj-dirstack)
-	   (cafeobj-cd-1 (car cafeobj-dirstack) (cdr cafeobj-dirstack)))
-	  ((and num (> num 0) (<= num (length cafeobj-dirstack)))
-	   (let* ((ds (cons nil cafeobj-dirstack))
-		  (cell (nthcdr (1- num) ds)))
-	     (rplacd cell (cdr (cdr cell)))
-	     (setq cafeobj-dirstack (cdr ds))
-	     (cafeobj-dirstack-message)))
-	  (t
-	   (error "Couldn't popd")))))
+           (cafeobj-cd-1 (car cafeobj-dirstack) (cdr cafeobj-dirstack)))
+          ((and num (> num 0) (<= num (length cafeobj-dirstack)))
+           (let* ((ds (cons nil cafeobj-dirstack))
+                  (cell (nthcdr (1- num) ds)))
+             (rplacd cell (cdr (cdr cell)))
+             (setq cafeobj-dirstack (cdr ds))
+             (cafeobj-dirstack-message)))
+          (t
+           (error "Couldn't popd")))))
 
 ;; Return DIR prefixed with comint-file-name-prefix as appropriate.
 (defun cafeobj-prefixed-directory-name (dir)
   (if (= (length comint-file-name-prefix) 0)
       dir
     (if (file-name-absolute-p dir)
-	;; The name is absolute, so prepend the prefix.
-	(concat comint-file-name-prefix dir)
+        ;; The name is absolute, so prepend the prefix.
+        (concat comint-file-name-prefix dir)
       ;; For relative name we assume default-directory already has the prefix.
       (expand-file-name dir))))
 
 ;;; cd [dir]
 (defun cafeobj-process-cd (arg)
   (let ((new-dir (cond ((zerop (length arg)) (concat comint-file-name-prefix
-						     "~"))
-		       ((string-equal "-" arg) cafeobj-last-dir)
-		       (t (cafeobj-prefixed-directory-name arg)))))
+                                                     "~"))
+                       ((string-equal "-" arg) cafeobj-last-dir)
+                       (t (cafeobj-prefixed-directory-name arg)))))
     (setq cafeobj-last-dir default-directory)
     (cafeobj-cd-1 new-dir cafeobj-dirstack)))
 
@@ -1836,36 +1960,36 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 (defun cafeobj-process-pushd (arg)
   (let ((num (cafeobj-extract-num arg)))
     (cond ((zerop (length arg))
-	   ;; no arg -- swap pwd and car of stack unless cafeobj-pushd-tohome
-	   (cond (cafeobj-pushd-tohome
-		  (cafeobj-process-pushd (concat comint-file-name-prefix "~")))
-		 (cafeobj-dirstack
-		  (let ((old default-directory))
-		    (cafeobj-cd-1 (car cafeobj-dirstack)
-				(cons old (cdr cafeobj-dirstack)))))
-		 (t
-		  (message "Directory stack empty."))))
-	  ((numberp num)
-	   ;; pushd +n
-	   (cond ((> num (length cafeobj-dirstack))
-		  (message "Directory stack not that deep."))
-		 ((= num 0)
-		  (error (message "Couldn't cd.")))
-		 (cafeobj-pushd-dextract
-		  (let ((dir (nth (1- num) cafeobj-dirstack)))
-		    (cafeobj-process-popd arg)
-		    (cafeobj-process-pushd default-directory)
-		    (cafeobj-cd-1 dir cafeobj-dirstack)))
-		 (t
-		  (let* ((ds (cons default-directory cafeobj-dirstack))
-			 (dslen (length ds))
-			 (front (nthcdr num ds))
-			 (back (reverse (nthcdr (- dslen num) (reverse ds))))
-			 (new-ds (append front back)))
-		    (cafeobj-cd-1 (car new-ds) (cdr new-ds))))))
-	  (t
-	   ;; pushd <dir>
-	   (let ((old-wd default-directory))
+           ;; no arg -- swap pwd and car of stack unless cafeobj-pushd-tohome
+           (cond (cafeobj-pushd-tohome
+                  (cafeobj-process-pushd (concat comint-file-name-prefix "~")))
+                 (cafeobj-dirstack
+                  (let ((old default-directory))
+                    (cafeobj-cd-1 (car cafeobj-dirstack)
+                                (cons old (cdr cafeobj-dirstack)))))
+                 (t
+                  (message "Directory stack empty."))))
+          ((numberp num)
+           ;; pushd +n
+           (cond ((> num (length cafeobj-dirstack))
+                  (message "Directory stack not that deep."))
+                 ((= num 0)
+                  (error (message "Couldn't cd.")))
+                 (cafeobj-pushd-dextract
+                  (let ((dir (nth (1- num) cafeobj-dirstack)))
+                    (cafeobj-process-popd arg)
+                    (cafeobj-process-pushd default-directory)
+                    (cafeobj-cd-1 dir cafeobj-dirstack)))
+                 (t
+                  (let* ((ds (cons default-directory cafeobj-dirstack))
+                         (dslen (length ds))
+                         (front (nthcdr num ds))
+                         (back (reverse (nthcdr (- dslen num) (reverse ds))))
+                         (new-ds (append front back)))
+                    (cafeobj-cd-1 (car new-ds) (cdr new-ds))))))
+          (t
+           ;; pushd <dir>
+           (let ((old-wd default-directory))
              (cafeobj-cd-1 (cafeobj-prefixed-directory-name arg)
                          (if (or (null cafeobj-pushd-dunique)
                                  (not (member old-wd cafeobj-dirstack)))
@@ -1892,7 +2016,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
   (if cafeobj-dirtrackp
       (setq list-buffers-directory (file-name-as-directory
-				    (expand-file-name dir))))
+                                    (expand-file-name dir))))
   (cd dir))
 
 (defun cafeobj-resync-dirs ()
@@ -1907,7 +2031,7 @@ new directory stack -- you lose. If this happens, just do the
 command again."
   (interactive)
   (let* ((proc (get-buffer-process (current-buffer)))
-	 (pmark (process-mark proc)))
+         (pmark (process-mark proc)))
     (goto-char pmark)
     (insert cafeobj-dirstack-query) (insert "\n")
     (sit-for 0) ; force redisplay
@@ -1918,27 +2042,27 @@ command again."
       ;; This extra newline prevents the user's pending input from spoofing us.
       (insert "\n") (backward-char 1)
       (while (not (looking-at ".+\n"))
-	(accept-process-output proc)
-	(goto-char pt)
-	;; kludge to cope with shells that have "stty echo" turned on.
-	;; of course this will lose if there is only one dir on the stack
-	;; and it is named "dirs"...  -jwz
-	(if (looking-at "^dirs\r?\n") (delete-region (point) (match-end 0)))
-	))
+        (accept-process-output proc)
+        (goto-char pt)
+        ;; kludge to cope with shells that have "stty echo" turned on.
+        ;; of course this will lose if there is only one dir on the stack
+        ;; and it is named "dirs"...  -jwz
+        (if (looking-at "^dirs\r?\n") (delete-region (point) (match-end 0)))
+        ))
     (goto-char pmark) (delete-char 1) ; remove the extra newline
     ;; That's the dirlist. grab it & parse it.
     (let* ((dl (buffer-substring (match-beginning 0) (1- (match-end 0))))
-	   (dl-len (length dl))
-	   (ds '())			; new dir stack
-	   (i 0))
+           (dl-len (length dl))
+           (ds '())                     ; new dir stack
+           (i 0))
       (while (< i dl-len)
-	;; regexp = optional whitespace, (non-whitespace), optional whitespace
-	(string-match "\\s *\\(\\S +\\)\\s *" dl i) ; pick off next dir
-	(setq ds (cons (concat comint-file-name-prefix
-			       (substring dl (match-beginning 1)
-					  (match-end 1)))
-		       ds))
-	(setq i (match-end 0)))
+        ;; regexp = optional whitespace, (non-whitespace), optional whitespace
+        (string-match "\\s *\\(\\S +\\)\\s *" dl i) ; pick off next dir
+        (setq ds (cons (concat comint-file-name-prefix
+                               (substring dl (match-beginning 1)
+                                          (match-end 1)))
+                       ds))
+        (setq i (match-end 0)))
       (let ((ds (reverse ds)))
         (cafeobj-cd-1 (car ds) (cdr ds))))))
 
@@ -1961,25 +2085,25 @@ command again."
   (let* ((msg "")
          (ds (cons default-directory cafeobj-dirstack))
          (home (if cafeobj-xemacs-p
-		   (format "^%s\\(/\\|$\\)"
-			   (regexp-quote (user-home-directory)))
-		 abbreviated-home-dir))
+                   (format "^%s\\(/\\|$\\)"
+                           (regexp-quote (user-home-directory)))
+                 abbreviated-home-dir))
          (prefix (and comint-file-name-prefix
-		      ;; XEmacs addition: don't turn "/foo" into "foo" !!
-		      (not (= 0 (length comint-file-name-prefix)))
+                      ;; XEmacs addition: don't turn "/foo" into "foo" !!
+                      (not (= 0 (length comint-file-name-prefix)))
                       (format "^%s\\(/\\|$\\)"
                               (regexp-quote comint-file-name-prefix)))))
     (while ds
       (let ((dir (car ds)))
-	(if (string-match home dir)
-	    (setq dir (concat "~/" (substring dir (match-end 0)))))
-	;; Strip off comint-file-name-prefix if present.
-	(and prefix (string-match prefix dir)
-	     (setq dir (substring dir (match-end 0)))
+        (if (string-match home dir)
+            (setq dir (concat "~/" (substring dir (match-end 0)))))
+        ;; Strip off comint-file-name-prefix if present.
+        (and prefix (string-match prefix dir)
+             (setq dir (substring dir (match-end 0)))
              (setcar ds dir)
              )
-	(setq msg (concat msg dir " "))
-	(setq ds (cdr ds))))
+        (setq msg (concat msg dir " "))
+        (setq ds (cdr ds))))
     (run-hooks 'cafeobj-dirstack-message-hook)
     (message "%s" msg)))
 
@@ -1987,20 +2111,20 @@ command again."
 (defun cafeobj-snarf-envar (var)
   "Return as a string the shell's value of environment variable VAR."
   (let* ((cmd (format "printenv '%s'\n" var))
-	 (proc (get-buffer-process (current-buffer)))
-	 (pmark (process-mark proc)))
+         (proc (get-buffer-process (current-buffer)))
+         (pmark (process-mark proc)))
     (goto-char pmark)
     (insert cmd)
-    (sit-for 0)				; force redisplay
+    (sit-for 0)                         ; force redisplay
     (comint-send-string proc cmd)
     (set-marker pmark (point))
-    (let ((pt (point)))			; wait for 1 line
+    (let ((pt (point)))                 ; wait for 1 line
       ;; This extra newline prevents the user's pending input from spoofing us.
       (insert "\n") (backward-char 1)
       (while (not (looking-at ".+\n"))
-	(accept-process-output proc)
-	(goto-char pt)))
-    (goto-char pmark) (delete-char 1)	; remove the extra newline
+        (accept-process-output proc)
+        (goto-char pt)))
+    (goto-char pmark) (delete-char 1)   ; remove the extra newline
     (buffer-substring (match-beginning 0) (1- (match-end 0)))))
 
 (defun cafeobj-copy-environment-variable (variable)
@@ -2020,8 +2144,8 @@ See `cafeobj-command-regexp'."
   (interactive "p")
   (let ((limit (save-excursion (end-of-line nil) (point))))
     (if (re-search-forward (concat cafeobj-command-regexp "\\([;&|][\t ]*\\)+")
-			   limit 'move arg)
-	(skip-syntax-backward " "))))
+                           limit 'move arg)
+        (skip-syntax-backward " "))))
 
 
 (defun cafeobj-backward-command (&optional arg)
@@ -2030,13 +2154,25 @@ See `cafeobj-command-regexp'."
   (interactive "p")
   (let ((limit (save-excursion (comint-bol nil) (point))))
     (if (> limit (point))
-	(save-excursion (beginning-of-line) (setq limit (point))))
+        (save-excursion (beginning-of-line) (setq limit (point))))
     (skip-syntax-backward " " limit)
     (if (re-search-backward
-	 (format "[;&|]+[\t ]*\\(%s\\)" cafeobj-command-regexp) limit 'move arg)
-	(progn (goto-char (match-beginning 1))
-	       (skip-chars-forward ";&|")))))
+         (format "[;&|]+[\t ]*\\(%s\\)" cafeobj-command-regexp) limit 'move arg)
+        (progn (goto-char (match-beginning 1))
+               (skip-chars-forward ";&|")))))
 
+(defvar esc-esc "")
+
+(defun cafeobj-put-esc-esc ()
+  "send EscEsc to CafeOBJ process. This makes the interpeter
+to cancel current input."
+  (interactive)
+  (let* ((proc (get-buffer-process (current-buffer)))
+         (pmark (process-mark proc)))
+    (goto-char pmark)
+    (comint-send-string proc esc-esc)
+    (comint-send-string proc "\n")
+    (set-marker pmark (point))))
 
 (defun cafeobj-dynamic-complete-command ()
   "Dynamically complete the command at point.
@@ -2049,49 +2185,49 @@ Returns t if successful."
   (interactive)
   (let ((filename (comint-match-partial-filename)))
     (if (and filename
-	     (save-match-data (not (string-match "[~/]" filename)))
-	     (eq (match-beginning 0)
-		 (save-excursion (cafeobj-backward-command 1) (point))))
-	(prog2 (message "Completing command name...")
-	    (cafeobj-dynamic-complete-as-command)))))
+             (save-match-data (not (string-match "[~/]" filename)))
+             (eq (match-beginning 0)
+                 (save-excursion (cafeobj-backward-command 1) (point))))
+        (prog2 (message "Completing command name...")
+            (cafeobj-dynamic-complete-as-command)))))
 
 
 (defun cafeobj-dynamic-complete-as-command ()
   "Dynamically complete at point as a command.
 See `cafeobj-dynamic-complete-filename'.  Returns t if successful."
   (let* ((filename (or (comint-match-partial-filename) ""))
-	 (pathnondir (file-name-nondirectory filename))
-	 (paths (cdr (reverse exec-path)))
-	 (cwd (file-name-as-directory (expand-file-name default-directory)))
-	 (ignored-extensions
-	  (and comint-completion-fignore
-	       (mapconcat (function (lambda (x) (concat (regexp-quote x) "$")))
-			  comint-completion-fignore "\\|")))
-	 (path "") (comps-in-path ()) (file "") (filepath "") (completions ()))
+         (pathnondir (file-name-nondirectory filename))
+         (paths (cdr (reverse exec-path)))
+         (cwd (file-name-as-directory (expand-file-name default-directory)))
+         (ignored-extensions
+          (and comint-completion-fignore
+               (mapconcat (function (lambda (x) (concat (regexp-quote x) "$")))
+                          comint-completion-fignore "\\|")))
+         (path "") (comps-in-path ()) (file "") (filepath "") (completions ()))
     ;; Go thru each path in the search path, finding completions.
     (while paths
       (setq path (file-name-as-directory (comint-directory (or (car paths) ".")))
-	    comps-in-path (and (file-accessible-directory-p path)
-			       (file-name-all-completions pathnondir path)))
+            comps-in-path (and (file-accessible-directory-p path)
+                               (file-name-all-completions pathnondir path)))
       ;; Go thru each completion found, to see whether it should be used.
       (while comps-in-path
-	(setq file (car comps-in-path)
-	      filepath (concat path file))
-	(if (and (not (member file completions))
-		 (not (and ignored-extensions
-			   (string-match ignored-extensions file)))
-		 (or (string-equal path cwd)
-		     (not (file-directory-p filepath)))
-		 )
-	    (setq completions (cons file completions)))
-	(setq comps-in-path (cdr comps-in-path)))
+        (setq file (car comps-in-path)
+              filepath (concat path file))
+        (if (and (not (member file completions))
+                 (not (and ignored-extensions
+                           (string-match ignored-extensions file)))
+                 (or (string-equal path cwd)
+                     (not (file-directory-p filepath)))
+                 )
+            (setq completions (cons file completions)))
+        (setq comps-in-path (cdr comps-in-path)))
       (setq paths (cdr paths)))
     ;; OK, we've got a list of completions.
     (let ((success (let ((comint-completion-addsuffix nil))
-		     (comint-dynamic-simple-complete pathnondir completions))))
+                     (comint-dynamic-simple-complete pathnondir completions))))
       (if (and (memq success '(sole shortest)) comint-completion-addsuffix
-	       (not (file-directory-p (comint-match-partial-filename))))
-	  (insert " "))
+               (not (file-directory-p (comint-match-partial-filename))))
+          (insert " "))
       success)))
 
 (defun cafeobj-dynamic-complete-filename ()
@@ -2100,12 +2236,12 @@ This completes only if point is at a suitable position for a
 filename argument."
   (interactive)
   (let ((opoint (point))
-	(beg (comint-line-beginning-position)))
+        (beg (comint-line-beginning-position)))
     (when (save-excursion
-	    (goto-char (if (re-search-backward "[;|&]" beg t)
-			   (match-end 0)
-			 beg))
-	    (re-search-forward "[^ \t][ \t]" opoint t))
+            (goto-char (if (re-search-backward "[;|&]" beg t)
+                           (match-end 0)
+                         beg))
+            (re-search-forward "[^ \t][ \t]" opoint t))
       (comint-dynamic-complete-as-filename))))
 
 (defun cafeobj-match-partial-variable ()
@@ -2113,12 +2249,12 @@ filename argument."
   (save-excursion
     (let ((limit (point)))
       (if (re-search-backward "[^A-Za-z0-9_{}]" nil 'move)
-	  (or (looking-at "\\$") (forward-char 1)))
+          (or (looking-at "\\$") (forward-char 1)))
       ;; Anchor the search forwards.
       (if (or (eolp) (looking-at "[^A-Za-z0-9_{}$]"))
-	  nil
-	(re-search-forward "\\$?{?[A-Za-z0-9_]*}?" limit)
-	(buffer-substring (match-beginning 0) (match-end 0))))))
+          nil
+        (re-search-forward "\\$?{?[A-Za-z0-9_]*}?" limit)
+        (buffer-substring (match-beginning 0) (match-end 0))))))
 
 
 (defun cafeobj-dynamic-complete-environment-variable ()
@@ -2138,8 +2274,8 @@ Returns non-nil if successful."
   (interactive)
   (let ((variable (cafeobj-match-partial-variable)))
     (if (and variable (string-match "^\\$" variable))
-	(prog2 (message "Completing variable name...")
-	    (cafeobj-dynamic-complete-as-environment-variable)))))
+        (prog2 (message "Completing variable name...")
+            (cafeobj-dynamic-complete-as-environment-variable)))))
 
 
 (defun cafeobj-dynamic-complete-as-environment-variable ()
@@ -2147,24 +2283,24 @@ Returns non-nil if successful."
 Used by `cafeobj-dynamic-complete-environment-variable'.
 Uses `comint-dynamic-simple-complete'."
   (let* ((var (or (cafeobj-match-partial-variable) ""))
-	 (variable (substring var (or (string-match "[^$({]\\|$" var) 0)))
-	 (variables (mapcar (function (lambda (x)
-					(substring x 0 (string-match "=" x))))
-			    process-environment))
-	 (addsuffix comint-completion-addsuffix)
-	 (comint-completion-addsuffix nil)
-	 (success (comint-dynamic-simple-complete variable variables)))
+         (variable (substring var (or (string-match "[^$({]\\|$" var) 0)))
+         (variables (mapcar (function (lambda (x)
+                                        (substring x 0 (string-match "=" x))))
+                            process-environment))
+         (addsuffix comint-completion-addsuffix)
+         (comint-completion-addsuffix nil)
+         (success (comint-dynamic-simple-complete variable variables)))
     (if (memq success '(sole shortest))
-	(let* ((var (cafeobj-match-partial-variable))
-	       (variable (substring var (string-match "[^$({]" var)))
-	       (protection (cond ((string-match "{" var) "}")
-				 ((string-match "(" var) ")")
-				 (t "")))
-	       (suffix (cond ((null addsuffix) "")
-			     ((file-directory-p
-			       (comint-directory (getenv variable))) "/")
-			     (t " "))))
-	  (insert protection suffix)))
+        (let* ((var (cafeobj-match-partial-variable))
+               (variable (substring var (string-match "[^$({]" var)))
+               (protection (cond ((string-match "{" var) "}")
+                                 ((string-match "(" var) ")")
+                                 (t "")))
+               (suffix (cond ((null addsuffix) "")
+                             ((file-directory-p
+                               (comint-directory (getenv variable))) "/")
+                             (t " "))))
+          (insert protection suffix)))
     success))
 
 
@@ -2177,22 +2313,22 @@ Returns t if successful."
   (interactive)
   (if (comint-match-partial-filename)
       (save-excursion
-	(goto-char (match-beginning 0))
-	(let ((stack (cons default-directory cafeobj-dirstack))
-	      (index (cond ((looking-at "=-/?")
-			    (length cafeobj-dirstack))
-			   ((looking-at "=\\([0-9]+\\)")
-			    (string-to-number
-			     (buffer-substring
-			      (match-beginning 1) (match-end 1)))))))
-	  (cond ((null index)
-		 nil)
-		((>= index (length stack))
-		 (error "Directory stack not that deep."))
-		(t
-		 (replace-match (file-name-as-directory (nth index stack)) t t)
-		 (message "Directory item: %d" index)
-		 t))))))
+        (goto-char (match-beginning 0))
+        (let ((stack (cons default-directory cafeobj-dirstack))
+              (index (cond ((looking-at "=-/?")
+                            (length cafeobj-dirstack))
+                           ((looking-at "=\\([0-9]+\\)")
+                            (string-to-number
+                             (buffer-substring
+                              (match-beginning 1) (match-end 1)))))))
+          (cond ((null index)
+                 nil)
+                ((>= index (length stack))
+                 (error "Directory stack not that deep."))
+                (t
+                 (replace-match (file-name-as-directory (nth index stack)) t t)
+                 (message "Directory item: %d" index)
+                 t))))))
 
 
 
@@ -2206,7 +2342,7 @@ Returns t if successful."
 (defcustom cafeobj-glyph-directory "/usr/local/cafeobj-1.4/icons"
   "Directory where CafeOBJ logos and icons are located."
   :type '(choice (const :tag "autodetect" nil)
-	  directory)
+          directory)
   :group 'cafeobj)
 
 (defvar cafeobj-xmas-logo-color-alist
@@ -2227,9 +2363,9 @@ Returns t if successful."
 (defcustom cafeobj-xmas-logo-color-style 'moss
   "*Color styles used for the CafeOBJ logo."
   :type '(choice (const flame) (const pine) (const moss)
-		 (const irish) (const sky) (const tin)
-		 (const velvet) (const grape) (const labia)
-		 (const berry) (const neutral) (const september))
+                 (const irish) (const sky) (const tin)
+                 (const velvet) (const grape) (const labia)
+                 (const berry) (const neutral) (const september))
   :group 'cafeobj-xmas)
 
 (defvar cafeobj-xmas-logo-colors
@@ -2246,37 +2382,37 @@ Returns t if successful."
 ;;   (erase-buffer)
 ;;   (cond
 ;;    ((and (console-on-window-system-p)
-;; 	 (or (featurep 'xpm)
-;; 	     (featurep 'xbm)))
+;;       (or (featurep 'xpm)
+;;           (featurep 'xbm)))
 ;;     (let* ((logo-xpm (expand-file-name "cafe-logo.xpm" cafeobj-glyph-directory))
-;; 	   (logo-xbm (expand-file-name "cafe-logo.xbm" cafeobj-glyph-directory))
-;; 	   (glyph (make-glyph
-;; 		   (cond ((featurep 'xpm)
-;; 			  `[xpm
-;; 			    :file ,logo-xpm
-;; 			    :color-symbols
-;; 			    (("thing" . ,(car cafeobj-xmas-logo-colors))
-;; 			     ("shadow" . ,(cadr cafeobj-xmas-logo-colors))
-;; 			     ("background" . ,(face-background 'default)))])
-;; 			 ((featurep 'xbm)
-;; 			  `[xbm :file ,logo-xbm])
-;; 			 (t [nothing]))))
-;; 	   (char-per-pixel
-;; 	    (/ (* 1.0 (window-width)) (window-pixel-width)))
-;; 	   )
+;;         (logo-xbm (expand-file-name "cafe-logo.xbm" cafeobj-glyph-directory))
+;;         (glyph (make-glyph
+;;                 (cond ((featurep 'xpm)
+;;                        `[xpm
+;;                          :file ,logo-xpm
+;;                          :color-symbols
+;;                          (("thing" . ,(car cafeobj-xmas-logo-colors))
+;;                           ("shadow" . ,(cadr cafeobj-xmas-logo-colors))
+;;                           ("background" . ,(face-background 'default)))])
+;;                       ((featurep 'xbm)
+;;                        `[xbm :file ,logo-xbm])
+;;                       (t [nothing]))))
+;;         (char-per-pixel
+;;          (/ (* 1.0 (window-width)) (window-pixel-width)))
+;;         )
 ;;       (insert " ")
 ;;       (set-extent-begin-glyph (make-extent (point) (point)) glyph)
 ;;       (goto-char (point-min))
 ;;       (while (not (eobp))
-;; 	(insert (make-string (truncate
-;; 			      (* (/ (max (- (window-pixel-width)
-;; 					    (or x
-;; 						(car cafeobj-xpm-size)))
-;; 					 0)
-;; 				    2)
-;; 				 char-per-pixel))
-;; 			     ?\ ))
-;; 	(forward-line 1))
+;;      (insert (make-string (truncate
+;;                            (* (/ (max (- (window-pixel-width)
+;;                                          (or x
+;;                                              (car cafeobj-xpm-size)))
+;;                                       0)
+;;                                  2)
+;;                               char-per-pixel))
+;;                           ?\ ))
+;;      (forward-line 1))
 ;;       )))
 ;;   ;;
 ;;   (goto-char (point-max))

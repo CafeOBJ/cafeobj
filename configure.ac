@@ -1,8 +1,8 @@
 dnl configure.ac for Chaos(CafeOBJ)
 dnl apply autoconf to this file for producing a configure script.
 dnl
-dnl Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
-dnl Copyright (c) 2014 Norbert Preining. All rights reserved.
+dnl Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+dnl Copyright (c) 2014-2015, Norbert Preining. All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
 dnl modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@ dnl
 AC_INIT([CafeOBJ],[1.5], [], [cafeobj], [http://www.cafeobj.org/])
 AC_CONFIG_SRCDIR([make-cafeobj.lisp.in])
 AC_PREREQ(2.6)
-VMINOR=.3
+VMINOR=.4rc1
 VMEMO=PigNose0.99
 PATCHLEVEL=
 AC_SUBST(VMINOR)
@@ -357,5 +357,6 @@ AC_CONFIG_FILES([
   doc/manual/Makefile
   doc/RefCard/Makefile
   doc/PigNose/Makefile
+  doc/citp-manual/Makefile
 ])
 AC_OUTPUT()

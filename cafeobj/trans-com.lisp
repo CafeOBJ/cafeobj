@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-				Module: cafeobj
-			      File: trans-com.lisp
+                                 System: CHAOS
+                                Module: cafeobj
+                              File: trans-com.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -46,14 +46,14 @@
 ;;; *****************************
 (defun parse-in-context-modexp-with-term (e)
   (let (modexp
-	preterm)
+        preterm)
     (if (= 4 (length e)) 
-	(progn
-	  (setq modexp (parse-modexp (cadr (cadr e))))
-	  (setq preterm (nth 2 e)))
-	(progn
-	  (setq modexp nil)
-	  (setq preterm (nth 1 e))))
+        (progn
+          (setq modexp (parse-modexp (cadr (cadr e))))
+          (setq preterm (nth 2 e)))
+        (progn
+          (setq modexp nil)
+          (setq preterm (nth 1 e))))
     (values modexp preterm)))
 
 ;;; "reduce" [ "in" <Modexp> ":" ] <Term> . 
@@ -100,25 +100,25 @@
 (defun parse-test-reduction (e &rest ignore)
   (declare (ignore ignore))
   (let ((mode-spec (second e))
-	(mode nil))
+        (mode nil))
     (case-equal mode-spec
       (("exec" "execute") (setq mode :exec))
       (("reduce" "red") (setq mode :red))
       (("behavioural-reduce" "bred") (setq mode :bred))
       (t (with-output-chaos-error ('invalid-op)
-	   (format t "invalid `test' command option ~S" mode))
-	 ))
+           (format t "invalid `test' command option ~S" mode))
+         ))
     (setq e (cddr e))
     (let ((modexp nil)
-	  (preterm nil)
-	  (expect nil))
+          (preterm nil)
+          (expect nil))
       (cond ((and (consp (car e)) (equal "in" (caar e)))
-	     (setf modexp (parse-modexp (second (car e))))
-	     (setf preterm (second e))
-	     (setf expect (fourth e)))
-	    (t (setf modexp nil)
-	       (setf preterm (first e))
-	       (setf expect (third e))))
+             (setf modexp (parse-modexp (second (car e))))
+             (setf preterm (second e))
+             (setf expect (fourth e)))
+            (t (setf modexp nil)
+               (setf preterm (first e))
+               (setf expect (third e))))
       (%test-reduce* preterm expect modexp mode))))
 
 ;;; ****
@@ -127,39 +127,47 @@
 (defun parse-tram-command (inp &rest ignore)
   (declare (ignore ignore))
   (let ((args (cadr inp))
-	(command nil))
+        (command nil))
     (case-equal (car inp)
       (("red" "reduce") (setq command :reduce))
       (("exec" "execute") (setq command :execute))
       (("compile") (setq command :compile))
       (("reset") (setq command :reset))
       (otherwise (with-output-chaos-error ()
-		   (format t "unknown tram command ~a" (car inp)))))
+                   (format t "unknown tram command ~a" (car inp)))))
     (if (eq command :compile)
-	(let ((debug nil))
-	  (loop
-	   (case-equal (car args)
-	     (("-a" "-all" "-e" "-exec")
-	      (setq command :compile-all)
-	      (setq args (cdr args)))
-	     (("-d" "-debug")
-	      (setq debug t)
-	      (setq args (cdr args)))
-	     (t (return nil))))
-	  (%make-tram :command command :modexp args :debug debug))
-	(multiple-value-bind (modexp preterm)
-	    (parse-in-context-modexp-with-term inp)
-	  (%make-tram :command command :modexp modexp :term preterm)))))
-	  
+        (let ((debug nil))
+          (loop
+           (case-equal (car args)
+             (("-a" "-all" "-e" "-exec")
+              (setq command :compile-all)
+              (setq args (cdr args)))
+             (("-d" "-debug")
+              (setq debug t)
+              (setq args (cdr args)))
+             (t (return nil))))
+          (%make-tram :command command :modexp args :debug debug))
+        (multiple-value-bind (modexp preterm)
+            (parse-in-context-modexp-with-term inp)
+          (%make-tram :command command :modexp modexp :term preterm)))))
+          
 ;;; ********
 ;;; AUTOLOAD
 ;;; ********
 (defun parse-autoload-command (inp &rest ignore)
   (declare (ignore ignore))
   (let ((mod-name (second inp))
-	(file (third inp)))
+        (file (third inp)))
     (%autoload* mod-name file)))
-    
+
+;;;
+;;; NO AUTOLOAD
+;;;
+(defun parse-no-autoload-command (inp &rest ignore)
+  (declare (ignore ignore))
+  (let ((mod-name (second inp)))
+    (%no-autoload* mod-name)))
+
 ;;; ******
 ;;; CBREAD
 ;;; ******
@@ -170,20 +178,20 @@
   (multiple-value-bind (modexp preterm)
       (parse-in-context-modexp-with-term toks)
     (let ((lhs nil)
-	  (rhs nil))
+          (rhs nil))
       ;;
       (loop (when (or (null preterm)
-		      (member (car preterm)
-			      '("=" "=b=" "==") :test #'equal))
-	      (return))
-	(push (car preterm) lhs)
-	(setq preterm (cdr preterm)))
+                      (member (car preterm)
+                              '("=" "=b=" "==") :test #'equal))
+              (return))
+        (push (car preterm) lhs)
+        (setq preterm (cdr preterm)))
       (setq lhs (nreverse lhs))
       (setq rhs (cdr preterm))
       (unless (and lhs rhs)
-	(with-output-chaos-error ('invalid-command-form)
-	  (princ "cbred: syntax error: ")
-	  (princ toks)))
+        (with-output-chaos-error ('invalid-command-form)
+          (princ "cbred: syntax error: ")
+          (princ toks)))
       (%cbred* modexp lhs rhs))))
 
 ;;; *******
@@ -191,15 +199,15 @@
 ;;; *******
 (defun parse-in-context-modexp-with-name (e)
   (let (modexp
-	name)
+        name)
     (setq e (cddr e))
     (if (cdr e)
-	(progn
-	  (setq modexp (parse-modexp (second (first e))))
-	  (setq name (second e)))
-	(progn
-	  (setq modexp nil)
-	  (setq name (first e))))
+        (progn
+          (setq modexp (parse-modexp (second (first e))))
+          (setq name (second e)))
+        (progn
+          (setq modexp nil)
+          (setq name (first e))))
     (values modexp name)))
 
 (defun parse-look-up-command (e &rest ignore)
@@ -217,10 +225,10 @@
 (defun parse-case-command (expr &rest ignore)
   (declare (ignore ignore))
   (let ((case-term (nth 2 expr))
-	(modexpr (parse-modexp (nth 6 expr)))
-	(name (nth 9 expr))
-	(body (nth 11 expr))
-	(goal (nth 14 expr)))
+        (modexpr (parse-modexp (nth 6 expr)))
+        (name (nth 9 expr))
+        (body (nth 11 expr))
+        (goal (nth 14 expr)))
     (when (atom body) 
       (setq body nil)
       (setq goal (nth 13 expr)))
@@ -246,9 +254,9 @@
   (let ((name (nth 1 inp))
         (modexp (nth 3 inp)))
     (%module-decl* name
-		   :module
-		   :user
-		   (list (%import* :protecting (parse-modexp modexp))))))
+                   :module
+                   :user
+                   (list (%import* :protecting (parse-modexp modexp))))))
 
 ;;; *****
 ;;; INPUT
@@ -391,7 +399,7 @@
       (format t "too many args ~s" (cdr inp))))
   (let ((num (and (cadr inp) (parse-integer (cadr inp) :junk-allowed t))))
     (if num
-	(setf (%popd-num _popd-pat) (cadr inp))
+        (setf (%popd-num _popd-pat) (cadr inp))
       (setf (%popd-num _popd-pat) nil))
     (eval-ast _popd-pat)
     (setf (%popd-num _popd-pat) nil)
@@ -492,27 +500,27 @@
   (let ((dat (cadr inp)))
     (let ((it (car dat)))
       (case-equal it
-		  (("reg" "regular" "regularity")
-		   (%check* :regularity (cdr dat)))
-		  (("lazy" "laziness" "strict" "strictness")
-		   (%check* :strictness (cdr dat)))
-		  (("compat" "compatibility")
-		   (%check* :compatibility (cdr dat)))
-		  (("coherency" "coherent" "coh" "coherence")
-		   (%check* :coherency (cdr dat)))
-		  (("sensible" "sensibleness")
-		   (%check* :sensible (cdr dat)))
-		  (("rewriting" "rew")
-		   (%check* :rew-coherence (cdr dat)))
-		  (("invariance" "inv")
-		   (%check* :invariance (cdr dat)))
-		  (("safety")
-		   (%check* :safety (cdr dat)))
-		  (("refinement" "refine")
-		   (%check* :refinement (cdr dat)))
-		  (("?" "help" ":?" ":help")
-		   (cafeobj-check-help)
-		   (return-from parse-check-command t))))))
+                  (("reg" "regular" "regularity")
+                   (%check* :regularity (cdr dat)))
+                  (("lazy" "laziness" "strict" "strictness")
+                   (%check* :strictness (cdr dat)))
+                  (("compat" "compatibility")
+                   (%check* :compatibility (cdr dat)))
+                  (("coherency" "coherent" "coh" "coherence")
+                   (%check* :coherency (cdr dat)))
+                  (("sensible" "sensibleness")
+                   (%check* :sensible (cdr dat)))
+                  (("rewriting" "rew")
+                   (%check* :rew-coherence (cdr dat)))
+                  (("invariance" "inv")
+                   (%check* :invariance (cdr dat)))
+                  (("safety")
+                   (%check* :safety (cdr dat)))
+                  (("refinement" "refine")
+                   (%check* :refinement (cdr dat)))
+                  (("?" "help" ":?" ":help")
+                   (cafeobj-check-help)
+                   (return-from parse-check-command t))))))
 
 ;;; 
 ;;; CHECK HELP
@@ -520,7 +528,7 @@
 
 (defun cafeobj-check-help (&rest ignore)
   (declare (ignore ignore))
-  (format t "~&  check {reg | regularity} [<Modexp>]")
+  (format t "~%  check {reg | regularity} [<Modexp>]")
   (format t "~&~8Tcheck <Modexp> (or current module's) signagture is regular or not.")
   (format t "~&  check {compat | compatibility} [<Modexp>]")
   (format t "~&~8Tcheck <Modexp> (or current module) is compatible or not.")
@@ -568,7 +576,7 @@
 ;;; ****
 (defun parse-name-command (inp)
   (let ((modexp (second inp))
-	(ast (%inspect* nil)))
+        (ast (%inspect* nil)))
     (when modexp
       (setf (%inspect-modexp ast) (parse-modexp modexp)))
     ast))
@@ -583,12 +591,14 @@
 ;;; ******************
 ;;; MODULE Constructs.
 ;;; ******************
+
+;;; it is an error unless a module is open.
 (defun cafeobj-eval-module-element-proc (inp)
   (if *open-module*
-      (with-in-module (*last-module*)
-	(multiple-value-bind (type ast)
-	    (parse-module-element inp)
-	  (declare (ignore type))
+      (with-in-module ((get-context-module))
+        (multiple-value-bind (type ast)
+            (parse-module-element inp)
+          (declare (ignore type))
           (dolist (a ast)
             (eval-ast a))))
     (with-output-chaos-warning ()

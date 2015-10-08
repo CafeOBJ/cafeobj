@@ -1,0 +1,37 @@
+\tikzstyle{goal} = [draw, rectangle, minimum width=1cm, minimum height=2em, very thick, rounded corners=1mm]
+\tikzstyle{target} = [draw, fill=gray, rectangle, minimum width=1cm, minimum height=2em, very thick, rounded corners=1mm]
+\tikzstyle{ded}  = [-stealth,very thick]
+\begin{tikzpicture}[node distance=2cm]
+  \node (root) [goal] {root};
+  \node (2)   [goal,below of=root] {2};
+  \node (1)   [goal,left of=2] {1};
+  \node (dots1) [goal,right of=2] {\ldots};
+  \node (1-2) [goal,below of=1] {1-2};
+  \node (1-1) [target,left of=1-2] {1-1};
+  \node (2-1) [goal,right of=1-2] {2-1};
+  \node (2-2) [goal,right of=2-1] {2-2};
+  \path[ded] (root) edge node[fill=white] {T1} (1)
+                   edge node[fill=white] {T1} (2)
+                   edge node[fill=white] {T1} (dots1) ;
+  \path[ded] (1)    edge node[fill=white] {T2} (1-1)
+                   edge node[fill=white] {T2} (1-2) ;
+  \path[ded] (2)    edge node[fill=white] {T3} (2-1)
+                   edge node[fill=white] {T3} (2-2) ;
+\end{tikzpicture}
+$$
+\Downarrow\mbox{:select 2}
+$$
+\begin{tikzpicture}[node distance=2cm]
+  \node (root) [goal] {root};
+  \node (2)   [target,below of=root] {2};
+  \node (1)   [goal,left of=2] {1};
+  \node (dots1) [goal,right of=2] {\ldots};
+  \node (1-2) [goal,below of=1] {1-2};
+  \node (1-1) [goal,left of=1-2] {1-1};
+  \path[ded] (root) edge node[fill=white] {T1} (1)
+                   edge node[fill=white] {T1} (2)
+                   edge node[fill=white] {T1} (dots1) ;
+  \path[ded] (1)    edge node[fill=white] {T2} (1-1)
+                   edge node[fill=white] {T2} (1-2) ;
+\end{tikzpicture}
+

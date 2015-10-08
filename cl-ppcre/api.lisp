@@ -1174,10 +1174,10 @@ meaningful information about a symbol."
                                                    (symbol-value symbol))
                     output-list)))
       #-(or :cormanlisp :clisp)
-      (format t "~&~S ~<~;~^~A~@{~:@_~A~}~;~:>" symbol output-list)
+      (format t "~%~S ~<~;~^~A~@{~:@_~A~}~;~:>" symbol output-list)
       #+(or :cormanlisp :clisp)
       (loop for line in output-list
-            do (format t "~&~S ~A" symbol line)))
+            do (format t "~%~S ~A" symbol line)))
     (condition ()
       ;; this seems to be necessary due to some errors I encountered
       ;; with LispWorks

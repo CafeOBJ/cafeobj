@@ -1,0 +1,76 @@
+**
+** Prove associativity and commutativity of addition
+** using CITP for CafeOBJ
+**
+
+mod! PNAT {
+  [ PZero PNzNat < PNat ]
+  op 0 : -> PZero {ctor} .
+  op s_ : PNat -> PNzNat {ctor} .
+  op _+_ : PNat PNat -> PNat .
+  eq 0 + N:PNat = N .
+  eq s M:PNat + N:PNat = s(M + N) .
+}
+
+select PNAT .
+:goal { eq [lemma-1]: M:PNat + 0 = M:PNat .
+        eq [lemma-2]: M:PNat + s N:PNat = s(M:PNat + N:PNat). }
+
+:ind on (M:PNat)
+
+**> We want to see every goal generated in proof process.
+:verbose on 
+**> We do the proof by 'auto'
+:auto
+
+**> :show proof shows the current proof tree .
+**> at this time, all goals should have been proved.
+:show proof
+
+** Proof of commuativity and associativity of _+_
+
+mod! PNAT-L {
+  inc(PNAT)
+  -- we have already prooved these.
+  eq [lemma-1]: N:PNat + 0 = N .
+  eq [lemma-2]: M:PNat + s N:PNat = s(M + N). 
+}
+
+open PNAT-L .
+:goal { eq M:PNat + N:PNat = N:PNat + M:PNat . }
+--> induction on variable M:PNat
+:ind on (M:PNat)
+--> :apply (si)
+:apply (SI)
+--> :show proof should shows base case and induction step
+:show proof
+--> :apply (tc)
+:verbose off
+:apply (TC)
+--> :apply (rd) 
+:apply (RD)
+--> :show proof
+:show proof
+--> rest :apply (tc rd)
+:apply (TC RD)
+--> done for all
+:show proof
+**> we redo the same proof by one :apply
+:apply to root (SI TC RD)
+**> the above is equvalent to the followings
+--> select root 
+:select root
+:apply (SI TC RD)
+
+** associativity
+--> use :auto
+:goal {eq (M:PNat + N:PNat) + P:PNat  = N:PNat + (M:PNat + P:PNat) . }
+:ind on (M:PNat)
+:auto
+:show proof
+eof
+
+
+
+
+

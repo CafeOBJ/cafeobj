@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -29,9 +29,9 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-			     System:Chaos
-		       Module:chaos/primitives
-			   File:bflag.lisp
+                             System:Chaos
+                       Module:chaos/primitives
+                           File:bflag.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -43,7 +43,7 @@
 ;;;
 (eval-when (:execute :compile-toplevel :load-toplevel)
 (defstruct (chaos-flag (:type list)
-	    (:conc-name "CFLG-"))
+            (:conc-name "CFLG-"))
   (value nil :type t)
   (canon-name nil :type symbol)
   (name nil :type list)
@@ -57,10 +57,10 @@
 
 (defun canonicalize-flag-name (name)
   (if (symbolp name)
-      name				; assumes this is canonicalized name
+      name                              ; assumes this is canonicalized name
     (or (gethash name *chaos-flag-names*)
-	(with-output-chaos-error ('no-such-flag)
-	  (format t "no such flag ~s." name)))))
+        (with-output-chaos-error ('no-such-flag)
+          (format t "no such flag ~s." name)))))
 
 (defmacro find-chaos-flag-or-error (name)
   `(let ((n (canonicalize-flag-name ,name)))
@@ -85,27 +85,27 @@
   (declare (type symbol group))
   (let ((flg nil))
     (maphash #'(lambda (x y)
-		 (declare (ignore x))
-		 (when (eq group (cflg-group y))
-		   (push y flg)))
-	     *chaos-control-flags*)
+                 (declare (ignore x))
+                 (when (eq group (cflg-group y))
+                   (push y flg)))
+             *chaos-control-flags*)
     flg))
 
 
 ;;; DECLARE-CHAOS-FLAG
 ;;;
 (defmacro declare-chaos-flag (&key names
-				   canon-name
-				   initial-value
-				   (doc-string "")
-				   (group nil)
-				   (hook #'identity))
+                                   canon-name
+                                   initial-value
+                                   (doc-string "")
+                                   (group nil)
+                                   (hook #'identity))
   `(let ((flg (make-chaos-flag :value ,initial-value
-			       :name ,names
-			       :canon-name ,canon-name
-			       :group ,group
-			       :doc-string ,doc-string
-			       :hook ,hook)))
+                               :name ,names
+                               :canon-name ,canon-name
+                               :group ,group
+                               :doc-string ,doc-string
+                               :hook ,hook)))
      (dolist (name ,names)
        (setf (gethash name *chaos-flag-names*) ,canon-name))
      (setf (gethash ,canon-name) flg)
@@ -116,9 +116,9 @@
 (defun save-chaos-flags ()
   (let ((flags nil))
     (maphash #'(lambda (x y)
-		 (push (cons x (cflg-value y))
-		       flags))
-	     *chaos-control-flags*)
+                 (push (cons x (cflg-value y))
+                       flags))
+             *chaos-control-flags*)
     flags))
 
 (defun restore-chaos-flags (flags)
@@ -136,9 +136,9 @@
 
 (defun find-chaos-flag-set (name)
   (declare (type simple-string name)
-	   (values (or chaos-flag-set null)))
+           (values (or chaos-flag-set null)))
   (find-if #'(lambda (x) (string= name (chaos-flag-set-name x)))
-	   *chaos-flag-set*))
+           *chaos-flag-set*))
 
 (defun create-chaos-flag-set (name)
   (declare (type simple-string name))
@@ -152,16 +152,16 @@
   (let ((fset (find-chaos-flag-set name)))
     (unless (chaos-flag :quiet)
       (with-output-msg ()
-	(format t "saving flags to ~a." name)))
+        (format t "saving flags to ~a." name)))
     (if fset
-	(progn
-	  (unless (chaos-flag :quiet)
-	    (with-output-chaos-warning ()
-	      (format t "changing flag set ~a with current values." name)))
-	  (setf (chaos-flag-set-flags fset) (save-chaos-flags)))
+        (progn
+          (unless (chaos-flag :quiet)
+            (with-output-chaos-warning ()
+              (format t "changing flag set ~a with current values." name)))
+          (setf (chaos-flag-set-flags fset) (save-chaos-flags)))
       (progn
-	(setq fset (create-chaos-flag-set name))
-	(push fset *chaos-flag-set*)))
+        (setq fset (create-chaos-flag-set name))
+        (push fset *chaos-flag-set*)))
     t))
 
 (defun restore-chaos-flag-set (name)
@@ -169,10 +169,10 @@
   (let ((fset (find-chaos-flag-set name)))
     (unless fset
       (with-output-chaos-error ('no-such-flag-set)
-	(format t "no such flag set ~s." name)))
+        (format t "no such flag set ~s." name)))
     (unless (chaos-flag :quiet)
       (with-output-msg ()
-	(format t "restoring flag set from ~s." name)))
+        (format t "restoring flag set from ~s." name)))
     (restore-chaos-flags (chaos-flag-set-flags fset))
     t))
 

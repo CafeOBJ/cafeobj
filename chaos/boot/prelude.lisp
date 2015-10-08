@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: Chaos
-				Module: chaos
-			       File: prelude.lisp
+                                 System: Chaos
+                                Module: chaos
+                               File: prelude.lisp
 ==============================================================================|#
 
 ;;;-----------------------------------------------------------------------------
@@ -40,17 +40,17 @@
 (defvar *LAST-TERM-eqn-rhs* nil)
 (defun install-last-term ()
   (let* ((LAST-TERM (eval-modexp "LAST-TERM"))
-	 (opinfo nil))
+         (opinfo nil))
     (with-in-module (last-term)
       (setq opinfo (find-operator '("last-term") 0 LAST-TERM))
       (setq *LAST-TERM-op-term* (opinfo-operator opinfo))
       (when *LAST-TERM-op-term*
-	(let ((meth (opinfo-methods opinfo)))
-	  (when meth
-	    (let ((rules (method-rules-with-different-top (car meth))))
-	      (when rules
-		(setf *LAST-TERM-eqn-rhs* (rule-rhs (car rules)))))
-	    ))))))
+        (let ((meth (opinfo-methods opinfo)))
+          (when meth
+            (let ((rules (method-rules-with-different-top (car meth))))
+              (when rules
+                (setf *LAST-TERM-eqn-rhs* (rule-rhs (car rules)))))
+            ))))))
 
 (defun set-last-term (term)
   (when *LAST-TERM-eqn-rhs*
@@ -67,9 +67,9 @@
 (defun is_Err (val) (declare (ignore val)) t)
 (defun install-err ()
   (setq *sort-error* 
-	(find-sort-in (eval-modexp "ERR") '|Err|)))
+        (find-sort-in (eval-modexp "ERR") '|Err|)))
 
-			 
+                         
 ;;;-----------------------------------------------------------------------------
 ;;;  module BUILT-IN
 ;;;-----------------------------------------------------------------------------
@@ -97,7 +97,7 @@
 
 (defun install_BUILTIN  ()
   (setq *sort_Builtin* 
-	(find-sort-in (eval-modexp  "BUILT-IN") "Built-in")))
+        (find-sort-in (eval-modexp  "BUILT-IN") "Built-in")))
 
 ;;;-----------------------------------------------------------------------------
 ;;; module LISP
@@ -147,9 +147,9 @@
   ;;
   (unless *apply-ignore-modules*
     (setq *apply-ignore-modules*
-	  (append *print-ignore-mods*
-		  (mapcar #'eval-modexp
-			  '("CHARACTER" "STRING" "OBJECT")))))
+          (append *print-ignore-mods*
+                  (mapcar #'eval-modexp
+                          '("CHARACTER" "STRING" "OBJECT")))))
   )
 
 ;; EOF

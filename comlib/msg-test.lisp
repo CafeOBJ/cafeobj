@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 ;;; (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-				 Module: comlib
-			       File: message.lisp
+                                 System: CHAOS
+                                 Module: comlib
+                               File: message.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -71,7 +71,7 @@
   ` (progn
       (let ((*standard-output* *error-output*)
             (*print-indent* 4))
-        (output-msg :error ',msg-id "~&[Error]:" ,args)
+        (output-msg :error ',msg-id "~%[Error]:" ,args)
         ,@body)
       ,(if (and tag-p (eq tag 'to-top))
            `(chaos-to-top)

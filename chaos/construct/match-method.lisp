@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:CommonLisp; Package:CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				  System:Chaos
-				Module:construct
-			     File:match-method.lisp
+                                  System:Chaos
+                                Module:construct
+                             File:match-method.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -64,46 +64,57 @@
 ;;;
 (defun choose-match-method (lhs cond knd)
   (declare (type term lhs)
-	   (type term cond)
-	   (type symbol knd)
-	   (values list))
-  (cond ((term-is-variable? lhs) *match-empty-method*)
-	((and (memq knd '(:id-theorem :id-ext-theory))
-	      (theory-contains-identity (method-theory (term-head lhs))))
-	 ;; LHS has Identity theory.
-	 (let ((meth (term-head lhs)))
-	   (declare (type method meth))
-	   (if (method-is-associative meth)
-	       (if (is-simple-AC-match-ok? lhs cond)
-		   (if (method-is-commutative meth)
-		       *match-id-AC-dep-method*
-		       *match-id-A-dep-method*)
-		   (if (method-is-commutative meth)
-		       *match-id-AC-method*
-		       *match-id-A-method*))
-	       *match-id-gen-method*)))
+           (type term cond)
+           (type symbol knd)
+           (values list))
+  (let (match-method)
+    (when *on-operator-debug*
+      (format t "~%[choose-match-method]: kind=~s" knd)
+      (format t "~%LHS: ")
+      (term-print-with-sort lhs)
+      (format t "~%CND: ")
+      (term-print-with-sort cond))
+    (setq match-method
+      (cond ((term-is-variable? lhs) *match-empty-method*)
+            ((and (memq knd '(:id-theorem :id-ext-theory))
+                  (theory-contains-identity (method-theory (term-head lhs))))
+             ;; LHS has Identity theory.
+             (let ((meth (term-head lhs)))
+               (declare (type method meth))
+               (if (method-is-associative meth)
+                   (if (is-simple-AC-match-ok? lhs cond)
+                       (if (method-is-commutative meth)
+                           *match-id-AC-dep-method*
+                         *match-id-A-dep-method*)
+                     (if (method-is-commutative meth)
+                         *match-id-AC-method*
+                       *match-id-A-method*))
+                 *match-id-gen-method*)))
 
-	;; Theory is EMPTY and simple syntactical match can be applied.
-	((simple-match-e-ok? lhs cond) *match-empty-method*)
+            ;; Theory is EMPTY and simple syntactical match can be applied.
+            ((simple-match-e-ok? lhs cond) *match-empty-method*)
 
-	;; Theory has idempotency, and simple (restricted) idem matching
-	;; can be applied.
-	((match-is-idem-ok? lhs cond knd) *match-idem-method*)
+            ;; Theory has idempotency, and simple (restricted) idem matching
+            ;; can be applied.
+            ((match-is-idem-ok? lhs cond knd) *match-idem-method*)
 
-	;; Theory has idempotency, and simple (restricted with an extension)
-	;; idem match can be applied.
-	((match-is-idem-ext-ok? lhs cond knd) *match-idem-ext-method*)
+            ;; Theory has idempotency, and simple (restricted with an extension)
+            ;; idem match can be applied.
+            ((match-is-idem-ext-ok? lhs cond knd) *match-idem-ext-method*)
 
-	;; Theory has AC, and simple AC matching can be applied.
-	((is-simple-AC-match-ok? lhs cond)
-	 (when (null *match-dep-var*)
-	   (setq *match-dep-var* (make-new-variable 'REST *cosmos*)))
-	 *match-dep-method*)
+            ;; Theory has AC, and simple AC matching can be applied.
+            ((is-simple-AC-match-ok? lhs cond)
+             (when (null *match-dep-var*)
+               (setq *match-dep-var* (make-new-variable 'REST *cosmos*)))
+             *match-dep-method*)
 
-	;; There are no special methods available, we use general matching
-	;; method. 
-	(t *match-default-method*)	; the default
-	))
+            ;; There are no special methods available, we use general matching
+            ;; method. 
+            (t *match-default-method*)  ; the default
+            ))
+    (when *on-operator-debug*
+      (format t "~%===> ~s" match-method))
+    match-method))
 
 ;;; SPECIALIZED MATCHERS
 
@@ -130,8 +141,8 @@
   (declare (type term t1 t2))
   (first-match-with-theory
    (theory-code-to-info (logandc1 #..Z.
-				  (the fixnum (theory-code (method-theory
-							    (term-head t1))))))
+                                  (the fixnum (theory-code (method-theory
+                                                            (term-head t1))))))
    t1 t2))
 
 ;;; EOF

@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: Chaos; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -33,9 +33,9 @@
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
 #|==============================================================================
-				 System: Chaos
-				  Module: eval
-				File: debug.lisp
+                                 System: Chaos
+                                  Module: eval
+                                File: debug.lisp
 ==============================================================================|#
 
 (defun print-opinfos (module)
@@ -50,11 +50,11 @@
     (dolist (opinfo (module-all-operators module))
       (let ((methods (opinfo-methods opinfo)))
         (dolist (m methods)
-          (format t "~&method : ")
+          (format t "~%method : ")
           (print-chaos-object m)
           (let ((info (get-method-info m)))
             (if (not info)
-              (format t "~&could not get method info ! ")
+              (format t "~%could not get method info ! ")
               (print-method-info info))))))))
 
 (defun print-method-info (info)

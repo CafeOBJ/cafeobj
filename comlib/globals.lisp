@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-				 Module: comlib
-			       File: globals.lisp
+                                 System: CHAOS
+                                 Module: comlib
+                               File: globals.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -60,37 +60,31 @@
 ;;;   *current-ext-rule-table* : extented rules for A, and AC
 ;;;
 
-(declaim (special *current-module*	; the module currently the target of
-					; operations.
-		  *current-sort-order*	; closure of sort relations of current
-					; module.
-		  *current-opinfo-table* ; operator information table of the
-					; current module.
-		  *current-ext-rule-table*
-		  *top-level-definition-in-progress*
-		  *on-preparing-for-parsing* ; parsing preparation in progress
-		  ))
+(declaim (special *current-module*      ; the module currently the target of
+                                        ; operations.
+                  *current-sort-order*  ; closure of sort relations of current
+                                        ; module.
+                  *current-opinfo-table* ; operator information table of the
+                                        ; current module.
+                  *current-ext-rule-table*
+                  *top-level-definition-in-progress*
+                  *on-preparing-for-parsing* ; parsing preparation in progress
+                  ))
 
 (defvar *top-level-definition-in-progress* nil)
 
-;;; *last-module* bounds the module object which was the target of the operation
-;;; in the last time, i.e., whenever the context is swithced, *last-module*
-;;; bounds the last `current module'.
 ;;; *open-module* bounds the 'opening' module.
 ;;; 
-(declaim (special *open-module*		; the module crrently opened.
-		  *last-module*		; the module which was the current last
-					; time. 
-		  *last-before-open*	; the module which was *last* before the
-					; currently opened module.
-		  ))
+(declaim (special *open-module*         ; the module crrently opened.
+                  *last-before-open*    ; the module which was *last* before the
+                                        ; currently opened module.
+                  ))
 
 (defvar *current-module* nil)
 (defvar *current-sort-order* nil)
 (defvar *current-opinfo-table* nil)
 (defvar *current-ext-rule-table* nil)
 (defvar *open-module* nil)
-(defvar *last-module* nil)
 (defvar *last-before-open* nil)
 
 ;;; Feature for require & provide
@@ -102,12 +96,12 @@
 (declaim (special *chaos-verbose* *chaos-quiet* *chaos-input-source*))
 (defvar *chaos-verbose* nil)
 (defvar *chaos-quiet* nil)
-(defvar *chaos-input-source* nil)	; binds a file name when processing
-					; input from the file. 
+(defvar *chaos-input-source* nil)       ; binds a file name when processing
+                                        ; input from the file. 
 (declaim (special *chaos-input-level*)
-	 (type (integer 0 11)
-	       *chaos-input-level*
-	       *chaos-input-nesting-limit*))
+         (type (integer 0 11)
+               *chaos-input-level*
+               *chaos-input-nesting-limit*))
 
 (defvar *chaos-input-level* 0)
 (defvar *chaos-input-nesting-limit* 10)
@@ -129,32 +123,33 @@
 (declaim (special *self*))
 (defvar *self* nil)
 (defvar $$cond nil)
-(defvar $$trace-rewrite nil)		; flag, non-nil -> trace.
-(defvar $$trace-rewrite-whole nil)	; flag, non-nil -> trace whole.
-(defvar $$trace-proof nil)		; flag, non-nil -> trace CITP proof.
+(defvar $$trace-rewrite nil)            ; flag, non-nil -> trace.
+(defvar $$trace-rewrite-whole nil)      ; flag, non-nil -> trace whole.
+(defvar $$trace-proof nil)              ; flag, non-nil -> trace CITP proof.
 ;;; *proof-tree* binds current proof tree structure
 (defvar *proof-tree* nil)
 (defvar *next-default-proof-node* nil)
 (defvar *citp-verbose* nil)
+(defvar *citp-normalize-instance* t)
 
-(defvar *rewrite-stepping* nil)		; flag, non-nil -> under stepping.
+(defvar *rewrite-stepping* nil)         ; flag, non-nil -> under stepping.
 (declaim (type (or null fixnum) *rewrite-count-limit*))
 (defvar *rewrite-count-limit* nil)
-					; flag, non-nil(integer) -> limitation
-					; for rewriting steps.
-(defvar *rewrite-stop-pattern* nil)	; flag, non-nil(term) -> stop rewriting
-					; iff matches to the pattern.
-(defvar *steps-to-be-done* nil)		; remaining steps before stop
+                                        ; flag, non-nil(integer) -> limitation
+                                        ; for rewriting steps.
+(defvar *rewrite-stop-pattern* nil)     ; flag, non-nil(term) -> stop rewriting
+                                        ; iff matches to the pattern.
+(defvar *steps-to-be-done* nil)         ; remaining steps before stop
 (defvar $$mod 'void)
 ;;;
 (defvar *old-context* nil)
 (declaim (special *old-context*))
 (declaim (special *allow-$$term*))
 (defvar *allow-$$term* t)
-(defvar $$term 'void)			; current target term, destructively
-					; modified
-(defvar $$subterm nil)			; subterm of $$term selected
-(defvar $$term-context nil)		; context module of $$term
+(defvar $$term 'void)                   ; current target term, destructively
+                                        ; modified
+(defvar $$subterm nil)                  ; subterm of $$term selected
+(defvar $$term-context nil)             ; context module of $$term
 (defvar $$selection-stack nil)
 (defvar $$action-stack nil)
 ;;;
@@ -168,19 +163,21 @@
 (declaim (special *rewrite-exec-condition*))
 (defvar *rewrite-exec-condition* nil)
 (declaim (special *rewrite-semantic-reduce*)
-	 (type (or null (not null)) *rewrite-semantic-reduce))
+         (type (or null (not null)) *rewrite-semantic-reduce))
 (defvar *rewrite-semantic-reduce* nil)
 (declaim (special *beh-rewrite*)
-	 (type (or null (not null)) *beh-rewrite*))
+         (type (or null (not null)) *beh-rewrite*))
 (defvar *beh-rewrite* nil)
-(declaim (type fixnum *rule-count*))
+(declaim (type fixnum *rule-count*)
+         (special *rule-count*))
 (defvar *rule-count* 0)
 (defvar *show-stats* t)
 (defvar *try-try* nil)
 (defvar *reduce-conditions* nil)
 (declaim (type fixnum $$trials))
 (defvar $$trials 1)
-(declaim (type fixnum $$matches))
+(declaim (type fixnum $$matches)
+         (special $$matches))
 (defvar $$matches 0)
 (defvar *on-reduction* t)
 (defvar *reduce-builtin-eager* nil)
@@ -199,11 +196,11 @@
 (defvar *m-pattern-subst* nil)
 
 ;; memoization
-(defvar *memo-rewrite* t)		; use memo mechanism
+(defvar *memo-rewrite* t)               ; use memo mechanism
 (defvar *clean-memo-in-normalize* nil)
 (defvar *always-memo* nil)
 (declaim (special *hash-hit*)
-	 (type (unsigned-byte 29) *hash-hit*))
+         (type (unsigned-byte 29) *hash-hit*))
 (defvar *term-memo-hash-hit* 0)
 
 (defvar *allow-illegal-beh-axiom* t)
@@ -244,18 +241,18 @@
 
 (declaim (special *print-indent*))
 (declaim (type (integer 0 128)
-	       *chaos-print-level*
-	       *print-indent* *print-indent-increment*))
+               *chaos-print-level*
+               *print-indent* *print-indent-increment*))
 ;; (defvar *chaos-verbose* nil)
 (defvar *module-all-rules-every* nil)
 (defvar *fancy-print* t)
 (defvar *print-term-struct* nil)
 (defvar *print-xmode* :normal)
-(defvar *show-mode* :cafeobj)		; one of :chaos or :cafeobj
+(defvar *show-mode* :cafeobj)           ; one of :chaos or :cafeobj
 (defvar *print-indent* 0)
 (defparameter *print-indent-increment* 1)
-(defvar *print-explicit* nil)		;if t then give more detail on sorts, etc.
-(defvar *print-abbrev-mod* nil)		; abbreviate module names
+(defvar *print-explicit* nil)           ;if t then give more detail on sorts, etc.
+(defvar *print-abbrev-mod* nil)         ; abbreviate module names
 (defvar *print-abbrev-num* 0)
 (defvar *print-abbrev-table* nil)
 (defvar *print-abbrev-quals* nil)
@@ -274,7 +271,7 @@
 (defvar *chaos-input-quiet* nil)
 (defvar *print-variables* nil)
 (declaim (special .file-col.)
-	 (type fixnum .file-col.))
+         (type fixnum .file-col.))
 (defvar .file-col. 0)
 ;;;
 (declaim (type (or null fixnum) *term-print-depth*))
@@ -343,14 +340,14 @@
 (defconstant $name-parameter '|*Parameter*|)
 
 ;;; builtin sorts
-(defvar *cosmos* 'void)			; the whole 
+(defvar *cosmos* 'void)                 ; the whole 
 (defvar *chaos-object* 'void)
 (defvar *chaos-expr-sort* 'void)
 (defvar *term-sort* 'void)
-(defvar *universal-sort* 'void)		; visible universe
-(defvar *huniversal-sort* 'void)	; hidden universe
-(defvar *bottom-sort* 'void)		; visible bottom sort
-(defvar *hbottom-sort* 'void)		; hidden bottom sort
+(defvar *universal-sort* 'void)         ; visible universe
+(defvar *huniversal-sort* 'void)        ; hidden universe
+(defvar *bottom-sort* 'void)            ; visible bottom sort
+(defvar *hbottom-sort* 'void)           ; hidden bottom sort
 (defvar *sort-sort* 'void)
 (defvar *general-sort* 'void)
 (defvar *builtin-sort* 'void)
@@ -533,19 +530,19 @@
 ;;; ***************
 
 (declaim (special *parse-variables*
-		  *fill-rc-attribute*
-		  *lhs-attrid-vars*
-		  *parsing-axiom-lhs*
-		  *parse-lhs-attr-vars*)) ; binds variables during a parsing
-					; process. 
-(declaim (special  *reader-schema-env*	; current schema.
-		   *reader-input*	; current token sequence.
-		   ))
+                  *fill-rc-attribute*
+                  *lhs-attrid-vars*
+                  *parsing-axiom-lhs*
+                  *parse-lhs-attr-vars*)) ; binds variables during a parsing
+                                        ; process. 
+(declaim (special  *reader-schema-env*  ; current schema.
+                   *reader-input*       ; current token sequence.
+                   ))
 
-(declaim (special *macroexpand*))	; expand macro if t
+(declaim (special *macroexpand*))       ; expand macro if t
 
-(defvar *fill-rc-attribute* nil)	; a flag, t if requires generalizing the
-					; pattern of record/object terms.
+(defvar *fill-rc-attribute* nil)        ; a flag, t if requires generalizing the
+                                        ; pattern of record/object terms.
 
 (defvar *parsing-axiom-lhs* nil)
 (defvar *parse-lhs-attr-vars* nil)
@@ -655,6 +652,9 @@
 ;;; find command control
 (defvar *find-all-rules* nil)
 
+;;; NO ID COMPLETION
+(defvar *no-id-completion* nil)
+
 ;;; DEBUG FLAGS
 (defvar *rewrite-debug* nil)
 (defvar *on-term-hash-debug* nil)
@@ -679,6 +679,7 @@
 (defvar *cexec-debug* nil)
 (defvar *debug-meta* nil)
 (defvar *debug-citp* nil)
+(defvar *debug-print* nil)
 ;;;
 ;;; ** TO DO for other platforms
 #+SBCL

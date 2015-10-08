@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -51,10 +51,8 @@
   (setq -cafeobj-load-time- (chaos::get-time-string)))
 
 (defun cafeobj-greeting ()
-  ;; (declare (values t))
   (unless (or *cafeobj-batch* *cafeobj-no-banner*)
     (let ((*print-pretty* nil))
-      ;;(declare (special *print-pretty*))
       (fresh-line)
       (terpri)
       (print-centering g_line_1)
@@ -91,7 +89,7 @@
       (print-centering "-- Containing PigNose Extensions --")
       (fresh-line)
       )
-    (unless *cafeobj-batch*
+    (unless (or *cafeobj-batch* *cafeobj-no-banner*)
       (print-centering "---")
       (fresh-line)
       (print-centering (concatenate
@@ -139,13 +137,13 @@
               (with-chaos-top-error ()
                 (with-chaos-error ()
                   (cafeobj-init-files)))))
-	  (with-simple-restart (nil "Exit CafeOBJ.")
-	    (loop
-	      (with-simple-restart (abort "Return to CafeOBJ Top level.")
-		(catch *top-level-tag*
-		  (process-cafeobj-input)
-		  (setq quit-flag t))
-		(when quit-flag (return :ok-exit))))))
+          (with-simple-restart (nil "Exit CafeOBJ.")
+            (loop
+              (with-simple-restart (abort "Return to CafeOBJ Top level.")
+                (catch *top-level-tag*
+                  (process-cafeobj-input)
+                  (setq quit-flag t))
+                (when quit-flag (return :ok-exit))))))
         (format t "[Leaving CafeOBJ]~%")))
   (finish-output))
 
@@ -185,14 +183,14 @@
                 (with-chaos-top-error ()
                   (with-chaos-error ()
                     (cafeobj-init-files)))))
-	    (with-simple-restart (nil "Exit CafeOBJ.")
-	      (loop
-		(with-simple-restart (abort "Return to CafeOBJ Top level.")
-		  (catch *top-level-tag*
-		    (process-cafeobj-input)
-		    (setq quit-flag t))
-		  (when quit-flag (return :ok-exit))))))
-	  (format t "[Leaving CafeOBJ]~%")))
+            (with-simple-restart (nil "Exit CafeOBJ.")
+              (loop
+                (with-simple-restart (abort "Return to CafeOBJ Top level.")
+                  (catch *top-level-tag*
+                    (process-cafeobj-input)
+                    (setq quit-flag t))
+                  (when quit-flag (return :ok-exit))))))
+          (format t "[Leaving CafeOBJ]~%")))
     (finish-output) ))
 
 ;;;=============================================================================
@@ -277,10 +275,10 @@
   ;;
   (let ((res (catch *top-level-tag* (cafeobj) 'ok-exit)))
     (if (eq res 'ok-exit)
-	(bye-bye-bye)
+        (bye-bye-bye)
       (progn
-	(princ "** ERROR")
-	(terpri)))))
+        (princ "** ERROR")
+        (terpri)))))
 
 #+EXCL
 (eval-when (:execute :load-toplevel)

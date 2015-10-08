@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|=============================================================================
-				  System:CHAOS
-				 Module:e-match
-			     File:match-system.lisp
+                                  System:CHAOS
+                                 Module:e-match
+                             File:match-system.lisp
 Based on the implementation of OBJ3 system. 
 =============================================================================|#
 #-:chaos-debug
@@ -38,7 +38,7 @@ Based on the implementation of OBJ3 system.
 #+:chaos-debug
 (declaim (optimize (speed 1) (safety 3) #-GCL (debug 3)))
 
-;;;			   The Mach System
+;;;                        The Mach System
 ;;; (defvar *match-debug* nil)
 ;;;-----------------------------------------------------------------------------
 ;;; A match system is a system of oriented equations which first term may
@@ -82,13 +82,13 @@ Based on the implementation of OBJ3 system.
    (4)  Mutation. 
 
         t1 == t2 & U
-      ---------------------	if t1, t2 \in E (in some sense )
+      ---------------------     if t1, t2 \in E (in some sense )
        MUT(E)(t1 == t2 & U)
 
    (5)  Coalesce.
 
         x:s == y:s' & U
-       ------------------	if x,y \in Var(U) and s' <= s
+       ------------------       if x,y \in Var(U) and s' <= s
        x == y &  U{x -> y} 
 
    (6)  Merge - there is a merge operation - which I have yet to properly formulate
@@ -143,30 +143,30 @@ Based on the implementation of OBJ3 system.
 
 (defun !match-decompose-on-demand (t1 t2 result)
   (declare (type term t1 t2)
-	   (type list result)
-	   (values (or null t)))
+           (type list result)
+           (values (or null t)))
   ;; perform on-demand reduction of t2, then try decompose.
   ;; returns t on failure.
   (if (term-is-on-demand? t2)
       ;; `normalize-term' may destructively rewrites t2,
       ;; returns T iff it did not perform rewriting.
       (progn
-	(mark-term-as-not-on-demand t2)
-	(if (normalize-term t2)
-	    t
-	  (!match-decompose t1 t2 result)))
+        (mark-term-as-not-on-demand t2)
+        (if (normalize-term t2)
+            t
+          (!match-decompose t1 t2 result)))
     t)
   )
 
 (defun occurs-in (v term)
   (cond ((term-is-variable? term)
-	 (variable-eq v term))
-	((term-is-application-form? term)
-	 (dolist (sub (term-subterms term))
-	   (when (occurs-in v sub)
-	     (return-from occurs-in t)))
-	 nil)
-	(t nil)))
+         (variable-eq v term))
+        ((term-is-application-form? term)
+         (dolist (sub (term-subterms term))
+           (when (occurs-in v sub)
+             (return-from occurs-in t)))
+         nil)
+        (t nil)))
 
 
 (defun !match-decompose (t1 t2 res)
@@ -181,331 +181,323 @@ Based on the implementation of OBJ3 system.
 
 (defun !match-decompose-unify (t1 t2 res)
   (declare (type term t1 t2)
-	   (type list res)
-	   (values (or null t)))
+           (type list res)
+           (values (or null t)))
   (cond ((term-is-variable? t1)
-	 ;; [1] t1 is variable
-	 ;; OS sort check.
-	 (when (variable-eq t1 t2)
-	   ;; trivial equation, discard.
-	   (return-from !match-decompose-unify nil))
-	 (when (occurs-in t1 t2)
-	   (return-from !match-decompose-unify t))
-	 ;;
-	 (if
-	     #||
-	     (is-in-same-connected-component (term-sort t1)
-					     (term-sort t2)
-					     *current-sort-order*)
-	   ||#
-	   (sort<= (term-sort t2) (term-sort t1) *current-sort-order*)
-	     (let ((cval (variable-image (cdr res) t1)))
-	       (if cval 
-		   (progn
-		     #||
-		     (with-output-simple-msg ()
-		       (format t "* rec!match-dec: t1=")
-		       (term-print t1)
-		       (print-next)
-		       (format t " t2 = ")
-		       (term-print t2)
-		       (print-next)
-		       (print-substitution (cdr res)))
-		     ||#
-		     (!match-decompose-unify cval t2 res)
-		     )
-		 (cond ((term-is-variable? t2)
-			(setq cval (variable-image (cdr res) t2))
-			(if (not cval)
-			    (push (make-equation t1 t2) (cdr res))
-			  (unless (variable-eq t1 cval)
-			    (push (make-equation t1 t2) (cdr res))))
-			nil)
-		       (t (push (make-equation t1 t2) (cdr res))
-			  nil))
-		 ))			; success
-	   ;; incomparable sorts
-	   t))				; fail
+         ;; [1] t1 is variable
+         ;; OS sort check.
+         (when (variable-eq t1 t2)
+           ;; trivial equation, discard.
+           (return-from !match-decompose-unify nil))
+         (when (occurs-in t1 t2)
+           (return-from !match-decompose-unify t))
+         ;;
+         (if (sort<= (term-sort t2) (term-sort t1) *current-sort-order*)
+             (let ((cval (variable-image (cdr res) t1)))
+               (if cval 
+                   (progn
+                     (!match-decompose-unify cval t2 res))
+                 (cond ((term-is-variable? t2)
+                        (setq cval (variable-image (cdr res) t2))
+                        (if (not cval)
+                            (push (make-equation t1 t2) (cdr res))
+                          (unless (variable-eq t1 cval)
+                            (push (make-equation t1 t2) (cdr res))))
+                        nil)
+                       (t (push (make-equation t1 t2) (cdr res))
+                          nil))
+                 ))                     ; success
+           ;; incomparable sorts
+           t))                          ; fail
 
-	;; [2] t1 is not variable, t2 is variable.
-	((term-is-variable? t2)
-	 (!match-decompose-unify t2 t1 res))
+        ;; [2] t1 is not variable, t2 is variable.
+        ((term-is-variable? t2)
+         (!match-decompose-unify t2 t1 res))
     
-	;; [3] t1 or t2 is builtin constant.
+        ;; [3] t1 or t2 is builtin constant.
 
-	((term-is-builtin-constant? t1)
-	 (not (term-builtin-equal t1 t2)))
+        ((term-is-builtin-constant? t1)
+         (not (term-builtin-equal t1 t2)))
 
-	#||
-	((term-is-builtin-constant? t2)
-	 t)
-	||#
-
-	;; [4] t1 & t2 is application form.
-	(t (let* ((t1-top (term-head t1))
-		  (t2-top (term-head t2))
-		  (th-info (method-theory-info-for-matching! t1-top)))
-	     ;; since it is OS-matching, we only
-	     ;; test the equality of the operator.
-	     (if (method-is-of-same-operator+ t1-top t2-top)
-		 ;; f(x, y, z ...) = f(x',y',z'...)
-		 (if (theory-info-empty-for-matching th-info)
-		     ;;
-		     ;; the empty theory, do the full decompose.
-		     ;;
-		     (let ((t1-subterms (term-subterms t1))
-			   (t2-subterms (term-subterms t2)))
-		       (declare (type list t1-subterms t2-subterms))
-		       (loop		; for each subterm try decomposition.
-			 (unless t1-subterms (return nil))
-			 (let ((ng (!match-decompose-unify (car t1-subterms)
-							   (car t2-subterms)
-							   res)))
-			   (when ng
-			     (return-from !match-decompose-unify t)))
-			 (setf t1-subterms (cdr t1-subterms)
-			       t2-subterms (cdr t2-subterms)))
-		       nil)
-		   ;;
-		   ;; if the theory has equational theory, we do not
-		   ;; perform full decomposition.
-		   ;;
-		   (progn
-		     (push (make-equation t1 t2) (cdr res))
-		     nil))
-	       ;;
-	       ;; the different top level
-	       ;; possibly maches only when zero case...
-	       ;;
-	       ;; #||
-	       (if (or (test-theory .Z. (theory-info-code th-info))
-		       (test-theory .Z. (theory-info-code
-					 (method-theory-info-for-matching!
-					  (term-head t2)))))
-		   (progn (push (make-equation t1 t2) (cdr res))
-			  nil)
-		 ;; will never match
-		 t)
-	       ;;||#
-	       ;;t
-	       )
-	     ))))
+        ;; [4] t1 & t2 is application form.
+        (t (let* ((t1-top (term-head t1))
+                  (t2-top (term-head t2))
+                  (th-info (method-theory-info-for-matching! t1-top)))
+             ;; since it is OS-matching, we only
+             ;; test the equality of the operator.
+             (if (method-is-of-same-operator+ t1-top t2-top)
+                 ;; f(x, y, z ...) = f(x',y',z'...)
+                 (if (theory-info-empty-for-matching th-info)
+                     ;;
+                     ;; the empty theory, do the full decompose.
+                     ;;
+                     (let ((t1-subterms (term-subterms t1))
+                           (t2-subterms (term-subterms t2)))
+                       (declare (type list t1-subterms t2-subterms))
+                       (loop            ; for each subterm try decomposition.
+                         (unless t1-subterms (return nil))
+                         (let ((ng (!match-decompose-unify (car t1-subterms)
+                                                           (car t2-subterms)
+                                                           res)))
+                           (when ng
+                             (return-from !match-decompose-unify t)))
+                         (setf t1-subterms (cdr t1-subterms)
+                               t2-subterms (cdr t2-subterms)))
+                       nil)
+                   ;;
+                   ;; if the theory has equational theory, we do not
+                   ;; perform full decomposition.
+                   ;;
+                   (progn
+                     (push (make-equation t1 t2) (cdr res))
+                     nil))
+               ;;
+               ;; the different top level
+               ;; possibly maches only when zero case...
+               (if (or (test-theory .Z. (theory-info-code th-info))
+                       (test-theory .Z. (theory-info-code
+                                         (method-theory-info-for-matching!
+                                          (term-head t2)))))
+                   (progn (push (make-equation t1 t2) (cdr res))
+                          nil)
+                 ;; will never match
+                 t))))))
 
 (defun !match-decompose-match (t1 t2 res)
   (declare (type term t1 t2)
-	   (type list res)
-	   (values (or null t)))
+           (type list res)
+           (values (or null t)))
+  (with-match-debug ()
+    (format t "~%** !match-decompose-match:")
+    (print-next)
+    (princ "-t1: ") (term-print-with-sort t1)
+    (print-next)
+    (princ "-t2: ") (term-print-with-sort t2))
   (cond
     ;; [1] t1 is variable
     ((term-is-variable? t1)
      ;; OS sort check.
      (if (sort<= (term-sort t2) (term-sort t1) *current-sort-order*)
-	 (progn (push (make-equation t1 t2) (cdr res))
-		nil)
+         (progn 
+           (push (make-equation t1 t2) (cdr res))
+           nil)
        ;; try again after possible on-demand reduction of t2.
        (!match-decompose-on-demand t1 t2 res)))
     
     ;; [2] t1 is not variable, t2 is variable.
-
     ((term-is-variable? t2) 
      (if *one-way-match*
-	 t				; fail
-       (!match-decompose-match t2 t1 res))
-     )
+         (progn
+           (with-match-debug ()
+             (print-next)
+             (princ ">> FAIL for t2 is variable."))
+           t)                            ; fail
+       (!match-decompose-match t2 t1 res)))
     
     ;; [3] t1 or t2 is builtin constant.
-
     ((term-is-builtin-constant? t1)
-     (not (term-builtin-equal t1 t2)))
-
-    #||
-    ((term-is-builtin-constant? t2)
-     t)
-    ||#
+     (let ((ans (not (term-builtin-equal t1 t2))))
+       (with-match-debug ()
+         (print-next)
+         (if ans
+             (princ ">> SUCCESS, builtin-equal.")
+           (princ ">> FAIL, builtin not equal.")))
+       ans))
 
     ;; [4] t1 is an application form.
     (t (let* ((t1-top (term-head t1))
-	      (th-info (method-theory-info-for-matching! t1-top)))
-	 (if (term-is-builtin-constant? t2)
-	     (if (not (theory-info-empty-for-matching th-info))
-		 (progn (push (make-equation t1 t2) (cdr res))
-			nil)
-	       t)
-	   ;; t2 also is an application form.
-	   (let ((t2-top (term-head t2)))
-	     ;; since it is OS-matching, we only
-	     ;; test the equality of the operator.
-	     (if (method-is-of-same-operator+ t1-top t2-top)
-		 ;; f(x, y, z ...) = f(x',y',z'...)
-		 (if (theory-info-empty-for-matching th-info)
-		     ;;
-		     ;; the empty theory, do the full decompose.
-		     ;;
-		     (let ((t1-subterms (term-subterms t1))
-			   (t2-subterms (term-subterms t2)))
-		       (declare (type list t1-subterms t2-subterms))
-		       (loop		; for each subterm try decomposition.
-			 (unless t1-subterms (return nil))
-			 (let ((ng (!match-decompose-match (car t1-subterms)
-							   (car t2-subterms)
-							   res)))
-			   (when (and ng
-				      (!match-decompose-on-demand t1 t2 res))
-			     (return-from !match-decompose-match t)))
-			 (setf t1-subterms (cdr t1-subterms)
-			       t2-subterms (cdr t2-subterms)))
-		       nil)
-		   ;;
-		   ;; if the theory has equational theory, we do not
-		   ;; perform full decomposition.
-		   ;;
-		   (progn
-		     (push (make-equation t1 t2) (cdr res))
-		     nil))
-	   
-	       ;;
-	       ;; the different top level
-	       ;; possibly maches only when zero case or on-demand. 
-	       ;;
-	       ;; #|| too danderous: many cases of rewriting rush into infinite loop.
-	       (if (term-is-on-demand? t2)
-		   (progn
-		     (mark-term-as-not-on-demand t2)
-		     (if (normalize-term t2)
-			 ;; no reduction has been performed.
-			 (if (or (test-theory .Z. (theory-info-code th-info))
-				 (test-theory .Z. (theory-info-code
-						   (method-theory-info-for-matching!
-						    (term-head t2)))))
-			     (progn (push (make-equation t1 t2) (cdr res))
-				    nil)
-			   ;; will never match
-			   t)
-		       ;; t2 is rewritten
-		       (!match-decompose t1 t2 res)))
-		 ;; t2 is not on demand.
-		 (if (or (test-theory .Z. (theory-info-code th-info))
-			 (test-theory .Z. (theory-info-code
-					   (method-theory-info-for-matching!
-					    (term-head t2)))))
-		     (progn (push (make-equation t1 t2) (cdr res))
-			    nil)
-		   ;; will never match
-		   t)) )))))))
+              (th-info (method-theory-info-for-matching! t1-top)))
+         (if (term-is-builtin-constant? t2)
+             (if (not (theory-info-empty-for-matching th-info))
+                 (progn (push (make-equation t1 t2) (cdr res))
+                        nil)
+               (progn
+                 (with-match-debug ()
+                   (print-next)
+                   (princ ">> FAIL, t2 is builtin."))
+                 t))
+           ;; t2 also is an application form.
+           (let ((t2-top (term-head t2)))
+             ;; since it is OS-matching, we only
+             ;; test the equality of the operator.
+             (if (method-is-of-same-operator+ t1-top t2-top)
+                 ;; f(x, y, z ...) = f(x',y',z'...)
+                 (if (theory-info-empty-for-matching th-info)
+                     ;;
+                     ;; the empty theory, do the full decompose.
+                     ;;
+                     (let ((t1-subterms (term-subterms t1))
+                           (t2-subterms (term-subterms t2)))
+                       (declare (type list t1-subterms t2-subterms))
+                       (with-match-debug ()
+                         (format t "~%>> empty theory: do the full decompose..."))
+                       (loop            ; for each subterm try decomposition.
+                         (unless t1-subterms (return nil))
+                         (let ((ng (!match-decompose-match (car t1-subterms)
+                                                           (car t2-subterms)
+                                                           res)))
+                           (when (and ng
+                                      (!match-decompose-on-demand t1 t2 res))
+                             (return-from !match-decompose-match t)))
+                         (setf t1-subterms (cdr t1-subterms)
+                               t2-subterms (cdr t2-subterms)))
+                       nil)
+                   ;;
+                   ;; if the theory has equational theory, we do not
+                   ;; perform full decomposition.
+                   ;;
+                   (progn
+                     (with-match-debug ()
+                       (format t "~%>> has theory: add their pair."))
+                     (push (make-equation t1 t2) (cdr res))
+                     nil))
+           
+               ;;
+               ;; the different top level
+               ;; possibly maches only when zero case or on-demand. 
+               ;;
+               (if (term-is-on-demand? t2)
+                   (progn
+                     (with-match-debug ()
+                       (format t "~%>> term t2 is on demand."))
+                     (mark-term-as-not-on-demand t2)
+                     (if (normalize-term t2)
+                         ;; no reduction has been performed.
+                         (if (or (test-theory .Z. (theory-info-code th-info))
+                                 (test-theory .Z. (theory-info-code
+                                                   (method-theory-info-for-matching!
+                                                    (term-head t2)))))
+                             (progn (push (make-equation t1 t2) (cdr res))
+                                    nil)
+                           ;; will never match
+                           t)
+                       ;; t2 is rewritten
+                       (!match-decompose t1 t2 res)))
+                 ;; t2 is not on demand.
+                 (if (or (test-theory .Z. (theory-info-code th-info))
+                         (test-theory .Z. (theory-info-code
+                                           (method-theory-info-for-matching!
+                                            (term-head t2)))))
+                     (progn 
+                       (with-match-debug ()
+                         (format t "~%>> theory Z."))
+                       (push (make-equation t1 t2) (cdr res))
+                       nil)
+                   ;; will never match
+                   t)) )))))))
 
-;; (declaim (inline match-decompose-equation))
 
 (defun match-decompose-equation (t1 t2 &optional (sigma nil))
   (declare (type term t1 t2))
   (when sigma
     (setq sigma (copy-list sigma)))
   (let* ((list-of-decomposed-equation (cons nil sigma))
-	 (no-match (if *do-unify*
-		       (!match-decompose-unify t1 t2 list-of-decomposed-equation)
-		     (!match-decompose-match t1 t2 list-of-decomposed-equation))))
+         (no-match (if *do-unify*
+                       (!match-decompose-unify t1 t2 list-of-decomposed-equation)
+                     (!match-decompose-match t1 t2 list-of-decomposed-equation))))
     (declare (type list list-of-decomposed-equation)
-	     (type (or null t) no-match))
+             (type (or null t) no-match))
     (cond (no-match (values (cdr list-of-decomposed-equation) t)) ; no match
-	  (t (if (cdr list-of-decomposed-equation)
-		 (let ((new-subst
-			(normal-form-sub (cdr list-of-decomposed-equation) nil)))
-		   (if new-subst
-		       (values new-subst no-match)
-		     ;; 
-		     (values (cdr list-of-decomposed-equation) no-match)))
-	       (values nil nil))))))	; equational equal
+          (t (if (cdr list-of-decomposed-equation)
+                 (let ((new-subst
+                        (normal-form-sub (cdr list-of-decomposed-equation) nil)))
+                   (if new-subst
+                       (values new-subst no-match)
+                     ;; 
+                     (values (cdr list-of-decomposed-equation) no-match)))
+               (values nil nil))))))    ; equational equal
   
 (defun normal-form-sub (sub ans)
   (if sub
       ;; occur check here
       (let* ((v1 (caar sub))
-	     (t1 (apply-subst ans (cdar sub)))
-	     (new-pair (make-equation v1 t1)))
-	(if (occurs-in v1 t1)
-	    nil
-	  (normal-form-sub
-	   (cdr sub)
-	   (cons new-pair
-		 (mapcar #'(lambda (x)
-			     (make-equation
-			      (apply-subst (list new-pair)
-					   (equation-t1 x))
-			      (apply-subst (list new-pair)
-					   (equation-t2 x))))
-			 ans)))))
+             (t1 (apply-subst ans (cdar sub)))
+             (new-pair (make-equation v1 t1)))
+        (if (occurs-in v1 t1)
+            nil
+          (normal-form-sub
+           (cdr sub)
+           (cons new-pair
+                 (mapcar #'(lambda (x)
+                             (make-equation
+                              (apply-subst (list new-pair)
+                                           (equation-t1 x))
+                              (apply-subst (list new-pair)
+                                           (equation-t2 x))))
+                         ans)))))
     ans))
 
 #||
 (defun apply-subst (sigma term)
   (if sigma
       (cond ((term-is-variable? term)
-	     (let ((im (variable-image sigma term)))
-	       (if im			; i.e. im = sigma(term)
-		   (values im t)
-		 (values term nil))))
-	    ((term-is-builtin-constant? term) term)
-	    ((term-is-lisp-form? term) term)
-	    ((term-is-application-form? term)
-	     (let ((l-result nil)
-		   (modif-sort nil))
-	       (dolist (s-t (term-subterms term))
-		 (multiple-value-bind (image-s-t same-sort)
-		     (apply-subst sigma s-t)
-		   (unless same-sort
-		     ;; (update-lowest-parse s-t)
-		     (setq modif-sort t))
-		   (push image-s-t l-result)))
-	       (setq l-result (nreverse l-result))
-	       (if modif-sort
-		   (let ((term-image (make-term-with-sort-check (term-head term)
-								l-result)))
-		     (values term-image
-			     (sort= (term-sort term)
-				    (term-sort term-image))))
-		 (values (make-applform (term-sort term)
-					(term-head term)
-					l-result)
-			 t))))
-	    (t (with-output-panic-message ()
-		 (princ "apply-subst: encoutered illegual term")
-		 (terpri)
-		 (term-print term))))
+             (let ((im (variable-image sigma term)))
+               (if im                   ; i.e. im = sigma(term)
+                   (values im t)
+                 (values term nil))))
+            ((term-is-builtin-constant? term) term)
+            ((term-is-lisp-form? term) term)
+            ((term-is-application-form? term)
+             (let ((l-result nil)
+                   (modif-sort nil))
+               (dolist (s-t (term-subterms term))
+                 (multiple-value-bind (image-s-t same-sort)
+                     (apply-subst sigma s-t)
+                   (unless same-sort
+                     ;; (update-lowest-parse s-t)
+                     (setq modif-sort t))
+                   (push image-s-t l-result)))
+               (setq l-result (nreverse l-result))
+               (if modif-sort
+                   (let ((term-image (make-term-with-sort-check (term-head term)
+                                                                l-result)))
+                     (values term-image
+                             (sort= (term-sort term)
+                                    (term-sort term-image))))
+                 (values (make-applform (term-sort term)
+                                        (term-head term)
+                                        l-result)
+                         t))))
+            (t (with-output-panic-message ()
+                 (princ "apply-subst: encoutered illegual term")
+                 (terpri)
+                 (term-print term))))
     term))
 ||#
 
 (defun apply-subst (sigma term)
   (cond ((term-is-variable? term)
-	 (let ((im (variable-image sigma term)))
-	   (if im			; i.e. im = sigma(term)
-	       (values im t)
-	     (values term nil))))
-	((term-is-builtin-constant? term) term)
-	((term-is-lisp-form? term) term)
-	((term-is-application-form? term)
-	 (let ((l-result nil)
-	       (modif-sort nil))
-	   (dolist (s-t (term-subterms term))
-	     (multiple-value-bind (image-s-t same-sort)
-		 (apply-subst sigma s-t)
-	       (unless same-sort
-		 ;; (update-lowest-parse s-t)
-		 (setq modif-sort t))
-	       (push image-s-t l-result)))
-	   (setq l-result (nreverse l-result))
-	   (if modif-sort
-	       (let ((term-image (make-term-with-sort-check (term-head term)
-							    l-result)))
-		 (values term-image
-			 (sort= (term-sort term)
-				(term-sort term-image))))
-	     (values (make-applform (term-sort term)
-				    (term-head term)
-				    l-result)
-		     t))))
-	(t (with-output-panic-message ()
-	     (princ "apply-subst: encoutered illegual term")
-	     (print-next)
-	     (term-print-with-sort term))))
+         (let ((im (variable-image sigma term)))
+           (if im                       ; i.e. im = sigma(term)
+               (values im t)
+             (values term nil))))
+        ((term-is-builtin-constant? term) term)
+        ((term-is-lisp-form? term) term)
+        ((term-is-application-form? term)
+         (let ((l-result nil)
+               (modif-sort nil))
+           (dolist (s-t (term-subterms term))
+             (multiple-value-bind (image-s-t same-sort)
+                 (apply-subst sigma s-t)
+               (unless same-sort
+                 ;; (update-lowest-parse s-t)
+                 (setq modif-sort t))
+               (push image-s-t l-result)))
+           (setq l-result (nreverse l-result))
+           (if modif-sort
+               (let ((term-image (make-term-with-sort-check (term-head term)
+                                                            l-result)))
+                 (values term-image
+                         (sort= (term-sort term)
+                                (term-sort term-image))))
+             (values (make-applform (term-sort term)
+                                    (term-head term)
+                                    l-result)
+                     t))))
+        (t (with-output-panic-message ()
+             (princ "apply-subst: encoutered illegual term")
+             (print-next)
+             (term-print-with-sort term))))
   )
 
 ;;; M-SYSTEM-TO-SOLVE ==========================================================
@@ -534,11 +526,11 @@ Based on the implementation of OBJ3 system.
 
 (defun print-m-system (m)
   (declare (type msystem m)
-	   (values t))
+           (values t))
   (dolist (e m)
     (let ((t1 (equation-t1 e))
-	  (t2 (equation-t2 e)))
-      (format t "~&===========")
+          (t2 (equation-t2 e)))
+      (format t "~%[m-system]===========")
       (format t "~&t1 = ") (term-print-with-sort t1)
       (format t "~&t2 = ") (term-print-with-sort t2))))
 
@@ -555,25 +547,25 @@ Based on the implementation of OBJ3 system.
 (defmacro m-system-to-list (??_sys)
   (once-only (??_sys)
     ` (if (m-system-is-empty? ,??_sys)
-	  (cdr ,??_sys)
+          (cdr ,??_sys)
           ,??_sys)))
 
 (defmacro size-of-m-system (!_?sys)
   (once-only (!_?sys)
     ` (if (m-system-is-empty? ,!_?sys)
-	  (length (the list (cdr ,!_?sys)))
-	  (length ,!_?sys))))
+          (length (the list (cdr ,!_?sys)))
+          (length ,!_?sys))))
 
 ;;; Add an equation to the system.
 ;;;
 (defun add-equation-to-m-system (sys eq)
   (declare (type list sys)
-	   (type t eq)
-	   (values t))
+           (type t eq)
+           (values t))
   (unless (member eq sys :test #'eq)
     (if (m-system-is-empty? sys)
-	(rplaca sys eq)			; remove the nil on top
-	(rplacd sys (cons eq (cdr sys))))))
+        (rplaca sys eq)                 ; remove the nil on top
+        (rplacd sys (cons eq (cdr sys))))))
 
 ;;; Returns a system from two list of equations. One of the two lists should be
 ;;; non empty. Assumes each equation-t1 is not a variable.
@@ -582,12 +574,12 @@ Based on the implementation of OBJ3 system.
 
 (defun make-m-system (l1 l2)
   (declare (type list l1 l2)
-	   (values msystem))
+           (values msystem))
   (if (null (car l1))
       (union (cdr l1) l2)
       (if (null (car l2))
-	  (union l1 (cdr l2))
-	  (union l1 l2))))
+          (union l1 (cdr l2))
+          (union l1 l2))))
 
 ;;; Returns the biggest system extracted from "sys", which is homogenous with
 ;;; respect to the current theory.
@@ -604,45 +596,45 @@ Based on the implementation of OBJ3 system.
 
 (defun m-system-extract-one-system (sys)
   (declare (type list sys)
-	   (values list theory-info))
+           (values list theory-info))
   (let ((extracted-sys nil)
-	(theory-is-empty nil)
-	(disc-method nil))
+        (theory-is-empty nil)
+        (disc-method nil))
     (dolist (eq (m-system-to-list sys))
       (let ((t1 (equation-t1 eq)))
-	(declare (type term t1))
-	(if (term-is-application-form? t1)
-	    (let ((t1-top (term-method t1)))
-	      (cond
-		;; t1-top has no specific theory for matching.
-		((theory-info-empty-for-matching
-		  (method-theory-info-for-matching! t1-top))
-		 (when disc-method
-		   (unless (theory-info-empty-for-matching
-			    (method-theory-info-for-matching! disc-method))
-		     ;; The greatest priority is given to the empty theory.
-		     ;; The extracted system is reset.
-		     (setq disc-method t1-top)
-		     (setq extracted-sys nil)))
-		 (setq theory-is-empty t)
-		 (push eq extracted-sys))
-		
-		;; t1-top has non empty theory.
-		(t (if disc-method
-		       ;; Gather homogenous ones.
-		       (when (method-is-of-same-operator+ disc-method t1-top)
-			 (push eq extracted-sys))
-		       (unless theory-is-empty
-			 (setq disc-method t1-top)
-			 (push eq extracted-sys))))))
-	    (progn
-	      (setq theory-is-empty t)
-	      (push eq extracted-sys)
-	      (setq disc-method nil)))))
+        (declare (type term t1))
+        (if (term-is-application-form? t1)
+            (let ((t1-top (term-method t1)))
+              (cond
+                ;; t1-top has no specific theory for matching.
+                ((theory-info-empty-for-matching
+                  (method-theory-info-for-matching! t1-top))
+                 (when disc-method
+                   (unless (theory-info-empty-for-matching
+                            (method-theory-info-for-matching! disc-method))
+                     ;; The greatest priority is given to the empty theory.
+                     ;; The extracted system is reset.
+                     (setq disc-method t1-top)
+                     (setq extracted-sys nil)))
+                 (setq theory-is-empty t)
+                 (push eq extracted-sys))
+                
+                ;; t1-top has non empty theory.
+                (t (if disc-method
+                       ;; Gather homogenous ones.
+                       (when (method-is-of-same-operator+ disc-method t1-top)
+                         (push eq extracted-sys))
+                       (unless theory-is-empty
+                         (setq disc-method t1-top)
+                         (push eq extracted-sys))))))
+            (progn
+              (setq theory-is-empty t)
+              (push eq extracted-sys)
+              (setq disc-method nil)))))
     (values extracted-sys
-	    (if disc-method
-		(method-theory-info-for-matching! disc-method)
-	      (theory-info *the-empty-theory*)))))
+            (if disc-method
+                (method-theory-info-for-matching! disc-method)
+              (theory-info *the-empty-theory*)))))
 
 ;;; MATCH ENVIRONMENT ==========================================================
 
@@ -673,12 +665,12 @@ Based on the implementation of OBJ3 system.
   (once-only (?_!env)
     `(if (null (car ,?_!env))
          (cdr ,?_!env)
-          ,?_!env)))
+       ,?_!env)))
    
 (defun add-equation-to-environment (env eq)
   (if (null (car env))
       (rplaca env eq)
-      (rplacd env (push eq (cdr env)))))
+    (rplacd env (push eq (cdr env)))))
 
 (defmacro environment-copy1 (___?env) `(copy-list ,___?env))
 
@@ -688,7 +680,7 @@ Based on the implementation of OBJ3 system.
   (once-only (??_?env ??_?var)
     `(if (null (car ,??_?env))
          (cdr (assoc ,??_?var (cdr ,??_?env) :test #'variable-eq))
-         (cdr (assoc ,??_?var ,??_?env :test #'variable-eq)))))
+       (cdr (assoc ,??_?var ,??_?env :test #'variable-eq)))))
 
 ;;;  { ... x == t ...} U { ... x == t' ...} 
 ;;;
@@ -699,92 +691,151 @@ Based on the implementation of OBJ3 system.
 ;;; must not be modified. 
 ;;; U: used by "match-system.dec-merg" and "match-add-m-system"
 
-(defun match-insert-if-coherent-with (new-env test-env new-sys eq-list
-					      &optional check-match)
+(defun match-insert-if-coherent-with (new-env test-env new-sys eq-list &optional (check-match nil))
   ;; note that new-env and new-sys are both initialy of the form (nil.nil)
   (block the-end
-    (when *match-debug*
-      (format T "~&insert:--------------------------------------")
-      (format t "~& new-env = ")
+    (with-match-debug ()
+      (format T "~%insert:--------------------------------------")
+      (print-next)
+      (format t "new-env = ")
       (if (car new-env)
-	  (dolist (eq new-env)
-	    (format t "~%  LHS = ") (term-print-with-sort (equation-t1 eq))(terpri)
-	    (format t "~%  RHS = ") (term-print-with-sort (equation-t2 eq))(terpri))
-	(princ "empty"))
-      (format t "~& test-env = ")
+          (dolist (eq new-env)
+            (print-next)
+            (format t "~%  LHS = ") (term-print-with-sort (equation-t1 eq))
+            (print-next)
+            (format t "  RHS = ") (term-print-with-sort (equation-t2 eq))
+        (princ "empty")))
+      (print-next)
+      (format t "test-env = ")
       (if (car test-env)
-	  (dolist (eq test-env)
-	    (format t "~%  LHS = ") (term-print-with-sort (equation-t1 eq)) (terpri)
-	    (format t "~%  RHS = ") (term-print-with-sort (equation-t2 eq)) (terpri))
-	(princ "empty")))
+          (dolist (eq test-env)
+            (format t "~%  LHS = ") (term-print-with-sort (equation-t1 eq))
+            (print-next)
+            (format t "  RHS = ") (term-print-with-sort (equation-t2 eq)))
+        (princ "empty"))
+      (terpri))
     (dolist (eq eq-list)
       (let ((t1 (equation-t1 eq))
-	    (t2 (equation-t2 eq)))
-	(when *match-debug*
-	  (format t "~& t1 = ") (term-print-with-sort t1) (terpri)
-	  (format t "~& t2 = ") (term-print-with-sort t2) (terpri))
-	(cond ((term-is-variable? t1)
-	       ;; checking of the sort information; redundant with
-	       ;; `decompose-equation'.
-	       (unless (sort<= (term-sort t2) (variable-sort t1)
-			       *current-sort-order*)
-		 (when *match-debug*
-		   (format t "~&-- non coherent, sort match fail."))
-		 (return-from the-end t))
-	       ;; new-env may be  modified.
-	       (let ((image-of-t1 (variable-image test-env t1)))
-		 (if image-of-t1
-		     (unless (term-equational-equal image-of-t1 t2)
-		       (when *match-debug*
-			 (format t "~&-- non coherent, var binding conflicts in env."))
-		       (return-from the-end t)) ; i.e  no-coherent
-		     (let ((image-of-t1-in-new (variable-image new-env t1)))
-		       (if image-of-t1-in-new
-			   (unless (term-equational-equal image-of-t1-in-new
-							  t2)
-			     (when *match-debug*
-			       (format t "~&-- non coherent, var binding in new-env."))
-			     (return-from the-end t))
-			   (add-equation-to-environment new-env eq))))))
-	      (check-match
-	       (when (term-is-variable? t2)
-		 (return-from the-end t))
-	       (if (and (term-is-applform? t2)
-			(term-is-applform? t1))
-		   (let ((t1-head (term-head t1))
-			 (t2-head (term-head t2)))
-		     (if (method-is-of-same-operator+ t1-head t2-head)
-			 (add-equation-to-m-system new-sys eq)
-			 (let ((match-info (method-theory-info-for-matching! t1-head)))
-			   (if (test-theory .Z. (theory-info-code match-info))
-			       (add-equation-to-m-system new-sys eq)
-			       (progn
-				 (when *match-debug*
-				   (format t "~&-- non coherent, func conflict."))
-				 (return-from the-end t))))))
-		   (add-equation-to-m-system new-sys eq)))
-	      ;;
-	      (t (add-equation-to-m-system new-sys eq)))))
+            (t2 (equation-t2 eq)))
+        (cond ((term-is-variable? t1)
+               ;; checking of the sort information; redundant with
+               ;; `decompose-equation'.
+               (unless (sort<= (term-sort t2) (variable-sort t1)
+                               *current-sort-order*)
+                 (with-match-debug ()
+                   (print-next)
+                   (format t "-- non coherent, sort match fail."))
+                 (return-from the-end t))
+               ;; new-env may be  modified.
+               (let ((image-of-t1 (variable-image test-env t1)))
+                 (if image-of-t1
+                     (unless (term-equational-equal image-of-t1 t2)
+                       (with-match-debug ()
+                         (format t "~%-- non coherent, var binding conflicts in env."))
+                       (return-from the-end t)) ; i.e  no-coherent
+                   (let ((image-of-t1-in-new (variable-image new-env t1)))
+                     (if image-of-t1-in-new
+                         (unless (term-equational-equal image-of-t1-in-new
+                                                        t2)
+                           (with-match-debug ()
+                             (format t "~%-- non coherent, var binding in new-env."))
+                           (return-from the-end t))
+                       (add-equation-to-environment new-env eq))))))
+              (check-match
+               (when (term-is-variable? t2)
+                 (with-match-debug ()
+                   (format t "~%-- non coherent, t2 is variable."))
+                 (return-from the-end t))
+               (if (and (term-is-applform? t2)
+                        (term-is-applform? t1))
+                   (let ((t1-head (term-head t1))
+                         (t2-head (term-head t2)))
+                     (if (method-is-of-same-operator+ t1-head t2-head)
+                         (add-equation-to-m-system new-sys eq)
+                       (let ((match-info (method-theory-info-for-matching! t1-head)))
+                         (if (test-theory .Z. (theory-info-code match-info))
+                             (add-equation-to-m-system new-sys eq)
+                           (progn
+                             (with-match-debug ()
+                               (format t "~%-- non coherent, func conflict."))
+                             (return-from the-end t))))))
+                 (add-equation-to-m-system new-sys eq)))
+              ;;
+              (t (add-equation-to-m-system new-sys eq)))))
 
     ;; add now all the equation of test-env into new-env (copy test-env)
     (cond ((null (car test-env)) ())
-	  ((null (car new-env))
-	   (let ((l (environment-copy1 test-env)))
-	     (rplaca new-env (car l))
-	     (rplacd new-env (cdr l))) )
-	  (t (nconc new-env test-env)))
-    (when *match-debug*
-      (format t "~& insert: return -- coherent -------------------"))
-    nil					; i.e. the new-env is coherent
+          ((null (car new-env))
+           (let ((l (environment-copy1 test-env)))
+             (rplaca new-env (car l))
+             (rplacd new-env (cdr l))) )
+          (t (nconc new-env test-env)))
+    (with-match-debug ()
+      (format t "~%insert: return -- coherent -------------------")
+      
+      )
+    nil                                 ; i.e. the new-env is coherent
     ))
+
+#||
+(defun match-insert-if-coherent-with (new-env test-env new-sys eq-list &optional (check-match nil))
+  ;; note that new-env and new-sys are both initialy of the form (nil.nil)
+  (block the-end
+    (dolist (eq eq-list)
+      (let ((t1 (equation-t1 eq))
+            (t2 (equation-t2 eq)))
+        (cond ((term-is-variable? t1)
+               ;; checking of the sort information; redundant with
+               ;; `decompose-equation'.
+               (unless (sort<= (term-sort t2) (variable-sort t1)
+                               *current-sort-order*)
+                 (return-from the-end t))
+               ;; new-env may be  modified.
+               (let ((image-of-t1 (variable-image test-env t1)))
+                 (if image-of-t1
+                     (unless (term-equational-equal image-of-t1 t2)
+                       (return-from the-end t)) ; i.e  no-coherent
+                   (let ((image-of-t1-in-new (variable-image new-env t1)))
+                     (if image-of-t1-in-new
+                         (unless (term-equational-equal image-of-t1-in-new t2)
+                           (return-from the-end t))
+                       (add-equation-to-environment new-env eq))))))
+              (check-match
+               (when (term-is-variable? t2)
+                 (return-from the-end t))
+               (if (and (term-is-applform? t2)
+                        (term-is-applform? t1))
+                   (let ((t1-head (term-head t1))
+                         (t2-head (term-head t2)))
+                     (if (method-is-of-same-operator+ t1-head t2-head)
+                         (add-equation-to-m-system new-sys eq)
+                       (let ((match-info (method-theory-info-for-matching! t1-head)))
+                         (if (test-theory .Z. (theory-info-code match-info))
+                             (add-equation-to-m-system new-sys eq)
+                           (progn
+                             (return-from the-end t))))))
+                 (add-equation-to-m-system new-sys eq)))
+              ;;
+              (t (add-equation-to-m-system new-sys eq)))))
+
+    ;; add now all the equation of test-env into new-env (copy test-env)
+    (cond ((null (car test-env)) ())
+          ((null (car new-env))
+           (let ((l (environment-copy1 test-env)))
+             (rplaca new-env (car l))
+             (rplacd new-env (cdr l))) )
+          (t (nconc new-env test-env)))
+    nil                                 ; i.e. the new-env is coherent
+    ))
+||#
 
 ;;; MATCH-SYSTEM ===========================================================
 ;;;
 ;;; The pair of environment and m-system .
 ;;;
 (defstruct (match-system
-	     (:constructor create-match-system (environment system-to-solve)))
-  (environment (new-environment) :type list)	
+             (:constructor create-match-system (environment system-to-solve)))
+  (environment (new-environment) :type list)    
   (system-to-solve (new-m-system) :type list))
 
 (defmacro match-system-sys (ms___?) `(match-system-system-to-solve ,ms___?))
@@ -824,7 +875,7 @@ Based on the implementation of OBJ3 system.
 (defun print-match-equations (eqs)
   (dolist (e eqs)
     (if (null e) (princ "NIL")
-	(print-match-equation e))
+        (print-match-equation e))
     (print-next))
   )
 
@@ -840,19 +891,19 @@ Based on the implementation of OBJ3 system.
 (declaim (inline new-match-system))
 (defun new-match-system (term1 term2)
   (declare (type term term1 term2)
-	   (values match-system))
+           (values match-system))
   (if (term-is-variable? term1)
       (create-match-system (create-environment term1 term2)
-			   (new-m-system))
-      (create-match-system (new-environment)
-			   (create-m-system term1 term2))))
+                           (new-m-system))
+    (create-match-system (new-environment)
+                         (create-m-system term1 term2))))
 
 ;;; returns from a match-system a system (equivalent)
 ;;;
 (defmacro match-system-to-m-system (__?m-sys?)
   (once-only (__?m-sys?)
     ` (make-m-system (m-system-to-list (match-system-sys ,__?m-sys?))
-		     (environment-to-list (match-system-env ,__?m-sys?)))))
+                     (environment-to-list (match-system-env ,__?m-sys?)))))
 
 
 ;;; MATCH-SYSTEM-E-EQUAL : math-system -> bool
@@ -861,13 +912,13 @@ Based on the implementation of OBJ3 system.
 ;;;
 (defun match-system-e-equal (match-system)
   (declare (type match-system match-system)
-	   (values (or t null)))
+           (values (or t null)))
   (and (dolist (eq (m-system-to-list (match-system-sys match-system)) t)
-	 (unless (term-equational-equal (equation-t1 eq) (equation-t2 eq))
-	   (return nil)))
+         (unless (term-equational-equal (equation-t1 eq) (equation-t2 eq))
+           (return nil)))
        (dolist (eq (environment-to-list (match-system-environment match-system)) t)
-	 (unless (term-equational-equal (equation-t1 eq) (equation-t2 eq))
-	   (return nil)))))
+         (unless (term-equational-equal (equation-t1 eq) (equation-t2 eq))
+           (return nil)))))
 
 ;;; add try to returns a NEW match-system containing the (set) union of "sys"
 ;;; and "m-sys". For this purpose, it inserts in a new match-system the equation
@@ -881,23 +932,36 @@ Based on the implementation of OBJ3 system.
 (defun match-add-m-system (match-system m-sys)
   (block no-match
     (let* ((old-environment (match-system-environment match-system))
-	   (new-environment (new-environment)) 
-	   (new-system (new-m-system)))
+           (new-environment (new-environment)) 
+           (new-system (new-m-system)))
       ;; then we insert all the equations of "system" in this new system if
       ;; they are compatible with match-system and copy the environment.
       (when (match-insert-if-coherent-with new-environment
-					   old-environment
-					   new-system
-					   (m-system-to-list m-sys)
-					   )
-	(return-from no-match (values nil t)))
+                                           old-environment
+                                           new-system
+                                           (m-system-to-list m-sys)
+                                           )
+        (return-from no-match (values nil t)))
+
+      (with-match-debug ()
+        (format t "~%[Match-add-m-system]: given ---------------~%")
+        (print-match-system match-system)
+        (format t "~% m-sys")
+        (dolist (eq (m-system-to-list m-sys))
+          (let ((t1 (equation-t1 eq))
+                (t2 (equation-t2 eq)))
+            (print-next)
+            (princ "t1: ")(term-print-with-sort t1)
+            (print-next)
+            (princ "t2: ")(term-print-with-sort t2))))
 
       ;; new-system is modified but not match-system
       (setq new-system (add-m-system new-system (match-system-sys match-system)))
-      (return-from no-match 
-	(values (create-match-system new-environment
-				     new-system)
-		nil)))))
+      (let ((nsys (create-match-system new-environment new-system)))
+        (with-match-debug ()
+          (format t "~%[MATCH-ADD-M-SYSTEM]: generated new sys ----~%")
+          (print-match-system nsys))
+        (return-from no-match (values nsys nil))))))
 
 ;;; Decompose&Merge
 ;;; Returns the decompose and merging of the given match-system
@@ -905,23 +969,26 @@ Based on the implementation of OBJ3 system.
 (defun match-decompose&merge (m-sys &optional sigma)
   (block no-match
     (let ((sys (match-system-sys m-sys))
-	   (env (match-system-env m-sys))
-	   (new-env (new-environment) )
-	   (new-sys (new-m-system)))
+          (env (match-system-env m-sys))
+          (new-env (new-environment) )
+          (new-sys (new-m-system)))
       (declare (type list new-env new-sys))
       (dolist (eq (m-system-to-list sys))
-	(multiple-value-bind (eq-list clash-of-symbol)
-	    (match-decompose-equation (equation-t1 eq) (equation-t2 eq) sigma)
-	  (if clash-of-symbol
-	      (return-from no-match (values nil t))
-	      (when (match-insert-if-coherent-with new-env 
-						   env 
-						   new-sys 
-						   eq-list)
-		    (return-from no-match (values nil t))))))
-      (values (create-match-system new-env
-				   new-sys)
-	      nil))))
+        (multiple-value-bind (eq-list clash-of-symbol)
+            (match-decompose-equation (equation-t1 eq) (equation-t2 eq) sigma)
+          (if clash-of-symbol
+              (return-from no-match (values nil t))
+            (when (match-insert-if-coherent-with new-env 
+                                                 env 
+                                                 new-sys 
+                                                 eq-list)
+              (return-from no-match (values nil t))))))
+      (let ((msys (create-match-system new-env new-sys)))
+        (with-match-debug ()
+          (format t "~%[Match-Decompose&Merge]: match system created: ----~%")
+          (print-match-system msys))
+        (values msys nil)))))
+
 
 ;;; Extracts from the non fully decomposed part of "m-s" the biggest system to
 ;;; be solved into the theory "th". "th" and "sys" are returned.
@@ -930,8 +997,8 @@ Based on the implementation of OBJ3 system.
   (declare (inline m-system-extract-one-system))
   (let ((sys (match-system-sys m-s)))
     (if (m-system-is-empty? sys) 
-	(values nil (theory-info *the-empty-theory*))
-	(m-system-extract-one-system sys))))
+        (values nil (theory-info *the-empty-theory*))
+        (m-system-extract-one-system sys))))
 
 ;;; returns a new match-system with the same environment that "m-sys" but with a
 ;;; system equal to the system of m-sys except the elements in "sys". 
@@ -939,15 +1006,15 @@ Based on the implementation of OBJ3 system.
 ;;;
 (defun match-system-modif-m-sys (m-sys sys)
   (declare (type match-system m-sys)
-	   (type list sys)
-	   (values match-system))
+           (type list sys)
+           (values match-system))
   (flet ((difference-eq (x y)
-	   (let ((res nil))
-	     (dolist (xe x res)
-	       (unless (dolist (ye y nil) (when (eq xe ye) (return t)))
-		 (push xe res))))))
+           (let ((res nil))
+             (dolist (xe x res)
+               (unless (dolist (ye y nil) (when (eq xe ye) (return t)))
+                 (push xe res))))))
     (create-match-system (environment-copy1 (match-system-env m-sys)) 
-			 (difference-eq (m-system-to-list (match-system-sys m-sys))
-					sys))))
+                         (difference-eq (m-system-to-list (match-system-sys m-sys))
+                                        sys))))
 
 ;;; EOF

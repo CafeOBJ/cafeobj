@@ -1,0 +1,33 @@
+** CITP on Maude
+-- (fmod FG-FUN is
+--  protecting NAT .
+--  op F : Nat -> Nat .
+--  op G : Nat -> Nat .
+--  vars X Y : Nat .
+--  ceq F(X) = 5 if X <= 7 [metadata "CA-"].
+--  ceq F(X) = 1 if 8 <= X [metadata "CA-"].
+--  ceq G(Y) = 2 if Y <= 4 [metadata "CA-"].
+--  ceq G(Y) = 7 if 5 <= Y [metadata "CA-"]. 
+-- endfm)
+
+mod! FG-FUN {
+  pr(NAT)
+  op F : Nat -> Nat 
+  op G : Nat -> Nat 
+  ceq [CA-1]: F(X:Nat) = 5 if X <= 7 .
+  ceq [CA-2]: F(X:Nat) = 1 if 8 <= X .
+  ceq [CA-3]: G(Y:Nat) = 2 if Y <= 4 .
+  ceq [CA-4]: G(Y:Nat) = 7 if 5 <= Y .
+}
+
+select FG-FUN .
+:set(spoiler, off)
+**> ':verbose on' => print out every generated goal in the process of proof
+:verbose on
+:goal { eq 9 <= G(F(X:Nat)) + G(X:Nat) = true . }
+:apply (TC CA RD)
+**> show proof prints out the tree of the current proof tree. 
+:show proof
+
+eof
+

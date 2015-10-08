@@ -5,7 +5,7 @@
                          File: command-top.lisp
 ==============================================================================|#
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -89,7 +89,7 @@
         (setq *cafeobj-initial-prelude-file* nil)
         (let* ((args (get-arg-string))
                (argc (length args)))
-	  (declare (type list args))
+          (declare (type list args))
           (when (< 0 argc)
             (let ((i 0))
               (while (> argc i)
@@ -112,7 +112,7 @@
                              (setq *match-debug* t))
                             (("-view-debug")
                              (setq *on-view-debug* t))
-                            (("-h" "-help")
+                            (("-h" "-help" "--help")
                              (cafeobj-interpreter-help)
                              (bye-bye-bye))
                             (("-q")
@@ -194,17 +194,17 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
           (if *cafeobj-initial-prelude-file*
               ;; load specified prelude files
               (progn
-                (format t "~&-- loading prelude")
+                (format t "~%-- loading prelude")
                 ;;(format t "~&-- do `save-system' for creating system prelude pre-loaded.")
                 (setq *cafeobj-standard-prelude-path*
                   (load-prelude *cafeobj-initial-prelude-file* 'process-cafeobj-input)))
             (unless *cafeobj-standard-prelude-path*
-              (format t "~&-- loading standard prelude")
+              (format t "~%-- loading standard prelude")
               ;;(format t "~&-- do `save-system' for creating system prelude pre-loaded.")
               (setq *cafeobj-standard-prelude-path*
                 (load-prelude "std" 'process-cafeobj-input))))
           (when *cafeobj-secondary-prelude-file*
-            (format t "~&-- appending prelude")
+            (format t "~%-- appending prelude")
             (setq *cafeobj-secondary-prelude-path*
               (load-prelude+ *cafeobj-secondary-prelude-file* 'process-cafeobj-input)))
           ;; load site init
@@ -234,116 +234,109 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 
 ;;; CafeOBJ INTERPRETER TOPLEVEL HELP
 ;;;
+(defun print-context-info ()
+  (let ((cmod (get-context-module t)))
+    (cond ((null cmod)
+           (format t "~&You are at top level, no context module is set."))
+          (*open-module*
+           (format t "~&A module ~a is open. " (get-module-print-name *open-module*))
+           (format t "In addition to toplevel commands,~%you can put any declarations of module constructs.~%")
+           (format t "Try typing '?com element' for the list of available constructs."))
+          (t
+           (format t "~&Module ~a is set as current module." (get-module-print-name cmod))))))
+
+(defun print-help-help ()
+  (format t "~2%** Here are commands for CafeOBJ online help system.~%")
+  (format t "'?com [<class>]'~25T Shows available commands classified by <class>,~%")
+  (format t "~25T ommiting <classy> shows a list of <class>.~%")
+  (format t "'? <name>'~25T Gives the reference manual description of <name>~%")
+  (format t "'?ex <name>'~25T Similar to '? <name>', but in this case~%")
+  (format t "~25T also shows examples if available.~%")
+  (format t "'?ap <term> [<term>] ...'~25TSearches all available online docs for the terms passed,~%")
+  (format t "~25T type '? ?ap' for more detailed descriptions.~%")
+  (format t "** Typing 'com' will show the list of major toplevel commands.~%")
+  (format t "** URL 'http://cafeobj.org' privides anything you want to know about CafeOBJ."))
+
 (defun cafeobj-top-level-help (&optional com)
   (cond ((null (cdr com))
-         (format t "~&-- CafeOBJ top level commands :")
-         (format t "~&-- Top level definitional forms include `module'(object, theory), ~%-- `view', and `make'")
-         (format t "~&  ?~20Tprint out this help")
-         (format t "~&  quit -or-")
-         (format t "~&  q~20Texit from CafeOBJ interpreter")
-         (format t "~&  select <Modexp> ~20Tset the <Modexp> current")
-         (format t "~&  show -or-")
-         (format t "~&  describe~20Tprint various info., for further help, type `show ?'")
-         (format t "~&-- setting switches:")
-         (format t "~&  set~20Tset toplevel switches, for further help: type `set ?'")
-         (format t "~&  protect <Modexp>~20Tprevent module from redefinition")
-         (format t "~&  unprotect <Modexp>~20T un-set protection of module")
-         (format t "~&-- simple semantic tools:")
-         (format t "~&  check <things>~20Tcheck some properties of moudle,")
-         (format t "~&  ~20Tfor further help, type `check ?'")
-         (format t "~&  regularize <Modexp>~20T make the signature of <Modexp> regular")
-         (format t "~&-- term rewriting commands:")
-         (format t "~&  reduce -or- ")
-         (format t "~&  red [in <Modexp> : ] <term> .")
-         (format t "~&  ~20Trewrite <term> using equations as rewerite rules")
-         (format t "~&  ~20Toptional <Modexp> specifies the context")
-         (format t "~&  exec [in <Modexp> : ] <term> .")
-         ;; (format t "~&  exec+ [in <Modexp> : ] <term> .")
-         (format t "~&  ~20Trewrite <term> using both equations and rules")
-         (format t "~&  ~20Toptional <Modexp> specifies the context")
-         (format t "~&  parse [in <Modexp> : ] <term> .")
-         (format t "~&  ~20Tparse <term>, print out the result")
-         ;; (format t "~&  test {reduction|execution} <term> :expect <term> . ")
-         ;; (format t "~&  ~20Tdo test reduction(execution) in the current context")
-         ;; (format t "~&  rew limit {<number>| .}")
-         ;; (format t "~&  ~20Tset(unset) max number of rewriting")
-         ;; (format t "~&  stop at [<term>] .")
-         ;; (format t "~&  ~20Tset(unset) stop pattern")
-         (format t "~&-- theorem proving stuffs:")
-         (format t "~&  apply~20Tapply rewrite rules to a term,~%~20Tfor further help: type `apply ?'")
-         (format t "~&  start <term>~20Tset the term <term> as the target of \"apply\" command")
-         (format t "~&  open {<Modexp> | .}~20T open module")
-         (format t "~&  close ~20Tclose openning module")
-         (format t "~&-- reading in files:")
-         (format t "~&  input -or-")
-         (format t "~&  in <file>~20Tread in <file>")
-         (format t "~&  require <feature> [<file>]")
-         (format t "~&  ~20Trequire <feature>")
-         (format t "~&  provide <feature>~20Tprovide the <feature>")
-         (format t "~&-- save/restore module definitions:")
-         (format t "~&  save <file>~20Tsave current definitions of modules to <file>")
-         (format t "~&  restore <file>~20Trestore definitions of modules from <file>")
-         (format t "~&  reset ~20Trecover defintions of built-in modules and standard prelude")
-         (format t "~&  full reset~20Treset system to initial status")
-         (format t "~&-- misc. commands")
-         (format t "~&  clean memo ~20T clean up term memoization table")
-         (format t "~&  dribble {<file>| .}~20T if <file> is given, begins to record the interaction")
-         (format t "~&  ~20Tto the specified file, else ends the recording.")
-         (format t "~&  cd <directory>~20Tchange current directory")
-         (format t "~&  ls <directory>~20Tlist files in directory")
-         (format t "~&  pwd~20Tprint current directory")
-         (format t "~&  lisp -or-")
-         (format t "~&  lispq <lisp>~20Tevaluate lisp expression <lisp>")
-         (format t "~&  ! <command>~20Tfork shell <command> (Unix only)"))
+         (let ((ask (intern (car com))))
+           (case ask
+             ((|?com| |?commands|) (oldoc-list-categories nil))
+             (otherwise (print-context-info)
+                        (print-help-help)))))
         (t (cafeobj-what-is com))))
+
+(defparameter .cafeobj-main-commands.
+"-- CafeOBJ major top level commands:
+   NOTE: Top level definitional forms include declaration of `module' and `view'.
+-- help:
+   ?                   shows the current context and the brief guide for using help system.
+-- exit:
+   quit -or- q         exit from CafeOBJ interpreter.
+-- setting working context:
+   select <Modexp> .   set the module specified by a module expression <Modexp> as current module.
+   open <Modexp> .     open the module specified by a module expression <Moexp>,
+                       <Modexp> will be a current module.
+   close               close the opening module.
+-- term rewriting commands:
+   reduce -or-
+   red [in <Modexp> : ] <term> . 
+                       rewrite <term> using equations as rewerite rules
+                       optional <Modexp> specifies the rewriting context (module)
+   exec [in <Modexp> : ] <term> .
+                       rewrite <term> using both equations and rules
+                       optional <Modexp> specifies the rewriting context (module)
+-- term parser:
+  parse [in <Modexp> : ] <term> . 
+                       parse <term>, print out the result
+                       optional <Modexp> specfies the parsing context (module)
+-- inspection:
+   show -or- describe  print various info., for further help, type `show ?'
+-- setting switches:
+   set                 set toplevel switches, for further help: type `set ?'
+   protect <Modexp>    prevent module <Modexp> from redefinition
+   unprotect <Modexp>  un-set protection of module <Modexp>
+-- reading in files:
+  input -or-
+  in <pathname>        requests the system to read the file specified by the pathname. 
+                       The file itself may contain 'input' commands.
+-- system intialization
+  reset                restores the definitions of built-in modules and preludes,  
+                       but does not affect other modules.
+  full reset           reinitializes the internal state of the system. 
+                       all supplied modules definitions are lost.
+-- misc. commands
+  cd <directory>       change the system's working directory
+  ls <directory>       list files in directory
+  pwd                  print the current directory
+  ! <command>          fork shell <command> (Unix only)"
+)
+
+(defun show-cafeobj-main-commands ()
+  (format t "~a~%" .cafeobj-main-commands.))
 
 ;;; 
 (defparameter .?-invalid-chars. '("." "#" "'" "`"))
 
-#||
-(defun cafeobj-what-is (inp)
-  (flet ((check-pat (pat)
-           (if (not (some #'(lambda (str)
-                              (member str .?-invalid-chars. :test #'string=))
-                          pat))
-               t
-             (progn (format *error-output*
-                            "Illegal command/switch pattern: ~{~a ~^~}" pat)
-                    nil))))
-    (let* ((id (if (cddr inp)
-                   (and (check-pat (cdr inp))
-                        (mapcar #'read-from-string (cdr inp)))
-                 (and (cadr inp)
-                      (check-pat (cdr inp))
-                      (read-from-string (cadr inp)))))
-           (desc (if (keywordp id)
-                     (get-msg-description id)
-                   (and id (get-command-description (car inp) id)))))
-      (unless id
-        (format t "~&Usage: {? | ??} {<command/switch name or pattern> | <message ID>}")
-        (return-from cafeobj-what-is nil))
-      (if desc
-          (format t desc)
-        (format t "~&Unknown command/switch or message ID: ~{~a ~^~}." (cdr inp))))))
-||#
-
 (defun cafeobj-what-is (inp)
   (let* ((ask (intern (car inp)))
-	 (question (cdr inp))
-	 (description nil))
+         (question (cdr inp))
+         (description nil))
     (case ask
       (|?| (setq description (oldoc-get-documentation question :main t :example nil)))
       (|??| (setq description (oldoc-get-documentation question :main t :example t)))
       ((|?ex| |?example|) (setq description (oldoc-get-documentation question :main nil :example t)))
       ((|?ap| |?apropos|) (setq description (oldoc-get-documentation question :apropos t)))
+      ((|?com| |?command|) (oldoc-list-categories question)
+                            (return-from cafeobj-what-is nil))
       (otherwise
        ;; this cannot happen
        (with-output-chaos-error ('internal-error)
-	 (format t "Unknown help command ~a" (car inp)))))
+         (format t "Unknown help command ~a" (car inp)))))
     (cond (description (format t description)
-		       (terpri))
-	  (t (with-output-chaos-warning ()
-	       (format t "System does not know about \"~{~a ~^~}\"." question))))))
+                       (terpri))
+          (t (with-output-chaos-warning ()
+               (format t "System does not know about \"~{~a ~^~}\"." question))))))
 
 ;;; 
 (defun get-command-description (level id)
@@ -393,31 +386,34 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 (defun print-cafeobj-prompt ()
   (fresh-all)
   (flush-all)
-  (cond ((eq *prompt* 'system)
-         (if *last-module*
-             (if (module-is-inconsistent *last-module*)
+  (let ((cur-module (get-context-module t)))
+    (cond ((eq *prompt* 'system)
+           (if cur-module
+             (if (module-is-inconsistent cur-module)
                  (progn
                    (with-output-chaos-warning ()
                      (format t "~a is inconsistent due to changes in some of its submodules."
-                             (module-name *last-module*))
+                             (module-name cur-module))
                      (print-next)
                      (princ "resetting the `current module' of the system.."))
-                   (setq *last-module* nil)
-                   (format *error-output* "~&CafeOBJ> ")
-                   )
+                   (reset-context-module)
+                   (format *error-output* "~&CafeOBJ> "))
                (let ((*standard-output* *error-output*))
-                 (print-simple-mod-name *last-module*)
+                 (print-simple-mod-name cur-module)
                  (princ "> ")))
-           (format *error-output* "CafeOBJ> "))
-         (setf *sub-prompt* nil))
-        ((eq *prompt* 'none))
-        (*prompt*
-         (let ((*standard-output* *error-output*))
-           (if (atom *prompt*)
-               (princ *prompt*)
-             (print-simple-princ-open *prompt*))
-           (princ " "))))
-  (flush-all))
+             ;; no context module
+             (format *error-output* "CafeOBJ> "))
+           (setf *sub-prompt* nil))
+          ;; prompt specified to NONE
+          ((eq *prompt* 'none))
+          ;; specified prompt
+          (*prompt*
+           (let ((*standard-output* *error-output*))
+             (if (atom *prompt*)
+                 (princ *prompt*)
+               (print-simple-princ-open *prompt*))
+             (princ " "))))
+    (flush-all)))
 
 ;;; SAVE INTERPRETER IMAGE
 ;;;_____________________________________________________________________________
@@ -428,7 +424,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
     (pathname (concatenate 'string topdir "/lib/")))
   (setq *system-ex-dir*
     (pathname (concatenate 'string topdir "/exs/")))
-  (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*)))
+  ;; (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*))
+  (setq *chaos-libpath* (list *system-lib-dir*)))
 
 #-(or (and CCL (not :openmcl)) ALLEGRO (and SBCL WIN32))
 (defun set-cafeobj-standard-library-path (&optional topdir)
@@ -458,22 +455,22 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
       (setq *system-prelude-dir* (translate-logical-pathname (merge-pathnames "prelude/")))
       (setq *system-lib-dir* (translate-logical-pathname (merge-pathnames "lib/")))
       (setq *system-ex-dir* (translate-logical-pathname (merge-pathnames "exs/")))
-      (setq *chaos-libpath*
-        (list *system-lib-dir* *system-ex-dir*)))))
+      ;;; (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*))
+      (setq *chaos-libpath* (list *system-lib-dir*)))))
 
 #+(and :SBCL :win32)
 (defun set-cafeobj-standard-library-path (&optional topdir)
   (if topdir
       (set-cafeobj-libpath topdir)
     (let* ((*default-pathname-defaults* (make-pathname :host (pathname-host sb-ext:*core-pathname*)
-						       :device (pathname-device sb-ext:*core-pathname*)
-						       :directory (pathname-directory sb-ext:*core-pathname*))))
+                                                       :device (pathname-device sb-ext:*core-pathname*)
+                                                       :directory (pathname-directory sb-ext:*core-pathname*))))
       (setq *cafeobj-install-dir* *default-pathname-defaults*)
       (setq *system-prelude-dir* (translate-logical-pathname (merge-pathnames "prelude/")))
       (setq *system-lib-dir* (translate-logical-pathname (merge-pathnames "lib/")))
       (setq *system-ex-dir* (translate-logical-pathname (merge-pathnames "exs/")))
-      (setq *chaos-libpath*
-        (list *system-lib-dir* *system-ex-dir*)))))
+      ;;; (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*))
+      (setq *chaos-libpath* (list *system-lib-dir*)))))
 
 ;;; patch by t-seino@jaist.ac.jp
 #+(and CCL (not :openmcl))
@@ -487,7 +484,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
     (full-pathname (make-pathname :host "ccl" :directory "lib/")))
   (setq *system-ex-dir*
     (full-pathname (make-pathname :host "ccl" :directory "exs/")))
-  (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*)))
+  ;; (setq *chaos-libpath* (list *system-lib-dir* *system-ex-dir*))
+  (setq *chaos-libpath* (list *system-lib-dir*)))
 
 ;;; MAIN ROUTINE
 ;;; PROCESSING INPUT FILE STREAM
@@ -525,41 +523,41 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
   (let ((com (get-command-info key)))
     (unless com
       (with-output-chaos-error ('no-commands)
-	(format t "No such command or declaration keyword '~a'." key)))
+        (format t "No such command or declaration keyword '~a'." key)))
     (let ((parser (comde-parser com)))
       (unless parser
-	(with-output-chaos-error ('no-parser)
-	  (format t "No parser is defined for command ~a" key)))
+        (with-output-chaos-error ('no-parser)
+          (format t "No parser is defined for command ~a" key)))
       (let ((pform (funcall parser inp)))
-	(unless pform
-	  (with-output-chaos-error ('parse-error)
-	    (format t "Invalid argument to command ~a." key)))
-	(if (eq pform :help)
-	    (print-comde-usage com)
-	  (let ((evaluator (comde-evaluator com)))
-	    (unless evaluator
-	      (with-output-chaos-error ('no-evaluator)
-		(format t "No evaluator is defined for command ~a." key)))
-	    (funcall evaluator pform)))))))
+        (unless pform
+          (with-output-chaos-error ('parse-error)
+            (format t "Invalid argument to command ~a." key)))
+        (if (eq pform :help)
+            (print-comde-usage com)
+          (let ((evaluator (comde-evaluator com)))
+            (unless evaluator
+              (with-output-chaos-error ('no-evaluator)
+                (format t "No evaluator is defined for command ~a." key)))
+            (funcall evaluator pform)))))))
 
 ;;;
 ;;;
 (defun parse-cafeobj-input-from-string (string)
   (let ((.reader-ch. 'space)
-	(*reader-input* *reader-void*)
-	(*print-array* nil)
-	(*print-circle* nil)
-	(*old-context* nil)
-	(*show-mode* :cafeobj))
+        (*reader-input* *reader-void*)
+        (*print-array* nil)
+        (*print-circle* nil)
+        (*old-context* nil)
+        (*show-mode* :cafeobj))
     (let ((inp nil)
-	  (.in-in. nil))
+          (.in-in. nil))
       (declare (special .in-in.))
       (with-chaos-top-error ('handle-cafeobj-top-error)
-	(with-chaos-error ('handle-chaos-error)
-	  (setq inp (cafeobj-parse-from-string string))
-	  (block process-input
-	    ;; PROCESS INPUT
-	    (cafeobj-evaluate-command (car inp) inp)))))))
+        (with-chaos-error ('handle-chaos-error)
+          (setq inp (cafeobj-parse-from-string string))
+          (block process-input
+            ;; PROCESS INPUT
+            (cafeobj-evaluate-command (car inp) inp)))))))
 ;;;
 ;;; READING IN DECLARATIONS/COMMANDS and PROCESS THEM.
 ;;;
@@ -597,14 +595,11 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 
               (block process-input
                 ;; PROCESS INPUT COMMANDS ==============
-		(cafeobj-evaluate-command (car inp) inp))
+                (cafeobj-evaluate-command (car inp) inp))
               (setq *chaos-print-errors* t)))
           (when .in-in.
             (setq *chaos-print-errors* t)
             (setq .in-in. nil)))))))
-
-(defun try-reduce-term (inp)
-  (perform-reduction* inp *current-module* nil nil))
 
 (defun handle-cafeobj-top-error (val)
   (if *chaos-input-source*

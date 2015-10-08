@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-System: CHAOS
-Module: thstuff
-File: basics.lisp
+                                System: CHAOS
+                               Module: thstuff
+                              File: basics.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -58,7 +58,7 @@ File: basics.lisp
 
 (defun command-display ()
   (if $$action-stack
-      (format t "~&-- condition(~s) " (length $$action-stack))
+      (format t "~%-- condition(~s) " (length $$action-stack))
     (format t "~&result "))
   (disp-term $$term))
 
@@ -70,7 +70,7 @@ File: basics.lisp
     (if (term-is-similar? $$term *bool-true*)
         (progn
           (command-display)
-          (format t "~&-- condition is satisfied, applying rule")
+          (format t "~%-- condition is satisfied, applying rule")
           (format t "~&-- shifiting focus back to previous context")
           (let ((cur (car $$action-stack)))
             (setq $$term (car cur))
@@ -80,7 +80,7 @@ File: basics.lisp
       (if (term-is-similar? $$term *bool-false*)
           (progn
             (command-display)
-            (format t "~&-- condition is not satisfied, rule not applied")
+            (format t "~%-- condition is not satisfied, rule not applied")
             (format t "~&-- shifting focus back to previous context")
             (setq $$term (caar $$action-stack))
             (setq $$action-stack (cdr $$action-stack))
@@ -88,7 +88,7 @@ File: basics.lisp
         nil))))
 
 (defun disp-term (x)
-  (with-in-module (*last-module*)
+  (with-in-module ((get-context-module))
     (term-print x)
     (princ " : ")
     (print-sort-name (term-sort x) *current-module*)))
@@ -102,7 +102,7 @@ File: basics.lisp
 ;;; apply-help
 ;;;
 (defun apply-help ()
-  (format t "~&Apply a selected rule, possibly with an instantiation,")
+  (format t "~%Apply a selected rule, possibly with an instantiation,")
   (format t " to selected subterm(s).")
   (format t "~&Syntax:")
   (format t "~&  apply { reduction | red | print | bred | exec | <RuleSpec> [ <VarSubst> ] }")
@@ -478,12 +478,14 @@ File: basics.lisp
 ;;;
 ;;; FOR :=
 ;;;
+(declaim (special *m-pattern-subst*))
+
 (defun match-m-pattern (pat term)
   (multiple-value-bind (res subst)
       (@pat-match pat term)
     (when res
       (dolist (sub subst)
-	(push sub *m-pattern-subst*))
+        (push sub *m-pattern-subst*))
       (return-from match-m-pattern t))
     nil))
 
@@ -514,8 +516,7 @@ File: basics.lisp
         trmtoks
         avar
         aterm)
-    ;; (!setup-parse *last-module*)
-    (with-in-module (*last-module*)
+    (with-in-module ((get-context-module))
       (loop (when (null substtoks) (return))
         ;; <varid> = <term>
         (setq varnm (cadr substtoks))

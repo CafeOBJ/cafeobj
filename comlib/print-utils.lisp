@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-				 Module: comlib
-			     File: print-utils.lisp
+                                 System: CHAOS
+                                 Module: comlib
+                             File: print-utils.lisp
 =============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -70,7 +70,7 @@
   (declare (values fixnum))
   (let ((val (lisp::charpos x)))
     (if val val
-	0)))
+        0)))
 
 #+EXCL
 (defun filecol (x)
@@ -103,7 +103,7 @@
 
 (defun file-column (strm)
   (declare (inline filecol)
-	   (values fixnum))
+           (values fixnum))
   (filecol strm))
 
 ;;; print-check
@@ -115,16 +115,16 @@
   (declare (type fixnum indent fwd))
   (if (<= *print-line-limit* (+ (file-column stream) fwd))
       (progn
-	(terpri stream)
-	(when (>= (1+ indent) *print-line-limit*)
-	  (setq indent 0)
-	  (setq .file-col. (* *print-indent* *print-indent-increment*)))
-	(if (= 0 indent)
-	    (dotimes (i (* *print-indent* *print-indent-increment*))
-	      (princ #\space stream))
-	  (dotimes (i indent)
-	    (princ #\space stream)))
-	t)
+        (terpri stream)
+        (when (>= (1+ indent) *print-line-limit*)
+          (setq indent 0)
+          (setq .file-col. (* *print-indent* *print-indent-increment*)))
+        (if (= 0 indent)
+            (dotimes (i (* *print-indent* *print-indent-increment*))
+              (princ #\space stream))
+          (dotimes (i indent)
+            (princ #\space stream)))
+        t)
     nil))
 ||#
 
@@ -132,14 +132,14 @@
   (declare (type fixnum indent fwd))
   (if (<= *print-line-limit* (+ (file-column stream) fwd))
       (progn
-	(print-next)
-	(when (>= (1+ indent) *print-line-limit*)
-	  (setq .file-col. (* *print-indent* *print-indent-increment*)))
-	#||
-	(dotimes (i indent)
-	  (princ #\space stream))
-	||#
-	t)
+        (print-next)
+        (when (>= (1+ indent) *print-line-limit*)
+          (setq .file-col. (* *print-indent* *print-indent-increment*)))
+        #||
+        (dotimes (i indent)
+          (princ #\space stream))
+        ||#
+        t)
     nil))
 
 ;;; print-indent
@@ -165,8 +165,8 @@
     (princ string stream)
     (unless (equal fill-char " ")
       (dotimes (x fill-col)
-	(declare (type fixnum x))
-	(princ fill-char stream))
+        (declare (type fixnum x))
+        (princ fill-char stream))
       )))
 ||#
 
@@ -181,8 +181,8 @@
     (princ string stream)
     (unless (equal fill-char " ")
       (dotimes (x fill-col)
-	(declare (type fixnum x))
-	(princ fill-char stream))
+        (declare (type fixnum x))
+        (princ fill-char stream))
       )))
     
 ;;; print-to-right
@@ -190,10 +190,10 @@
 ;;;
 (defun print-to-right (string &optional (fill-char " ") (stream *standard-output*))
   (declare (type simple-string string)
-	   (type (or character simple-string) fill-char)
-	   (type stream stream))
+           (type (or character simple-string) fill-char)
+           (type stream stream))
   (dotimes (x (- .terminal-width. 1 (filecol stream)
-		 *print-indent* (length string)))
+                 *print-indent* (length string)))
     (declare (type fixnum x))
     (princ fill-char stream))
   (princ " " stream)
@@ -204,16 +204,16 @@
 ;;;
 (defun print-to-left (string &optional (fill-char nil) (stream *standard-output*))
   (declare (type simple-string string)
-	   (type (or null character simple-string) fill-char)
-	   (type stream stream))
+           (type (or null character simple-string) fill-char)
+           (type stream stream))
   (let ((*print-line-limit* .terminal-width.))
     (princ string stream)
     (princ " " stream)
     (if fill-char
-	(dotimes (x (- *print-line-limit* 1 *print-indent*
-		       (filecol stream) (length string)))
-	  (declare (type fixnum x))
-	  (princ fill-char stream)))))
+        (dotimes (x (- *print-line-limit* 1 *print-indent*
+                       (filecol stream) (length string)))
+          (declare (type fixnum x))
+          (princ fill-char stream)))))
     
 ;;; print-next
 ;;; print new-line iff the current column is not at the beggining of line
@@ -221,15 +221,18 @@
 ;;;
 (defun print-next (&optional (prefix nil) (n *print-indent*) (stream *standard-output*))
   (declare (type fixnum n)
-	   (type stream stream))
-  (if (fresh-line stream)
-      (print-indent #\space n stream))
+           (type stream stream))
+  #+SBCL
+  (progn (terpri stream) (print-indent #\space n stream))
+  #-SBCL
+  (when (fresh-line stream)
+    (print-indent #\space n stream))
   (when prefix (princ prefix stream)))
 
 (defun print-next-prefix (prefix-char &optional (prefix nil) (n *print-indent*) (stream *standard-output*))
   (declare (type fixnum n)
-	   (type stream stream)
-	   (type character prefix-char))
+           (type stream stream)
+           (type character prefix-char))
   (when (fresh-line stream)
     (print-indent prefix-char n stream))
   (when prefix (princ prefix stream)))
@@ -239,19 +242,19 @@
 (defun print-simple (x &optional (stream *standard-output*))
   (declare (type stream stream))
   (cond ((atom x) (prin1 x stream))
-	(t (let ((flag nil) (tail x))
-	     (princ "(" stream)
-	     (loop (when (not (consp tail)) (return))
-		   (if flag
-		       (princ " " stream)
-		       (setq flag t))
-		   (print-simple (car tail) stream)
-		   (setq tail (cdr tail)))
-	     (when tail
-	       (princ " . " stream)
-	       (prin1 tail stream))
-	     (princ ")" stream)
-	     ))))
+        (t (let ((flag nil) (tail x))
+             (princ "(" stream)
+             (loop (when (not (consp tail)) (return))
+                   (if flag
+                       (princ " " stream)
+                       (setq flag t))
+                   (print-simple (car tail) stream)
+                   (setq tail (cdr tail)))
+             (when tail
+               (princ " . " stream)
+               (prin1 tail stream))
+             (princ ")" stream)
+             ))))
 
 ;;; print-simple-princ
 ;;;
@@ -259,21 +262,21 @@
   (declare (type stream stream))
   (let ((.file-col. .file-col.))
     (cond ((atom x) (princ x stream))
-	  (t (let ((flag nil)
-		   (tail x))
-	       (princ "(" stream)
-	       (setq .file-col. (1+ (file-column stream)))
-	       (loop (when (not (consp tail)) (return))
-		 (if flag
-		     (princ " " stream)
-		   (setq flag t))
-		 (print-simple-princ (car tail) stream)
-		 (setq tail (cdr tail)))
-	       (when tail
-		 (princ " . " stream)
-		 (prin1 tail stream))
-	       (princ ")" stream)))
-	  )))
+          (t (let ((flag nil)
+                   (tail x))
+               (princ "(" stream)
+               (setq .file-col. (1+ (file-column stream)))
+               (loop (when (not (consp tail)) (return))
+                 (if flag
+                     (princ " " stream)
+                   (setq flag t))
+                 (print-simple-princ (car tail) stream)
+                 (setq tail (cdr tail)))
+               (when tail
+                 (princ " . " stream)
+                 (prin1 tail stream))
+               (princ ")" stream)))
+          )))
 
 ;;; print-simple-princ-open
 ;;;
@@ -282,18 +285,18 @@
   (let ((.file-col. .file-col.))
     (print-check .file-col. 0 stream)
     (cond ((atom x) (princ x stream))
-	  (t (let ((flag nil)
-		   (tail x))
-	       (loop (when (not (consp tail)) (return))
-		 (if flag
-		     (princ #\space stream)
-		   (setq flag t))
-		 (print-simple-princ (car tail) stream)
-		 (setq tail (cdr tail))
-		 )
-	       (when tail
-		 (princ " ... " stream)
-		 (prin1 tail stream)))))
+          (t (let ((flag nil)
+                   (tail x))
+               (loop (when (not (consp tail)) (return))
+                 (if flag
+                     (princ #\space stream)
+                   (setq flag t))
+                 (print-simple-princ (car tail) stream)
+                 (setq tail (cdr tail))
+                 )
+               (when tail
+                 (princ " ... " stream)
+                 (prin1 tail stream)))))
     ))
 
 ;;; EOF

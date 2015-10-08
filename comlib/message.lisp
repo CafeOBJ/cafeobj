@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -28,9 +28,9 @@
 ;;;
 (in-package :chaos)
 #|==============================================================================
-				 System: CHAOS
-				 Module: comlib
-			       File: message.lisp
+                                 System: CHAOS
+                                 Module: comlib
+                               File: message.lisp
 ==============================================================================|#
 #-:chaos-debug
 (declaim (optimize (speed 3) (safety 0) #-GCL (debug 0)))
@@ -71,7 +71,7 @@
            (dolist (msg msgs)
              (register-message type msg))))
     (with-open-file (strm path :if-does-not-exist :error
-		     :external-format :utf-8)
+                     :external-format :utf-8)
       (loop for type = (read strm nil :eof)
           while (not (eq type :eof))
           do (case type
@@ -147,7 +147,7 @@
   ` (progn
       (let ((*standard-output* *error-output*)
             (*print-indent* 4))
-        (output-msg ',msg-id "~&[Error]" ,args)
+        (output-msg ',msg-id "~%[Error]" ,args)
         ,@body)
       ,(if (and tag-p (eq tag 'to-top))
            `(chaos-to-top)
@@ -158,14 +158,14 @@
   ` (unless *chaos-quiet*
       (let ((*standard-output* *error-output*)
             (*print-indent* 4)) 
-        (output-msg ',msg-id "~&[Warning]" ,args)
+        (output-msg ',msg-id "~%[Warning]" ,args)
         ,@body)
       (flush-all)))
 
 (defmacro with-output-panic-message-n ((msg-id args) &body body)
   ` (progn
       (let ((*standard-output* *error-output*))
-        (output-msg ',msg-id "~&!! PANIC !!" ,args)
+        (output-msg ',msg-id "~%[!! PANIC !!]" ,args)
         ,@body)
       (chaos-to-top)))
 
@@ -173,7 +173,7 @@
   ` (unless *chaos-quiet*
       (let ((*standard-output* ,stream)
             (*print-indent* 3))
-        (output-msg ',msg-id "~&-- " ,args)
+        (output-msg ',msg-id "~%-- " ,args)
         ,@body)
       (flush-all)))
 
@@ -181,7 +181,7 @@
   ` (unless *chaos-quiet*
       (let ((*standard-output* ,stream)
             (*print-indent* 2))
-        (output-msg ',msg-id "~&" ,args)
+        (output-msg ',msg-id "~%" ,args)
         ,@body)
       (flush-all)))
 
@@ -192,22 +192,20 @@
       ;; (flush-all)
       ;; (fresh-all)
       (let ((*standard-output* *error-output*)
-	    (*print-indent* 4))
-	(format t "~&[Error]: ")
-	,@body)
+            (*print-indent* 4))
+        (format t "~%[Error]: ")
+        ,@body)
       ,(if (eq tag 'to-top)
-	   `(chaos-to-top)
-	   `(chaos-error ,tag)
+           `(chaos-to-top)
+           `(chaos-error ,tag)
       )))
 
 (defmacro with-output-chaos-warning ((&optional (stream '*error-output*)) &body body)
   ` (unless *chaos-quiet*
-      ;; (fresh-all)
-      ;; (flush-all)
       (let ((*standard-output* ,stream)
-	    (*print-indent* 4)) 
-	(format t "~&[Warning]: ")
-	,@body)
+            (*print-indent* 4)) 
+        (format t "~%[Warning]: ")
+        ,@body)
       (flush-all)))
 
 (defmacro with-output-panic-message ((&optional (stream '*error-output*)) &body body)
@@ -215,20 +213,18 @@
       ;; (fresh-all)
       ;; (flush-all)
       (let ((*standard-output* ,stream))
-	(print-next)
-	(princ "!! PANIC !!: ")
-	,@body)
+        (print-next)
+        (princ "!! PANIC !!: ")
+        ,@body)
       (chaos-to-top)))
 
 ;;;
 (defmacro with-output-msg ((&optional (stream '*standard-output*)) &body body)
   ` (unless *chaos-quiet*
-      ;; (fresh-all)
-      ;; (flush-all)
       (let ((*standard-output* ,stream)
-	    (*print-indent* 3))
-	(format t "~&-- ")
-	,@body)
+            (*print-indent* 3))
+        (format t "~%-- ")
+        ,@body)
       (flush-all)))
 
 (defmacro with-output-simple-msg ((&optional (stream '*standard-output*)) &body body)
@@ -236,9 +232,9 @@
       ;; (fresh-all)
       ;; (flush-all)
       (let ((*standard-output* ,stream)
-	    (*print-indent* 2))
-	(format t "~&")
-	,@body)
+            (*print-indent* 2))
+        (format t "~%")
+        ,@body)
       (flush-all)))
 
 ;;;
@@ -257,9 +253,9 @@
       (fresh-all)
       (flush-all)
       (with-output-panic-message ()
-	(format t "in ~a : no current module is specified!" ',me)
-	(force-output)
-	(finish-output)
-	(return-from ,me nil))))
+        (format t "in ~a : no current module is specified!" ',me)
+        (force-output)
+        (finish-output)
+        (return-from ,me nil))))
 
 ;;; EOF

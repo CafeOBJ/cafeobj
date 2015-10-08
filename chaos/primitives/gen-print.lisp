@@ -1,6 +1,6 @@
 ;;;-*- Mode: Lisp; Syntax:CommonLisp; Package:CHAOS; Base:10 -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -72,6 +72,7 @@
 ;;;
 
 (defun print-ast-vd (ast stream print-var-sort)
+  (declare (type stream stream))
   (print-check)
   (cond ((consp ast)
          (let ((flg nil))
@@ -86,8 +87,8 @@
 (defun is-ast (obj)
   (and (consp obj)
        (let ((cat (car obj)))
-	 (and (symbolp cat)
-	      (getf (symbol-plist cat) :category)))))
+         (and (symbolp cat)
+              (getf (symbol-plist cat) :category)))))
 
 ;;;====================================================
 ;;; TERM PRINTER
@@ -162,12 +163,12 @@
                `(":literal" ,(variable-print-string term print-var-sort vars-so-far)))
            (return-from term-to-sexpr
              (variable-print-string term print-var-sort vars-so-far))))
-	((term-is-system-object? term)
-	 (if as-tree
-	     (return-from term-to-sexpr
-	       `(":sysobj" ,(format nil "~s" (term-system-object term))))
-	   (return-from term-to-sexpr
-	     (format nil "(~s)" (term-system-object term)))))
+        ((term-is-system-object? term)
+         (if as-tree
+             (return-from term-to-sexpr
+               `(":sysobj" ,(format nil "~s" (term-system-object term))))
+           (return-from term-to-sexpr
+             (format nil "(~s)" (term-system-object term)))))
         ((term-is-builtin-constant? term)
          (if as-tree
              (return-from term-to-sexpr
@@ -244,29 +245,29 @@
     (cond ((or (term$is-variable? body) (term$is-psuedo-constant? body))
            (let ((vstr (variable-print-string term print-var-sort vars-so-far)))
              (princ vstr stream)))
-	  ((term$is-system-object? body)
-	   (let ((obj (term-system-object term)))
-	     (when (chaos-list-p obj)
-	       (setq obj (chaos-list-list obj)))
-	     (if (or (atom obj) (is-ast obj))
-		 (prin1 obj stream)
-	       (progn
-		 (princ ":[" stream)
-		 (format stream "~{~S~^,~}" obj)
-		 (princ "]" stream)))))
+          ((term$is-system-object? body)
+           (let ((obj (term-system-object term)))
+             (when (chaos-list-p obj)
+               (setq obj (chaos-list-list obj)))
+             (if (or (atom obj) (is-ast obj))
+                 (prin1 obj stream)
+               (progn
+                 (princ ":[" stream)
+                 (format stream "~{~S~^,~}" obj)
+                 (princ "]" stream)))))
           ((term$is-builtin-constant? body)
            (princ (bconst-print-string term) stream))
           ((term$is-lisp-form? body)
            (if (term$is-simple-lisp-form? body)
                (princ "#! " stream)
                (princ "#!! " stream))
-	   (let ((*print-pretty* t))
-	     (format t "~s" (term$lisp-form-original-form body))))
+           (let ((*print-pretty* t))
+             (format t "~s" (term$lisp-form-original-form body))))
           ((term$is-applform? body)
            (let* ((hd (term$head body))
                   (op (method-operator hd)))
              (cond ((not (operator-is-mixfix op))
-		    (princ (format nil "~{~a~^ ~}" (operator-symbol op)) stream)
+                    (princ (format nil "~{~a~^ ~}" (operator-symbol op)) stream)
                     (let ((subs (term$subterms body)))
                       (when subs
                         (princ "(")
@@ -274,12 +275,12 @@
                           (dolist (i subs)
                             (if flg
                                 (progn (princ ","))
-			      (setq flg t))
+                              (setq flg t))
                             (term-print1 i stream print-var-sort vars-so-far)))
                         (princ ")"))))
-		   ;; mix fix 
+                   ;; mix fix 
                    (t (let ((subs (term$subterms body))
-			    (token-seq (operator-token-sequence op))
+                            (token-seq (operator-token-sequence op))
                             (prv nil))
                         (princ "(" stream)
                         (dolist (i token-seq)
@@ -295,7 +296,7 @@
                                 (t (print-check .file-col. (+ 2 (length (string i))) stream)
                                    (princ i stream))))
                         (princ ")" stream))))))
-	  ;; what is this?
+          ;; what is this?
           (t (format stream "~s" body)))))
 
 ;;; pretty printer
@@ -331,27 +332,27 @@
                                               print-var-sort
                                               vars-so-far)))
              (princ vstr stream)))
-	  ((term-is-system-object? term)
-	   (let ((obj (term-system-object term)))
-	     (when (chaos-list-p obj)
-	       (setq obj (chaos-list-list obj)))
-	     (if (or (atom obj) (is-ast obj))
-		 (prin1 obj stream)
-	       (progn
-		 (princ "[:: " stream)
-		 (dolist (x obj)
-		   (term-print2 x prec stream print-var-sort vars-so-far))
-		 (princ "]" stream)))))
+          ((term-is-system-object? term)
+           (let ((obj (term-system-object term)))
+             (when (chaos-list-p obj)
+               (setq obj (chaos-list-list obj)))
+             (if (or (atom obj) (is-ast obj))
+                 (prin1 obj stream)
+               (progn
+                 (princ "[:: " stream)
+                 (dolist (x obj)
+                   (term-print2 x prec stream print-var-sort vars-so-far))
+                 (princ "]" stream)))))
           ((term-is-builtin-constant? term)
            (let ((bstr (bconst-print-string term)))
              (princ bstr stream)))
           ;;
           ((term-is-lisp-form? term)
-	   (let ((*print-pretty* t))
-	     (if (term-is-simple-lisp-form? term)
-		 (princ "#! ")
+           (let ((*print-pretty* t))
+             (if (term-is-simple-lisp-form? term)
+                 (princ "#! ")
                (princ "#!! "))
-	     (format t "~s" (lisp-form-original-form term))))
+             (format t "~s" (lisp-form-original-form term))))
           ;; application form
           ((term-is-applform? term)
            (let* ((hd (term-head term))
@@ -385,39 +386,43 @@
                                             (<= prec (get-method-precedence hd))))
                             (assoc-test (method-is-associative hd))
                             (token-seq (operator-token-sequence
-                                        (method-operator hd))))
+                                        (method-operator hd)))
+                            (some-eql-form? nil))
+                        (when (equal '("_" "=" "_")
+                                     (car (method-name hd)))
+                          (setq some-eql-form? t))
                         (setq .file-col. (file-column stream))
-                        (when prec-test
+                        (when (or prec-test some-eql-form?)
                           (princ "(" stream)
                           (setq .file-col. (1+ .file-col.)))
                         ;;
                         (let ((subs (term-subterms term))
                               (prv nil))
-			  (do* ((tseq token-seq (cdr tseq))
-				(i (car tseq) (car tseq)))
-			      ((endp tseq))
+                          (do* ((tseq token-seq (cdr tseq))
+                                (i (car tseq) (car tseq)))
+                              ((endp tseq))
                             (when prv
                               (princ #\space stream))
                             (setq prv t)
                             (cond ((eq i t)
-				   (let ((tm (car subs)))
-				     (term-print2 tm
-						  (if (and assoc-test
-							   tm
-							   (term-is-application-form? tm)
-							   (method-is-of-same-operator
-							    (term-head term)
-							    (term-head tm)))
-						      parser-max-precedence
-						    (or (get-method-precedence hd) 0))
-						  stream
-						  print-var-sort
-						  vars-so-far)
-				     (setq subs (cdr subs))))
-				  (t (let ((name (string i)))
-				       (princ name stream)
-				       (print-check .file-col. 20 stream))))))
-                        (when prec-test (princ ")" stream)))))))
+                                   (let ((tm (car subs)))
+                                     (term-print2 tm
+                                                  (if (and assoc-test
+                                                           tm
+                                                           (term-is-application-form? tm)
+                                                           (method-is-of-same-operator
+                                                            (term-head term)
+                                                            (term-head tm)))
+                                                      parser-max-precedence
+                                                    (or (get-method-precedence hd) 0))
+                                                  stream
+                                                  print-var-sort
+                                                  vars-so-far)
+                                     (setq subs (cdr subs))))
+                                  (t (let ((name (string i)))
+                                       (princ name stream)
+                                       (print-check .file-col. 20 stream))))))
+                        (when (or prec-test some-eql-form?) (princ ")" stream)))))))
           (t (format stream "(~s)" (term-body term))))))
 
 (defun term-print (term &optional (stream *standard-output*)
@@ -540,15 +545,15 @@
                                       ((symbolp value)
                                        (string value))
                                       (t (format nil "(~s)" value))))
-			    (if (term-is-variable? term)
-				(string (variable-print-name term))
-			      (if (term-is-lisp-form? term)
-				  (lisp-form-original-form term)
-				(if (and *chaos-verbose*
-					 (term-is-reduced? term))
-				    (format nil "!~{~a~}" (method-symbol (term-head term)))
-				  (format nil "~{~a~}"
-					  (method-symbol (term-head term))))))))
+                            (if (term-is-variable? term)
+                                (string (variable-print-name term))
+                              (if (term-is-lisp-form? term)
+                                  (lisp-form-original-form term)
+                                (if (and *chaos-verbose*
+                                         (term-is-reduced? term))
+                                    (format nil "!~{~a~}" (method-symbol (term-head term)))
+                                  (format nil "~{~a~}"
+                                          (method-symbol (term-head term))))))))
                     (sort (term-sort term)))
                 (if *show-sort*
                     (format nil "~a:~a" name (string (if sort
@@ -591,7 +596,7 @@
   (cond ((chaos-ast? object)
          (let ((printer (ast-printer object)))
            (if printer
-               (let ((mod (or *current-module* *last-module*)))
+               (let ((mod (get-context-module t)))
                  (if mod
                      (with-in-module (mod)
                        (funcall printer object stream))
@@ -602,8 +607,7 @@
         ((and (chaos-object? object) (not (stringp object)))
          (let ((printer (object-printer object)))
            (if printer
-               (let ((mod (or *current-module*
-                              *last-module*)))
+               (let ((mod (get-context-module t)))
                  (if mod
                      (with-in-module (mod)
                        (funcall printer object stream))
@@ -612,7 +616,7 @@
                      (*print-pretty* nil))
                  (prin1 object stream)))))
         ((term? object)
-         (let ((mod (or *current-module* *last-module*)))
+         (let ((mod (get-context-module t)))
            (if mod
                (with-in-module (mod)
                  (term-print object stream))
@@ -620,7 +624,7 @@
         ((opinfo-p object) 
          (fresh-line stream)
          (print-chaos-object (opinfo-operator object) stream)
-         (format stream "~&-- delcrations -------------------")
+         (format stream "~%-- delcrations -------------------")
          (dolist (meth (opinfo-methods object))
            (print-next)
            (print-chaos-object meth stream)))
@@ -748,7 +752,7 @@
 ;;; HASH TABLE
 
 (defun dump-chaos-hash (hash-table &optional (title "chaos hash table dump"))
-  (format t "~&~a__________________________" title)
+  (format t "~%~a__________________________" title)
   (maphash #'(lambda (key value)
                (format t "~&key(type:~a) = | ~a ~%  " (type-of key) key)
                (print-chaos-object key)
@@ -759,12 +763,12 @@
                                (ast-type value)
                                'unknown)))
                (print-chaos-object value)
-               (format t "~&----------------------------------------"))
+               (format t "~%----------------------------------------"))
            hash-table))
 
 ;;; ASSOC TABLE
 (defun dump-chaos-assoc-table (table &optional (title "chaos assoc table dump"))
-  (format t "~&~a__________________________" title)
+  (format t "~%~a__________________________" title)
   (dolist (entry table)
     (let ((key (car entry))
           (value (cdr entry)))
@@ -776,10 +780,9 @@
                   (object-type value)
                   (if (chaos-ast? value)
                       (ast-type value)
-                      (type-of value)
-                      )))
+                      (type-of value))))
       (print-chaos-object value)
-      (format t "~&----------------------------------------"))))
+      (format t "~%----------------------------------------"))))
   
 (defun dump-modexp-local ()
   (dump-chaos-assoc-table *modexp-local-table* "Moduexp Local "))

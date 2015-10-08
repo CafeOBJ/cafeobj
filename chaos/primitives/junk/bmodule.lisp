@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: Chaos; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -228,8 +228,7 @@
 		    (return-from get-importing-path
 		      (nconc path im2))))))))))
 
-(defun get-real-importing-mode (module2 &optional (module (or *current-module*
-							      *last-module*)))
+(defun get-real-importing-mode (module2 &optional (module (get-context-module)))
   (declare (type module module2 module)
 	   (values symbol))
   ;;

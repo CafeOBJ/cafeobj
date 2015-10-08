@@ -2,7 +2,7 @@
 ;;;
 ;;; defsystem for Allegro CL (version 5.0 or higher)
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -38,8 +38,8 @@
 
 (excl:defsystem :cl-ppcre
     (:default-pathname
-	#+:mswindows
-	"c:/Users/sawada/prj/CafeOBJ/cl-ppcre/"
+        #+:mswindows
+        "c:/Users/sawada/prj/CafeOBJ/cl-ppcre/"
       #-:mswindows
       "cl-ppcre/"
       :default-package :cl-ppcre)
@@ -161,7 +161,6 @@
                      "construct/match-method"
                      "construct/axiom"
                      "construct/gen-rule"
-                     "construct/cr"
                      "construct/rwl"
                      "construct/beh"
                      "construct/module"
@@ -176,7 +175,8 @@
                      "decafe/mimport"))
      (:module-group :cafein
                     (:serial "cafein/rengine"
-                             "cafein/cbred"))
+                             "cafein/cbred"
+                             "cafein/reducer"))
      (:module-group :tools
                     (:parallel
                      "tools/regcheck"
@@ -189,8 +189,8 @@
                      "tools/op-check"
                      "tools/compat"
                      "tools/help"
-		     "tools/inspect"
-		     "tools/sensible"
+                     "tools/inspect"
+                     "tools/sensible"
                      ;; "psupport"
                      ))
      (:module-group :eval
@@ -201,10 +201,10 @@
                      "eval/chaos-top"))
      (:module-group :boot
                     (:serial
-		     "boot/preproc"
-		     "boot/prelude"
-		     "boot/builtins"
-		     "boot/meta"))
+                     "boot/preproc"
+                     "boot/prelude"
+                     "boot/builtins"
+                     "boot/meta"))
      (:module-group :tram
                     (:serial "tram/tram"))
      (:module-group :psup
@@ -221,7 +221,7 @@
       "chaos-package"
       "version"
     (:definitions
-	:cl-ppcre
+        :cl-ppcre
         :chaos
         (:serial
          (:module-group :thstuff
@@ -231,11 +231,12 @@
                          "thstuff/eval-match"
                          "thstuff/eval-apply"
                          "thstuff/cexec"
-			 "thstuff/case"
-			 "thstuff/proof-struct"
-			 "thstuff/apply-tactic"
-			 "thstuff/citp"))
-	 (:module-group :bigpink
+                         "thstuff/case"
+                         "thstuff/proof-struct"
+                         "thstuff/apply-tactic"
+                         "thstuff/citp"
+                         "thstuff/bterm-inspector"))
+         (:module-group :bigpink
                         (:definitions
                             "BigPink/codes/types"
                             "BigPink/codes/glob"
@@ -263,14 +264,14 @@
                             "cafeobj/cafeobjvar"
                             (:serial
                              "cafeobj/creader"
-			     "cafeobj/oldoc"
-			     "cafeobj/define"
+                             "cafeobj/oldoc"
+                             "cafeobj/define"
                              "cafeobj/trans-com"
                              "cafeobj/trans-decl"
                              ;; "cafeobj/command-proc"
                              "cafeobj/command-top"
-			     "cafeobj/commands"
-			     "cafeobj/declarations"
+                             "cafeobj/commands"
+                             "cafeobj/declarations"
                              "cafeobj/cafeobj-top")))
          
          "acl-init"
