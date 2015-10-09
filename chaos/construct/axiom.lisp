@@ -410,7 +410,7 @@
           ;; '(nil)
           nil)
       (let (ext-rule
-            (new-var (make-variable-term (car (method-arity top))
+            (new-var (make-variable-term (the-err-sort (car (method-arity top)))
                                          ;; *cosmos*
                                          'AC)))
         (setf ext-rule
@@ -620,10 +620,10 @@
   (do* ((lst rs (cdr lst))
         (r (car lst) (car lst)))
       ((null lst) (cons rule rs))
+    (when (eq rule r)
+      (return-from adjoin-rule rs))
     (when (rule-is-similar? rule r)
-      (when (and (or *chaos-verbose* *on-axiom-debug*)
-                 (not (eq rule r))
-                 (not (member (axiom-kind rule) .ext-rule-kinds.)))
+      (when (or *chaos-verbose* *on-axiom-debug*)
         (with-output-msg ()
           (format t "a similar pair of axioms is found:")
           (print-next)
@@ -635,10 +635,10 @@
       (let ((newlhs (axiom-lhs rule))
             (oldlhs (axiom-lhs r)))
         (when (and (not (term-is-variable? newlhs))
-                 (not (term-is-variable? oldlhs))
-                 (not (method= (term-method newlhs) (term-method oldlhs)))
-                 (sort<= (term-sort oldlhs) (term-sort newlhs)))
-              (rplaca lst rule))
+                   (not (term-is-variable? oldlhs))
+                   (not (method= (term-method newlhs) (term-method oldlhs)))
+                   (sort<= (term-sort oldlhs) (term-sort newlhs)))
+          (rplaca lst rule))
         (return-from adjoin-rule rs)))))
 
 ;;; RULE-OCCURS : rule ruleset -> Bool

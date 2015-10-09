@@ -348,54 +348,79 @@
           ;;
           (setq head new-head)
           (when (method-is-associative head)
-              ;; &&&& the following transformation tends to put
-              ;; term into standard form even when sort doesn't decrease.
-              (when (and (not (or (term$is-variable? (setq son (term-body
-                                                                (term$arg-1 body))))
-                                  (term$is-builtin-constant? son)))
-                         (method-is-associative-restriction-of (term$head son) head)
-                         (sort= (term-sort (setq t1 (term$arg-2 son)))
-                                (term-sort (setq t2 (term$arg-2 body))))
-                         (sort< (term-sort t2)
-                                (term-sort (term$arg-1 son))
-                                sort-order))
-                (when *term-debug*
-                  (format t "~&[ULP] treating ASSOCIATIVITY"))
-                ;; we are in the following configuration
-                ;;              fs'   ->    fs'
-                ;;          fs'    s     s'     fs
-                ;;       s'    s              s   s
-                ;; so:
-                (setf (term$subterms body)
-                  (list (term$arg-1 son)
-                        (update-lowest-parse (make-term-with-sort-check-bin head (list t1 t2)))))
-                (setq assoc-applied t))
+            ;; &&&& the following transformation tends to put
+            ;; term into standard form even when sort doesn't decrease.
+            (when (and (not (or (term$is-variable? (setq son (term-body
+                                                              (term$arg-1 body))))
+                                (term$is-builtin-constant? son)))
+                       (method-is-associative-restriction-of (term$head son) head)
+                       (is-in-same-connected-component (term-sort (setq t1 (term$arg-2 son)))
+                                                       (term-sort (setq t2 (term$arg-2 body)))
+                                                       sort-order))
+              (cond ((sort< (term-sort t2)
+                            (term-sort (term$arg-1 son))
+                            sort-order)
+                     (when *term-debug*
+                       (format t "~&[ULP] treating ASSOCIATIVITY1-1"))
+                     ;; we are in the following configuration
+                     ;;              fs'   ->    fs'
+                     ;;          fs'    s     s'     fs
+                     ;;       s'    s              s   s
+                     ;; so:
+                     (setf (term$subterms body)
+                       (list (term$arg-1 son)
+                             (update-lowest-parse (make-term-with-sort-check-bin head (list t1 t2)))))
+                     (setq assoc-applied t))
+                    ((and (method-is-commutative head)
+                          (sort< (term-sort t2)
+                                 (term-sort (term$arg-2 son)) 
+                                 sort-order))
+                     (when *term-debug*
+                       (format t "~&[ULP] treating ASSOCIATIVITY1-2"))
+                     (setf (term$subterms body)
+                       (list (term$arg-2 son)
+                             (update-lowest-parse 
+                              (make-term-with-sort-check-bin head (list (term$arg-1 son)
+                                                                        t2)))))
+                       (setq assoc-applied t))))
 
-              ;; would only like to do the following if the
-              ;; sort really decreases
-              (when (and (not (or (term$is-variable? (setq son (term-body
-                                                                (term$arg-2 body))))
-                                  (term$is-builtin-constant? son)))
-                         (method-is-associative-restriction-of (term$head son) head)
-                         (sort= (term-sort (setq t1 (term$arg-1 body)))
-                                (term-sort (setq t2 (term$arg-1 son))))
-                         (sort< (term-sort t1) (term-sort (term$arg-2 son)) sort-order))
-                
-                ;; we are in the following configuration
-                ;;              fs'       ->       fs'
-                ;;            s     fs'         fs     s'
-                ;;                s    s'     s   s
-                ;; so:
-                (setf (term-subterms term)
-                      (list (update-lowest-parse
-                                        ;(make-applform (method-coarity head) head (list t1 t2))
-                             (make-term-with-sort-check-bin head (list t1 t2)))
-                            (term$arg-2 son)))
-                (when *term-debug*
-                  (format t "~&[ULP] ASSOCIATIVITY 2~%=> ")
-                  (term-print-with-sort term))
-                ;; we mark 
-                (setf assoc-applied t)))
+            ;; would only like to do the following if the
+            ;; sort really decreases
+            (when (and (not (or (term$is-variable? (setq son (term-body
+                                                              (term$arg-2 body))))
+                                (term$is-builtin-constant? son)))
+                       (method-is-associative-restriction-of (term$head son) head)
+                       (is-in-same-connected-component (term-sort (setq t1 (term$arg-1 body)))
+                                                       (term-sort (setq t2 (term$arg-1 son)))
+                                                       sort-order))
+              (cond ((sort< (term-sort t1) (term-sort (term$arg-2 son)) sort-order)
+                     ;; we are in the following configuration
+                     ;;              fs'       ->       fs'
+                     ;;            s     fs'         fs     s'
+                     ;;                s    s'     s   s
+                     ;; so:
+                     (when *term-debug*
+                       (format t "~%[ULP]")
+                       (print-term-tree term t)
+                       (format t "~&2-1~%=> "))
+                     (setf (term-subterms term)
+                       (list (update-lowest-parse
+                              (make-term-with-sort-check-bin head (list t1 t2)))
+                             (term$arg-2 son)))
+                     (setq assoc-applied t)
+                     (when *term-debug*
+                       (print-term-tree term t)))
+                    ((and (method-is-commutative head)
+                          (sort< (term-sort t1) (term-sort (term$arg-1 son)) sort-order))
+                     (when *term-debug*
+                       (format t "~&[ULP] ASSOCIATIVITY 2-2~%=> ")
+                       (term-print-with-sort term))
+                     (setf (term-subterms term)
+                       (list (update-lowest-parse
+                              (make-term-with-sort-check-bin head (list t1 (term$arg-2 son))))
+                             (term$arg-1 son)))
+                     ;; we mark 
+                     (setq assoc-applied t)))))
 
           ;;  necesary to have true lowest parse
 
