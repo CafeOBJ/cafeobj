@@ -249,6 +249,7 @@
 
 (declaim (special *update-lowest-parse-in-progress*))
 (defvar *update-lowest-parse-in-progress* nil)
+(defvar *do-assoc-arrangement* t)
 
 (defun update-lowest-parse (term)
   (declare (type term term)
@@ -347,7 +348,21 @@
               (format t "~&[ULP] head operator was changed =======")))
           ;;
           (setq head new-head)
-          (when (method-is-associative head)
+          ;;
+          (when (and (method-is-associative head)
+                     (method-is-commutative head))
+            (let ((subs (gather-term-ac-leaf-ordered term)))
+              (when *term-debug*
+                (dolist (t1 subs)
+                  (format t "~%sub: ")
+                  (term-print-with-sort t1)))
+              (term-replace term 
+                            (make-right-assoc-normal-form-with-sort-check (term-head term) subs))
+              (when *term-debug*
+                (format t "~%[ULP] AC:~%")
+                (print-term-tree term t))))
+
+          (when (and (method-is-associative head) *do-assoc-arrangement*)
             ;; &&&& the following transformation tends to put
             ;; term into standard form even when sort doesn't decrease.
             (when (and (not (or (term$is-variable? (setq son (term-body
@@ -361,7 +376,8 @@
                             (term-sort (term$arg-1 son))
                             sort-order)
                      (when *term-debug*
-                       (format t "~&[ULP] treating ASSOCIATIVITY1-1"))
+                       (format t "~&[ULP] ASSOC1-1")
+                       (print-term-tree term t))
                      ;; we are in the following configuration
                      ;;              fs'   ->    fs'
                      ;;          fs'    s     s'     fs
@@ -370,19 +386,26 @@
                      (setf (term$subterms body)
                        (list (term$arg-1 son)
                              (update-lowest-parse (make-term-with-sort-check-bin head (list t1 t2)))))
+                     (when *term-debug*
+                       (format t "~%==>")
+                       (print-term-tree term t))
                      (setq assoc-applied t))
                     ((and (method-is-commutative head)
                           (sort< (term-sort t2)
                                  (term-sort (term$arg-2 son)) 
                                  sort-order))
                      (when *term-debug*
-                       (format t "~&[ULP] treating ASSOCIATIVITY1-2"))
+                       (format t "~&[ULP] ASSOC 1-2")
+                       (print-term-tree term t))
                      (setf (term$subterms body)
                        (list (term$arg-2 son)
                              (update-lowest-parse 
                               (make-term-with-sort-check-bin head (list (term$arg-1 son)
                                                                         t2)))))
-                       (setq assoc-applied t))))
+                     (when *term-debug*
+                       (format t "~%==>")
+                       (print-term-tree term t))
+                     (setq assoc-applied t))))
 
             ;; would only like to do the following if the
             ;; sort really decreases
@@ -400,9 +423,8 @@
                      ;;                s    s'     s   s
                      ;; so:
                      (when *term-debug*
-                       (format t "~%[ULP]")
-                       (print-term-tree term t)
-                       (format t "~&2-1~%=> "))
+                       (format t "~%[ULP] ASSOC 2-1")
+                       (print-term-tree term t))
                      (setf (term-subterms term)
                        (list (update-lowest-parse
                               (make-term-with-sort-check-bin head (list t1 t2)))
@@ -413,12 +435,14 @@
                     ((and (method-is-commutative head)
                           (sort< (term-sort t1) (term-sort (term$arg-1 son)) sort-order))
                      (when *term-debug*
-                       (format t "~&[ULP] ASSOCIATIVITY 2-2~%=> ")
-                       (term-print-with-sort term))
+                       (format t "~&[ULP] ASSOC 2-2")
+                       (print-term-tree term t))
                      (setf (term-subterms term)
                        (list (update-lowest-parse
                               (make-term-with-sort-check-bin head (list t1 (term$arg-2 son))))
                              (term$arg-1 son)))
+                     (when *term-debug*
+                       (print-term-tree term t))
                      ;; we mark 
                      (setq assoc-applied t)))))
 
@@ -435,129 +459,11 @@
           (mark-term-as-lowest-parsed term)
           (values term assoc-applied))))))
 
-#||
-(defun update-lowest-parse (term)
-  (when *on-debug*
-    (format t "~%[update sort] : term = ")
-    (print-chaos-object term))
-  (let ((body (term-body term)))
-    (unless (term$is-variable? body)
-      (if (term$is-builtin-constant? body)
-          (let ((so (module-sort-order
-                     (if *current-module*
-                         *current-module*
-                         (sort-module (term$sort body)))))
-                (isrt (term$sort body))
-                (val (term$builtin-value body)))
-            (let ((subs (subsorts isrt so))
-                  (srt isrt))
-              (dolist (s subs)
-                (if (and (sort< s srt so)
-                         (sort-is-builtin s)
-                         (bsort-term-predicate s)
-                         (funcall (bsort-term-predicate  s) val))
-                    (setq srt s)))
-              (unless (eq isrt srt)
-                (setf (term$sort body) srt))
-              ;; (mark-term-as-lowest-parsed ter)
-              term))
-          ;;
-          (let* ((head (term$head body))
-                 (son nil)
-                 (t1 nil)
-                 (t2 nil)
-                 (mod (if *current-module*
-                          *current-module*
-                          (operator-module (method-operator head))))
-                 (sort-order (module-sort-order mod)))
-            ;; "standard" morphism rules
-            (change-head-operator term
-                                  (lowest-method head (mapcar #'(lambda (x)
-                                                                  (term$sort
-                                                                   (term-body x)))
-                                                              (term$subterms body))
-                                                 mod))
-            ;;; (setf (term$sort body) (method-coarity (term$head body)))
-            (setf (term-sort term) (method-coarity (term-head term)))
-            
-            ;; extensions for associativity: if s and s' are sorts s.t. s < s' then
-            (when (method-is-associative head)
-              ;; &&&& the following transformation tends to put
-              ;; term into standard form even when sort doesn't decrease.
-              (when (and (not (or (term$is-variable? (setq son (term-body
-                                                                (term$arg-1 body))))
-                                  (term$is-builtin-constant? son)))
-                         (method-is-associative-restriction-of (term$head son) head)
-                         (sort= (term-sort (setq t1 (term$arg-2 son)))
-                                (term-sort (setq t2 (term$arg-2 body))))
-                         (sort< (term-sort t2)
-                                (term-sort (term$arg-1 son))
-                                sort-order))
-                ;; we are in the following configuration
-                ;;              fs'   ->    fs'
-                ;;          fs'    s     s'     fs
-                ;;       s'    s              s   s
-                ;; so:
-                (setf (term$subterms body)
-                      (list (term$arg-1 son)
-                            (update-lowest-parse
-                             (make-applform (method-coarity head)
-                                            head
-                                            (list t1 t2))))))
-              ;; would only like to do the following if the
-              ;; sort really decreases
-              (when (and (not (or (term$is-variable? (setq son (term-body
-                                                                (term$arg-2 body))))
-                                  (term$is-builtin-constant? son)))
-                         (method-is-associative-restriction-of (term$head son) head)
-                         (sort= (term-sort (setq t1 (term$arg-1 body)))
-                                (term-sort (setq t2 (term$arg-1 son))))
-                         (sort< (term-sort t1) (term-sort (term$arg-2 son)) sort-order))
-                ;; we are in the following configuration
-                ;;              fs'       ->       fs'
-                ;;            s     fs'         fs     s'
-                ;;                s    s'     s   s
-                ;; so:
-                (setf (term-subterms term)
-                      (list (update-lowest-parse
-                             (make-applform (method-coarity head) head
-                                            (list t1 t2)))
-                            (term$arg-2 son))))
-              )
-
-            ;;  necesary to have true lowest parse
-
-            (when (method-is-commutative head)
-              (let* ((t1 (term$arg-1 body))
-                     (t2 (term$arg-2 body))
-                     (alt-op (lowest-method head
-                                            (list (term-sort t2) (term-sort t1)))))
-                (when (not (eq alt-op head))
-                  (term-replace term (make-applform
-                                      (method-coarity alt-op)
-                                      alt-op
-                                      (list t2 t1))))))
-
-            ;; (mark-term-as-lowest-parsed term)
-            term )))))
-||#
-
 ;;; *********************************
 ;;; EQUALITY AMONG TERMS WITH/WITHOUT
 ;;; CONSIDERING EQUATIONAL THEORY    -------------------------------------------
 ;;; *********************************
 
-#||
-(defmacro is-true? (obj)
-  (once-only (obj)
-    `(and (term-is-application-form? ,obj)
-          (method= (term-method ,obj) *bool-true-meth*))))
-
-(defmacro is-false? (obj)
-  (once-only (obj)
-    `(and (term-is-application-form? ,obj)
-          (method= (term-method ,obj) *bool-false-meth*))))
-||#
 ;;; NOTE: compare term-method with eq is NOT dangerous.
 
 (defmacro is-true? (!_obj)
@@ -611,8 +517,7 @@
         (or (not (theory-info-empty-for-matching th))
             (some  #'(lambda (sub) (term-op-contains-theory sub))
                    (term-subterms term))))
-    nil)
-  )
+    nil))
 
 ;;; TERM-IS-CONGRUENT? : TERM TERM -> BOOL
 ;;; returns true if two term are in the same cogruent class.
@@ -1032,6 +937,12 @@
                    (cons term lst)))))
     ;;
     (list-subs term method nil)))
+
+;;;
+(defun gather-term-ac-leaf-ordered (term)
+  (let ((subs (list-ac-subterms term (term-head term))))
+    (with-in-module ((get-context-module))
+      (sort subs #'(lambda (x y) (sort<= (term-sort x) (term-sort y) *current-sort-order*))))))
 
 ;;; LIST-ACZ-SUBTERMS term method -> list-of-temrs
 ;;; returns the flattened list of subterms of ACZ (associative&commutative with
