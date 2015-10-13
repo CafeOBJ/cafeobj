@@ -67,6 +67,8 @@ mod! POLYNOMIAL ( COEFF :: RING ) {
 
   -- normalization of polynomial expressions
   eq ( I1 * ( X^ N ) ) + ( I2 * ( X^ N ) ) = ( I1 + I2 ) * ( X^ N ) .
+  ** we need this additional equation.
+  eq - ( I1 * ( X^ N )) =  - I1 * ( X^ N ) .
   -- we have to treat the implicite 1 * explicitly
   eq ( X^ N ) + ( I2 * ( X^ N ) ) = ( II + I2 ) * ( X^ N ) .
   eq ( ( X^ N ) * ( X^ N1 ) ) = X^ ( N + N1 ) .
