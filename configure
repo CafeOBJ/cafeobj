@@ -1740,7 +1740,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-VMINOR=.4rc1
+VMINOR=.4rc2
 VMEMO=PigNose0.99
 PATCHLEVEL=
 
