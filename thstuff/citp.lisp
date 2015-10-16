@@ -140,9 +140,6 @@
 ;;;
 (defun citp-parse-imp (args)
   (citp-parse-init args))
-(defun eval-citp-imp (arg)
-  (declare (ignore arg))
-  nil)
 
 ;;; :cp
 ;;; (":cp" ("[" ("label-1") "]") "><" ("[" ("label-2") "]")) 
@@ -384,6 +381,14 @@
   (with-in-module (*current-module*)
     (instanciate-axiom (first args)     ; target
                        (second args)))) ; variable-term pairs
+
+;;;
+;;;
+(defun eval-citp-imp (args)
+  (check-ptree)
+  (with-in-module (*current-module*)
+    (introduce-implication-to-goal (first args)
+                                   (second args))))
 
 ;;; :cp
 (defun eval-citp-critical-pair (args)
