@@ -56,9 +56,6 @@ See [`search predicates`](#searchpredicate)
 The predicate for behavioral equivalence, written `=*=`, is a binary
 operator defined on each hidden sort. 
 
-TODO: old manual very unclear ... both about `=*=` and 
-`accept =*= proof` ??? (page 46 of old manual)
-
 
 ## `=/=` ## {#notequal}
 
@@ -324,11 +321,27 @@ Related: [`bceq`](#bceq), [`ceq`](#ceq), [`eq`](#eq)
 
 ## `binspect [in <module-name> :] <boolean-term> .` ## {#binspect}
 
-TODO
+Start an inspection of a Boolean term, that is, and abstracted
+form of the Boolean term is constructed. The abstracted term is shown (like calling [`bshow`](#bshow).
+
+### Example ###
+
+
+~~~~~
+CafeOBJ> module BTE { [S]
+  preds p1 p2 p3 p4 p5 p6 p7 : S
+  ops a b c :  -> S .
+}
+CafeOBJ> binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)) .
+...
+--> ((p4(Y:S) and p1(Y)) xor ((p3(Y) and p1(X:S)) xor ((p2(X) and (p3(Y) and p1(X))) xor ((p3(Y) and p2(X)) xor ((p3(Y) and (p2(X) and (p4(Y) and p1(Y)))) xor ((p3(Y) and (p2(X) and (p1(X) and (p1(Y) and p4(Y))))) xor (p1(X) and (p3(Y) and (p1(Y) and p4(Y))))))))))
+...
+~~~~~
+
 
 ## `:binspect [in <goal-name> :] <boolean-term> .` ## {#citp-binspect}
 
-TODO
+See [`binspect`](#binspect)
 
 ## `bop <op-spec> : <sorts> -> <sort>` ## {#bop}
 
@@ -362,7 +375,21 @@ Related: [`reduce`](#reduce), [`execute`](#execute)
 
 ## `{bresolve | :bresolve}` ## {#bresolve}
 
-TODO
+Computes all possible variable assignments that render an abstracted
+term `true`.
+
+### Example ###
+
+
+~~~~~
+CafeOBJ> bresolve
+
+** The following assignment(s) can make the term 'true'.
+  (1): { P-5:Bool |-> true, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
+  (2): { P-5:Bool |-> false, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
+...
+~~~~~
+
 
 ## `brule [ <label-exp> ] <term> => <term> .` ## {#brule}
 
@@ -373,7 +400,23 @@ Related: [`btrans`](#btrans)
 
 ## `{bshow | :bshow} [tree]` ## {#bshow}
 
-TODO
+Shows the abstracted Boolean term computed by [`binspect`](#binspect).
+If the argument `tree` is given, prints out a the abstracted term in tree form.
+
+### Example ###
+
+
+~~~~~
+CafeOBJ> bshow
+((P-1:Bool and (P-2:Bool and (P-3:Bool and P-4:Bool))) xor ((P-1 and (P-2 and (P-4 and (P-5:Bool and P-3)))) xor ((P-2 and (P-1 and (P-5 and P-3))) xor ((P-5 and P-3) xor ((P-4 and (P-3 and P-5)) xor ((P-4 and P-3) xor (P-2 and P-1)))))))
+where
+  P-1:Bool |-> p4(Y:S)
+  P-2:Bool |-> p1(Y:S)
+  P-3:Bool |-> p3(Y:S)
+  P-4:Bool |-> p1(X:S)
+  P-5:Bool |-> p2(X:S)
+~~~~~
+
 
 ## `bsort` ## {#bsort}
 
@@ -467,10 +510,10 @@ Constructor Based Induction Theorem Prover
 
 The sub-system provides a certain level of automatization for theorem proving.
 
-TODO TODO
+Please see the accompanying manual for CITP for details.
 
 
-Related: [`:define`](#citp-def), [`:ctf-`](#citp-ctf-), [`:ctf`](#citp-ctf), [`:csp-`](#citp-csp-), [`:csp`](#citp-csp), [`:red`](#citp-red), [`:select`](#citp-select), [`:backward`](#citp-backward), [`:rule`](#citp-rule), [`:equation`](#citp-equation), [`:cp`](#citp-cp), [`:init`](#citp-init), [`:roll`](#citp-roll), [`:auto`](#citp-auto), [`:ind`](#citp-ind), [`:apply`](#citp-apply), [`:goal`](#citp-goal)
+Related: [`:imp`](#citp-imply), [`:def`](#citp-def), [`:ctf-`](#citp-ctf-), [`:ctf`](#citp-ctf), [`:csp-`](#citp-csp-), [`:csp`](#citp-csp), [`:red`](#citp-red), [`:select`](#citp-select), [`:backward`](#citp-backward), [`:rule`](#citp-rule), [`:equation`](#citp-equation), [`:cp`](#citp-cp), [`:init`](#citp-init), [`:roll`](#citp-roll), [`:auto`](#citp-auto), [`:ind`](#citp-ind), [`:apply`](#citp-apply), [`:goal`](#citp-goal)
 
 ## `clause <term> .` ## {#clause}
 
@@ -525,7 +568,7 @@ Related: [`--`](#starstar), [`**`](#starstar)
 
 
 
-## `:cp { "[" <label> "]" | "(" <sentense> . ")" } >< { "[" <label> "]" | "(" <sentence> .")" }` ## {#citp-cp}
+## `:cp { "[" <label> "]" | "(" <sentence> . ")" } >< { "[" <label> "]" | "(" <sentence> .")" }` ## {#citp-cp}
 
 TODO specify critical pair
 
@@ -540,25 +583,34 @@ Related: [`rule`](#rule), [`ctrans`](#ctrans)
 
 ## `:csp { eq [ <label-exp>] <term> = <term> . ...}` ## {#citp-csp}
 
-TODO applies case splitting after general equations TODO
+Applies case splitting after a set of equations. Each of these
+equations creates one new sub-goal with the equation added.
+
+The system does not check whether given set of equations exhausts all 
+possible values.
+
+Not discharged sub-goals will remain in the reduced form.
 
 Related: [`:csp-`](#citp-csp-), [`citp`](#citp)
 
 ## `:csp- { eq [ <label-exp>] <term> = <term> . ...}` ## {#citp-csp-}
 
-TODO
+Like [`:csp`](#:csp), but if sub-goals are not discharged, the
+CITP prover returns to the original state before the reduce action.
 
 Related: [`:csp`](#citp-csp), [`citp`](#citp)
 
 ## `:ctf { eq [ <label-exp> ] <term> = <term> .}` ## {#citp-ctf}
 
-TODO Applies case splitting after a set of boolean expressions.
+Applies case splitting after a set of boolean expressions.
+Not discharged sub-goals will remain in the reduced form.
 
 Related: [`:ctf-`](#citp-ctf-), [`citp`](#citp)
 
 ## `:ctf- { eq [ <label-exp> ] <term> = <term> .}` ## {#citp-ctf-}
 
-TODO
+Like [`:ctf`](#:ctf), but if sub-goals are not discharged, the
+CITP prover returns to the original state before the reduce action.
 
 Related: [`:ctf`](#citp-ctf), [`citp`](#citp)
 
@@ -584,13 +636,13 @@ Related: [`citp`](#citp)
 
 ### Example ###
 
-`````
+~~~~~
 :def name-1 = ctf [ <Term> . ]
 :def name-2 = ctf-{ eq LHS = RHS . }
 :def name-3 = csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
 :def name-4 = csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
 :apply(SI TC name-1 name-2 name-3 name-4)
-`````
+~~~~~
 
 
 ## `demod` ## {#demod}
@@ -598,13 +650,30 @@ Related: [`citp`](#citp)
 (pignose)
 
 
-## `:describe <something>` ## {#citp-describe}
+## `:describe proof` ## {#citp-describe}
 
-Similar to the `:show` command but with more details. Call `:describe ?` for
-the possible set of invocations.
-
+Describes the current proof in more detail.
 
 Related: [`:show`](#citp-show), [`citp`](#citp)
+
+### Example ###
+
+
+~~~~~
+PNAT> :describe proof
+==> root*
+    -- context module: #Goal-root
+    -- targeted sentences:
+      eq [lemma-1]: M:PNat + 0 = M .
+      eq [lemma-2]: M:PNat + s N:PNat = s (M + N) .
+[si]    1*
+    -- context module: #Goal-1
+    -- targeted sentences:
+      eq [lemma-1]: 0 + 0 = 0 .
+      eq [lemma-2]: 0 + s N:PNat = s (0 + N) .
+...
+~~~~~
+
 
 ## `describe <something>` ## {#describe}
 
@@ -616,8 +685,10 @@ Related: [`show`](#show)
 
 ## `dirs` ## {#dirs}
 
+Displays the current push stack.
 
 
+Related: [`popd`](#popd), [`pwd`](#pwd), [`pushd`](#pushd), [`cd`](#cd), [`ls`](#ls)
 
 ## `dribble` ## {#dribble}
 
@@ -763,12 +834,32 @@ and save it to `pathname`.
 
 ## `:goal { <sentence> . ... }` ## {#citp-goal}
 
-TODO
+Define the initial goal for CITP
+
+Related: [`citp`](#citp)
+
+### Example ###
+
+
+~~~~~
+CafeOBJ> select PNAT .
+PNAT> :goal { 
+   eq [lemma-1]: M:PNat + 0 = M . 
+   eq [lemma-2]: M:PNat + s N:PNat = s( M + N ) . 
+}
+~~~~~
+
 
 ## `goal <term> .` ## {#goal}
 
 (pignose)
 
+
+## `:imp "[" <label> "]" by "{" <variable> <- <term>; ..."}"` ## {#citp-imply}
+
+TODO
+
+Related: [`citp`](#citp)
 
 ## `imports { <import-decl> }` ## {#imports}
 
@@ -814,7 +905,15 @@ Defines the variable for the induction tactic of CITP.
 
 Related: [`citp`](#citp)
 
-## `:init { "[" <label> "]" | "(" <sentence> "")} "{" <variable> <- <term>; ... "}"` ## {#citp-init}
+### Example ###
+
+
+~~~~~
+:ind on (M:PNat)
+~~~~~
+
+
+## `:init { "[" <label> "]" | "(" <sentence> "")} by "{" <variable> <- <term>; ... "}"` ## {#citp-init}
 
 TODO
 
@@ -957,7 +1056,24 @@ Evaluates the following quoted lisp expression. (TODO ???)
 
 ## `look up <something>` ## {#lookup}
 
-TODO (memory-fault on sbcl)
+displays the location (module) and further information
+where `<something>` has been defined.
+
+
+### Example ###
+
+~~~~~
+open INT .
+%INT> look up Nat .
+
+Nat
+  - sort declared in NAT-VALUE
+  - operator:
+    op Nat : -> SortId { constr prec: 0 }
+    -- declared in module NAT-VALUE
+
+%INT>
+~~~~~
 
 
 ## `ls <pathname>` ## {#ls}
@@ -1303,8 +1419,10 @@ Related: [`qualified term`](#qualified)
 
 ## `popd` ## {#popd}
 
+Changes the current working directory to the last on on the push stack.
 
 
+Related: [`dirs`](#dirs), [`pwd`](#pwd), [`pushd`](#pushd), [`cd`](#cd), [`ls`](#ls)
 
 ## `pred <op-spec> : <sorts>` ## {#pred}
 
@@ -1371,8 +1489,11 @@ Related: [`require`](#require)
 
 ## `pushd <directory>` ## {#pushd}
 
+Changes the working directory to `<directory>`, and puts the
+current directory onto the push stack. Going back can be done with `pop`.
 
 
+Related: [`dirs`](#dirs), [`pwd`](#pwd), [`popd`](#popd), [`cd`](#cd), [`ls`](#ls)
 
 ## `pvar <var-name> : <sort-name>` ## {#pvar}
 
@@ -1386,7 +1507,7 @@ Related: [`vars`](#var), [`var`](#var)
 Prints the current working directory.
 
 
-Related: [`ls`](#ls), [`cd`](#cd)
+Related: [`dirs`](#dirs), [`popd`](#popd), [`pushd`](#pushd), [`ls`](#ls), [`cd`](#cd)
 
 ## qualified sort/operator/parameter ## {#qualifiedother}
 
@@ -1638,6 +1759,8 @@ Related: [`module expression`](#moduleexpression), [`open`](#open)
 Set or show various flags of CITP CafeOBJ.
 
 
+Related: [`citp`](#citp)
+
 ## `set <name> [option] <value>` ## {#set}
 
 Depending on the type of the switch, options and value specification varies.
@@ -1651,11 +1774,29 @@ values, use `show switches`. To single out two general purpose switches,
 
 Related: [`switches`](#switches), [`show`](#show)
 
-## `:show <something>` ## {#citp-show}
+## `:show goal|unproved|proof` ## {#citp-show}
 
-TODO
+Shows the current goal, the up-to-now unproven (sub-)goals, and the current proof.
 
 Related: [`:describe`](#citp-describe), [`citp`](#citp)
+
+### Example ###
+
+
+~~~~~
+PNAT> :show proof 
+root*
+[si]  1*
+[ca]  1-1*
+[ca]  1-2*
+[tc]  1-2-1*
+[si]  2*
+[ca]  2-1*
+[ca]  2-2*
+[tc]  2-2-1*
+PNAT>
+~~~~~
+
 
 ## `show <something>` ## {#show}
 
@@ -1679,8 +1820,6 @@ Related: [`describe`](#describe), [`switches`](#switches)
 ## `show mode` switch ## {#switch-show-mode}
 
 Possible values for `set show mode <mode>` are `cafeobj` and `meta`.
-
-TODO no further information on what this changes
 
 
 ## `sigmatch (<mod-exp>) to (<mod-exp>)` ## {#sigmatch}
@@ -1793,8 +1932,9 @@ given to the stepper (with our without leading colon `:`):
 :   set (or unset) max number of rewrite
 
 Other standard CafeOBJ commands that can be used are [`show`](#show),
-[`describe`](#describe), [`set`](#set), [`cd`](#cd), [`ls`](#ls),
-[`pwd`](#pwd), [`lisp`](#lisp), [`lispq`](#lisp), and (on Unix only)
+[`describe`](#describe), [`dirs`](#dirs), [`set`](#set), [`cd`](#cd), 
+[`ls`](#ls), [`pwd`](#pwd), [`pushd`](#pushd), [`popd`](#popd), 
+[`lisp`](#lisp), [`lispq`](#lisp), and (on Unix only)
 [`!`](#commandexec).
 
 
