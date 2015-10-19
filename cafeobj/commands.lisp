@@ -146,6 +146,7 @@ which specifies the equality of the theory.
 (define ("=/=")
     :type :doc-only
     :mdkey "notequal"
+    :related ("==")
     :doc "Negation of the predicate `==`.
 ")
 
@@ -919,14 +920,6 @@ Nat
     :doc "lists the given `pathname`. Argument is obligatory.
 ")
 
-(define ("make")
-    :type :doc-only
-    :title "`make <mod_name> ( <mod_exp> )`"
-    :related ("module expression")
-    :doc "This commands defines a new module `<mod_name>` by evaluating the
-module expression `<mod_exp>`.
-")
-
 (define ("match" "unify")
     :category :inspect
     :parser parse-match-command
@@ -1428,9 +1421,18 @@ Modules can be automatically regularized by the interpreter if the
     :doc "Requires a feature, which usually
 denotes a set of module definitions. Given this command, the
 system searches for a file named the feature, and read the file
-if found. If a pathname is given, the system searches for a file
+if found. If the `<feature>` contains `::`, they are treated as
+path separators.
+
+If a pathname is given, the system searches for a file
 named the pathname instead.
-")
+"
+    :example "
+~~~~~
+CafeOBJ> require foo::bar
+~~~~~
+would search for `foo/bar.cafe` in the pathes from `libpath`"
+)
 
 
 (define ("reset")
@@ -1881,18 +1883,12 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
 ")
 
 
-  
-
-;;;
-;;;*** TODO *** 
-;;;
-
 (define  ("dribble")
     :category :misc
     :parser parse-dribble-command
     :evaluator eval-ast
-    :doc "
-")
+    :doc "TODO"
+)
 
 (define ("exec!" "execute!")
     :category :rewrite
@@ -1900,7 +1896,7 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
     :evaluator eval-ast
     :title "`exec! [ in <mod-exp> : ] <term> .`"
     :mdkey "execute-dash"
-    :doc "
+    :doc "TODO
 exec! [in <Modexpr> :] <Term> .
 ")
 
@@ -1908,8 +1904,8 @@ exec! [in <Modexpr> :] <Term> .
     :category :rewrite
     :parser parse-stop-at
     :evaluator eval-ast
-    :doc "
-")
+    :doc "TODO"
+)
 
 
 (define ("lisp" "ev") 
@@ -1934,15 +1930,18 @@ CafeOBJ> lisp (+ 4 5)
     :category :decl
     :parser parse-make-command
     :evaluator eval-ast
-    :doc "
+    :title "`make <mod_name> ( <mod_exp> )`"
+    :related ("module expression")
+    :doc "This commands defines a new module `<mod_name>` by evaluating the
+module expression `<mod_exp>`.
 ")
 
 (define  ("prelude")
     :category :library
     :parser parse-prelude-command
     :evaluator cafeobj-eval-prelude-proc
-    :doc "
-")
+    :doc "TODO"
+)
 
 (define ("[")
     :category :element
@@ -2029,7 +2028,7 @@ CafeOBJ> lisp (+ 4 5)
     :evaluator cafeobj-eval-module-element-proc
     :title "`rule [ <label-exp> ] <term> => <term> .`"
     :related ("trans")
-    :doc "Synonym of 'trans'.
+    :doc "Synonym of [`trans`](#trans).
 ")
 
 (define ("crule" "crl")
@@ -2038,7 +2037,7 @@ CafeOBJ> lisp (+ 4 5)
     :evaluator cafeobj-eval-module-element-proc
     :title "`crule [ <label-exp> ] <term> => <term> if <term> .`"
     :related ("ctrans" "rule")
-    :doc "Synonym of 'ctrans'
+    :doc "Synonym of [`ctrans`](#ctrans)
 ")
 
 (define ("brule" "brl")
@@ -2047,7 +2046,7 @@ CafeOBJ> lisp (+ 4 5)
     :evaluator cafeobj-eval-module-element-proc
     :related ("btrans")
     :title "`brule [ <label-exp> ] <term> => <term> .`"
-    :doc "Synonym of 'btrans'.
+    :doc "Synonym of [`btrans`](#btrans).
 ")
 
 (define ("bcrule" "bcrl")
@@ -2056,7 +2055,7 @@ CafeOBJ> lisp (+ 4 5)
     :evaluator cafeobj-eval-module-element-proc
     :related ("bctrans")
     :title "`bcrule [ <label-exp> ] <term> => <term> if <term> .`"
-    :doc "Synonym of 'bctrans'
+    :doc "Synonym of [`bctrans`](#bctrans)
 ")
 
 (define ("inspect" "inspect-term")
@@ -2064,7 +2063,7 @@ CafeOBJ> lisp (+ 4 5)
     :parser parse-inspect-term-command
     :evaluator eval-ast
     :title "`inspect <term>`"
-    :doc "Inspect the internal structure of <term>.
+    :doc "Inspect the internal structure of `<term>`.
 ")
 
 (define ("pushd")
@@ -2107,7 +2106,7 @@ current directory onto the push stack. Going back can be done with `pop`.
     :category :rewrite
     :parser parse-continue-command
     :evaluator eval-ast
-    :doc "
+    :doc "TODO
 ")
 
 (define ("names" "name")
@@ -2123,7 +2122,7 @@ current directory onto the push stack. Going back can be done with `pop`.
     :parser parse-case-command
     :evaluator eval-ast
     :title "`scase (<term>) in (<mod-exp>) as <name> { <decl> ..} : <term> .`"
-    :doc "
+    :doc "TODO
 ")
 
 (define ("sos" "passive")
@@ -2528,7 +2527,7 @@ PNAT> :describe proof
     :parser parse-citp-binspect
     :evaluator eval-citp-binspect
     :title "`:binspect [in <goal-name> :] <boolean-term> .`"
-    :doc "See [`binspect`](#binspect)"
+    :doc "Used during [CITP](#citp) proofs instead of [`binspect`](#binspect)"
     )
 
 (define ("binspect")
@@ -2558,7 +2557,8 @@ CafeOBJ> binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)) .
     :evaluator bresolve
     :title "`{bresolve | :bresolve}`"
     :doc "Computes all possible variable assignments that render an abstracted
-term `true`."
+term `true`. The variant with leading colon is for usage during a 
+[CITP](#citp) proof."
     :example "
 ~~~~~
 CafeOBJ> bresolve
@@ -2577,7 +2577,8 @@ CafeOBJ> bresolve
     :evaluator bshow
     :title "`{bshow | :bshow} [tree]`"
     :doc "Shows the abstracted Boolean term computed by [`binspect`](#binspect).
-If the argument `tree` is given, prints out a the abstracted term in tree form."
+If the argument `tree` is given, prints out a the abstracted term in tree form.
+The variant with leading colon is for usage during a [CITP](#citp) proof."
     :example "
 ~~~~~
 CafeOBJ> bshow
