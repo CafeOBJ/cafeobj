@@ -164,9 +164,6 @@ are connected via transitions.
     :mdkey "bequality"
     :doc "The predicate for behavioral equivalence, written `=*=`, is a binary
 operator defined on each hidden sort. 
-
-TODO: old manual very unclear ... both about `=*=` and 
-`accept =*= proof` ??? (page 46 of old manual)
 ")
 
 (define ("=(n)=>" "=(n,m)=>" "=()=>")
@@ -896,7 +893,21 @@ first and cannot be suppressed.
     :evaluator eval-ast
     :title "`look up <something>`"
     :mdkey "lookup"
-    :doc "TODO (memory-fault on sbcl)
+    :doc "displays the location (module) and further information
+where `<something>` has been defined.
+"
+    :example "~~~~~
+open INT .
+%INT> look up Nat .
+
+Nat
+  - sort declared in NAT-VALUE
+  - operator:
+    op Nat : -> SortId { constr prec: 0 }
+    -- declared in module NAT-VALUE
+
+%INT>
+~~~~~
 ")
 
 (define ("ls")
@@ -1310,7 +1321,7 @@ already.
     :category :misc
     :parser parse-pwd-command
     :evaluator eval-ast
-    :related ("cd" "ls")
+    :related ("cd" "ls" "pushd" "popd" "dirs")
     :doc "Prints the current working directory.
 ")
 
@@ -1579,8 +1590,6 @@ See the entry for [`switches`](#switches) for a full list.
     :title "`show mode` switch"
     :mdkey "switch-show-mode"
     :doc "Possible values for `set show mode <mode>` are `cafeobj` and `meta`.
-
-TODO no further information on what this changes
 ")
 
 
@@ -1685,8 +1694,9 @@ given to the stepper (with our without leading colon `:`):
 :   set (or unset) max number of rewrite
 
 Other standard CafeOBJ commands that can be used are [`show`](#show),
-[`describe`](#describe), [`set`](#set), [`cd`](#cd), [`ls`](#ls),
-[`pwd`](#pwd), [`lisp`](#lisp), [`lispq`](#lisp), and (on Unix only)
+[`describe`](#describe), [`dirs`](#dirs), [`set`](#set), [`cd`](#cd), 
+[`ls`](#ls), [`pwd`](#pwd), [`pushd`](#pushd), [`popd`](#popd), 
+[`lisp`](#lisp), [`lispq`](#lisp), and (on Unix only)
 [`!`](#commandexec).
 ")
 
@@ -2061,23 +2071,27 @@ CafeOBJ> lisp (+ 4 5)
     :category :misc
     :parser parse-pushd-command
     :evaluator eval-ast
+    :related ("ls" "cd" "popd" "pwd" "dirs")
     :title "`pushd <directory>`"
-    :doc "
+    :doc "Changes the working directory to `<directory>`, and puts the
+current directory onto the push stack. Going back can be done with `pop`.
 ")
 
 (define  ("popd")
     :category :misc
     :parser parse-popd-command
     :evaluator eval-ast
+    :related ("ls" "cd" "pushd" "pwd" "dirs")
     :title "`popd`"
-    :doc "
+    :doc "Changes the current working directory to the last on on the push stack.
 ")
 
 (define  ("dirs")
     :category :misc
     :parser parse-dirs-command
     :evaluator eval-ast
-    :doc "
+    :related ("ls" "cd" "pushd" "pwd" "popd")
+    :doc "Displays the current push stack.
 ")
 
 (define ("") 
@@ -2226,15 +2240,25 @@ Do nothing.
 
 The sub-system provides a certain level of automatization for theorem proving.
 
-TODO TODO
+Please see the accompanying manual for CITP for details.
 ")
 
 (define (":goal")
     :category :proof
     :parser citp-parse-goal
     :evaluator eval-citp-goal
+    :related ("citp")
     :title "`:goal { <sentence> . ... }`"
-    :doc "TODO"
+    :doc "Define the initial goal for CITP"
+    :example "
+~~~~~
+CafeOBJ> select PNAT .
+PNAT> :goal { 
+   eq [lemma-1]: M:PNat + 0 = M . 
+   eq [lemma-2]: M:PNat + s N:PNat = s( M + N ) . 
+}
+~~~~~
+"
     )
 
 (define (":apply")
@@ -2254,6 +2278,11 @@ the current goal, or the goal given as `<goal-name>`."
     :related ("citp")
     :title "`:ind on <variable> ... .`"
     :doc "Defines the variable for the induction tactic of CITP."
+    :example "
+~~~~~
+:ind on (M:PNat)
+~~~~~
+"
     )
 
 (define (":auto")
@@ -2297,7 +2326,7 @@ the current goal, or the goal given as `<goal-name>`."
     :parser citp-parse-critical-pair
     :evaluator eval-citp-critical-pair
     :related ("citp")
-    :title "`:cp { \"[\" <label> \"]\" | \"(\" <sentense> . \")\" } >< { \"[\" <label> \"]\" | \"(\" <sentence> .\")\" }`"
+    :title "`:cp { \"[\" <label> \"]\" | \"(\" <sentence> . \")\" } >< { \"[\" <label> \"]\" | \"(\" <sentence> .\")\" }`"
     :doc "TODO specify critical pair"
     )
 
@@ -2370,7 +2399,8 @@ the current goal, or the goal given as `<goal-name>`."
     :evaluator eval-citp-ctf
     :related ("citp" ":ctf-")
     :title "`:ctf { eq [ <label-exp> ] <term> = <term> .}`"
-    :doc "TODO Applies case splitting after a set of boolean expressions."
+    :doc "Applies case splitting after a set of boolean expressions.
+Not discharged sub-goals will remain in the reduced form."
     )
 
 (define (":ctf-")
@@ -2379,7 +2409,8 @@ the current goal, or the goal given as `<goal-name>`."
     :evaluator eval-citp-ctf
     :related ("citp" ":ctf")
     :title "`:ctf- { eq [ <label-exp> ] <term> = <term> .}`"
-    :doc "TODO"
+    :doc "Like [`:ctf`](#:ctf), but if sub-goals are not discharged, the
+CITP prover returns to the original state before the reduce action."
     )
 
 (define (":csp")
@@ -2388,7 +2419,13 @@ the current goal, or the goal given as `<goal-name>`."
     :evaluator eval-citp-csp
     :related ("citp" ":csp-")
     :title "`:csp { eq [ <label-exp>] <term> = <term> . ...}`"
-    :doc "TODO applies case splitting after general equations TODO"
+    :doc "Applies case splitting after a set of equations. Each of these
+equations creates one new sub-goal with the equation added.
+
+The system does not check whether given set of equations exhausts all 
+possible values.
+
+Not discharged sub-goals will remain in the reduced form."
     )
 
 (define (":csp-")
@@ -2397,7 +2434,8 @@ the current goal, or the goal given as `<goal-name>`."
     :evaluator eval-citp-csp
     :related ("citp" ":csp")
     :title "`:csp- { eq [ <label-exp>] <term> = <term> . ...}`"
-    :doc "TODO"
+    :doc "Like [`:csp`](#:csp), but if sub-goals are not discharged, the
+CITP prover returns to the original state before the reduce action."
     )
 
 (define (":def" ":define")
@@ -2408,13 +2446,13 @@ the current goal, or the goal given as `<goal-name>`."
     :title "`:def <symbol> = { <ctf> | <csp>}`"
     :doc "Assigns a name to a specific case splitting (`ctf` or `csp`),
 so that it can be used as tactics in `:apply`."
-    :example "`````
+    :example "~~~~~
 :def name-1 = ctf [ <Term> . ]
 :def name-2 = ctf-{ eq LHS = RHS . }
 :def name-3 = csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
 :def name-4 = csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
 :apply(SI TC name-1 name-2 name-3 name-4)
-`````
+~~~~~
 "
     )
 
@@ -2422,19 +2460,50 @@ so that it can be used as tactics in `:apply`."
     :category :inspect
     :parser citp-parse-show
     :evaluator eval-citp-show
-    :title "`:show <something>`"
+    :title "`:show goal|unproved|proof`"
     :related ("citp" ":describe")
-    :doc "TODO")
+    :doc "Shows the current goal, the up-to-now unproven (sub-)goals, and the current proof."
+    :example "
+~~~~~
+PNAT> :show proof 
+root*
+[si]  1*
+[ca]  1-1*
+[ca]  1-2*
+[tc]  1-2-1*
+[si]  2*
+[ca]  2-1*
+[ca]  2-2*
+[tc]  2-2-1*
+PNAT>
+~~~~~
+"
+)
 
 (define (":describe" ":desc")
     :category :inspect
     :parser citp-parse-show
     :evaluator eval-citp-show
-    :title "`:describe <something>`"
+    :title "`:describe proof`"
     :related ("citp" ":show")
-    :doc "Similar to the `:show` command but with more details. Call `:describe ?` for
-the possible set of invocations.
-")
+    :doc "Describes the current proof in more detail."
+    :example "
+~~~~~
+PNAT> :describe proof
+==> root*
+    -- context module: #Goal-root
+    -- targeted sentences:
+      eq [lemma-1]: M:PNat + 0 = M .
+      eq [lemma-2]: M:PNat + s N:PNat = s (M + N) .
+[si]    1*
+    -- context module: #Goal-1
+    -- targeted sentences:
+      eq [lemma-1]: 0 + 0 = 0 .
+      eq [lemma-2]: 0 + s N:PNat = s (0 + N) .
+...
+~~~~~
+"
+)
 
 (define (":spoiler")
     :category :proof
@@ -2459,7 +2528,7 @@ the possible set of invocations.
     :parser parse-citp-binspect
     :evaluator eval-citp-binspect
     :title "`:binspect [in <goal-name> :] <boolean-term> .`"
-    :doc "TODO"
+    :doc "See [`binspect`](#binspect)"
     )
 
 (define ("binspect")
@@ -2467,7 +2536,20 @@ the possible set of invocations.
     :parser parse-citp-binspect
     :evaluator eval-citp-binspect
     :title "`binspect [in <module-name> :] <boolean-term> .`"
-    :doc "TODO"
+    :doc "Start an inspection of a Boolean term, that is, and abstracted
+form of the Boolean term is constructed. The abstracted term is shown (like calling [`bshow`](#bshow)."
+    :example "
+~~~~~
+CafeOBJ> module BTE { [S]
+  preds p1 p2 p3 p4 p5 p6 p7 : S
+  ops a b c :  -> S .
+}
+CafeOBJ> binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)) .
+...
+--> ((p4(Y:S) and p1(Y)) xor ((p3(Y) and p1(X:S)) xor ((p2(X) and (p3(Y) and p1(X))) xor ((p3(Y) and p2(X)) xor ((p3(Y) and (p2(X) and (p4(Y) and p1(Y)))) xor ((p3(Y) and (p2(X) and (p1(X) and (p1(Y) and p4(Y))))) xor (p1(X) and (p3(Y) and (p1(Y) and p4(Y))))))))))
+...
+~~~~~
+"
     )
 
 (define ("bresolve" ":bresolve")
@@ -2475,7 +2557,18 @@ the possible set of invocations.
     :parser identity
     :evaluator bresolve
     :title "`{bresolve | :bresolve}`"
-    :doc "TODO"
+    :doc "Computes all possible variable assignments that render an abstracted
+term `true`."
+    :example "
+~~~~~
+CafeOBJ> bresolve
+
+** The following assignment(s) can make the term 'true'.
+  (1): { P-5:Bool |-> true, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
+  (2): { P-5:Bool |-> false, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
+...
+~~~~~
+"
     )
 
 (define ("bshow" ":bshow")
@@ -2483,7 +2576,20 @@ the possible set of invocations.
     :parser citp-parse-bshow
     :evaluator bshow
     :title "`{bshow | :bshow} [tree]`"
-    :doc "TODO"
+    :doc "Shows the abstracted Boolean term computed by [`binspect`](#binspect).
+If the argument `tree` is given, prints out a the abstracted term in tree form."
+    :example "
+~~~~~
+CafeOBJ> bshow
+((P-1:Bool and (P-2:Bool and (P-3:Bool and P-4:Bool))) xor ((P-1 and (P-2 and (P-4 and (P-5:Bool and P-3)))) xor ((P-2 and (P-1 and (P-5 and P-3))) xor ((P-5 and P-3) xor ((P-4 and (P-3 and P-5)) xor ((P-4 and P-3) xor (P-2 and P-1)))))))
+where
+  P-1:Bool |-> p4(Y:S)
+  P-2:Bool |-> p1(Y:S)
+  P-3:Bool |-> p3(Y:S)
+  P-4:Bool |-> p1(X:S)
+  P-5:Bool |-> p2(X:S)
+~~~~~
+"
     )
 ;;;
 
