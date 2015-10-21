@@ -1895,8 +1895,7 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
     :evaluator eval-ast
     :title "`exec! [ in <mod-exp> : ] <term> .`"
     :mdkey "execute-dash"
-    :doc "TODO
-exec! [in <Modexpr> :] <Term> ."
+    :doc "TODO"
 )
 
 (define  ("stop")
@@ -2300,7 +2299,8 @@ the current goal, or the goal given as `<goal-name>`."
     :evaluator eval-citp-roll-back
     :related ("citp")
     :title "`:roll back`"
-    :doc "TODO"
+    :doc "Reverts the strategy that led to the current target goal.
+The current target goal is removed from the proof tree."
 )
 
 (define (":init")
@@ -2309,7 +2309,9 @@ the current goal, or the goal given as `<goal-name>`."
     :evaluator eval-citp-init
     :related ("citp")
     :title "`:init { \"[\" <label> \"]\" | \"(\" <sentence> \"\")} by \"{\" <variable> <- <term>; ... \"}\"`"
-    :doc "TODO"
+    :doc "Instantiates an equation specified by `<label>` by replacing the `<variable>`s 
+in the equation with the respective `<term>`s. The resulting equation is added
+to the set of axioms."
 )
 
 (define (":imply" ":imp")
@@ -2318,7 +2320,7 @@ the current goal, or the goal given as `<goal-name>`."
     :evaluator eval-citp-imp
     :related ("citp")
     :title "`:imp \"[\" <label> \"]\" by \"{\" <variable> <- <term>; ...\"}\"`"
-    :doc "TODO"
+    :doc "TODO (future extension)"
 )
 
 (define (":cp")
@@ -2327,7 +2329,14 @@ the current goal, or the goal given as `<goal-name>`."
     :evaluator eval-citp-critical-pair
     :related ("citp")
     :title "`:cp { \"[\" <label> \"]\" | \"(\" <sentence> . \")\" } >< { \"[\" <label> \"]\" | \"(\" <sentence> .\")\" }`"
-    :doc "TODO specify critical pair"
+    :doc "Computes the critical pair of the two given equations.
+Here either a label or a full equation can be used to specify the equations."
+    :example "
+~~~~~
+:cp (ceq top(sq(S@Sys)) = I@Pid if pc(S@Sys,I@Pid) = cs .)
+><
+(ceq top(sq(S@Sys)) = J@Pid if pc(S@Sys,J@Pid) = cs .)
+~~~~~"
 )
 
 (define (":equation")
@@ -2335,8 +2344,9 @@ the current goal, or the goal given as `<goal-name>`."
     :parser citp-parse-equation
     :evaluator eval-citp-equation
     :title "`:equation`"
-    :related ("citp")
-    :doc "TODO"
+    :related ("citp" ":cp" ":rule")
+    :doc "Adds the critical pair computed by the last [`:cp`](#citp-cp) command
+as equation to the current goal."
 )
 
 (define (":rule")
@@ -2344,17 +2354,18 @@ the current goal, or the goal given as `<goal-name>`."
     :parser citp-parse-equation
     :evaluator eval-citp-equation
     :title "`:rule`"
-    :related ("citp")
-    :doc "TODO"
+    :related ("citp" ":cp" ":equation")
+    :doc "Adds the critical pair computed by the last [`:cp`](#citp-cp) command
+as rule to the current goal."
 )
 
 (define (":backward")
     :category :proof
     :parser citp-parse-backward
     :evaluator eval-citp-backward
-    :title "`:backward equation`"
-    :related ("citp")
-    :doc "TODO"
+    :title "`:backward equation|rule`"
+    :related ("citp" ":cp" ":equation" ":rule")
+    :doc "Like [`:equation`](#citp-equation) and [`:rule`](#citp-rule), but exchange the left and right side."
 )
 
 (define (":select")
@@ -2508,7 +2519,9 @@ PNAT> :describe proof
     :evaluator identity
     :related ("citp")
     :title "`:spoiler { on | off}`"
-    :doc "TODO"
+    :doc "If the spoiler flag is on, after a strategy other than RD and SI
+has been applied, the generated sub-goals are automatically checked for
+provability using the RD strategy. Defaults to `off`."
 )
 
 (define (":set")
