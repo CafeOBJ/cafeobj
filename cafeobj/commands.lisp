@@ -77,8 +77,8 @@
 (define (":is")
     :type :doc-only
     :doc "Boolean expression: `A :is B` where `A` is a term and
-`B` is a sort. Returns true if `A` is of sort `B`.
-")
+`B` is a sort. Returns true if `A` is of sort `B`."
+)
   
 (define ("!")
     :category :misc
@@ -86,8 +86,8 @@
     :evaluator eval-ast
     :title "`! <command>`"
     :mdkey "commandexec"
-    :doc "On Unix only, forks a shell and executes the given `<command>`.
-")
+    :doc "On Unix only, forks a shell and executes the given `<command>`."
+)
 
 (define ("#define")
     :category :element
@@ -95,8 +95,7 @@
     :title "`#define <symbol> := <term> .`"
     :mdkey "sharp-define"
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-"
+    :doc "TODO"
 )
 
 (define ("--" "**")
@@ -108,8 +107,8 @@
     :related ("--" ("comments"))
     :doc "Starts a comment which extends to the end of the line. 
 With the additional `>` the comment is displayed while
-evaluated by the interpreter.
-")
+evaluated by the interpreter."
+)
 
 
 (define ("-->" "**>")
@@ -121,8 +120,8 @@ evaluated by the interpreter.
     :related ("**" ("comments"))
     :doc "Starts a comment which extends to the end of the line. 
 With the additional `>` the comment is displayed while
-evaluated by the interpreter.
-")
+evaluated by the interpreter."
+)
 
 (define ("=")
     :type :doc-only
@@ -130,8 +129,8 @@ evaluated by the interpreter.
     :related ("==" "eq")
     :doc "The syntax element `=` introduces an axiom of the equational theory,
 and is different from `==` which specifies an equality based on
-rewriting. 
-")
+rewriting."
+)
 
 (define ("==")
     :type :doc-only
@@ -140,15 +139,15 @@ rewriting.
 and is defined in terms of evaluation. That is, for ground terms `t`
 and `t'` of the same sort, `t == t'` evaluates to `true` iff terms
 reduce to a common term. This is different from the equational `=`
-which specifies the equality of the theory.
-")
+which specifies the equality of the theory."
+)
 
 (define ("=/=")
     :type :doc-only
     :mdkey "notequal"
     :related ("==")
-    :doc "Negation of the predicate `==`.
-")
+    :doc "Negation of the predicate `==`."
+)
 
 (define ("==>")
     :type :doc-only
@@ -157,30 +156,29 @@ which specifies the equality of the theory.
     :doc "This binary predicate is defined on each visible sort, and defines the
 transition relation, which is reflexive, transitive, and closed under
 operator application. It expresses the fact that two states (terms)
-are connected via transitions.
-")
+are connected via transitions."
+)
 
 (define ("=*=")
     :type :doc-only
     :mdkey "bequality"
     :doc "The predicate for behavioral equivalence, written `=*=`, is a binary
-operator defined on each hidden sort. 
-")
+operator defined on each hidden sort."
+)
 
 (define ("=(n)=>" "=(n,m)=>" "=()=>")
     :type :doc-only
     :mdkey "searchpredsymb"
     :title "`=(n)=>`, `=(n,m)=>`, `=()=>`"
-    :doc "See [`search predicates`](#searchpredicate)
-")
+    :doc "See [`search predicates`](#searchpredicate)"
+)
 
 (define ("accept =*= proof switch")
     :type :doc-only
     :title "`accept =*= proof` switch"
     :mdkey "switch-accept"
-    :doc "TODO missing documentation
-difficult - see TODO for [`=*=`](#bequality)
-")
+    :doc "TODO"
+)
 
 (define ("?" "??" "?ex" "?example")
     :category :help
@@ -197,8 +195,8 @@ In case examples are provided for the `<term>`, they can be displayed
 using `?ex <term>`. In this case the normal help output will also contain
 an informational message that examples are available.
 
-When called as ?? both documentation and examples are shown.
-")
+When called as ?? both documentation and examples are shown."
+)
 
 (define ("?apropos" "?ap")
     :category :help
@@ -216,7 +214,8 @@ sub-strings. Matching is done as simple sub-string match.
 CafeOBJ> ?ap foo att[er]
 `````
 will search for entries that contain the string `foo` as well as
-either the string `atte` or `attr`."
+either the string `atte` or `attr`.
+"
     :doc "Searches all available online docs for the terms passed.
 Terms are separated by white space. Each term is tested independently 
 and all terms have to match. Testing is done either by simple sub-string 
@@ -224,8 +223,8 @@ search, or, if the term looks like a regular expression (Perl style),
 by regex matching. In case a regex-like term cannot be parsed as regular
 expression, it is used in normal sub-string search mode.
 
-Note: Fancy quoting with single and double quotes might lead to unexpected problems.
-")
+Note: Fancy quoting with single and double quotes might lead to unexpected problems."
+)
 
 (define ("all axioms switch")
     :type :doc-only
@@ -233,8 +232,8 @@ Note: Fancy quoting with single and double quotes might lead to unexpected probl
     :mdkey "switch-all-axioms" 
     :related ("show")
     :doc "Controls whether axioms from included modules are shown
-during a `show` invocation.
-")
+during a `show` invocation."
+)
 
 (define ("always memo switch")
     :type :doc-only
@@ -242,8 +241,8 @@ during a `show` invocation.
     :mdkey "switch-always-memo" 
     :related ("memo" ("operator attributes"))
     :doc "Turns on memorization of computation also for operators without
-the [`memo`](#opattr) operator attribute.
-")
+the [`memo`](#opattr) operator attribute."
+)
 
 (define ("apply")
     :category :proof
@@ -316,8 +315,8 @@ where each `<selector>` is one of
 
   Example: If the operator `_*_` is declared as associative and
   commutative, and the current term is `b * c * d * c * e`, then
-  then the expression `{2, 4, 5}` selects the subterm `c * c * e`.
-")
+  then the expression `{2, 4, 5}` selects the subterm `c * c * e`."
+)
 
 (define ("auto context switch")
     :type :doc-only
@@ -327,8 +326,8 @@ where each `<selector>` is one of
 
 If this switch is `on`, the context will automatically switch to
 the most recent module, i.e., defining a module or inspecting 
-a module's content will switch the current module.
-")
+a module's content will switch the current module."
+)
 
 (define  ("autoload")
     :category :library
@@ -338,8 +337,8 @@ a module's content will switch the current module.
     :related ("no autoload")
     :doc "When evaluating a <module-name> and found that
 it is not yet declared, the system read in <file-name> then 
-retries the evaluation.
-")
+retries the evaluation."
+)
 
 (define ("no-autoload")
     :category :library
@@ -348,8 +347,8 @@ retries the evaluation.
     :title "`no autoload <module-name>`"
     :related ("autoload")
     :doc "Stop `autoload` of module with the name <module-name> .
-Please refer to `autoload` command.
-")
+Please refer to `autoload` command."
+)
 
 (define ("axioms" "axiom" "axs")
     :category :element
@@ -360,8 +359,8 @@ Please refer to `autoload` command.
     :doc "Block enclosing declarations of variables, equations, and 
 transitions.
 Other statements are not allowed within the `axioms` block.
-Optional structuring of the statements in a module.
-")
+Optional structuring of the statements in a module."
+)
 
 (define ("bceq" "bcq")
     :category :element
@@ -369,8 +368,8 @@ Optional structuring of the statements in a module.
     :evaluator cafeobj-eval-module-element-proc
     :title "`bceq [ <label-exp> ] <term> = <term> if <boolterm> .`"
     :related ("eq" "ceq" "beq")
-    :doc "Defines a behavioral conditional equation. For details see [`ceq`](#ceq).
-")
+    :doc "Defines a behavioral conditional equation. For details see [`ceq`](#ceq)."
+)
 
 (define ("beq")
     :category :element
@@ -378,8 +377,8 @@ Optional structuring of the statements in a module.
     :evaluator cafeobj-eval-module-element-proc
     :title "`beq [ <label-exp> ] <term> = <term> .`"
     :related ("eq" "ceq" "bceq")
-    :doc "Defines a behavioral equation. For details see [`eq`](#eq).
-")
+    :doc "Defines a behavioral equation. For details see [`eq`](#eq)."
+)
 
 (define ("bctrans" "bctr")
     :category :element
@@ -388,8 +387,8 @@ Optional structuring of the statements in a module.
     :title "`bctrans [ <label-exp> ] <term> => <term> if <bool> .`"
     :related ("trans" "ctrans" "btrans")
     :doc "Defines a behavioral conditional transition. 
-For details see [`ctrans`](#ctrans).
-")
+For details see [`ctrans`](#ctrans)."
+)
 
 (define ("bop" "bops")
     :category :element
@@ -401,8 +400,8 @@ For details see [`ctrans`](#ctrans).
 construct. `<sorts>` is a space separated list of sort names containing
 *exactly* one hidden sort. `<sort>` is a single sort name.
 
-For `<op-spec>` see the explanations of [`op`](#op).
-")
+For `<op-spec>` see the explanations of [`op`](#op)."
+)
 
 (define ("bpred" "bpreds" "bpd" "bpds")
     :category :element
@@ -411,8 +410,8 @@ For `<op-spec>` see the explanations of [`op`](#op).
     :title "`bpred <op-spec> : <sorts>`"
     :related ("op" "bop" "pred")
     :doc "Short hand for `op <op-spec> : <sorts> -> Bool` defining a
-behavioral predicate.
-")
+behavioral predicate."
+)
 
 (define ("breduce" "bred")
     :category :rewrite
@@ -424,8 +423,8 @@ behavioral predicate.
 otherwise in the current module. 
 
 For `breduce` equations, possibly conditional, possibly behavioral, are taken
-into account for reduction.
-")
+into account for reduction."
+)
 
 (define ("btrans" "btr")
     :category :element
@@ -433,16 +432,18 @@ into account for reduction.
     :evaluator cafeobj-eval-module-element-proc
     :title "`btrans [ <label-exp> ] <term> => <term> .`"
     :related ("trans" "ctrans" "bctrans")
-    :doc "Defines a behavioral transition. For details see [`trans`](#trans).
-")
+    :doc "Defines a behavioral transition. For details see [`trans`](#trans)."
+)
 
 (define ("cbred")
     :category :rewrite
     :parser parse-cbred-command
     :evaluator eval-ast
     :title "`cbred [ in <mod-exp> :] <term> .`"
-    :doc "
-")
+    :doc "circular coinductive reduction: see
+_Goguen, Lin, Rosu: Circular Coinductive Rewriting_
+(Proceedings of Automated Software Engineering 2000) for details."
+)
 
 (define  ("cd") 
     :category :misc
@@ -451,8 +452,8 @@ into account for reduction.
     :title "`cd <dirname>`"
     :related ("pwd" "ls")
     :doc "Change the current working directory, like the Unix counterpart.
-The argument is necessary. No kind of expansion or substitution is done.
-")
+The argument is necessary. No kind of expansion or substitution is done."
+)
 
 (define ("ceq" "cq")
     :category :element
@@ -462,8 +463,8 @@ The argument is necessary. No kind of expansion or substitution is done.
     :related ("eq" "beq" "bceq")
     :doc "Defines a conditional equation. Spaces around the `if` are obligatory.
 `<boolterm>` needs to be a Boolean term. For other requirements
-see [`eq`](#eq).
-")
+see [`eq`](#eq)."
+)
 
 (define ("check")
     :category :checker
@@ -488,8 +489,8 @@ operators.
 `check laziness <op_name>`
   ~ Checks whether the given operator can be evaluated lazily. If not
     `<op_name>` is given, all operators of the current module are
-    checked. 
-")
+    checked."
+)
 
 (define ("check switch")
     :type :doc-only
@@ -510,8 +511,8 @@ operators.
   ~ see the [`check`](#check) command
 
 `check sensible`
-  ~ TODO
-")
+  ~ TODO"
+)
 
 (define  ("choose") 
     :category :proof
@@ -521,8 +522,8 @@ operators.
     :mdkey "choose"
     :related ("apply" "start" ("`strat` in operator attributes" "operator attributes"))
     :doc "Chooses a subterm by the given `<selection>`. See [`apply`](#apply)
-for details on `<selection>`.
-")
+for details on `<selection>`."
+)
 
 (define ("clean memo" "clean")
     :category :rewrite
@@ -532,8 +533,8 @@ for details on `<selection>`.
     :mdkey "cleanmemo"
     :related (("clean memo switch" "`clean memo` switch"))
     :doc "Resets (clears) the memo storage of the system. Memorized computations 
-are forgotten. 
-")
+are forgotten."
+)
 
 (define ("clean memo switch")
     :type :doc-only
@@ -541,8 +542,8 @@ are forgotten.
     :mdkey "switch-clean-memo"
     :doc "Possible values: `on`, `off`, default `off`.
 
-tells the system to be forgetful.
-")
+tells the system to be forgetful."
+)
 
 (define ("close")
     :category :proof
@@ -550,8 +551,8 @@ tells the system to be forgetful.
     :evaluator eval-ast
     :title "`close`"
     :related ("open")
-    :doc "This command closes a modification of a module started by `open`.
-")
+    :doc "This command closes a modification of a module started by [`open`](#open)."
+)
 
 (define ("comments")
     :type :doc-only
@@ -561,15 +562,15 @@ tells the system to be forgetful.
 that extends to the end of the line: `--`, `-->`, `**`, `**>`.
 
 The difference in the variants with `>` is that the comment is
-displayed when run through the interpreter.
-")
+displayed when run through the interpreter."
+)
 
 (define ("cond limit switch")
     :type :doc-only
     :title "`cond limit` switch"
     :mdkey "switch-cond-limit"
-    :doc "
-")
+    :doc "TODO"
+)
 
 (define ("ctrans" "ctr")
     :category :element
@@ -578,8 +579,8 @@ displayed when run through the interpreter.
     :title "`ctrans [ <label-exp> ] <term> => <term> if <term> .`"
     :related ("trans" "btrans" "bctrans")
     :doc "Defines a conditional transition. For details see [`trans`](#trans)
-and [`ceq`](#ceq).
-")
+and [`ceq`](#ceq)."
+)
 
 (define ("describe" "desc")
     :category :inspect
@@ -588,15 +589,15 @@ and [`ceq`](#ceq).
     :title "`describe <something>`"
     :related ("show")
     :doc "Similar to the `show` command but with more details. Call `describe ?` for
-the possible set of invocations.
-")
+the possible set of invocations."
+)
 
 (define ("eof")
     :type :doc-only
     :doc "Terminates reading of the current file. Allows for keeping
 untested code or documentations below the `eof` mark. Has
-to be on a line by itself without leading spaces.
-")
+to be on a line by itself without leading spaces."
+)
 
 (define ("eq")
     :category :element
@@ -647,9 +648,7 @@ a set of natural number, and let
 
 In this case an expression like `q1(1 2 3)` would reduce to 
 `p1(1) and p1(2) and p1(3)` (modulo AC), and `q2(1 2 3)` into
-the same term with `or` instead.
-
-"
+the same term with `or` instead."
 )
 
 (define ("exec limit switch")
@@ -659,8 +658,8 @@ the same term with `or` instead.
     :related ("reduce")
     :doc "Possible values: integers, default limit 4611686018427387903.
 
-Controls the number of maximal transition steps.
-")
+Controls the number of maximal transition steps."
+)
 
 (define ("exec trace switch")
     :type :doc-only
@@ -669,8 +668,8 @@ Controls the number of maximal transition steps.
     :related ("reduce")
     :doc "Possible values: `on` `off, default `off`.
 
-controls whether further output is provided during reductions.
-")
+controls whether further output is provided during reductions."
+)
 
 
 (define ("execute" "exec")
@@ -683,8 +682,8 @@ controls whether further output is provided during reductions.
 otherwise in the current module. 
 
 For `execute` equations and transitions, possibly conditional, are taken
-into account for reduction.
-")
+into account for reduction."
+)
 
 
 (define ("extending" "ex")
@@ -695,22 +694,24 @@ into account for reduction.
     :related ("including" "protecting" "using")
     :doc "Imports the object specified by `modexp` into the current
 module, allowing models to be inflated, but not collapsing. 
-See [`module expression`](#moduleexpression) for format of `modexp`.
-")
+See [`module expression`](#moduleexpression) for format of `modexp`."
+)
 
 (define  ("find")
     :category :proof
     :parser parse-find-command
     :evaluator eval-ast
-    :doc "
-")
+    :doc "TODO"
+)
 
 (define ("find all rules switch")
     :type :doc-only
     :title "`find all rules` switch"
     :mdkey "switch-find-all-rules"
-    :doc "
-")
+    :doc "If this switch is on, the [`apply`](#apply) command
+will search for applicable rules not only in the set of
+user-defined equations, but also in those added by the system."
+)
 
 
 
@@ -719,10 +720,10 @@ See [`module expression`](#moduleexpression) for format of `modexp`.
     :parser parse-full-reset-command
     :evaluator eval-ast
     :mdkey "fullreset"
-    :related ("reset")
+    :related ("reset" "prelude")
     :doc "Reinitializes the internal state of the system. All supplied modules
-definitions are lost.
-")
+definitions are lost."
+)
 
 (define ("gendoc")
     :category :io
@@ -730,8 +731,8 @@ definitions are lost.
     :evaluator eval-ast
     :title "`gendoc <pathname>`"
     :doc "generates reference manual from system's on line help documents, 
-and save it to `pathname`.
-")
+and save it to `pathname`."
+)
 
 (define ("imports")
     :category :element
@@ -742,8 +743,8 @@ and save it to `pathname`.
               "using")
     :doc "Block enclosing import of other modules (`protecting` etc). 
 Other statements are not allowed within the `imports` block.
-Optional structuring of the statements in a module.
-")
+Optional structuring of the statements in a module."
+)
 
 (define ("include BOOL switch")
     :type :doc-only
@@ -756,8 +757,8 @@ protecting mode. In particular, BOOL is of practical importance. It
 defines Boolean operators. It is imported to admit conditional
 axioms.
 
-This switch allows to disable automatic inclusion of BOOL.
-")
+This switch allows to disable automatic inclusion of BOOL."
+)
 
 (define ("include RWL switch")
     :type :doc-only
@@ -765,8 +766,8 @@ This switch allows to disable automatic inclusion of BOOL.
     :mdkey "switch-include-rwl"
     :doc "Possible values: `on` `off`, default `off`.
 
-This switch allows to disable automatic inclusion of RWL.
-")
+This switch allows to disable automatic inclusion of RWL."
+)
 
 (define ("including" "inc")
     :category :element
@@ -777,8 +778,8 @@ This switch allows to disable automatic inclusion of RWL.
     :doc "Imports the object specified by `modexp` into the current
 module. 
 
-See [`module expression`](#moduleexpression) for format of `modexp`.
-")
+See [`module expression`](#moduleexpression) for format of `modexp`."
+)
 
 (define  ("input" "in")
     :category :misc
@@ -788,8 +789,8 @@ See [`module expression`](#moduleexpression) for format of `modexp`.
     :doc "Requests the system to read the file specified by the
 pathname. The file itself may contain `input` commands.
 CafeOBJ reads the file up to the end, or until it encounters
-a line that only contains (the literal) `eof`.
-")
+a line that only contains (the literal) `eof`."
+)
 
 (define ("instantiation")
     :type :doc-only
@@ -847,9 +848,8 @@ module NAT-ILIST {
   protecting ( ILIST(SIMPLE-NAT { sort Elt -> Nat },
                      DATATYPE   { sort Elt -> Data }) )
 }
-~~~~~
-
-")
+~~~~~"
+)
 
 
 (define ("let") 
@@ -863,8 +863,8 @@ used in various commands like `reduce` and `parse`.
 
 Although `let` defined variable behave very similar to syntactic
 shorthands, they are not. The right hand side `<term>` needs to
-be a fully parsable expression.
-")
+be a fully parsable expression."
+)
 
 (define ("libpath switch" "library path")
     :type :doc-only
@@ -884,8 +884,8 @@ set libpath - <path1>:<path2>:...
 or the full libpath reset by `set libpath <path1>:<path2>:...`
 
 The current directory has a privileged status: It is always searched
-first and cannot be suppressed.
-")
+first and cannot be suppressed."
+)
 
 
 (define ("look" "look up")
@@ -895,8 +895,7 @@ first and cannot be suppressed.
     :title "`look up <something>`"
     :mdkey "lookup"
     :doc "displays the location (module) and further information
-where `<something>` has been defined.
-"
+where `<something>` has been defined."
     :example "~~~~~
 open INT .
 %INT> look up Nat .
@@ -908,8 +907,8 @@ Nat
     -- declared in module NAT-VALUE
 
 %INT>
-~~~~~
-")
+~~~~~"
+)
 
 (define ("ls")
     :category :misc
@@ -917,8 +916,8 @@ Nat
     :evaluator eval-ast
     :title "`ls <pathname>`"
     :related ("cd" "pwd")
-    :doc "lists the given `pathname`. Argument is obligatory.
-")
+    :doc "lists the given `pathname`. Argument is obligatory."
+)
 
 (define ("match" "unify")
     :category :inspect
@@ -939,8 +938,8 @@ side (for `-rules`), or any side (for `rules`) matches. If the `all`
 including those declared in built-in modules, are inspected.
 
 If a term is given, then the two terms are matched, and if successful,
-the matching substitution is printed.
-")
+the matching substitution is printed."
+)
 
 (define ("module" "mod" "module*" "mod*" "module!" "mod!" "sys:mod!" "sys:module!" "sys:mod*" "sys:module*")
     :category :decl
@@ -970,8 +969,8 @@ See [`parameterized module`](#parameterizedmodule) for more details.
 If `principal_sort_spec` is given, it has to be of the form
 `principal-sort <sortname>` (or `p-sort <sortname>`). The principal
 sort of the module is specified, which allows more concise `view`s from
-single-sort modules as the sort mapping needs not be given.
-")
+single-sort modules as the sort mapping needs not be given."
+)
 
 (define ("parameterized module")
     :type :doc-only
@@ -986,8 +985,7 @@ The parameter's module gives minimal requirements on the module
 instantiation.
 
 Within the module declaration sorts and operators of the parameter
-are qualified with `.<parameter_name>` as seen in the example below.
-"
+are qualified with `.<parameter_name>` as seen in the example below."
     :example "~~~~~
 mod* C {
   [A]
@@ -997,8 +995,8 @@ mod! TWICE(X :: C) {
   op twice : A.X -> A.X .
   eq twice(E:A.X) = add.X(E,E) .
 }
-~~~~~
-")
+~~~~~"
+)
 
 (define ("memo switch")
     :type :doc-only
@@ -1006,8 +1004,8 @@ mod! TWICE(X :: C) {
     :mdkey "switch-memo"
     :doc "controls the memorization of computations. The system memorizes 
 evaluations of operators declared with the [`memo`](#opattr) operator
-attribute. Turning this switch off disables all memorization.
-")
+attribute. Turning this switch off disables all memorization."
+)
 
 (define ("module expression")
     :type :doc-only
@@ -1039,8 +1037,8 @@ summation
 
     This expression describes a module consisting of all the module
     elements of the summands. If a submodule is imported more than
-    once, it is assumed to be shared.
-")
+    once, it is assumed to be shared."
+)
 
 (define ("on-the-fly" "on the fly")
     :type :doc-only
@@ -1073,8 +1071,8 @@ similar to defining an operator
 or in the above example, `op a : -> Nat .`, besides that the
 on-the-fly declaration of constants, like to one of variables, is only
 valid in the current context (i.e., term or axiom). These constant
-definitions are quite common in proof scores.
-")
+definitions are quite common in proof scores."
+)
 
 (define ("op" "ops")
     :category :element
@@ -1102,8 +1100,8 @@ mixfix-spec
     Example: `op _+_ : S S -> S`
 
 For the description of `<attribute-list>` see the entry for
-[operator attributes](#opattr).
-")
+[operator attributes](#opattr)."
+)
 
 
 (define ("open")
@@ -1113,8 +1111,8 @@ For the description of `<attribute-list>` see the entry for
     :title "`open <mod_exp> .`"
     :related ("close" "module expression" "select")
     :doc "This command opens the module specified by the module expression
-`<mod_exp>` and allows for declaration of new sorts, operators, etc.
-")
+`<mod_exp>` and allows for declaration of new sorts, operators, etc."
+)
 
 (define ("operator attributes" "assoc" "comm" "id" "idr" "strat" "constr")
     :type :doc-only
@@ -1190,8 +1188,8 @@ Remarks:
   definition of `op foo op : S -> S` is valid, but not advisable,
   as parsing needs hints.
 
-  - A single underbar cannot be an operator name.
-")
+  - A single underbar cannot be an operator name."
+)
 
 (define ("operator precedence" "precedence")
     :type :doc-only
@@ -1213,8 +1211,8 @@ the following rules:
   those of the form `op _ arg-or-op _ : S1 .. Sk -> S`, receive
   precedence 41.
 - all other operators (constants, operators of the form `a _ b`, etc.)
-  receive precedence 0.
-")
+  receive precedence 0."
+)
 
 (define ("parse")
     :category :parse
@@ -1227,15 +1225,15 @@ the module expression `<mod-exp>`, or the current module if not given,
 and returns the parsed and qualified term.
 
 In case of ambiguous terms, i.e., different possible parse trees, the
-command will prompt for one of the trees.
-")
+command will prompt for one of the trees."
+)
 
 (define ("parser normalize switch")
     :type :doc-only
     :title "`parse normalize` switch"
     :mdkey "switch-parse-normalize"
-    :doc "
-")
+    :doc "TODO"
+)
 
 (define ("pred" "pd" "preds" "pds")
     :category :element
@@ -1243,8 +1241,8 @@ command will prompt for one of the trees.
     :evaluator cafeobj-eval-module-element-proc
     :title "`pred <op-spec> : <sorts>`"
     :related ("op" "bpred")
-    :doc "Short hand for `op <op-spec> : <sorts> -> Bool` defining a predicate.
-")
+    :doc "Short hand for `op <op-spec> : <sorts> -> Bool` defining a predicate."
+)
 
 (define ("print depth switch")
     :type :doc-only
@@ -1252,8 +1250,8 @@ command will prompt for one of the trees.
     :mdkey "switch-print-depth"
     :doc "Possible values: natural numbers, default `unlimited`.
 
-Controls to which depth terms are printed.
-")
+Controls to which depth terms are printed."
+)
 
 (define ("print mode switch")
     :type :doc-only
@@ -1261,8 +1259,8 @@ Controls to which depth terms are printed.
     :mdkey "switch-print-mode"
     :doc "Possible values: `normal` `fancy` `tree` `s-expr`
 
-Selects one of the print modes.
-")
+Selects one of the print modes."
+)
 
 (define ("print trs switch")
     :type :doc-only
@@ -1272,8 +1270,8 @@ Selects one of the print modes.
     :doc "Possible values: `on` `off`, default `off`
 
 If set to `on`, print the rules used during reduction of 
-`=(_,_)=>+_if_suchThat_{_}`.
-")
+`=(_,_)=>+_if_suchThat_{_}`."
+)
 
 
 (define ("protect")
@@ -1284,8 +1282,8 @@ If set to `on`, print the rules used during reduction of
     :related ("unprotect")
     :doc "Protect a module from being overwritten.
 Some modules vital for the system are initially protected.
-Can be reversed with `unprotect`.
-")
+Can be reversed with `unprotect`."
+)
 
 (define ("protecting" "pr")
     :category :element
@@ -1295,8 +1293,8 @@ Can be reversed with `unprotect`.
     :related ("extending" "using" "including")
     :doc "Imports the object specified by `modexp` into the current
 module, preserving all intended models as they are. 
-See [`module expression`](#moduleexpression) for format of `modexp`.
-")
+See [`module expression`](#moduleexpression) for format of `modexp`."
+)
 
 (define  ("provide") 
     :category :library
@@ -1306,8 +1304,8 @@ See [`module expression`](#moduleexpression) for format of `modexp`.
     :related ("require")
     :doc "Discharges a feature requirement: once `provide`d, all the subsequent
 `require`ments of a feature are assumed to have been fulfilled
-already.
-")
+already."
+)
 
 
 (define  ("pwd")
@@ -1315,8 +1313,8 @@ already.
     :parser parse-pwd-command
     :evaluator eval-ast
     :related ("cd" "ls" "pushd" "popd" "dirs")
-    :doc "Prints the current working directory.
-")
+    :doc "Prints the current working directory."
+)
 
 (define ("qualified sort" "qualified operator" "qualified parameter" "qualify")
     :type :doc-only
@@ -1338,8 +1336,8 @@ have been declared with different number of arguments. During operator
 renaming (see [view](#view)) the need
 for qualification of the number of parameters might arise. In this
 case the number can be specified after an affixed `/`: 
-`<opname>/<argnr>`
-")
+`<opname>/<argnr>`"
+)
 
 (define ("qualified term")
     :type :doc-only
@@ -1348,8 +1346,8 @@ case the number can be specified after an affixed `/`:
     :related ("parse")
     :doc "In case that a term can be parsed into different sort, it is possible to
 qualify the term to one of the possible sorts by affixing it with 
-`: <sort-name>` (spaces before and after the `:` are optional).
-")
+`: <sort-name>` (spaces before and after the `:` are optional)."
+)
 
 (define ("quiet switch")
     :type :doc-only
@@ -1358,13 +1356,13 @@ qualify the term to one of the possible sorts by affixing it with
     :related ("verbose")
     :doc "Possible values: `on` `off`, default `off`
 
-If set to `on`, the system only issues error messages.
-")
+If set to `on`, the system only issues error messages."
+)
 
 (define ("quit")
     :type :doc-only
-    :doc "Leaves the CafeOBJ interpreter.
-")
+    :doc "Leaves the CafeOBJ interpreter."
+)
 
 (define ("reduce" "red")
     :category :rewrite
@@ -1377,8 +1375,8 @@ If set to `on`, the system only issues error messages.
 otherwise in the current module. 
 
 For `reduce` only equations and conditional equations are taken into
-account for reduction.
-")
+account for reduction."
+)
 
 (define ("reduce conditions")
     :type :doc-only
@@ -1389,8 +1387,8 @@ account for reduction.
 
 When using [`apply`](#apply) to step through a reduction, this switch
 allows to turn on automatic reduction of conditions in conditional
-equations. 
-")
+equations. "
+)
 
 (define ("regularize")
     :category :misc
@@ -1402,15 +1400,15 @@ term has exactly one minimal parse tree. In this process additional
 sorts are generated to ensure unique least sort of all terms.
 
 Modules can be automatically regularized by the interpreter if the
-`regularize signature` switch is turn to `on`.
-")
+`regularize signature` switch is turn to `on`."
+)
 
 (define ("regularize signature switch" "reg signature")
     :type :doc-only
     :title "`regularize signature` switch"
     :mdkey "switch-regularize-signature"
-    :doc "See [`regularize](#regularize)
-")
+    :doc "See [`regularize](#regularize)"
+)
 
 (define  ("require") 
     :category :library
@@ -1439,10 +1437,10 @@ would search for `foo/bar.cafe` in the pathes from `libpath`"
     :category :system
     :parser parse-reset-command
     :evaluator eval-ast
-    :related ("full reset")
+    :related ("full reset" "prelude")
     :doc "Restores the definitions of built-in modules and preludes,  but does not
-affect other modules.
-")
+affect other modules."
+)
 
 (define ("restore")
     :category :io
@@ -1454,8 +1452,8 @@ affect other modules.
 has been saved with the `save` command. `input` can also be used but
 the effects might be different.
 
-TODO -- should we keep the different effects? What is the real difference?
-")
+TODO -- should we keep the different effects? What is the real difference?"
+)
 
 (define ("rewrite limit switch" "rew limit")
     :type :doc-only
@@ -1465,8 +1463,8 @@ TODO -- should we keep the different effects? What is the real difference?
     :doc "Possible values: positive integers, default not specified.
 
 Allows limiting the number of rewrite steps during a step-wise
-execution.
-")
+execution."
+)
 
 
 (define ("save")
@@ -1479,8 +1477,8 @@ execution.
 File names should be suffixed with `.bin`. 
 
 `save` also saves the contents of prelude files as well as module definitions
-given in the current session.
-")
+given in the current session."
+)
 
 
 (define ("save-system" "save system")   ; NOTE. this is obsolete.
@@ -1489,8 +1487,8 @@ given in the current session.
     :related ("input" "save" "restore")
     :doc "Dumps the image of the whole system into a file. This is functionality
 provided by the underlying Common Lisp system and might carry some 
-restrictions.
-")
+restrictions."
+)
 
 (define ("search predicates")
     :type :doc-only
@@ -1533,8 +1531,8 @@ adds a `suchThat` clause, one adds a `withStateEq` clause.
 
 These two cases can also be combined into 
 
-`S =(n,m)=>* SS [if Pred1] suchThat Pred2 withStateEq Pred3`
-")
+`S =(n,m)=>* SS [if Pred1] suchThat Pred2 withStateEq Pred3`"
+)
 
 
 (define ("select")
@@ -1546,8 +1544,8 @@ These two cases can also be combined into
     :doc "Selects a module given by the module expression `<mod_exp>` as the
 current module. All further operations are carried out within the
 given module. In contrast to `open` this does not allow for
-modification of the module, e.g., addition of new sorts etc.
-")
+modification of the module, e.g., addition of new sorts etc."
+)
 
 
 (define  ("set")
@@ -1562,8 +1560,8 @@ integers (5434443), lists (lisp syntax).
 
 For a list of all available switches, use `set ?`. To see the current
 values, use `show switches`. To single out two general purpose switches,
-`verbose` and `quiet` tell the system to behave in the respective way.
-")
+`verbose` and `quiet` tell the system to behave in the respective way."
+)
 
 
 (define  ("show" "sh")
@@ -1584,15 +1582,15 @@ the `show` command are:
   - `show switches` - lists all possible switches
   - `show term [ tree ]` - displays a term, possible in tree format
 
-See the entry for [`switches`](#switches) for a full list.
-")
+See the entry for [`switches`](#switches) for a full list."
+)
 
 (define ("show mode switch")
     :type :doc-only
     :title "`show mode` switch"
     :mdkey "switch-show-mode"
-    :doc "Possible values for `set show mode <mode>` are `cafeobj` and `meta`.
-")
+    :doc "Possible values for `set show mode <mode>` are `cafeobj` and `meta`."
+)
 
 
 (define ("signature" "sig")
@@ -1603,8 +1601,8 @@ See the entry for [`switches`](#switches) for a full list.
     :related ("axioms" "imports" "sort" "op")
     :doc "Block enclosing declarations of sorts and operators.
 Other statements are not allowed within the `signature` block.
-Optional structuring of the statements in a module.
-")
+Optional structuring of the statements in a module."
+)
 
 (define ("sort declaration")
     :type :doc-only
@@ -1629,15 +1627,14 @@ Definition of the partial order can be interleaved by giving
 ~~~~
 
 Where `sorts` is a list of sort names. This declaration defines an inclusion
-relation between each pair or left and right sorts.
-"
+relation between each pair or left and right sorts."
     :example "~~~~
   [ A B , C D < A < E, B < D ]
 ~~~~
 
 defines five sorts `A`,...,`E`, with the following relations:
-`C < A`, `D < A`, `A < E`, `B < D`.
-")
+`C < A`, `D < A`, `A < E`, `B < D`."
+)
 
 (define ("start")
     :category :proof
@@ -1647,8 +1644,8 @@ defines five sorts `A`,...,`E`, with the following relations:
     :related ("apply" "choose" "match")
     :doc "Sets the focus onto the given term `<term>` of the currently opened
 module or context. Commands like `apply`, `choose`, or `match` will
-then operate on this term.
-")
+then operate on this term."
+)
 
 (define ("statistics")
     :type :doc-only
@@ -1659,8 +1656,8 @@ then operate on this term.
 After each reduction details about the reduction are
 shown. Information shown are the time for parsing the expression, the
 number of rewrites and run time during rewriting, and the number of
-total matches performed during the reduce.
-")
+total matches performed during the reduce."
+)
 
 (define ("step switch")
     :type :doc-only
@@ -1699,37 +1696,33 @@ Other standard CafeOBJ commands that can be used are [`show`](#show),
 [`describe`](#describe), [`dirs`](#dirs), [`set`](#set), [`cd`](#cd), 
 [`ls`](#ls), [`pwd`](#pwd), [`pushd`](#pushd), [`popd`](#popd), 
 [`lisp`](#lisp), [`lispq`](#lisp), and (on Unix only)
-[`!`](#commandexec).
-")
+[`!`](#commandexec)."
+)
 
 (define ("stop pattern switch")
     :type :doc-only
     :title "`stop pattern` switch"
     :mdkey "switch-stop-pattern"
     :related ("step switch")
-    :doc "This command causes reductions to stop when the reductants get to
+    :doc "In [step mode](#switch-step), this command causes reductions to stop when the reductants get to
 containing subterms that match the given term. If no term is given,
-this restriction is lifted. 
-
-TODO does not work as far as I see -- shouldn't the following code
-fragment stop at the occurrence of `(s 2)`, before rewriting it to
-the final 3?
-
-`````
+this restriction is lifted."
+    :example "
+~~~~~
 CafeOBJ> open NAT .
-
--- opening module NAT.. done.
-
-%NAT> set stop pattern (s 2) .
-
-%NAT> red (s (s (s 0))) .
--- reduce in %NAT : (s (s (s 0))):NzNat
-(3):NzNat
-(0.000 sec for parse, 3 rewrites(0.000 sec), 3 matches)
-
-%NAT> 
-`````
-")
+%NAT> set step on .
+%NAT> set stop pattern s 2 .
+%NAT> red s s s s s s s s s 0 .
+>> target: (s 0)
+STEP[1]? c
+>> term matches to stop pattern: (s 2)
+<< will stop rewriting
+>> stop because matches stop pattern.
+>> target: (s 2)
+STEP[3]? c
+(9):NzNat
+~~~~~"
+)
 
 (define ("switches")
     :type :doc-only
@@ -1743,8 +1736,8 @@ shown with
 show switches
 `````
 
-The single switches are described separately in this manual.
-")
+The single switches are described separately in this manual."
+)
 
 (define ("trace whole switch")
     :type :doc-only
@@ -1754,8 +1747,8 @@ The single switches are described separately in this manual.
 sequences, not just the results. Setting the switch `trace whole` will
 result in the resultant term of each rewrite step being
 printed. Setting the switch `trace` will result in the display of
-which rule, substitution, and replacement are used.
-")
+which rule, substitution, and replacement are used."
+)
 
 (define ("trans" "tr")
     :category :element
@@ -1773,8 +1766,8 @@ particular, reductions (both with or without behavior axioms used) do
 not take transitions into account. Only [`exec`](#execute) also uses
 transitions. On the other hand, the built-in 
 [search predicate](#searchpredicate) searches all possible transitions
-from a given term.
-")
+from a given term."
+)
 
 (define ("unprotect") 
     :category :switch
@@ -1784,8 +1777,8 @@ from a given term.
     :related ("protect")
     :doc "Remove overwrite protection from a module that has been protected
 with the `protect` call. Some modules vital for the system
-are initially protected.
-")
+are initially protected."
+)
 
 (define ("using" "us")
     :category :element
@@ -1795,8 +1788,8 @@ are initially protected.
     :related ("extending" "including" "protecting")
     :doc "Imports the object specified by `modexp` into the current
 module without any restrictions on the models.
-See [`module expression`](#moduleexpression) for format of `modexp`.
-")
+See [`module expression`](#moduleexpression) for format of `modexp`."
+)
 
 (define ("var" "vars")
     :category :element
@@ -1810,8 +1803,8 @@ Redeclarations of variable names are not allowed.
 Several variable of the same sort can be declared at the same time
 using the `vars` construct:
 
-`vars <var-name> ... : <sort-name>`
-")
+`vars <var-name> ... : <sort-name>`"
+)
 
 (define ("verbose switch")
     :type :doc-only
@@ -1820,16 +1813,16 @@ using the `vars` construct:
     :related ("quiet switch")
     :doc "Possible values: `on` `off`, default `off`.
 
-If turn `on`, the system is much more verbose in many commands.
-")
+If turn `on`, the system is much more verbose in many commands."
+)
 
 
 (define ("version")
     :category :misc
     :parser parse-version-command
     :evaluator princ
-    :doc "Prints out the version of CafeOBJ.
-")
+    :doc "Prints out the version of CafeOBJ."
+)
 
 (define ("view")
     :category :decl
@@ -1879,8 +1872,8 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
   op   e -> 0,
   op _*_ -> _+_
 }
-~~~~~
-")
+~~~~~"
+)
 
 
 (define  ("dribble")
@@ -1897,14 +1890,14 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
     :title "`exec! [ in <mod-exp> : ] <term> .`"
     :mdkey "execute-dash"
     :doc "TODO
-exec! [in <Modexpr> :] <Term> .
-")
+exec! [in <Modexpr> :] <Term> ."
+)
 
 (define  ("stop")
     :category :rewrite
     :parser parse-stop-at
     :evaluator eval-ast
-    :doc "TODO"
+    :doc "Equivalent to [`stop pattern switch`](#switch-stop-pattern)"
 )
 
 
@@ -1916,15 +1909,16 @@ exec! [in <Modexpr> :] <Term> .
     :example "`````
 CafeOBJ> lisp (+ 4 5)
 (+ 4 5) -> 9
-`````
-")
+`````"
+)
 
 (define ("lispq" "evq")
     :category :system
     :parser parse-eval-lisp
     :evaluator cafeobj-eval-lisp-q-proc
-    :doc "Evaluates the following quoted lisp expression. (TODO ???)
-")
+    :doc "Evaluates the following lisp expression, but does not
+display the result (q for quiet)."
+)
 
 (define ("make")
     :category :decl
@@ -1933,14 +1927,17 @@ CafeOBJ> lisp (+ 4 5)
     :title "`make <mod_name> ( <mod_exp> )`"
     :related ("module expression")
     :doc "This commands defines a new module `<mod_name>` by evaluating the
-module expression `<mod_exp>`.
-")
+module expression `<mod_exp>`."
+)
 
 (define  ("prelude")
     :category :library
     :parser parse-prelude-command
     :evaluator cafeobj-eval-prelude-proc
-    :doc "TODO"
+    :related ("reset" "full reset")
+    :title "`prelude <file>`"
+    :doc "Loads the given `<file>` as prelude. That is, a call to
+[`reset`](#reset) will reset the definitions made in this file."
 )
 
 (define ("[")
@@ -1948,8 +1945,8 @@ module expression `<mod_exp>`.
     :parser identity
     :mdkey "sortsymbol"
     :evaluator cafeobj-eval-module-element-proc
-    :doc "Starts a sort declaration. See [sort declaration](#sort) for details.
-")
+    :doc "Starts a sort declaration. See [sort declaration](#sort) for details."
+)
 
 (define ("*")
     :category :element
@@ -1961,8 +1958,8 @@ module expression `<mod_exp>`.
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "
-")
+    :doc "TODO"
+)
 
 
 ; seems these are obsolete, 
@@ -1985,32 +1982,32 @@ module expression `<mod_exp>`.
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`ax [ <label-exp> ] <term> = <term>` ."
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("bax")                 ; pignose
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`bax [ <label-exp> ] <term> = <term>` ."
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("goal")                ; pignose
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`goal <term> .`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("bgoal")               ; pignose
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
     :title "`bgoal <term> .`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("pvar" "pvars")
     :category :element
@@ -2018,8 +2015,8 @@ module expression `<mod_exp>`.
     :evaluator cafeobj-eval-module-element-proc
     :title "`pvar <var-name> : <sort-name>`"
     :related ("var" "vars")
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
   
 
 (define ("rule" "rl" )
@@ -2028,8 +2025,8 @@ module expression `<mod_exp>`.
     :evaluator cafeobj-eval-module-element-proc
     :title "`rule [ <label-exp> ] <term> => <term> .`"
     :related ("trans")
-    :doc "Synonym of [`trans`](#trans).
-")
+    :doc "Synonym of [`trans`](#trans)."
+)
 
 (define ("crule" "crl")
     :category :element
@@ -2037,8 +2034,8 @@ module expression `<mod_exp>`.
     :evaluator cafeobj-eval-module-element-proc
     :title "`crule [ <label-exp> ] <term> => <term> if <term> .`"
     :related ("ctrans" "rule")
-    :doc "Synonym of [`ctrans`](#ctrans)
-")
+    :doc "Synonym of [`ctrans`](#ctrans)"
+)
 
 (define ("brule" "brl")
     :category :element
@@ -2046,8 +2043,8 @@ module expression `<mod_exp>`.
     :evaluator cafeobj-eval-module-element-proc
     :related ("btrans")
     :title "`brule [ <label-exp> ] <term> => <term> .`"
-    :doc "Synonym of [`btrans`](#btrans).
-")
+    :doc "Synonym of [`btrans`](#btrans)."
+)
 
 (define ("bcrule" "bcrl")
     :category :element
@@ -2055,16 +2052,16 @@ module expression `<mod_exp>`.
     :evaluator cafeobj-eval-module-element-proc
     :related ("bctrans")
     :title "`bcrule [ <label-exp> ] <term> => <term> if <term> .`"
-    :doc "Synonym of [`bctrans`](#bctrans)
-")
+    :doc "Synonym of [`bctrans`](#bctrans)"
+)
 
 (define ("inspect" "inspect-term")
     :category :proof
     :parser parse-inspect-term-command
     :evaluator eval-ast
     :title "`inspect <term>`"
-    :doc "Inspect the internal structure of `<term>`.
-")
+    :doc "Inspect the internal structure of `<term>`."
+)
 
 (define ("pushd")
     :category :misc
@@ -2073,8 +2070,8 @@ module expression `<mod_exp>`.
     :related ("ls" "cd" "popd" "pwd" "dirs")
     :title "`pushd <directory>`"
     :doc "Changes the working directory to `<directory>`, and puts the
-current directory onto the push stack. Going back can be done with `pop`.
-")
+current directory onto the push stack. Going back can be done with `pop`."
+)
 
 (define  ("popd")
     :category :misc
@@ -2082,16 +2079,16 @@ current directory onto the push stack. Going back can be done with `pop`.
     :evaluator eval-ast
     :related ("ls" "cd" "pushd" "pwd" "dirs")
     :title "`popd`"
-    :doc "Changes the current working directory to the last on on the push stack.
-")
+    :doc "Changes the current working directory to the last on on the push stack."
+)
 
 (define  ("dirs")
     :category :misc
     :parser parse-dirs-command
     :evaluator eval-ast
     :related ("ls" "cd" "pushd" "pwd" "popd")
-    :doc "Displays the current push stack.
-")
+    :doc "Displays the current push stack."
+)
 
 (define ("") 
     :category :misc
@@ -2099,126 +2096,127 @@ current directory onto the push stack. Going back can be done with `pop`.
     :evaluator cafeobj-eval-control-d
     :title "Ctrl-D"
     :mdkey "ctrld"
-    :doc "
-")
+    :doc "Terminates the input and exit from the interpreter."
+)
 
 (define ("cont" "continue")
     :category :rewrite
     :parser parse-continue-command
     :evaluator eval-ast
-    :doc "TODO
-")
+    :doc "In [step mode](#switch-step), continues the reduction until
+a [stop pattern](#switch-stop-pattern) has been found."
+)
 
 (define ("names" "name")
     :category :inspect
     :parser parse-name-command
     :evaluator eval-ast
     :title "`names <mod-exp>` ."
-    :doc "List up all the named objects in module <mod-exp>.
-")
+    :doc "List up all the named objects in module <mod-exp>."
+)
 
 (define ("scase")
     :category :proof
     :parser parse-case-command
     :evaluator eval-ast
     :title "`scase (<term>) in (<mod-exp>) as <name> { <decl> ..} : <term> .`"
-    :doc "TODO
-")
+    :doc "TODO"
+)
 
 (define ("sos" "passive")
     :category :proof
     :parser pignose-parse-sos
     :evaluator eval-ast
     :title "`sos { = | + | - } { <clause> , ... }`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("db")
     :category :proof
     :parser pignose-parse-db
     :evaluator eval-ast
     :title "`db reset`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define  ("clause")
     :category :proof
     :parser pignose-parse-clause
     :evaluator eval-ast
     :title "`clause <term> .`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define  ("list")
     :category :proof
     :parser pignose-parse-list-command
     :evaluator eval-ast
     :title "`list { axiom | sos | usable | flag | param | option | demod }`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("flag")
     :category :proof
     :parser pignose-parse-flag
     :evaluator eval-ast
     :title "`flag(<name>, { on | off })`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define  ("param")
     :category :proof
     :parser pignose-parse-param
     :evaluator eval-ast
     :title "`param(<name>, <value>)`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("option")
     :category :proof
     :parser pignose-parse-option
     :evaluator eval-ast
     :title "`option { reset | = <name> }`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("resolve")
     :category :proof
     :parser pignose-parse-resolve
     :evaluator eval-ast
     :title "`resolve {. | <file-path> }`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define  ("demod")
     :category :proof
     :parser pignose-parse-demod
     :evaluator eval-ast
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("save-option")
     :category :proof
     :parser pignose-parse-save-option
     :evaluator eval-ast
     :title "`save-option <name>`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define ("sigmatch")
   :category :proof
   :parser pignose-parse-sigmatch
   :evaluator eval-ast
   :title "`sigmatch (<mod-exp>) to (<mod-exp>)`"
-  :doc "(pignose)
-")
+  :doc "(pignose)"
+)
 
 (define  ("lex")
     :category :proof
     :parser pignose-parse-lex
     :evaluator eval-ast
     :title "`lex (<op>, ..., <op>)`"
-    :doc "(pignose)
-")
+    :doc "(pignose)"
+)
 
 (define (".")
     :category :misc
@@ -2226,9 +2224,8 @@ current directory onto the push stack. Going back can be done with `pop`.
     :evaluator cafeobj-nop
     :title "`.`"
     :mdkey "dotsep"
-    :doc "
-Do nothing.
-")
+    :doc "Input separator"
+)
 
 ;;; CITP commands
 (define ("citp")
@@ -2239,8 +2236,8 @@ Do nothing.
 
 The sub-system provides a certain level of automatization for theorem proving.
 
-Please see the accompanying manual for CITP for details.
-")
+Please see the accompanying manual for CITP for details."
+)
 
 (define (":goal")
     :category :proof
@@ -2256,8 +2253,7 @@ PNAT> :goal {
    eq [lemma-1]: M:PNat + 0 = M . 
    eq [lemma-2]: M:PNat + s N:PNat = s( M + N ) . 
 }
-~~~~~
-"
+~~~~~"
     )
 
 (define (":apply")
@@ -2268,7 +2264,7 @@ PNAT> :goal {
     :title "`:apply (<tactic> ...) [to <goal-name>]`"
     :doc "Apply the list of tactics given within parenthesis to either
 the current goal, or the goal given as `<goal-name>`."
-    )
+)
 
 (define (":ind")
     :category :proof
@@ -2280,9 +2276,8 @@ the current goal, or the goal given as `<goal-name>`."
     :example "
 ~~~~~
 :ind on (M:PNat)
-~~~~~
-"
-    )
+~~~~~"
+)
 
 (define (":auto")
     :category :proof
@@ -2291,7 +2286,7 @@ the current goal, or the goal given as `<goal-name>`."
     :related ("citp")
     :title "`:auto`"
     :doc "Applies the following set of tactics: `(SI CA TC IP RD)`."
-    )
+)
 
 (define (":roll")
     :category :proof
@@ -2300,7 +2295,7 @@ the current goal, or the goal given as `<goal-name>`."
     :related ("citp")
     :title "`:roll back`"
     :doc "TODO"
-    )
+)
 
 (define (":init")
     :category :proof
@@ -2309,7 +2304,7 @@ the current goal, or the goal given as `<goal-name>`."
     :related ("citp")
     :title "`:init { \"[\" <label> \"]\" | \"(\" <sentence> \"\")} by \"{\" <variable> <- <term>; ... \"}\"`"
     :doc "TODO"
-    )
+)
 
 (define (":imply" ":imp")
     :category :proof
@@ -2318,7 +2313,7 @@ the current goal, or the goal given as `<goal-name>`."
     :related ("citp")
     :title "`:imp \"[\" <label> \"]\" by \"{\" <variable> <- <term>; ...\"}\"`"
     :doc "TODO"
-    )
+)
 
 (define (":cp")
     :category :proof
@@ -2327,7 +2322,7 @@ the current goal, or the goal given as `<goal-name>`."
     :related ("citp")
     :title "`:cp { \"[\" <label> \"]\" | \"(\" <sentence> . \")\" } >< { \"[\" <label> \"]\" | \"(\" <sentence> .\")\" }`"
     :doc "TODO specify critical pair"
-    )
+)
 
 (define (":equation")
     :category :proof
@@ -2336,7 +2331,7 @@ the current goal, or the goal given as `<goal-name>`."
     :title "`:equation`"
     :related ("citp")
     :doc "TODO"
-    )
+)
 
 (define (":rule")
     :category :proof
@@ -2345,7 +2340,7 @@ the current goal, or the goal given as `<goal-name>`."
     :title "`:rule`"
     :related ("citp")
     :doc "TODO"
-    )
+)
 
 (define (":backward")
     :category :proof
@@ -2354,7 +2349,7 @@ the current goal, or the goal given as `<goal-name>`."
     :title "`:backward equation`"
     :related ("citp")
     :doc "TODO"
-    )
+)
 
 (define (":select")
     :category :proof
@@ -2363,7 +2358,7 @@ the current goal, or the goal given as `<goal-name>`."
     :title "`:select <goal-name>`"
     :related ("citp")
     :doc "Select a goal for further application of tactics."
-    )
+)
 
 (define (":red" ":exec" ":bred")
     :category :proof
@@ -2371,8 +2366,8 @@ the current goal, or the goal given as `<goal-name>`."
     :evaluator eval-citp-red
     :title "`{ :red | :exec | :bred } [in <goal-name> :] <term> .`"
     :related ("citp")
-    :doc "reduce the term in specified goal <goal-name>. "
-    )
+    :doc "reduce the term in specified goal <goal-name>."
+)
 
 (define (":verbose")
     :category :proof
@@ -2381,7 +2376,7 @@ the current goal, or the goal given as `<goal-name>`."
     :title "`:verbose { on | off }`"
     :related ("citp")
     :doc "Turns on verbose reporting of the CITP subsystem."
-    )
+)
 
 (define (":normalize")
     :category :proof
@@ -2390,7 +2385,7 @@ the current goal, or the goal given as `<goal-name>`."
     :title "`:normalize { on | off}`"
     :related ("citp")
     :doc "Normalize the LHS of an instance of the axiom generated by :init command."
-    )
+)
 
 (define (":ctf")
     :category :proof
@@ -2400,7 +2395,7 @@ the current goal, or the goal given as `<goal-name>`."
     :title "`:ctf { eq [ <label-exp> ] <term> = <term> .}`"
     :doc "Applies case splitting after a set of boolean expressions.
 Not discharged sub-goals will remain in the reduced form."
-    )
+)
 
 (define (":ctf-")
     :category :proof
@@ -2410,7 +2405,7 @@ Not discharged sub-goals will remain in the reduced form."
     :title "`:ctf- { eq [ <label-exp> ] <term> = <term> .}`"
     :doc "Like [`:ctf`](#:ctf), but if sub-goals are not discharged, the
 CITP prover returns to the original state before the reduce action."
-    )
+)
 
 (define (":csp")
     :category :proof
@@ -2425,7 +2420,7 @@ The system does not check whether given set of equations exhausts all
 possible values.
 
 Not discharged sub-goals will remain in the reduced form."
-    )
+)
 
 (define (":csp-")
     :category :proof
@@ -2435,7 +2430,7 @@ Not discharged sub-goals will remain in the reduced form."
     :title "`:csp- { eq [ <label-exp>] <term> = <term> . ...}`"
     :doc "Like [`:csp`](#:csp), but if sub-goals are not discharged, the
 CITP prover returns to the original state before the reduce action."
-    )
+)
 
 (define (":def" ":define")
     :category :proof
@@ -2451,9 +2446,8 @@ so that it can be used as tactics in `:apply`."
 :def name-3 = csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
 :def name-4 = csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
 :apply(SI TC name-1 name-2 name-3 name-4)
-~~~~~
-"
-    )
+~~~~~"
+)
 
 (define  (":show" ":sh")
     :category :inspect
@@ -2475,8 +2469,7 @@ root*
 [ca]  2-2*
 [tc]  2-2-1*
 PNAT>
-~~~~~
-"
+~~~~~"
 )
 
 (define (":describe" ":desc")
@@ -2500,8 +2493,7 @@ PNAT> :describe proof
       eq [lemma-1]: 0 + 0 = 0 .
       eq [lemma-2]: 0 + s N:PNat = s (0 + N) .
 ...
-~~~~~
-"
+~~~~~"
 )
 
 (define (":spoiler")
@@ -2511,7 +2503,7 @@ PNAT> :describe proof
     :related ("citp")
     :title "`:spoiler { on | off}`"
     :doc "TODO"
-    )
+)
 
 (define (":set")
     :category :proof
@@ -2519,8 +2511,8 @@ PNAT> :describe proof
     :evaluator citp-eval-set
     :title "`:set(<name>, { on | off | show })`"
     :related ("citp")
-    :doc "Set or show various flags of CITP CafeOBJ.
-")
+    :doc "Set or show various flags of CITP CafeOBJ."
+)
 
 (define (":binspect")
     :category :proof
@@ -2528,7 +2520,7 @@ PNAT> :describe proof
     :evaluator eval-citp-binspect
     :title "`:binspect [in <goal-name> :] <boolean-term> .`"
     :doc "Used during [CITP](#citp) proofs instead of [`binspect`](#binspect)"
-    )
+)
 
 (define ("binspect")
     :category :proof
@@ -2547,9 +2539,8 @@ CafeOBJ> binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)) .
 ...
 --> ((p4(Y:S) and p1(Y)) xor ((p3(Y) and p1(X:S)) xor ((p2(X) and (p3(Y) and p1(X))) xor ((p3(Y) and p2(X)) xor ((p3(Y) and (p2(X) and (p4(Y) and p1(Y)))) xor ((p3(Y) and (p2(X) and (p1(X) and (p1(Y) and p4(Y))))) xor (p1(X) and (p3(Y) and (p1(Y) and p4(Y))))))))))
 ...
-~~~~~
-"
-    )
+~~~~~"
+)
 
 (define ("bresolve" ":bresolve")
     :category :proof
@@ -2557,8 +2548,7 @@ CafeOBJ> binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)) .
     :evaluator bresolve
     :title "`{bresolve | :bresolve}`"
     :doc "Computes all possible variable assignments that render an abstracted
-term `true`. The variant with leading colon is for usage during a 
-[CITP](#citp) proof."
+term `true`. The variant with leading colon is for usage during a [CITP](#citp) proof."
     :example "
 ~~~~~
 CafeOBJ> bresolve
@@ -2567,9 +2557,8 @@ CafeOBJ> bresolve
   (1): { P-5:Bool |-> true, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
   (2): { P-5:Bool |-> false, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
 ...
-~~~~~
-"
-    )
+~~~~~"
+)
 
 (define ("bshow" ":bshow")
     :category :proof
@@ -2589,9 +2578,9 @@ where
   P-3:Bool |-> p3(Y:S)
   P-4:Bool |-> p1(X:S)
   P-5:Bool |-> p2(X:S)
-~~~~~
-"
-    )
+~~~~~"
+)
+
 ;;;
 
 (define ("commands" "com")
@@ -2600,8 +2589,8 @@ where
     :evaluator show-cafeobj-main-commands
     :title "`commands`"
     :mdkey "help"
-    :doc "Print outs the list of main toplevel commands.
-")
+    :doc "Print outs the list of main toplevel commands."
+)
 
 (define ("?com" "?command")
     :category :help
@@ -2612,8 +2601,8 @@ where
     :doc "List commands or declarations categorized by the key <term>.
 <term> is one of 'decl', 'module', 'parse', 'rewrite', 
 'inspect', 'switch', 'proof', 'system', 'inspect', 'library', 'help', 'io' or 'misc'.
-If <term> is omitted, the list of available <term> will be printed.
-    ")
+If <term> is omitted, the list of available <term> will be printed."
+)
 
 ;;;
 )                                      ; end eval-when
