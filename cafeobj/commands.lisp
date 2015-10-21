@@ -177,7 +177,7 @@ operator defined on each hidden sort."
     :type :doc-only
     :title "`accept =*= proof` switch"
     :mdkey "switch-accept"
-    :doc "TODO"
+    :doc "accept system's automatic proof of congruency of `=*=`"
 )
 
 (define ("?" "??" "?ex" "?example")
@@ -499,19 +499,19 @@ operators.
     :doc "These switches turn on automatic checking of certain properties:
 
 `check coherency`
-  ~ TODO
+  ~ check whether transitions and equations are coherent
 
 `check compatibility`
   ~ see the [`check`](#check) command
 
 `check import`
-  ~ TODO
+  ~ check conflicting importing mode of submodules
 
 `check regularity`
   ~ see the [`check`](#check) command
 
 `check sensible`
-  ~ TODO"
+  ~ check whether a signature is sensible"
 )
 
 (define  ("choose") 
@@ -1508,7 +1508,7 @@ in the search if `Pred` holds.
 
 The parameters `n` and `m` in these search predicates:
 
-  - `n`, a natural number of `*`, gives the maximal number of solutions
+  - `n`, a natural number or `*`, gives the maximal number of solutions
      to be searched. If `*` is given all solutions are searched
      exhaustively.
   - `m`, a natural number but not `*`, gives the maximal depth up to
@@ -1527,7 +1527,13 @@ adds a `suchThat` clause, one adds a `withStateEq` clause.
     `Pred2`, which normally takes `S` and `SS` as arguments, holds.
 
 `S =(n,m)=>* SS [if Pred1] withStateEq Pred2`
-  ~ (and similar for `!` and `+`) TODO
+  ~ (and similar for `!` and `+`) `Pred2` is used to determine whether
+    a search continues at `SS` or not, by comparing `SS` with all
+    states that have been traversed in the current search. If the
+    predicate `Pred2` returns true on the combination of `SS` as
+    first argument, and any of the previously visited states as
+    second argument, then the search is *not* continued after `SS`.
+    (This is a kind of loop detection.)
 
 These two cases can also be combined into 
 
