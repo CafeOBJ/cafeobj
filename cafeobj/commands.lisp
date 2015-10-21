@@ -2420,7 +2420,7 @@ Not discharged sub-goals will remain in the reduced form."
     :evaluator eval-citp-ctf
     :related ("citp" ":ctf")
     :title "`:ctf- { eq [ <label-exp> ] <term> = <term> .}`"
-    :doc "Like [`:ctf`](#:ctf), but if sub-goals are not discharged, the
+    :doc "Like [`:ctf`](#citp-ctf), but if sub-goals are not discharged, the
 CITP prover returns to the original state before the reduce action."
 )
 
@@ -2445,7 +2445,7 @@ Not discharged sub-goals will remain in the reduced form."
     :evaluator eval-citp-csp
     :related ("citp" ":csp")
     :title "`:csp- { eq [ <label-exp>] <term> = <term> . ...}`"
-    :doc "Like [`:csp`](#:csp), but if sub-goals are not discharged, the
+    :doc "Like [`:csp`](#citp-csp), but if sub-goals are not discharged, the
 CITP prover returns to the original state before the reduce action."
 )
 
@@ -2607,7 +2607,7 @@ where
     :parser identity
     :evaluator show-cafeobj-main-commands
     :title "`commands`"
-    :mdkey "help"
+    :mdkey "comshelp"
     :doc "Print outs the list of main toplevel commands."
 )
 
