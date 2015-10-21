@@ -64,7 +64,7 @@ tar --exclude=cafeobj-$version	\
 	--exclude=.git			\
 	--exclude=.gitignore		\
 	-cvf - . | tar -C cafeobj-$version -xvf - 
-tar -cvzf cafeobj-$version.tar.gz cafeobj-$version
+tar --owner=0 --group=0 -cvzf cafeobj-$version.tar.gz cafeobj-$version
 rm -rf cafeobj-$version
 
 
