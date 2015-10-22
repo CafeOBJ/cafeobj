@@ -312,11 +312,11 @@ if test x"$enable_rebuild_doc" = x"yes"
 then
   dnl check for documentation building programs
   AC_CHECK_PROG(xelatex_avail, [xelatex], [yes], [no])
-  AC_CHECK_PROG(biber_avail, [biber], [yes], [no])
+  AC_CHECK_PROG(bibtex_avail, [bibtex], [yes], [no])
   AC_CHECK_PROG(pandoc_avail, [pandoc], [yes], [no])
   AC_CHECK_PROG(pdflatex_avail, [pdflatex], [yes], [no])
   if test $xelatex_avail = no \
-     -o $biber_avail = no   \
+     -o $bibtex_avail = no   \
      -o $pandoc_avail = no  \
      -o $pdflatex_avail = no
   then
