@@ -56,7 +56,7 @@ binary-arch: build install
 	dh_installchangelogs
 	# do NOT strip otherwise the sbcl dump file is broken!
 	#dh_strip
-	dh_compress
+	dh_compress -X.pdf
 	dh_fixperms
 	dh_installdeb
 	dh_shlibdeps
