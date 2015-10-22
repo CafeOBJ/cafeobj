@@ -1,3 +1,10 @@
+cafeobj (1.5.4-1) unstable; urgency=medium
+
+  * new upstream release
+  * drop biber dependency, upstream uses bibtex now
+
+ -- Norbert Preining <preining@debian.org>  Thu, 22 Oct 2015 11:06:38 +0900
+
 cafeobj (1.5.3-1) experimental; urgency=medium
 
   * new upstream release
