@@ -1,0 +1,82 @@
+---
+ configure    |   40 ----------------------------------------
+ configure.ac |    2 --
+ 2 files changed, 42 deletions(-)
+
+--- cafeobj.git.orig/configure
++++ cafeobj.git/configure
+@@ -590,7 +590,6 @@
+ enable_rebuild_doc
+ pdflatex_avail
+ pandoc_avail
+-biber_avail
+ xelatex_avail
+ gcl_dump
+ ccl64_dump
+@@ -2507,44 +2506,6 @@
+ fi
+ 
+ 
+-  # Extract the first word of "biber", so it can be a program name with args.
+-set dummy biber; ac_word=$2
+-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+-$as_echo_n "checking for $ac_word... " >&6; }
+-if ${ac_cv_prog_biber_avail+:} false; then :
+-  $as_echo_n "(cached) " >&6
+-else
+-  if test -n "$biber_avail"; then
+-  ac_cv_prog_biber_avail="$biber_avail" # Let the user override the test.
+-else
+-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $PATH
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-    for ac_exec_ext in '' $ac_executable_extensions; do
+-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+-    ac_cv_prog_biber_avail="yes"
+-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-  done
+-IFS=$as_save_IFS
+-
+-  test -z "$ac_cv_prog_biber_avail" && ac_cv_prog_biber_avail="no"
+-fi
+-fi
+-biber_avail=$ac_cv_prog_biber_avail
+-if test -n "$biber_avail"; then
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $biber_avail" >&5
+-$as_echo "$biber_avail" >&6; }
+-else
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+-$as_echo "no" >&6; }
+-fi
+-
+-
+   # Extract the first word of "pandoc", so it can be a program name with args.
+ set dummy pandoc; ac_word=$2
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+@@ -2622,7 +2583,6 @@
+ 
+ 
+   if test $xelatex_avail = no \
+-     -o $biber_avail = no   \
+      -o $pandoc_avail = no  \
+      -o $pdflatex_avail = no
+   then
+--- cafeobj.git.orig/configure.ac
++++ cafeobj.git/configure.ac
+@@ -312,11 +312,9 @@
+ then
+   dnl check for documentation building programs
+   AC_CHECK_PROG(xelatex_avail, [xelatex], [yes], [no])
+-  AC_CHECK_PROG(biber_avail, [biber], [yes], [no])
+   AC_CHECK_PROG(pandoc_avail, [pandoc], [yes], [no])
+   AC_CHECK_PROG(pdflatex_avail, [pdflatex], [yes], [no])
+   if test $xelatex_avail = no \
+-     -o $biber_avail = no   \
+      -o $pandoc_avail = no  \
+      -o $pdflatex_avail = no
+   then
