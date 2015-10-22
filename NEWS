@@ -1,10 +1,18 @@
-* CafeOBJ 1.5.4 (DEV)
+* CafeOBJ 1.5.4
 ===============
 
   - CITP changes
     . new commands :ctf- and :csp-
     . new command :def(ine) to turn :ctf(-) and :csp(-) into proper
       tactics for :apply
+    . new tactics nf, ct
+  - improvements in the online help system
+  - bug fixes in AC rewriting
+  - small changes in the set of abbreviations of the Emacs mode
+  - module system: require/provide can use Perl style :: separators
+    to load modules from the libpath and its sub-directories
+  - term inspection (binspect) to analyze xor terms
+
 
 * CafeOBJ 1.5.3
 ===============

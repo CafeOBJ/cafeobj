@@ -83,7 +83,7 @@ for i in $* ; do
   # selected in the wrapper script!
   sed --in-place -e "s/^engine=.*/engine=$i/" bin/cafeobj
   echo "Building $sname standalone for $arch`uname` ..."
-  tar -cvzf ../cafeobj-$version$vminor-${sname}-${arch}`uname`.tar.gz	\
+  tar --owner=0 --group=0 -cvzf ../cafeobj-$version$vminor-${sname}-${arch}`uname`.tar.gz	\
   	$default_components $distdir
 done
 

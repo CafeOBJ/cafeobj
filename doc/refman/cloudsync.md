@@ -2,7 +2,7 @@ CloudSync
 =========
 
 In the following we will model a very simple protocol for cloud
-syncronization of a set of PCs. The full code of the actual
+synchronization of a set of PCs. The full code of the actual
 specification, as well as parts of the verification proof score will
 be included and discussed.
 
@@ -10,8 +10,8 @@ Besides giving an example of a specification and verification, we also
 try to explain several of the most important concepts in CafeOBJ
 using rather simple examples.
 
-Protocoll
----------
+Protocol
+--------
 
 One cloud computer and arbitrary many PCs have one value each that
 they want to keep in sync. This value is a natural number, and higher
@@ -73,7 +73,7 @@ of the PCs and the cloud, to have easy separation.
 The next module introduces a parametrized pair module. Parametrizing
 modules is a very powerful construction, and common in object oriented
 programming languages. In principle we leave open what are the actual
-components of the pairs, and only specify the operational behaviour on
+components of the pairs, and only specify the operational behavior on
 a single pair.
 
 In this and the next example of the multi-set, there are no additional
@@ -168,7 +168,7 @@ The final part is to specify transitions. We have described the
 protocol by a state machine, and the following transitions will model
 the transitions in this machine.
 
-The first transition is the initialization of the syncronization by
+The first transition is the initialization of the synchronization by
 reading the cloud value, saving it into the local register, and both
 partners go into busy state. 
 
@@ -206,7 +206,7 @@ mod! UPDATE { pr(STATE)
 }
 `````
 
-The last transition is sending the both sides of the syncronization
+The last transition is sending the both sides of the synchronization
 into the idle states.
 `````
 mod! GOTOIDLE { pr(STATE)

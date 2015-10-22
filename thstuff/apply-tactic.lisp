@@ -1995,43 +1995,78 @@
 ;;; instanciate-axiom
 ;;; 
 (defun instanciate-axiom (target-form subst-form)
-  (let ((context (get-next-proof-context *proof-tree*)))
-    (unless context
-      (with-output-chaos-error ('no-context)
-        (format t "Instanciating axiom, no context module is established.")))
-    (with-in-module ((goal-context (ptree-node-goal context)))
-      (with-citp-env ()
-        (let ((target-axiom (get-target-axiom *current-module* target-form t))
-              (subst (resolve-subst-form *current-module* subst-form))
-              (instance nil))
-          ;;
-          (setq instance (make-axiom-instance *current-module* subst target-axiom))
-          ;; we normalize the LHS of the instance
-          (with-spoiler-on
-           (multiple-value-bind (n-lhs applied?)
-               (normalize-term-in *current-module* (axiom-lhs instance))
-             (when applied?
-               (setf (axiom-lhs instance) n-lhs))))
+  (with-next-context (*proof-tree*)
+    (let ((target-axiom (get-target-axiom *current-module* target-form t))
+          (subst (resolve-subst-form *current-module* subst-form))
+          (instance nil))
+      ;;
+      (setq instance (make-axiom-instance *current-module* subst target-axiom))
+      ;; we normalize the LHS of the instance
+      (with-spoiler-on
+          (multiple-value-bind (n-lhs applied?)
+              (normalize-term-in *current-module* (axiom-lhs instance))
+            (when applied?
+              (setf (axiom-lhs instance) n-lhs))))
           
-          ;; input the instance to current context
-          (let ((goal (ptree-node-goal context)))
-            (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))
-            (format t "~%**> initialized the axiom in goal ~s" (goal-name (ptree-node-goal context)))
-            (let ((*print-indent* (+ 2 *print-indent*))
-                  (*print-line-limit* 80)
-                  (*print-xmode* :fancy))
-              (print-next)
-              (print-axiom-brief instance))
-            (when-citp-verbose ()
-              (pr-goal (ptree-node-goal context)))
-            (set-operator-rewrite-rule *current-module* instance)
-            (adjoin-axiom-to-module *current-module* instance)
-            (compile-module *current-module* t)))))))
+      ;; input the instance to current context
+      (let ((goal (ptree-node-goal .context.)))
+        (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))
+        (format t "~%**> initialized the axiom in goal ~s" (goal-name (ptree-node-goal .context.)))
+        (let ((*print-indent* (+ 2 *print-indent*))
+              (*print-line-limit* 80)
+              (*print-xmode* :fancy))
+          (print-next)
+          (print-axiom-brief instance))
+        (when-citp-verbose ()
+          (pr-goal (ptree-node-goal .context.)))
+        (set-operator-rewrite-rule *current-module* instance)
+        (adjoin-axiom-to-module *current-module* instance)
+        (compile-module *current-module* t)))))
 
 ;;; ================================
-;;; Target sentence T -> A implies T [:ip]
+;;; Target sentence T -> A implies T [:imp]
 ;;; ================================
 
+(defun make-impl-assumption (ax)
+  (axiom-lhs ax))
+
+(defun make-impl-form (lhs instance)
+  (make-applform-simple *bool-sort* *bool-imply* 
+                        (list (make-impl-assumption instance) lhs)))
+
+(defun introduce-implication-to-goal (target-form subst-form)
+  (let ((target-axiom (get-target-axiom *current-module* target-form t))
+        (subst (resolve-subst-form *current-module* subst-form))
+        (instance nil))
+    (setq instance (make-axiom-instance *current-module* subst target-axiom))
+    (with-next-context (*proof-tree*)
+      ;; normalize it
+      (with-spoiler-on
+          (multiple-value-bind (n-instance applied?)
+              (normalize-sentence instance *current-module*)
+            (when applied?
+              (setq instance n-instance))))
+      (unless (and (is-true? (axiom-rhs instance))
+                   (is-true? (axiom-condition instance)))
+        (with-output-chaos-error ('invalid-axiom)
+          (format t "~%[:imp] invalid instance")
+          (print-next)
+          (print-axiom-brief instance)))
+      ;; modify the target sentence.
+      ;; instance: eq p = true .
+      ;; goal: eq l = r .
+      ;; -> new goal eq p implies l = r .
+      (dolist (target (goal-targets (ptree-node-goal .context.)))
+        (let ((new-lhs (make-impl-form (axiom-lhs target) instance))
+              (*print-indent* (+ *print-indent* 2)))
+          (format t "~%:imply converting target sentence to 'implication' form.")
+          (print-next)
+          (print-axiom-brief target)
+          (print-next)
+          (setf (axiom-lhs target) new-lhs)
+          (setf (axiom-labels target) (cons :imp (axiom-labels target)))
+          (princ "=> ")
+          (print-axiom-brief target))))))
 
 ;;; ==============
 ;;; CRITICAL PAIRS [:cp]

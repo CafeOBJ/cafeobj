@@ -78,7 +78,7 @@ reference-manual.html: $(MDFILES) Makefile.in
 
 reference-manual.bbl: reference-manual.tex manual.bib
 	$(ENGINE) reference-manual.tex
-	biber reference-manual
+	bibtex reference-manual
 
 reference-manual.pdf: reference-manual.tex reference-manual.bbl
 	$(ENGINE) reference-manual.tex

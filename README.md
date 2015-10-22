@@ -1,7 +1,7 @@
 CafeOBJ Interpreter
 ===================
-*Version 1.5.3*
-2015-2-26
+*Version 1.5.4*
+2015-10-20
 
 CafeOBJ is a new generation algebraic specification and programming language.
 As a direct successor of OBJ, it inherits all its features (flexible mix-fix

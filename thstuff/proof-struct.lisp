@@ -378,6 +378,16 @@
          ,@body)
      (progn
        ,@body)))
+
+(defmacro with-next-context ((&optional (node *proof-tree*)) &rest body)
+  `(let ((.context. (get-next-proof-context ,node)))
+     (unless .context.
+       (with-output-chaos-error ('no-context)
+         (format t "No proof context is established.")))
+     (with-in-module ((goal-context (ptree-node-goal .context.)))
+       (with-citp-env ()
+         ,@body))))
+
 )
 
 ;;; for debugging
@@ -969,8 +979,8 @@
 ;;; get-next-pfoof-context : ptree -> ptree-node
 ;;;
 (defun get-next-proof-context (ptree)
-  (or *next-default-proof-node*
-      (car (get-unproved-nodes ptree))))
+  (and ptree (or *next-default-proof-node*
+                 (car (get-unproved-nodes ptree)))))
 
 (defun next-proof-target-is-specified? ()
   *next-default-proof-node*)
