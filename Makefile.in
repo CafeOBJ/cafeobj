@@ -52,6 +52,8 @@ enable_traditional_layout = @enable_traditional_layout@
 enable_windows = @enable_windows@
 # --enable-distribution
 enable_distribution = @enable_distribution@
+# lispdir of emacs
+lispdir = @lispdir@
 
 # general stuff
 PACKAGE = @PACKAGE_TARNAME@
@@ -126,6 +128,7 @@ ifeq ($(enable_traditional_layout),yes)
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(cafeobj_share)/doc
   cafeobjmandir = $(cafeobj_share)/man
+  cafeobjelisp =  $(cafeobj_share)/elisp
 else
   cafeobj_share = $(datarootdir)/$(PACKAGE)-$(VERSION)
   cafeobj_lib   = $(libdir)/$(PACKAGE)-$(VERSION)
@@ -135,6 +138,7 @@ else
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(docdir)
   cafeobjmandir = $(mandir)
+  cafeobjelisp =  $(lispdir)
 endif
 
 ifeq ($(enable_windows),yes)
@@ -152,6 +156,7 @@ ifeq ($(enable_windows),yes)
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(cafeobj_share)/doc
   cafeobjmandir = $(cafeobj_share)/doc
+  cafeobjelisp =  $(cafeobj_share)/elisp
 endif
 
 ifeq ($(enable_distribution),yes)
@@ -164,6 +169,7 @@ ifeq ($(enable_distribution),yes)
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(docdir)
   cafeobjmandir = $(mandir)
+  cafeobjelisp =  $(lispdir)
 endif
 
 
@@ -290,6 +296,11 @@ endif
 	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)/examples
 	$(INSTALL) -m 0644 doc/examples/*.mod 		\
 		$(DESTDIR)$(cafeobjdocdir)/examples
+	# emacs lisp file installation
+	$(INSTALL) -d $(DESTDIR)$(cafeobjelisp)
+	$(INSTALL) -m 0644 elisp/cafeobj-mode.el $(DESTDIR)$(cafeobjelisp)
+	# end of installation routines
+
 	touch install-stamp
 
 doc/refman/reference-manual.pdf:

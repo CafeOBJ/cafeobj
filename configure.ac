@@ -31,6 +31,7 @@ dnl
 
 AC_INIT([CafeOBJ],[1.5], [], [cafeobj], [http://www.cafeobj.org/])
 AC_CONFIG_SRCDIR([make-cafeobj.lisp.in])
+AM_INIT_AUTOMAKE
 AC_PREREQ(2.6)
 VMINOR=.4
 VMEMO=PigNose0.99
@@ -254,6 +255,9 @@ then
 fi
 
 AC_MSG_NOTICE([Building for the following lisp interpreters: $lisp])
+
+dnl check for emacs and lispdir
+AM_PATH_LISPDIR
 
 
 AC_SUBST(lisp)
