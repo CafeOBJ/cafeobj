@@ -32,6 +32,14 @@
 srcdir = @srcdir@
 # --prefix
 prefix = @prefix@
+exec_prefix = @exec_prefix@
+# needed for automake compatibility
+datarootdir = @datarootdir@
+datadir = @datadir@
+mandir = @mandir@
+docdir = @docdir@
+libdir = @libdir@
+bindir = @bindir@
 # --with-lisp
 lisp = @lisp@
 # determined first choice
@@ -119,14 +127,14 @@ ifeq ($(enable_traditional_layout),yes)
   cafeobjdocdir = $(cafeobj_share)/doc
   cafeobjmandir = $(cafeobj_share)/man
 else
-  cafeobj_share = $(prefix)/share/$(PACKAGE)-$(VERSION)
-  cafeobj_lib   = $(prefix)/lib/$(PACKAGE)-$(VERSION)
-  cafeobj_bin   = $(prefix)/bin
+  cafeobj_share = $(datarootdir)/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(libdir)/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   = $(bindir)
   cafeobjdumpdir = $(cafeobj_lib)
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
-  cafeobjdocdir = $(prefix)/share/doc/$(PACKAGE)
-  cafeobjmandir = $(prefix)/share/man/man1
+  cafeobjdocdir = $(docdir)
+  cafeobjmandir = $(mandir)
 endif
 
 ifeq ($(enable_windows),yes)
@@ -148,14 +156,14 @@ endif
 
 ifeq ($(enable_distribution),yes)
   prefix = $(srcdir)/dist
-  cafeobj_share = $(prefix)/share/$(PACKAGE)-$(VERSION)
-  cafeobj_lib   = $(prefix)/lib/$(PACKAGE)-$(VERSION)
-  cafeobj_bin   = $(prefix)/bin
+  cafeobj_share = $(datarootdir)/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(libdir)/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   = $(bindir)
   cafeobjdumpdir = $(cafeobj_lib)
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
-  cafeobjdocdir = $(prefix)/share/doc/$(PACKAGE)
-  cafeobjmandir = $(prefix)/share/man/man1
+  cafeobjdocdir = $(docdir)
+  cafeobjmandir = $(mandir)
 endif
 
 
