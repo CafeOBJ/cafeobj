@@ -110,25 +110,23 @@ GCL_DUMPFILE      = make-cafeobj.lisp
 # /usr/local/cafeobj-N.M/bin/DUMP
 # /usr/local/cafeobj-N.M/{lib,prelude}
 ifeq ($(enable_traditional_layout),yes)
-  # the first three variable will be prefixed with $DESTDIR/$prefix
-  cafeobj_share = $(PACKAGE)-$(VERSION)
-  cafeobj_lib   = $(PACKAGE)-$(VERSION)
-  cafeobj_bin   = bin
+  cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(prefix)/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   = $(prefix)/bin
   cafeobjdumpdir = $(cafeobj_lib)/bin
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(cafeobj_share)/doc
   cafeobjmandir = $(cafeobj_share)/man
 else
-  # the first three variable will be prefixed with $DESTDIR/$prefix
-  cafeobj_share = share/$(PACKAGE)-$(VERSION)
-  cafeobj_lib   = lib/$(PACKAGE)-$(VERSION)
-  cafeobj_bin   = bin
-  cafeobjdumpdir = $(cafeobj_lib)/
+  cafeobj_share = $(prefix)/share/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(prefix)/lib/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   = $(prefix)/bin
+  cafeobjdumpdir = $(cafeobj_lib)
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
-  cafeobjdocdir = share/doc/$(PACKAGE)
-  cafeobjmandir = share/man/man1
+  cafeobjdocdir = $(prefix)/share/doc/$(PACKAGE)
+  cafeobjmandir = $(prefix)/share/man/man1
 endif
 
 ifeq ($(enable_windows),yes)
@@ -138,11 +136,10 @@ ifeq ($(enable_windows),yes)
   SBCL_INTERPRETER  = wine sbcl
   # it seems that windows sbcl does not like this cmd line args
   SBCL_BUILDOPTS    = 
-  # the first three variable will be prefixed with $DESTDIR/$prefix
-  cafeobj_share = $(PACKAGE)-$(VERSION)-sbcl
-  cafeobj_lib   = $(PACKAGE)-$(VERSION)-sbcl
-  cafeobj_bin   = $(PACKAGE)-$(VERSION)-sbcl
-  cafeobjdumpdir = $(cafeobj_lib)/
+  cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)-sbcl
+  cafeobj_lib   = $(prefix)/$(PACKAGE)-$(VERSION)-sbcl
+  cafeobj_bin   = $(prefix)/$(PACKAGE)-$(VERSION)-sbcl
+  cafeobjdumpdir = $(cafeobj_lib)
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
   cafeobjdocdir = $(cafeobj_share)/doc
@@ -151,15 +148,14 @@ endif
 
 ifeq ($(enable_distribution),yes)
   prefix = $(srcdir)/dist
-  # the first three variable will be prefixed with $DESTDIR/$prefix
-  cafeobj_share = share/$(PACKAGE)-$(VERSION)
-  cafeobj_lib   = lib/$(PACKAGE)-$(VERSION)
-  cafeobj_bin   = bin
-  cafeobjdumpdir = $(cafeobj_lib)/
+  cafeobj_share = $(prefix)/share/$(PACKAGE)-$(VERSION)
+  cafeobj_lib   = $(prefix)/lib/$(PACKAGE)-$(VERSION)
+  cafeobj_bin   = $(prefix)/bin
+  cafeobjdumpdir = $(cafeobj_lib)
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
-  cafeobjdocdir = share/doc/$(PACKAGE)
-  cafeobjmandir = share/man/man1
+  cafeobjdocdir = $(prefix)/share/doc/$(PACKAGE)
+  cafeobjmandir = $(prefix)/share/man/man1
 endif
 
 
@@ -250,27 +246,27 @@ $(engine_dumps): %: make-cafeobj.lisp version.lisp
 install: install-stamp
 
 install-stamp: build-stamp
-	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjlibdir)
+	$(INSTALL) -d $(DESTDIR)$(cafeobjlibdir)
 	$(INSTALL) -m 0644 		\
 			$(srcdir)/lib/lib/*.cafe	\
-			$(DESTDIR)$(prefix)/$(cafeobjlibdir)
-	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjpreludedir)
+			$(DESTDIR)$(cafeobjlibdir)
+	$(INSTALL) -d $(DESTDIR)$(cafeobjpreludedir)
 	$(INSTALL) -m 0644 $(srcdir)/lib/prelude/*.bin 	\
-			$(DESTDIR)$(prefix)/$(cafeobjpreludedir)
-	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjdumpdir)
+			$(DESTDIR)$(cafeobjpreludedir)
+	$(INSTALL) -d $(DESTDIR)$(cafeobjdumpdir)
 ifeq ($(enable_windows),yes)
-	cp -a $(SBCL_DUMP) $(DESTDIR)$(prefix)/$(cafeobjdumpdir)/CafeOBJ.exe
+	cp -a $(SBCL_DUMP) $(DESTDIR)$(cafeobjdumpdir)/CafeOBJ.exe
 else
-	cp -a dumps/* $(DESTDIR)$(prefix)/$(cafeobjdumpdir)
-	chmod 0755 $(DESTDIR)$(prefix)/$(cafeobjdumpdir)/*/*
-	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobj_bin)
-	$(INSTALL) -m 0755 xbin/cafeobj $(DESTDIR)$(prefix)/$(cafeobj_bin)
+	cp -a dumps/* $(DESTDIR)$(cafeobjdumpdir)
+	chmod 0755 $(DESTDIR)$(cafeobjdumpdir)/*/*
+	$(INSTALL) -d $(DESTDIR)$(cafeobj_bin)
+	$(INSTALL) -m 0755 xbin/cafeobj $(DESTDIR)$(cafeobj_bin)
 endif
 	# man page
-	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjmandir)
-	$(INSTALL) -m 0644 doc/etc/cafeobj.1 $(DESTDIR)$(prefix)/$(cafeobjmandir)
+	$(INSTALL) -d $(DESTDIR)$(cafeobjmandir)
+	$(INSTALL) -m 0644 doc/etc/cafeobj.1 $(DESTDIR)$(cafeobjmandir)
 	# doc files
-	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjdocdir)
+	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)
 	$(INSTALL) -m 0644 				\
 		doc/manual/manual.pdf			\
 		doc/PigNose/pnguide.pdf			\
@@ -282,10 +278,10 @@ endif
 		elisp/cafeobj-mode.el			\
 		lib/icons/cafeobj-logo.png		\
 		lib/icons/cafeobj-logo-small.png		\
-		$(DESTDIR)$(prefix)/$(cafeobjdocdir)
-	$(INSTALL) -d $(DESTDIR)$(prefix)/$(cafeobjdocdir)/examples
+		$(DESTDIR)$(cafeobjdocdir)
+	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)/examples
 	$(INSTALL) -m 0644 doc/examples/*.mod 		\
-		$(DESTDIR)$(prefix)/$(cafeobjdocdir)/examples
+		$(DESTDIR)$(cafeobjdocdir)/examples
 	touch install-stamp
 
 doc/refman/reference-manual.pdf:
