@@ -161,15 +161,6 @@ endif
 
 ifeq ($(enable_distribution),yes)
   prefix = $(srcdir)/dist
-  cafeobj_share = $(datarootdir)/$(PACKAGE)-$(VERSION)
-  cafeobj_lib   = $(libdir)/$(PACKAGE)-$(VERSION)
-  cafeobj_bin   = $(bindir)
-  cafeobjdumpdir = $(cafeobj_lib)
-  cafeobjlibdir  = $(cafeobj_share)/lib
-  cafeobjpreludedir = $(cafeobj_share)/prelude
-  cafeobjdocdir = $(docdir)
-  cafeobjmandir = $(mandir)
-  cafeobjelisp =  $(lispdir)
 endif
 
 
