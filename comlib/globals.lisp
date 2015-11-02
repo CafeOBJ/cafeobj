@@ -557,15 +557,8 @@
 (defvar *reader-current-context* nil)
 (defvar *reader-starting-position* nil)
 (defvar *builtin-ast-dict* (make-hash-table :test #'equal))
-
-;;; if t, parse speed can be greatly enhanced for many cases, but produces
-;;; much less dignosis infos. this is a toplevel switch.
-;;; ** NOW OBSOLETE !!!!!!!!
-(defvar *fast-parse* t)
-
 ;;;
 (defvar *parse-normalize* nil)
-
 ;;; if t, expand macros at parsing time.
 ;;;
 (defvar *macroexpand* t)
@@ -586,8 +579,9 @@
 (defvar *running-with-tk* nil)
 (defvar *sub-prompt* nil)
 (defvar *consider-object* nil)
-
 (defvar *auto-reconstruct* nil)
+;;; bterm inspector
+(defvar *bterm-all-solutions* nil)
 
 ;;; *SAVE-DEFINITION*
 (defvar *save-definition* t)
@@ -680,6 +674,7 @@
 (defvar *debug-meta* nil)
 (defvar *debug-citp* nil)
 (defvar *debug-print* nil)
+(defvar *debug-bterm* nil)
 ;;;
 ;;; ** TO DO for other platforms
 #+SBCL

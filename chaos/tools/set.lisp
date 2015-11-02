@@ -115,6 +115,7 @@
       ;;  "perform automatic reconstruction of modules if inconsistent.")
       ;; ("accept" ("term") parity *allow-general-term-input*
       ;; "allow input term directly at top level.")
+      (:comment "** checkers --------------------------------------------")
       (("regularize" "reg") ("signature") parity *regularize-signature*
        "regularize module signature automatic.")
       ("check" ("import") parity *check-import-mode*
@@ -131,6 +132,7 @@
       ;; "perform operator overloading check with builtin sorts.")
       ;; ("select" ("term") parity *select-ambig-term*
       ;;  "allow users to select a term from anbiguously parsed terms.")
+      (:comment "** verbosity controll ----------------------------------")
       ("verbose" nil parity *chaos-verbose* "set verbose mode." set-verbose-on set-verbose-off)
       ("quiet" () parity *chaos-quiet* "be quiet." set-quiet-on set-quiet-off)
       (:comment "** show/display options --------------------------------")
@@ -165,6 +167,9 @@
        "accept system's automatic proof of congruency of =*=.")
       ("find" ("all" "rules") parity *find-all-rules*
        "find rewrite rules for all occurrences of given term in 'find' command.")
+      ("bterm" ("all" "solutions") parity *bterm-all-solutions*
+       "if on, 'bresolve' will find all variable assignments which makes the term to be 'true'.
+Default is off.")
       (:comment "** old switches (obsolete) ----------------------------")
       ("print" ("fancy") general *fancy-print*
        "this switch is obsolete. please use `print mode' switch instead."
@@ -217,6 +222,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
       ("debug" ("meta") parity *debug-meta* "" nil nil t)
       ("debug" ("citp") parity *debug-citp* "" nil nil t)
       ("debug" ("print") parity *debug-print* "" nil nil t)
+      ("debug" ("bterm") parity *debug-bterm* "" nil nil t)
       ))
 
 (defun set-chaos-switch (which value)

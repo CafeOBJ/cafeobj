@@ -2028,7 +2028,16 @@
 ;;; ================================
 
 (defun make-impl-assumption (ax)
-  (axiom-lhs ax))
+  (let ((assmp (axiom-lhs ax)))
+    ;; (t1 = true) or (true = t1) ==> t1
+    (when (method= (term-head assmp) *eql-op*)
+      (cond ((is-true? (term-arg-1 assmp))
+             (setq assmp (term-arg-2 assmp)))
+            ((is-true? (term-arg-2 assmp))
+             (setq assmp (term-arg-1 assmp)))
+            (t ;; do nothing
+             )))
+    assmp))
 
 (defun make-impl-form (lhs instance)
   (make-applform-simple *bool-sort* *bool-imply* 
@@ -2059,14 +2068,22 @@
       (dolist (target (goal-targets (ptree-node-goal .context.)))
         (let ((new-lhs (make-impl-form (axiom-lhs target) instance))
               (*print-indent* (+ *print-indent* 2)))
-          (format t "~%:imply converting target sentence to 'implication' form.")
-          (print-next)
-          (print-axiom-brief target)
-          (print-next)
-          (setf (axiom-lhs target) new-lhs)
-          (setf (axiom-labels target) (cons :imp (axiom-labels target)))
-          (princ "=> ")
-          (print-axiom-brief target))))))
+          (with-citp-debug ()
+            (format t "~%[:imp] target: ")
+            (print-axiom-brief target))
+          (if (sort= (term-sort (axiom-rhs target)) *bool-sort*)
+              (progn
+                (setf (axiom-lhs target) new-lhs)
+                (setf (axiom-labels target) (cons :imp (axiom-labels target)))
+                (format t "~%[:imp] target sentence is converted...")
+                (print-next)
+                (princ "=> ")
+                (print-next)
+                (print-axiom-brief target))
+            (with-output-chaos-warning ()
+              (format t "[:imp] sort of target sentence is not Bool. Ignored.")
+              (print-next)
+              (print-axiom-brief target))))))))
 
 ;;; ==============
 ;;; CRITICAL PAIRS [:cp]

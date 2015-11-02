@@ -2564,17 +2564,38 @@ CafeOBJ> binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)) .
 (define ("bresolve" ":bresolve")
     :category :proof
     :parser identity
-    :evaluator bresolve
-    :title "`{bresolve | :bresolve}`"
+    :evaluator bresolve 
+    :title "`{bresolve | :bresolve} [<limit>]`"
     :doc "Computes all possible variable assignments that render an abstracted
-term `true`. The variant with leading colon is for usage during a [CITP](#citp) proof."
+term `true`. The variant with leading colon is for usage during a [CITP](#citp) proof.
+If a switch 'bterm all solution' is on, all solutions will be searched (default is 'off').
+Optional <limit> specifies maximal number of variable combination, i.e. 
+if there are 3 variables v1, v2, and v3, and <limit> is 2, 
+the following cases are examined:
+(1) v1 : true/false
+(2) v2 : true/false
+(3) v3 : true/false
+(4) v1/v2 : combinations of true/false of two variables
+(5) v1/v3 : combinations of true/false of two variables
+(6) v2/v3 : combinations of true/false of two variables"
     :example "
 ~~~~~
-CafeOBJ> bresolve
+CafeOBJ> bresolve 2
 
-** The following assignment(s) can make the term 'true'.
-  (1): { P-5:Bool |-> true, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
-  (2): { P-5:Bool |-> false, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
+** (1) The following assignment(s) makes the term to be 'true'.
+[1] { P-3:Bool |-> true }
+where
+  p-3 = P4(Y:S)
+  
+[2] { P-4:Bool |-> true }
+where
+  p-4 = P1(X:S)
+  
+** (2) The following assignment(s) makes the term to be 'true'.
+[1] { P-1:Bool |-> true, P-2:Bool |-> true }
+where
+  p-1 = P3(Y:S)
+  p-2 = P2(X:S)
 ...
 ~~~~~"
 )

@@ -825,7 +825,7 @@
          (:rdr #..term-delimiting-chars. (:if-present in :symbol |:|)) (:seq-of :term) |.|)
         (binspect
          (:rdr #..term-delimiting-chars. (:if-present  in :modexp |:|)) (:seq-of :term) |.|)
-        ((:+ |:bresolve| bresolve))
+        ((:+ |:bresolve| bresolve) :args)
         ((:+ |:bshow| bshow) :args)
         (|:set| |(| :symbol |,| (:+ on off set clear ? show) |)|)
         ))                              ; end Top-Form
