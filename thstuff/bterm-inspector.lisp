@@ -57,12 +57,14 @@
      (make-variable-term *bool-sort* varname)))
 
 (defun get-bterm-variable (term)
-  (let ((ent (assoc term .bterm-assoc-table. :test #'term-equational-equal)))
-    (if ent
-        (cdr ent)
-      (let ((var (make-bterm-variable)))
-        (push (cons term var) .bterm-assoc-table.)
-        var))))
+  (unless (or (is-true? term)
+              (is-false? term))
+    (let ((ent (assoc term .bterm-assoc-table. :test #'term-equational-equal)))
+      (if ent
+          (cdr ent)
+        (let ((var (make-bterm-variable)))
+          (push (cons term var) .bterm-assoc-table.)
+          var)))))
 
 ;;; =======================================================================
 ;;; Abstracted representation of a _xor_-_and_ normal form of boolean term.
@@ -126,7 +128,9 @@
 (defun make-and-abstraction (term subterms module)
   (let ((subst nil))
     (dolist (sub subterms)
-      (push (cons (get-bterm-variable sub) sub) subst))
+      (let ((ss (get-bterm-variable sub)))
+        (when ss 
+          (push (cons ss sub) subst))))
     (make-abst-and :term term :subst (nreverse subst) :module module)))
 
 ;;; assign-tf 
@@ -246,7 +250,7 @@
                 (unless mapping
                   (with-output-chaos-error ('internal-error)
                     (format t "Could not find the mapping of variable ~a." (variable-name var))))
-                (princ (variable-name var))
+                (princ (string (variable-print-name var)))
                 (princ " = ")
                 (term-print mapping)
                 (print-next)))))))))
@@ -267,12 +271,14 @@
           (let ((as (xtract-and-subterms xs)))
             (if as 
                 (push (make-and-abstraction xs as module) subst)
-              (push (cons (get-bterm-variable xs) xs) subst))))
+              (let ((ss (get-bterm-variable xs)))
+                (when ss 
+                  (push (cons ss xs) subst))))))
       ;; top operator is not xor
       (let ((as (xtract-and-subterms term)))
         (if as
             (push (make-and-abstraction term as module) subst)
-          ;; we anly accept xor-and formal form
+          ;; we only accept xor-and formal form
           (with-output-chaos-error ('invalid-term)
             (format t "Given term is not xor-and normal form.")))))
     (setf (abst-bterm-subst bterm) (nreverse subst))
@@ -371,7 +377,7 @@
 ;;; computes possible solutions (assignments) which makes abstracted boolean term to be 'true.'
 ;;;
 
-;;; resolve-abst-bterm : bterm
+;;; find-bterm-solution-with-subst : List(substitution) abst-bterm-representation -> List(Substitution)
 ;;; retuns a list of substitution which makes bterm to be true.
 ;;;
 (defun find-bterm-solution-with-subst (all-subst abst-term &optional (module (get-context-module)))
@@ -385,6 +391,9 @@
           (push subst answers))))
     (nreverse answers)))
     
+;;; resolve-bterm-by-wf : bterm [limit] -> void
+;;; working hourse
+;;;
 (defun resolve-bterm-by-wf (bterm &optional (comb-limit nil))
   (declare (type (or null fixnum) comb-limit)
            (type abst-bterm bterm))
