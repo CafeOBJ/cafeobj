@@ -123,6 +123,8 @@ ifeq ($(enable_traditional_layout),yes)
   cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)
   cafeobj_lib   = $(prefix)/$(PACKAGE)-$(VERSION)
   cafeobj_bin   = $(prefix)/bin
+  lib_relative  = .
+  share_relative  = .
   cafeobjdumpdir = $(cafeobj_lib)/bin
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
@@ -133,6 +135,8 @@ else
   cafeobj_share = $(datarootdir)/$(PACKAGE)-$(VERSION)
   cafeobj_lib   = $(libdir)/$(PACKAGE)-$(VERSION)
   cafeobj_bin   = $(bindir)
+  lib_relative  = lib/$(PACKAGE)-$(VERSION)
+  share_relative  = share/$(PACKAGE)-$(VERSION)
   cafeobjdumpdir = $(cafeobj_lib)
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
@@ -151,6 +155,9 @@ ifeq ($(enable_windows),yes)
   cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)-sbcl
   cafeobj_lib   = $(prefix)/$(PACKAGE)-$(VERSION)-sbcl
   cafeobj_bin   = $(prefix)/$(PACKAGE)-$(VERSION)-sbcl
+  # irrelevant, since we do not install the shell script
+  lib_relative  = .
+  share_relative  = .
   cafeobjdumpdir = $(cafeobj_lib)
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
@@ -214,8 +221,8 @@ build-stamp: version.lisp make-cafeobj.lisp $(engine_dumps) xbin/cafeobj $(doc_t
 xbin/cafeobj: xbin/cafeobj.in
 	cat $(srcdir)/xbin/cafeobj.in | \
 	sed -e 's:@FIRSTCHOICE@:$(firstchoice):g' \
-	-e 's:@LIBPATH@:$(cafeobj_lib):g' \
-	-e 's:@SHAREPATH@:$(cafeobj_share):g' >$(srcdir)/xbin/cafeobj 
+	-e 's:@LIBPATH@:$(lib_relative):g' \
+	-e 's:@SHAREPATH@:$(share_relative):g' >$(srcdir)/xbin/cafeobj
 
 $(ACL_DUMP) : interp = $(ACL_INTERPRETER) 
 $(ACL_DUMP) : buildopts = $(ACL_BUILDOPTS)
