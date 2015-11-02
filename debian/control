@@ -30,4 +30,14 @@ Description: new generation algebraic specification and programming language
  logics underlying the combination of the various paradigms implemented
  by the language. Proof scores in CafeOBJ are also based on institution
  based rigorous semantics, and can be constructed using a complete set 
- of proof rules. 
+ of proof rules.
+
+Package: cafeobj-mode
+Architecture: all
+Depends: emacsen-common (>= 2.0.8), ${misc:Depends}
+Recommends: cafeobj
+Description: Emacs major mode for editing scala source code
+ cafeobj-mode provides syntax highlighting and indentation for CafeOBJ
+ source code inside emacs.  Included is the ability to interact with a
+ CafeOBJ interpreter inside emacs and to send expressions from CafeOBJ
+ source files to the running interpreter.

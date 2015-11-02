@@ -1,3 +1,9 @@
+cafeobj (1.5.4-2~1) UNRELEASED; urgency=medium
+
+  * provide a separate cafeobj-mode package for the Emacs major mode
+
+ -- Norbert Preining <preining@debian.org>  Mon, 02 Nov 2015 22:06:30 +0900
+
 cafeobj (1.5.4-1) unstable; urgency=medium
 
   * new upstream release

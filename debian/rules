@@ -3,6 +3,7 @@
 export DH_OPTIONS
 
 co := $(CURDIR)/debian/cafeobj
+coel := $(CURDIR)/debian/cafeobj-mode
 
 DEB_HOST_ARCH     ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 ifeq ($(DEB_HOST_ARCH), armhf)
@@ -46,6 +47,9 @@ install-stamp: build-stamp
 	dh_testroot
 	dh_prep
 	DESTDIR=$(co) $(MAKE) install
+	# cafeobj-mode package
+	mkdir -p $(coel)/usr/share/emacs/site-lisp
+	cp elisp/cafeobj-mode.el $(coel)/usr/share/emacs/site-lisp
 	touch install-stamp
 
 binary-indep: build install
@@ -54,6 +58,7 @@ binary-arch: build install
 	dh_testroot
 	dh_installdocs README.md
 	dh_installchangelogs
+	dh_installemacsen -pcafeobj-mode
 	# do NOT strip otherwise the sbcl dump file is broken!
 	#dh_strip
 	dh_compress -X.pdf

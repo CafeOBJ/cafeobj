@@ -1,0 +1,8 @@
+;; -*-emacs-lisp-*-
+;;
+;; Emacs startup file, e.g.  /etc/emacs/site-start.d/50cafeobj-mode.el
+;; for the Debian cafeobj-mode package
+(autoload 'cafeobj-mode "cafeobj-mode" "CafeOBJ mode." t)
+(autoload 'cafeobj "cafeobj-mode" "Run CafeOBJ interpreter." t)
+(add-to-list 'auto-mode-alist '("\\.mod$" . cafeobj-mode))
+(add-to-list 'auto-mode-alist '("\\.cafe$" . cafeobj-mode))
