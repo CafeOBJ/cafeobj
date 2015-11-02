@@ -329,6 +329,7 @@ distclean: clean
 	rm -rf autom4te.cache
 	rm -f doc/Makefile doc/refman/Makefile doc/manual/Makefile
 	rm -f doc/PigNose/Makefile doc/RefCard/Makefile
+	rm -f doc/citp-manual/Makefile
 	rm -rf WindowsDist
 	rm -rf dist
 	rm -f autoloads.out
