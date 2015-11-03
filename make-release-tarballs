@@ -90,7 +90,7 @@ for i in $* ; do
   mv bin/cafeobj.new bin/cafeobj
   chmod ugo+x bin/cafeobj
   echo "Building $sname standalone for $arch`uname` ..."
-  $TAR --owner=0 --group=0 -cvzf ../cafeobj-$version$vminor-${sname}-${arch}`uname`.tar.gz	\
+  $TAR --numeric-owner --owner=0 --group=0 -cvzf ../cafeobj-$version$vminor-${sname}-${arch}`uname`.tar.gz	\
   	$default_components $distdir
 done
 
