@@ -36,7 +36,7 @@ Package: cafeobj-mode
 Architecture: all
 Depends: emacsen-common (>= 2.0.8), ${misc:Depends}
 Recommends: cafeobj
-Description: Emacs major mode for editing scala source code
+Description: Emacs major mode for editing CafeOBJ source code
  cafeobj-mode provides syntax highlighting and indentation for CafeOBJ
  source code inside emacs.  Included is the ability to interact with a
  CafeOBJ interpreter inside emacs and to send expressions from CafeOBJ

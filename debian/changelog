@@ -1,3 +1,9 @@
+cafeobj (1.5.4-3) UNRELEASED; urgency=medium
+
+  * fix short description mentioning Scala (Closes: #803955)
+
+ -- Norbert Preining <preining@debian.org>  Wed, 04 Nov 2015 07:37:05 +0900
+
 cafeobj (1.5.4-2) unstable; urgency=medium
 
   * provide a separate cafeobj-mode package for the Emacs major mode
