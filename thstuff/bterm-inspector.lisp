@@ -73,7 +73,7 @@
 ;;; abstracted boolean term.
 ;;; each non _and_ or _xor_ boolean sub-term is abstracted by a
 ;;; variable. 
-(defstruct (abst-bterm (:print-function print-abst-bterm))
+(defstruct (abst-bterm (:print-function print-bterm))
   (module nil)                          ; context module
   (term nil)                            ; the original term
   (subst nil)                           ; list of substitution 
@@ -82,7 +82,7 @@
 
 (defstruct (abst-and (:include abst-bterm)))
 
-(defun print-abst-bterm (bt &optional (stream *standard-output*) &rest ignore)
+(defun print-bterm (bt &optional (stream *standard-output*) &rest ignore)
   (declare (ignore ignore))
   (with-in-module ((abst-bterm-module bt))
     (if (abst-and-p bt)
@@ -95,7 +95,7 @@
         (print-next nil *print-indent* stream)
         (format stream "(~d) " (incf num))
         (if (abst-bterm-p sub)
-            (print-abst-bterm sub stream)
+            (print-bterm sub stream)
           (progn
             (let ((var (car sub))
                   (term (cdr sub)))
@@ -122,6 +122,18 @@
   (if (method= (term-head term) *bool-and*)
       (list-ac-subterms term *bool-and*)
     nil))
+
+;;; xtract-tfs : term -> List({'true'|'false'})
+;;;
+(defun xtract-tfs (mode term)
+  (let ((subs (if (eq mode :xor)
+                  (xtract-xor-subterms term)
+                (xtract-and-subterms term)))
+        (res nil))
+    (dolist (x subs)
+      (when (or (is-true? x) (is-false? x))
+        (push x res)))
+    res))
 
 ;;; abstract-boolen-term : bool-term -> abst-bterm
 ;;; 
@@ -223,19 +235,21 @@
                                        (term-representation *abst-bterm-representation*))
   (declare (type abst-bterm bterm))
   (with-in-module ((abst-bterm-module bterm))
-    (print-next)
-    (princ "where")
-    (let ((*print-indent* (+ 2 *print-indent*)))
-      (dolist (var (nreverse (term-variables term-representation)))
-        (let ((mapping (find-bvar-subst var bterm)))
-          (unless mapping
-            (with-output-chaos-error ('internal-err)
-              (format t "Could not find the mapping of variable ~a." (variable-name var))))
-          (print-next)
-          (term-print var)
-          (princ " |-> ")
-          (term-print mapping)))))
-  (terpri))
+    (let ((vars (nreverse (term-variables term-representation))))
+      (unless vars (return-from print-bterm-substitution nil))
+      (print-next)
+      (princ "where")
+      (let ((*print-indent* (+ 2 *print-indent*)))
+        (dolist (var (nreverse (term-variables term-representation)))
+          (let ((mapping (find-bvar-subst var bterm)))
+            (unless mapping
+              (with-output-chaos-error ('internal-err)
+                (format t "Could not find the mapping of variable ~a." (variable-name var))))
+            (print-next)
+            (term-print var)
+            (princ " |-> ")
+            (term-print mapping)))))
+    (terpri)))
 
 (defun print-bterm-with-subst (substl bterm)
   (declare (type abst-bterm bterm))
@@ -278,9 +292,10 @@
       (let ((as (xtract-and-subterms term)))
         (if as
             (push (make-and-abstraction term as module) subst)
-          ;; we only accept xor-and formal form
-          (with-output-chaos-error ('invalid-term)
-            (format t "Given term is not xor-and normal form.")))))
+          (unless (or (is-true? term) (is-false? term))
+            ;; we only accept xor-and normal form
+            (with-output-chaos-error ('invalid-term)
+              (format t "Given term is not xor-and normal form."))))))
     (setf (abst-bterm-subst bterm) (nreverse subst))
     bterm))
 
@@ -289,20 +304,27 @@
 ;;;
 (defun make-and-representation (abst-and)
   (declare (type abst-and abst-and))
-  (let ((repre (make-right-assoc-normal-form *bool-and*
-                                             (mapcar #'car (abst-and-subst abst-and)))))
-    (update-lowest-parse repre)
-    repre))
+  (let ((and-subs (xtract-tfs :and (abst-and-term abst-and))))
+    (let ((repre (make-right-assoc-normal-form 
+                  *bool-and*
+                  (nconc and-subs
+                         (mapcar #'(lambda (x) (car x))
+                                 (abst-and-subst abst-and))))))
+      (update-lowest-parse repre)
+      repre)))
 
 (defun make-xor-representation (bterm)
   (declare (type abst-bterm bterm))
-  (let ((repre (make-right-assoc-normal-form *bool-xor*
-                                             (mapcar #'(lambda (x) (if (abst-and-p x)
-                                                                       (make-and-representation x)
-                                                                     (car x)))
-                                                     (abst-bterm-subst bterm)))))
-    (update-lowest-parse repre)
-    repre))
+  (let ((xor-subs (xtract-tfs :xor (abst-bterm-term bterm))))
+    (let ((repre (make-right-assoc-normal-form 
+                  *bool-xor*
+                  (nconc xor-subs
+                         (mapcar #'(lambda (x) (if (abst-and-p x)
+                                                   (make-and-representation x)
+                                                 (car x)))
+                                 (abst-bterm-subst bterm))))))
+      (update-lowest-parse repre)
+      repre)))
 
 (defun make-bterm-representation (bterm)
   (let ((subst (abst-bterm-subst bterm)))
@@ -338,30 +360,37 @@
 ;;; print-bterm-grinding : term -> void
 ;;;
 (defun print-bterm-grinding (bt)
-  (declare (ignore ignore))
   (with-in-module ((abst-bterm-module bt))
-    (if (abst-and-p bt)
-        (princ ">> and <<")
-      (princ ">> xor <<"))
-    (dolist (sub (abst-bterm-subst bt))
+    (let ((torf nil))
+      (if (abst-and-p bt)
+          (progn
+            (setq torf (xtract-tfs :and (abst-bterm-term bt)))
+            (princ ">> and <<"))
+        (progn
+          (setq torf (xtract-tfs :xor (abst-bterm-term bt)))
+          (princ ">> xor <<")))
+      (dolist (sub torf)
+        (print-next)
+        (term-print sub))
+      (dolist (sub (abst-bterm-subst bt))
+        (print-next)
+        (if (abst-bterm-p sub)
+            (print-bterm-grinding sub)
+          (let ((var (car sub))
+                (term (cdr sub)))
+            (princ (variable-name var))
+            (princ " |-> ")
+            (term-print term))))
       (print-next)
-      (if (abst-bterm-p sub)
-          (print-bterm-grinding sub)
-        (let ((var (car sub))
-              (term (cdr sub)))
-          (princ (variable-name var))
-          (princ " |-> ")
-          (term-print term))))
-    (print-next)
-    (princ "----------")))
+      (princ "----------"))))
 
-;;; print-abs-bterm : bterm &key mode
+;;; print-abst-bterm : bterm &key mode
 ;;; mode :simple print term representation
 ;;;      :tree   print term representation as vertical tree structure
 ;;;      :horizontal print term representation horizontal tree structure
 ;;; also shows a substitution used for abstruction.
 ;;;
-(defun print-abs-bterm (bterm &key (mode :simple))
+(defun print-abst-bterm (bterm &key (mode :simple))
   (case mode
     (:simple (simple-print-bterm bterm))
     (:tree   (print-bterm-tree bterm))
@@ -520,7 +549,7 @@
     (if (equal tree? "tree")
         (print-term-horizontal *abst-bterm-representation* *current-module*)
       (if (equal tree? "grind")
-          (print-abs-bterm *abst-bterm* :mode :grind)
+          (print-abst-bterm *abst-bterm* :mode :grind)
         (if (equal tree? ".")
             (term-print *abst-bterm-representation*)
           (with-output-chaos-error ('invalid-parameter)

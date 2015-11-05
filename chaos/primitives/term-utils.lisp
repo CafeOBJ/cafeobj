@@ -1014,7 +1014,7 @@
 (defun make-right-assoc-normal-form (meth subterms)
   (declare (type method meth)
            (type list subterms))
-  #||
+  ;;#||
   (when *term-debug*
     (format t "~&make-right-assoc-normal-form:")
     (format t "~& method = ")
@@ -1023,15 +1023,15 @@
     (print-chaos-object subterms)
     (format t "~& length = ~d" (length subterms))
     (force-output))
-  ||#
+  ;;||#
   (let ((res (if (= (length subterms) 2)
                  (make-applform (method-coarity meth) meth subterms)
-                 (make-applform (method-coarity meth)
-                                meth
-                                (list (pop subterms)
-                                      (make-right-assoc-normal-form meth subterms))))))
-    ;; (when *term-debug*
-    ;;  (format t "~& -- new term = ")(print-term-tree res) (force-output))
+               (make-applform (method-coarity meth)
+                              meth
+                              (list (car subterms)
+                                    (make-right-assoc-normal-form meth (cdr subterms)))))))
+    (when *term-debug*
+      (format t "~& -- new term = ")(print-term-tree res) (force-output))
     res))
 
 ;;; MAKE-RIGHT-ASSOC-NORMAL-FORM-WITH-SORT-CHECK : method subterms -> term
