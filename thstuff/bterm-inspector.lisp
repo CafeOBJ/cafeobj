@@ -207,17 +207,18 @@
       (when *citp-verbose*
         (format t "~%-- starting abstraction"))
       (let ((bterm (abstract-boolean-term target module)))
-        (setq *abst-bterm* bterm)
-        (setq *abst-bterm-representation*
+        (when bterm
+          (setq *abst-bterm* bterm)
+          (setq *abst-bterm-representation*
           (make-bterm-representation bterm))
-        (let ((*print-indent* (+ 2 *print-indent*)))
-          (format t "~%** Abstracted boolean term:")
-          (with-in-module (module)
-            (print-next)
-            (term-print *abst-bterm-representation*)
-            (when *citp-verbose*
-              (print-term-horizontal *abst-bterm-representation* module))
-            (print-bterm-substitution bterm *abst-bterm-representation*)))))))
+          (let ((*print-indent* (+ 2 *print-indent*)))
+            (format t "~%** Abstracted boolean term:")
+            (with-in-module (module)
+              (print-next)
+              (term-print *abst-bterm-representation*)
+              (when *citp-verbose*
+                (print-term-horizontal *abst-bterm-representation* module))
+              (print-bterm-substitution bterm *abst-bterm-representation*))))))))
 
 ;;; find-bvar-subst : variable abst-bterm -> assigned term
 ;;; returns the assigned term of the variable.
@@ -292,10 +293,12 @@
       (let ((as (xtract-and-subterms term)))
         (if as
             (push (make-and-abstraction term as module) subst)
-          (unless (or (is-true? term) (is-false? term))
-            ;; we only accept xor-and normal form
-            (with-output-chaos-error ('invalid-term)
-              (format t "Given term is not xor-and normal form."))))))
+          ;; we only accept xor-and normal form
+          (with-output-msg ()
+            (format t "'bresolve' does not treate trivial form like this.")
+            (print-next)
+            (term-print term)
+            (return-from abstract-boolean-term nil)))))
     (setf (abst-bterm-subst bterm) (nreverse subst))
     bterm))
 
@@ -365,10 +368,10 @@
       (if (abst-and-p bt)
           (progn
             (setq torf (xtract-tfs :and (abst-bterm-term bt)))
-            (princ ">> and <<"))
+            (princ ">> and --->"))
         (progn
           (setq torf (xtract-tfs :xor (abst-bterm-term bt)))
-          (princ ">> xor <<")))
+          (princ ">> xor ***>")))
       (dolist (sub torf)
         (print-next)
         (term-print sub))
@@ -382,7 +385,9 @@
             (princ " |-> ")
             (term-print term))))
       (print-next)
-      (princ "----------"))))
+      (if (abst-and-p bt)
+          (princ "<----------")
+        (princ "<**********")))))
 
 ;;; print-abst-bterm : bterm &key mode
 ;;; mode :simple print term representation
@@ -399,7 +404,6 @@
     (otherwise
      (with-output-chaos-error ('invalid-mode)
        (format t "Invalid print mode ~a." mode)))))
-
 
 ;;; ===========================================================================================
 ;;; RESOLVER
@@ -489,7 +493,7 @@
 (defun try-resolve-bterm (&optional (comb-limit nil))
   (unless *abst-bterm*
     (with-output-chaos-error ('no-bterm)
-      (format t "No abstracted boolean term is specified. ~%Please do binspect or :binspect first.")))
+      (format t "No abstracted boolean term is specified. ~%Please do 'binspect' or ':binspect' first.")))
   ;; find solutions
   (resolve-bterm-by-wf *abst-bterm* comb-limit))
 
