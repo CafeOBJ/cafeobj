@@ -167,9 +167,6 @@
        "accept system's automatic proof of congruency of =*=.")
       ("find" ("all" "rules") parity *find-all-rules*
        "find rewrite rules for all occurrences of given term in 'find' command.")
-      ("bterm" ("all" "solutions") parity *bterm-all-solutions*
-       "if on, 'bresolve' will find all variable assignments which makes the term to be 'true'.
-Default is off.")
       (:comment "** old switches (obsolete) ----------------------------")
       ("print" ("fancy") general *fancy-print*
        "this switch is obsolete. please use `print mode' switch instead."

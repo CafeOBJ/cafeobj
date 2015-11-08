@@ -580,8 +580,6 @@
 (defvar *sub-prompt* nil)
 (defvar *consider-object* nil)
 (defvar *auto-reconstruct* nil)
-;;; bterm inspector
-(defvar *bterm-all-solutions* nil)
 
 ;;; *SAVE-DEFINITION*
 (defvar *save-definition* t)

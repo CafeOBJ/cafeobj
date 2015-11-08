@@ -2565,10 +2565,10 @@ CafeOBJ> binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)) .
     :category :proof
     :parser identity
     :evaluator bresolve 
-    :title "`{bresolve | :bresolve} [<limit>]`"
+    :title "`{bresolve | :bresolve} [<limit>] [all]`"
     :doc "Computes all possible variable assignments that render an abstracted
 term `true`. The variant with leading colon is for usage during a [CITP](#citp) proof.
-If a switch 'bterm all solution' is on, all solutions will be searched (default is 'off').
+If an optional argument 'all' is specified, all solutions will be searched.
 Optional <limit> specifies maximal number of variable combination, i.e. 
 if there are 3 variables v1, v2, and v3, and <limit> is 2, 
 the following cases are examined:
@@ -2580,7 +2580,7 @@ the following cases are examined:
 (6) v2/v3 : combinations of true/false of two variables"
     :example "
 ~~~~~
-CafeOBJ> bresolve 2
+CafeOBJ> bresolve 2 all
 
 ** (1) The following assignment(s) makes the term to be 'true'.
 [1] { P-3:Bool |-> true }

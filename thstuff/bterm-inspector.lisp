@@ -427,7 +427,7 @@
 ;;; resolve-bterm-by-wf : bterm [limit] -> void
 ;;; working hourse
 ;;;
-(defun resolve-bterm-by-wf (bterm &optional (comb-limit nil))
+(defun resolve-bterm-by-wf (bterm &optional (comb-limit nil) (all? nil))
   (declare (type (or null fixnum) comb-limit)
            (type abst-bterm bterm))
   (with-in-module ((abst-bterm-module bterm))
@@ -471,7 +471,7 @@
                   (format t "~%where")
                   (print-next)
                   (print-bterm-with-subst solution bterm))))
-            (unless *bterm-all-solutions*
+            (unless all?
               (return-from resolve-bterm-by-wf t))))
         ;; prepare next variable combinations
         (dotimes (j len)
@@ -490,12 +490,12 @@
 ;;; try-resolve-bterm
 ;;; finds all variable assignments which make *abst-bterm* to be 'true'.
 ;;; 
-(defun try-resolve-bterm (&optional (comb-limit nil))
+(defun try-resolve-bterm (&optional (comb-limit nil) (all? nil))
   (unless *abst-bterm*
     (with-output-chaos-error ('no-bterm)
       (format t "No abstracted boolean term is specified. ~%Please do 'binspect' or ':binspect' first.")))
   ;; find solutions
-  (resolve-bterm-by-wf *abst-bterm* comb-limit))
+  (resolve-bterm-by-wf *abst-bterm* comb-limit all?))
 
 ;;; binspect-in-goal : goal-name term-form
 ;;; abstract boolean term in the context of the goal given by goal-name.
@@ -532,16 +532,26 @@
 ;;; bresolve
 ;;; finds variable assignments which make abst bterm 'true'.
 ;;;
-(defun bresolve (&rest args)
-  (let ((limit-arg (cadar args))
-        (limit nil))
+(defun bresolve (args)
+  (let* ((rargs (cdr args))
+         (limit-arg (and rargs
+                         (not (equal "all" (car rargs)))
+                         (car rargs)))
+         (all? (and rargs (or (equal "all" (car rargs))
+                              (equal "all" (cadr rargs)))))
+         (limit nil))
+    (when (>= (length rargs) 3)
+      (with-output-chaos-warning ()
+        (format t "Unknown arguments: ~{~a ~}" (cddr rargs))
+        (print-next)
+        (princ "ignored...")))
     (when (and limit-arg
                (not (equal "." limit-arg)))
       (setq limit (read-from-string limit-arg))
       (unless (and (integerp limit) (< 0 limit))
         (with-output-chaos-error ('invalid-limit)
           (format t "bresolve: invalid <limit> argument ~a" limit-arg))))
-    (try-resolve-bterm limit)))
+    (try-resolve-bterm limit all?)))
 
 ;;; bshow
 ;;; print out abst bterm. 
