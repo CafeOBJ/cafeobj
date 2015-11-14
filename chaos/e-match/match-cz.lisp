@@ -85,8 +85,7 @@
 ;;; enumerates all possible solutions.
 
 (defun match-CZ-next-state (CZ-st)
-  (declare (type match-cz-state cz-st)
-           (values list (or null match-cz-state) (or null t)))
+  (declare (type match-cz-state cz-st))
   (let* ((sys (match-cz-state-sys CZ-st))
          (point (m-system-to-list sys))
          (equation nil)
@@ -96,15 +95,13 @@
          (new-sys (new-m-system))
          (lg (length point))
          (meth1 nil)
-         (meth2 nil)
-         )
+         (meth2 nil))
     (declare (type fixnum r lg)
              (type list new-sys point))
     (do* ((N (match-cz-state-n CZ-st))
-          (q N N)
-          )
+          (q N N))
          ((or (not (m-system-is-empty? new-sys))
-              (>= N (the fixnum (expt 6 (the fixnum lg)))))
+              (>= N (the fixnum (expt 6 lg))))
           (progn 
             (setf (match-cz-state-n CZ-st) N)
             (if (not (m-system-is-empty? new-sys))
@@ -112,10 +109,10 @@
                 (values nil nil t))))   ; fail case
       (declare (type fixnum n q))
       (incf N)                          ; try the next N
-      (dotimes-fixnum (k lg)            ; k = lg,...,1
+      (dotimes (k lg)                   ; k = lg,...,1
                                         ; this treats q as a bitvector in base 6
-        #+KCL (setq r (rem q 6) q (truncate q 6))
-        #-KCL (multiple-value-setq (q r) (truncate q 6))
+        #+GCL (setq r (rem q 6) q (truncate q 6))
+        #-GCL (multiple-value-setq (q r) (truncate q 6))
         (setq equation (car point)
               point (cdr point)
               t1 (equation-t1 equation)
@@ -169,9 +166,9 @@
                  (when zero
                    (add-equation-to-m-system new-sys
                                              (make-equation zero
-                                                            (term-arg-1 t2))))
-                 (add-equation-to-m-system new-sys
-                                           (make-equation t1 (term-arg-2 t2)))))
+                                                            (term-arg-1 t2)))
+                   (add-equation-to-m-system new-sys
+                                             (make-equation t1 (term-arg-2 t2))))))
               ((and (= r 5)
                     meth2               ; term is non atomic
                     (not (term-is-zero-for-method (term-arg-2 t2) meth2)))
@@ -179,11 +176,10 @@
                  (when zero
                    (add-equation-to-m-system new-sys
                                              (make-equation zero
-                                                            (term-arg-2 t2))))
-                 (add-equation-to-m-system new-sys
-                                           (make-equation t1 (term-arg-1 t2)))))
+                                                            (term-arg-2 t2)))
+                   (add-equation-to-m-system new-sys
+                                             (make-equation t1 (term-arg-1 t2))))))
               (t nil))))))
-
 
 ;;; CZ Equality
 
