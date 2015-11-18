@@ -1,8 +1,9 @@
-cafeobj (1.5.4-3) UNRELEASED; urgency=medium
+cafeobj (1.5.4-3) unstable; urgency=medium
 
   * fix short description mentioning Scala (Closes: #803955)
+  * fix absolute path to cafeobj in emacs mode
 
- -- Norbert Preining <preining@debian.org>  Wed, 04 Nov 2015 07:37:05 +0900
+ -- Norbert Preining <preining@debian.org>  Thu, 19 Nov 2015 08:39:27 +0900
 
 cafeobj (1.5.4-2) unstable; urgency=medium
 
