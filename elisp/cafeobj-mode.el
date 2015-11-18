@@ -177,7 +177,7 @@
   :type 'hook
   :group 'cafeobj)
 
-(defcustom cafeobj-default-application "/usr/local/bin/cafeobj"
+(defcustom cafeobj-default-application "cafeobj"
   "Default Chaos dialect to run in chaos subprocess."
   :type 'string
   :group 'cafeobj)
