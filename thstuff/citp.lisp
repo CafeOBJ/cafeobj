@@ -396,7 +396,7 @@
 ;;;
 (defun eval-citp-imp (args)
   (check-ptree)
-  (with-in-module (*current-module*)
+  (with-in-module ((goal-context (ptree-node-goal (get-target-goal-node))))
     (introduce-implication-to-goal (first args)
                                    (second args))))
 
