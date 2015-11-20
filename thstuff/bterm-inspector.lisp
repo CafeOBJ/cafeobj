@@ -599,7 +599,7 @@
                 (*always-memo* t))
             (setq target (reducer target *current-module* :red))
             ;; 4. determine the result
-            (format t "==> ")
+            (format t "~%==> ")
             (term-print target)
             (when (term-subterms target)
               (print-bterm-substitution *abst-bterm* target))))
@@ -709,7 +709,7 @@
     (unless var
       (with-output-chaos-error ('no-var)
         (format t "No such predicate ~s in abstracted boolean term." name)))
-    (format t "** Setting target predicate to '~A'" name)
+    (format t "~%** Setting target predicate to '~A'" name)
     (setq *abst-bterm-target-variable* var)))
 
 ;;; bgues
