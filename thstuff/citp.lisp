@@ -174,7 +174,6 @@
   (let ((goal-name (car (second args))))
     goal-name))
 
-;;;
 ;;; citp-parse-red
 ;;;
 (defun citp-parse-red (e)
@@ -194,13 +193,11 @@
         (setq preterm (nth 1 e))))
     (list mode goal-name preterm)))
 
-;;;
 ;;; citp-parse-verbose
 ;;; :verbose {on | off}
 (defun citp-parse-verbose (args)
   (second args))
 
-;;;
 ;;; citp-parse-normalize-init
 ;;; :normalize {on | off}
 (defun citp-parse-normalize (args)
@@ -294,7 +291,6 @@
     (setf (citp-flag citp-spoiler) value)
     t))
 
-;;;
 ;;; {:binspect | binspect} [in <goal-name> : ] <boolean-term> .
 ;;;
 (defun parse-citp-binspect (args)
@@ -313,7 +309,7 @@
         (setq preterm (nth 1 args))))
     (list mode goal-name preterm)))
 
-;;; bshow | :bshow
+;;; {bshow | :bshow} [ { tree | grind } ]
 ;;;
 (defun citp-parse-bshow (args)
   (let ((param (cadr args)))
@@ -326,6 +322,20 @@
   (let ((name (third inp))
         (value (fifth inp)))
     (list name value)))
+
+;;; {bstart | :bstart} <variable-name>
+;;;
+(defun citp-parse-bstart (arg)
+  (cadr arg))
+
+;;; {bguess | :bguess} <strategy> &optional args
+;;; 'bguess <strategy>'
+;;; <strategy> ::= { implies | and | or }
+;;; p implies q = true (p and q = p)
+;;; p and q = false
+;;; p or q = true
+(defun citp-parse-bguess (args)
+  (cdr args))
 
 
 
@@ -382,7 +392,7 @@
     (instanciate-axiom (first args)     ; target
                        (second args)))) ; variable-term pairs
 
-;;;
+;;; :imp
 ;;;
 (defun eval-citp-imp (args)
   (check-ptree)

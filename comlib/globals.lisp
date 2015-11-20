@@ -578,6 +578,7 @@
 (defvar *compile-lisp-rhs* t)
 (defvar *running-with-tk* nil)
 (defvar *sub-prompt* nil)
+(defvar *no-prompt* nil)
 (defvar *consider-object* nil)
 (defvar *auto-reconstruct* nil)
 

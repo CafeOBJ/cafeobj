@@ -351,10 +351,8 @@
          (:if-present (:+ \( \[) (:! Param) :append (:seq-of |,| (:! Param))
                       (:+ \) \]))
          (:if-present (:+ principal-sort psort p-sort) :sort)
-         ;; (:if-present psort :sort)
          |{|
          (:many-of
-
           ;; MODULE IMPORTATIONS
           ;; *NOTE*  imports { ... } is not in MANUAL, and does not have
           ;;         translater to Chaos now.
@@ -827,6 +825,7 @@
          (:rdr #..term-delimiting-chars. (:if-present  in :modexp |:|)) (:seq-of :term) |.|)
         ((:+ |:bresolve| bresolve) :args)
         ((:+ |:bshow| bshow) :args)
+        ((:+ |:bg| |:bguess| bg bguess) :args)
         (|:set| |(| :symbol |,| (:+ on off set clear ? show) |)|)
         ))                              ; end Top-Form
 
@@ -848,9 +847,7 @@
 
       ;; Substitution
       ;;  variable-1 <- term-1; ... variable-n <- term-n;
-      ;; (SubstList ((:! Subst) :append (:seq-of (:! Subst) (:upto (|}|)))))
       (SubstList ((:! Subst) :append (:seq-of (:! Subst))))
-      ;; (Subst ((:term <- :term) |;|))
       (Subst ((:symbol <- :term) |;|))
       ))                                ; end of *cafeobj-scheme*
   )                                     ; end eval-when

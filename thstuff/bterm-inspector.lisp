@@ -99,10 +99,34 @@
           (progn
             (let ((var (car sub))
                   (term (cdr sub)))
-              (term-print var)
-              (princ " |-> ")
+              (princ (string (variable-print-name var)))
+              (princ " = ")
               (term-print term))))))
     (princ " ]" stream)))
+
+(defun abst-bterm-variables (bterm)
+  (let ((vars nil))
+    (dolist (sub (abst-bterm-subst bterm))
+      (if (abst-bterm-p sub)
+          (setq vars (nconc vars (abst-bterm-variables sub)))
+        (pushnew  (car sub) vars)))
+    (delete-duplicates vars)))
+
+;;;==========================================================================
+;;; golobals
+
+(defvar *abst-bterm* 
+    nil
+  "binds abstracted boolean term")
+
+(defvar *abst-bterm-representation* 
+    nil
+  "term constructed from *abst-bterm*")
+
+
+(defvar *abst-bterm-target-variable* 
+    nil
+  "binds a variable targeted to heuristic inspection (bguess).")
 
 ;;;===========================================================================
 ;;; make abst-bterm from a term of sort 'Bool'
@@ -186,9 +210,6 @@
 
 ;;; make-abst-boolean-term : term -> Values (abst-bterm List(substitution))
 ;;;
-(defvar *abst-bterm* nil)
-(defvar *abst-bterm-representation* nil)
-
 (defun make-abst-boolean-term (term module)
   (unless (sort= (term-sort term) *bool-sort*)
     (with-output-chaos-warning ()
@@ -247,8 +268,8 @@
               (with-output-chaos-error ('internal-err)
                 (format t "Could not find the mapping of variable ~a." (variable-name var))))
             (print-next)
-            (term-print var)
-            (princ " |-> ")
+            (princ (string (variable-print-name var)))
+            (princ " = ")
             (term-print mapping)))))
     (terpri)))
 
@@ -381,8 +402,8 @@
             (print-bterm-grinding sub)
           (let ((var (car sub))
                 (term (cdr sub)))
-            (princ (variable-name var))
-            (princ " |-> ")
+            (princ (string (variable-print-name var)))
+            (princ " = ")
             (term-print term))))
       (print-next)
       (if (abst-and-p bt)
@@ -491,11 +512,98 @@
 ;;; finds all variable assignments which make *abst-bterm* to be 'true'.
 ;;; 
 (defun try-resolve-bterm (&optional (comb-limit nil) (all? nil))
-  (unless *abst-bterm*
-    (with-output-chaos-error ('no-bterm)
-      (format t "No abstracted boolean term is specified. ~%Please do 'binspect' or ':binspect' first.")))
   ;; find solutions
   (resolve-bterm-by-wf *abst-bterm* comb-limit all?))
+
+(defvar *binspect-mod-name* "|binspect|")
+(defvar *binspect-mod-decl* 
+    (format nil "module ~a {pr(BOOL)}" *binspect-mod-name*))
+
+(defun get-binspect-module ()
+  (let ((mod (eval-modexp *binspect-mod-name*)))
+    (when (modexp-is-error mod)
+      (let ((*chaos-quiet* t))
+        (with-input-from-string (*standard-input* *binspect-mod-decl*)
+          (process-cafeobj-input))
+        (setq mod (eval-modexp *binspect-mod-name*))))
+    mod))
+
+;;; binspect-intro-predicates : bterm
+;;;
+(defun binspect-intro-predicates (bterm module)
+  (unless module
+    (with-output-chaos-error ('no-module)
+      (format t "binspect: internal error, no module.")))
+  (with-in-module (module)
+    (let ((vars (abst-bterm-variables bterm)))
+      (dolist (v vars)
+        (when *debug-bterm*
+          (format t "~%.. introducing predicate ~a" (string (variable-print-name v))))
+        (push (cons (variable-name v) v) (module-variables module))
+        (symbol-table-add (module-symbol-table module)
+                          (variable-name v)
+                          v))
+      (set-needs-parse module)
+      (compile-module module))))
+
+;;; bguess
+;;;
+(defun get-bterm-predicate-combinations (var bterm)
+  (let ((vars (abst-bterm-variables bterm))
+        (combinations nil))
+    (dolist (v vars combinations)
+      (unless (eq v var)
+        (push (cons var v) combinations)))))
+
+(defun bguess-ax-form (mode pred1 pred2)
+  (let ((ax-form nil))
+    (case mode
+      (:imply 
+       ;; pred1 and pred2 = pred1 
+       (setq ax-form (format nil "eq[:bimply]: ~a and ~a = ~a ." pred1 pred2 pred1)))
+      (:and
+       ;; pred1 and pred2 = false
+       (setq ax-form (format nil "eq[:band]: ~a and ~a = false ." pred1 pred2)))
+      (:or
+       ;; pred1 or pred2 = true
+       ;; i.e. prd1 xor (pred2 xor (pred1 and pred2)) = true .
+       (setq ax-form (format nil "eq[:bor]: ~a xor (~a xor (~a and ~a)) = true ." pred1 pred2 pred1 pred2)))
+      (otherwise
+       (with-output-chaos-error ('unknown-mode)
+         (format t "Internal error, bguess unknown mode: " mode))))
+    (let ((*print-indent* (+ 2 *print-indent*)))
+      (format t "~%>> checking under the assumption -----------------------")
+      (print-next)
+      (princ ax-form)
+      ax-form)))
+
+(defun do-bguess (mode)
+  (let ((*chaos-quiet* t)
+        (*no-prompt* t))
+    (declare (special *no-prompt* *chaos-quiet*))
+    ;; for each predicate combination do the followings
+    (let ((pred-combinations (get-bterm-predicate-combinations *abst-bterm-target-variable* *abst-bterm*))
+          (module nil))
+      (dolist (comb pred-combinations)
+        ;; 1. open |binspect|
+        (setq module (!open-module (eval-modexp *binspect-mod-name*)))
+        ;; 2. intro axiom according to strategy
+        (with-input-from-string (*standard-input* (bguess-ax-form mode 
+                                                                  (string (variable-print-name (car comb)))
+                                                                  (string (variable-print-name (cdr comb)))))
+          (process-cafeobj-input))
+        ;; 3. reduce bterm
+        (compile-module module)
+        (with-in-module (module)
+          (let ((target (make-bterm-representation *abst-bterm*))
+                (*always-memo* t))
+            (setq target (reducer target *current-module* :red))
+            ;; 4. determine the result
+            (format t "==> ")
+            (term-print target)
+            (when (term-subterms target)
+              (print-bterm-substitution *abst-bterm* target))))
+        (eval-close-module)))))
 
 ;;; binspect-in-goal : goal-name term-form
 ;;; abstract boolean term in the context of the goal given by goal-name.
@@ -504,7 +612,8 @@
   (let* ((goal-node (get-target-goal-node goal-name))
          (context-module (goal-context (ptree-node-goal goal-node)))
          (target (do-parse-term* preterm context-module)))
-    (make-abst-boolean-term target context-module)))
+    (make-abst-boolean-term target context-module)
+    (binspect-intro-predicates *abst-bterm* (get-binspect-module))))
 
 ;;; binspect-in-module
 ;;; abstract boolean term in the context of a module
@@ -512,7 +621,8 @@
 (defun binspect-in-module (mod-name preterm)
   (multiple-value-bind (target context-module)
       (do-parse-term* preterm mod-name)
-    (make-abst-boolean-term target context-module)))
+    (make-abst-boolean-term target context-module))
+  (binspect-intro-predicates *abst-bterm* (get-binspect-module)))
 
 ;;;=========================================================================
 ;;; TOP LEVEL FUNCTION
@@ -524,15 +634,23 @@
 ;;; binspect  [in <module-name> :] <boolean-term> .
 ;;;
 (defun binspect-in (mode goal-or-module-name preterm)
-  (cond ((eq mode :citp)
-         (binspect-in-goal goal-or-module-name preterm))
-        (t 
-         (binspect-in-module goal-or-module-name preterm))))
+  (let ((*chaos-quiet* t)
+        (*no-prompt* t))
+    (cond ((eq mode :citp)
+           (binspect-in-goal goal-or-module-name preterm))
+          (t 
+           (binspect-in-module goal-or-module-name preterm)))))
+
+(defun check-bterm-context ()
+  (unless *abst-bterm*
+    (with-output-chaos-error ('no-bterm)
+      (format t "No abstracted boolean term is specified. ~%Please do 'binspect' or ':binspect' first."))))
 
 ;;; bresolve
 ;;; finds variable assignments which make abst bterm 'true'.
 ;;;
 (defun bresolve (args)
+  (check-bterm-context)
   (let* ((rargs (cdr args))
          (limit-arg (and rargs
                          (not (equal "all" (car rargs)))
@@ -570,5 +688,44 @@
             (format t "Unknown option ~s" tree?)))))
     (unless (equal tree? "grind")
       (print-bterm-substitution *abst-bterm* *abst-bterm-representation*))))
+
+;;; find-variable-in-abst-bterm : name bterm -> variable
+;;;
+(defun find-variable-in-abst-bterm (name bterm)
+  (declare (type simple-string name))
+  (let ((var nil))
+    (dolist (sub (abst-bterm-subst bterm) var)
+      (if (abst-bterm-p sub)
+          (progn
+            (setq var (find-variable-in-abst-bterm name sub))
+            (when var (return-from find-variable-in-abst-bterm var)))
+        (when (string= name (variable-print-name (car sub)))
+          (return-from find-variable-in-abst-bterm (car sub)))))))
+
+(defun bstart (name)
+  (declare (type simple-string name))
+  (check-bterm-context)
+  (let ((var (find-variable-in-abst-bterm name *abst-bterm*)))
+    (unless var
+      (with-output-chaos-error ('no-var)
+        (format t "No such predicate ~s in abstracted boolean term." name)))
+    (format t "** Setting target predicate to '~A'" name)
+    (setq *abst-bterm-target-variable* var)))
+
+;;; bgues
+;;; bguess {imply | and | or} with <predicate-name>
+;;; 
+(defun bguess (args)
+  (let ((strategy (first args))
+        (pred (third args)))
+    (bstart pred)
+    (cond ((member strategy '("imply" ":imply" "imp" ":imp") :test #'equal)
+           (do-bguess :imply))
+          ((member strategy '("and" ":and") :test #'equal)
+           (do-bguess :and))
+          ((member strategy '("or" ":or") :test #'equal)
+           (do-bguess :or))
+          (t (with-output-chaos-error ('unknown-strat)
+               (format t "Unknown strategy ~s" strategy))))))
 
 ;;; EOF

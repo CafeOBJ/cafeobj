@@ -2604,7 +2604,7 @@ where
     :category :proof
     :parser citp-parse-bshow
     :evaluator bshow
-    :title "`{bshow | :bshow} [tree]`"
+    :title "`{bshow | :bshow} [{ tree | grind }]`"
     :doc "Shows the abstracted Boolean term computed by [`binspect`](#binspect).
 If the argument `tree` is given, prints out a the abstracted term in tree form.
 The variant with leading colon is for usage during a [CITP](#citp) proof."
@@ -2620,6 +2620,13 @@ where
   P-5:Bool |-> p2(X:S)
 ~~~~~"
 )
+
+(define ("bguess" ":bguess" "bg" ":bg")
+    :category :proof
+    :parser citp-parse-bguess
+    :evaluator bguess
+    :title "`{bguess | :bguess} {imply|and|or} with <predicate name>`"
+    :doc "TODO")
 
 ;;;
 

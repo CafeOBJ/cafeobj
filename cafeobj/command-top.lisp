@@ -386,6 +386,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 (defun print-cafeobj-prompt ()
   (fresh-all)
   (flush-all)
+  (when *no-prompt* (return-from print-cafeobj-prompt nil))
   (let ((cur-module (get-context-module t)))
     (cond ((eq *prompt* 'system)
            (if cur-module
