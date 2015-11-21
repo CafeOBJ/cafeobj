@@ -1986,10 +1986,11 @@
 ;;; terms in resulting axiom must be ground terms.
 ;;;
 (defun make-axiom-instance (module subst axiom)
-  (let ((new-axiom (rule-copy-canonicalized axiom module))
-        (rsubst nil))
-    (setq rsubst (make-real-instanciation-subst subst (axiom-variables new-axiom)))
-    (apply-substitution-to-axiom rsubst new-axiom '(init))
+  (let ((new-axiom (rule-copy-canonicalized axiom module)))
+    (when subst
+      (apply-substitution-to-axiom (make-real-instanciation-subst subst (axiom-variables new-axiom))
+                                   new-axiom 
+                                   '(init)))
     new-axiom))
 
 ;;; instanciate-axiom
@@ -2045,7 +2046,9 @@
 
 (defun introduce-implication-to-goal (target-form subst-form)
   (let ((target-axiom (get-target-axiom *current-module* target-form t))
-        (subst (resolve-subst-form *current-module* subst-form))
+        (subst (if subst-form
+                   (resolve-subst-form *current-module* subst-form)
+                 nil))
         (instance nil))
     (setq instance (make-axiom-instance *current-module* subst target-axiom))
     (with-next-context (*proof-tree*)

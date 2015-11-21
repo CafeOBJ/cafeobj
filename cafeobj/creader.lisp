@@ -781,7 +781,8 @@
                           (\[ (:symbol) \]))
                  |by| |{| ((:! SubstList)) |}|)
         ((:+ |:imply| |:imp|) (\[ (:symbol) \])
-                              |by| |{| ((:! SubstList)) |}|)
+                              (:one-of (|by| |{| ((:! SubstList)) |}|)
+                                       (|.|)))
         (|:cp| (:one-of (|(| (:one-of #.EqDeclaration
                                       #.CeqDeclaration
                                       #.RlDeclaration

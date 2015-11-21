@@ -119,6 +119,8 @@
 ;;;
 ;;; :init {[<label>] | (<axiom>)} by { <var> <- <term>; ...<var> <- <term>; }
 ;;;
+;;; (":init" ("[" ("test1") "]") "by" "{" (("X:S" "<-" ("X#S")) ";") "}"))
+;;;
 (defun make-axiom-pattern (target)
   (if (equal (first target) "[")
       (cons :label (second target))
@@ -138,8 +140,17 @@
 
 ;;; :imply [<label>] by { <var> <- <term>; ...<var> <- <term>; }
 ;;;
+;;; (":imp" ("[" ("test2") "]") ("by" "{" (("Y:S" "<-" ("X#S")) ";") "}"))
+;;; (":imp" ("[" ("gt") "]") ("."))
+;;;
 (defun citp-parse-imp (args)
-  (citp-parse-init args))
+  (let ((target-form (make-axiom-pattern (second args)))
+        (subst-list (third (third args)))
+        (subst-pairs nil))
+    (dolist (subst-form subst-list)
+      (unless (atom subst-form)
+        (push (cons (first subst-form) (third subst-form)) subst-pairs)))
+    (list target-form subst-pairs)))
 
 ;;; :cp
 ;;; (":cp" ("[" ("label-1") "]") "><" ("[" ("label-2") "]")) 
