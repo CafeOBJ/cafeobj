@@ -19,16 +19,17 @@
 \frontmatter
 \pagestyle{empty}
 %%
-\title{\cafeobj~User's Manual \\ --- ver.1.4.12 ---}
-\author{Ataru T. Nakagawa \and Toshimi Sawada \and Kokichi Futatsugi}
+\title{\cafeobj~User's Manual \\ --- ver.1.5.4 ---}
+\author{Ataru T. Nakagawa \and Toshimi Sawada \and Kokichi Futatsugi
+  \and Norbert Preining}
 %\date{\today}
-\date{2013/3/1}
+\date{2015-11-24}
 \bibliographystyle{plain}
 
 \maketitle
 \vfill
 \begin{center}
-\includegraphics[scale=0.2]{cafe-logo.pdf}
+\includegraphics[scale=1]{cafeobj-logo.png}
 \end{center}
 \vfill
 %% \Hline
@@ -185,7 +186,7 @@ You may obtain a complete distribution package from the
 following site. 
 \begin{vvtm}
 \begin{ccode}
-  http://www.ldl.jaist.ac.jp/cafeobj/system.html
+  http://www.cafeobj.org/
 \end{ccode}
 \end{vvtm}
 % where \verb|???| is a version numbering. Or you can get a system linked
@@ -206,10 +207,10 @@ following site.
 % to use on which operating systems, and which Lisp systems to be obtained
 % from where, consult the installation guide (README) in the distribution
 % package.
-The current version works under i386 Linux, i386 MacOSX (version 10.5
-or later), and win32. Binary package of these platforms can be
-obtained from the above site. You can also download source code of the
-system from the same place. 
+The current version works under i386 and am64 Linux, i386 and amd64
+MacOSX (version 10.5 or later), and win32. Binary package of these
+platforms can be obtained from the above site. You can also download
+source code of the system from the same place. 
 
 % In principle the system should also work on Windows with Allegro, but there
 % is no guarantee of its behaviours. The implementors have no intention
@@ -243,19 +244,19 @@ a welcoming message.
 \begin{ccode}
 % cafeobj
 -- loading standard prelude
-; Loading /usr/local/cafeobj-1.4/prelude/std.bin
 
-          -- CafeOBJ system Version 1.4.8(PigNose0.99,p18) --
-                   built: 2010 Jul 5 Mon 0:50:01 GMT
+            -- CafeOBJ system Version 1.5.4(PigNose0.99) --
+                  built: 2015 Nov 23 Mon 14:13:42 GMT
                          prelude file: std.bin
                                   ***
-                      2010 Jul 5 Mon 6:59:56 GMT
+                      2015 Nov 24 Tue 1:36:52 GMT
                             Type ? for help
                                   ***
                   -- Containing PigNose Extensions --
                                   ---
-         built on International Allegro CL Enterprise Edition
-               8.2 [Mac OS X (Intel)] (Jul 5, 2010 9:49)
+                             built on SBCL
+                             1.3.0.debian
+
 CafeOBJ>
 \end{ccode}
 \end{vvtm}
@@ -270,14 +271,22 @@ As a first experiment, try feeding a trivial module definition
 \begin{ccode}
 module TEST { [ Elt ] }
 
--- defining module TEST
-processing input : /usr/local/cafeobj-1.4/lib/bool.mod
-processing input : /usr/local/cafeobj-1.4/lib/truth.mod
 -- defining module! TRUTH
 -- reading in file  : truth
+
 -- done reading in file: truth
-............_......* done.
--- defining module! BOOL............._......................* done.._* done.
+.............._...........* done.
+-- defining module! BASE-BOOL..
+-- reading in file  : eql
+
+processing input : /usr/local/share/cafeobj-1.5/lib/eql.cafe
+
+-- defining module! EQL.._...* done.
+-- done reading in file: eql
+........._* done.
+processing input : /usr/local/share/cafeobj-1.5/lib/sys_bool.cafe
+
+-- defining module! BOOL....._......................* done.._* done.
 CafeOBJ> 
 \end{ccode}
 \end{vvtm}
@@ -287,7 +296,7 @@ this module somewhere in its memory, to be available hereafter.
 %%% t.swd 2010/June
 \footnote{As you see in the example above, system may load some other
 modules required for defining your module. 
-In this case, \kbd{TRUTH} and \kbd{BOOL} are loaded in automatic.
+In this case, \kbd{TRUTH}, \kbd{BOOL} are loaded in automatic.
 These are modules which provides built-in Boolean types and
 operations.
 More on this at page~\pageref{sec:p2-import-decl}.}
@@ -370,40 +379,70 @@ Due to irrecoverable input errors, or just to mulfunctions, \cafeobj
 \begin{vvtm}
 \begin{ccode}
   CafeOBJ> ^C
-  Correctable error: Console interrupt.
-  Signalled by CAFEOBJ-TOP-LEVEL.
-  If continued: Type :r to resume execution, or :q to quit to top level.
-  Broken at SYSTEM:TERMINAL-INTERRUPT.  Type :H for Help.
-  CHAOS>>
+
+  debugger invoked on a SB-SYS:INTERACTIVE-INTERRUPT in thread ...
+
+  Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+  restarts (invokable by number or by possibly-abbreviated name):
+    0: [CONTINUE] Return from SB-UNIX:SIGINT.
+    1: [ABORT   ] Return to CafeOBJ Top level.
+    2:            Exit CafeOBJ.
+
+  ("bogus stack frame")
+  0] 
 \end{ccode}
 \end{vvtm}
 The above session was obtained by typing the interrupt code (usually
 Control-C) at the initial prompt, forcing \cafeobj~to stop willy-nilly.
-The prompt ``\verb|CHAOS>>|'' indicates you plunged into an error
+The above prompt indicates you plunged into an errror
 environment. The above message may look familiar to you, if you are
-a user of GCL. The message was from GCL, and the error
-environment is a GCL error loop\footnote{
-Error loops of CMU, Allegro, and MacLisp work more or less similarly,
-and the same recover command \kbd{:q} works.
-}.
+a user of SBCL/Allegro Lisp. The message was from the underlying
+Common Lisp interpreter, and the error environment is in this case the
+SBCL error loop.%\footnote{
+%Error loops of CMU, Allegro, and MacLisp work more or less similarly,
+%and the same recover command \kbd{:q} works.
+%}.
 
-Following the instructions from GCL, you may resume the \cafeobj~session
-with \verb|:q|, as
+Following the instructions from the debugger, you may resume the
+\cafeobj~session at the very point where you left of by
+selecting~\verb|0|, as one can see in the following example where the
+interrupt key was pressed in the middle of a module definition:
 \begin{vvtm}
 \begin{ccode}
-  CHAOS>>:q
+  CafeOBJ> mod ERROR {
 
+  debugger invoked on a SB-SYS:INTERACTIVE-INTERRUPT in thread ...
+
+  Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+  restarts (invokable by number or by possibly-abbreviated name):
+    0: [CONTINUE] Return from SB-UNIX:SIGINT.
+    1: [ABORT   ] Return to CafeOBJ Top level.
+    2:            Exit CafeOBJ.
+
+  ("bogus stack frame")
+  0] 0
+  }
+
+  -- defining module ERROR_* done.
+
+  CafeOBJ>
+  0] 1
   CafeOBJ>
 \end{ccode}
 \end{vvtm}
-The message 
 
-There may be irrecoverable cases, when \verb|:q| (or similar commands of
+Selecting~\verb|1| instead will terminate the current input and return
+to the top-level, which would result in the module \verb|ERROR| above
+remaining undefined.
+
+There may be irrecoverable cases, when \verb|0| (or similar commands of
 other Common Lisp systems) fails to work.
 Then try ``\verb|(cafeobj t)|''. This is a more
 robust means to return to \cafeobj. If, for goodness, you are unable
-to return to \cafeobj~even then, exit GCL (control-D normally works)
-and start from scratch.
+to return to \cafeobj~even then, exit the debugger (control-D normally
+works) and start from scratch.
 
 If the system still works fine, but if you happen to have destroyed
 some vital module definitions, try
@@ -432,9 +471,16 @@ malfunctions, or just inconveniences, do let us know. The support team is
 reachable via
 \begin{vvtm}
 \begin{ccode}
-  cafe-bugs@ldl.jaist.ac.jp
+  info@cafeobj.org
 \end{ccode}
 \end{vvtm}
+We also accept bugs at our bug tracker
+\begin{vvtm}
+\begin{ccode}
+  https://tracker.cafeobj.org/
+\end{ccode}
+\end{vvtm}
+
 
 %%%%%%%%
 \section{Files and Libraries}
@@ -473,7 +519,7 @@ relative and absolute paths are possible, and
 denotes your home directory.
 If there is no file with the pathname, the system expands the name
 with suffixes ``kbd{.cafe}''\footnote{The older systems prior
-  to version 1.4.8 used a diffrenct suffix ``\kbd{.mod}''. 
+  to version 1.4.8 used a different suffix ``\kbd{.mod}''. 
   This is also supported for compatibility.}
 \index{\texttt{.cafe} (suffix)} \index{\texttt{.mod} (suffix)}
 or ``\kbd{.bin}''
@@ -537,20 +583,22 @@ file names should be suffixed with ``\verb|.bin|''.  In place of
   It is safer to use \kbd{restore} command to read \kbd{save}d files.
 \end{warning}
 
-You can also save the entire image of the system, including
-the state of module definitions, into a dump file, by the following
-command.
+% NP 20151124 save-system is not available anymore
 
-\begin{bsyntax} \texttt{save-system} command \index{\texttt{save-system}}\Hline
-\texttt{save-system} \textit{pathname}
-\end{bsyntax}
+% You can also save the entire image of the system, including
+% the state of module definitions, into a dump file, by the following
+% command.
 
-\begin{warning}
-  \kbd{save-system} dumps the image of Common Lisp, so do not abuse
-  this command.
-  And due to the restictions of Common Lisp systems, this command may
-  not work.
-\end{warning}
+% \begin{bsyntax} \texttt{save-system} command \index{\texttt{save-system}}\Hline
+% \texttt{save-system} \textit{pathname}
+% \end{bsyntax}
+
+% \begin{warning}
+%   \kbd{save-system} dumps the image of Common Lisp, so do not abuse
+%   this command.
+%   And due to the restictions of Common Lisp systems, this command may
+%   not work.
+% \end{warning}
 
 \subsection{Initialisations and Options}\label{sec:p2-init-opt}
 
@@ -559,7 +607,8 @@ contained
 \begin{vvtm}
 \begin{ccode}
   -- loading standard prelude 
-  ; Loading /mnt1/lang/cafeobj-1.4/prelude/std.bin.
+  ...
+     prelude file: std.bin
 \end{ccode}
 \end{vvtm}
 In starting up, \cafeobj~autoloads\index{autoloading} a set of modules,
@@ -690,18 +739,17 @@ By default, if an apparent single file name is given as argument to
 \kbd{input} command, the system searches the current directory,
 then standard library directories. The standard library directories
 \index{standard library}
-are fixed at the time of installation. By default of defaults,
-they are
+are fixed at the time of installation, and are relative to the binary
+of the interpreter. On a Unix-like system with installation to
+\verb|/usr/local| it would be
 \begin{vvtm}
 \begin{ccode}
-  /usr/local/cafeobj-1.4/lib
-  /usr/local/cafeobj-1.4/exs
+  /usr/local/share/cafeobj-1.5/lib
 \end{ccode}
 \end{vvtm}
-which are searched {\em in this order}. If the search paths are
-modified, the sytem searches (a) the current directory,
-(b) the paths given by the user (from left to right), and (c) the
-above default paths (in case of \kbd{+} or \kbd{+l} options).
+If the search paths are modified, the sytem searches (a) the current
+directory, (b) the paths given by the user (from left to right), and
+(c) the above default paths (in case of \kbd{+} or \kbd{+l} options).
 
 \begin{warning}
   The current directory has a privileged status. It is always searched
@@ -712,7 +760,7 @@ above default paths (in case of \kbd{+} or \kbd{+l} options).
 To inspect the current search paths, type
 \begin{vvtm}
 \begin{ccode}
-  CafeOBJ> show switch libpath
+  CafeOBJ> show libpath
 \end{ccode}
 \end{vvtm}
 (see Section \ref{sec:p2-show-command} for \kbd{show} command in general).
@@ -734,7 +782,10 @@ following pair of commands for configuration management.
 denotes a set of module definitions. Given this command, the
 system searches for a file named the feature, and read the file
 if found. If a pathname is given, the system searches for a file
-named the pathname instead.
+named the pathname instead. If the feature contains double colons
+(\verb|::|) then they are interpreted as directory separators, that
+is, a call to \verb|require foo::bar| would search for a file
+\verb|foo/bar.cafe| in the current \verb|libpath|.
 
 \kbd{provide} discharges a feature
 requirement: once \kbd{provide}d, all the subsequent
@@ -766,7 +817,7 @@ To see which features have been provided, type
 \index{\texttt{show}}
 
 To continue the above example, provided there is a file
-\kbd{container-1.mod} that
+\kbd{container-1.cafe} that
 defines lists, bags, et al. and contains the \kbd{provide} command line
 as above, you may get the following session.
 \begin{vvtm}
@@ -11047,3 +11098,8 @@ the indexed topic.\vskip\onelineskip}
 \cleardoublepage
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
