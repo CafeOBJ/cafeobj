@@ -2049,7 +2049,8 @@
         (subst (if subst-form
                    (resolve-subst-form *current-module* subst-form)
                  nil))
-        (instance nil))
+        (instance nil)
+        (new-targets nil))
     (setq instance (make-axiom-instance *current-module* subst target-axiom))
     (with-next-context (*proof-tree*)
       ;; normalize it
@@ -2070,23 +2071,26 @@
       ;; -> new goal eq p implies l = r .
       (dolist (target (goal-targets (ptree-node-goal .context.)))
         (let ((new-lhs (make-impl-form (axiom-lhs target) instance))
-              (*print-indent* (+ *print-indent* 2)))
+              (*print-indent* (+ *print-indent* 2))
+              (rtarget (rule-copy-canonicalized target *current-module*)))
           (with-citp-debug ()
             (format t "~%[:imp] target: ")
             (print-axiom-brief target))
-          (if (sort= (term-sort (axiom-rhs target)) *bool-sort*)
+          (if (sort= (term-sort (axiom-rhs rtarget)) *bool-sort*)
               (progn
-                (setf (axiom-lhs target) new-lhs)
-                (setf (axiom-labels target) (cons :imp (axiom-labels target)))
+                (push rtarget new-targets)
+                (setf (axiom-lhs rtarget) new-lhs)
+                (setf (axiom-labels rtarget) (cons :imp (axiom-labels rtarget)))
                 (format t "~%[:imp] target sentence is converted...")
                 (print-next)
                 (princ "=> ")
                 (print-next)
-                (print-axiom-brief target))
+                (print-axiom-brief rtarget))
             (with-output-chaos-warning ()
               (format t "[:imp] sort of target sentence is not Bool. Ignored.")
               (print-next)
-              (print-axiom-brief target))))))))
+              (print-axiom-brief target)))))
+      (setf (goal-targets (ptree-node-goal .context.)) (nreverse new-targets)))))
 
 ;;; ==============
 ;;; CRITICAL PAIRS [:cp]
@@ -2392,12 +2396,24 @@
 ;;; :ctf or :ctf-
 ;;; ==============
 
+#||
 (defun make-ctf-constructor-pattern (const-op)
   (when (method-arity const-op)
     (with-output-chaos-warning ()
       (format t "Only constant constructors are supported. Sorry!")
       (return-from make-ctf-constructor-pattern nil)))
   (make-applform-simple (method-coarity const-op) const-op nil))
+||#
+(defun make-ctf-constructor-pattern (goal const-op)
+  (let ((arity (method-arity const-op)))
+    (cond (arity
+           (let ((args nil))
+             (dolist (s arity)
+               (push (intro-fresh-constant goal (sort-name s) s) args))
+             (make-applform-simple (method-coarity const-op)
+                                    const-op
+                                    (nreverse args))))
+          (t (make-applform-simple (method-coarity const-op) const-op nil)))))
 
 (defun do-apply-ctf-with-constructors (cur-node term tactic)
   (let ((cur-goal (ptree-node-goal cur-node))
@@ -2414,7 +2430,7 @@
                                      t
                                    nil)))))
         (let ((n-goal nil)
-              (const-pat (make-ctf-constructor-pattern const)))
+              (const-pat (make-ctf-constructor-pattern cur-goal const)))
           (when const-pat
             (setq n-goal (prepare-next-goal cur-node tactic))
             (with-in-module ((goal-context n-goal))

@@ -760,11 +760,11 @@
 ;;; introduces a new constant of sort(variable) into a module.
 ;;; returns a pair (variable . constant-term)
 ;;;
-(defun intro-const-returns-subst (module name variable)
+(defun citp-intro-const (module name sort)
   (multiple-value-bind (op meth)
       (declare-operator-in-module (list name)
                                   nil   ; arity
-                                  (variable-sort variable) ; coarity
+                                  sort  ; coarity
                                   module ; 
                                   nil   ; constructor?
                                   nil   ; behavioural? always nil.
@@ -772,15 +772,33 @@
                                   )
     (declare (ignore op))
     (prepare-for-parsing module t t)    ; force 
-    (cons variable (make-applform-simple (variable-sort variable) meth nil))))
+    meth))
+  
+(defun intro-const-returns-subst (module name variable)
 
-;;; make-tc-const-name : proof-tree prefix -> string
+  (cons variable (make-applform-simple (variable-sort variable)
+                                       (citp-intro-const module name (variable-sort variable))
+                                       nil)))
+
+;;; make-tc-const-name : variable -> string
 ;;;
-(defun make-tc-const-name (variable)
-  (format nil "~:@(~a~)@~a" (variable-name variable)
-          (string (sort-name (variable-sort variable)))))
+(defun make-tc-const-name (name sort)
+  (format nil "~:@(~a~)@~a" name (string (sort-name sort))))
+
+;;; intro-fresh-constant : goal -> term (introduced constant)
+;;; introduces brand new constant in the current proof context
+;;;
+(defun intro-fresh-constant (goal name-seed sort)
+  (let* ((name (make-tc-const-name name-seed sort))
+         (v-const (citp-intro-const (goal-context goal)
+                                    name
+                                    sort)))
+    (push v-const (goal-constants goal))
+    v-const))
 
 ;;; variable->constant : goal variable -> term
+;;; In the given goal, introduces fresh constant which should substitute the given varirable.
+;;; used by tactic TC.
 ;;;
 (defun find-variable-subst-in (alist variable)
   (assoc variable alist :test #'variable-equal))
@@ -794,7 +812,7 @@
         (let ((name (cdr (find-variable-subst-in (ptree-var-subst *proof-tree*) variable)))
               (v-const nil))
           (unless name
-            (setq name (make-tc-const-name variable))
+            (setq name (make-tc-const-name (variable-name variable) (variable-sort variable)))
             (push (cons variable name) (ptree-var-subst *proof-tree*)))
           (setq v-const (intro-const-returns-subst (goal-context goal)
                                                    name
