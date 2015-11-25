@@ -785,16 +785,25 @@
 (defun make-tc-const-name (name sort)
   (format nil "~:@(~a~)@~a" name (string (sort-name sort))))
 
+(defun make-tc-pconst-name (name)
+  (format nil "`~:@(~a~)" name))
+
 ;;; intro-fresh-constant : goal -> term (introduced constant)
 ;;; introduces brand new constant in the current proof context
 ;;;
 (defun intro-fresh-constant (goal name-seed sort)
   (let* ((name (make-tc-const-name name-seed sort))
-         (v-const (citp-intro-const (goal-context goal)
-                                    name
-                                    sort)))
-    (push v-const (goal-constants goal))
+         (meth (citp-intro-const (goal-context goal) name sort))
+         (v-const (make-applform-simple sort meth nil)))
+    (push (cons meth v-const) (goal-constants goal))
     v-const))
+
+;;; introduces on-the-fly constant
+;;;
+(defun intro-fresh-pconstant (goal name-seed sort)
+  (declare (ignore goal))
+  (let ((name (make-tc-pconst-name name-seed)))
+    (make-pvariable-term sort name)))
 
 ;;; variable->constant : goal variable -> term
 ;;; In the given goal, introduces fresh constant which should substitute the given varirable.

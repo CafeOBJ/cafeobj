@@ -1930,7 +1930,8 @@
         (ax nil))
     (cond ((eq :label kind) (setq ax (get-rule-labelled module (second target-form))))
           (t (with-in-module (module)
-               (setq ax (parse-axiom-declaration (parse-module-element-1 (cdr target-form))))
+               (let ((*chaos-quiet* nil))
+                 (setq ax (parse-axiom-declaration (parse-module-element-1 (cdr target-form)))))
                (when add-to-module
                  (set-operator-rewrite-rule module ax)
                  (adjoin-axiom-to-module module ax)
@@ -1952,11 +1953,13 @@
             (format t "~%resolving subst form:")
             (print-next)
             (format t " var=~s, term=~s" var-form term-form))
-          (setq var (simple-parse context var-form))
+          (let ((*chaos-quiet* nil))
+            (setq var (simple-parse context var-form)))
           (when (or (term-ill-defined var) (not (term-is-variable? var)))
             (with-output-chaos-error ('invalid-var-form)
               (format t "Invalid variable in substitution: ~s" var-form)))
-          (setq term (simple-parse context term-form))
+          (let ((*chaos-quiet* nil))
+            (setq term (simple-parse context term-form)))
           (when (term-ill-defined term)
             (with-output-chaos-error ('invalid-term)
               (format t "No parse..: ~s" term-form)))
@@ -2395,40 +2398,56 @@
 ;;; ==============
 ;;; :ctf or :ctf-
 ;;; ==============
+(defvar .pvar-names. nil)
 
-#||
-(defun make-ctf-constructor-pattern (const-op)
-  (when (method-arity const-op)
-    (with-output-chaos-warning ()
-      (format t "Only constant constructors are supported. Sorry!")
-      (return-from make-ctf-constructor-pattern nil)))
-  (make-applform-simple (method-coarity const-op) const-op nil))
-||#
 (defun make-ctf-constructor-pattern (goal const-op)
   (let ((arity (method-arity const-op)))
     (cond (arity
-           (let ((args nil))
+           (let ((args nil)
+                 (form nil))
              (dolist (s arity)
-               (push (intro-fresh-constant goal (sort-name s) s) args))
-             (make-applform-simple (method-coarity const-op)
-                                    const-op
-                                    (nreverse args))))
+               (let ((pn (assoc s .pvar-names. :test #'eq)))
+                 (print pn)
+                 (unless pn 
+                   (setq pn (cons s 0))
+                   (push pn .pvar-names.))
+                 (format t "% .pvar-names. ~a" .pvar-names.)
+                 (push (intro-fresh-pconstant goal 
+                                              (format nil "~a-~d" (sort-name s) (incf (cdr pn)))
+                                              s)
+                       args)))
+             (setq form (make-applform-simple (method-coarity const-op)
+                                              const-op
+                                              (nreverse args)))
+             (with-citp-debug ()
+               (with-in-module ((goal-context goal))
+                 (format t "~%[ctf consructor] ")
+                 (term-print-with-sort form)))
+             form))
           (t (make-applform-simple (method-coarity const-op) const-op nil)))))
 
 (defun do-apply-ctf-with-constructors (cur-node term tactic)
   (let ((cur-goal (ptree-node-goal cur-node))
         (sort (term-sort term))
         (goals nil))
-    (let ((constructors (find-sort-constructors-in *current-module* sort)))
+    (let ((constructors (find-sort-constructors-in *current-module* sort))
+          (.pvar-names. nil))
+      (declare (special .names.))
       (unless constructors
         (with-output-chaos-error ('no-constructors)
           (format t "Sort ~a has no constructors." (sort-name sort))))
       (dolist (const (sort constructors 
                            #'(lambda (x y) 
-                               (let ((prec (op-lex-precedence x y)))
-                                 (if (eq prec :greater)
+                               (let ((ax (length (method-arity x)))
+                                     (ay (length (method-arity y))))
+                                 (if (< ax ay)
                                      t
-                                   nil)))))
+                                   (if (> ax ay)
+                                       nil
+                                     (if (eq (op-lex-precedence x y) :greater)
+                                         ;; this orders true -> false
+                                         t
+                                       nil)))))))
         (let ((n-goal nil)
               (const-pat (make-ctf-constructor-pattern cur-goal const)))
           (when const-pat
@@ -2453,7 +2472,7 @@
                     (setf (goal-assumptions n-goal)
                       (append (goal-assumptions cur-goal) (list ax))))))))))
       (with-citp-debug ()
-        (format t "~%ctf to constructors generated:")
+        (format t "~%[ctf] constructors generated:")
         (dolist (g (reverse goals))
           (print-next)
           (pr-goal g)))
@@ -2518,11 +2537,12 @@
               (values nil nil))))))))
 
 (defun parse-axiom-or-term (form term?)
-  (if term?
-      (let ((*parse-variables* nil))
-        (let ((res (simple-parse *current-module* form *cosmos*)))
-          res))
-    (parse-axiom-declaration (parse-module-element-1 form))))
+  (let ((*chaos-quiet* nil))
+    (if term?
+        (let ((*parse-variables* nil))
+          (let ((res (simple-parse *current-module* form *cosmos*)))
+            res))
+      (parse-axiom-declaration (parse-module-element-1 form)))))
 
 (defun do-apply-ctf (cur-node term-or-equation &optional (tactic .tactic-ctf.))
   (with-citp-env ()
@@ -2615,7 +2635,8 @@
       (with-citp-env ()
         (let ((axs nil))
           (dolist (ax ax-forms)
-            (push (parse-axiom-declaration (parse-module-element-1 ax)) axs))
+            (let ((*chaos-quiet* nil))
+              (push (parse-axiom-declaration (parse-module-element-1 ax)) axs)))
           (multiple-value-bind (applied next-goals)
               (do-apply-csp ptree-node (nreverse axs))
             (declare (ignore applied))
