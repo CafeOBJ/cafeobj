@@ -16,10 +16,10 @@ XDG_CACHE_HOME=$(CURDIR)/tmpcache
 export XDG_CACHE_HOME
 
 build: build-arch build-indep
-build-arch: build-stamp
-build-indep: build-stamp
+build-arch: build-arch-stamp
+build-indep: build-indep-stamp
 
-build-stamp:
+build-arch-stamp:
 	dh_testdir
 	./configure --prefix=/usr --with-lisp=sbcl --enable-rebuild-doc
 	# remove prebuild documentation pdf and rebuild them
@@ -29,36 +29,61 @@ build-stamp:
 	rm -f doc/RefCard/interp.pdf
 	rm -f doc/RefCard/syntax.pdf
 	make build
+	touch build-arch-stamp
+
+build-indep-stamp:
+	touch build-indep-stamp
 
 clean:
 	dh_testdir
 	dh_testroot
 	[ ! -f Makefile ] || $(MAKE) distclean
-	rm -f install-stamp
+	rm -f install-arch-stamp install-indep-stamp
+	rm -f build-arch-stamp build-indep-stamp
 	rm -rf $(XDG_CACHE_HOME)
 	dh_clean
 	
-install: install-stamp
+install: install-arch install-indep
+install-arch: install-arch-stamp
+install-indep: install-indep-stamp
 
-
-install-stamp: DH_OPTIONS=
-install-stamp: build-stamp
+install-arch-stamp: DH_OPTIONS=-a
+install-arch-stamp: build-arch
 	dh_testdir
 	dh_testroot
 	dh_prep
 	DESTDIR=$(co) $(MAKE) install
-	# cafeobj-mode package
+	touch install-arch-stamp
+
+install-indep-stamp: DH_OPTIONS=-i
+install-indep-stamp: build-indep
 	mkdir -p $(coel)/usr/share/emacs/site-lisp
 	cp elisp/cafeobj-mode.el $(coel)/usr/share/emacs/site-lisp
-	touch install-stamp
+	touch install-indep-stamp
 
-binary-indep: build install
+
+binary: binary-indep binary-arch
+
+binary-indep: DH_OPTIONS=-i
+binary-indep: install-indep
+	dh_testdir
+	dh_testroot
+	dh_installdocs README.md
+	dh_installchangelogs
+	dh_installemacsen
+	dh_compress -X.pdf
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary-arch: DH_OPTIONS=-a
 binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_installdocs README.md
 	dh_installchangelogs
-	dh_installemacsen -pcafeobj-mode
 	# do NOT strip otherwise the sbcl dump file is broken!
 	#dh_strip
 	dh_compress -X.pdf
@@ -69,7 +94,6 @@ binary-arch: build install
 	dh_md5sums
 	dh_builddeb
 
-binary: binary-indep binary-arch
 
 .PHONY: config build clean binary-indep binary-arch binary install
 

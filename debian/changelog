@@ -1,3 +1,9 @@
+cafeobj (1.5.4-4) unstable; urgency=medium
+
+  * rearrange rules file to allow for source only uploads (Closes: #805942)
+
+ -- Norbert Preining <preining@debian.org>  Wed, 25 Nov 2015 23:13:19 +0900
+
 cafeobj (1.5.4-3) unstable; urgency=medium
 
   * fix short description mentioning Scala (Closes: #803955)
