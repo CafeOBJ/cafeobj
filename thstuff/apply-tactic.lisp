@@ -2387,7 +2387,7 @@
         (with-spoiler-on ()
           (when (check-contradiction .cur-goal. 'ct)
             (with-in-module ((goal-context .cur-goal.))
-              (format t "%[ct] dischaged:")
+              (format t "~%[ct] dischaged:")
               (dolist (target (goal-targets .cur-goal.))
                 (print-next)
                 (print-axiom-brief target))
@@ -2407,11 +2407,9 @@
                  (form nil))
              (dolist (s arity)
                (let ((pn (assoc s .pvar-names. :test #'eq)))
-                 (print pn)
                  (unless pn 
                    (setq pn (cons s 0))
                    (push pn .pvar-names.))
-                 (format t "% .pvar-names. ~a" .pvar-names.)
                  (push (intro-fresh-pconstant goal 
                                               (format nil "~a-~d" (sort-name s) (incf (cdr pn)))
                                               s)
