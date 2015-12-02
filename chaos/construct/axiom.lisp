@@ -314,7 +314,7 @@
       (format t "~%[A-extension] ")
       (print-chaos-object rule)
       (format t "~%  kind=~S" knd))
-    (if (and knd (or (eq :id-theorem knd) (eq :idem-theory knd)))
+    (if (and knd (eq :idem-theory knd))
         (setf  (!axiom-A-extensions rule) '(nil nil nil))
       (let ((listext nil)
             ext-rule
@@ -405,13 +405,10 @@
            (values list))
   ;;(declare (optimize (speed 3) (safety 0)))
   (let ((knd (axiom-kind rule)))
-    (if (and knd (not (eq :id-theorem knd)) (not (eq :idem-theory knd)))
-        (setf (!axiom-AC-extension rule)
-          ;; '(nil)
-          nil)
+    (if (and knd (eq :idem-theory knd))
+        (setf (!axiom-AC-extension rule) nil)
       (let (ext-rule
             (new-var (make-variable-term (the-err-sort (car (method-arity top)))
-                                         ;; *cosmos*
                                          'AC)))
         (setf ext-rule
           (make-rule
