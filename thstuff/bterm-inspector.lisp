@@ -53,8 +53,8 @@
   (clear-bterm-memo-table))
 
 (defun make-bterm-variable ()
-   (let ((varname (intern (format nil "P-~d" (incf .bvar-num.)))))
-     (make-variable-term *bool-sort* varname)))
+  (let ((varname (intern (format nil "`P-~d" (incf .bvar-num.)))))
+    (make-pvariable-term *bool-sort* varname)))
 
 (defun get-bterm-variable (term)
   (unless (or (is-true? term)
@@ -250,19 +250,22 @@
     (if (abst-bterm-p sub)
         (let ((subst (find-bvar-subst var sub)))
           (when subst (return-from find-bvar-subst subst)))
-      (when (variable= var (car sub))
+      (when (eq (variable-name var) (variable-name (car sub)))
         (return-from find-bvar-subst (cdr sub))))))
 
 (defun print-bterm-substitution (bterm &optional 
                                        (term-representation *abst-bterm-representation*))
   (declare (type abst-bterm bterm))
   (with-in-module ((abst-bterm-module bterm))
-    (let ((vars (nreverse (term-variables term-representation))))
+    (let ((vars (sort (term-pvariables term-representation)
+                      #'(lambda (x y)
+                          (string< (string (variable-name x))
+                                   (string (variable-name y)))))))
       (unless vars (return-from print-bterm-substitution nil))
       (print-next)
       (princ "where")
       (let ((*print-indent* (+ 2 *print-indent*)))
-        (dolist (var (nreverse (term-variables term-representation)))
+        (dolist (var vars)
           (let ((mapping (find-bvar-subst var bterm)))
             (unless mapping
               (with-output-chaos-error ('internal-err)
@@ -385,6 +388,7 @@
 ;;;
 (defun print-bterm-grinding (bt)
   (with-in-module ((abst-bterm-module bt))
+    (print-next)
     (let ((torf nil))
       (if (abst-and-p bt)
           (progn
@@ -396,15 +400,20 @@
       (dolist (sub torf)
         (print-next)
         (term-print sub))
-      (dolist (sub (abst-bterm-subst bt))
-        (print-next)
-        (if (abst-bterm-p sub)
-            (print-bterm-grinding sub)
-          (let ((var (car sub))
-                (term (cdr sub)))
-            (princ (string (variable-print-name var)))
+      (let ((bs nil))
+        (dolist (sub (abst-bterm-subst bt))
+          (if (abst-bterm-p sub)
+              (print-bterm-grinding sub)
+            (let ((var (car sub))
+                  (term (cdr sub)))
+              (push (cons (string (variable-print-name var))term) bs))))
+        (when bs 
+          (dolist (vt (sort bs #'(lambda (x y)
+                                   (string< (car x) (car y)))))
+            (print-next)
+            (princ (car vt))
             (princ " = ")
-            (term-print term))))
+            (term-print (cdr vt)))))
       (print-next)
       (if (abst-and-p bt)
           (princ "<----------")
@@ -431,13 +440,46 @@
 ;;; computes possible solutions (assignments) which makes abstracted boolean term to be 'true.'
 ;;;
 
+(defmacro pvar-image (sigma var)
+  `(cdr (assoc ,var ,sigma :test #'(lambda (x y)
+                                     (eq (variable-name x) (variable-name y))))))
+
+(defun subst-pcimage-cp (sigma term)
+  (declare (type list sigma)
+           (type term term))
+  (let ((*consider-object* t))
+    (cond ((term-is-psuedo-constant? term)
+           (let ((im (pvar-image sigma term)))
+             (if im;; i.e. im = sigma(term)
+                 (values im nil)
+               (values term t))))
+          ((term-is-builtin-constant? term) term) ; shold we copy?
+          (t (let ((l-result nil)
+                   (modif-sort nil))
+               (dolist (s-t (term-subterms term))
+                 (multiple-value-bind (image-s-t same-sort)
+                     (subst-pcimage-cp sigma s-t)
+                   (unless same-sort (setq modif-sort t))
+                   (push image-s-t l-result)))
+               (setq l-result (nreverse l-result))
+               (if modif-sort
+                   (let ((term-image (make-term-with-sort-check (term-head term)
+                                                                l-result)))
+                     (values term-image
+                             (sort= (term-sort term)
+                                    (term-sort term-image))))
+                 (values (make-applform (term-sort term)
+                                        (term-head term)
+                                        l-result)
+                         t)))))))
+
 ;;; find-bterm-solution-with-subst : List(substitution) abst-bterm-representation -> List(Substitution)
 ;;; retuns a list of substitution which makes bterm to be true.
 ;;;
 (defun find-bterm-solution-with-subst (all-subst abst-term &optional (module (get-context-module)))
   (let ((answers nil))
     (dolist (subst all-subst)
-      (let ((target (substitution-image-cp subst abst-term)))
+      (let ((target (subst-pcimage-cp subst abst-term)))
         (reset-reduced-flag target)
         (let ((*always-memo* t))
           (setq target (reducer-no-stat target module :red)))
@@ -453,7 +495,7 @@
            (type abst-bterm bterm))
   (with-in-module ((abst-bterm-module bterm))
     (let* ((abst-term (make-bterm-representation bterm))
-           (vars (reverse (term-variables abst-term)))
+           (vars (reverse (term-pvariables abst-term)))
            (init (mapcar #'list vars))
            (len (length vars))
            (comb (make-array len))
@@ -560,14 +602,14 @@
     (case mode
       (:imply 
        ;; pred1 and pred2 = pred1 
-       (setq ax-form (format nil "eq[:bimply]: ~a and ~a = ~a ." pred1 pred2 pred1)))
+       (setq ax-form (format nil "eq[:bimply]: ~a:Bool and ~a:Bool = ~a:Bool ." pred1 pred2 pred1)))
       (:and
        ;; pred1 and pred2 = false
-       (setq ax-form (format nil "eq[:band]: ~a and ~a = false ." pred1 pred2)))
+       (setq ax-form (format nil "eq[:band]: ~a:Bool and ~a:Bool = false ." pred1 pred2)))
       (:or
        ;; pred1 or pred2 = true
        ;; i.e. prd1 xor (pred2 xor (pred1 and pred2)) = true .
-       (setq ax-form (format nil "eq[:bor]: ~a xor (~a xor (~a and ~a)) = true ." pred1 pred2 pred1 pred2)))
+       (setq ax-form (format nil "eq[:bor]: ~a:Bool xor (~a:Bool xor (~a:Bool and ~a:Bool)) = true ." pred1 pred2 pred1 pred2)))
       (otherwise
        (with-output-chaos-error ('unknown-mode)
          (format t "Internal error, bguess unknown mode: " mode))))

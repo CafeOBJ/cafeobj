@@ -913,16 +913,6 @@
 
 ;;; TERM-VARIABLES : term -> LIST[variable]
 ;;;
-#||
-(defun term-variables (term)
-  (let ((body (term-body term)))
-    (cond ((term$is-variable? body) (list term))
-          ((term$is-constant? body) nil)
-          (t (let ((res nil))
-               (dolist (st (term$subterms body) res)
-                 (setq res (nunion res (term-variables st) :test #'!term-eq))))))))
-||#
-
 (defun term-variables (term)
   (let ((body (term-body term)))
     (cond ((term$is-variable? body) (list term))
@@ -932,6 +922,18 @@
                (dolist (st (term$subterms body) res)
                  (setq res (delete-duplicates (append res (term-variables st))
                                               :test #'!term-eq))))))))
+
+(defun term-pvariables (term)
+  (let ((body (term-body term)))
+    (cond ((term$is-psuedo-constant? body) (list term))
+          ((or (term$is-constant? body) (term$is-variable? body)) nil)
+          (t (let ((res nil))
+               (declare (list res))
+               (dolist (st (term$subterms body) res)
+                 (setq res (delete-duplicates (append res (term-pvariables st))
+                                              :test #'(lambda (x y)
+                                                        (eq (variable-name x)
+                                                            (variable-name y)))))))))))
 
 (declaim (inline variables-occur-at-top?))
 
