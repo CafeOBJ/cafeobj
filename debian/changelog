@@ -3,8 +3,9 @@ cafeobj (1.5.4-5) UNRELEASED; urgency=medium
   * UNRELEASED
   * update copyright file
   * debian/control: update Vcs and homepage fields
+  * fix emacs startup file, thanks to Kevin Ryde (Closes: #806932)
 
- -- Norbert Preining <preining@debian.org>  Wed, 25 Nov 2015 23:37:25 +0900
+ -- Norbert Preining <preining@debian.org>  Thu, 03 Dec 2015 22:25:55 +0900
 
 cafeobj (1.5.4-4) unstable; urgency=medium
 
