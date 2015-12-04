@@ -2006,11 +2006,12 @@
       ;;
       (setq instance (make-axiom-instance *current-module* subst target-axiom))
       ;; we normalize the LHS of the instance
-      (with-spoiler-on
-          (multiple-value-bind (n-lhs applied?)
-              (normalize-term-in *current-module* (axiom-lhs instance))
-            (when applied?
-              (setf (axiom-lhs instance) n-lhs))))
+      (when (citp-flag citp-normalize-init)
+        (with-spoiler-on
+            (multiple-value-bind (n-sen applied?)
+                (normalize-sentence instance *current-module*)
+              (when applied?
+                (setf instance n-sen)))))
           
       ;; input the instance to current context
       (let ((goal (ptree-node-goal .context.)))

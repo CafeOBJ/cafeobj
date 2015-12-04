@@ -284,6 +284,7 @@
 (defconstant citp-show-rwl  2)
 (defconstant citp-spoiler 3)
 (defconstant citp-print-message 4)
+(defconstant citp-normalize-init 5)
 
 ;;; FIND-CITP-FLAG-INDEX : Name -> Index
 ;;;
@@ -327,7 +328,8 @@
         (citp-flag-name citp-verbose) "citp-verbose"
         (citp-flag-name citp-show-rwl) "citp-show-rwl"
         (citp-flag-name citp-spoiler) "citp-spoiler"
-        (citp-flag-name citp-print-message) "citp-print-message")
+        (citp-flag-name citp-print-message) "citp-print-message"
+        (citp-flag-name citp-normalize-init) "citp-normalize-init")
   ;; set default
   (setf (citp-flag citp-print-message) t) ; others are 'off'
   ;; verbose flag hook
