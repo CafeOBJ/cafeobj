@@ -159,7 +159,7 @@
         (push x res)))
     res))
 
-;;; abstract-boolen-term : bool-term -> abst-bterm
+;;; abstract-boolean-term : bool-term -> abst-bterm
 ;;; 
 (defun make-and-abstraction (term subterms module)
   (let ((subst nil))
@@ -396,7 +396,8 @@
             (princ ">> and --->"))
         (progn
           (setq torf (xtract-tfs :xor (abst-bterm-term bt)))
-          (princ ">> xor ***>")))
+          (when torf
+            (princ ">> xor ***>"))))
       (dolist (sub torf)
         (print-next)
         (term-print sub))
@@ -417,7 +418,8 @@
       (print-next)
       (if (abst-and-p bt)
           (princ "<----------")
-        (princ "<**********")))))
+        (when torf
+          (princ "<**********"))))))
 
 ;;; print-abst-bterm : bterm &key mode
 ;;; mode :simple print term representation
