@@ -147,6 +147,10 @@
       ;;
       ("show" ("ext-rule") parity *print-exec-rule*
        "if on, print out (c)trans rules in reduction of '_=(,)=>+_if_suchThat_{_}'. default off.")
+      ("bshow" parity *print-binspect*
+       "if on, print out ...")
+      ("print" ("grind") parity *grind-bool-term* 
+       "if on, '=(,)=> suchThat {}' print out Bool term in 'grind' style.")
       ("print" ("mode") general *print-xmode*
        "set term print form, one of :normal, :fancy, :tree or :s-expr."
        chaos-set-print-mode)

@@ -270,6 +270,7 @@
 (defvar *chaos-print-errors* nil)
 (defvar *chaos-input-quiet* nil)
 (defvar *print-variables* nil)
+(defvar *grind-bool-term* nil)
 (declaim (special .file-col.)
          (type fixnum .file-col.))
 (defvar .file-col. 0)
