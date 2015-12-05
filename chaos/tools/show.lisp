@@ -205,9 +205,13 @@
                (term-print-with-sort target)))
       ;; (terpri)
       (when (equal tree? "tree")
-        (print-term-tree target *chaos-verbose*))
+        (if *show-tree-horizontal*
+            (print-term-horizontal target *current-module*)
+          (print-term-tree target *chaos-verbose*)))
       (when (equal tree? "graph")
-        (print-term-graph target *chaos-verbose*)))))
+        (if *show-tree-horizontal*
+            (print-term-horizontal target *current-module*)
+          (print-term-graph target *chaos-verbose*))))))
 
 ;;; ************
 ;;; SHOW MOD ...

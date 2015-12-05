@@ -274,9 +274,9 @@
 (declaim (special .file-col.)
          (type fixnum .file-col.))
 (defvar .file-col. 0)
-;;;
 (declaim (type (or null fixnum) *term-print-depth*))
 (defvar *term-print-depth* nil)
+(defvar *show-tree-horizontal* nil)
 
 ;;; CafeOBJ variables
 (defvar *cafeobj-input-quiet* nil)

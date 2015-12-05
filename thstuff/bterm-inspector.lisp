@@ -717,7 +717,7 @@
 
 ;;; bshow
 ;;; print out abst bterm. 
-;;; bshow [tree]
+;;; bshow [{tree | grind}]
 (defun bshow (tree?)
   (unless *abst-bterm*
     (return-from bshow nil))

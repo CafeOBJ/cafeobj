@@ -147,8 +147,6 @@
       ;;
       ("show" ("ext-rule") parity *print-exec-rule*
        "if on, print out (c)trans rules in reduction of '_=(,)=>+_if_suchThat_{_}'. default off.")
-      ("bshow" parity *print-binspect*
-       "if on, print out ...")
       ("print" ("grind") parity *grind-bool-term* 
        "if on, '=(,)=> suchThat {}' print out Bool term in 'grind' style.")
       ("print" ("mode") general *print-xmode*
@@ -157,6 +155,8 @@
       ("print" ("depth") general *term-print-depth*
        "max depth of terms to be printed."
        chaos-set-print-depth)
+      ("tree" ("horizontal") parity *show-tree-horizontal*
+       "if on, 'show term { tree | graph}' shows term tree horizontal mode. default off.")
       (:comment "** misc settings ---------------------------------------")
       ("libpath" () general *chaos-libpath*
        "set file search path. `set libpath + path-list' adds search path."
