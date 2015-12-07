@@ -561,12 +561,15 @@
 ;;;
 ;;; print-term-horizontal 
 ;;;
-(defun print-term-horizontal (term module &optional (stream *standard-output*))
+(defun print-term-horizontal (term module &optional (stream *standard-output*)
+                                                    (verbose *chaos-verbose*))
   (with-in-module (module)
     (let ((*standard-output* stream))
       (print-next)
       (cond ((term-is-applform? term)
              (format t "~{~a~}" (method-symbol (term-head term)))
+             (when verbose
+               (format t " : ~a" (string (sort-name (method-coarity (term-head term))))))
              (dotimes (x (length (term-subterms term)))
                (let ((*print-indent* (+ 4 *print-indent*)))
                  (print-term-horizontal (term-arg-n term x) module))))
