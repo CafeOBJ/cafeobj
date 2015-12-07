@@ -2625,7 +2625,7 @@ where
     :category :proof
     :parser citp-parse-bguess
     :evaluator bguess
-    :title "`{bguess | :bguess} {imply|and|or} with <predicate name>`"
+    :title "`{bguess | :bguess} {imply|and|or} [ with <predicate name> ]`"
     :doc "TODO")
 
 ;;;

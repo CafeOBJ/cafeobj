@@ -590,14 +590,44 @@
       (set-needs-parse module)
       (compile-module module))))
 
+;;; ======
 ;;; bguess
+;;; ******************************************************
+
+;;; get-bterm-predicate-combinations : pred-or-all bterm strategy
 ;;;
-(defun get-bterm-predicate-combinations (var bterm)
+(defun make-pred-ordered-pairs (vars)
+  (let ((combs nil))
+    (do* ((preds vars (cdr preds))
+          (pred (car preds) (car preds)))
+        ((endp preds))
+      (dolist (v vars)
+        (unless (eq v pred)
+          (push (cons pred v) combs))))
+    (sort combs #'(lambda (x y)
+                    (string< (string (variable-name x)) (string (variable-name y)))))))
+    
+(defun make-pred-combinations (vars)
+  (let ((combs nil))
+    (do* ((preds vars (cdr preds))
+          (pred (car preds) (car preds)))
+        ((endp preds))
+      (dolist (p preds)
+        (unless (eq p pred)
+          (push (cons p pred) combs))))
+    (sort combs #'(lambda (x y)
+                    (string< (string (variable-name x)) (string (variable-name y)))))))
+
+(defun get-bterm-predicate-combinations (var bterm strat)
   (let ((vars (abst-bterm-variables bterm))
         (combinations nil))
-    (dolist (v vars combinations)
-      (unless (eq v var)
-        (push (cons var v) combinations)))))
+    (cond ((eq var :all)
+           (if (eq strat :imply)
+               (make-pred-ordered-pairs vars)
+             (make-pred-combinations vars)))
+          (t (dolist (v vars combinations)
+               (unless (eq v var)
+                 (push (cons var v) combinations)))))))
 
 (defun bguess-ax-form (mode pred1 pred2)
   (let ((ax-form nil))
@@ -621,12 +651,27 @@
       (princ ax-form)
       ax-form)))
 
+;;; do-bguess : strat -> void
+;;; do the guess work 
+;;;
+(defun inspect-bguess-result (target hypo bterm)
+  (cond ((is-true? target)
+         (format t "~&==> Found a solution ")
+         (when (term-subterms (axiom-lhs hypo))
+           (print-bterm-substitution bterm (axiom-lhs hypo))))
+        (t 
+         (format t "~&==> No solutio was found."))))
+
 (defun do-bguess (mode)
   (let ((*chaos-quiet* t)
-        (*no-prompt* t))
+        (*no-prompt* t)
+        (hypo nil))
     (declare (special *no-prompt* *chaos-quiet*))
     ;; for each predicate combination do the followings
-    (let ((pred-combinations (get-bterm-predicate-combinations *abst-bterm-target-variable* *abst-bterm*))
+    (let ((pred-combinations (get-bterm-predicate-combinations 
+                              *abst-bterm-target-variable* 
+                              *abst-bterm*
+                              mode))
           (module nil))
       (dolist (comb pred-combinations)
         ;; 1. open |binspect|
@@ -635,7 +680,7 @@
         (with-input-from-string (*standard-input* (bguess-ax-form mode 
                                                                   (string (variable-print-name (car comb)))
                                                                   (string (variable-print-name (cdr comb)))))
-          (process-cafeobj-input))
+          (setq hypo (process-cafeobj-input)))
         ;; 3. reduce bterm
         (compile-module module)
         (with-in-module (module)
@@ -643,10 +688,7 @@
                 (*always-memo* t))
             (setq target (reducer target *current-module* :red))
             ;; 4. determine the result
-            (format t "~%==> ")
-            (term-print target)
-            (when (term-subterms target)
-              (print-bterm-substitution *abst-bterm* target))))
+            (inspect-bguess-result target hypo *abst-bterm*)))
         (eval-close-module)))))
 
 ;;; binspect-in-goal : goal-name term-form
@@ -746,15 +788,16 @@
         (when (string= name (variable-print-name (car sub)))
           (return-from find-variable-in-abst-bterm (car sub)))))))
 
-(defun bstart (name)
-  (declare (type simple-string name))
+(defun bstart (&optional name)
   (check-bterm-context)
-  (let ((var (find-variable-in-abst-bterm name *abst-bterm*)))
-    (unless var
-      (with-output-chaos-error ('no-var)
-        (format t "No such predicate ~s in abstracted boolean term." name)))
-    (format t "~%** Setting target predicate to '~A'" name)
-    (setq *abst-bterm-target-variable* var)))
+  (if name
+      (let ((var (find-variable-in-abst-bterm name *abst-bterm*)))
+        (unless var
+          (with-output-chaos-error ('no-var)
+            (format t "No such predicate ~s in abstracted boolean term." name)))
+        (format t "~%** Setting target predicate to '~A'" name)
+        (setq *abst-bterm-target-variable* var))
+    (setq *abst-bterm-target-variable* :all)))
 
 ;;; bgues
 ;;; bguess {imply | and | or} with <predicate-name>

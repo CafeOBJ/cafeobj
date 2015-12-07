@@ -521,7 +521,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 ;;;
 (defun cafeobj-evaluate-command (key inp)
   (declare (type string key))
-  (let ((com (get-command-info key)))
+  (let ((com (get-command-info key))
+        (result nil))
     (unless com
       (with-output-chaos-error ('no-commands)
         (format t "No such command or declaration keyword '~a'." key)))
@@ -539,7 +540,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
             (unless evaluator
               (with-output-chaos-error ('no-evaluator)
                 (format t "No evaluator is defined for command ~a." key)))
-            (funcall evaluator pform)))))))
+            (setq result (funcall evaluator pform))
+            result))))))
 
 ;;;
 ;;;
@@ -571,7 +573,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
         (*print-circle* nil)
         (*old-context* nil)
         (*show-mode* :cafeobj)
-        (top-level (at-top-level)))
+        (top-level (at-top-level))
+        (result nil))
     (unless (or top-level *chaos-quiet*)
       (if *chaos-input-source*
           (with-output-simple-msg ()
@@ -596,11 +599,12 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 
               (block process-input
                 ;; PROCESS INPUT COMMANDS ==============
-                (cafeobj-evaluate-command (car inp) inp))
+                (setq result (cafeobj-evaluate-command (car inp) inp)))
               (setq *chaos-print-errors* t)))
           (when .in-in.
             (setq *chaos-print-errors* t)
-            (setq .in-in. nil)))))))
+            (setq .in-in. nil))))
+      result)))
 
 (defun handle-cafeobj-top-error (val)
   (if *chaos-input-source*
