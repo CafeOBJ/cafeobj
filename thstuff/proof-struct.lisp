@@ -49,34 +49,42 @@
     (executor nil :type (or null symbol)) ; tactic executor
     )
 
+  ;; Simultaneous Induction
   (defparameter .tactic-si. (make-tactic :name :si
-                                         :executor 'apply-si)) ; Simultaneous Induction
+                                         :executor 'apply-si))
+  ;; Case Analysis
   (defparameter .tactic-ca. (make-tactic :name :ca
-                                         :executor 'apply-ca))  ; Case Analysis
+                                         :executor 'apply-ca))
+  ;; Theorem of Constants
   (defparameter .tactic-tc. (make-tactic :name :tc
-                                         :executor 'apply-tc)) ; Theorem of Constants
+                                         :executor 'apply-tc))
+  ;; Implication
   (defparameter .tactic-ip. (make-tactic :name :ip
-                                         :executor 'apply-ip)) ; Implication
-#||
-  (defparameter .tactic-cs. (make-tactic :name :cs
-                                         :executor 'apply-cs)) ; Case Analysis on Sequences
-||#
+                                         :executor 'apply-ip))
+  ;; Reduction: goal sentence will be destructively changed
   (defparameter .tactic-rd. (make-tactic :name :rd
-                                         :executor 'apply-rd)) ; Reduction
-
+                                         :executor 'apply-rd))
+  ;; Reduction: keeps original goal sentence if it is not reduced to be 'true'
+  (defparameter .tactic-rd-. (make-tactic :name :rd-
+                                          :executor 'apply-rd-))
+  ;; Normalize goal sentenses
   (defparameter .tactic-nf. (make-tactic :name :nf
-                                         :executor 'apply-nf)) ; nomalize goals, assumptions
-
+                                         :executor 'apply-nf))
+  ;; Check contradiction, i.e. true = false
   (defparameter .tactic-ct. (make-tactic :name :ct
-                                         :executor 'apply-ct)) ; check contradiction
-  
+                                         :executor 'apply-ct))
+  ;; Do nothing, used internally
   (defparameter .tactic-nil. (make-tactic :name :nop
-                                          :executor 'apply-nil)) ; Do nothing, used internally.
+                                          :executor 'apply-nil))
 
-  (defparameter .all-builtin-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd. .tactic-nf. .tactic-ct.))
+  ;; list of all builtin tactics
+  (defparameter .all-builtin-tactics. 
+      (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd. .tactic-rd-. .tactic-nf. .tactic-ct.))
 
-  ;; default tatics is a seriase of SI CA TC IP.
-  (defparameter .default-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd.))
+  ;; default tatics is a seriase of SI CA TC IP RD.
+  (defparameter .default-tactics. 
+      (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd.))
+
   ;; this is not an ordinary tactic but a command, but it generates goals
   (defparameter .tactic-ctf. (make-tactic :name :ctf
                                           :executor 'apply-ctf))

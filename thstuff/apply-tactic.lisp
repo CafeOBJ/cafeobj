@@ -1438,22 +1438,24 @@
     ;; there remains 
     (values t (list (or next-goal cur-goal)))))
 
-;;; apply-rd
-;;; explicit application of tactic RD.
-(defun apply-rd (ptree-node &optional (tactic .tactic-rd.))
+;;; apply-rd-internal : ptree-node undo? tactic
+;;; working horse of apply-rd(-)
+;;;
+(defun apply-rd-internal (ptree-node do-undo &optional (tactic .tactic-rd.))
   (declare (type ptree-node ptree-node)
            (type tactic tactic))
   ;; we set :spoiler on
-  (with-spoiler-on ()                   ; force application of implicit tactcs(NF, CF, e.t.c.)
+  ;; forcing application of implicit tactics(NF,CF, e.t.c.)
+  (with-spoiler-on ()
     (let ((cur-goal (ptree-node-goal ptree-node)))
       (when (goal-is-discharged cur-goal)
         (with-output-chaos-warning ()
           (format t "** The goal ~s has already been proved!"
                   (goal-name cur-goal)))
-        (return-from apply-rd (values nil nil)))
+        (return-from apply-rd-internal (values nil nil)))
       (unless (goal-targets cur-goal)
-        (return-from apply-rd nil))
-      (let ((undo? (the-goal-needs-undo cur-goal))
+        (return-from apply-rd-internal nil))
+      (let ((undo? (or do-undo (the-goal-needs-undo cur-goal)))
             (original-target (ptree-node-goal (ptree-node-parent ptree-node))))
         ;; undo? = true means the current goal is generatd by 
         ;; :defined :ctf- or :csp-, AND
@@ -1483,6 +1485,19 @@
                 ;; the original goal rolled back, no new goal is needed.
                 (values next-goals nil)
               (values next-goals next-goals))))))))
+
+;;; apply-rd
+;;; explicit application of tactic RD.
+(defun apply-rd (ptree-node &optional (tactic .tactic-rd.))
+  (apply-rd-internal ptree-node nil tactic))
+
+;;; apply-rd-
+;;; explicit application of tactic RD,
+;;; but if the sentence was not reduced to 'true'
+;;; preserves the original goal sentence
+;;;
+(defun apply-rd- (ptree-node &optional (tactic .tactic-rd-.))
+  (apply-rd-internal ptree-node :undo tactic))
 
 ;;; ==========================
 ;;; TACTIC: Case Analysis [CA]
