@@ -510,11 +510,11 @@
         (with-output-chaos-warning ()
           (format t "Too many combination limit ~D. Reset to ~D" lim len))
         (setq lim len))
-      ;; initial combinations: no variable combinations
+      ;; initial combinations: no predicate combinations
       (dotimes (i len)
         (setf (aref comb i) (list (nth i init))))
       ;; repeat step by step 
-      ;; untill reaches to limited number of variable combinations
+      ;; untill reaches to limited number of predicate combinations
       (dotimes (i lim)
         ;; do the job: 
         (let ((answers nil))
@@ -538,7 +538,7 @@
                   (print-bterm-with-subst solution bterm))))
             (unless all?
               (return-from resolve-bterm-by-wf t))))
-        ;; prepare next variable combinations
+        ;; prepare next predicate combinations
         (dotimes (j len)
           (let ((bases (aref comb j)))
             (let ((next nil)
@@ -645,51 +645,62 @@
       (otherwise
        (with-output-chaos-error ('unknown-mode)
          (format t "Internal error, bguess unknown mode: " mode))))
-    (let ((*print-indent* (+ 2 *print-indent*)))
-      (format t "~%>> checking under the assumption -----------------------")
-      (print-next)
-      (princ ax-form)
-      ax-form)))
+    ax-form))
 
 ;;; do-bguess : strat -> void
 ;;; do the guess work 
 ;;;
-(defun inspect-bguess-result (target hypo bterm)
-  (cond ((is-true? target)
-         (format t "~&==> Found a solution ")
-         (when (term-subterms (axiom-lhs hypo))
-           (print-bterm-substitution bterm (axiom-lhs hypo))))
-        (t 
-         (format t "~&==> No solutio was found."))))
 
-(defun do-bguess (mode)
+;;; report-bguess-result
+;;;
+(defun report-bguess-result (solutions bterm depth)
+  (when solutions
+    (format t "~&** (~d) each of the following equation~p makes the inspected term 'true'" 
+            (incf depth)
+            (length solutions))
+    (with-in-module ((get-binspect-module))
+      (let ((num 0))
+        (dolist (hypo solutions)
+          (print-next)
+          (format t "[~d] " (incf num))
+          (print-axiom-brief hypo) (princ " .")
+          (when (term-subterms (axiom-lhs hypo))
+            (print-bterm-substitution bterm (axiom-lhs hypo))))))))
+
+(defun do-bguess (mode &optional (num-comb 0))
   (let ((*chaos-quiet* t)
-        (*no-prompt* t)
-        (hypo nil))
+        (*no-prompt* t))
     (declare (special *no-prompt* *chaos-quiet*))
     ;; for each predicate combination do the followings
     (let ((pred-combinations (get-bterm-predicate-combinations 
                               *abst-bterm-target-variable* 
                               *abst-bterm*
                               mode))
-          (module nil))
+          (module nil)
+          (solutions nil))
       (dolist (comb pred-combinations)
-        ;; 1. open |binspect|
-        (setq module (!open-module (eval-modexp *binspect-mod-name*)))
-        ;; 2. intro axiom according to strategy
-        (with-input-from-string (*standard-input* (bguess-ax-form mode 
-                                                                  (string (variable-print-name (car comb)))
-                                                                  (string (variable-print-name (cdr comb)))))
-          (setq hypo (process-cafeobj-input)))
-        ;; 3. reduce bterm
-        (compile-module module)
-        (with-in-module (module)
-          (let ((target (make-bterm-representation *abst-bterm*))
-                (*always-memo* t))
-            (setq target (reducer target *current-module* :red))
-            ;; 4. determine the result
-            (inspect-bguess-result target hypo *abst-bterm*)))
-        (eval-close-module)))))
+        (let ((hypo nil))
+          ;; 1. open |binspect|
+          (setq module (!open-module (eval-modexp *binspect-mod-name*)))
+          ;; 2. intro axiom according to strategy
+          (with-input-from-string (*standard-input* 
+                                   (bguess-ax-form mode 
+                                                   (string (variable-print-name (car comb)))
+                                                   (string (variable-print-name (cdr comb)))))
+            (setq hypo (process-cafeobj-input)))
+          ;; 3. reduce bterm
+          (compile-module module)
+          (with-in-module (module)
+            (let ((target (make-bterm-representation *abst-bterm*))
+                  (*always-memo* t))
+              (setq target (reducer target *current-module* :red))
+              ;; 4. determine the result
+              (when (is-true? target) ;; (inspect-bguess-result target list-hypo *abst-bterm*)
+                (push hypo solutions))))
+          (eval-close-module)))
+      ;; all done
+      (report-bguess-result (nreverse solutions) *abst-bterm* num-comb)
+      solutions)))
 
 ;;; binspect-in-goal : goal-name term-form
 ;;; abstract boolean term in the context of the goal given by goal-name.
