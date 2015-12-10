@@ -1406,7 +1406,7 @@
 
 ;;; do-apply-rd
 ;;; 
-(defun do-apply-rd (cur-goal next-goal tactic)
+(defun do-apply-rd (cur-goal next-goal do-undo tactic)
   (let* ((target-goal (or next-goal cur-goal))
          (cur-targets (goal-targets target-goal))
          (reduced-targets nil)
@@ -1425,7 +1425,9 @@
                (setq result t)
                (push original-sentence discharged))
               ;; reduced but not discharged
-              (t (push cur-target reduced-targets)))))
+              (t (if do-undo
+                     (push original-sentence reduced-targets)
+                   (push cur-target reduced-targets))))))
     ;; set new (reduced sentences) as targets
     (setf (goal-targets target-goal) (nreverse reduced-targets))
     ;; set discharged sentences 
@@ -1455,8 +1457,7 @@
         (return-from apply-rd-internal (values nil nil)))
       (unless (goal-targets cur-goal)
         (return-from apply-rd-internal nil))
-      (let ((undo? (or do-undo (the-goal-needs-undo cur-goal)))
-            (original-target (ptree-node-goal (ptree-node-parent ptree-node))))
+      (let ((undo? (or do-undo (the-goal-needs-undo cur-goal))))
         ;; undo? = true means the current goal is generatd by 
         ;; :defined :ctf- or :csp-, AND
         ;; this RD application follows it, i.e., :apply(... ctf-n rd ...)
@@ -1471,16 +1472,8 @@
                                               (goal-name next-goal)
                                             (goal-name cur-goal))))
           (multiple-value-bind (applied next-goals)
-              (do-apply-rd cur-goal next-goal tactic)
+              (do-apply-rd cur-goal next-goal undo? tactic)
             (declare (ignore applied))
-            (when undo? 
-              (dolist (ngoal next-goals)
-                (when (goal-targets ngoal)
-                  ;; reset target
-                  (when-citp-verbose ()
-                    (format t "~%[rd] ~a rollback to original goal ~a" 
-                            (goal-name ngoal)(goal-name original-target)))
-                  (setf (goal-targets ngoal) (goal-targets original-target)))))
             (if undo?
                 ;; the original goal rolled back, no new goal is needed.
                 (values next-goals nil)
@@ -2583,11 +2576,7 @@
             (when *citp-spoiler*
               ;; apply implicit rd
               (dolist (ngoal next-goals)
-                (do-apply-rd ngoal nil .tactic-ctf.)
-                (when (and dash? (goal-targets ngoal))
-                  ;; reset target
-                  (setf (goal-targets ngoal)
-                    (goal-targets (ptree-node-goal ptree-node))))))
+                (do-apply-rd ngoal nil dash? .tactic-ctf.)))
             ;; add generated nodes as children
             (add-ptree-children ptree-node next-goals)
             (when verbose
@@ -2611,10 +2600,8 @@
          (when *citp-spoiler*
            ;; apply implicit rd
            (dolist (ngoal next-goals)
-             (do-apply-rd ngoal nil tactic)
-             (when (and (tactic-ctf-minus tactic) (goal-targets ngoal))
-               ;; reset target
-               (setf (goal-targets ngoal) (goal-targets goal)))))
+             (do-apply-rd ngoal nil (tactic-ctf-minus tactic) tactic)))
+
          (values t next-goals)))))
 
 ;;;==============
@@ -2660,11 +2647,7 @@
             (when-spoiler-on ()
               ;; apply implicit rd
               (dolist (ngoal next-goals)
-                (do-apply-rd ngoal nil .tactic-csp.)
-                               (when (and dash? (goal-targets ngoal))
-                                 ;; reset target
-                                 (setf (goal-targets ngoal)
-                                   (goal-targets (ptree-node-goal ptree-node))))))
+                (do-apply-rd ngoal nil dash? .tactic-csp.)))
             ;; add generated node as children
             (add-ptree-children ptree-node next-goals)
             (when verbose
@@ -2689,12 +2672,8 @@
           (when-spoiler-on ()
             ;; apply implicit rd
             (dolist (ngoal next-goals)
-              (do-apply-rd ngoal nil tactic)
-              (when (and (tactic-csp-minus tactic) (goal-targets ngoal))
-                ;; reset target
-                (setf (goal-targets ngoal) (goal-targets goal)))))
+              (do-apply-rd ngoal nil (tactic-csp-minus tactic) tactic)))
           (values t next-goals))))))
-
 
 ;;; -----------------------------------------------------------
 ;;; report-citp-stat
