@@ -1,3 +1,23 @@
+* CafeOBJ 1.5.5
+===============
+
+  - Enhancemet of a family of Bool term inspector commands:
+    . 'binspect [ in : <Modexpr> ] <bool-term> .'
+      converts given <bool-term> into abstracted xor-and normal form
+    . 'bshow [ tree | grind ]' shows abstracted Bool term
+    . 'bresolve [ <num1> [ { <num2> | all } ] ]
+      shows assignments which make abstracted Bool term true
+    . 'bguess { imply | and | or }' tries with some heuristics to
+      solve the abstracted Bool term
+   - bug fix in ACZ rewriting
+   - CITP changes
+    . new command :imply to make instantiated lhs of existing equation
+      of the form 'eq lhs = true' a premise of a goal sentence
+    . new tactic rd- which is similar to rd but cancels the normalization
+      of the goal sentence if the sentence is not satisfied.
+   - new switch 'tree horizontal'. if on 'show term tree' displays the
+     term tree structure horizontally (default off).
+
 * CafeOBJ 1.5.4
 ===============
 
