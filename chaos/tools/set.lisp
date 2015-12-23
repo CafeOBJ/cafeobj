@@ -68,7 +68,6 @@
       ("trace" ("whole") parity $$trace-rewrite-whole "trace rewrite step."
        trace-whole-on
        trace-whole-off)
-      ("trace" ("proof") parity $$trace-proof "trace CITP.")
       ("trace" nil parity $$trace-rewrite "trace every rewrite step."
        trace-on
        trace-off)
