@@ -153,24 +153,14 @@
                              (let ((lpaths nil))
                                (dolist (x (parse-with-delimiter (nth (incf i) args)
                                                                 #\:))
-                                 #||
-                                 (when (probe-file x)
-                                   (push x lpaths))
-                                 ||#
-                                 (push x lpaths)
-                                 )
+                                 (push x lpaths))
                                (incf i)
                                (setq *chaos-libpath* (nreverse lpaths))))
                             (("+lib" "+l")
                              (let ((lpaths nil))
                                (dolist (x (parse-with-delimiter (nth (incf i) args)
                                                                 #\:))
-                                 #||
-                                 (when (probe-file x)
-                                   (push x lpaths))
-                                 ||#
-                                 (push x lpaths)
-                                 )
+                                 (push x lpaths))
                                (incf i)
                                (setq *chaos-libpath*
                                  (append (nreverse lpaths) *chaos-libpath*))))
@@ -209,8 +199,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
               (load-prelude+ *cafeobj-secondary-prelude-file* 'process-cafeobj-input)))
           ;; load site init
           (load-prelude "site-init" 'process-cafeobj-input t)
-          )
-        ))))
+          )))))
 
 ;;; TOP LEVEL HELP
 ;;;_____________________________________________________________________________
@@ -477,8 +466,6 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 #+(and CCL (not :openmcl))
 (defun set-cafeobj-standard-library-path (&optional topdir)
   (declare (ignore topdir))
-  ;; (unless *cafeobj-install-dir*
-  ;;    (break "CafeOBJ install directory is not set yet!."))
   (setq *system-prelude-dir*
     (full-pathname (make-pathname :host "ccl" :directory "prelude/")))
   (setq *system-lib-dir*
