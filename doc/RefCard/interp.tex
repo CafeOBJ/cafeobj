@@ -1,13 +1,13 @@
+% !TEX TS-program = pdftex
 % -*- Mode: TeX -*-
-% $Id: interp.tex,v 1.2 2010-06-17 08:23:17 sawada Exp $
-% Quick Reference of CafeOBJ 1.4.2 Interpreter Commands
+% Quick Reference of CafeOBJ 1.5.5 Interpreter Commands
 % ----------- **start of header
 \newcount\columnsperpage
 \columnsperpage=2
 
-\def\versionnumber{1.4.8}
-\def\year{2010}
-\def\version{June \year\ v\versionnumber}
+\def\versionnumber{1.5.5}
+\def\year{2015}
+\def\version{December \year\ v\versionnumber}
 
 % make \bye not \outer so that the \def\bye in the \else clause below
 % can be scanned without complaint.
@@ -164,7 +164,7 @@
 \title{\centerline{\bcafeobj\ Commands}}
 \title{\centerline{Quick Reference}}
 
-\centerline{(for interpreter version 1.4.8)}
+\centerline{(for interpreter version 1.5.5)}
 
 \section{Notation}
 
@@ -191,22 +191,25 @@ To enter \cafeobj, just type its name: \kbd{cafeobj}
 \kbd{q(uit)} exits \cafeobj.
 
 %%%%% getting little help
-\section{Getting Little Help}
+\section{Getting Help}
 
-Typing \kbd{?} at the top-level prompt will print out a list of whole
-top-level commands.
+Typing \kbd{?} at the top-level prompt will print out a online help
+guidance. This is a good startng point for navigating the system.
+Also try typing \kbd{com}, this shows the list of major toplevel commands.
 
 %%%%% escape
 \section{Escape}
 
-There would be a situation that you hit \kbd{return} expecting some feedback from the interpreter, but it does not respond. 
+There would be a situation that you hit \kbd{return} expecting some feedback from the interpreter, 
+but it does not respond. 
 This occurs when the interpreter expects some more inputs from you thinking
-preceding input is not yet syntactically complete. If you encounter this situation, 
-and you don't know what the interpreter expects, 
-simply type in \kbd{esc}(escape key) and \kbd{return}, then it will
-immediately be back to you discarding preceding input
+preceding input is not yet syntactically complete. 
+If you encounter this situation, 
+first, try type in '\kbd{.}' and \kbd{return}.
+When this does not help, 
+then type in \kbd{esc}(escape key) and \kbd{return}, 
+it will immediately be back to you discarding preceding input
 and makes a fresh start.
-
 
 %%%%% rescue
 \section{Rescue}
@@ -242,22 +245,19 @@ underlined.
 \threecol{trace}{on|\ul{off}}{trace every rewrite step}
 \threecol{step}{on|\ul{off}}{stepwise rewriting process}
 \threecol{memo}{\ul{on}|off}{enable term memoization}
+\threecol{always memo}{on|\ul{off}}{implicitly set 'memo' attributes}
+\threecol{}{}{to all user defined operators}
 \threecol{clean memo}{on|\ul{off}}{clean up term memo table}
 \threecol{}{}{before normalization}
 \threecol{stats}{\ul{on}|off}{show statistics data after reduction}
 \threecol{rwt limit} {{\<number>}}{maximum number of rewriting}
 \threecol{stop pattern}{[{\<term>}] .}{stop rewriting when meets}
-\threecol{mel sort}{on|\ul{off}}{compute result sort with}
-\threecol{}{}{sort membership predicates}
 \threecol{reduce conditions}{on|\ul{off}}{reduce conditional part in}
 \threecol{}{}{apply command}
 \threecol{verbose}{on|\ul{off}}{set verbose mode}
 \threecol{exec trace}{on|\ul{off}}{trace concurrent execution}
 \threecol{exec limit}{{\<number>}}{limit maximum number of}
 \threecol{}{}{concurrent execution}
-\threecol{exec normalize}{\ul{on}|off}{reduce term before and after}
-\threecol{}{}{each transition}
-\threecol{exec all}{\ul{on}|off}{find all solutions of \kbd{=(*)=>}}
 ***
 \threecol{}{}{-- switches for system's behaviour}
 \threecol{include BOOL}{\ul{on}|off}{import BOOL implicitly}
@@ -266,18 +266,12 @@ underlined.
   implicitly}
 \threecol{auto context}{on|\ul{off}}{change current context in
   automatic}
-\threecol{auto reconstruct}{on|\ul{off}}{perform automatic reconstruction}
-\threecol{}{}{of modules if it is inconsistent}
 \threecol{reg signature}{on|\ul{off}}{regularize module signature}
 \threecol{}{}{in automatic}
 \threecol{check regularity}{on|\ul{off}}{perform regularity check of}
 \threecol{}{}{signature in automatic}
 \threecol{check compatibility}{on|\ul{off}}{perform compatibility check}
 \threecol{}{}{of TRS in automatic}
-\threecol{check builtin}{\ul{on}|off}{perform operator overloading}
-\threecol{}{}{check with built-in sorts}
-\threecol{select term}{on|\ul{off}}{system selects a term from}
-\threecol{}{}{ambiguously parsed terms}
 \threecol{quiet}{on|\ul{off}}{system mostly says nothing}
 %%
 \threecol{}{}{-- show/display options}
@@ -302,9 +296,13 @@ underlined.
 }
 
 The default value of \<pathname> of \kbd{set libpath} command is
-`\$cafeobjhome/lib, \$cafeobjhome/exs',
-where `\$cafeobjhome' varies depending on the installation options
-of your interpreter. Normally, it is \kbd{/usr/local/lib/cafeobj1.4}.
+`\$cafeobjhome/share/cafeobj\<version>/lib/', 
+where \kbd{\<version>} is a version number of the release,
+as of this writing, it is \kbd{1.5.5}, 
+and `\$cafeobjhome' varies depending on the installation options
+of your interpreter. 
+By default it is \kbd{/usr/local/}, so 
+it will be \kbd{/usr/local/share/cafeobj1.5/lib/}.
 
 The default value of \<number> in `set rwt limit' command is 0 meaning
 no limit counter of rewriting is specified.
@@ -449,7 +447,8 @@ prints the term.
 \<let-variable> can be a name of \<let-variable>, \kbd{\$\$term} or
 \kbd{\$\$subterm}, if omitted the term bound to \kbd{\$\$term} is
 printed.  If optional \kbd{tree} is supplied, it prints the term tree 
-structure. 
+structure. By setting a switch \kbd{tree horizontal} to 
+\kbd{true}, the term tree will be shown horizontally.
 
 %%% open/closing module
 \section{Opening/Closing Module}
@@ -596,15 +595,12 @@ and \kbd{set} commands in stepper.
 \twocol{provide \<feature>}{provide the \<feature>}
 \twocol{require \<feature> [\<file>]}{require \<feature>}
 }
-%%% save and restore
-\section{Save and Restore}
+%%% full reset
+\section{Resetting System}
 
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\cr
-\twocol{save \<file>}{save definitions of modules and views to \<file>}
-\twocol{restore \<file>}{restore definitions of modules and views}
 \twocol{reset}{recover definitions of built-in modules}
-\twocol{full-reset}{reset system to initial status}
-\twocol{save-system \<file>}{save image of the interpreter to \<file>}
+\twocol{full reset}{reset system to initial status}
 }
 
 %%% protecting your modules
@@ -635,23 +631,6 @@ The following \kbd{check} command assumes the current module:
 This checks strictness of \<operator>. If \<operator> is omitted 
 all of the operators declared in the current modules are checked.
 
-\section{TRAM Compiler Interface}
-\kbd{tram compile} [\<modexp>]
-
-This compiles module \<modexp> to Term Rewriting Abstract Machine.
-If \<modexp> is omitted, it defaults to the current module.
-\<modexp> must be given in an line. You can supply multiple lines
-by using `\kbd{;}$<$new-line$>$'. 
-
-To evaluate term in compiled module, use the following:
-
-\kbd{tram exec} [\kbd{in} \<modexp> :] \<term>
-
-Omitting `\kbd{in} \<modexp> :' means the evaluation is performed in
-the current module. If the module \<modexp> is not yet compiled,
-this compiles it implicitly, then perform the evaluation.
-
-
 \section{Miscellany}
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\cr
 \twocol{ls \<pathname>}{list contents of directories}
@@ -667,6 +646,6 @@ this compiles it implicitly, then perform the evaluation.
 \bye
 
 % Local variables:
-% compile-command: "xetex interp"
+% compile-command: "pdftex interp"
 % TeX-master: t
 % End:
