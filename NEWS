@@ -1,7 +1,7 @@
 * CafeOBJ 1.5.5
 ===============
 
-  - Enhancemet of a family of Bool term inspector commands:
+  - Enhancemets of a family of Bool term inspector commands:
     . 'binspect [ in : <Modexpr> ] <bool-term> .'
       converts given <bool-term> into abstracted xor-and normal form
     . 'bshow [ tree | grind ]' shows abstracted Bool term
@@ -11,6 +11,7 @@
       solve the abstracted Bool term
    - bug fix in ACZ rewriting
    - CITP changes
+    . :ctf [ <term> ] accepts constructors with arguments
     . new command :imply to make instantiated lhs of existing equation
       of the form 'eq lhs = true' a premise of a goal sentence
     . new tactic rd- which is similar to rd but cancels the normalization
