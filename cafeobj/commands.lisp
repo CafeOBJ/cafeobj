@@ -1442,19 +1442,6 @@ would search for `foo/bar.cafe` in the pathes from `libpath`"
 affect other modules."
 )
 
-(define ("restore")
-    :category :io
-    :parser parse-restore-command
-    :evaluator eval-ast
-    :title "`restore <pathname>`"
-    :related ("input" "save" "save-system")
-    :doc "Restores module definitions from the designated file `pathname` which 
-has been saved with the `save` command. `input` can also be used but
-the effects might be different.
-
-TODO -- should we keep the different effects? What is the real difference?"
-)
-
 (define ("rewrite limit switch" "rew limit")
     :type :doc-only
     :title "`rewrite limit` switch"
@@ -1464,30 +1451,6 @@ TODO -- should we keep the different effects? What is the real difference?"
 
 Allows limiting the number of rewrite steps during a step-wise
 execution."
-)
-
-
-(define ("save")
-    :category :io
-    :parser parse-save-command
-    :evaluator eval-ast
-    :title "`save <pathname>`"
-    :related ("input" "restore" "save-system")
-    :doc "Saves module definitions into the designated file `pathname`.
-File names should be suffixed with `.bin`. 
-
-`save` also saves the contents of prelude files as well as module definitions
-given in the current session."
-)
-
-
-(define ("save-system" "save system")   ; NOTE. this is obsolete.
-    :type :doc-only
-    :title "`save-system <pathname>`"
-    :related ("input" "save" "restore")
-    :doc "Dumps the image of the whole system into a file. This is functionality
-provided by the underlying Common Lisp system and might carry some 
-restrictions."
 )
 
 (define ("search predicates")

@@ -85,23 +85,13 @@
       ("stop" ("pattern") general *rewrite-stop-pattern*
        "stop rewriting when meets pattern(term)."
        set-rewrite-stop-pattern2)
-      ;; ("mel" ("sort") parity *mel-sort*
-      ;; "compute result sort with sort membership predicates.")
-      ;; ("mel" ("always") parity *mel-always*
-      ;; "apply sort memb predicates even the result is of non-error sort.")
       ("reduce" ("conditions") parity *reduce-conditions*
        "reduce condition part in \"apply\" command.")
-      ;; ("allow" ("$$term") parity *allow-$$term*
-      ;; "allow using \"$$term\" or \"$$subterm\"")
       ("exec" ("trace") parity *cexec-trace*
        "if on, trace concurrent execution.")
       ("exec" ("limit") general *cexec-limit*
        "limit maximum number of concurrent execution."
        chaos-set-cexec-limit)
-      ;; ("exec" ("normalize") parity *cexec-normalize*
-      ;;  "if on, reduce term before and after each transition.")
-      ;; ("exec" ("all") parity *cexec-find-all-solutions*
-      ;;  "if on, find all solutions of =(*)=>.")
       (:comment "** system behaviour control ----------------------------")
       ("include" ("BOOL") parity *include-BOOL* "import BOOL implicitly.")
       ("include" ("RWL") parity *include-rwl* "import RWL implicitly.")
@@ -110,10 +100,6 @@
       ;; ("stats" nil parity *show-stats* "abbribiation of `statistics'.")
       ("auto" ("context")  parity *auto-context-change*
        "automatic change current context(module).")
-      ;; ("auto" ("reconstruct") parity *auto-reconstruct*
-      ;;  "perform automatic reconstruction of modules if inconsistent.")
-      ;; ("accept" ("term") parity *allow-general-term-input*
-      ;; "allow input term directly at top level.")
       (:comment "** checkers --------------------------------------------")
       (("regularize" "reg") ("signature") parity *regularize-signature*
        "regularize module signature automatic.")
