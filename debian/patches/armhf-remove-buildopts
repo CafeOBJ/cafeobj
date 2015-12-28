@@ -4,7 +4,7 @@
 
 --- cafeobj.git.orig/Makefile.in
 +++ cafeobj.git/Makefile.in
-@@ -68,7 +68,11 @@
+@@ -78,7 +78,11 @@
  
  SBCL_DUMP         = dumps/sbcl/@sbcl_dump@
  SBCL_INTERPRETER  = @sbcl_interp@

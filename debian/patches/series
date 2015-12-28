@@ -1,5 +1,3 @@
 fix-refman-fonts
 fix-syntax-font
 armhf-remove-buildopts
-upstream-configure-remove-biber
-upstream-emacs-no-absolute-path
