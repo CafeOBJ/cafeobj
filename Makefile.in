@@ -140,8 +140,8 @@ else
   cafeobjdumpdir = $(cafeobj_lib)
   cafeobjlibdir  = $(cafeobj_share)/lib
   cafeobjpreludedir = $(cafeobj_share)/prelude
-  cafeobjdocdir = $(docdir)
-  cafeobjmandir = $(mandir)
+  cafeobjdocdir = $(docdir)/cafeobj
+  cafeobjmandir = $(mandir)/man1
   cafeobjelisp =  $(lispdir)
 endif
 
