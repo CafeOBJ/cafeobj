@@ -290,6 +290,10 @@ Related: [`bceq`](#bceq), [`ceq`](#ceq), [`eq`](#eq)
 
 (pignose)
 
+## `{bguess | :bguess} {imply|and|or} [ with <predicate name> ]` ## {#bguess}
+
+TODO
+
 ## `binspect [in <module-name> :] <boolean-term> .` ## {#binspect}
 
 Start an inspection of a Boolean term, that is, and abstracted
@@ -340,20 +344,41 @@ into account for reduction.
 
 Related: [`reduce`](#reduce), [`execute`](#execute)
 
-## `{bresolve | :bresolve}` ## {#bresolve}
+## `{bresolve | :bresolve} [<limit>] [all]` ## {#bresolve}
 
 Computes all possible variable assignments that render an abstracted
 term `true`. The variant with leading colon is for usage during a [CITP](#citp) proof.
+If an optional argument 'all' is specified, all solutions will be searched.
+Optional <limit> specifies maximal number of variable combination, i.e. 
+if there are 3 variables v1, v2, and v3, and <limit> is 2, 
+the following cases are examined:
+(1) v1 : true/false
+(2) v2 : true/false
+(3) v3 : true/false
+(4) v1/v2 : combinations of true/false of two variables
+(5) v1/v3 : combinations of true/false of two variables
+(6) v2/v3 : combinations of true/false of two variables
 
 ### Example ###
 
 
 ~~~~~
-CafeOBJ> bresolve
+CafeOBJ> bresolve 2 all
 
-** The following assignment(s) can make the term 'true'.
-  (1): { P-5:Bool |-> true, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
-  (2): { P-5:Bool |-> false, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
+** (1) The following assignment(s) makes the term to be 'true'.
+[1] { P-3:Bool |-> true }
+where
+  p-3 = P4(Y:S)
+  
+[2] { P-4:Bool |-> true }
+where
+  p-4 = P1(X:S)
+  
+** (2) The following assignment(s) makes the term to be 'true'.
+[1] { P-1:Bool |-> true, P-2:Bool |-> true }
+where
+  p-1 = P3(Y:S)
+  p-2 = P2(X:S)
 ...
 ~~~~~
 
@@ -363,7 +388,7 @@ Synonym of [`btrans`](#btrans).
 
 Related: [`btrans`](#btrans)
 
-## `{bshow | :bshow} [tree]` ## {#bshow}
+## `{bshow | :bshow} [{ tree | grind }]` ## {#bshow}
 
 Shows the abstracted Boolean term computed by [`binspect`](#binspect).
 If the argument `tree` is given, prints out a the abstracted term in tree form.

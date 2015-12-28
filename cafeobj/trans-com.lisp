@@ -594,15 +594,16 @@
 
 ;;; it is an error unless a module is open.
 (defun cafeobj-eval-module-element-proc (inp)
-  (if *open-module*
-      (with-in-module ((get-context-module))
-        (multiple-value-bind (type ast)
-            (parse-module-element inp)
-          (declare (ignore type))
-          (dolist (a ast)
-            (eval-ast a))))
-    (with-output-chaos-warning ()
-      (princ "no module open."))))
+  (let ((last-result nil))
+    (if *open-module*
+        (with-in-module ((get-context-module))
+          (multiple-value-bind (type ast)
+              (parse-module-element inp)
+            (declare (ignore type))
+            (dolist (a ast last-result)
+              (setq last-result (eval-ast a)))))
+      (with-output-chaos-warning ()
+        (princ "no module open.")))))
 
 ;;; ******
 ;;; GENDOC

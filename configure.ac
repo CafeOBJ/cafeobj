@@ -31,8 +31,9 @@ dnl
 
 AC_INIT([CafeOBJ],[1.5], [], [cafeobj], [http://www.cafeobj.org/])
 AC_CONFIG_SRCDIR([make-cafeobj.lisp.in])
+AM_INIT_AUTOMAKE
 AC_PREREQ(2.6)
-VMINOR=.4
+VMINOR=.5
 VMEMO=PigNose0.99
 PATCHLEVEL=
 AC_SUBST(VMINOR)
@@ -51,21 +52,12 @@ AC_ARG_WITH(sbcl,
    [AS_HELP_STRING([--with-sbcl=<cmd>],
       [specify the SBCL interpreter @<:@default: sbcl@:>@])],
    sbcl_interp=$withval,sbcl_interp=sbcl)
-dnl don't allow configuration of the dump file names
-dnl AC_ARG_WITH(sbcl_dump,
-dnl    [AS_HELP_STRING([--with-sbcl-dump=<cmd>],
-dnl       [specify the SBCL dump file  @<:@default: cafeobj.sbcl@:>@])],
-dnl    sbcl_dump=$withval,sbcl_dump=cafeobj.sbcl)
 sbcl_dump=cafeobj.sbcl
 
 AC_ARG_WITH(acl,
    [AS_HELP_STRING([--with-acl=<cmd>],
       [specify the ACL interpreter @<:@default: alisp@:>@])],
    acl_interp=$withval,acl_interp=alisp)
-dnl AC_ARG_WITH(acl_dump,
-dnl    [AS_HELP_STRING([--with-acl-dump=<cmd>],
-dnl       [specify the ACL dump file  @<:@default: cafeobj.acl@:>@])],
-dnl    acl_dump=$withval,acl_dump=cafeobj.acl)
 acl_dump=cafeobj.acl
 dnl this is the dump file name generated for ACL standalone
 acl_standalone_dump=CafeOBJ
@@ -74,20 +66,12 @@ AC_ARG_WITH(clisp,
    [AS_HELP_STRING([--with-clisp=<cmd>],
       [specify the CLISP interpreter @<:@default: clisp@:>@])],
    clisp_interp=$withval,clisp_interp=clisp)
-dnl AC_ARG_WITH(clisp_dump,
-dnl    [AS_HELP_STRING([--with-clisp-dump=<cmd>],
-dnl       [specify the CLISP dump file  @<:@default: cafeobj.mem@:>@])],
-dnl    clisp_dump=$withval,clisp_dump=cafeobj.mem)
 clisp_dump=cafeobj.mem
 
 dnl AC_ARG_WITH(ccl32,
 dnl    [AS_HELP_STRING([--with-ccl32=<cmd>],
 dnl      [specify the CCL(32) interpreter @<:@default: ccl@:>@])],
 dnl    ccl32_interp=$withval,ccl32_interp=ccl)
-dnl AC_ARG_WITH(ccl32_dump,
-dnl    [AS_HELP_STRING([--with-ccl32-dump=<cmd>],
-dnl       [specify the CCL(32) dump file  @<:@default: cafeobj.img@:>@])],
-dnl    ccl32_dump=$withval,ccl32_dump=cafeobj.img)
 ccl32_interp=ccl
 ccl32_dump=cafeobj.img
 
@@ -95,10 +79,6 @@ dnl AC_ARG_WITH(ccl64,
 dnl    [AS_HELP_STRING([--with-ccl64=<cmd>],
 dnl       [specify the CCL64 interpreter @<:@default: ccl64@:>@])],
 dnl    ccl64_interp=$withval,ccl64_interp=ccl64)
-dnl AC_ARG_WITH(ccl64_dump,
-dnl    [AS_HELP_STRING([--with-ccl64-dump=<cmd>],
-dnl       [specify the CCL64 dump file  @<:@default: cafeobj.img@:>@])],
-dnl    ccl64_dump=$withval,ccl64_dump=cafeobj.img)
 ccl64_interp=ccl64
 ccl64_dump=cafeobj.img
 
@@ -106,10 +86,6 @@ dnl AC_ARG_WITH(gcl,
 dnl    [AS_HELP_STRING([--with-gcl=<cmd>],
 dnl       [specify the GCL interpreter @<:@default: gcl@:>@])],
 dnl    gcl_interp=$withval,gcl_interp=gcl)
-dnl AC_ARG_WITH(gcl_dump,
-dnl    [AS_HELP_STRING([--with-gcl-dump=<cmd>],
-dnl       [specify the GCL dump file  @<:@default: cafeobj.exe@:>@])],
-dnl    gcl_dump=$withval,gcl_dump=cafeobj.exe)
 gcl_interp=gcl
 gcl_dump=cafeobj.exe
 
@@ -117,10 +93,6 @@ dnl AC_ARG_WITH(cmu,
 dnl   [AS_HELP_STRING([--with-cmu=<cmd>],
 dnl      [specify the CMU interpreter @<:@default: lisp@:>@])],
 dnl   cmu_interp=$withval,cmu_interp=lisp)
-dnl AC_ARG_WITH(cmu_dump,
-dnl    [AS_HELP_STRING([--with-cmu-dump=<cmd>],
-dnl       [specify the CMU dump file @<:@default: cafeobj.core@:>@])],
-dnl    cmu_dump=$withval,cmu_dump=cafeobj.core)
 cmu_interp=lisp
 cmu_dump=cafeobj.core
 
@@ -284,6 +256,9 @@ fi
 
 AC_MSG_NOTICE([Building for the following lisp interpreters: $lisp])
 
+dnl check for emacs and lispdir
+AM_PATH_LISPDIR
+
 
 AC_SUBST(lisp)
 AC_SUBST(firstchoice)
@@ -312,11 +287,11 @@ if test x"$enable_rebuild_doc" = x"yes"
 then
   dnl check for documentation building programs
   AC_CHECK_PROG(xelatex_avail, [xelatex], [yes], [no])
-  AC_CHECK_PROG(biber_avail, [biber], [yes], [no])
+  AC_CHECK_PROG(bibtex_avail, [bibtex], [yes], [no])
   AC_CHECK_PROG(pandoc_avail, [pandoc], [yes], [no])
   AC_CHECK_PROG(pdflatex_avail, [pdflatex], [yes], [no])
   if test $xelatex_avail = no \
-     -o $biber_avail = no   \
+     -o $bibtex_avail = no   \
      -o $pandoc_avail = no  \
      -o $pdflatex_avail = no
   then

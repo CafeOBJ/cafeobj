@@ -802,7 +802,8 @@
                ;; one more easy failure check
                ;; TCW 14 Mar 91 need to restrict this for ACZ
                (when (or (> l-f-m r-m)  ; a lhs item is repeated more than any rhs
-                         (not (integerp (/ r-gcd l-gcd))))
+                         ;; (not (integerp (/ r-gcd l-gcd)))
+                         )
                  (with-match-debug ()
                    (format t "~%++ nomatch done 4"))
                  (return-from TOP (values nil t))) ; FAIL most miserably

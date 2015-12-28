@@ -1442,19 +1442,6 @@ would search for `foo/bar.cafe` in the pathes from `libpath`"
 affect other modules."
 )
 
-(define ("restore")
-    :category :io
-    :parser parse-restore-command
-    :evaluator eval-ast
-    :title "`restore <pathname>`"
-    :related ("input" "save" "save-system")
-    :doc "Restores module definitions from the designated file `pathname` which 
-has been saved with the `save` command. `input` can also be used but
-the effects might be different.
-
-TODO -- should we keep the different effects? What is the real difference?"
-)
-
 (define ("rewrite limit switch" "rew limit")
     :type :doc-only
     :title "`rewrite limit` switch"
@@ -1464,30 +1451,6 @@ TODO -- should we keep the different effects? What is the real difference?"
 
 Allows limiting the number of rewrite steps during a step-wise
 execution."
-)
-
-
-(define ("save")
-    :category :io
-    :parser parse-save-command
-    :evaluator eval-ast
-    :title "`save <pathname>`"
-    :related ("input" "restore" "save-system")
-    :doc "Saves module definitions into the designated file `pathname`.
-File names should be suffixed with `.bin`. 
-
-`save` also saves the contents of prelude files as well as module definitions
-given in the current session."
-)
-
-
-(define ("save-system" "save system")   ; NOTE. this is obsolete.
-    :type :doc-only
-    :title "`save-system <pathname>`"
-    :related ("input" "save" "restore")
-    :doc "Dumps the image of the whole system into a file. This is functionality
-provided by the underlying Common Lisp system and might carry some 
-restrictions."
 )
 
 (define ("search predicates")
@@ -2564,17 +2527,38 @@ CafeOBJ> binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)) .
 (define ("bresolve" ":bresolve")
     :category :proof
     :parser identity
-    :evaluator bresolve
-    :title "`{bresolve | :bresolve}`"
+    :evaluator bresolve 
+    :title "`{bresolve | :bresolve} [<limit>] [all]`"
     :doc "Computes all possible variable assignments that render an abstracted
-term `true`. The variant with leading colon is for usage during a [CITP](#citp) proof."
+term `true`. The variant with leading colon is for usage during a [CITP](#citp) proof.
+If an optional argument 'all' is specified, all solutions will be searched.
+Optional <limit> specifies maximal number of variable combination, i.e. 
+if there are 3 variables v1, v2, and v3, and <limit> is 2, 
+the following cases are examined:
+(1) v1 : true/false
+(2) v2 : true/false
+(3) v3 : true/false
+(4) v1/v2 : combinations of true/false of two variables
+(5) v1/v3 : combinations of true/false of two variables
+(6) v2/v3 : combinations of true/false of two variables"
     :example "
 ~~~~~
-CafeOBJ> bresolve
+CafeOBJ> bresolve 2 all
 
-** The following assignment(s) can make the term 'true'.
-  (1): { P-5:Bool |-> true, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
-  (2): { P-5:Bool |-> false, P-4:Bool |-> true, P-3:Bool |-> true, P-2:Bool |-> true, P-1:Bool |-> true }
+** (1) The following assignment(s) makes the term to be 'true'.
+[1] { P-3:Bool |-> true }
+where
+  p-3 = P4(Y:S)
+  
+[2] { P-4:Bool |-> true }
+where
+  p-4 = P1(X:S)
+  
+** (2) The following assignment(s) makes the term to be 'true'.
+[1] { P-1:Bool |-> true, P-2:Bool |-> true }
+where
+  p-1 = P3(Y:S)
+  p-2 = P2(X:S)
 ...
 ~~~~~"
 )
@@ -2583,7 +2567,7 @@ CafeOBJ> bresolve
     :category :proof
     :parser citp-parse-bshow
     :evaluator bshow
-    :title "`{bshow | :bshow} [tree]`"
+    :title "`{bshow | :bshow} [{ tree | grind }]`"
     :doc "Shows the abstracted Boolean term computed by [`binspect`](#binspect).
 If the argument `tree` is given, prints out a the abstracted term in tree form.
 The variant with leading colon is for usage during a [CITP](#citp) proof."
@@ -2599,6 +2583,13 @@ where
   P-5:Bool |-> p2(X:S)
 ~~~~~"
 )
+
+(define ("bguess" ":bguess" "bg" ":bg")
+    :category :proof
+    :parser citp-parse-bguess
+    :evaluator bguess
+    :title "`{bguess | :bguess} {imply|and|or} [ with <predicate name> ]`"
+    :doc "TODO")
 
 ;;;
 

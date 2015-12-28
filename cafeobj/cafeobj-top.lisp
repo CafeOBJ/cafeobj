@@ -58,9 +58,8 @@
       (print-centering g_line_1)
       (fresh-line)
       (print-centering (format nil " built: ~a" 
-                               (if -cafeobj-load-time-
-                                   -cafeobj-load-time-
-                                 "not yet installed.")))
+                               (or -cafeobj-load-time-
+                                   "not yet installed.")))
       (fresh-line)
       (print-centering
        (format nil "prelude file: ~a"
@@ -161,9 +160,9 @@
       nil)
     ;; greeting message
     (cafeobj-greeting)
-    ;;
+    ;; additional message
     (sub-message)
-    ;;
+    ;; load preludes
     (catch *top-level-tag*
       (with-chaos-top-error ()
         (with-chaos-error ()
@@ -172,11 +171,10 @@
     ;;
     (if (not *cafeobj-batch*)
         (progn
-          ;;
+          ;; do the job interactively
           (let ((quit-flag nil)
                 (*print-case* :downcase)
-                (*global-gc-behavior* :auto)
-                )
+                (*global-gc-behavior* :auto))
             (declare (special *global-gc-behaviour*))
             (unless no-init
               (catch *top-level-tag*
@@ -198,15 +196,12 @@
 ;;;-----------------------------------------------------------------------------
 
 (defun cafeobj-init ()
-  ;; #+gcl
-  ;; (si::allocate-relocatable-pages 1000 t)
   #+CMU
   (unix:unix-sigsetmask 0)
   #+:ALLEGRO
   (setq excl:*print-startup-message* nil)
   #+:ALLEGRO
   (setf (sys:gsgc-switch :print) nil)
-  ;;
   (!lex-read-init)
   (chaos-initialize-fsys))
 
@@ -220,10 +215,8 @@
             (cafeobj-input val)
           (if (probe-file (make-pathname :name ".cafeobj"))
               (cafeobj-input (make-pathname :name ".cafeobj"))
-            (let ((home (or 
-                         (namestring (user-homedir-pathname))
-                         (get-environment-variable "HOME")
-                         )))
+            (let ((home (or (namestring (user-homedir-pathname))
+                            (get-environment-variable "HOME"))))
               (when home
                 (let ((dot-cafeobj (merge-pathnames
                                     home
@@ -236,16 +229,8 @@
           (dolist (x (parse-with-delimiter lib-path #\:))
             (push x load-path))
           (setq *chaos-libpath* (append (nreverse load-path)
-                                        *chaos-libpath*))
-          ))
-      (setq *chaos-new* nil)))
-  ;; message DB
-  ;; #+:Allegro
-  ;; (setup-message-db)
-  ;; help DB
-  ;; #+:Allegro
-  ;; (setup-help-db)
-  )
+                                        *chaos-libpath*))))
+      (setq *chaos-new* nil))))
 
 ;;; **********************
 ;;; THE TOP LEVEL FUNCTION

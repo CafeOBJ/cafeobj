@@ -1,6 +1,6 @@
 % !TEX TS-program = xelatex
 % !TEX encoding = UTF-8
-% 2015F1: CITP for CafeOBJ
+% 2015/12/25: CITP for CafeOBJ
 % toshi.swd@gmail.com
 %
 \documentclass[a4paper,oneside,10pt,here]{memoir}
@@ -125,12 +125,12 @@
 \pagestyle{empty}
 % 表紙 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{CITP for CafeOBJ \\
-ver. 1.0}
+ver. 1.1}
 \vfill
 \author{澤田 寿実\\
   (株) 考作舎\\
   tswd@kosakusha.com}
-\date{2015/10/1}
+\date{2015/12/25}
 \maketitle
 \vfill
 \begin{center}
@@ -148,10 +148,9 @@ ver. 1.0}
 \EnableBpAbbreviations
 \newpage
 \chapter{用語}\label{sec:terms}
-本書は証明論について基礎的な知識を持つ CafeOBJ ユーザーを対象とした，
-CITP for CafeOBJ と呼ばれる証明譜支援システムの利用ガイドである．
-本書で記述する CITP for CafeOBJ の機能は version 1.5.4 以降の
-CafeOBJ システムで利用可能である\footnote{最新版の CafeOBJ システムは http://cafeobj.org/download/ からダウンロード可能である)}．
+本書は形式的証明について基礎的な知識を持つ CafeOBJ ユーザーを対象とした
+CITP for CafeOBJ(以降ではCITPと略称する)と呼ばれる証明譜作成支援システムの利用ガイドである．
+本書で記述する CITP の機能は version 1.5.4 以降のCafeOBJ システムで利用可能である\footnote{最新版の CafeOBJ システムは http://cafeobj.org/download/ からダウンロード可能である)}．
 
 表\ref{table:terms}に以下で使用するいくつかの用語の定義を示す．
 \begin{table}
@@ -283,7 +282,7 @@ $G$ から各 $G_i (i = 1 \cdots n)$ への枝は，全て適用した戦略$T$�
     \begin{simplev}
     apply コマンド ::= :apply [ to <GoalName> : ] (<Tactic> ... <Tactic> )
     <GoalName>     ::= ゴールに付与された名前
-    <Tactic>       ::= SI | CA | TC | IP | RD | <DefinedTactic>
+    <Tactic>       ::= SI | CA | TC | IP | RD | RD- | <DefinedTactic>
     \end{simplev}
   \end{vvtm}
 
@@ -579,8 +578,8 @@ CA は次のように動作する:
     \item 条件部 \texttt{C} の既約形(normal form)を求める．
       結果が \texttt{true} ならば次へ進む(条件部が存在しない場合は \texttt{true} とみなされる）．
       結果が \texttt{true} でなければ文はまだ成立しないとみなす．
-    \item 文の左辺 \texttt{l} の規約形を求める．
-    \item 文の右辺 \texttt{r} の規約形を求める．
+    \item 文の左辺 \texttt{l} の既約形を求める．
+    \item 文の右辺 \texttt{r} の既約形を求める．
     \item 左右両辺の既約形が「等しい」かどうかを調べる．
       ここで，等しいとは以下のことを言う：
       \begin{itemize}
@@ -594,6 +593,15 @@ CA は次のように動作する:
 \end{enumerate}
 
 他の戦略は証明できるかどうかを直接調べないが，戦略 RD はゴールが証明できるかどうかを上のようにして調べる．
+
+\subsection{RD-} \label{sec:rd-}
+戦略 RD- の挙動は RD と似ているが，以下の点が異なる．
+
+RDでは証明対象の文の左右辺の既約系を求める際に，これらを項書き換えによって
+破壊的に変形する．そのため文が成立しなかった場合，それらの文は既約形に
+書き換えられた形となる．それに対してRD-では証明対象の文が成立するかどうかを
+調べる際に，もとの文を破壊的に書き換えることなく調べる\footnote{左右辺の既約形を求めて調べる点は同じである．
+一旦コピーを作り，それらを書き換えて調べるのと等価な動作を実行する．}．
 
 \section{:spoiler : 暗黙的 RD 適用の制御} \label{sec:spoiler-flag}
 
@@ -686,7 +694,33 @@ ceq[inv3 :nonexec]: true = false if statusp(S:Sys,J:Client) = updated /\
 ceq [INIT]: true = false if statusp(S#Sys, I@Client) = updated /\
                                   statusp(S#Sys, S#Client) = gotval .
 \end{examplev}
-が，追加される．
+が追加される．
+
+\subsection{:imply コマンド}\label{sec:imply}
+
+
+\begin{itemize}
+\item :imply コマンドは :init コマンドと似ているが，指定可能な等式は実行文脈に
+  すでに存在している \verb|eq[label]: lhs = true . | という形の等式しか指定することができない．
+\item 構文
+  \begin{vvtm}
+    \begin{simplev}
+ :imply コマンド ::= :imply "["<label>"]" [ by <Substitution> ]
+ Substitution   ::= "{" <Variable> <- <Term> ; ... <Variable> <- <Term> ; "}"
+    \end{simplev}
+  \end{vvtm}
+  \item 挙動\\
+    \begin{enumerate}
+      \item \verb|<label>| で指定されたラベルを持つ等式に含まれる `eq [label]: lhs = true. ' 
+        という形の等式の左辺 \verb|lhs|に\verb|<Substitution>| で指定された変数置換 $\sigma$ 
+        を適用する．
+      \item 得られた $\sigma$(lhs) の既約形 norm($\sigma$(lhs))を求める．
+      \item 証明対象の文が 'eq L = R .' という形のものだとすると，これを
+        'eq norm($\sigma$(lhs)) implies L = R .' という形の文で置き換える．
+      \end{enumerate}
+\end{itemize}
+変数置換(\verb|<Substitution>|)は省略可能である．この場合，証明対象の文は
+'eq lhs implies L = R . ' という形の文で置き換えられる．
 
 \subsection{:roll back コマンド}
 
@@ -818,16 +852,15 @@ QLOCK(X)> :equation
 ゴール g に \texttt{eq l = r .} を仮定として追加した g-1 (true の場合)と，
   \texttt{eq (l = r) = false .} を追加した g-2 (false の場合)を作成し，
   ゴール g の子ゴールとする．
-%  その後，g-1 と g-2 のそれぞれに対して戦略 RD を適用する．
 
-\subsubsection{定数構成子による場合分け}
-\texttt{:ctf} コマンドは構成子として定数項のみを持つソートの項を指定し，
-その定数項による場合分けを行うこともできる．その場合の構文は下のとおりである．
+\subsubsection{構成子による場合分け}
+\texttt{:ctf} コマンドは構成子を持つソートの項を指定し，
+その構成子による場合分けを行うこともできる．その場合の構文は下のとおりである．
 \begin{itemize}
 \item 構文2：定数構成子による場合分け
   \begin{vvtm}
     \begin{simplev}
-      定数構成子による場合分け ::= :ctf "[" <項> . "]"
+      構成子による場合分け ::= :ctf "[" <項> . "]"
     \end{simplev}
   \end{vvtm}
 \end{itemize}
@@ -865,7 +898,6 @@ QLOCK(X)> :equation
 うまく discharge できなかった際は元の証明対象の文に戻して
 さらに場合分けを続けていきたい．
 これを自動的に行うのに \texttt{:ctf-} が便利である．
-
 
 \subsection{:csp コマンド}\label{sec:csp}
 \texttt{:csp} コマンドは複数の等式または遷移規則を指定し，

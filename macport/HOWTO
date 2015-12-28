@@ -1,0 +1,10 @@
+how to get checksums of orig tar.gz:
+	openssl dgst -rmd160 ..../cafeobj-1.N.M.tar.gz
+	openssl dgst -sha256 ..../cafeobj-1.N.M.tar.gz
+
+
+then change into ports and call
+	portindex
+
+then create ports.tar.gz with tar -cvzf ports.tar.gz ports
+

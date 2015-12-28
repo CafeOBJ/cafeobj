@@ -1406,7 +1406,7 @@
 
 ;;; do-apply-rd
 ;;; 
-(defun do-apply-rd (cur-goal next-goal tactic)
+(defun do-apply-rd (cur-goal next-goal do-undo tactic)
   (let* ((target-goal (or next-goal cur-goal))
          (cur-targets (goal-targets target-goal))
          (reduced-targets nil)
@@ -1425,7 +1425,9 @@
                (setq result t)
                (push original-sentence discharged))
               ;; reduced but not discharged
-              (t (push cur-target reduced-targets)))))
+              (t (if do-undo
+                     (push original-sentence reduced-targets)
+                   (push cur-target reduced-targets))))))
     ;; set new (reduced sentences) as targets
     (setf (goal-targets target-goal) (nreverse reduced-targets))
     ;; set discharged sentences 
@@ -1438,23 +1440,24 @@
     ;; there remains 
     (values t (list (or next-goal cur-goal)))))
 
-;;; apply-rd
-;;; explicit application of tactic RD.
-(defun apply-rd (ptree-node &optional (tactic .tactic-rd.))
+;;; apply-rd-internal : ptree-node undo? tactic
+;;; working horse of apply-rd(-)
+;;;
+(defun apply-rd-internal (ptree-node do-undo &optional (tactic .tactic-rd.))
   (declare (type ptree-node ptree-node)
            (type tactic tactic))
   ;; we set :spoiler on
-  (with-spoiler-on ()                   ; force application of implicit tactcs(NF, CF, e.t.c.)
+  ;; forcing application of implicit tactics(NF,CF, e.t.c.)
+  (with-spoiler-on ()
     (let ((cur-goal (ptree-node-goal ptree-node)))
       (when (goal-is-discharged cur-goal)
         (with-output-chaos-warning ()
           (format t "** The goal ~s has already been proved!"
                   (goal-name cur-goal)))
-        (return-from apply-rd (values nil nil)))
+        (return-from apply-rd-internal (values nil nil)))
       (unless (goal-targets cur-goal)
-        (return-from apply-rd nil))
-      (let ((undo? (the-goal-needs-undo cur-goal))
-            (original-target (ptree-node-goal (ptree-node-parent ptree-node))))
+        (return-from apply-rd-internal nil))
+      (let ((undo? (or do-undo (the-goal-needs-undo cur-goal))))
         ;; undo? = true means the current goal is generatd by 
         ;; :defined :ctf- or :csp-, AND
         ;; this RD application follows it, i.e., :apply(... ctf-n rd ...)
@@ -1469,20 +1472,25 @@
                                               (goal-name next-goal)
                                             (goal-name cur-goal))))
           (multiple-value-bind (applied next-goals)
-              (do-apply-rd cur-goal next-goal tactic)
+              (do-apply-rd cur-goal next-goal undo? tactic)
             (declare (ignore applied))
-            (when undo? 
-              (dolist (ngoal next-goals)
-                (when (goal-targets ngoal)
-                  ;; reset target
-                  (when-citp-verbose ()
-                    (format t "~%[rd] ~a rollback to original goal ~a" 
-                            (goal-name ngoal)(goal-name original-target)))
-                  (setf (goal-targets ngoal) (goal-targets original-target)))))
             (if undo?
                 ;; the original goal rolled back, no new goal is needed.
                 (values next-goals nil)
               (values next-goals next-goals))))))))
+
+;;; apply-rd
+;;; explicit application of tactic RD.
+(defun apply-rd (ptree-node &optional (tactic .tactic-rd.))
+  (apply-rd-internal ptree-node nil tactic))
+
+;;; apply-rd-
+;;; explicit application of tactic RD,
+;;; but if the sentence was not reduced to 'true'
+;;; preserves the original goal sentence
+;;;
+(defun apply-rd- (ptree-node &optional (tactic .tactic-rd-.))
+  (apply-rd-internal ptree-node :undo tactic))
 
 ;;; ==========================
 ;;; TACTIC: Case Analysis [CA]
@@ -1930,7 +1938,8 @@
         (ax nil))
     (cond ((eq :label kind) (setq ax (get-rule-labelled module (second target-form))))
           (t (with-in-module (module)
-               (setq ax (parse-axiom-declaration (parse-module-element-1 (cdr target-form))))
+               (let ((*chaos-quiet* nil))
+                 (setq ax (parse-axiom-declaration (parse-module-element-1 (cdr target-form)))))
                (when add-to-module
                  (set-operator-rewrite-rule module ax)
                  (adjoin-axiom-to-module module ax)
@@ -1952,11 +1961,13 @@
             (format t "~%resolving subst form:")
             (print-next)
             (format t " var=~s, term=~s" var-form term-form))
-          (setq var (simple-parse context var-form))
+          (let ((*chaos-quiet* nil))
+            (setq var (simple-parse context var-form)))
           (when (or (term-ill-defined var) (not (term-is-variable? var)))
             (with-output-chaos-error ('invalid-var-form)
               (format t "Invalid variable in substitution: ~s" var-form)))
-          (setq term (simple-parse context term-form))
+          (let ((*chaos-quiet* nil))
+            (setq term (simple-parse context term-form)))
           (when (term-ill-defined term)
             (with-output-chaos-error ('invalid-term)
               (format t "No parse..: ~s" term-form)))
@@ -1986,10 +1997,11 @@
 ;;; terms in resulting axiom must be ground terms.
 ;;;
 (defun make-axiom-instance (module subst axiom)
-  (let ((new-axiom (rule-copy-canonicalized axiom module))
-        (rsubst nil))
-    (setq rsubst (make-real-instanciation-subst subst (axiom-variables new-axiom)))
-    (apply-substitution-to-axiom rsubst new-axiom '(init))
+  (let ((new-axiom (rule-copy-canonicalized axiom module)))
+    (when subst
+      (apply-substitution-to-axiom (make-real-instanciation-subst subst (axiom-variables new-axiom))
+                                   new-axiom 
+                                   '(init)))
     new-axiom))
 
 ;;; instanciate-axiom
@@ -2002,11 +2014,12 @@
       ;;
       (setq instance (make-axiom-instance *current-module* subst target-axiom))
       ;; we normalize the LHS of the instance
-      (with-spoiler-on
-          (multiple-value-bind (n-lhs applied?)
-              (normalize-term-in *current-module* (axiom-lhs instance))
-            (when applied?
-              (setf (axiom-lhs instance) n-lhs))))
+      (when (citp-flag citp-normalize-init)
+        (with-spoiler-on
+            (multiple-value-bind (n-sen applied?)
+                (normalize-sentence instance *current-module*)
+              (when applied?
+                (setf instance n-sen)))))
           
       ;; input the instance to current context
       (let ((goal (ptree-node-goal .context.)))
@@ -2028,7 +2041,16 @@
 ;;; ================================
 
 (defun make-impl-assumption (ax)
-  (axiom-lhs ax))
+  (let ((assmp (axiom-lhs ax)))
+    ;; (t1 = true) or (true = t1) ==> t1
+    (when (method= (term-head assmp) *eql-op*)
+      (cond ((is-true? (term-arg-1 assmp))
+             (setq assmp (term-arg-2 assmp)))
+            ((is-true? (term-arg-2 assmp))
+             (setq assmp (term-arg-1 assmp)))
+            (t ;; do nothing
+             )))
+    assmp))
 
 (defun make-impl-form (lhs instance)
   (make-applform-simple *bool-sort* *bool-imply* 
@@ -2036,8 +2058,11 @@
 
 (defun introduce-implication-to-goal (target-form subst-form)
   (let ((target-axiom (get-target-axiom *current-module* target-form t))
-        (subst (resolve-subst-form *current-module* subst-form))
-        (instance nil))
+        (subst (if subst-form
+                   (resolve-subst-form *current-module* subst-form)
+                 nil))
+        (instance nil)
+        (new-targets nil))
     (setq instance (make-axiom-instance *current-module* subst target-axiom))
     (with-next-context (*proof-tree*)
       ;; normalize it
@@ -2058,15 +2083,26 @@
       ;; -> new goal eq p implies l = r .
       (dolist (target (goal-targets (ptree-node-goal .context.)))
         (let ((new-lhs (make-impl-form (axiom-lhs target) instance))
-              (*print-indent* (+ *print-indent* 2)))
-          (format t "~%:imply converting target sentence to 'implication' form.")
-          (print-next)
-          (print-axiom-brief target)
-          (print-next)
-          (setf (axiom-lhs target) new-lhs)
-          (setf (axiom-labels target) (cons :imp (axiom-labels target)))
-          (princ "=> ")
-          (print-axiom-brief target))))))
+              (*print-indent* (+ *print-indent* 2))
+              (rtarget (rule-copy-canonicalized target *current-module*)))
+          (with-citp-debug ()
+            (format t "~%[:imp] target: ")
+            (print-axiom-brief target))
+          (if (sort= (term-sort (axiom-rhs rtarget)) *bool-sort*)
+              (progn
+                (push rtarget new-targets)
+                (setf (axiom-lhs rtarget) new-lhs)
+                (setf (axiom-labels rtarget) (cons :imp (axiom-labels rtarget)))
+                (format t "~%[:imp] target sentence is converted...")
+                (print-next)
+                (princ "=> ")
+                (print-next)
+                (print-axiom-brief rtarget))
+            (with-output-chaos-warning ()
+              (format t "[:imp] sort of target sentence is not Bool. Ignored.")
+              (print-next)
+              (print-axiom-brief target)))))
+      (setf (goal-targets (ptree-node-goal .context.)) (nreverse new-targets)))))
 
 ;;; ==============
 ;;; CRITICAL PAIRS [:cp]
@@ -2360,7 +2396,7 @@
         (with-spoiler-on ()
           (when (check-contradiction .cur-goal. 'ct)
             (with-in-module ((goal-context .cur-goal.))
-              (format t "%[ct] dischaged:")
+              (format t "~%[ct] dischaged:")
               (dolist (target (goal-targets .cur-goal.))
                 (print-next)
                 (print-axiom-brief target))
@@ -2371,30 +2407,56 @@
 ;;; ==============
 ;;; :ctf or :ctf-
 ;;; ==============
+(defvar .pvar-names. nil)
 
-(defun make-ctf-constructor-pattern (const-op)
-  (when (method-arity const-op)
-    (with-output-chaos-warning ()
-      (format t "Only constant constructors are supported. Sorry!")
-      (return-from make-ctf-constructor-pattern nil)))
-  (make-applform-simple (method-coarity const-op) const-op nil))
+(defun make-ctf-constructor-pattern (goal const-op)
+  (let ((arity (method-arity const-op)))
+    (cond (arity
+           (let ((args nil)
+                 (form nil))
+             (dolist (s arity)
+               (let ((pn (assoc s .pvar-names. :test #'eq)))
+                 (unless pn 
+                   (setq pn (cons s 0))
+                   (push pn .pvar-names.))
+                 (push (intro-fresh-pconstant goal 
+                                              (format nil "~a-~d" (sort-name s) (incf (cdr pn)))
+                                              s)
+                       args)))
+             (setq form (make-applform-simple (method-coarity const-op)
+                                              const-op
+                                              (nreverse args)))
+             (with-citp-debug ()
+               (with-in-module ((goal-context goal))
+                 (format t "~%[ctf consructor] ")
+                 (term-print-with-sort form)))
+             form))
+          (t (make-applform-simple (method-coarity const-op) const-op nil)))))
 
 (defun do-apply-ctf-with-constructors (cur-node term tactic)
   (let ((cur-goal (ptree-node-goal cur-node))
         (sort (term-sort term))
         (goals nil))
-    (let ((constructors (find-sort-constructors-in *current-module* sort)))
+    (let ((constructors (find-sort-constructors-in *current-module* sort))
+          (.pvar-names. nil))
+      (declare (special .names.))
       (unless constructors
         (with-output-chaos-error ('no-constructors)
           (format t "Sort ~a has no constructors." (sort-name sort))))
       (dolist (const (sort constructors 
                            #'(lambda (x y) 
-                               (let ((prec (op-lex-precedence x y)))
-                                 (if (eq prec :greater)
+                               (let ((ax (length (method-arity x)))
+                                     (ay (length (method-arity y))))
+                                 (if (< ax ay)
                                      t
-                                   nil)))))
+                                   (if (> ax ay)
+                                       nil
+                                     (if (eq (op-lex-precedence x y) :greater)
+                                         ;; this orders true -> false
+                                         t
+                                       nil)))))))
         (let ((n-goal nil)
-              (const-pat (make-ctf-constructor-pattern const)))
+              (const-pat (make-ctf-constructor-pattern cur-goal const)))
           (when const-pat
             (setq n-goal (prepare-next-goal cur-node tactic))
             (with-in-module ((goal-context n-goal))
@@ -2417,7 +2479,7 @@
                     (setf (goal-assumptions n-goal)
                       (append (goal-assumptions cur-goal) (list ax))))))))))
       (with-citp-debug ()
-        (format t "~%ctf to constructors generated:")
+        (format t "~%[ctf] constructors generated:")
         (dolist (g (reverse goals))
           (print-next)
           (pr-goal g)))
@@ -2482,11 +2544,12 @@
               (values nil nil))))))))
 
 (defun parse-axiom-or-term (form term?)
-  (if term?
-      (let ((*parse-variables* nil))
-        (let ((res (simple-parse *current-module* form *cosmos*)))
-          res))
-    (parse-axiom-declaration (parse-module-element-1 form))))
+  (let ((*chaos-quiet* nil))
+    (if term?
+        (let ((*parse-variables* nil))
+          (let ((res (simple-parse *current-module* form *cosmos*)))
+            res))
+      (parse-axiom-declaration (parse-module-element-1 form)))))
 
 (defun do-apply-ctf (cur-node term-or-equation &optional (tactic .tactic-ctf.))
   (with-citp-env ()
@@ -2513,11 +2576,7 @@
             (when *citp-spoiler*
               ;; apply implicit rd
               (dolist (ngoal next-goals)
-                (do-apply-rd ngoal nil .tactic-ctf.)
-                (when (and dash? (goal-targets ngoal))
-                  ;; reset target
-                  (setf (goal-targets ngoal)
-                    (goal-targets (ptree-node-goal ptree-node))))))
+                (do-apply-rd ngoal nil dash? .tactic-ctf.)))
             ;; add generated nodes as children
             (add-ptree-children ptree-node next-goals)
             (when verbose
@@ -2541,10 +2600,8 @@
          (when *citp-spoiler*
            ;; apply implicit rd
            (dolist (ngoal next-goals)
-             (do-apply-rd ngoal nil tactic)
-             (when (and (tactic-ctf-minus tactic) (goal-targets ngoal))
-               ;; reset target
-               (setf (goal-targets ngoal) (goal-targets goal)))))
+             (do-apply-rd ngoal nil (tactic-ctf-minus tactic) tactic)))
+
          (values t next-goals)))))
 
 ;;;==============
@@ -2579,7 +2636,8 @@
       (with-citp-env ()
         (let ((axs nil))
           (dolist (ax ax-forms)
-            (push (parse-axiom-declaration (parse-module-element-1 ax)) axs))
+            (let ((*chaos-quiet* nil))
+              (push (parse-axiom-declaration (parse-module-element-1 ax)) axs)))
           (multiple-value-bind (applied next-goals)
               (do-apply-csp ptree-node (nreverse axs))
             (declare (ignore applied))
@@ -2589,11 +2647,7 @@
             (when-spoiler-on ()
               ;; apply implicit rd
               (dolist (ngoal next-goals)
-                (do-apply-rd ngoal nil .tactic-csp.)
-                               (when (and dash? (goal-targets ngoal))
-                                 ;; reset target
-                                 (setf (goal-targets ngoal)
-                                   (goal-targets (ptree-node-goal ptree-node))))))
+                (do-apply-rd ngoal nil dash? .tactic-csp.)))
             ;; add generated node as children
             (add-ptree-children ptree-node next-goals)
             (when verbose
@@ -2618,12 +2672,8 @@
           (when-spoiler-on ()
             ;; apply implicit rd
             (dolist (ngoal next-goals)
-              (do-apply-rd ngoal nil tactic)
-              (when (and (tactic-csp-minus tactic) (goal-targets ngoal))
-                ;; reset target
-                (setf (goal-targets ngoal) (goal-targets goal)))))
+              (do-apply-rd ngoal nil (tactic-csp-minus tactic) tactic)))
           (values t next-goals))))))
-
 
 ;;; -----------------------------------------------------------
 ;;; report-citp-stat

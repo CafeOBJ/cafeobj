@@ -68,7 +68,6 @@
       ("trace" ("whole") parity $$trace-rewrite-whole "trace rewrite step."
        trace-whole-on
        trace-whole-off)
-      ("trace" ("proof") parity $$trace-proof "trace CITP.")
       ("trace" nil parity $$trace-rewrite "trace every rewrite step."
        trace-on
        trace-off)
@@ -86,23 +85,13 @@
       ("stop" ("pattern") general *rewrite-stop-pattern*
        "stop rewriting when meets pattern(term)."
        set-rewrite-stop-pattern2)
-      ;; ("mel" ("sort") parity *mel-sort*
-      ;; "compute result sort with sort membership predicates.")
-      ;; ("mel" ("always") parity *mel-always*
-      ;; "apply sort memb predicates even the result is of non-error sort.")
       ("reduce" ("conditions") parity *reduce-conditions*
        "reduce condition part in \"apply\" command.")
-      ;; ("allow" ("$$term") parity *allow-$$term*
-      ;; "allow using \"$$term\" or \"$$subterm\"")
       ("exec" ("trace") parity *cexec-trace*
        "if on, trace concurrent execution.")
       ("exec" ("limit") general *cexec-limit*
        "limit maximum number of concurrent execution."
        chaos-set-cexec-limit)
-      ;; ("exec" ("normalize") parity *cexec-normalize*
-      ;;  "if on, reduce term before and after each transition.")
-      ;; ("exec" ("all") parity *cexec-find-all-solutions*
-      ;;  "if on, find all solutions of =(*)=>.")
       (:comment "** system behaviour control ----------------------------")
       ("include" ("BOOL") parity *include-BOOL* "import BOOL implicitly.")
       ("include" ("RWL") parity *include-rwl* "import RWL implicitly.")
@@ -111,10 +100,7 @@
       ;; ("stats" nil parity *show-stats* "abbribiation of `statistics'.")
       ("auto" ("context")  parity *auto-context-change*
        "automatic change current context(module).")
-      ;; ("auto" ("reconstruct") parity *auto-reconstruct*
-      ;;  "perform automatic reconstruction of modules if inconsistent.")
-      ;; ("accept" ("term") parity *allow-general-term-input*
-      ;; "allow input term directly at top level.")
+      (:comment "** checkers --------------------------------------------")
       (("regularize" "reg") ("signature") parity *regularize-signature*
        "regularize module signature automatic.")
       ("check" ("import") parity *check-import-mode*
@@ -131,6 +117,7 @@
       ;; "perform operator overloading check with builtin sorts.")
       ;; ("select" ("term") parity *select-ambig-term*
       ;;  "allow users to select a term from anbiguously parsed terms.")
+      (:comment "** verbosity controll ----------------------------------")
       ("verbose" nil parity *chaos-verbose* "set verbose mode." set-verbose-on set-verbose-off)
       ("quiet" () parity *chaos-quiet* "be quiet." set-quiet-on set-quiet-off)
       (:comment "** show/display options --------------------------------")
@@ -145,12 +132,16 @@
       ;;
       ("show" ("ext-rule") parity *print-exec-rule*
        "if on, print out (c)trans rules in reduction of '_=(,)=>+_if_suchThat_{_}'. default off.")
+      ("print" ("grind") parity *grind-bool-term* 
+       "if on, '=(,)=> suchThat {}' print out Bool term in 'grind' style.")
       ("print" ("mode") general *print-xmode*
        "set term print form, one of :normal, :fancy, :tree or :s-expr."
        chaos-set-print-mode)
       ("print" ("depth") general *term-print-depth*
        "max depth of terms to be printed."
        chaos-set-print-depth)
+      ("tree" ("horizontal") parity *show-tree-horizontal*
+       "if on, 'show term { tree | graph}' shows term tree horizontal mode. default off.")
       (:comment "** misc settings ---------------------------------------")
       ("libpath" () general *chaos-libpath*
        "set file search path. `set libpath + path-list' adds search path."
@@ -217,6 +208,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
       ("debug" ("meta") parity *debug-meta* "" nil nil t)
       ("debug" ("citp") parity *debug-citp* "" nil nil t)
       ("debug" ("print") parity *debug-print* "" nil nil t)
+      ("debug" ("bterm") parity *debug-bterm* "" nil nil t)
       ))
 
 (defun set-chaos-switch (which value)

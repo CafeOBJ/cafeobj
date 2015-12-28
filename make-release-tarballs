@@ -38,6 +38,11 @@ shift
 
 default_components="bin share"
 
+TAR=tar
+if [ `uname` = 'Darwin' ] ; then
+  TAR=gnutar
+fi
+
 if [ x$vminor = x ] ; then
   echo "Usage: make-dist-tarball VERSION MINOR <lisp-interpreters>" >&2
   exit
@@ -81,9 +86,11 @@ for i in $* ; do
   #
   # we have to make sure that the current engine is the default one
   # selected in the wrapper script!
-  sed --in-place -e "s/^engine=.*/engine=$i/" bin/cafeobj
+  sed -e "s/^engine=.*/engine=$i/" bin/cafeobj > bin/cafeobj.new
+  mv bin/cafeobj.new bin/cafeobj
+  chmod ugo+x bin/cafeobj
   echo "Building $sname standalone for $arch`uname` ..."
-  tar --owner=0 --group=0 -cvzf ../cafeobj-$version$vminor-${sname}-${arch}`uname`.tar.gz	\
+  $TAR --numeric-owner --owner=0 --group=0 -cvzf ../cafeobj-$version$vminor-${sname}-${arch}`uname`.tar.gz	\
   	$default_components $distdir
 done
 

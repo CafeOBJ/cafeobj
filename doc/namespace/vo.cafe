@@ -1,0 +1,7 @@
+module VO {
+  [ Foo Bar ]
+  op f : -> Foo
+  op g : Foo -> Bar
+  var f : Bar
+  eq g(X:Foo) = f .
+}

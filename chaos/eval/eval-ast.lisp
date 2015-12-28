@@ -515,24 +515,25 @@
                            *current-module* parses-lhs parses-rhs)))
                  (if (null res)
                      ;; completely no found.
-                     (with-output-simple-msg ()
-                       (princ "[Error] bad axiom (ignored): ")
-                       ;; show LHS 
-                       (if (null parses-lhs)
-                           (format t "~& No possible parse for LHS")
+                     (progn
+                       (with-output-simple-msg ()
+                         (princ "[Error] bad axiom (ignored): ")
+                         ;; show LHS 
+                         (if (null parses-lhs)
+                             (format t "~& No possible parse for LHS")
                            (progn
                              (format t "~&- LHS")
                              (dolist (f parses-lhs)
                                (print-next)
                                (print-term-tree f t))))
-                       ;; show RHS
-                       (if (null parses-rhs)
-                           (format t "~& No possible parse for RHS")
+                         ;; show RHS
+                         (if (null parses-rhs)
+                             (format t "~& No possible parse for RHS")
                            (progn
                              (format t "~&- RHS")
                              (dolist (f parses-rhs)
                                (print-next)
-                               (print-term-tree f t))))
+                               (print-term-tree f t)))))
                        (chaos-error 'invalid-axiom-decl))
                      ;;
                      (progn

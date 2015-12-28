@@ -1,0 +1,74 @@
+** -*- Mode:CafeOBJ -*-
+** system: Chaos
+** module: library
+** file: bool-af.mod
+** -------------------------------------------------------------
+-- modified by KF101227
+
+**
+** modified by T.SWD 20120828, adapting to new feature 'set BOOL = xxx'
+**  
+** "set BOOL = <path to this file>"
+** will make system to load this definition of BOOL instead of builtin BOOL.
+
+** -------------------------------------------------------------
+** MODULE BOOL
+** 
+mod! BOOL
+      principal-sort Bool
+{
+  -- we must import system provided BOOL signature
+
+  including(BASE-BOOL)
+
+  ** NOTE:
+  -- we can also introduce additional new Boolean operators here.
+  -- but they will not be supported by TRAM or PigNose.
+
+  -- the followings are 
+
+  vars P Q R : Bool 
+
+  eq[notT]: not true = false .
+  eq[notF]: not false = true .
+  eq[not2]: not not P = P .
+  
+  eq[andT]: P and true = P . 
+  eq[andF]: P and false = false . 
+  eq[and2]: P and P = P .
+
+  eq[orT]: P or true = true . 
+  eq[orT]: P or false = P . 
+  eq[or2]: P or P = P .
+
+  eq[Taa']: (true and-also Q) = Q .
+  eq[Faa']: (false and-also Q) = false .
+  eq[aaT']: (P and-also true) = P .
+  eq[aaF']: (P and-also false) = false .
+
+  eq[Toe']: (true or-else Q) = true .
+  eq[Foe']: (false or-else Q) = Q .
+  eq[oeT']: (P or-else true) = true .
+  eq[oeF']: (P or-else false) = P .
+
+  eq[Timp']: (true implies Q) = Q .
+  eq[Fimp']: (false implies Q) = true .
+  eq[impT']: (P implies true) = true .
+  eq[impF']: (P implies false) = not P .
+
+  eq[xorF]: P xor false = P . 
+  eq[xor2]: P xor P = false . 
+
+  eq[iffT]: P iff true = P . 
+  eq[iff2]: P iff P = true . 
+
+  -- specific to AF
+  eq[notIFF]: not P = P iff false .
+  eq[orAF]: P or Q = P iff Q iff (P and Q) .
+  eq[impAF']: P implies Q = (P and Q) iff P .
+  eq[xorNF]: P xor Q = not(P iff Q) .
+  eq[distAF]: P and (Q iff R) = (P and Q) iff (P and R) iff P .
+
+}
+
+eof

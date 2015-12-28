@@ -639,12 +639,15 @@
 (defun print-subst-if-binding-result (state sub sch-context)
   (declare (ignore state))
   (setf (rwl-sch-context-pr-out? sch-context) t)
-  (unless *rwl-search-no-state-report*
-    (format t "~%    ") (print-substitution sub)
-    (when (rwl-sch-context-bind sch-context)
-      (let ((bimg (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
-        (normalize-term bimg)
-        (format t "~%    --> ")
+  (format t "~%    ") (print-substitution sub)
+  (when (rwl-sch-context-bind sch-context)
+    (let ((bimg (substitution-image-simplifying sub (rwl-sch-context-bind sch-context))))
+      (normalize-term bimg)
+      (format t "~%    --> ")
+      (if (and *grind-bool-term*
+               (sort= (term-sort bimg) *bool-sort*))
+          (let ((bt (abstract-boolean-term bimg *current-module*)))
+            (print-bterm-grinding bt))
         (term-print-with-sort bimg)))))
 
 ;;; ******************

@@ -95,19 +95,24 @@ Be default CafeOBJ is installed in GNU standard compliant directories,
 that is
        $prefix/bin/    -- cafeobj - a shell script that invokes the
                           necessary programs to start the CafeOBJ interpreter.
+			  (configure option --bindir)
       
        $prefix/lib/cafeobj-N.M/
                        -- dump files for the various lisp platforms
+		          (configure option --libdir + cafeobj-N.M)
       
        $prefix/share/cafeobj-N.M/lib/
                        -- standard libraries, if you made cafeobj with
                           PigNose, fopl.mod will be put here.
+			  (configure option --datarootdir + cafeobj-N.M/lib)
 
        $prefix/share/cafeobj-N.M/prelude/
                        -- cafeobj standard prelude files.
+			  (configure option --datarootdir + cafeobj-N.M/prelude)
  
        $prefix/share/doc/cafeobj/
                        -- documentation and example files
+		          (configure option --docdir + cafeobj)
 
 $prefix is by default /usr/local, but can be selected with
 	--prefix=<PATH>
@@ -135,6 +140,23 @@ which selects traditional layout of the files, which is
                        -- documentation and example files
 
 
+c) Rebuilding documentation pdfs
+--------------------------------
+The configure switch
+	--enable-rebuild-doc
+triggers a rebuild of all pdfs. Since some of these need special fonts
+and Japanese TeX systems to correctly produce pdfs, we recommend not
+using this.
+
+d) Emacs support file
+---------------------
+We distribute an Emacs major mode in cafeobj-mode.el. The configure
+script will search for an installation of Emacs (binary emacs or xemacs)
+and install the elisp file into the respective site-lisp path. The
+selected destination can be adjusted with
+	--with-lispdir
+Furthermore, the used emacs can be influenced with the EMACS and
+EMACSLOADPATH environment variables.
 
 ===========================
 2) Building the interpreter
@@ -235,6 +257,12 @@ a dump for Windows with
 	./configure --enable-windows
 	make
 
-  
+building for distribution
+-------------------------
+For the binary distributions there is a switch
+	./configure --enable-distribution
+which builds all requested cafeobj/lisp combinations (see above) and
+installs them into the prefix=./dist, followed by the necessary calls
+to make-release-tarballs.
 
 -- EOF

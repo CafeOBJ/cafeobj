@@ -270,12 +270,13 @@
 (defvar *chaos-print-errors* nil)
 (defvar *chaos-input-quiet* nil)
 (defvar *print-variables* nil)
+(defvar *grind-bool-term* nil)
 (declaim (special .file-col.)
          (type fixnum .file-col.))
 (defvar .file-col. 0)
-;;;
 (declaim (type (or null fixnum) *term-print-depth*))
 (defvar *term-print-depth* nil)
+(defvar *show-tree-horizontal* nil)
 
 ;;; CafeOBJ variables
 (defvar *cafeobj-input-quiet* nil)
@@ -557,15 +558,8 @@
 (defvar *reader-current-context* nil)
 (defvar *reader-starting-position* nil)
 (defvar *builtin-ast-dict* (make-hash-table :test #'equal))
-
-;;; if t, parse speed can be greatly enhanced for many cases, but produces
-;;; much less dignosis infos. this is a toplevel switch.
-;;; ** NOW OBSOLETE !!!!!!!!
-(defvar *fast-parse* t)
-
 ;;;
 (defvar *parse-normalize* nil)
-
 ;;; if t, expand macros at parsing time.
 ;;;
 (defvar *macroexpand* t)
@@ -585,8 +579,8 @@
 (defvar *compile-lisp-rhs* t)
 (defvar *running-with-tk* nil)
 (defvar *sub-prompt* nil)
+(defvar *no-prompt* nil)
 (defvar *consider-object* nil)
-
 (defvar *auto-reconstruct* nil)
 
 ;;; *SAVE-DEFINITION*
@@ -680,6 +674,7 @@
 (defvar *debug-meta* nil)
 (defvar *debug-citp* nil)
 (defvar *debug-print* nil)
+(defvar *debug-bterm* nil)
 ;;;
 ;;; ** TO DO for other platforms
 #+SBCL

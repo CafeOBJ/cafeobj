@@ -49,34 +49,42 @@
     (executor nil :type (or null symbol)) ; tactic executor
     )
 
+  ;; Simultaneous Induction
   (defparameter .tactic-si. (make-tactic :name :si
-                                         :executor 'apply-si)) ; Simultaneous Induction
+                                         :executor 'apply-si))
+  ;; Case Analysis
   (defparameter .tactic-ca. (make-tactic :name :ca
-                                         :executor 'apply-ca))  ; Case Analysis
+                                         :executor 'apply-ca))
+  ;; Theorem of Constants
   (defparameter .tactic-tc. (make-tactic :name :tc
-                                         :executor 'apply-tc)) ; Theorem of Constants
+                                         :executor 'apply-tc))
+  ;; Implication
   (defparameter .tactic-ip. (make-tactic :name :ip
-                                         :executor 'apply-ip)) ; Implication
-#||
-  (defparameter .tactic-cs. (make-tactic :name :cs
-                                         :executor 'apply-cs)) ; Case Analysis on Sequences
-||#
+                                         :executor 'apply-ip))
+  ;; Reduction: goal sentence will be destructively changed
   (defparameter .tactic-rd. (make-tactic :name :rd
-                                         :executor 'apply-rd)) ; Reduction
-
+                                         :executor 'apply-rd))
+  ;; Reduction: keeps original goal sentence if it is not reduced to be 'true'
+  (defparameter .tactic-rd-. (make-tactic :name :rd-
+                                          :executor 'apply-rd-))
+  ;; Normalize goal sentenses
   (defparameter .tactic-nf. (make-tactic :name :nf
-                                         :executor 'apply-nf)) ; nomalize goals, assumptions
-
+                                         :executor 'apply-nf))
+  ;; Check contradiction, i.e. true = false
   (defparameter .tactic-ct. (make-tactic :name :ct
-                                         :executor 'apply-ct)) ; check contradiction
-  
+                                         :executor 'apply-ct))
+  ;; Do nothing, used internally
   (defparameter .tactic-nil. (make-tactic :name :nop
-                                          :executor 'apply-nil)) ; Do nothing, used internally.
+                                          :executor 'apply-nil))
 
-  (defparameter .all-builtin-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd. .tactic-nf. .tactic-ct.))
+  ;; list of all builtin tactics
+  (defparameter .all-builtin-tactics. 
+      (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd. .tactic-rd-. .tactic-nf. .tactic-ct.))
 
-  ;; default tatics is a seriase of SI CA TC IP.
-  (defparameter .default-tactics. (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd.))
+  ;; default tatics is a seriase of SI CA TC IP RD.
+  (defparameter .default-tactics. 
+      (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd.))
+
   ;; this is not an ordinary tactic but a command, but it generates goals
   (defparameter .tactic-ctf. (make-tactic :name :ctf
                                           :executor 'apply-ctf))
@@ -284,6 +292,7 @@
 (defconstant citp-show-rwl  2)
 (defconstant citp-spoiler 3)
 (defconstant citp-print-message 4)
+(defconstant citp-normalize-init 5)
 
 ;;; FIND-CITP-FLAG-INDEX : Name -> Index
 ;;;
@@ -327,7 +336,8 @@
         (citp-flag-name citp-verbose) "citp-verbose"
         (citp-flag-name citp-show-rwl) "citp-show-rwl"
         (citp-flag-name citp-spoiler) "citp-spoiler"
-        (citp-flag-name citp-print-message) "citp-print-message")
+        (citp-flag-name citp-print-message) "citp-print-message"
+        (citp-flag-name citp-normalize-init) "citp-normalize-init")
   ;; set default
   (setf (citp-flag citp-print-message) t) ; others are 'off'
   ;; verbose flag hook
@@ -760,11 +770,11 @@
 ;;; introduces a new constant of sort(variable) into a module.
 ;;; returns a pair (variable . constant-term)
 ;;;
-(defun intro-const-returns-subst (module name variable)
+(defun citp-intro-const (module name sort)
   (multiple-value-bind (op meth)
       (declare-operator-in-module (list name)
                                   nil   ; arity
-                                  (variable-sort variable) ; coarity
+                                  sort  ; coarity
                                   module ; 
                                   nil   ; constructor?
                                   nil   ; behavioural? always nil.
@@ -772,15 +782,42 @@
                                   )
     (declare (ignore op))
     (prepare-for-parsing module t t)    ; force 
-    (cons variable (make-applform-simple (variable-sort variable) meth nil))))
+    meth))
+  
+(defun intro-const-returns-subst (module name variable)
 
-;;; make-tc-const-name : proof-tree prefix -> string
+  (cons variable (make-applform-simple (variable-sort variable)
+                                       (citp-intro-const module name (variable-sort variable))
+                                       nil)))
+
+;;; make-tc-const-name : variable -> string
 ;;;
-(defun make-tc-const-name (variable)
-  (format nil "~:@(~a~)@~a" (variable-name variable)
-          (string (sort-name (variable-sort variable)))))
+(defun make-tc-const-name (name sort)
+  (format nil "~:@(~a~)@~a" name (string (sort-name sort))))
+
+(defun make-tc-pconst-name (name)
+  (format nil "`~:@(~a~)" name))
+
+;;; intro-fresh-constant : goal -> term (introduced constant)
+;;; introduces brand new constant in the current proof context
+;;;
+(defun intro-fresh-constant (goal name-seed sort)
+  (let* ((name (make-tc-const-name name-seed sort))
+         (meth (citp-intro-const (goal-context goal) name sort))
+         (v-const (make-applform-simple sort meth nil)))
+    (push (cons meth v-const) (goal-constants goal))
+    v-const))
+
+;;; introduces on-the-fly constant
+;;;
+(defun intro-fresh-pconstant (goal name-seed sort)
+  (declare (ignore goal))
+  (let ((name (make-tc-pconst-name name-seed)))
+    (make-pvariable-term sort name)))
 
 ;;; variable->constant : goal variable -> term
+;;; In the given goal, introduces fresh constant which should substitute the given varirable.
+;;; used by tactic TC.
 ;;;
 (defun find-variable-subst-in (alist variable)
   (assoc variable alist :test #'variable-equal))
@@ -794,7 +831,7 @@
         (let ((name (cdr (find-variable-subst-in (ptree-var-subst *proof-tree*) variable)))
               (v-const nil))
           (unless name
-            (setq name (make-tc-const-name variable))
+            (setq name (make-tc-const-name (variable-name variable) (variable-sort variable)))
             (push (cons variable name) (ptree-var-subst *proof-tree*)))
           (setq v-const (intro-const-returns-subst (goal-context goal)
                                                    name

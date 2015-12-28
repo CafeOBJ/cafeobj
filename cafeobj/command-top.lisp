@@ -153,24 +153,14 @@
                              (let ((lpaths nil))
                                (dolist (x (parse-with-delimiter (nth (incf i) args)
                                                                 #\:))
-                                 #||
-                                 (when (probe-file x)
-                                   (push x lpaths))
-                                 ||#
-                                 (push x lpaths)
-                                 )
+                                 (push x lpaths))
                                (incf i)
                                (setq *chaos-libpath* (nreverse lpaths))))
                             (("+lib" "+l")
                              (let ((lpaths nil))
                                (dolist (x (parse-with-delimiter (nth (incf i) args)
                                                                 #\:))
-                                 #||
-                                 (when (probe-file x)
-                                   (push x lpaths))
-                                 ||#
-                                 (push x lpaths)
-                                 )
+                                 (push x lpaths))
                                (incf i)
                                (setq *chaos-libpath*
                                  (append (nreverse lpaths) *chaos-libpath*))))
@@ -209,8 +199,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
               (load-prelude+ *cafeobj-secondary-prelude-file* 'process-cafeobj-input)))
           ;; load site init
           (load-prelude "site-init" 'process-cafeobj-input t)
-          )
-        ))))
+          )))))
 
 ;;; TOP LEVEL HELP
 ;;;_____________________________________________________________________________
@@ -251,11 +240,11 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
   (format t "~25T ommiting <classy> shows a list of <class>.~%")
   (format t "'? <name>'~25T Gives the reference manual description of <name>~%")
   (format t "'?ex <name>'~25T Similar to '? <name>', but in this case~%")
-  (format t "~25T also shows examples if available.~%")
-  (format t "'?ap <term> [<term>] ...'~25TSearches all available online docs for the terms passed,~%")
-  (format t "~25T type '? ?ap' for more detailed descriptions.~%")
+  (format t "~25T shows examples if available.~%")
+  (format t "'?ap <term> [<term>] ...'~25TSearches all available online docs for the terms~%")
+  (format t "~25T passed. Type '? ?ap' for more detailed descriptions.~%")
   (format t "** Typing 'com' will show the list of major toplevel commands.~%")
-  (format t "** URL 'http://cafeobj.org' privides anything you want to know about CafeOBJ."))
+  (format t "** URL 'http://cafeobj.org' provides anything you want to know about CafeOBJ."))
 
 (defun cafeobj-top-level-help (&optional com)
   (cond ((null (cdr com))
@@ -386,6 +375,7 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 (defun print-cafeobj-prompt ()
   (fresh-all)
   (flush-all)
+  (when *no-prompt* (return-from print-cafeobj-prompt nil))
   (let ((cur-module (get-context-module t)))
     (cond ((eq *prompt* 'system)
            (if cur-module
@@ -476,8 +466,6 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 #+(and CCL (not :openmcl))
 (defun set-cafeobj-standard-library-path (&optional topdir)
   (declare (ignore topdir))
-  ;; (unless *cafeobj-install-dir*
-  ;;    (break "CafeOBJ install directory is not set yet!."))
   (setq *system-prelude-dir*
     (full-pathname (make-pathname :host "ccl" :directory "prelude/")))
   (setq *system-lib-dir*
@@ -520,7 +508,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 ;;;
 (defun cafeobj-evaluate-command (key inp)
   (declare (type string key))
-  (let ((com (get-command-info key)))
+  (let ((com (get-command-info key))
+        (result nil))
     (unless com
       (with-output-chaos-error ('no-commands)
         (format t "No such command or declaration keyword '~a'." key)))
@@ -538,7 +527,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
             (unless evaluator
               (with-output-chaos-error ('no-evaluator)
                 (format t "No evaluator is defined for command ~a." key)))
-            (funcall evaluator pform)))))))
+            (setq result (funcall evaluator pform))
+            result))))))
 
 ;;;
 ;;;
@@ -570,7 +560,8 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
         (*print-circle* nil)
         (*old-context* nil)
         (*show-mode* :cafeobj)
-        (top-level (at-top-level)))
+        (top-level (at-top-level))
+        (result nil))
     (unless (or top-level *chaos-quiet*)
       (if *chaos-input-source*
           (with-output-simple-msg ()
@@ -595,11 +586,12 @@ An error occurred (~a) during the reading or evaluation of -e ~s" c form))))))
 
               (block process-input
                 ;; PROCESS INPUT COMMANDS ==============
-                (cafeobj-evaluate-command (car inp) inp))
+                (setq result (cafeobj-evaluate-command (car inp) inp)))
               (setq *chaos-print-errors* t)))
           (when .in-in.
             (setq *chaos-print-errors* t)
-            (setq .in-in. nil)))))))
+            (setq .in-in. nil))))
+      result)))
 
 (defun handle-cafeobj-top-error (val)
   (if *chaos-input-source*

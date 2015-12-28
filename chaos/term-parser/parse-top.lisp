@@ -416,7 +416,7 @@
       (if (term-is-variable? term)
           (print-to-left
            (format nil "variable ~a:~a"
-                   (variable-name term)
+                   (string (variable-name term))
                    (sort-print-name (term-sort term)))
            "-")
         (if (term-is-builtin-constant? term)

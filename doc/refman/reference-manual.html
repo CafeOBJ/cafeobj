@@ -12,7 +12,7 @@
 <div id="header">
 <h1 class="title">CafeOBJ Reference Manual</h1>
 <h2 class="author">Toshimi Sawada, Kokichi Futatsugi, Norbert Preining</h2>
-<h3 class="date">2015-10-21 (v1.5.4)</h3>
+<h3 class="date">2015-12-25 (v1.5.5)</h3>
 </div>
 <div id="TOC">
 <ul>
@@ -64,14 +64,15 @@
 <li><a href="#bctrans"><code>bctrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;bool&gt; .</code></a></li>
 <li><a href="#beq"><code>beq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></a></li>
 <li><a href="#bgoal"><code>bgoal &lt;term&gt; .</code></a></li>
+<li><a href="#bguess"><code>{bguess | :bguess} {imply|and|or} [ with &lt;predicate name&gt; ]</code></a></li>
 <li><a href="#binspect"><code>binspect [in &lt;module-name&gt; :] &lt;boolean-term&gt; .</code></a></li>
 <li><a href="#citp-binspect"><code>:binspect [in &lt;goal-name&gt; :] &lt;boolean-term&gt; .</code></a></li>
 <li><a href="#bop"><code>bop &lt;op-spec&gt; : &lt;sorts&gt; -&gt; &lt;sort&gt;</code></a></li>
 <li><a href="#bpred"><code>bpred &lt;op-spec&gt; : &lt;sorts&gt;</code></a></li>
 <li><a href="#breduce"><code>breduce [ in &lt;mod-exp&gt; : ] &lt;term&gt; .</code></a></li>
-<li><a href="#bresolve"><code>{bresolve | :bresolve}</code></a></li>
+<li><a href="#bresolve"><code>{bresolve | :bresolve} [&lt;limit&gt;] [all]</code></a></li>
 <li><a href="#brule"><code>brule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></a></li>
-<li><a href="#bshow"><code>{bshow | :bshow} [tree]</code></a></li>
+<li><a href="#bshow"><code>{bshow | :bshow} [{ tree | grind }]</code></a></li>
 <li><a href="#bsort"><code>bsort</code></a></li>
 <li><a href="#btrans"><code>btrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></a></li>
 <li><a href="#cbred"><code>cbred [ in &lt;mod-exp&gt; :] &lt;term&gt; .</code></a></li>
@@ -230,6 +231,8 @@
 
 % \include{reference.md}
 -->
+
+
 <h1 id="introduction">Introduction</h1>
 <p>This manual introduces the language CafeOBJ. Is is a reference manual with the aim to document the current status of the language, and not targeting at an exhaustive presentation of the mathematical and logical background. Still, the next section will give a short summary of the underlying formal approach and carry references for those in search for details.</p>
 <p>The manual is structured into three parts. The first one being this introduction, the second one being the presentation of basic concepts of CafeOBJ by providing a simple protocol which will get specified and verified. Although the second part tries to give a view onto the core features and their usage, it should not be considered a course in CafeOBJ, and cannot replace a proper introduction to the language. The CafeOBJ distribution also includes a <em>user manual</em>. This user manual is slightly outdated with respect to the current status of the language, but is targeting those without and prior knowledge of CafeOBJ.</p>
@@ -241,10 +244,12 @@
 <p>CafeOBJ is based on three extensions to the basic many-sorted equational logic:</p>
 <dl>
 <dt>Order-sorted logic</dt>
-<dd>In addition to having different sorts (similar to types in other programming languages), these sorts can be ordered, or in other words, one sort can be a subset of another sort: Take for example the number stack: CafeOBJ allows for the provision of natural numbers, which are part of the rational numbers, which are part of the real numbers. This concept allows for operator inheritance and overloading. Behavioral logic
+<dd>In addition to having different sorts (similar to types in other programming languages), these sorts can be ordered, or in other words, one sort can be a subset of another sort: Take for example the number stack: CafeOBJ allows for the provision of natural numbers, which are part of the rational numbers, which are part of the real numbers. This concept allows for operator inheritance and overloading.
 </dd>
-<dd>Algebraic modeling is often based on constructors, i.e., all terms under discussion are built up from given operations, and equality can be decided via an equational theory. While being very successful, it is often necessary to model infinite objects (like data streams), which cannot be achieved in this way. CafeOBJ includes <em>behavioral logic</em> and the respective <em>hidden sorts</em> as methodology to model infinite objects which identity is defined via behavior instead of the equational theory. Rewriting logic
+<dt>Behavioral logic</dt>
+<dd>Algebraic modeling is often based on constructors, i.e., all terms under discussion are built up from given operations, and equality can be decided via an equational theory. While being very successful, it is often necessary to model infinite objects (like data streams), which cannot be achieved in this way. CafeOBJ includes <em>behavioral logic</em> and the respective <em>hidden sorts</em> as methodology to model infinite objects which identity is defined via behavior instead of the equational theory.
 </dd>
+<dt>Rewriting logic</dt>
 <dd>Aim of a algebraic specification and verification is to give a formal proof of correctness. CafeOBJ contains order-sorted term rewriting as operational semantics, which allows for <em>execution of proof scores</em>, CafeOBJ code which forms a proof of the required properties.
 </dd>
 </dl>
@@ -441,19 +446,19 @@ mod! PCLABEL {
 <p>In the following case we ended up with five different predicates that combined worked as invariant:</p>
 <dl>
 <dt><code>cloud-idle-pcs-idle</code></dt>
-<dd>If the cloud is in the idle state, then all the pcs are also in the idle state.
+<dd><p>If the cloud is in the idle state, then all the pcs are also in the idle state.</p>
 </dd>
 <dt><code>pc-clval</code></dt>
-<dd>If the cloud is in busy state, then the value of the cloud and the value in the temporary storage area of any PCs in the <code>gotvalue</code> or <code>updated</code> states agree.
+<dd><p>If the cloud is in busy state, then the value of the cloud and the value in the temporary storage area of any PCs in the <code>gotvalue</code> or <code>updated</code> states agree.</p>
 </dd>
 <dt><code>one-active</code></dt>
-<dd>At most one PC is out of the idle state.
+<dd><p>At most one PC is out of the idle state.</p>
 </dd>
 <dt><code>gotvalue-cloud-value</code></dt>
-<dd>If a PC is in the <code>gotvalue</code> state, then the value saved in the temporary storage area and the one of the cloud agree.
+<dd><p>If a PC is in the <code>gotvalue</code> state, then the value saved in the temporary storage area and the one of the cloud agree.</p>
 </dd>
 <dt><code>goal</code></dt>
-<dd>If a PC is in the <code>updated</code> state, then the value of the PC and the value of the cloud agree.
+<dd><p>If a PC is in the <code>updated</code> state, then the value of the PC and the value of the cloud agree.</p>
 </dd>
 </dl>
 <p>See the mentioned web-page for the full code of these modules.</p>
@@ -550,7 +555,7 @@ mod! PCLABEL {
 <p>Applies one of the following actions <code>reduce</code>, <code>exec</code>, <code>print</code>, or a rewrite rule to the term in focus.</p>
 <dl>
 <dt><code>reduce</code>, <code>exec</code>, <code>print</code></dt>
-<dd>the operation acts on the (sub)term specified by <code>&lt;range&gt;</code> and <code>&lt;selection&gt;</code>.
+<dd><p>the operation acts on the (sub)term specified by <code>&lt;range&gt;</code> and <code>&lt;selection&gt;</code>.</p>
 </dd>
 <dt>rewrite rule</dt>
 <dd><p>in this case a rewrite rule spec has to be given in the following form:</p>
@@ -567,22 +572,23 @@ mod! PCLABEL {
 <p>where each <code>&lt;selector&gt;</code> is one of</p>
 <dl>
 <dt><code>top</code>, <code>term</code></dt>
-<dd>Selects the whole term
+<dd><p>Selects the whole term</p>
 </dd>
 <dt><code>subterm</code></dt>
-<dd>Selects the pre-chosen subterm (see <a href="#choose"><code>choose</code></a>)
+<dd><p>Selects the pre-chosen subterm (see <a href="#choose"><code>choose</code></a>)</p>
 </dd>
 <dt><code>( &lt;number_list&gt; )</code></dt>
-<dd>A list of numbers separated by blanks as in <code>(2 1)</code> indicates a subterm by tree search. <code>(2 1)</code> means the first argument of the second argument.
+<dd><p>A list of numbers separated by blanks as in <code>(2 1)</code> indicates a subterm by tree search. <code>(2 1)</code> means the first argument of the second argument.</p>
 </dd>
 <dt><code>[ &lt;number1&gt; .. &lt;number2&gt; ]</code></dt>
 <dd><p>This selector can only be used with associative operators. It indicates a subterm in a flattened structure and selects the subterm between and including the two numbers given. <code>[n .. n]</code> can be abbreviated to <code>[n]</code>.</p>
 <p>Example: If the term is <code>a * b * c * d * e</code>, then the expression <code>[2 .. 4]</code> selects the subterm <code>b * c * d</code>.</p>
 </dd>
 <dt><code>{ &lt;number_set&gt; }</code></dt>
-<dd>This selector can only be used with associative and commutative operators. It indicates a subterm in a multiset structure obtained from selecting the subterms at position given by the numbers.
+<dd>This selector can only be used with associative and commutative
 </dd>
 </dl>
+<p>operators. It indicates a subterm in a multiset structure obtained from selecting the subterms at position given by the numbers.</p>
 <p>Example: If the operator <code>_*_</code> is declared as associative and commutative, and the current term is <code>b * c * d * c * e</code>, then then the expression <code>{2, 4, 5}</code> selects the subterm <code>c * c * e</code>.</p>
 <p>Related: <a href="#start"><code>start</code></a>, <a href="#choose"><code>choose</code></a></p>
 <h2 id="citp-auto"><code>:auto</code></h2>
@@ -618,6 +624,8 @@ mod! PCLABEL {
 <p>Related: <a href="#bceq"><code>bceq</code></a>, <a href="#ceq"><code>ceq</code></a>, <a href="#eq"><code>eq</code></a></p>
 <h2 id="bgoal"><code>bgoal &lt;term&gt; .</code></h2>
 <p>(pignose)</p>
+<h2 id="bguess"><code>{bguess | :bguess} {imply|and|or} [ with &lt;predicate name&gt; ]</code></h2>
+<p>TODO</p>
 <h2 id="binspect"><code>binspect [in &lt;module-name&gt; :] &lt;boolean-term&gt; .</code></h2>
 <p>Start an inspection of a Boolean term, that is, and abstracted form of the Boolean term is constructed. The abstracted term is shown (like calling <a href="#bshow"><code>bshow</code></a>.</p>
 <h3 id="example-1">Example</h3>
@@ -642,19 +650,30 @@ CafeOBJ&gt; binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)
 <p>Reduce the given term in the given module, if <code>&lt;mod-exp&gt;</code> is given, otherwise in the current module.</p>
 <p>For <code>breduce</code> equations, possibly conditional, possibly behavioral, are taken into account for reduction.</p>
 <p>Related: <a href="#reduce"><code>reduce</code></a>, <a href="#execute"><code>execute</code></a></p>
-<h2 id="bresolve"><code>{bresolve | :bresolve}</code></h2>
-<p>Computes all possible variable assignments that render an abstracted term <code>true</code>. The variant with leading colon is for usage during a <a href="#citp">CITP</a> proof.</p>
+<h2 id="bresolve"><code>{bresolve | :bresolve} [&lt;limit&gt;] [all]</code></h2>
+<p>Computes all possible variable assignments that render an abstracted term <code>true</code>. The variant with leading colon is for usage during a <a href="#citp">CITP</a> proof. If an optional argument 'all' is specified, all solutions will be searched. Optional <limit> specifies maximal number of variable combination, i.e. if there are 3 variables v1, v2, and v3, and <limit> is 2, the following cases are examined: (1) v1 : true/false (2) v2 : true/false (3) v3 : true/false (4) v1/v2 : combinations of true/false of two variables (5) v1/v3 : combinations of true/false of two variables (6) v2/v3 : combinations of true/false of two variables</p>
 <h3 id="example-2">Example</h3>
-<pre><code>CafeOBJ&gt; bresolve
+<pre><code>CafeOBJ&gt; bresolve 2 all
 
-** The following assignment(s) can make the term &#39;true&#39;.
-  (1): { P-5:Bool |-&gt; true, P-4:Bool |-&gt; true, P-3:Bool |-&gt; true, P-2:Bool |-&gt; true, P-1:Bool |-&gt; true }
-  (2): { P-5:Bool |-&gt; false, P-4:Bool |-&gt; true, P-3:Bool |-&gt; true, P-2:Bool |-&gt; true, P-1:Bool |-&gt; true }
+** (1) The following assignment(s) makes the term to be &#39;true&#39;.
+[1] { P-3:Bool |-&gt; true }
+where
+  p-3 = P4(Y:S)
+  
+[2] { P-4:Bool |-&gt; true }
+where
+  p-4 = P1(X:S)
+  
+** (2) The following assignment(s) makes the term to be &#39;true&#39;.
+[1] { P-1:Bool |-&gt; true, P-2:Bool |-&gt; true }
+where
+  p-1 = P3(Y:S)
+  p-2 = P2(X:S)
 ...</code></pre>
 <h2 id="brule"><code>brule [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></h2>
 <p>Synonym of <a href="#btrans"><code>btrans</code></a>.</p>
 <p>Related: <a href="#btrans"><code>btrans</code></a></p>
-<h2 id="bshow"><code>{bshow | :bshow} [tree]</code></h2>
+<h2 id="bshow"><code>{bshow | :bshow} [{ tree | grind }]</code></h2>
 <p>Shows the abstracted Boolean term computed by <a href="#binspect"><code>binspect</code></a>. If the argument <code>tree</code> is given, prints out a the abstracted term in tree form. The variant with leading colon is for usage during a <a href="#citp">CITP</a> proof.</p>
 <h3 id="example-3">Example</h3>
 <pre><code>CafeOBJ&gt; bshow
@@ -682,13 +701,13 @@ where
 <p>This command allows for checking of certain properties of modules and operators.</p>
 <dl>
 <dt><code>check regularity &lt;mod_exp&gt;</code></dt>
-<dd>Checks whether the module given by the module expression <code>&lt;mod_exp&gt;</code> is regular.
+<dd><p>Checks whether the module given by the module expression <code>&lt;mod_exp&gt;</code> is regular.</p>
 </dd>
 <dt><code>check compatibility &lt;mod_exp&gt;</code></dt>
-<dd>Checks whether term rewriting system of the module given by the module expression <code>&lt;mod_exp&gt;</code> is compatible, i.e., every application of every rewrite rule to every well-formed term results in a well-formed term. (This is not necessarily the case in order-sorted rewriting!)
+<dd><p>Checks whether term rewriting system of the module given by the module expression <code>&lt;mod_exp&gt;</code> is compatible, i.e., every application of every rewrite rule to every well-formed term results in a well-formed term. (This is not necessarily the case in order-sorted rewriting!)</p>
 </dd>
 <dt><code>check laziness &lt;op_name&gt;</code></dt>
-<dd>Checks whether the given operator can be evaluated lazily. If not <code>&lt;op_name&gt;</code> is given, all operators of the current module are checked.
+<dd><p>Checks whether the given operator can be evaluated lazily. If not <code>&lt;op_name&gt;</code> is given, all operators of the current module are checked.</p>
 </dd>
 </dl>
 <p>Related: <a href="#regularize"><code>regularize</code></a></p>
@@ -696,19 +715,19 @@ where
 <p>These switches turn on automatic checking of certain properties:</p>
 <dl>
 <dt><code>check coherency</code></dt>
-<dd>check whether transitions and equations are coherent
+<dd><p>check whether transitions and equations are coherent</p>
 </dd>
 <dt><code>check compatibility</code></dt>
-<dd>see the <a href="#check"><code>check</code></a> command
+<dd><p>see the <a href="#check"><code>check</code></a> command</p>
 </dd>
 <dt><code>check import</code></dt>
-<dd>check conflicting importing mode of submodules
+<dd><p>check conflicting importing mode of submodules</p>
 </dd>
 <dt><code>check regularity</code></dt>
-<dd>see the <a href="#check"><code>check</code></a> command
+<dd><p>see the <a href="#check"><code>check</code></a> command</p>
 </dd>
 <dt><code>check sensible</code></dt>
-<dd>check whether a signature is sensible
+<dd><p>check whether a signature is sensible</p>
 </dd>
 </dl>
 <h2 id="choose"><code>choose &lt;selection&gt;</code></h2>
@@ -991,7 +1010,7 @@ Nat
 <p>which opens a module expression. The following constructs are supported:</p>
 <dl>
 <dt>module name</dt>
-<dd>using the name of a module
+<dd><p>using the name of a module</p>
 </dd>
 <dt>renaming</dt>
 <dd><p><code>&lt;mod_exp&gt; * { &lt;mappings&gt; }</code></p>
@@ -1024,8 +1043,9 @@ Nat
 <dl>
 <dt>prefix-spec</dt>
 <dd><p>the <code>&lt;op-spec&gt;</code> does not contain a literal <code>_</code>: This defines a normal prefix operator with domain <code>&lt;sorts&gt;</code> and co-domain <code>&lt;sort&gt;</code></p>
-<p>Example: <code>op f : S T -&gt; U</code> mixfix-spec</p>
+Example: <code>op f : S T -&gt; U</code>
 </dd>
+<dt>mixfix-spec</dt>
 <dd><p>the <code>&lt;op-spec&gt;</code> contains exactly as many literal <code>_</code> as there are sort names in <code>&lt;sorts&gt;</code>: This defines an arbitrary mixfix (including postfix) operator where the arguments are inserted into the positions designated by the underbars.</p>
 <p>Example: <code>op _+_ : S S -&gt; S</code></p>
 </dd>
@@ -1038,25 +1058,28 @@ Nat
 <p>In the specification of an operator using the <a href="#op"><code>op</code></a> (and related) keyword, attributes of the operator can be specified. An <code>&lt;attribute-list&gt;</code> is a space-separate list of single attribute definitions. Currently the following attributes are supported</p>
 <dl>
 <dt><code>associative</code></dt>
-<dd>specifies an associative operator, alias <code>assoc</code>
+<dd><p>specifies an associative operator, alias <code>assoc</code></p>
 </dd>
 <dt><code>commutative</code></dt>
-<dd>specifies a commutative operator, alias <code>comm</code>
+<dd><p>specifies a commutative operator, alias <code>comm</code></p>
 </dd>
 <dt><code>itempotence</code></dt>
-<dd>specifies an idempotent operator, alias <code>idem</code>
+<dd><p>specifies an idempotent operator, alias <code>idem</code></p>
 </dd>
 <dt><code>id: &lt;const&gt;</code></dt>
-<dd>specifies that an identity of the operator exists and that it is <code>&lt;const&gt;</code>
+<dd><p>specifies that an identity of the operator exists and that it is <code>&lt;const&gt;</code></p>
 </dd>
 <dt><code>prec: &lt;int&gt;</code></dt>
-<dd>specifies the parsing precedence of the operator, an integer <int>. Smaller precedence values designate stronger binding. See <a href="#opprec">operator precedence</a> for details of the predefined operator precedence values.
+<dd><p>specifies the parsing precedence of the operator, an integer <int>. Smaller precedence values designate stronger binding. See <a href="#opprec">operator precedence</a> for details of the predefined operator precedence values.</p>
 </dd>
 <dt><code>l-assoc</code> and <code>r-assoc</code></dt>
-<dd>specifies that the operator is left-associative or right-associative
+<dd>specifies that the operator is left-associative or
 </dd>
+</dl>
+<p>right-associative</p>
+<dl>
 <dt><code>constr</code></dt>
-<dd>specifies that the operator is a constructor of the coarity sort. (not evaluated at the moment)
+<dd><p>specifies that the operator is a constructor of the coarity sort. (not evaluated at the moment)</p>
 </dd>
 <dt><code>strat: ( &lt;int-list&gt; )</code></dt>
 <dd><p>specifies the evaluation strategy. Each integer in the list refers to an argument of the operator, where <code>0</code> refers to the whole term, <code>1</code> for the first argument, etc. Evaluation proceeds in order of the <code>&lt;int-list&gt;</code>. Example:</p>
@@ -1065,7 +1088,7 @@ Nat
 <p>Using negative values allows for lazy evaluation of the corresponding arguments.</p>
 </dd>
 <dt><code>memo</code></dt>
-<dd>tells the system to remember the results of evaluations where the operator appeared. See <a href="#switch-memo"><code>memo</code> switch</a> for details.
+<dd><p>tells the system to remember the results of evaluations where the operator appeared. See <a href="#switch-memo"><code>memo</code> switch</a> for details.</p>
 </dd>
 </dl>
 <p>Remarks:</p>
@@ -1237,10 +1260,10 @@ mod! TWICE(X :: C) {
 <p>There are two orthogonal extension to this search predicate, one adds a <code>suchThat</code> clause, one adds a <code>withStateEq</code> clause.</p>
 <dl>
 <dt><code>S =(n,m)=&gt;* SS [if Pred1] suchThat Pred2</code></dt>
-<dd>(and similar for <code>!</code> and <code>+</code>) In this case not only the existence, of a transition sequence is tested, but also whether the predicate <code>Pred2</code>, which normally takes <code>S</code> and <code>SS</code> as arguments, holds.
+<dd><p>(and similar for <code>!</code> and <code>+</code>) In this case not only the existence, of a transition sequence is tested, but also whether the predicate <code>Pred2</code>, which normally takes <code>S</code> and <code>SS</code> as arguments, holds.</p>
 </dd>
 <dt><code>S =(n,m)=&gt;* SS [if Pred1] withStateEq Pred2</code></dt>
-<dd>(and similar for <code>!</code> and <code>+</code>) <code>Pred2</code> is used to determine whether a search continues at <code>SS</code> or not, by comparing <code>SS</code> with all states that have been traversed in the current search. If the predicate <code>Pred2</code> returns true on the combination of <code>SS</code> as first argument, and any of the previously visited states as second argument, then the search is <em>not</em> continued after <code>SS</code>. (This is a kind of loop detection.)
+<dd><p>(and similar for <code>!</code> and <code>+</code>) <code>Pred2</code> is used to determine whether a search continues at <code>SS</code> or not, by comparing <code>SS</code> with all states that have been traversed in the current search. If the predicate <code>Pred2</code> returns true on the combination of <code>SS</code> as first argument, and any of the previously visited states as second argument, then the search is <em>not</em> continued after <code>SS</code>. (This is a kind of loop detection.)</p>
 </dd>
 </dl>
 <p>These two cases can also be combined into</p>
@@ -1318,26 +1341,36 @@ PNAT&gt;</code></pre>
 <p>With this switch turned on, rewriting proceeds in steps and prompts the user interactively. At each prompt the following commands can be given to the stepper (with our without leading colon <code>:</code>):</p>
 <dl>
 <dt><code>help</code></dt>
-<dd>(<code>h</code>, <code>?</code>) print out help page <code>next</code>
+<dd>(<code>h</code>, <code>?</code>) print out help page
 </dd>
-<dd>(<code>n</code>) go one step <code>continue</code>
+<dt><code>next</code></dt>
+<dd>(<code>n</code>) go one step
 </dd>
-<dd>(<code>c</code>) continue rewriting without stepping <code>quit</code>
+<dt><code>continue</code></dt>
+<dd>(<code>c</code>) continue rewriting without stepping
 </dd>
-<dd>(<code>q</code>) leave stepper continuing rewrite <code>abort</code>
+<dt><code>quit</code></dt>
+<dd>(<code>q</code>) leave stepper continuing rewrite
 </dd>
-<dd>(<code>a</code>) abort rewriting <code>rule</code>
+<dt><code>abort</code></dt>
+<dd>(<code>a</code>) abort rewriting
 </dd>
-<dd>(<code>r</code>) print out current rewrite rule <code>subst</code>
+<dt><code>rule</code></dt>
+<dd>(<code>r</code>) print out current rewrite rule
 </dd>
-<dd>(<code>s</code>) print out substitution <code>limit</code>
+<dt><code>subst</code></dt>
+<dd>(<code>s</code>) print out substitution
 </dd>
-<dd>(<code>l</code>) print out rewrite limit count <code>pattern</code>
+<dt><code>limit</code></dt>
+<dd>(<code>l</code>) print out rewrite limit count
 </dd>
-<dd>(<code>p</code>) print out stop pattern <code>stop [&lt;term&gt;] .</code>
+<dt><code>pattern</code></dt>
+<dd>(<code>p</code>) print out stop pattern
 </dd>
-<dd>set (or unset) stop pattern <code>rwt [&lt;number&gt;] .</code>
+<dt><code>stop [&lt;term&gt;] .</code></dt>
+<dd>set (or unset) stop pattern
 </dd>
+<dt><code>rwt [&lt;number&gt;] .</code></dt>
 <dd>set (or unset) max number of rewrite
 </dd>
 </dl>

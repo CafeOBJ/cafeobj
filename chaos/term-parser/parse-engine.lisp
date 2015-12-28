@@ -314,25 +314,12 @@
                                          (print-sort-name bi *current-module*)
                                          (princ ".")
                                          (terpri))))
-                                   ;;
-                                   #||
-                                   (let ((gv (dictionary-get-token-info
-                                              (dictionary-table dictionary)
-                                              var-name)))
-                                     (when gv
-                                       (dolist (op-v gv)
-                                         (when (eq (object-syntactic-type op-v)
-                                                   'variable)
-                                           (with-output-chaos-error ('already-used-name)
-                                             (format t "~&on the fly variable name ~A is already used for static variable declaration..." var-name))))))
-                                   ||#
                                    (setq var-name (intern var-name))
-
                                    ;; success parsing it as a variable declaration.
                                    ;; checks if there alredy a variable with the same
                                    ;; name. 
                                    (when *on-parse-debug*
-                                     (format t "~%on-the-fly var decl: ~A" var-name)
+                                     (format t "~%on-the-fly var decl: ~A" (string var-name))
                                      (format t "... ~A" *parse-variables*))
                                    (let ((old-var (assoc var-name *parse-variables*)))
                                      (if old-var
@@ -344,11 +331,9 @@
                                                      (string (sort-id
                                                               (variable-sort (cdr
                                                                               old-var))))
-                                                     (string (sort-id sort))))
-                                           ;;(setf (cdr old-var)
-                                           ;; (make-variable-term sort var-name))
-                                           )
+                                                     (string (sort-id sort)))))
                                        (progn
+                                         ;; fresh new variable:
                                          ;; check name, if it start with `, we make
                                          ;; pseudo variable
                                          (if (eql #\` (char (the simple-string (string var-name)) 0))
@@ -357,28 +342,14 @@
                                          (push (cons var-name var) *parse-variables*)))
                                      (if old-var
                                          (progn
-                                           (push (cdr old-var) res)
-                                           #||
-                                           (when (err-sort-p (variable-sort
-                                                              (cdr old-var)))
-                                             (pushew (cdr old-var)
-                                                     (module-error-variables
-                                                      *current-module*)))
-                                           ||#
-                                           )
-                                       (let ((svar (assoc var res :test #'equal)))
+                                           (push (cdr old-var) res))
+                                       (let ((svar (member var res :test #'equal)))
                                          (when *on-parse-debug*
                                            (format t "~%!res = ~s" res))
                                          (when svar
                                            (with-output-chaos-error ()
                                              (format t "Static variable ~s already used before in the same context" var-name)))
-                                         (push var res)
-                                         #||
-                                         (when (err-sort-p (variable-sort var))
-                                           (pushnew var (module-error-variables
-                                                         *current-module*)))
-                                         ||#
-                                         )))))
+                                         (push var res))))))
 
                                 ;; must not be a variable declaration.
                                 ;; try yet other possibilities.
@@ -408,6 +379,9 @@
                  (multiple-value-setq (res mod-token)
                    (get-qualified-op-pattern token))))))
     ;; end collect
+    (when *on-parse-debug*
+      (format t "~%..end collecting info on token ~s" token)
+      (format t "~%..first result: ~s" res))
     (when sort-constraint
       (let ((real-res nil))
         (dolist (r res)

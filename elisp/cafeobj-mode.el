@@ -177,7 +177,7 @@
   :type 'hook
   :group 'cafeobj)
 
-(defcustom cafeobj-default-application "/usr/local/bin/cafeobj"
+(defcustom cafeobj-default-application "cafeobj"
   "Default Chaos dialect to run in chaos subprocess."
   :type 'string
   :group 'cafeobj)
@@ -791,7 +791,7 @@ This is in addition to cafeobj-continued-statement-offset."
       (":bk" ":backward" nil 0)
       (":vb" ":verbose" nil 0)
       (":norm" ":normalize" nil 0)
-      (":ctf" [":ctf{}" 1 () nil] expand-abbrev-hook 0)
+      ;; (":ctf" [":ctf{}" 1 () nil] expand-abbrev-hook 0)
       (":csp" [":csp{}" 1 () nil] expand-abbrev-hook 0)
       (":sh" ":show" nil 0)
       (":des" ":describe" nil 0)

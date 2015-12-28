@@ -205,9 +205,13 @@
                (term-print-with-sort target)))
       ;; (terpri)
       (when (equal tree? "tree")
-        (print-term-tree target *chaos-verbose*))
+        (if *show-tree-horizontal*
+            (print-term-horizontal target *current-module*)
+          (print-term-tree target *chaos-verbose*)))
       (when (equal tree? "graph")
-        (print-term-graph target *chaos-verbose*)))))
+        (if *show-tree-horizontal*
+            (print-term-horizontal target *current-module*)
+          (print-term-graph target *chaos-verbose*))))))
 
 ;;; ************
 ;;; SHOW MOD ...
@@ -557,12 +561,15 @@
 ;;;
 ;;; print-term-horizontal 
 ;;;
-(defun print-term-horizontal (term module &optional (stream *standard-output*))
+(defun print-term-horizontal (term module &optional (stream *standard-output*)
+                                                    (verbose *chaos-verbose*))
   (with-in-module (module)
     (let ((*standard-output* stream))
       (print-next)
       (cond ((term-is-applform? term)
              (format t "~{~a~}" (method-symbol (term-head term)))
+             (when verbose
+               (format t " : ~a" (string (sort-name (method-coarity (term-head term))))))
              (dotimes (x (length (term-subterms term)))
                (let ((*print-indent* (+ 4 *print-indent*)))
                  (print-term-horizontal (term-arg-n term x) module))))
