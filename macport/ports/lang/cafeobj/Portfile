@@ -1,0 +1,30 @@
+# $Id$
+
+PortSystem          1.0
+
+name                cafeobj
+version             1.5.5
+categories          lang
+platforms           linux
+license             BSD
+maintainers         cafeobj.org:preining
+description         New generation algebraic specification and programming language
+long_description    \
+ CafeOBJ is a language for writing formal (i.e. mathematical) \
+ specifications of models for wide varieties of software and systems, \
+ and verifying properties of them. CafeOBJ implements equational logic \
+ by rewriting and can be used as a powerful interactive theorem proving \
+ system. Specifiers can write proof scores also in CafeOBJ and doing \
+ proofs by executing the proof scores.
+
+homepage            http://cafeobj.org/
+master_sites        http://cafeobj.org/files/${version}
+
+checksums           rmd160  1dcfa5ee6319b4450067edd566cd9721ca98f128 \
+                    sha256  e8771a969c02e7e31847f73e0d4b17ea83980c0aadda308d4fe4594af38014a5
+
+depends_build       bin:sbcl:sbcl
+
+configure.args      --with-lisp=sbcl 
+
+build.target	    
