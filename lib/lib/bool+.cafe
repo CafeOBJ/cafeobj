@@ -1,0 +1,18 @@
+#|
+ BOOL+ provides printing facility in 'grind' form.
+ Useful for examining complex xor-and normal form
+ of Bool sorted term in run time.
+|#
+
+module! BOOL+ {
+  including(BOOL)
+  ** builtin special op for printing xor-and terms
+  op bgrind  : Bool -> Bool { strat: (1 0) }
+  op bgrind+ : Bool -> Bool { strat: (1 0) }
+  eq bgrind(B:Bool) = #!! (bgrind-bool-term B) .
+  eq bgrind+(B:Bool) = #!! (bgrind-bool-term B :always) .
+}
+
+provide bool+
+eof
+
