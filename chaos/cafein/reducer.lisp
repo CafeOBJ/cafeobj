@@ -146,12 +146,12 @@
     (declare (type module module))
     ;; be ready for parsing
     (prepare-for-parsing module)
-    (reset-parse-time)
     ;; setup target term
     (if (termp pre-term)
         (setq $$target-term pre-term)
       ;; not yet parsed term
       (progn
+        (reset-parse-time)
         (begin-parse)
         (let* ((*parse-variables* nil)
                (target-term (simple-parse module pre-term *cosmos*)))
