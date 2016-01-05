@@ -826,4 +826,14 @@
           (t (with-output-chaos-error ('unknown-strat)
                (format t "Unknown strategy ~s" strategy))))))
 
+;;; bgrind
+;;; built-in op
+;;; accepting boolean term and print it in 'grind' form
+;;;
+(defun bgrind-bool-term (bt &optional (doit *grind-bool-term*))
+  (when doit
+    (let ((abst (abstract-boolean-term bt *current-module*)))
+      (print-bterm-grinding abst)))
+  bt)
+
 ;;; EOF
