@@ -497,19 +497,29 @@
         (setf thy (method-theory meth))
         ;; IDEM
         (when (theory-contains-idempotency thy)
-          (setq l-sort (car (method-arity meth)))
-          (setq var (make-variable-term l-sort '|U-idem|))
-          (adjoin-axiom-to-module
-           module
-           (make-rule
-            :lhs (make-applform (method-coarity meth)
-                                meth
-                                (list var var))
-            :rhs var
-            :condition *BOOL-TRUE*
-            :labels (create-rule-name module "idem")
-            :type ':equation
-            :kind ':IDEM-THEORY)))
+          (let ((condition *BOOL-TRUE*))
+            (setq l-sort (car (method-arity meth)))
+            (setq var (make-variable-term l-sort '|U-idem|))
+            ;; check theory also contains identity
+            (when (theory-zero thy)
+              (let ((id (car (theory-zero thy))))
+                ;; make condition 'not (U-idem == id)'
+                (setq condition (make-applform *bool-sort*
+                                               *bool-not*
+                                               (list (make-applform *bool-sort*
+                                                                    *bool-equal*
+                                                                    (list var id)))))))
+            (adjoin-axiom-to-module
+             module
+             (make-rule
+              :lhs (make-applform (method-coarity meth)
+                                  meth
+                                  (list var var))
+              :rhs var
+              :condition condition
+              :labels (create-rule-name module "idem")
+              :type ':equation
+              :kind ':IDEM-THEORY))))
         ;; IDENT
         (when (and (or (theory-contains-identity thy) (theory-zero thy))
                    (= 2 (the fixnum (operator-num-args op))))
