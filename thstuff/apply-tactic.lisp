@@ -1018,7 +1018,7 @@
         (format t "Finding constructor of sort ~a, none was found." (string (sort-name (variable-sort v))))))
     ;; we sort the list of ops by number of arguments
     ;; this is important for generating step cases properly.
-    (sort ops #'(lambda (x y) (< (length (method-arity x)) (length (method-arity y)))))))
+    (order-constructors ops)))
 
 ;;; get-indvar-constructors
 ;;; returns a list of (indvar . const1 const2 ...constn) for an induction variable indvar.
@@ -2419,9 +2419,12 @@
                  (unless pn 
                    (setq pn (cons s 0))
                    (push pn .pvar-names.))
-                 (push (intro-fresh-pconstant goal 
-                                              (format nil "~a-~d" (sort-name s) (incf (cdr pn)))
-                                              s)
+                 (push (intro-fresh-constant goal 
+                                             (if (zerop (cdr pn))
+                                                 (progn (incf (cdr pn))
+                                                        "CTF")
+                                               (format nil "CTF-~d" (incf (cdr pn))))
+                                             s)
                        args)))
              (setq form (make-applform-simple (method-coarity const-op)
                                               const-op
@@ -2443,41 +2446,31 @@
       (unless constructors
         (with-output-chaos-error ('no-constructors)
           (format t "Sort ~a has no constructors." (sort-name sort))))
-      (dolist (const (sort constructors 
-                           #'(lambda (x y) 
-                               (let ((ax (length (method-arity x)))
-                                     (ay (length (method-arity y))))
-                                 (if (< ax ay)
-                                     t
-                                   (if (> ax ay)
-                                       nil
-                                     (if (eq (op-lex-precedence x y) :greater)
-                                         ;; this orders true -> false
-                                         t
-                                       nil)))))))
+      (dolist (const (order-constructors constructors))
         (let ((n-goal nil)
-              (const-pat (make-ctf-constructor-pattern cur-goal const)))
-          (when const-pat
-            (setq n-goal (prepare-next-goal cur-node tactic))
-            (with-in-module ((goal-context n-goal))
-              (multiple-value-bind (lhs rhs type)
-                  (if (sort= (term-sort term) *bool-sort*)
-                      (simplify-boolean-axiom term const-pat)
-                    (values term const-pat :equation))
-                (when lhs
-                  (let ((ax (make-rule :lhs lhs
-                                       :rhs rhs
-                                       :condition *bool-true*
-                                       :type type
-                                       :labels (list (tactic-name tactic))
-                                       :behavioural nil)))
-                    (adjoin-axiom-to-module *current-module* ax)
-                    (set-operator-rewrite-rule *current-module* ax)
-                    (compile-module *current-module*)
-                    (push n-goal goals)
-                    (setf (goal-targets n-goal) (goal-targets cur-goal))
-                    (setf (goal-assumptions n-goal)
-                      (append (goal-assumptions cur-goal) (list ax))))))))))
+              (const-pat nil)
+              (.pvar-names. nil))
+          (setq n-goal (prepare-next-goal cur-node tactic))
+          (setq const-pat (make-ctf-constructor-pattern n-goal const))
+          (with-in-module ((goal-context n-goal))
+            (multiple-value-bind (lhs rhs type)
+                (if (sort= (term-sort term) *bool-sort*)
+                    (simplify-boolean-axiom term const-pat)
+                  (values term const-pat :equation))
+              (when lhs
+                (let ((ax (make-rule :lhs lhs
+                                     :rhs rhs
+                                     :condition *bool-true*
+                                     :type type
+                                     :labels (list (tactic-name tactic))
+                                     :behavioural nil)))
+                  (adjoin-axiom-to-module *current-module* ax)
+                  (set-operator-rewrite-rule *current-module* ax)
+                  (compile-module *current-module*)
+                  (push n-goal goals)
+                  (setf (goal-targets n-goal) (goal-targets cur-goal))
+                  (setf (goal-assumptions n-goal)
+                    (append (goal-assumptions cur-goal) (list ax)))))))))
       (with-citp-debug ()
         (format t "~%[ctf] constructors generated:")
         (dolist (g (reverse goals))

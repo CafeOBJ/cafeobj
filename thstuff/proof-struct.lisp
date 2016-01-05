@@ -785,7 +785,6 @@
     meth))
   
 (defun intro-const-returns-subst (module name variable)
-
   (cons variable (make-applform-simple (variable-sort variable)
                                        (citp-intro-const module name (variable-sort variable))
                                        nil)))
@@ -797,16 +796,6 @@
 
 (defun make-tc-pconst-name (name)
   (format nil "`~:@(~a~)" name))
-
-;;; intro-fresh-constant : goal -> term (introduced constant)
-;;; introduces brand new constant in the current proof context
-;;;
-(defun intro-fresh-constant (goal name-seed sort)
-  (let* ((name (make-tc-const-name name-seed sort))
-         (meth (citp-intro-const (goal-context goal) name sort))
-         (v-const (make-applform-simple sort meth nil)))
-    (push (cons meth v-const) (goal-constants goal))
-    v-const))
 
 ;;; introduces on-the-fly constant
 ;;;
@@ -839,6 +828,30 @@
           (push v-const (goal-constants goal))
           (cdr v-const)))))
 
+;;; Utils for constructors
+;;;
+;;;
+(defun order-constructors (constructors)
+  (sort constructors 
+        #'(lambda (x y) 
+            ;; first precedence is number of arguments
+            ;; i.e., 
+            (let ((ax (length (method-arity x)))
+                  (ay (length (method-arity y))))
+              (if (< ax ay)
+                  t
+                (if (> ax ay)
+                    nil
+                  ;; same number of arguments 
+                  (if (eq x *bool-true-meth*)
+                      ;; this orders true -> false
+                      t
+                    (if (eq y *bool-true-meth*)
+                        nil
+                      (if (eq (op-lex-precedence x y) :greater)
+                          nil
+                        t)))))))))
+
 ;;; variable->constructor : goal variable op -> term
 ;;;
 (defun make-ind-const-name (name-prefix sort)
@@ -870,6 +883,16 @@
               (setq vconst (make-iv-const v-name))
               (pushnew (cons svar v-name) (ptree-indvar-subst *proof-tree*) :test #'equal)
               vconst))))))
+
+;;; intro-fresh-constant : goal -> term (introduced constant)
+;;; introduces brand new constant in the current proof context
+;;;
+(defun intro-fresh-constant (goal name-seed sort)
+  (let* ((name (make-ind-const-name name-seed sort))
+         (meth (citp-intro-const (goal-context goal) name sort))
+         (v-const (make-applform-simple sort meth nil)))
+    (push (cons meth v-const) (goal-ind-constants goal))
+    v-const))
 
 ;;; SKOLEMITIZE
 ;;; allow citp to represent the goal sentence in FOPLE-SENTENCE
