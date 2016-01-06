@@ -828,6 +828,11 @@
         ((:+ |:bshow| bshow) :args)
         ((:+ |:bg| |:bguess| bg bguess) :args)
         (|:set| |(| :symbol |,| (:+ on off set clear ? show) |)|)
+        (|:corder| |(|
+                        (:upto (|,| |)|) :opname)
+                        :append (:seq-of |,|
+                                         (:upto (|,| |)|) :opname))
+                  |)|)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.

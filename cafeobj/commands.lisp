@@ -2496,6 +2496,14 @@ provability using the RD strategy. Defaults to `off`."
     :doc "Set or show various flags of CITP CafeOBJ."
 )
 
+(define (":corder")
+    :category :proof
+    :parser pignose-parse-lex
+    :evaluator citp-eval-order
+    :title "`:order (<op>, ..., <op>)`"
+    :doc ""
+    )
+
 (define (":binspect")
     :category :proof
     :parser parse-citp-binspect

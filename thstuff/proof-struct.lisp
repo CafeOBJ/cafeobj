@@ -720,10 +720,11 @@
   (context nil :type (or null module))  ; context module
   (num-gen-const 0 :type fixnum)        ; number of generated constants so far
   (num-gen-const-ind 0 :type fixnum)    ; number of generated constants for induction so far
-  (root    nil :type (or null ptree-node)) ; root goal
-  (indvar-subst nil :type list)
-  (var-subst nil :type list)
+  (root nil :type (or null ptree-node)) ; root goal
+  (indvar-subst nil :type list)         ; <variable> -> <constantForInduction>
+  (var-subst nil :type list)            ; <variable> -> <constantForTheremOfConstants>
   (defs-so-far nil :type list)          ; :defined name so far
+  (constructor-ops nil :type list)      ; list of constructor operators
   )
 
 (defun pr-ptree (ptree &optional (stream *standard-output*) &rest ignore)
@@ -765,6 +766,10 @@
 (defun existing-def-name? (ptree name)
   (setq name (canonicalize-tactic-name name))
   (member name (ptree-defs-so-far ptree) :test #'equal))
+
+;;;--------------------------------------------------------------------
+;;; Support functions for introducing new constants used in the proof.
+;;; 
 
 ;;; intro-const-returns-subst : module name variable -> (variable . constant-term)
 ;;; introduces a new constant of sort(variable) into a module.
@@ -828,29 +833,127 @@
           (push v-const (goal-constants goal))
           (cdr v-const)))))
 
+;;; -----------------------------------------------------------
 ;;; Utils for constructors
 ;;;
+
+;;; gather-constructor-ops : module -> List(constructor)
+;;; list up all the constructor ops in a given module
 ;;;
-(defun order-constructors (constructors)
+(defun gather-constructor-ops (module)
+  (flet ((method-is-user-defined-or-tf? (x)
+           (or (eq x *bool-true-meth*)
+               (eq x *bool-false-meth*)
+               (and (not (sort= (method-coarity x) *sort-id-sort*))
+                    (module-is-user-module (method-module x))))))
+    (let ((res nil))
+      (with-in-module (module)
+        (dolist (opinfo (module-all-operators module))
+          (dolist (meth (opinfo-methods opinfo))
+            (when (and (method-is-constructor? meth)
+                       (method-is-user-defined-or-tf? meth))
+              (push meth res))))
+        res))))
+
+;;; get-constructors-of-sort : sort -> List[constructor]
+;;; returns the list of constructors of sort.
+;;;
+(defun get-constructors-of-sort (sort &optional (context (get-context-module)))
+  (let ((ops nil))
+    (dolist (meth (ptree-constructor-ops *proof-tree*))
+      (when (and (method-is-constructor? meth)
+                 (sort<= (method-coarity meth) sort (module-sort-order context)))
+        (push meth ops)))
+    ops))
+
+;;; default-constructor-order
+;;;
+(defun default-constructor-order (constructors)
   (sort constructors 
         #'(lambda (x y) 
             ;; first precedence is number of arguments
-            ;; i.e., 
-            (let ((ax (length (method-arity x)))
-                  (ay (length (method-arity y))))
+            (let ((ax (method-num-args x))
+                  (ay (method-num-args y)))
               (if (< ax ay)
                   t
                 (if (> ax ay)
                     nil
-                  ;; same number of arguments 
                   (if (eq x *bool-true-meth*)
-                      ;; this orders true -> false
+                      ;; this orders true > ... > false
                       t
                     (if (eq y *bool-true-meth*)
                         nil
                       (if (eq (op-lex-precedence x y) :greater)
                           nil
                         t)))))))))
+
+;;; order-constructors : List[constructor] -> List[constructor]' 
+;;;
+(defun order-constructors (constructors &optional (order-spec nil))
+  (cond ((null order-spec) (default-constructor-order constructors))
+        (t ;; order is specified by :corder command
+         (let* ((pos-star (position :* order-spec))
+                (first-half (subseq order-spec 0 pos-star))
+                (second-half (subseq order-spec (1+ pos-star))))
+           (setq constructors (set-difference constructors
+                                                (append first-half second-half)))
+           (setq constructors (default-constructor-order constructors))
+           (append first-half constructors second-half)))))
+
+;;; show-constructor-order : ptree -> void
+;;;
+(defun show-constructor-order (ptree)
+  (let ((num 0))
+    (with-output-msg ()
+      (format t "Current order of constructors:")
+      (dolist (op (ptree-constructor-ops ptree))
+        (print-next)
+        (format t "(~d) ~{~a~}" (incf num) (method-symbol op))))
+    (terpri)))
+
+;;; handler of :corder command
+;;; :corder (<op>, ..., <op>)
+;;;
+(defun citp-eval-order (ast)
+  (check-context-module-and-ptree)
+  (with-in-module ((get-context-module))
+    (let ((optokens (%pn-lex-ops ast)))
+      (cond ((and (null (cdr optokens))
+                  (null (car optokens)))
+             (show-constructor-order *proof-tree*))
+            (t (with-output-msg ()
+                 (format t "start setting constructor ordering..."))
+               (set-constructor-order *proof-tree* optokens)
+               (format t "done.")
+               (when-citp-verbose ()
+                 (show-constructor-order *proof-tree*)))))))
+
+(defun set-constructor-order (ptree optokens)
+  (let ((prec-list nil))
+    (dolist (e optokens)
+      (cond ((equal e '("*"))
+             (pushnew :* prec-list))
+            (t (let ((parsedop (parse-op-name e)))
+                 (multiple-value-bind (ops mod)
+                     (resolve-operator-reference parsedop)
+                   (with-in-module (mod)
+                     (dolist (opinfo ops)
+                       (dolist (meth (reverse (opinfo-methods opinfo)))
+                         (if (method-is-constructor? meth)
+                             (if (member meth prec-list)
+                                 (with-output-chaos-warning ()
+                                   (format t "operator ~{~s~} is already ordered, ignored." 
+                                           (method-symbol meth)))
+                               (push meth prec-list))
+                           (unless (method-is-error-method meth)
+                             (with-output-chaos-warning ()
+                               (format t "operator ~{~s~} is not a constructor, ignored." 
+                                       (method-symbol meth)))))))))))))
+    (unless (memq :* prec-list)
+      (push :* prec-list))
+    (setf (ptree-constructor-ops ptree)
+      (order-constructors (ptree-constructor-ops ptree)
+                          (nreverse prec-list)))))
 
 ;;; variable->constructor : goal variable op -> term
 ;;;
@@ -943,7 +1046,10 @@
       (let* ((targets (mapcar #'skolemize-if-need initial-goals))
              (root (make-ptree-root goal-module targets)))
           (setq *next-default-proof-node* nil)
-          (make-ptree :root root :context context-module)))))
+          (make-ptree :root root 
+                      :context context-module
+                      :constructor-ops 
+                      (order-constructors (gather-constructor-ops context-module) nil))))))
 
 ;;;
 ;;; check-success : ptree -> Bool
@@ -1110,8 +1216,8 @@
 ;;; TOP LEVEL FUNCTIONS
 ;;; ====================
 
-;;;
 ;;; begin-proof
+;;; starting the new proof
 ;;;
 (defparameter .root-context-module. (%module-decl* "#Goal-root" :object :user nil))
 

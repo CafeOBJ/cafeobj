@@ -993,18 +993,6 @@
         (format t "There is no unproved goals.")))
     (set-indvars node variables)))
 
-;;; gather-constructor-ops : module -> List(constructor)
-;;; list up all the constructor ops in a given module
-;;;
-(defun gather-constructor-ops (module)
-  (let ((res nil))
-    (with-in-module (module)
-      (dolist (opinfo (module-all-operators *current-module*))
-        (dolist (meth (opinfo-methods opinfo))
-          (when (method-is-constructor? meth)
-            (push meth res))))
-      res)))
-
 ;;; get-induction-variable-constructors : variable -> List(constructor)
 ;;; returns a list of constructors of a given induction variable
 ;;;
@@ -1016,9 +1004,7 @@
     (unless ops
       (with-output-chaos-error ('internal-error)
         (format t "Finding constructor of sort ~a, none was found." (string (sort-name (variable-sort v))))))
-    ;; we sort the list of ops by number of arguments
-    ;; this is important for generating step cases properly.
-    (order-constructors ops)))
+    (nreverse ops)))
 
 ;;; get-indvar-constructors
 ;;; returns a list of (indvar . const1 const2 ...constn) for an induction variable indvar.
@@ -1321,7 +1307,7 @@
          (cur-targets nil)
          (indvars (goal-indvars cur-goal))
          (all-subst (make-indvar-comb-substitutions indvars
-                                                    (gather-constructor-ops (goal-context cur-goal))))
+                                                    (ptree-constructor-ops *proof-tree*)))
          (base-goal (prepare-next-goal parent-node .tactic-si.))
          (step-goals nil)
          (need-goal nil)
@@ -2440,13 +2426,13 @@
   (let ((cur-goal (ptree-node-goal cur-node))
         (sort (term-sort term))
         (goals nil))
-    (let ((constructors (find-sort-constructors-in *current-module* sort))
+    (let ((constructors (get-constructors-of-sort sort *current-module*))
           (.pvar-names. nil))
       (declare (special .names.))
       (unless constructors
         (with-output-chaos-error ('no-constructors)
           (format t "Sort ~a has no constructors." (sort-name sort))))
-      (dolist (const (order-constructors constructors))
+      (dolist (const constructors)
         (let ((n-goal nil)
               (const-pat nil)
               (.pvar-names. nil))
