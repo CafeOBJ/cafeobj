@@ -768,7 +768,7 @@
         (|:auto|)
         (|:ind| (:+ on |:on|) |(| (:seq-of :term) |)|)
         (|:roll| (:+ back |:back|))
-        (|:init| (:one-of (|(| (:one-of #.EqDeclaration
+        ((:+ |:init| init) (:one-of (|(| (:one-of #.EqDeclaration
                                         #.CeqDeclaration
                                         #.RlDeclaration
                                         #.CRlDeclaration
@@ -828,7 +828,7 @@
         ((:+ |:bshow| bshow) :args)
         ((:+ |:bg| |:bguess| bg bguess) :args)
         (|:set| |(| :symbol |,| (:+ on off set clear ? show) |)|)
-        (|:corder| |(|
+        (|:order| |(|
                         (:upto (|,| |)|) :opname)
                         :append (:seq-of |,|
                                          (:upto (|,| |)|) :opname))

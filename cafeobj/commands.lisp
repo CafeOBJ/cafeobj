@@ -2199,7 +2199,7 @@ a [stop pattern](#switch-stop-pattern) has been found."
 (define ("citp")
     :type :doc-only
     :title "CITP"
-    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":def" ":imp")
+    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":def" ":imp" ":ord")
     :doc "Constructor Based Induction Theorem Prover
 
 The sub-system provides a certain level of automatization for theorem proving.
@@ -2276,6 +2276,17 @@ The current target goal is removed from the proof tree."
 in the equation with the respective `<term>`s. The resulting equation is added
 to the set of axioms."
 )
+
+(define ("init")
+    :category :proof
+    :parser citp-parse-init
+    :evaluator eval-citp-init
+    :related ("open")
+    :title "`init { \"[\" <label> \"]\" | \"(\" <sentence> \"\")} by \"{\" <variable> <- <term>; ... \"}\"`"
+    :doc "Instantiates an equation specified by `<label>` by replacing the `<variable>`s 
+in the equation with the respective `<term>`s. The resulting equation is added
+to the set of axioms."
+    )
 
 (define (":imply" ":imp")
     :category :proof
@@ -2496,7 +2507,7 @@ provability using the RD strategy. Defaults to `off`."
     :doc "Set or show various flags of CITP CafeOBJ."
 )
 
-(define (":corder")
+(define (":order")
     :category :proof
     :parser pignose-parse-lex
     :evaluator citp-eval-order

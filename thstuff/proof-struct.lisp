@@ -891,7 +891,9 @@
 ;;;
 (defun order-constructors (constructors &optional (order-spec nil))
   (cond ((null order-spec) (default-constructor-order constructors))
-        (t ;; order is specified by :corder command
+        (t 
+         ;; order is specified by :order command
+         ;; first initialize the order to default
          (let* ((pos-star (position :* order-spec))
                 (first-half (subseq order-spec 0 pos-star))
                 (second-half (subseq order-spec (1+ pos-star))))
@@ -908,11 +910,12 @@
       (format t "Current order of constructors:")
       (dolist (op (ptree-constructor-ops ptree))
         (print-next)
-        (format t "(~d) ~{~a~}" (incf num) (method-symbol op))))
+        (format t "(~d) " (incf num))
+        (print-method-brief op)))
     (terpri)))
 
-;;; handler of :corder command
-;;; :corder (<op>, ..., <op>)
+;;; handler of :order command
+;;; :order (<op>, ..., <op>)
 ;;;
 (defun citp-eval-order (ast)
   (check-context-module-and-ptree)
@@ -924,7 +927,7 @@
             (t (with-output-msg ()
                  (format t "start setting constructor ordering..."))
                (set-constructor-order *proof-tree* optokens)
-               (format t "done.")
+               (format t "~%done.")
                (when-citp-verbose ()
                  (show-constructor-order *proof-tree*)))))))
 
@@ -932,28 +935,41 @@
   (let ((prec-list nil))
     (dolist (e optokens)
       (cond ((equal e '("*"))
-             (pushnew :* prec-list))
+             (if (not (memq :* prec-list))
+                 (setq prec-list (nconc prec-list '(:*)))
+               (with-output-chaos-warning ()
+                 (format t "* is already specified."))))
             (t (let ((parsedop (parse-op-name e)))
                  (multiple-value-bind (ops mod)
                      (resolve-operator-reference parsedop)
                    (with-in-module (mod)
-                     (dolist (opinfo ops)
-                       (dolist (meth (reverse (opinfo-methods opinfo)))
-                         (if (method-is-constructor? meth)
-                             (if (member meth prec-list)
-                                 (with-output-chaos-warning ()
-                                   (format t "operator ~{~s~} is already ordered, ignored." 
-                                           (method-symbol meth)))
-                               (push meth prec-list))
-                           (unless (method-is-error-method meth)
-                             (with-output-chaos-warning ()
-                               (format t "operator ~{~s~} is not a constructor, ignored." 
-                                       (method-symbol meth)))))))))))))
+                     (let ((overs nil))
+                       (dolist (opinfo ops)
+                         (dolist (meth (opinfo-methods opinfo))
+                           (if (method-is-constructor? meth)
+                               (if (member meth prec-list)
+                                   (with-output-chaos-warning ()
+                                     (format t "operator ~{~a~}/~d is already ordered, ignored." 
+                                             (method-symbol meth)
+                                             (method-num-args meth)))
+                                 (push meth overs))
+                             (unless (method-is-error-method meth)
+                               (with-output-chaos-warning ()
+                                 (format t "operator ~{~s~} is not a constructor, ignored." 
+                                         (method-symbol meth)))))))
+                       ;; order overloaded ops by number of arguments
+                       (setq overs (sort overs #'(lambda (x y) 
+                                                   (let ((x-num (method-num-args x))
+                                                         (y-num (method-num-args y)))
+                                                     (declare (type fixnum x-num y-num))
+                                                     (< x-num y-num)))))
+                       ;; set the result
+                       (setq prec-list (nconc prec-list overs)))))))))
     (unless (memq :* prec-list)
-      (push :* prec-list))
+      (setq prec-list (nconc prec-list '(:*))))
     (setf (ptree-constructor-ops ptree)
       (order-constructors (ptree-constructor-ops ptree)
-                          (nreverse prec-list)))))
+                          prec-list))))
 
 ;;; variable->constructor : goal variable op -> term
 ;;;
