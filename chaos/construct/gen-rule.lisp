@@ -113,16 +113,19 @@
     (let ((rhs-vars (term-variables (axiom-rhs rule)))
           (cond-vars (term-variables (axiom-condition rule))))
       (declare (type list rhs-vars cond-vars))
-      (cond ((and lhsv
-                  (or (not (subsetp rhs-vars lhsv))
-                      (not (subsetp cond-vars lhsv))))
+      (cond ((or (not (subsetp rhs-vars lhsv))
+                 (not (subsetp cond-vars lhsv)))
              (unless (or (term-contains-match-op (axiom-rhs rule))
                          (term-contains-match-op (axiom-condition rule)))
-               (when *chaos-verbose*
-                 (with-output-chaos-warning ()
-                   (format t "RHS of the axiom has extra variable(s) which does not occur in LHS.")
-                   (print-next)
-                   (print-axiom-brief rule))))
+               (with-output-chaos-warning ()
+                 (format t "RHS of the axiom has extra variable(s) which does not occur in LHS.")
+                 (print-next)
+                 (print-axiom-brief rule)
+                 (format t ", ignored as rewrite rule."))
+               (setf (axiom-kind rule) :bad-rule)
+               (setf (axiom-kind rule) :bad-rule)
+               (return-from gen-rule-internal nil))
+             ;; := is allowd to have extra variables in RHS, COND 
              (add-rule-to-module module rule)
              (unless (term-is-variable? (axiom-lhs rule))
                (add-associative-extensions module
