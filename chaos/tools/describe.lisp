@@ -790,7 +790,7 @@
         (dolist (r (module-rules mod))
           (if describe
               (print-rule r)
-              (print-axiom-brief r)))))))
+            (print-axiom-brief r)))))))
 
 ;;; PRINT-MODULE-AXS
 ;;;-----------------------------------------------------------------------------
