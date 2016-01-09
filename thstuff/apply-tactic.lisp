@@ -1992,35 +1992,55 @@
 
 ;;; instanciate-axiom
 ;;; 
-(defun instanciate-axiom (target-form subst-form)
+(defun instanciate-axiom (target-form subst-form &optional (citp? t))
+  (let* ((target-axiom (get-target-axiom *current-module* target-form t))
+         (subst (resolve-subst-form *current-module* subst-form)))
+    (if citp?
+        (instanciate-axiom-in-goal *current-module* target-axiom subst)
+      (if *open-module*
+          (instanciate-axiom-in-module *current-module* target-axiom subst)
+        (with-output-chaos-warning ()
+          (princ "no module open."))))))
+
+(defun report-instantiated-axiom (instance)
+  (let ((*print-indent* (+ 2 *print-indent*))
+        (*print-line-limit* 80)
+        (*print-xmode* :fancy))
+    (print-next)
+    (print-axiom-brief instance)))
+
+(defun introduce-instantiated-axiom-to-module (instance module)
+  (with-in-module (module)
+    (set-operator-rewrite-rule module instance)
+    (adjoin-axiom-to-module module instance)
+    (compile-module module t)))
+
+(defun instanciate-axiom-in-goal (module target-axiom subst)
   (with-next-context (*proof-tree*)
-    (let ((target-axiom (get-target-axiom *current-module* target-form t))
-          (subst (resolve-subst-form *current-module* subst-form))
-          (instance nil))
-      ;;
-      (setq instance (make-axiom-instance *current-module* subst target-axiom))
-      ;; we normalize the LHS of the instance
+    (let ((instance (make-axiom-instance module subst target-axiom)))
       (when (citp-flag citp-normalize-init)
+        ;; we normalize the LHS of the instance
         (with-spoiler-on
             (multiple-value-bind (n-sen applied?)
-                (normalize-sentence instance *current-module*)
+                (normalize-sentence instance module)
               (when applied?
                 (setf instance n-sen)))))
-          
       ;; input the instance to current context
-      (let ((goal (ptree-node-goal .context.)))
-        (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))
-        (format t "~%**> initialized the axiom in goal ~s" (goal-name (ptree-node-goal .context.)))
-        (let ((*print-indent* (+ 2 *print-indent*))
-              (*print-line-limit* 80)
-              (*print-xmode* :fancy))
-          (print-next)
-          (print-axiom-brief instance))
+      (with-in-module (module)
+        (let ((goal (ptree-node-goal .context.)))
+          (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))
+          (format t "~%**> initialized the axiom in goal ~s" (goal-name (ptree-node-goal .context.)))
+          (report-instantiated-axiom instance))
+        (introduce-instantiated-axiom-to-module instance module)
         (when-citp-verbose ()
-          (pr-goal (ptree-node-goal .context.)))
-        (set-operator-rewrite-rule *current-module* instance)
-        (adjoin-axiom-to-module *current-module* instance)
-        (compile-module *current-module* t)))))
+          (pr-goal (ptree-node-goal .context.)))))))
+
+(defun instanciate-axiom-in-module (module target-axiom subst)
+  (with-in-module (module)
+    (let ((instance (make-axiom-instance module subst target-axiom)))
+      (format t "~%**> initialized the axiom in module ~a" (get-module-simple-name module))
+      (report-instantiated-axiom instance)
+      (introduce-instantiated-axiom-to-module instance module))))
 
 ;;; ================================
 ;;; Target sentence T -> A implies T [:imp]

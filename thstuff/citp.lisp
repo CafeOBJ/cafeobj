@@ -136,7 +136,7 @@
     (with-citp-debug ()
       (format t "~%[:init] target = ~s" target-form)
       (format t "~%        subst  = ~s" subst-pairs))
-    (list target-form subst-pairs)))
+    (list (first args) target-form subst-pairs)))
 
 ;;; :imply [<label>] by { <var> <- <term>; ...<var> <- <term>; }
 ;;;
@@ -398,18 +398,25 @@
 ;;; :init
 ;;;
 (defun eval-citp-init (args)
-  (check-ptree)
-  (with-in-module (*current-module*)
-    (instanciate-axiom (first args)     ; target
-                       (second args)))) ; variable-term pairs
+  (let ((citp? (equal (first args) ":init"))
+        (target-module nil))
+    (cond (citp? (check-ptree)
+                 (setq target-module
+                   (goal-context (ptree-node-goal (get-target-goal-node)))))
+          (t (I-miss-current-module eval-citp-init)
+             (setq target-module (get-context-module))))
+    (with-in-module (target-module)
+      (instanciate-axiom (second args)  ; target
+                         (third  args)  ; variable-term pairs
+                         citp?))))      ; init to where
 
 ;;; :imp
 ;;;
 (defun eval-citp-imp (args)
   (check-ptree)
   (with-in-module ((goal-context (ptree-node-goal (get-target-goal-node))))
-    (introduce-implication-to-goal (first args)
-                                   (second args))))
+    (introduce-implication-to-goal (first args) ; target
+                                   (second args)))) ;variable-term pairs
 
 ;;; :cp
 (defun eval-citp-critical-pair (args)
