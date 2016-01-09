@@ -49,7 +49,7 @@
 ;;; REWRITE RULE : internal use only
 ;;; ************
 
-(defstruct (rewrite-rule (:include object (-type 'rewreite-rule))
+(defstruct (rewrite-rule (:include object (-type 'rewrite-rule))
                          (:copier nil)
                          (:constructor make-rewrite-rule)
                          (:constructor

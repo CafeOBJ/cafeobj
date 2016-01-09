@@ -201,7 +201,7 @@
            (some #'term-contains-user-defined-error-method
                  (term-subterms term)))))
 
-;;; test if a appl form contains math-operator(:=).
+;;; test if a appl form contains match-operator(:=).
 
 (defun term-contains-match-op (term)
   (declare (type term term)
@@ -210,6 +210,27 @@
        (or (method= *bool-match* (term-head term))
            (some #'term-contains-match-op
                  (term-subterms term)))))
+
+;;; test if a appl form contains search predicate which may
+;;; introduce new variables
+#||
+(defparameter sch-op-names
+    '(("_" "=" "(" "_" "," "_" ")" "=>+" "_" "if" "_" "suchThat" "_" "{" "_" "}")))
+
+(defun term-contains-sp-sch-predicate (term)
+  (and (term-is-application-form? term)
+       (or (member (method-symbol (term-head term))
+                   sch-op-names
+                   :test #'equal)
+           (some #'term-contains-sp-sch-predicate
+                  (term-subterms term)))))
+||#
+
+(defun term-contains-sp-sch-predicate (term)
+  (and (term-is-application-form? term)
+       (or (eq (method-module (term-head term)) *rwl-module*)
+           (some #'term-contains-sp-sch-predicate
+                  (term-subterms term)))))
 
 ;;; ****************
 ;;; RECOMPUTING SORT____________________________________________________________

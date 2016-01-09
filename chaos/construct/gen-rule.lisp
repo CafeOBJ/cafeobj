@@ -69,97 +69,96 @@
                (return-from variable-occurs-in t))))))
 
 (defparameter non-exec-labels '(|:nonexec| |:non-exec| |:no-ex| |:noex| |:noexec|))
+(defparameter bad-rule-types '(:bad-rule :bad-beh))
 
 (defun axiom-is-non-exec? (ax)
   (intersection (axiom-labels ax) non-exec-labels))
 
 (defun condition-has-match-condition (condition)
   (and condition
-       (member *bool-match* (term-methods condition))))
+       (memq *bool-match* (term-methods condition))))
   
+(defun axiom-is-not-for-rewriting (ax)
+  (or (axiom-is-non-exec? ax)
+      (memq (axiom-kind ax) bad-rule-types)))
+
+(defun check-axiom-validity (ax module)
+  (declare (type axiom ax)
+           (ignore module))
+  ;; check label if it is declared as :nonexec
+  (when (axiom-is-non-exec? ax)
+    (setf (axiom-non-exec ax) t))       ;memoise for later use
+  ;; check form of LHS
+  (let ((lhsv (term-variables (axiom-lhs ax))))
+      (declare (type list lhsv))
+      ;; for trans sole variable on LHS is allowed
+      (when (term-is-variable? (axiom-lhs ax))
+        (when (variable-occurs-in (axiom-lhs ax)
+                                  (axiom-rhs ax))
+          (setf (axiom-need-copy ax) t)) ; !!
+        ;; LHS of non trans axiom must not be a variable
+        (unless (eq (axiom-type ax) :rule)
+          ;; we are ok if it is explicitly declared as non-exec
+          (unless (axiom-non-exec ax) 
+            (with-output-chaos-warning ()
+              (princ "the LHS of axiom : ")
+              (print-next)
+              (print-chaos-object ax)
+              (print-next)
+              (princ "is just a variable, ignored as rewrite rule.")))
+          (setf (axiom-kind ax) ':bad-rule))) ; !!
+      ;; check vars(RHS+COND) <= vars(LHS)
+      (let ((rhs-vars (term-variables (axiom-rhs ax)))
+            (cond-vars (term-variables (axiom-condition ax))))
+        (declare (type list rhs-vars cond-vars))
+        (when (or (not (subsetp rhs-vars lhsv))
+                  (not (subsetp cond-vars lhsv)))
+          ;; we are OK if right hand side contains := operator
+          (unless (or (axiom-non-exec ax)
+                      (term-contains-match-op (axiom-rhs ax))
+                      (term-contains-match-op (axiom-condition ax))
+                      (term-contains-sp-sch-predicate (axiom-rhs ax)))
+            (with-output-chaos-warning ()
+              (format t "RHS of the axiom has extra variable(s) which does not occur in LHS.")
+              (print-next)
+              (print-axiom-brief ax)
+              (format t ", ignored as rewrite rule."))
+            (setf (axiom-kind ax) :bad-rule))) ;!!
+        (when (and (axiom-is-behavioural ax)
+                   (not (and (term-can-be-in-beh-axiom? (axiom-lhs ax))
+                             (term-can-be-in-beh-axiom? (axiom-rhs ax)))))
+          (when *chaos-verbose*
+            (with-output-chaos-warning ()
+              (princ "axiom violates context condition of behavioural axiom")
+              (print-next)
+              (print-chaos-object ax)))
+          (if *allow-illegal-beh-axiom*
+              (setf (axiom-kind ax) ':bad-beh)
+            (setf (axiom-kind ax) ':bad-rule)))
+        ax)))
+
 (defun gen-rule-internal (ax module &aux (rule ax))
   (declare (type axiom ax)
            (type module module)
-           (type axiom rule)
-           (values t))
+           (type axiom rule))
   (let ((*chaos-quiet* nil))
     (when (memq (axiom-type ax) '(:pignose-axiom :pignose-goal))
       (return-from gen-rule-internal nil))
     ;;
     (setq rule (or (cdr (assq ax (module-axioms-to-be-fixed module)))
                    ax))
+    (unless (eq rule ax)
+      (setf (axiom-need-copy rule) (axiom-need-copy ax))
+      (setf (axiom-kind rule) (axiom-kind ax)))
+    (when (memq (axiom-kind rule) bad-rule-types)
+      (return-from gen-rule-internal nil))
     ;;
-    (when (axiom-is-non-exec? ax)
-      (setf (axiom-non-exec ax) t)
-      (setf (rule-non-exec rule) t))
-    ;;
-    (let ((lhsv (term-variables (axiom-lhs rule))))
-      (declare (type list lhsv))
-      ;; for trans sole variable on LHS is allowed
-      (when (term-is-variable? (axiom-lhs rule))
-        (when (variable-occurs-in (axiom-lhs rule)
-                                  (axiom-rhs rule))
-          (setf (axiom-need-copy rule) t))
-        (unless (eq (axiom-type rule) :rule)
-          (unless (axiom-non-exec rule)
-            (with-output-chaos-warning ()
-              (princ "the LHS of axiom : ")
-              (print-next)
-              (print-chaos-object rule)
-              (print-next)
-              (princ "   is just a variable, ignored as rewrite rule.")))
-          (setf (axiom-kind rule) ':bad-rule)
-          (setf (axiom-kind ax) ':bad-rule))
-        (return-from gen-rule-internal nil))
-      (let ((rhs-vars (term-variables (axiom-rhs rule)))
-            (cond-vars (term-variables (axiom-condition rule))))
-        (declare (type list rhs-vars cond-vars))
-        (cond ((or (not (subsetp rhs-vars lhsv))
-                   (not (subsetp cond-vars lhsv)))
-               (unless (or (term-contains-match-op (axiom-rhs rule))
-                           (term-contains-match-op (axiom-condition rule)))
-                 (with-output-chaos-warning ()
-                   (format t "RHS of the axiom has extra variable(s) which does not occur in LHS.")
-                   (print-next)
-                   (print-axiom-brief rule)
-                   (format t ", ignored as rewrite rule."))
-                 (setf (axiom-kind rule) :bad-rule)
-                 (setf (axiom-kind rule) :bad-rule)
-                 (return-from gen-rule-internal nil))
-               ;; := is allowd to have extra variables in RHS, COND 
-               (add-rule-to-module module rule)
-               (unless (term-is-variable? (axiom-lhs rule))
-                 (add-associative-extensions module
-                                             (term-head (axiom-lhs rule))
-                                             rule)
-                 (specialize-rule rule module)))
-              ((and (axiom-is-behavioural rule)
-                    (not (and (term-can-be-in-beh-axiom? (axiom-lhs rule))
-                              (term-can-be-in-beh-axiom? (axiom-rhs rule)))))
-               (when *chaos-verbose*
-                 (with-output-chaos-warning ()
-                   (princ "axiom violates context condition of behavioural axiom")
-                   (print-next)
-                   (print-chaos-object rule)))
-               (if *allow-illegal-beh-axiom*
-                   (progn
-                     (setf (axiom-kind rule) ':bad-beh)
-                     (setf (axiom-kind ax) ':bad-beh)
-                     (add-rule-to-module module rule)
-                     (add-associative-extensions module
-                                                 (term-head (axiom-lhs rule))
-                                                 rule)
-                     (specialize-rule rule module))
-                 (progn
-                   (setf (axiom-kind rule) ':bad-rule)
-                   (setf (axiom-kind ax) ':bad-rule))))
-              ;; all is ok, we can use this axiom as a rewrite rule
-              (t (add-rule-to-module module rule)
-                 (unless (term-is-variable? (axiom-lhs rule))
-                   (add-associative-extensions module
-                                               (term-head (axiom-lhs rule))
-                                               rule)
-                   (specialize-rule rule module))))))))
+    (add-rule-to-module module rule)
+    (unless (term-is-variable? (axiom-lhs rule))
+      (add-associative-extensions module
+                                  (term-head (axiom-lhs rule))
+                                  rule)
+      (specialize-rule rule module))))
 
 (defun gather-submodule-rules (module)
   (declare (type module module)

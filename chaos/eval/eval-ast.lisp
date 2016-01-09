@@ -614,6 +614,9 @@
   (let ((the-axiom (parse-axiom-declaration ast)))
     ;; add to module: was add-axiom-to-module...
     (adjoin-axiom-to-module *current-module* the-axiom)
+    ;; check validity as a rewrite rule, 
+    ;; mark 'bad' if it is not for rwrite rule
+    (check-axiom-validity the-axiom *current-module*)
     ;; set module status
     (set-needs-rule)
     the-axiom))
