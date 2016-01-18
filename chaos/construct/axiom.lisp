@@ -557,7 +557,8 @@
     (cond ((term$is-variable? t1-body)
            (or (eq t1 t2)
                (and (term$is-variable? t2-body)
-                    (variable= t1 t2))))
+                    (sort= (variable-sort t1) ; was variable=
+                           (variable-sort t2)))))
           ((term$is-variable? t2-body) nil)
           ((term$is-application-form? t1-body)
            (and (term$is-application-form? t2-body)
@@ -570,7 +571,7 @@
                               (return nil))
                             (setf sl1 (cdr sl1)
                                   sl2 (cdr sl2))))
-                    nil)))
+                  nil)))
           ((term$is-builtin-constant? t1-body)
            (term$builtin-equal t1-body t2-body))
           ((term$is-builtin-constant? t2-body) nil)
@@ -584,10 +585,11 @@
 (defun rule-is-similar? (r1 r2)
   (declare (type axiom r1 r2)
            (values (or null t)))
-  (and (eq (axiom-type r1) (axiom-type r2))
-       (term-is-congruent-2? (axiom-lhs r1) (axiom-lhs r2))
-       (term-is-congruent-2? (axiom-condition r1) (axiom-condition r2))
-       (term-is-congruent-2? (axiom-rhs r1) (axiom-rhs r2))))
+  (or (eq r1 r2)
+      (and (eq (axiom-type r1) (axiom-type r2))
+           (term-is-congruent-2? (axiom-lhs r1) (axiom-lhs r2))
+           (term-is-congruent-2? (axiom-condition r1) (axiom-condition r2))
+           (term-is-congruent-2? (axiom-rhs r1) (axiom-rhs r2)))))
 
 ;;; RULE-MEMBER : Rule RuleSet -> Bool
 ;;;-----------------------------------------------------------------------------

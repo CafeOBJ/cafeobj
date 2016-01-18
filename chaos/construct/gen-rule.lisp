@@ -229,8 +229,7 @@
                      nil
                      (module-protected-modules mod)))
          (opinfo-table (module-opinfo-table mod)))
-    (when (and method
-               (null (get-method-info method (module-opinfo-table mod))))
+    (when (and method (null (get-method-info method (module-opinfo-table mod))))
       (return-from specialize-rule nil))
     ;;
     (when (and method (method-is-error-method method))
@@ -261,8 +260,7 @@
     (dolist (method methods)
       (when (rule-check-down mod method (term-subterms lhs))
         (add-rule-to-method r method (module-opinfo-table mod))
-        (add-associative-extensions mod method r)
-        ))
+        (add-associative-extensions mod method r)))
     (add-associative-extensions mod (term-head lhs) r)
     mod))
 
@@ -300,7 +298,7 @@
                                                ))
                      :condition (axiom-condition r)
                      :id-condition (axiom-id-condition r)
-                     :labels (axiom-labels r)
+                     :labels (append (axiom-labels r) '(:acex))
                      :type (axiom-type r)
                      :meta-and-or (rule-meta-and-or r)
                      :behavioural (axiom-is-behavioural r)
@@ -727,6 +725,7 @@
                   (format t "~%[id-compl]=> ")
                   (print-chaos-object newrule))
                 (adjoin-axiom-to-module module newrule)))))))))
+
 
 ;;; mark rules which brings problematic rewrting (LHS is var, infinite loop) as 'bad
 ;;;
