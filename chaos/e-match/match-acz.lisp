@@ -807,6 +807,12 @@
                  (with-match-debug ()
                    (format t "~%++ nomatch done 4"))
                  (return-from TOP (values nil t))) ; FAIL most miserably
+               #||
+               (when (not (integerp (/ r-gcd l-gcd)))
+                 (with-match-debug ()
+                   (format t "~%++ momatch done 4+1"))
+               (return-from TOP (values nil t)))
+               ||#
                ;; NOW, get down to the real work....
                ;; setup the repeat mask (first of v's)
                (dotimes (j lhs-v-count)
