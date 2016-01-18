@@ -5,9 +5,9 @@
 \newcount\columnsperpage
 \columnsperpage=2
 
-\def\versionnumber{1.5.5}
-\def\year{2015}
-\def\version{December \year\ v\versionnumber}
+\def\versionnumber{1.5.6}
+\def\year{2016}
+\def\version{February \year\ v\versionnumber}
 
 % make \bye not \outer so that the \def\bye in the \else clause below
 % can be scanned without complaint.
@@ -164,7 +164,7 @@
 \title{\centerline{\bcafeobj\ Commands}}
 \title{\centerline{Quick Reference}}
 
-\centerline{(for interpreter version 1.5.5)}
+\centerline{(for interpreter version \version)}
 
 \section{Notation}
 
@@ -214,10 +214,13 @@ and makes a fresh start.
 %%%%% rescue
 \section{Rescue}
 
-Occasionally you may meet a strange prompt \kbd{CHAOS>>} after some
-error messages. This happens when the interpreter caused some internal
-errors and could not recover from it. Try typing \kbd{:q}, this may
-resume the session if you are lucky. 
+Occasionally you may meet a strange prompt \kbd{CHAOS>>} 
+(on platform Allegro CommonLisp) or \kbd{0]} (on platform
+SteelBank Common Lisp) after someerror messages. 
+This happens when the interpreter caused some internal
+errors and could not recover from it. 
+There should be some guides printed describing how you can recover
+from it, please follow them.
 
 Sending interrupt signal (typing \kbd{C-c} from keyboard, or if you
 are in Emacs, some key sequence specific to the \<mode> you are in)
@@ -290,8 +293,8 @@ underlined.
 \threecol{libpath}{\<pathname>}{set file search path}
 \threecol{print depth}{{\<number>}}{maximum depth of terms}
 \threecol{}{}{ to be  printed}
-\threecol{accept \kbd{=*=} proof}{on|\ul{off}}{accept system's  automatic}
-\threecol{}{}{ proof of congruency of \kbd{=*=}}
+%% \threecol{accept \kbd{=*=} proof}{on|\ul{off}}{accept system's  automatic}
+%% \threecol{}{}{ proof of congruency of \kbd{=*=}}
 %%%%%
 }
 
@@ -368,6 +371,8 @@ module is set to some module.
 \twocol{\<show> sort \<sort>}{prints information on sort \<sort>}
 \twocol{\<show> op \<operator>}{prints information on operator
   \<operaotr>}
+\twocol{\<show> [all] axioms}{prints (all) axioms in the current module}
+\twocol{\<show> [all] rules}{prints (all) rewrite rules in the current module}
 }
 
 For inspecting submodules or parameters, the following \<show>
@@ -593,8 +598,18 @@ and \kbd{set} commands in stepper.
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\cr
 \twocol{input \<file>}{read in \cafeobj\ program from \<file>}
 \twocol{provide \<feature>}{provide the \<feature>}
-\twocol{require \<feature> [\<file>]}{require \<feature>}
+\twocol{require \<feature> [\<pathname>]}{require \<feature>}
 }
+\kbd{requre} requires a feature, which usually
+denotes a set of module definitions. Given this command, the
+system searches for a file named the feature, and read the file
+if found. If the \<feature> contains `::', they are treated as
+path separators.
+
+If a \<pathname> is given, the system searches for a file
+named the pathname instead.
+For example, \kbd{require foo::bar} 
+would search for `foo/bar.cafe' in the pathes from `libpath'.
 %%% full reset
 \section{Resetting System}
 
