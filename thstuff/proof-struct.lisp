@@ -733,11 +733,10 @@
            (ignore ignore))
   (let ((*standard-output* stream))
     (format t "~%Proof Tree ===================================")
-    (format t "~%-- number of generated constants: ~d" (ptree-num-gen-const ptree))
-    (format t "~%-- induction variable bases:")
     (with-in-module ((goal-context (ptree-node-goal (ptree-root ptree))))
       (let ((indvar-subst (ptree-indvar-subst ptree))
             (*print-indent* (+ 2 *print-indent*)))
+        (format t "~%-- induction variable bases:")
         (if indvar-subst
             (dolist (is indvar-subst)
               (print-next)
@@ -755,6 +754,12 @@
               (princ " => ")
               (princ (cdr is)))
           (progn (print-next) (princ "none" stream))))
+      (format stream "~%-- constructors:")
+      (let ((num 0))
+        (dolist (op (ptree-constructor-ops ptree))
+          (print-next)
+          (format t "(~d) " (incf num))
+          (print-method-brief op)))
       (format stream "~%-- root node")
       (pr-goal (ptree-node-goal (ptree-root ptree))))))
 
@@ -864,7 +869,7 @@
       (when (and (method-is-constructor? meth)
                  (sort<= (method-coarity meth) sort (module-sort-order context)))
         (push meth ops)))
-    ops))
+    (reverse ops)))
 
 ;;; default-constructor-order
 ;;;
