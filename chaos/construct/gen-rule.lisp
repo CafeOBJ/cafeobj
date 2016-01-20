@@ -901,7 +901,7 @@
                    :type (axiom-type rul)
                    :kind ':id-completion
                    :meta-and-or (rule-meta-and-or rul)
-                   :labels (cons (car (create-rule-name 'dummy "idcomp")) (axiom-labels rul))))
+                   :labels (create-rule-name 'dummy "idcomp")))
             ;;
             (when *gen-rule-debug*
               (format t "~% gen rule : ")
