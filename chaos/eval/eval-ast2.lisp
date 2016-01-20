@@ -663,7 +663,11 @@
     (with-chaos-top-error ()
       (with-chaos-error ()
         (let ((*chaos-quiet* (not *chaos-verbose*)))
-          (load file))))))
+          (if (probe-file file)
+              (progn (load file)
+                     (format t "~%done restoring."))
+            (with-output-chaos-error ('no-file)
+              (format t "No such file ~a" file))))))))
 
 ;;; ************
 ;;; RESET SYSTEM
