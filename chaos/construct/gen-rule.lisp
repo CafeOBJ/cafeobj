@@ -759,27 +759,19 @@
 (defun term-occurs-as-subterm (t1 t2)
   (declare (type term t1 t2)
            (values (or null t)))
-  (when *gen-rule-debug*
-    (with-output-simple-msg ()
-      (format t "[term-occurs-as-subterm]: t1 = ")
-      (print-chaos-object t1)
-      (print-next)
-      (format t "-- t2 = ")
-      (print-chaos-object t2)))
   (if (term-is-variable? t2)
       nil
-      (if (term-is-applform? t2)
-          (multiple-value-bind (gst subs nomatch eequal)
-              (if (method-is-of-same-operator (term-head t1) (term-head t2))
-                  (first-match t1 t2)
-                  (values nil nil t nil))
-            (declare (ignore gst subs eequal))
-            (if (not nomatch)
-                t
-                (dolist (t2st (term-subterms t2) nil)
-                  (when (term-occurs-as-subterm t1 t2st) (return t)))))
-          ;;
-          nil)))
+    (if (term-is-applform? t2)
+        (multiple-value-bind (gst subs nomatch eequal)
+            (if (method-is-of-same-operator (term-head t1) (term-head t2))
+                (first-match t1 t2)
+              (values nil nil t nil))
+          (declare (ignore gst subs eequal))
+          (if (not nomatch)
+              t
+            (dolist (t2st (term-subterms t2) nil)
+              (when (term-occurs-as-subterm t1 t2st) (return t)))))
+      nil)))
 
 (defun compute-var-for-identity-completions (term donesubst)
   (declare (type term term)
@@ -861,7 +853,7 @@
                         module))))
       (when *gen-rule-debug*
         (format t "~%[insert-val]:----------")
-        (format t "~% given rule : ")
+        (format t "~%>> given rule : ")
         (print-axiom-brief rul)
         (format t "~% subst : ")
         (print-substitution subs)
@@ -904,7 +896,7 @@
                    :labels (create-rule-name 'dummy "idcomp")))
             ;;
             (when *gen-rule-debug*
-              (format t "~% gen rule : ")
+              (format t "~%<< gen rule : ")
               (print-chaos-object rule))
             rule)))))
   
