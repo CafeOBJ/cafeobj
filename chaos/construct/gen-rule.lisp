@@ -85,9 +85,6 @@
 (defun check-axiom-validity (ax module)
   (declare (type axiom ax)
            (ignore module))
-  ;; check label if it is declared as :nonexec
-  (when (axiom-is-non-exec? ax)
-    (setf (axiom-non-exec ax) t))       ;memoise for later use
   ;; check form of LHS
   (let ((lhsv (term-variables (axiom-lhs ax))))
       (declare (type list lhsv))
@@ -99,7 +96,7 @@
         ;; LHS of non trans axiom must not be a variable
         (unless (eq (axiom-type ax) :rule)
           ;; we are ok if it is explicitly declared as non-exec
-          (unless (axiom-non-exec ax) 
+          (unless (axiom-is-non-exec? ax) 
             (with-output-chaos-warning ()
               (princ "the LHS of axiom : ")
               (print-next)
@@ -114,7 +111,7 @@
         (when (or (not (subsetp rhs-vars lhsv))
                   (not (subsetp cond-vars lhsv)))
           ;; we are OK if right hand side contains := operator
-          (unless (or (axiom-non-exec ax)
+          (unless (or (axiom-is-non-exec? ax)
                       (term-contains-match-op (axiom-rhs ax))
                       (term-contains-match-op (axiom-condition ax))
                       (term-contains-sp-sch-predicate (axiom-rhs ax)))
@@ -135,6 +132,9 @@
           (if *allow-illegal-beh-axiom*
               (setf (axiom-kind ax) ':bad-beh)
             (setf (axiom-kind ax) ':bad-rule)))
+        ;; check this axiom can be used for rewriting or not.
+        (when (axiom-is-not-for-rewriting ax)
+          (setf (axiom-non-exec ax) t)) ; memoise for later use in rewriting
         ax)))
 
 (defun gen-rule-internal (ax module &aux (rule ax))

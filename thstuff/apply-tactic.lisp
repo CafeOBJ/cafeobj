@@ -731,7 +731,9 @@
 ;;; set-operator-rewrite-rule : module axiom -> void
 ;;;
 (defun set-operator-rewrite-rule (module axiom)
-  (when (term-is-applform? (rule-lhs axiom))
+  (check-axiom-validity axiom module)
+  (when (and (not (axiom-non-exec axiom))
+             (term-is-applform? (rule-lhs axiom)))
     (add-rule-to-method axiom (term-head (rule-lhs axiom)) (module-opinfo-table module))))
 
 ;;; add-assumptions-to-goal : goal assumptions -> void
