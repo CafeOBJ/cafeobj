@@ -855,7 +855,43 @@
 (defun generate-ip-derived-axioms (module axiom)
   (condition->axioms module (axiom-condition axiom) 'ip))
 
-(defun apply-ip (ptree-node &rest ignore)
+(defun simplify-eq-form (assmp)
+  ;; (t1 = true) or (true = t1) ==> t1
+  (when (method= (term-head assmp) *eql-op*)
+    (cond ((is-true? (term-arg-1 assmp))
+           (setq assmp (term-arg-2 assmp)))
+          ((is-true? (term-arg-2 assmp))
+           (setq assmp (term-arg-1 assmp)))
+          (t ;; do nothing
+           )))
+  assmp)
+
+;;; a or b or c ... or x imply lhs
+(defun make-impl-form+ (axiom assumptions)
+  (flet ((make-pre (ax)
+           (simplify-eq-form (make-applform-simple *bool-sort*
+                                                   *eql-op*
+                                                   (list (axiom-lhs ax)
+                                                         (axiom-rhs ax)))))
+         (make-post (ax)
+           (let ((op (if (eq (axiom-type ax) :equation)
+                         *eql-op*
+                       *rwl-predicate*)))
+             (simplify-eq-form (make-applform-simple *bool-sort*
+                                                     op
+                                                     (list (axiom-lhs ax) (axiom-rhs ax)))))))
+    (if (cdr assumptions)
+        (let ((as (mapcar #'make-pre assumptions)))
+          (make-applform-simple *bool-sort*
+                                *bool-imply*
+                                (list (make-right-assoc-normal-form *bool-and* as)
+                                      (make-post axiom))))
+      (make-applform-simple *bool-sort* 
+                            *bool-imply*
+                            (list (make-pre (car assumptions))
+                                  (make-post axiom))))))
+
+(defun apply-ip (ptree-node &optional (modify-goal nil) &rest ignore)
   (declare (type ptree-node ptree-node)
            (ignore ignore))
   (with-in-context (ptree-node)
@@ -878,13 +914,33 @@
                          (let ((new-axs (generate-ip-derived-axioms *current-module* target))
                                (next-target (rule-copy-canonicalized target *current-module*)))
                            ;; make the target
-                           (setf (rule-condition next-target) *bool-true*)
-                           (setf (goal-targets ngoal) (list next-target))
-                           ;; add [ip] axioms 
-                           (dolist (ax new-axs)
-                             (adjoin-axiom-to-module *current-module* ax)
-                             (set-operator-rewrite-rule *current-module* ax))
-                           (setf (goal-assumptions ngoal) (append (goal-assumptions ngoal) (reverse new-axs)))
+                           (cond ((eq modify-goal :modify-goal)
+                                  ;; introduce implication modifying the goal sentence
+                                  ;; eq LHS = RHS --> LHS(new-axs) imply LHS = RHS .
+                                  (let ((new-lhs (make-impl-form+ next-target
+                                                                  new-axs))
+                                        (*print-indent* (+ 2 *print-indent*)))
+                                    (setf (axiom-lhs next-target) new-lhs)
+                                    (setf (axiom-rhs next-target) *bool-true*)
+                                    (setf (axiom-condition next-target) *bool-true*)
+                                    (setf (axiom-labels next-target)
+                                      (cons :ip+ (axiom-labels next-target)))
+                                    (format t "~%[ip+] target sentence is converted ...")
+                                    (print-next)
+                                    (princ "=> ")
+                                    (print-next)
+                                    (print-axiom-brief next-target)
+                                    (setf (goal-targets ngoal) (list next-target))))
+                                 (t 
+                                  ;; introduce implication as hypothesis
+                                  (setf (rule-condition next-target) *bool-true*)
+                                  (setf (goal-targets ngoal) (list next-target))
+                                  ;; add [ip] axioms 
+                                  (dolist (ax new-axs)
+                                    (adjoin-axiom-to-module *current-module* ax)
+                                    (set-operator-rewrite-rule *current-module* ax))
+                                  (setf (goal-assumptions ngoal) 
+                                    (append (goal-assumptions ngoal) (reverse new-axs)))))
                            ;; compile
                            (compile-module *current-module* t)
                            (push-next-goal ngoal)))))
@@ -901,6 +957,16 @@
                 (format t "~%[ip] discharged the goal ~s" (goal-name ngoal)))))
           ;;
           (values .next-goals. (nreverse .next-goals.)))))))
+
+;;; =========================
+;;; TACTIC: IMPLICATION [IP+]
+;;; by modifying the goal by 'imply'
+;;; =========================
+
+(defun apply-ip+ (ptree-node &rest ignore)
+  (declare (type ptree-node ptree-node)
+           (ignore ignore))
+  (apply-ip ptree-node :modify-goal))
 
 ;;; =================================
 ;;; TACTIC: Theorem of Constants [TC]
@@ -2047,20 +2113,12 @@
 ;;; ================================
 
 (defun make-impl-assumption (ax)
-  (let ((assmp (axiom-lhs ax)))
-    ;; (t1 = true) or (true = t1) ==> t1
-    (when (method= (term-head assmp) *eql-op*)
-      (cond ((is-true? (term-arg-1 assmp))
-             (setq assmp (term-arg-2 assmp)))
-            ((is-true? (term-arg-2 assmp))
-             (setq assmp (term-arg-1 assmp)))
-            (t ;; do nothing
-             )))
-    assmp))
+  (simplify-eq-form (axiom-lhs ax)))
 
-(defun make-impl-form (lhs instance)
+;;; a imply lhs 
+(defun make-impl-form (lhs assumption)
   (make-applform-simple *bool-sort* *bool-imply* 
-                        (list (make-impl-assumption instance) lhs)))
+                        (list (make-impl-assumption assumption) lhs)))
 
 (defun introduce-implication-to-goal (target-form subst-form)
   (let ((target-axiom (get-target-axiom *current-module* target-form t))

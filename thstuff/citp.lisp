@@ -297,7 +297,7 @@
                   (if (equal on-off '("off"))
                       nil
                     (progn (format t "~&:spoiler flag is ~s" (if *citp-spoiler* "on" "off"))
-                           (return-from citp-parse-spoiler nil))))))
+                           (return-from citp-parse-spoiler t))))))
     (setq *citp-spoiler* value)
     (setf (citp-flag citp-spoiler) value)
     t))

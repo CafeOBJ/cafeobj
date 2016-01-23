@@ -61,6 +61,9 @@
   ;; Implication
   (defparameter .tactic-ip. (make-tactic :name :ip
                                          :executor 'apply-ip))
+  ;; Implication by modifying the goal by 'imply'
+  (defparameter .tactic-ip+. (make-tactic :name :ip+
+                                         :executor 'apply-ip+))
   ;; Reduction: goal sentence will be destructively changed
   (defparameter .tactic-rd. (make-tactic :name :rd
                                          :executor 'apply-rd))
@@ -79,7 +82,8 @@
 
   ;; list of all builtin tactics
   (defparameter .all-builtin-tactics. 
-      (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd. .tactic-rd-. .tactic-nf. .tactic-ct.))
+      (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-ip+. 
+            .tactic-rd. .tactic-rd-. .tactic-nf. .tactic-ct.))
 
   ;; default tatics is a seriase of SI CA TC IP RD.
   (defparameter .default-tactics. 
