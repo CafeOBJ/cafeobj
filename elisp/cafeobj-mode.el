@@ -556,7 +556,9 @@ This is in addition to cafeobj-continued-statement-offset."
       ":apply"
       ":auto"
       ":ind"
+      ":ind+"
       ":init"
+      ":imp"
       ":cp"
       ":ctf"
       ":csp"
@@ -567,6 +569,7 @@ This is in addition to cafeobj-continued-statement-offset."
       ":equation"
       ":rule"
       ":select"
+      ":order"
       )
   "CafeOBJ top-level commands")
 
