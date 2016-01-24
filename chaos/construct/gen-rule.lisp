@@ -471,16 +471,13 @@
 ;;;               SPECIAL AXIOMS FOR IDEMPOTENT & IDENTITY
 ;;;_____________________________________________________________________________
 
-(let (($rule-counter 0))
-  (declare (type fixnum $rule-counter))
-  
-  (defun create-rule-name (mod label)
-    (declare (ignore mod)
-             (type simple-string label)
-             (values list))
-    (prog1
-        (list (intern (format nil "~a~a" label $rule-counter)))
-      (incf $rule-counter))))
+(defun create-rule-name (mod label)
+  (declare (type simple-string label)
+           (values list))
+  (prog1
+      (list (intern (format nil "~a~a" label 
+                            (module-context-$$rule-counter (module-context mod)))))
+    (incf (module-context-$$rule-counter (module-context mod)))))
 
 (defun add-operator-theory-axioms (module opinfo)
   (declare (type module module)
@@ -893,7 +890,7 @@
                    :type (axiom-type rul)
                    :kind ':id-completion
                    :meta-and-or (rule-meta-and-or rul)
-                   :labels (create-rule-name 'dummy "idcomp")))
+                   :labels (create-rule-name module "idcomp")))
             ;;
             (when *gen-rule-debug*
               (format t "~%<< gen rule : ")
