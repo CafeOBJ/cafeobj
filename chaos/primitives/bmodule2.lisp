@@ -605,7 +605,8 @@
         (module-context-$$subterm context) nil
         (module-context-$$action-stack context) nil
         (module-context-$$selection-stack context) nil
-        (module-context-$$ptree context) nil)
+        (module-context-$$ptree context) nil
+        (module-context-$$rule-counter context) 0)
   )
 
 (defun clean-up-context (context)

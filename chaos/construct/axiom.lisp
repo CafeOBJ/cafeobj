@@ -587,9 +587,9 @@
            (values (or null t)))
   (or (eq r1 r2)
       (and (eq (axiom-type r1) (axiom-type r2))
-           (term-is-congruent-2? (axiom-lhs r1) (axiom-lhs r2))
-           (term-is-congruent-2? (axiom-condition r1) (axiom-condition r2))
-           (term-is-congruent-2? (axiom-rhs r1) (axiom-rhs r2)))))
+           (term-is-congruent? (axiom-lhs r1) (axiom-lhs r2))
+           (term-is-congruent? (axiom-condition r1) (axiom-condition r2))
+           (term-is-congruent? (axiom-rhs r1) (axiom-rhs r2)))))
 
 ;;; RULE-MEMBER : Rule RuleSet -> Bool
 ;;;-----------------------------------------------------------------------------
