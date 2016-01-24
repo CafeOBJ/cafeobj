@@ -210,18 +210,9 @@
                              (princ "strat: ") (print-simple strat))
                            (print-check)
                            (princ " }")))))
-                   n))
-         ;; (n-len (length header))
-         )
+                   n)))
     (print-next)
     (print-centering header ".")
-    #||
-    (format t "~a" header)
-    (if (< n-len (- *print-line-limit* *print-indent*))
-        (dotimes (x (- *print-line-limit* n-len *print-indent*))
-          (princ "_"))
-        (princ "*"))
-    ||#
     ;; declarations with axioms
     (let ((*print-indent* (+ 2 *print-indent*)))
       (dolist (meth (reverse methods))
@@ -241,6 +232,7 @@
               (print-mod-name (method-module meth) *standard-output* t t)
               (princ ")")))
           (let ((*print-indent* (+ 2 *print-indent*)))
+            (print-next)
             (print-method-attrs meth "- attributes: "))
         (let ((axioms (method-all-rules meth)))
           (let ((*print-indent* (+ 2 *print-indent*)))
@@ -251,8 +243,7 @@
                 (dolist (rl axioms)
                   (print-next)
                   (print-axiom-brief rl)))))))))
-    (flush-all)
-    ))
+    (flush-all)))
 
 ;;; DESCRIBE-SORT sort
 ;;; * must be run in `with-in-module'
