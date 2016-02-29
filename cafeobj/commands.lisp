@@ -95,7 +95,8 @@
     :title "`#define <symbol> := <term> .`"
     :mdkey "sharp-define"
     :evaluator cafeobj-eval-module-element-proc
-    :doc "TODO"
+    :doc "Defines <symbol> to be <term>, that is, when <symbol>
+appers in term, it is expanded to <term> and then parsed."
 )
 
 (define ("--" "**")
@@ -569,7 +570,9 @@ displayed when run through the interpreter."
     :type :doc-only
     :title "`cond limit` switch"
     :mdkey "switch-cond-limit"
-    :doc "TODO"
+    :doc "Setting maximal number of evaluation of condition part 
+of an axiom. This is useful for detecting a kind of inifinite loop
+of rewriting."
 )
 
 (define ("ctrans" "ctr")
@@ -701,7 +704,8 @@ See [`module expression`](#moduleexpression) for format of `modexp`."
     :category :proof
     :parser parse-find-command
     :evaluator eval-ast
-    :doc "TODO"
+    :title "`find {+rule | -rule}`"
+    :doc "Find all axioms which possibly rewrite the current term."
 )
 
 (define ("find all rules switch")
@@ -1232,7 +1236,8 @@ command will prompt for one of the trees."
     :type :doc-only
     :title "`parse normalize` switch"
     :mdkey "switch-parse-normalize"
-    :doc "TODO"
+    :doc "If this switch is 'on' (defalult is 'off'), terms with
+associative operators are always parsed as right associative."
 )
 
 (define ("pred" "pd" "preds" "pds")
@@ -1875,7 +1880,10 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
     :category :misc
     :parser parse-dribble-command
     :evaluator eval-ast
-    :doc "TODO"
+    :title "`dribble { <file-name> | .}`"
+    :doc "If <file-name> is give, the evaluation process of the system is
+output to the <file-name> in internal form. '.' stops the recording. 
+Only usefule for developer of the system."
 )
 
 (define ("exec!" "execute!")
@@ -1884,7 +1892,8 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
     :evaluator eval-ast
     :title "`exec! [ in <mod-exp> : ] <term> .`"
     :mdkey "execute-dash"
-    :doc "TODO"
+    :doc "Obsolete command. Implicitly invokes RWL search predicate in a 
+specific manner. "
 )
 
 (define  ("stop")
@@ -1952,7 +1961,8 @@ module expression `<mod_exp>`."
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "TODO"
+    :title "`bsort token-predicate creater printer term-predicate`"
+    :doc "Defines a built-in sort. Internal use only."
 )
 
 
@@ -2114,7 +2124,7 @@ a [stop pattern](#switch-stop-pattern) has been found."
     :parser parse-case-command
     :evaluator eval-ast
     :title "`scase (<term>) in (<mod-exp>) as <name> { <decl> ..} : <term> .`"
-    :doc "TODO"
+    :doc "Obsolete citp command. Split the goal by user specified cases."
 )
 
 (define ("sos" "passive")
@@ -2272,6 +2282,19 @@ the current goal, or the goal given as `<goal-name>`."
 :ind on (M:PNat)
 ~~~~~"
 )
+
+(define (":ind+")
+    :category :proof
+    :parser citp-parse-ind-on+
+    :evaluator eval-citp-ind-on+
+    :related ("citp")
+    :title "`:ind on <variable> ... .`"
+    :doc "Defines the variable for the induction tactic of CITP."
+    :example "
+~~~~~
+:ind+ on (M:PNat) with base (<Term> . ... <Term> .) step (<Term> . ... <Term> .)
+~~~~~"
+    )
 
 (define (":auto")
     :category :proof
@@ -2634,7 +2657,8 @@ where
     :parser citp-parse-bguess
     :evaluator bguess
     :title "`{bguess | :bguess} {imply|and|or} [ with <predicate name> ]`"
-    :doc "TODO")
+    :doc "Try to find true/false assignments which satisfies the Bool term
+specified by 'binspect' or ':binspect'.")
 
 ;;;
 
