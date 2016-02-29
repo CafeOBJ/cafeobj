@@ -8,7 +8,8 @@ On Unix only, forks a shell and executes the given `<command>`.
 
 ## `#define <symbol> := <term> .` ## {#sharp-define}
 
-TODO
+Defines <symbol> to be <term>, that is, when <symbol>
+appers in term, it is expanded to <term> and then parsed.
 
 ## `**`, `**>` ## {#starstar}
 
@@ -292,7 +293,8 @@ Related: [`bceq`](#bceq), [`ceq`](#ceq), [`eq`](#eq)
 
 ## `{bguess | :bguess} {imply|and|or} [ with <predicate name> ]` ## {#bguess}
 
-TODO
+Try to find true/false assignments which satisfies the Bool term
+specified by 'binspect' or ':binspect'.
 
 ## `binspect [in <module-name> :] <boolean-term> .` ## {#binspect}
 
@@ -408,9 +410,9 @@ where
   P-5:Bool |-> p2(X:S)
 ~~~~~
 
-## `bsort` ## {#bsort}
+## `bsort token-predicate creater printer term-predicate` ## {#bsort}
 
-TODO
+Defines a built-in sort. Internal use only.
 
 ## `btrans [ <label-exp> ] <term> => <term> .` ## {#btrans}
 
@@ -496,7 +498,7 @@ The sub-system provides a certain level of automatization for theorem proving.
 
 Please see the accompanying manual for CITP for details.
 
-Related: [`:imp`](#citp-imply), [`:def`](#citp-def), [`:ctf-`](#citp-ctf-), [`:ctf`](#citp-ctf), [`:csp-`](#citp-csp-), [`:csp`](#citp-csp), [`:red`](#citp-red), [`:select`](#citp-select), [`:backward`](#citp-backward), [`:rule`](#citp-rule), [`:equation`](#citp-equation), [`:cp`](#citp-cp), [`:init`](#citp-init), [`:roll`](#citp-roll), [`:auto`](#citp-auto), [`:ind`](#citp-ind), [`:apply`](#citp-apply), [`:goal`](#citp-goal)
+Related: [`:ord`](#citp-order), [`:imp`](#citp-imply), [`:def`](#citp-def), [`:ctf-`](#citp-ctf-), [`:ctf`](#citp-ctf), [`:csp-`](#citp-csp-), [`:csp`](#citp-csp), [`:red`](#citp-red), [`:select`](#citp-select), [`:backward`](#citp-backward), [`:rule`](#citp-rule), [`:equation`](#citp-equation), [`:cp`](#citp-cp), [`:init`](#citp-init), [`:roll`](#citp-roll), [`:auto`](#citp-auto), [`:ind`](#citp-ind), [`:apply`](#citp-apply), [`:goal`](#citp-goal)
 
 ## `clause <term> .` ## {#clause}
 
@@ -537,7 +539,9 @@ Related: [`--`](#starstar), [`**`](#starstar)
 
 ## `cond limit` switch ## {#switch-cond-limit}
 
-TODO
+Setting maximal number of evaluation of condition part 
+of an axiom. This is useful for detecting a kind of inifinite loop
+of rewriting.
 
 ## `cont` ## {#cont}
 
@@ -668,9 +672,11 @@ Displays the current push stack.
 
 Related: [`popd`](#popd), [`pwd`](#pwd), [`pushd`](#pushd), [`cd`](#cd), [`ls`](#ls)
 
-## `dribble` ## {#dribble}
+## `dribble { <file-name> | .}` ## {#dribble}
 
-TODO
+If <file-name> is give, the evaluation process of the system is
+output to the <file-name> in internal form. '.' stops the recording. 
+Only usefule for developer of the system.
 
 ## `eof` ## {#eof}
 
@@ -752,7 +758,8 @@ Related: [`reduce`](#reduce)
 
 ## `exec! [ in <mod-exp> : ] <term> .` ## {#execute-dash}
 
-TODO
+Obsolete command. Implicitly invokes RWL search predicate in a 
+specific manner. 
 
 ## `execute [ in <mod-exp> : ] <term> .` ## {#execute}
 
@@ -772,9 +779,9 @@ See [`module expression`](#moduleexpression) for format of `modexp`.
 
 Related: [`using`](#using), [`protecting`](#protecting), [`including`](#including)
 
-## `find` ## {#find}
+## `find {+rule | -rule}` ## {#find}
 
-TODO
+Find all axioms which possibly rewrite the current term.
 
 ## `find all rules` switch ## {#switch-find-all-rules}
 
@@ -871,6 +878,27 @@ Related: [`citp`](#citp)
 ~~~~~
 :ind on (M:PNat)
 ~~~~~
+
+## `:ind on <variable> ... .` ## {#citp-ind+}
+
+Defines the variable for the induction tactic of CITP.
+
+Related: [`citp`](#citp)
+
+### Example ###
+
+
+~~~~~
+:ind+ on (M:PNat) with base (<Term> . ... <Term> .) step (<Term> . ... <Term> .)
+~~~~~
+
+## `init { "[" <label> "]" | "(" <sentence> "")} by "{" <variable> <- <term>; ... "}"` ## {#init}
+
+Instantiates an equation specified by `<label>` by replacing the `<variable>`s 
+in the equation with the respective `<term>`s. The resulting equation is added
+to the set of axioms.
+
+Related: [`open`](#open)
 
 ## `:init { "[" <label> "]" | "(" <sentence> "")} by "{" <variable> <- <term>; ... "}"` ## {#citp-init}
 
@@ -1303,6 +1331,10 @@ Related: [operator attributes](#opattr)
 
 (pignose)
 
+## `:order (<op>, ..., <op>)` ## {#citp-order}
+
+
+
 ## `param(<name>, <value>)` ## {#param}
 
 (pignose)
@@ -1348,7 +1380,8 @@ Related: [`qualified term`](#qualified)
 
 ## `parse normalize` switch ## {#switch-parse-normalize}
 
-TODO
+If this switch is 'on' (defalult is 'off'), terms with
+associative operators are always parsed as right associative.
 
 ## `popd` ## {#popd}
 
@@ -1558,7 +1591,8 @@ the effects might be different.
 
 TODO -- should we keep the different effects? What is the real difference?
 
-Related: [`save-system`](#save-system), [`save`](#save), [`input`](#input)
+
+Related: [`save-system`](#target_not_found), [`save`](#save), [`input`](#input)
 
 ## `rewrite limit` switch ## {#switch-rewrite}
 
@@ -1597,23 +1631,16 @@ File names should be suffixed with `.bin`.
 `save` also saves the contents of prelude files as well as module definitions
 given in the current session.
 
-Related: [`save-system`](#save-system), [`restore`](#restore), [`input`](#input)
+
+Related: [`save-system`](#target_not_found), [`restore`](#restore), [`input`](#input)
 
 ## `save-option <name>` ## {#save-option}
 
 (pignose)
 
-## `save-system <pathname>` ## {#save-system}
-
-Dumps the image of the whole system into a file. This is functionality
-provided by the underlying Common Lisp system and might carry some 
-restrictions.
-
-Related: [`restore`](#restore), [`save`](#save), [`input`](#input)
-
 ## `scase (<term>) in (<mod-exp>) as <name> { <decl> ..} : <term> .` ## {#scase}
 
-TODO
+Obsolete citp command. Split the goal by user specified cases.
 
 ## `search predicates` ## {#searchpredicate}
 
