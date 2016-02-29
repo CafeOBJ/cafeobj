@@ -1059,7 +1059,43 @@
     (unless node
       (with-output-chaos-error ('no-unproved)
         (format t "There is no unproved goals.")))
-    (set-indvars node variables)))
+    (set-indvars node variables)
+    (clear-induction-ops node)))
+
+(defun set-induction-variables-and-constructors (variables bases steps)
+  (declare (type list variables bases steps))
+  (let ((node (car (get-unproved-nodes *proof-tree*))))
+    (unless node
+      (with-output-chaos-error ('no-unproved)
+        (format t "There is no unproved goals.")))
+    (set-indvars node variables)
+    (set-indbases node bases)
+    (set-indsteps node steps)))
+
+(defun get-induction-ops (terms)
+  (mapcar #'(lambda (x) (term-head x)) terms))
+
+(defun set-indbases (node terms)
+  (let ((goal-node (ptree-node-goal node)))
+    (setf (goal-base-ops goal-node) (get-induction-ops terms))
+    (let ((bases (goal-base-ops goal-node)))
+      (format t "~%--> :ind+: setting induction base~p" (length bases))
+      (dolist (b bases)
+        (let ((*print-indent* (+ 2 *print-indent*)))
+          (print-next)
+          (print-method-brief b)))
+      (flush-all))))
+
+(defun set-indsteps (node terms)
+  (let ((goal-node (ptree-node-goal node)))
+    (setf (goal-step-ops goal-node) (get-induction-ops terms))
+    (let ((steps (goal-step-ops goal-node)))
+      (format t "~%--> :ind+: setting induction step~p" (length steps))
+      (dolist (s steps)
+        (let ((*print-indent* (+ 2 *print-indent*)))
+          (print-next)
+          (print-method-brief s)))
+      (flush-all))))
 
 ;;; get-induction-variable-constructors : variable -> List(constructor)
 ;;; returns a list of constructors of a given induction variable
@@ -1185,9 +1221,11 @@
         (mapcar #'(lambda (x) (cons x 0)) arity))
       (dolist (s arity)
         (cond ((sort<= (term-sort one-arg) s *current-sort-order*)
+               #||
                (when (< 1 (incf n))
                  (with-output-chaos-error ('sorry)
-                   (format t "Sorry, but system does not handle a constructor having multiple arguments of the same sort.")))
+               (format t "Sorry, but system does not handle a constructor having multiple arguments of the same sort.")))
+               ||#
                (push one-arg arg-list))
               (t (let* ((var-assoc (assoc s arg-var-assoc))
                         (ind-var (if (zerop (cdr var-assoc))
@@ -1369,13 +1407,18 @@
 ;;; induction-cases
 ;;; Note: assumes there properly set induction variables in the current goal.
 ;;;
+(defun get-induction-constructors (current-goal)
+  (or (append (goal-base-ops current-goal)
+              (goal-step-ops current-goal))
+      (ptree-constructor-ops *proof-tree*)))
+
 (defun induction-cases (parent-node)
   (declare (type ptree-node parent-node))
   (let* ((cur-goal (ptree-node-goal parent-node))
          (cur-targets nil)
          (indvars (goal-indvars cur-goal))
          (all-subst (make-indvar-comb-substitutions indvars
-                                                    (ptree-constructor-ops *proof-tree*)))
+                                                    (get-induction-constructors cur-goal)))
          (base-goal (prepare-next-goal parent-node .tactic-si.))
          (step-goals nil)
          (need-goal nil)

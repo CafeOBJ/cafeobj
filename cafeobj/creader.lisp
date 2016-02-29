@@ -119,9 +119,9 @@
               (|identity-rules:| :chaos-item)
               ;; ((:pred general-read-numberp))
               ((:+ prec precedence |prec:| |pecedence:|) :int)
-              (|(| (:seq-of :int) |)|)
+              (\(  (:seq-of :int)  \))
               ((:+ strat strategy |strat:| |strategy:|)
-               |(| (:seq-of :int) |)|)
+               \(  (:seq-of :int)  \))
               ((:+ l-assoc r-assoc left-associative right-associative))
               ((:+ constr ctor constructor))
               ((:+ coherent beh-coherent))
@@ -143,9 +143,9 @@
               (|identity-rules:| :chaos-item)
               ;; ((:pred general-read-numberp))
               ((:+ prec precedence |prec:| |pecedence:|) :int)
-              (|(| (:seq-of :int) |)|)
+              (\(  (:seq-of :int)  \))
               ((:+ strat strategy |strat:| |strategy:|)
-               |(| (:seq-of :int) |)|)
+               \(  (:seq-of :int)  \))
               ((:+ l-assoc r-assoc left-associative right-associative))
               ((:+ constr constructor))
               (memo)
@@ -173,9 +173,9 @@
               (|identity-rules:| :chaos-item)
               ;; ((:pred general-read-numberp))
               ((:+ prec precedence |prec:| |pecedence:|) :int)
-              (|(| (:seq-of :int) |)|)
+              (\(  (:seq-of :int)  \))
               ((:+ strat strategy |strat:| |strategy:|)
-               |(| (:seq-of :int) |)|)
+               \(  (:seq-of :int)  \))
               ((:+ l-assoc r-assoc left-associative right-associative))
               ((:+ constr constructor))
               ((:+ coherent beh-coherent))
@@ -203,9 +203,9 @@
               (|identity-rules:| :chaos-item)
               ;; ((:pred general-read-numberp))
               ((:+ prec precedence |prec:| |pecedence:|) :int)
-              (|(| (:seq-of :int) |)|)
+              (\(  (:seq-of :int)  \))
               ((:+ strat strategy |strat:| |strategy:|)
-               |(| (:seq-of :int) |)|)
+               \(  (:seq-of :int)  \))
               ((:+ l-assoc r-assoc left-associative right-associative))
               ((:+ constr constructor))
               ((:+ coherent beh-coherent))
@@ -229,8 +229,8 @@
          (|identity-rules:| :chaos-item)
          ;; ((:pred general-read-numberp))
          ((:+ prec precedence |prec:| |pecedence:|) :int)
-         (|(| (:seq-of :int) |)|)
-         ((:+ strat strategy |strat:| |strategy:|) |(| (:seq-of :int) |)|)
+         (\(  (:seq-of :int)  \))
+         ((:+ strat strategy |strat:| |strategy:|) \(  (:seq-of :int)  \))
          ((:+ l-assoc r-assoc))
          ;; ((:+ constr constructor))
          (memo)
@@ -297,13 +297,13 @@
 ;;;-----------------------------------------------------------------------------
 
   (defparameter ExDeclaration
-      '((:+ ex extending) (:if-present as :symbol) |(| :modexp |)|))
+      '((:+ ex extending) (:if-present as :symbol) \(  :modexp  \)))
   (defparameter PrDeclaration
-      '((:+ pr protecting) (:if-present as :symbol) |(| :modexp |)|))
+      '((:+ pr protecting) (:if-present as :symbol) \(  :modexp  \)))
   (defparameter UsDeclaration
-      '((:+ us using) (:if-present as :symbol) |(| :modexp |)|))
+      '((:+ us using) (:if-present as :symbol) \(  :modexp  \)))
   (defparameter IncDeclaration
-      '((:+ inc including) (:if-present as :symbol) |(| :modexp |)|))
+      '((:+ inc including) (:if-present as :symbol) \(  :modexp  \)))
 
   )
 
@@ -458,7 +458,7 @@
 
         ;; MAKE
         ;; --------------------------------------------------
-        (make :symbol |(| :modexp |)|)
+        (make :symbol \( :modexp \))
 
         ;; TOP LEVEL COMMANDS
         ;; --------------------------------------------------
@@ -546,7 +546,7 @@
         (close)
         (start :term |.|)
         ;; scase (<Term>) on (<Modexp>) as <Name> { <ModuleElements> } : <GoalTerm> .
-        (scase |(| (:seq-of :term) |)| in |(| :modexp |)| as :symbol |{|
+        (scase \( (:seq-of :term) \) in \( :modexp \) as :symbol |{|
                (:many-of
                 ;; MODULE IMPORTATIONS
                 ;; *NOTE*  imports { ... } is not in MANUAL, and does not have
@@ -658,7 +658,7 @@
                          (:+ within at)
                          (:one-of
                           ((:+ top it term subterm))
-                          ((:+ |(| |{| |[|)
+                          ((:+ \( |{| \[)
                            :unread
                            ((:! Selector))
                            (:seq-of of ((:! Selector)))
@@ -667,7 +667,7 @@
         ;;
         (choose (:one-of
                  ((:+ top term subterm))
-                 ((:+ |(| |{| |[|)
+                 ((:+ \( |{| \[)
                   :unread
                   ((:! Selector))
                   (:seq-of of ((:! Selector)))
@@ -707,17 +707,17 @@
         #+:bigpink (option (:one-of (reset)
                                     (= :symbol)))
         #+:bigpink ((:+ save-option save-options) :symbol)
-        #+:bigpink (flag |(| :symbol |,| (:+ on off set clear) |)|)
-        #+:bigpink (param |(| :symbol |,| :int |)|)
+        #+:bigpink (flag \(  :symbol |,| (:+ on off set clear)  \))
+        #+:bigpink (param \(  :symbol |,| :int  \))
         #+:bigpink (resolve :args)
         #+:bigpink (demod (:if-present  in :modexp |:|) (:seq-of :term) |.|)
-        #+:bigpink (sigmatch |(| :modexp |)| (:+ to with) |(| :modexp |)|)
+        #+:bigpink (sigmatch \( :modexp \) (:+ to with) \( :modexp \))
 
-        #+:bigpink (lex |(|
-                        (:upto (|,| |)|) :opname)
+        #+:bigpink (lex \(
+                        (:upto (|,| \)) :opname)
                         :append (:seq-of |,|
-                                         (:upto (|,| |)|) :opname))
-                        |)|)
+                                         (:upto (|,| \)) :opname))
+                        \))
         ;; misc toplevel commands
         (eof)
         #-CMU (#\^D)
@@ -764,26 +764,36 @@
                                 #.BCRLDeclaration
                                 #.FoplAXDeclaration)
                  |}|)
-        (|:apply| (:if-present to (:symbol)) (|(| (:seq-of :symbol) |)|))
+        (|:apply| (:if-present to (:symbol)) (\( (:seq-of :symbol) \)))
         (|:auto|)
-        (|:ind| (:+ on |:on|) |(| (:seq-of :term) |)|)
+        (|:ind| (:+ on |:on|) \( (:seq-of :term) \))
+        (|:ind+| (:+ on |:on|) \( (:seq-of :term) \)
+                 with (base \( (:upto (|.| \)) :term)
+                               :append (:seq-of |.|
+                                                 (:upto (|.| \)) :term))
+                               \)
+                      )
+                      (step \( (:upto (|.| \)) :term )
+                               :append (:seq-of |.|
+                                                 (:upto (|.| \)) :term))
+                           \)))
         (|:roll| (:+ back |:back|))
-        ((:+ |:init| init) (:one-of (|(| (:one-of #.EqDeclaration
-                                        #.CeqDeclaration
-                                        #.RlDeclaration
-                                        #.CRlDeclaration
-                                        #.BeqDeclaration
-                                        #.BCeqDeclaration
-                                        #.BRLDeclaration
-                                        #.BCRLDeclaration
-                                        #.FoplAXDeclaration)
-                               |)|)
-                          (\[ (:symbol) \]))
+        ((:+ |:init| init) (:one-of (\( (:one-of #.EqDeclaration
+                                                 #.CeqDeclaration
+                                                 #.RlDeclaration
+                                                 #.CRlDeclaration
+                                                 #.BeqDeclaration
+                                                 #.BCeqDeclaration
+                                                 #.BRLDeclaration
+                                                 #.BCRLDeclaration
+                                                 #.FoplAXDeclaration)
+                                        \))
+                                    (\[ (:symbol) \]))
                  |by| |{| ((:! SubstList)) |}|)
         ((:+ |:imply| |:imp|) (\[ (:symbol) \])
                               (:one-of (|by| |{| ((:! SubstList)) |}|)
                                        (|.|)))
-        (|:cp| (:one-of (|(| (:one-of #.EqDeclaration
+        (|:cp| (:one-of (\( (:one-of #.EqDeclaration
                                       #.CeqDeclaration
                                       #.RlDeclaration
                                       #.CRlDeclaration
@@ -792,10 +802,10 @@
                                       #.BRLDeclaration
                                       #.BCRLDeclaration
                                       #.FoplGoalDeclaration)
-                             |)|)
+                             \))
                         (\[ (:symbol) \]))
                ><
-               (:one-of (|(| (:one-of #.EqDeclaration
+               (:one-of (\( (:one-of #.EqDeclaration
                                       #.CeqDeclaration
                                       #.RlDeclaration
                                       #.CRlDeclaration
@@ -804,7 +814,7 @@
                                       #.BRLDeclaration
                                       #.BCRLDeclaration
                                       #.FoplGoalDeclaration)
-                             |)|)
+                             \))
                         (\[ (:symbol) \])))
         ((:+ |:equation| |:rule|))
         (|:backward| (:+ equation rule |:equation| |:rule|))
@@ -818,7 +828,7 @@
         ((:+ |:show| |:sh| |:describe| |:desc|) :args)
         ((:+ |:def| |:define|) :symbol = (:one-of #.CTF
                                                   #.CSP
-                                                  (|(| (:seq-of :symbol) |)|)))
+                                                  (\( (:seq-of :symbol) \))))
         (|:spoiler| (:one-of (on) (off) (|.|)))
         (|:binspect|
          (:rdr #..term-delimiting-chars. (:if-present in :symbol |:|)) (:seq-of :term) |.|)
@@ -827,12 +837,12 @@
         ((:+ |:bresolve| bresolve) :args)
         ((:+ |:bshow| bshow) :args)
         ((:+ |:bg| |:bguess| bg bguess) :args)
-        (|:set| |(| :symbol |,| (:+ on off set clear ? show) |)|)
-        (|:order| |(|
-                        (:upto (|,| |)|) :opname)
+        (|:set| \(  :symbol |,| (:+ on off set clear ? show)  \))
+        (|:order| \(
+                        (:upto (|,| \)) :opname)
                         :append (:seq-of |,|
-                                         (:upto (|,| |)|) :opname))
-                  |)|)
+                                         (:upto (|,| \)) :opname))
+                  \))
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.
@@ -841,7 +851,7 @@
       
       (Selector (:one-of 
                  (|{| :int :append (:seq-of |,| :int) |}|)
-                 (|(| (:seq-of :int) |)|)
+                 (\(  (:seq-of :int)  \))
                  (\[ :int (:optional |..| :int) \])))
 
       ;; parameter part
@@ -854,7 +864,7 @@
       ;; Substitution
       ;;  variable-1 <- term-1; ... variable-n <- term-n;
       (SubstList ((:! Subst) :append (:seq-of (:! Subst))))
-      (Subst ((:symbol <- :term) |;|))
+      (Subst ((:symbol <- :term) \;))
       ))                                ; end of *cafeobj-scheme*
   )                                     ; end eval-when
 

@@ -437,6 +437,8 @@
   (proved nil :type list)               ; proved targets
   (critical-pairs nil :type list)       ; list of critical pairs not yet axiomatized
   (defs nil :type list)                 ; list of :defined tactics
+  (base-ops nil :type list)             ; list of user specified induction base ops
+  (step-ops nil :type list)             ; list of user specifief induction step ops
   )
 
 (defun goal-is-discharged (goal)
@@ -466,7 +468,9 @@
             (vs (goal-indvars goal))
             (axs (goal-targets goal))
             (proved (goal-proved goal))
-            (discharged (goal-is-discharged goal)))
+            (discharged (goal-is-discharged goal))
+            (bases (goal-base-ops goal))
+            (steps (goal-step-ops goal)))
         (print-next)
         (format stream "-- context module: ~a"
                 (get-module-simple-name (ptree-context *proof-tree*)))
@@ -484,6 +488,20 @@
             (let ((*print-indent* (+ 2 *print-indent*)))
               (print-next)
               (term-print-with-sort v))))
+        (when bases
+          (print-next)
+          (format stream "-- user specified induction base~p" (length bases))
+          (dolist (b bases)
+            (let ((*print-indent* (+ 2 *print-indent*)))
+              (print-next)
+              (print-method-brief b))))
+        (when steps
+          (print-next)
+          (format stream "-- user specified induction step~p" (length steps))
+          (dolist (s steps)
+            (let ((*print-indent* (+ 2 *print-indent*)))
+              (print-next)
+              (print-method-brief s))))
         (when v-consts
           (print-next)
           (format stream "-- introduced constant~p" (length v-consts))
@@ -555,6 +573,11 @@
 
 (defmacro ptree-node-goal (ptree-node)
   `(ptree-node-datum ,ptree-node))
+
+(defun clear-induction-ops (ptree-node)
+  (let ((goal (ptree-node-goal ptree-node)))
+    (setf (goal-base-ops goal) nil
+          (goal-step-ops goal) nil)))
 
 ;;; initialize-ptree-node : ptree-node -> ptree-node
 ;;; discard existing child nodes. 
@@ -633,7 +656,9 @@
             (goal-indvars next-goal) (goal-indvars cur-goal)
             (goal-skolems next-goal) (goal-skolems cur-goal)
             (goal-assumptions next-goal) (goal-assumptions cur-goal)
-            (goal-defs next-goal) (goal-defs cur-goal))
+            (goal-defs next-goal) (goal-defs cur-goal)
+            (goal-base-ops next-goal) (goal-base-ops cur-goal)
+            (goal-step-ops next-goal) (goal-step-ops cur-goal))
       (prepare-for-parsing next-context)
       (setq *next-default-proof-node* nil) ; we reset the next default target
       next-goal)))

@@ -102,6 +102,37 @@
           (push var vars)))
       (nreverse vars))))
 
+;;; :ind+ on
+;;: (":ind+" "on" "(" ("L1:List") ")" "with"
+;;; 0   1      2   3       4       5    6
+;;; ("base" "(" ("nil") "." ("1" "+" "2") ")")
+;;;                      7
+;;; ("step" "(" ("L1:List" "L2:List") "." ("X" "*" "2" "+" "4") ")")) 
+;;;                      8
+(defun citp-parse-seq-of-terms (module token-list)
+  (let ((terms nil))
+    (dolist (term? token-list)
+      ;; (format t "~%<<>> ~s" term?)
+      (when (consp term?)
+        (let* ((*parse-variables* nil)
+               (target-term (simple-parse module term? *cosmos*)))
+          (when (or (null (term-sort target-term))
+                    (sort<= (term-sort target-term) *syntax-err-sort* *chaos-sort-order*))
+            (with-output-chaos-error ('invalid-term)
+              (format t "Could not parse ~s" term?)))
+          (push target-term terms))))
+    (nreverse terms)))
+
+(defun citp-parse-ind-on+ (args)
+  (check-context-module)
+  ;; (format t "~%args=~s" args)
+  (with-in-module ((get-context-module))
+    (let ((vars (citp-parse-ind-on args)))
+      (let ((bases (citp-parse-seq-of-terms *current-module* (nth 6 args)))
+            (steps (citp-parse-seq-of-terms *current-module* (nth 7 args))))
+        (list vars bases steps)))))
+        
+
 ;;;
 ;;; :auto
 ;;;
@@ -386,6 +417,30 @@
   (check-ptree)
   (with-in-module (*current-module*)
     (set-induction-variables vars)))
+
+(defun eval-citp-ind-on+ (args)
+  (check-ptree)
+  (let ((vars (first args))
+        (bases (second args))
+        (steps (third args)))
+    (with-in-module ((get-context-module))
+      #||
+      (format t "~%[vars]")
+      (dolist (v vars)
+        (print-next)
+        (term-print v))
+      (format t "~%[bases]")
+      (dolist (v bases)
+        (print-next)
+        (term-print v))
+      (format t "~%[steps]")
+      (dolist (v steps)
+        (print-next)
+      (term-print v))
+      ||#
+      (set-induction-variables-and-constructors vars
+                                                bases
+                                                steps))))
 
 ;;; :roll back
 ;;;
