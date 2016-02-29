@@ -1,0 +1,456 @@
+% !TEX TS-program = xelatex
+% !TEX encoding = UTF-8
+% 2016/2/29: binspect
+% toshi.swd@gmail.com
+%
+\documentclass[a4paper,oneside,10pt,here]{memoir}
+\usepackage[hscale=0.76,vscale=0.76]{geometry}
+\setlength{\parindent}{0.0cm}
+\setlength{\parskip}{1.4ex}
+\usepackage{graphicx}
+\usepackage{proof}
+\usepackage{fancyvrb}
+\usepackage{amssymb}
+\usepackage{bussproofs}
+%%% Japanese
+\usepackage{fontspec}
+\usepackage{indentfirst}
+\setmainfont[Mapping=tex-text]{M+ 2p regular}
+\setsansfont[Mapping=tex-text]{M+ 2c regular}
+\setmonofont[Mapping=tex-text]{M+ 2m medium}
+% \setmainfont[Ligatures=TeX]{Meiryo}
+% \setsansfont[Ligatures=TeX]{Hiragino Kaku Gothic ProN W3}
+% \setmonofont[Ligatures=TeX]{Osaka-Mono}
+\XeTeXlinebreaklocale "ja_JP"
+\XeTeXlinebreakskip=0em plus 0.1em minus 0.01em
+\XeTeXlinebreakpenalty=0
+\renewcommand{\baselinestretch}{1.4}
+\settowidth{\parindent}{あ}
+%%%%
+\usepackage{dcolumn,hhline,colortbl}
+\usepackage[table]{xcolor}
+%%%%% 色付表
+\newcolumntype{G}{%
+  >{\columncolor[gray]{0.9}}c}
+\newcolumntype{O}{%
+  >{\columncolor{orange}}c}
+\newcolumntype{M}{%
+  >{\columncolor{green}}c}
+\newcolumntype{Y}{%
+  >{\columncolor{yellow}}c}
+\newcolumntype{C}{%
+  >{\columncolor{cyan}}c}
+%%%% hyperref
+%\usepackage[dvipdfm,colorlinks=true,linkcolor=blue]{hyperref} 
+\usepackage[colorlinks=true,linkcolor=blue]{hyperref} 
+
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+
+%%%%%%%%%%syntax
+\makeatletter
+% terminal - used for terminal symbols, argument is characters appear in sf.
+\def\sym#1{\textsf{#1}\null}
+% nonterm - used for non terminal symbols, argument is characters typed with
+%           italic face.
+\def\nonterm#1{\textit{#1}\null}
+%%%%%
+% syntax ... endsyntax
+\def\xstrut{\relax\ifmmode\copy\strutbox\else\unhcopy\strutbox\fi}
+\def\syntax{\syntaxoutnonbox\halign\bgroup
+    \xstrut$\@lign##$\hfil &\hfil$\@lign{}##{}$\hfil
+    &$\@lign##$\hfil &\qquad\@lign-- ##\hfil\cr}
+\def\endsyntax{\crcr\egroup$$
+  \global\@ignoretrue
+}
+\def\syntaxoutnonbox{\xleavevmode$$
+    \parskip=0pt\lineskip=0pt
+    \def\\{\crcr}% Must have \def and not \let for nested alignments.
+    \everycr={\noalign{\penalty10000}}
+    \tabskip=0pt}
+\def\xleavevmode{\ifvmode\if@inlabel\indent\else\if@noskipsec\indent\else
+    \if@nobreak\global\@nobreakfalse\everypar={}\fi
+    {\parskip=0pt\noindent}\fi\fi\fi}
+\def\@but{\noalign{\nointerlineskip}}
+\def\alt{{\;|\;}}
+\def\seqof#1{\mbox{\textbf{\{}}\;{#1}\;\mbox{\textbf{\}}}}
+\def\optn#1{\textbf{[}\;{#1}\;\textbf{]}}
+\def\synindent{\;\;\;}
+%%%%
+\def\SP{\mathit{SP}}
+\def\PR{\mathtt{PR}}
+\def\Sig{\mathbb{S}\mathit{ig}}
+\def\tr{\mathtt{true}}
+\def\fs{\mathtt{false}}
+\makeatother
+%%%
+%%%% numbering
+%%% ToC down to susubsections
+\settocdepth{subsubsection}
+%%% Numbering down to sections
+\setsecnumdepth{subsection}
+%%% 名前定義を適当に
+\def\figurename{{図}}
+\def\tablename{表}
+\def\contentsname{目次}
+\def\listfigurename{図目次}
+\def\listtablename{表目次}
+\def\refname{参考文献}
+\def\bibname{参考文献}
+\def\indexname{索引}
+\def\appendixname{付録}
+%%%%%%%%%% Verbatim
+\DefineVerbatimEnvironment%
+{simplev}{Verbatim}
+{fontsize=\small}
+\DefineVerbatimEnvironment%
+{examplev}{Verbatim}
+{frame=leftline,fontsize=\small}
+%%%%%%%%%%
+\definecolor{shadecolor}{gray}{0.9}
+\newenvironment{vvtm}%
+{\parskip=0pt\lineskip=0pt\begin{center}\begin{minipage}{0.8\textwidth}\begin{snugshade}}%
+  {\end{snugshade}\end{minipage}\end{center}}
+%%%
+\usepackage{float}
+\begin{document}
+\headstyles{default}
+\tightlists
+%\midsloppy
+\sloppy
+\raggedbottom
+\chapterstyle{ell}
+%%%%%%%%
+\frontmatter
+\pagestyle{empty}
+% 表紙 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{補題発見支援機構利用手引き \\
+ver. 0.1}
+\vfill
+\author{澤田 寿実\\
+  (株) 考作舎\\
+  tswd@kosakusha.com}
+\date{2016/2/29}
+\maketitle
+\vfill
+\begin{center}
+\includegraphics[scale=0.2]{kosakusha2_gray.pdf}
+\end{center}
+\vfill
+\thispagestyle{empty}
+\newpage
+%%%%%%
+\mainmatter
+\pagestyle{plain}
+\pagenumbering{arabic}
+% 構成 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+\EnableBpAbbreviations
+\newpage
+\chapter{補題発見支援機構の概要}
+CafeOBJ 言語による仕様記述では，通常組み込みモジュール\verb|BOOL|
+で定義されているソート \verb|Bool| の \verb|true| および \verb|false|
+を用いて真偽値を表現する．モジュール \verb|BOOL| はそのような使い方を
+想定して様々な論理演算子(\verb|and|, \verb|or|, \verb|xor|, \verb|imply|
+など)を導入しており，これらの論理演算子を用いて表現された項は，
+$C_1 \mbox{xor} \ldots C_n$ の形をした標準形(XOR標準形)の形に
+(BOOLモジュールの等式によって)変換される（ここで $b_n$ は，$b_1 \mbox{and}\ldots b_m$ である．）
+
+たとえば，\verb|(B1:Bool or B2:Bool and B3:Bool) implies B4:Bool| という形の項は
+\begin{verbatim}
+((B2 and B3) xor (B1 xor ((B1 and (B3 and B2)) 
+                          xor 
+                          (true xor ((B1 and (B2 and (B3 and B4))) 
+                                     xor ((B1 and B4) xor (B3 and (B2 and B4))))))))
+\end{verbatim}
+のような形の標準形に変換される．見ての通り元の項に比べて
+意味的に同等ではあるが，XOR標準形は人間にとってその構造や
+意味を直感的に把握するのが困難である．
+
+証明過程においては，途中出現するさまざまな Bool 項について
+その真偽が想定したものとなっているかどうかが調べられるが，
+\verb|true| や \verb|false| に簡約されず，
+上記のXOR標準形のままに残ることがある．
+多くが何らかの仮定が不足だったり，想定していないケース漏れで
+あったりする．
+そのような場合，\verb|true| や \verb|false| に簡約されなかった
+項を観察し，必要とされている前提条件を推測するのが一般に取られる
+手段である．
+それらの仮定をうまく補題として取り出すことができると以降の証明が先まで進んで行く．
+その場合に障害となるのが，上で見た通りXOR標準形は項のサイズが
+大きくなる傾向があること，また人間の日常的に慣れ親しんでいる
+真偽判定のやり方と乖離があり，何を仮定すれば全体の Bool 項をより
+簡略化できるかが了解しにくいということである．
+
+この問題を解決するための支援機構として，Bool項検査開始コマンド(\verb|binspect|)
+ならびに \verb|binspect| で指定された項の真偽値が，それらを構成する
+部分項の真偽値によりどのようになるかを調べるためのコマンド(\verb|bresolve|, 
+\verb|bguess|)などを導入した．
+以下ではこれらのコマンドについてその使用方法を説明する．
+
+\chapter{補題発見支援機構コマンド}
+\section{bispect コマンド}
+\begin{itemize}
+\item \verb|binspect| コマンドは与えられたBool項を抽象化し，見やすい形にするとともに
+  その項を \verb|bresolve| や \verb|bguess| コマンドの適用対象として設定する．
+\item 構文
+  \begin{vvtm}
+    \begin{simplev}
+    binspectコマンド ::= binspect [in <ModuleName>]: <term> .
+    \end{simplev}
+  \end{vvtm}
+ ここで，\verb|<term>| は組み込みモジュールBOOLで定義されたソート Bool の項でなければならない．
+\item 実行例-1
+%\begin{vvtm}
+\begin{simplev}
+binspect in NAT : (N1:Nat * N2:Nat) = (N1:Nat * N3:Nat) implies N2 = N3 .
+
+(((N1 * N2) = (N1 * N3)) implies (N2 = N3)):Bool
+--> (((N2:Nat * N1:Nat) = (N3:Nat * N1)) xor (true xor ((N2 = N3) and ((N2 * N1) = (N3 * N1)))))
+** Abstracted boolean term:
+  ((`P-1:Bool and `P-2:Bool) xor (`P-1 xor true))
+  where
+    `P-1 = ((N2:Nat * N1:Nat) = (N3:Nat * N1))
+    `P-2 = (N2:Nat = N3:Nat)
+\end{simplev}
+%\end{vvtm}
+\item もとの項が \verb|(`P-1:Bool and `P-2:Bool) xor (`P-1 xor true)| という
+  XOR 標準形に変換され，また \verb|N2:Nat = N3:Nat| のような部分項は
+  \verb|`P-1| という擬似定数に変換され全体の構造がより視認されやすいようになっている．
+\item 実行例-2
+\begin{simplev}
+CafeOBJ> binspect in NAT : (N1:Nat = N2:Nat) and (N2:Nat = N3:Nat + 1) 
+           implies (N1 = N3 + 1) or (N2 = N1) .
+
+(((N1 = N2) and (N2 = (1 + N3))) implies ((N1 = (1 + N3)) or (N2 = N1))):Bool
+--> true
+** Abstracted boolean term:
+  true
+\end{simplev}
+\item 上の例のように，変換結果が \verb|true| または \verb|false| となる場合は
+  　その旨表示される．
+
+\item 実行例-3
+\begin{simplev}
+CafeOBJ> binspect in NAT : (N1:Nat * N2:Nat) = 0 or (N2 * N1) = 0 implies (N1 = 0 or N2 = 0) .
+
+((((N1 * N2) = 0) or ((N2 * N1) = 0)) implies ((N1 = 0) or (N2 = 0))):Bool
+--> (((N2:Nat * N1:Nat) = 0) xor (true xor (((N1 = 0) and ((N2 = 0) and ((N1 * N2) = 0))) 
+         xor (((N1 = 0) and ((N2 * N1) = 0)) xor ((N2 = 0) and ((N2 * N1) = 0))))))
+** Abstracted boolean term:
+  ((`P-1:Bool and `P-3:Bool) xor ((`P-1 and `P-2:Bool) xor ((`P-1 and (`P-3 and `P-2)) xor (`P-1 xor true))))
+  where
+    `P-1 = ((N2:Nat * N1:Nat) = 0)
+    `P-2 = (N1:Nat = 0)
+    `P-3 = (N2:Nat = 0)
+\end{simplev}
+\item 同じ部分項は同じ擬似定数（上例では \verb|N1:Nat * N2:Nat = 0|に対して\verb|`P-1|)で抽象化される．
+\end{itemize}
+
+\section{bshow コマンド}\label{sec:bshow}
+\begin{itemize}
+\item \verb|bshow| コマンドは \verb|binspect| コマンドで指定した項を印字する．
+\item 構文
+\begin{vvtm}
+\begin{simplev}
+  bshowコマンド ::= bshow [{ grind | tree }]
+\end{simplev}
+\end{vvtm}
+\item 実行例-1 \\
+bshow は先に binspet で指定したBool項を表示する．
+\begin{simplev}
+CafeOBJ> bshow
+((`P-1:Bool and `P-3:Bool) xor ((`P-1 and `P-2:Bool) xor ((`P-1 and (`P-3 and `P-2)) xor (`P-1 xor true))))
+where
+  `P-1 = ((N2:Nat * N1:Nat) = 0)
+  `P-2 = (N1:Nat = 0)
+  `P-3 = (N2:Nat = 0)
+\end{simplev}
+\item 実行例-2\\
+  オプション引数 \verb|grind| を指定すると，XOR 標準形の部分項を構成する and で結ばれた項を集約して表示する．
+  大きなサイズの項の構造を把握するために便利である．
+\begin{simplev}
+CafeOBJ> bshow grind
+
+>> xor ***>
+true
+>> and --->
+`P-1 = ((N1:Nat * N2:Nat) = 0)
+`P-2 = (N1:Nat = 0)
+`P-3 = (N2:Nat = 0)
+<----------
+>> and --->
+`P-1 = ((N2:Nat * N1:Nat) = 0)
+`P-2 = (N1:Nat = 0)
+<----------
+>> and --->
+`P-1 = ((N2:Nat * N1:Nat) = 0)
+`P-3 = (N2:Nat = 0)
+<----------
+`P-1 = ((N2:Nat * N1:Nat) = 0)
+<**********
+\end{simplev}
+\item 実行例-3\\
+  オプション引数の \verb|tree| を指定すると，抽象化したBool項の木構造を
+  把握しやすい形式で印字する．
+\begin{simplev}
+bshow tree
+
+_xor_
+    _and_
+        `P-1:Bool
+        `P-3:Bool
+    _xor_
+        _and_
+            `P-1:Bool
+            `P-2:Bool
+        _xor_
+            _and_
+                `P-1:Bool
+                _and_
+                    `P-3:Bool
+                    `P-2:Bool
+            _xor_
+                `P-1:Bool
+                true
+where
+  `P-1 = ((N2:Nat * N1:Nat) = 0)
+  `P-2 = (N1:Nat = 0)
+  `P-3 = (N2:Nat = 0)
+\end{simplev}
+\end{itemize}
+
+\section{bresolveコマンド}
+\begin{itemize}
+\item \verb|bresolve| は \verb|binspect| コマンドで解析対象として指定した項の xor の各部分項に
+  \verb|true| と\verb|false| の組み合わせを代入し，結果として \verb|true| となるような組み合わせを
+  探索し，その結果を表示する．
+\item 構文
+\begin{vvtm}
+\begin{simplev}
+bresolveコマンド ::= bresolve [ <number> | all ]
+\end{simplev}
+\end{vvtm}
+\item 実行例-1 \\
+  オプション引数 <number> は true または false を割振る擬似定数の組み合わせの個数を指定する．
+  指定しない場合のデフォルトは1であり，この場合抽象化されたBool項に出現する個々の擬似定数にたいして true または
+  false を代入し，全体の結果が true となるものを探す．
+\begin{simplev}
+CafeOBJ> bresolve
+
+** (1) The following assignment(s) makes the term to be 'true'.
+[1] { `P-1:Bool |-> false }
+where
+  `P-1 = ((N2:Nat * N1:Nat) = 0)
+  
+[2] { `P-2:Bool |-> true }
+where
+  `P-2 = (N1:Nat = 0)
+  
+[3] { `P-3:Bool |-> true }
+where
+  `P-3 = (N2:Nat = 0)
+\end{simplev}
+
+\item 実行例-2 \\
+  オプション引数 <number> に all を指定すると，全ての可能な
+  true/false の組み合わせについて評価し，結果が true となる代入を探す．
+\begin{simplev}
+bresolve all
+
+** (1) The following assignment(s) makes the term to be 'true'.
+[1] { `P-1:Bool |-> false }
+where
+  `P-1 = ((N2:Nat * N1:Nat) = 0)
+  
+[2] { `P-2:Bool |-> true }
+where
+  `P-2 = (N1:Nat = 0)
+  
+[3] { `P-3:Bool |-> true }
+where
+  `P-3 = (N2:Nat = 0)
+  
+** (2) The following assignment(s) makes the term to be 'true'.
+[1] { `P-1:Bool |-> true, `P-2:Bool |-> true }
+[2] { `P-1:Bool |-> false, `P-2:Bool |-> true }
+[3] { `P-1:Bool |-> false, `P-2:Bool |-> false }
+where
+  `P-1 = ((N2:Nat * N1:Nat) = 0)
+  `P-2 = (N1:Nat = 0)
+  
+[4] { `P-1:Bool |-> true, `P-3:Bool |-> true }
+[5] { `P-1:Bool |-> false, `P-3:Bool |-> true }
+[6] { `P-1:Bool |-> false, `P-3:Bool |-> false }
+where
+  `P-1 = ((N2:Nat * N1:Nat) = 0)
+  `P-3 = (N2:Nat = 0)
+  
+[7] { `P-2:Bool |-> true, `P-3:Bool |-> true }
+[8] { `P-2:Bool |-> false, `P-3:Bool |-> true }
+[9] { `P-2:Bool |-> true, `P-3:Bool |-> false }
+where
+  `P-2 = (N1:Nat = 0)
+  `P-3 = (N2:Nat = 0)
+  
+** (3) The following assignment(s) makes the term to be 'true'.
+[1] { `P-1:Bool |-> true, `P-2:Bool |-> true, `P-3:Bool |-> true }
+[2] { `P-1:Bool |-> false, `P-2:Bool |-> true, `P-3:Bool |-> true }
+[3] { `P-1:Bool |-> true, `P-2:Bool |-> false, `P-3:Bool |-> true }
+[4] { `P-1:Bool |-> false, `P-2:Bool |-> false, `P-3:Bool |-> true }
+[5] { `P-1:Bool |-> true, `P-2:Bool |-> true, `P-3:Bool |-> false }
+[6] { `P-1:Bool |-> false, `P-2:Bool |-> true, `P-3:Bool |-> false }
+[7] { `P-1:Bool |-> false, `P-2:Bool |-> false, `P-3:Bool |-> false }
+where
+  `P-1 = ((N2:Nat * N1:Nat) = 0)
+  `P-2 = (N1:Nat = 0)
+  `P-3 = (N2:Nat = 0)
+\end{simplev}
+\end{itemize}
+
+
+\section{bguessコマンド}
+\begin{itemize}
+\item \verb|bguess| コマンドは \verb|binspect| コマンドによって指定された Bool 項に対して
+  経験から得られている幾つかの有用な推測方法を適用し結果を調べる．
+\item 構文
+\begin{vvtm}
+\begin{simplev}
+ bguessコマンド ::= bguess { imply | and | or }
+\end{simplev}
+\end{vvtm}
+\item 実行例-1 \\
+  引数 \verb|imply| を指定した場合，抽象化した Bool 項に含まれる
+  擬似定数 p, q について\verb|p implies q = true| が成立すると仮定した時に
+  結果がどうなるかを調べ，true となる場合その仮定を公理の形式で印字して示す．
+\begin{simplev}
+CafeOBJ> bg imply
+
+** (1) each of the following equations makes the inspected term 'true'
+[1] eq [:bimply]: (`P-1:Bool and `P-3:Bool) = `P-1 .
+where
+  `P-1 = ((N2:Nat * N1:Nat) = 0)
+  `P-3 = (N2:Nat = 0)
+
+[2] eq [:bimply]: (`P-1:Bool and `P-2:Bool) = `P-1 .
+where
+  `P-1 = ((N2:Nat * N1:Nat) = 0)
+  `P-2 = (N1:Nat = 0)
+\end{simplev}
+\item 上の例のように \verb|bguess| は \verb|bg| と略称することができる．
+\item \verb|p implies q = true| は XOR 標準形を用いた \verb|p and q = p| に論理的に等価である．
+  結果の印字では XOR 標準形を用いた形式で印字する．
+\item and \\
+  bguess の引数として \verb|and| を指定した場合は，\verb|p and q = false| という形の
+  仮定を導入した場合に結果がどうなるかを調べる．
+\item or \\
+  bguess の引数として \verb|or| を指定した場合は，\verb|p or q = true| という形の
+  仮定を導入した場合に結果がどうなるかを調べる．
+\item 現在までのところ，引数 and や or により有用な補題の発見ができた例は存在しない．
+\end{itemize}
+
+\end{document}
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
