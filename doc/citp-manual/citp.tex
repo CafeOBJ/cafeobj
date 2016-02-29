@@ -1,6 +1,6 @@
 % !TEX TS-program = xelatex
 % !TEX encoding = UTF-8
-% 2015/12/25: CITP for CafeOBJ
+% 2016/2/29: CITP for CafeOBJ
 % toshi.swd@gmail.com
 %
 \documentclass[a4paper,oneside,10pt,here]{memoir}
@@ -125,12 +125,12 @@
 \pagestyle{empty}
 % 表紙 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{CITP for CafeOBJ \\
-ver. 1.1}
+ver. 1.2}
 \vfill
 \author{澤田 寿実\\
   (株) 考作舎\\
   tswd@kosakusha.com}
-\date{2015/12/25}
+\date{2016/2/29}
 \maketitle
 \vfill
 \begin{center}
@@ -282,7 +282,7 @@ $G$ から各 $G_i (i = 1 \cdots n)$ への枝は，全て適用した戦略$T$�
     \begin{simplev}
     apply コマンド ::= :apply [ to <GoalName> : ] (<Tactic> ... <Tactic> )
     <GoalName>     ::= ゴールに付与された名前
-    <Tactic>       ::= SI | CA | TC | IP | RD | RD- | <DefinedTactic>
+    <Tactic>       ::= SI | CA | TC | IP | IP+ | RD | RD- | <DefinedTactic>
     \end{simplev}
   \end{vvtm}
 
@@ -299,13 +299,13 @@ CITP for CafeOBJ で提供される戦略を表~\ref{tab:tactics} に示す．
 \label{tab:tactics}
 \caption{戦略一覧}
 \begin{center}
-\begin{tabular}[htbp]{|l|l|}\hline
+\begin{tabular}[htbp]{|c|l|}\hline
 戦略名 & 演繹規則 \\\hline\hline
 SI & Simultaneous Induction (同時帰納法) \\\hline
 CA & Case Analysis (場合分け)\\\hline
 TC & Theorem of Constants  \\\hline
-IP & Implication (含意)\\\hline
-RD & Reduction (簡約化) \\\hline
+IP, IP+ & Implication (含意)\\\hline
+RD, RD- & Reduction (簡約化) \\\hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -416,15 +416,19 @@ instantiationについて成り立つなら $(\forall X)\varepsilon$ が成り�
     \item 帰納法の仮定+ステップケース
   \end{itemize}
   それぞれに対応した新たなゴールを生成する
-\item induction variables は \verb|:ind on| コマンドによって指定する．
+\item induction variables は \verb|:ind on| あるいは \verb|:ind+ on| コマンドによって指定する．
+
   \begin{vvtm}
     \begin{simplev}
     :ind コマンド ::= :ind on ( <変数> ... )      
+    :ind+ コマンド::= :ind+ on ( <変数> ...) 
+                     with base ( <項> . ...<項m> .)
+                          step ( <項> . ...<項n> .)
     \end{simplev}
   \end{vvtm}
    \verb|<変数>| は on-the-fly の変数宣言形式で指定する．
- \item \verb|:ind| コマンドで指定した変数に対応するソートが，構成子を
-   持たないソートであった場合はエラーとする．
+ \item \verb|:ind| あるいは \verb|:int+| コマンドで指定した変数に対応するソートが，
+   構成子を持たないソートであった場合はエラーとする．
  \item 帰納法の仮定や，証明対象とするステップケースの文では，
   帰納法による定数が必要となるが，それらは次のようにして生成する．
   \begin{itemize}
@@ -435,6 +439,15 @@ instantiationについて成り立つなら $(\forall X)\varepsilon$ が成り�
   導入される定数名は \verb|I#<ソート名>| となる．
   <ソート名> は文脈に応じて適切なソートが選択される．
 \end{itemize}
+
+\subsubsection{利用者指定の帰納スキーム}\label{sec::ind+}
+\verb|:ind| コマンドの場合，システムが自動的に指定の帰納変数のソートの
+構成子定義からベースケースとステップケースに対応する項のパターンを
+生成するが，
+\verb|:ind+| は帰納法のベースおよびステップのパターンを，
+それぞれ \verb|base| および \verb|step| で指定するものである．
+\verb|<項>| のパターンを引数として与え，それに基づいて各々の
+ケースの項のパターンを生成する．
 
 \subsection{TC: Theorem of Constants}\label{sec:TC}
 \begin{prooftree}
@@ -501,6 +514,14 @@ CITP CafeOBJ ではこの演繹規則に対応するものを戦略として提�
   \end{itemize}
 %%% spoiler \item 以上を実施した後，生成されたゴールに対して暗黙の戦略 CT および ST を適用する．
 \end{itemize}
+
+\subsection{IP+: Implication 2} \label{sec:IP+}
+IP+ の挙動は IP と同様であるが，条件部から生成された前提 C を公理として追加するのではなく，
+証明対象の文の左辺 LHS を，
+\begin{verbatim}
+ C implies LHS = RHS
+\end{verbatim}
+のように，組み込みのオペレータ implies を用いて導入する．
 
 \subsection{CA: Case Analysis}\label{sec:CA}
 
@@ -697,7 +718,6 @@ ceq [INIT]: true = false if statusp(S#Sys, I@Client) = updated /\
 が追加される．
 
 \subsection{:imply コマンド}\label{sec:imply}
-
 
 \begin{itemize}
 \item :imply コマンドは :init コマンドと似ているが，指定可能な等式は実行文脈に
