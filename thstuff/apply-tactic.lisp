@@ -1221,11 +1221,9 @@
         (mapcar #'(lambda (x) (cons x 0)) arity))
       (dolist (s arity)
         (cond ((sort<= (term-sort one-arg) s *current-sort-order*)
-               #||
                (when (< 1 (incf n))
                  (with-output-chaos-error ('sorry)
-               (format t "Sorry, but system does not handle a constructor having multiple arguments of the same sort.")))
-               ||#
+                   (format t "Sorry, but system does not handle a constructor having multiple arguments of the same sort.")))
                (push one-arg arg-list))
               (t (let* ((var-assoc (assoc s arg-var-assoc))
                         (ind-var (if (zerop (cdr var-assoc))
@@ -2045,7 +2043,7 @@
 
 ;;; resolve-subst-form
 ;;;
-(defun resolve-subst-form (context subst-forms)
+(defun resolve-subst-form (context subst-forms &optional (normalize nil))
   (with-in-module (context)
     (let ((subst nil)
           (*parse-variables* nil))
@@ -2075,6 +2073,9 @@
               (format t "  variable: ") (term-print-with-sort var)
               (print-next)
               (format t "  term: ") (term-print-with-sort term)))
+          (when normalize
+            (with-spoiler-on
+              (setq term (normalize-term-in context term))))
           (push (cons var term) subst)))
       subst)))
 
@@ -2105,7 +2106,8 @@
 ;;; 
 (defun instanciate-axiom (target-form subst-form &optional (citp? t))
   (let* ((target-axiom (get-target-axiom *current-module* target-form t))
-         (subst (resolve-subst-form *current-module* subst-form)))
+         (subst (resolve-subst-form *current-module* subst-form (and citp?
+                                                                     (citp-flag citp-normalize-init)))))
     (if citp?
         (instanciate-axiom-in-goal *current-module* target-axiom subst)
       (if *open-module*
@@ -2129,13 +2131,15 @@
 (defun instanciate-axiom-in-goal (module target-axiom subst)
   (with-next-context (*proof-tree*)
     (let ((instance (make-axiom-instance module subst target-axiom)))
+      #||
       (when (citp-flag citp-normalize-init)
         ;; we normalize the LHS of the instance
         (with-spoiler-on
             (multiple-value-bind (n-sen applied?)
                 (normalize-sentence instance module)
               (when applied?
-                (setf instance n-sen)))))
+            (setf instance n-sen)))))
+      ||#
       ;; input the instance to current context
       (with-in-module (module)
         (let ((goal (ptree-node-goal .context.)))
