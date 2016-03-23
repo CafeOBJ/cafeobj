@@ -531,6 +531,8 @@
                                                               (module-name x)))))
                        (not (eq (cdr sub) :using)))
               (push sub subs)))
+          (setq subs (delete-if #'(lambda (x) (ignore-from-import-list (car x)))
+                                 subs))
           (when subs
             (print-next)
             (princ "imports {")
@@ -538,22 +540,21 @@
               (let ((flg nil))
                 (print-next)
                 (dolist (sb subs)
-                  (unless (ignore-from-import-list (car sb))
-                    (if flg (print-next) (setf flg t))
-                    (print-check)
-                    ;; importation-mode
-                    (format t "~a " (string-downcase (string (cdr sb))))
-                    ;; alias
-                    (let ((a-name (cdr (assoc (car sb) (module-alias mod)))))
-                      (when a-name
-                        (format t "as ~a " a-name)))
-                    ;; modexpr
-                    (let ((*print-indent* (+ 4 *print-indent* (length (string (cdr sb))))))
-                      (princ "(") (print-mod-name (car sb)
-                                                  *standard-output*
-                                                  t
-                                                  t)
-                      (princ ")"))))))
+                   (if flg (print-next) (setf flg t))
+                  (print-check)
+                  ;; importation-mode
+                  (format t "~a " (string-downcase (string (cdr sb))))
+                  ;; alias
+                  (let ((a-name (cdr (assoc (car sb) (module-alias mod)))))
+                    (when a-name
+                      (format t "as ~a " a-name)))
+                  ;; modexpr
+                  (let ((*print-indent* (+ 4 *print-indent* (length (string (cdr sb))))))
+                    (princ "(") (print-mod-name (car sb)
+                                                *standard-output*
+                                                t
+                                                t)
+                    (princ ")")))))
             (print-next)
             (princ "}")))
         ;; SIGNATURE

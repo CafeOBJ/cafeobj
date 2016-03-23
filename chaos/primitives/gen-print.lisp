@@ -96,16 +96,18 @@
 
 (defvar *print-term-color* nil)
 
-(defun variable-print-string (term &optional (print-var-sort nil)
+(defun variable-print-string (term &optional (print-var-sort t)
                                              (vars-so-far (cons nil nil)))
   (let ((name (if (numberp (variable-print-name term))
                   (format nil "_v~d" (variable-print-name term))
                 (string (variable-print-name term)))))
     (when print-var-sort
-      (unless (member term (cdr vars-so-far)
-                      :test #'variable-eq)
+      (unless (or (member term (cdr vars-so-far)
+                          :test #'variable-eq)
+                  (rassoc term (module-variables *current-module*)
+                          :test #'equal))
         (push term (cdr vars-so-far))
-        (when (and (let ((sort (variable-sort term)))
+        (when (and '(let ((sort (variable-sort term)))
                      (not (or (eq sort *universal-sort*)
                               (eq sort *huniversal-sort*)
                               (eq sort *bottom-sort*)
@@ -431,6 +433,9 @@
            (type (or t stream))
            (type (or null t) print-var-sort)
            (values t))
+  (unless *current-module*
+    (with-output-chaos-error ('no-context)
+      (format t "Internal error: printing term, no current context")))
   (when (eq stream t)
     (setq stream *standard-output*))
   (let* ((vars-so-far (cons nil .printed-vars-so-far.))
@@ -464,7 +469,7 @@
            (type stream stream)
            (values t))
   (let ((*print-indent* (+ *print-indent* 2))
-        (**print-var-sort** nil)
+        (**print-var-sort** t)
         (paren? nil))
     (setq paren?
           (case *print-xmode*
@@ -483,6 +488,10 @@
                    nil
                  t)))
             (otherwise  nil)))
+    (when (and (or (eq *print-xmode* :fancy)
+                   (eq *print-xmode* :normal))
+               (term-is-variable? term))
+      (setq **print-var-sort** nil))
     ;;
     (when paren? (princ "(" stream))
     (term-print term stream)
