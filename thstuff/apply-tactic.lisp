@@ -2105,7 +2105,7 @@
 ;;; instanciate-axiom
 ;;; 
 (defun instanciate-axiom (target-form subst-form &optional (citp? t))
-  (let* ((target-axiom (get-target-axiom *current-module* target-form t))
+  (let* ((target-axiom (get-target-axiom *current-module* target-form))
          (subst (resolve-subst-form *current-module* subst-form (and citp?
                                                                      (citp-flag citp-normalize-init)))))
     (if citp?
@@ -2115,15 +2115,16 @@
         (with-output-chaos-warning ()
           (princ "no module open."))))))
 
-(defun report-instantiated-axiom (instance)
+(defun report-instanciated-axiom (instance)
   (let ((*print-indent* (+ 2 *print-indent*))
         (*print-line-limit* 80)
         (*print-xmode* :fancy))
     (print-next)
     (print-axiom-brief instance)))
 
-(defun introduce-instantiated-axiom-to-module (instance module)
+(defun introduce-instanciated-axiom-to-module (instance module)
   (with-in-module (module)
+    (setf (axiom-kind instance) nil)    ; reset bad flag
     (set-operator-rewrite-rule module instance)
     (adjoin-axiom-to-module module instance)
     (compile-module module t)))
@@ -2145,8 +2146,8 @@
         (let ((goal (ptree-node-goal .context.)))
           (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))
           (format t "~%**> initialized the axiom in goal ~s" (goal-name (ptree-node-goal .context.)))
-          (report-instantiated-axiom instance))
-        (introduce-instantiated-axiom-to-module instance module)
+          (report-instanciated-axiom instance))
+        (introduce-instanciated-axiom-to-module instance module)
         (when-citp-verbose ()
           (pr-goal (ptree-node-goal .context.)))))))
 
@@ -2154,8 +2155,8 @@
   (with-in-module (module)
     (let ((instance (make-axiom-instance module subst target-axiom)))
       (format t "~%**> initialized the axiom in module ~a" (get-module-simple-name module))
-      (report-instantiated-axiom instance)
-      (introduce-instantiated-axiom-to-module instance module))))
+      (report-instanciated-axiom instance)
+      (introduce-instanciated-axiom-to-module instance module))))
 
 ;;; ================================
 ;;; Target sentence T -> A implies T [:imp]
