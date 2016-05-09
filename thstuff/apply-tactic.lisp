@@ -443,7 +443,7 @@
                     (with-citp-debug ()
                       (format t "~%-- (T1 = T2) = true"))
                     ;; (T1 = T2) = true
-                    (cond ((method= (term-head arg1) (term-head arg2))
+                    (cond ((term-equational-equal arg1 arg2)
                            ;; (T1 = T1) = true : dangerous tautology
                            (with-citp-debug ()
                              (format t "~%-- (T = T) = true, tautology."))
@@ -486,7 +486,7 @@
                     ;; (T1 = T2) = false
                     (with-citp-debug ()
                       (format t "~%-- (T1 = T2) = false"))
-                    (cond ((method= (term-head arg1) (term-head arg2))
+                    (cond ((term-equational-equal arg1 arg2)
                            ;; (T = T) = false 
                            ;; contradiction
                            (with-citp-debug ()
