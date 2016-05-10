@@ -438,6 +438,10 @@
                                                        (using-recreate-term tm))
                                                    (term-subterms term))))))))
              (using-recreate-axiom (axiom)
+               (when *on-import-debug*
+                 (princ "[using-recreate-axiom]")
+                 (with-in-module (submodule)
+                   (print-axiom-brief axiom)))
                (make-rule :lhs (using-recreate-term (axiom-lhs axiom))
                           :rhs (using-recreate-term (axiom-rhs axiom))
                           :condition (if (is-true? (axiom-condition axiom))
@@ -447,6 +451,7 @@
                           :type (axiom-type axiom)
                           :behavioural (axiom-is-behavioural axiom)
                           :kind (axiom-kind axiom)
+                          :non-exec (axiom-non-exec axiom)
                           :meta-and-or (axiom-meta-and-or axiom)))
              ;;
              (using-import-sub (s mode)

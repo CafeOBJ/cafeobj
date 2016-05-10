@@ -1733,6 +1733,9 @@
     (when (axiom-labels rul)
       (print-rule-labels rul)
       (princ " "))
+    ;; 
+    (when (axiom-non-exec rul)
+      (princ "** non executable"))
     ;; LHS
     (let ((*print-indent* (+ *print-indent* 2)))
       (print-next)

@@ -48,6 +48,7 @@
                        next-match-method 
                        labels
                        (meta-and-or nil)
+                       (non-exec nil)
                        no-method-computation)
   (declare (type (or null term) lhs rhs)
            (type list condition)
@@ -69,7 +70,8 @@
                             first-match-method
                             next-match-method
                             labels
-                            meta-and-or)))
+                            meta-and-or
+                            non-exec)))
     (if (term-is-lisp-form? rhs)
         (setf (axiom-rhs rule)
           (convert-lisp-form-term rhs (axiom-lhs rule)))
@@ -80,7 +82,7 @@
       (compute-rule-method rule))
     rule))
 
-(defun make-simple-axiom (lhs rhs type &optional behavioural meta-and-or)
+(defun make-simple-axiom (lhs rhs type &optional behavioural meta-and-or non-exec)
   (declare (type term lhs rhs)
            (type (or null t) behavioural))
   (make-rule :lhs lhs
@@ -91,7 +93,8 @@
              :type type
              :kind nil
              :labels nil
-             :meta-and-or meta-and-or))
+             :meta-and-or meta-and-or
+             :non-exec non-exec))
 ;;;
 (defun make-fun (f)
   #+GCL f
