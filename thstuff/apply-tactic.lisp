@@ -2820,7 +2820,7 @@
       (unless axs
         (with-output-chaos-error ()
           (format t "No setences with specified names are found.")))
-      (dolist (goal (mapcar #'ptree-node-goal unp))
+      (dolist (goal (mapcar #'(lambda (x) (ptree-node-goal x)) unp))
         (use-sentences-in-goal goal axs)))))
 
 ;;;
