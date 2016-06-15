@@ -195,11 +195,29 @@
 
 ;;; :init as tactic
 ;;;
-(defstruct (tactic-init (:include tactic (executor 'apply-init-tactic)))
+(defstruct (tactic-init (:include tactic (executor 'apply-init-tactic))
+            (:print-function pr-tactic-init))
   (axiom nil)                           ; axiom
   (subst nil)                           ; substitution
   (context nil)                         ; context module
+  (kind nil)                            ; how the axiom is specified, :label or :term
   )
+
+(defun pr-tactic-init (obj stream &rest ignore)
+  (declare (type tactic-init obj)
+           (ignore ignore))
+  (format stream ":init")
+  (with-in-module ((tactic-init-context obj))
+    (let ((*print-indent* (+ 2 *print-indent*)))
+      (if (eq (first (tactic-init-kind obj)) :label)
+          (format stream "[~a]" (second (tactic-init-kind obj)))
+        (progn
+          (princ "(")
+          (print-axiom-brief (tactic-init-axiom obj))
+          (princ " .)")))
+      (print-next)
+      (princ "by ")
+      (print-substitution (tactic-init-subst obj)))))
 
 ;;; :ind as tactic
 ;;;
@@ -1367,6 +1385,7 @@
     (format t "!! Discarding the corrent proof..."))
   (setf (citp-proof-context *the-citp-proof*) nil
         (citp-proof-discharged *the-citp-proof*) nil)
+  (setf .user-defined-tactics. nil)
   (reset-proof *proof-tree*)
   (setq *proof-tree* nil))
 

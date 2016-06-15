@@ -2106,17 +2106,21 @@
 (defun make-axiom-instance (module subst axiom)
   (let ((new-axiom (rule-copy-canonicalized axiom module)))
     (when subst
-      (apply-substitution-to-axiom (make-real-instanciation-subst subst (axiom-variables new-axiom))
+      (apply-substitution-to-axiom (make-real-instanciation-subst subst 
+                                                                  (axiom-variables new-axiom))
                                    new-axiom 
-                                   '(init)))
+                                   '(init)
+                                   t))
     new-axiom))
 
 ;;; instanciate-axiom
 ;;; 
 (defun instanciate-axiom (target-form subst-form &optional (citp? t))
   (let* ((target-axiom (get-target-axiom *current-module* target-form))
-         (subst (resolve-subst-form *current-module* subst-form (and citp?
-                                                                     (citp-flag citp-normalize-init)))))
+         (subst (resolve-subst-form *current-module* 
+                                    subst-form 
+                                    (and citp?
+                                         (citp-flag citp-normalize-init)))))
     (if citp?
         (instanciate-axiom-in-goal *current-module* target-axiom subst)
       (if *open-module*
@@ -2124,17 +2128,17 @@
         (with-output-chaos-warning ()
           (princ "no module open."))))))
 
-;;; apply-init : tactic-init -> void
+;;; apply-init-tactic : tactic-init -> void
 ;;; apply :def(ed) :init command to the current goal
 ;;;
-(defun apply-init (ptree-node tactic)
+(defun apply-init-tactic (ptree-node tactic)
   (declare (type ptree-node ptree-node)
-           (type tactic-ctf tactic))
+           (type tactic-init tactic))
   (let ((goal (ptree-node-goal ptree-node)))
     (with-in-module ((goal-context goal))
       (let ((ax (tactic-init-axiom tactic))
             (subst (tactic-init-subst tactic)))
-        (print tactic)))))
+        (instanciate-axiom-in-goal *current-module* ax subst)))))
 
 ;;; supporting function around :init
 

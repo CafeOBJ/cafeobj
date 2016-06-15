@@ -284,7 +284,9 @@
 ;;; ==> (:csp "sp1" nil ((<Equation> ".") (<Equation> ".")))
 ;;; (":def" "tactic-1" "=" ("(" ("si" "rd" "tc") ")"))
 ;;; ==> (:seq "tactic-1" ("si" "rd" "tc"))
-;;;
+;;; (":define" "*disr" "=" (":init" ("[" ("*disr") "]") "by" "{" (("X:PNat.PNAT" "<-" ("X#PNat")) #1=";" ("Y:PNat.PNAT" "<-" ("Y@PNat")) #1# ("Z:PNat.PNAT" "<-" ("Z@PNat")) #1#) "}"))
+;;; ==> (:init "*disr" nil (":init" ("[" ("*disr") "]") "by" "{" (("X:PNat.PNAT" "<-" #) #1=";" ("Y:PNat.PNAT" "<-" #) #1# ("Z:PNat.PNAT" "<-" #) #1#) "}"))
+
 (defun citp-parse-define (args)
   (flet ((name-to-com (name)
            (cond ((equal name "(")
@@ -304,16 +306,15 @@
                                   (> (length com-name) 4))
                              (and (eq command :init)
                                   (> (length com-name) 5))))
-           (body-form (if (eq command :ctf)
-                          (if (equal "[" (first (second (fourth args))))
-                              (list :term (second (second (fourth args))))
-                            (list :eq (second (second (fourth args)))))
-                        (if (eq command :csp)
-                            (third (fourth args))
-                          (if (eq command :init)
-                              (fourth args)
-                            ;; :seq
-                            (second (fourth args)))))))
+           (body-form (case command
+                        (:ctf (if (equal "[" (first (second (fourth args))))
+                                  (list :term (second (second (fourth args))))
+                                (list :eq (second (second (fourth args))))))
+                        (:csp (third (fourth args)))
+                        (:init (citp-parse-init (fourth args)))
+                        (:seq (second (fourth args)))
+                        (otherwise (with-output-chaos-error ('invalid-command)
+                                     (format t "Internal error, :def invalid ~s" command))))))
       (list command name dash-or-bang body-form))))
 
 ;;; { :show | :describe } <something>
@@ -669,16 +670,15 @@
                                                  :minus dash
                                                  :context *current-module*))))
                 ((eq tactic-name :init)
-                 ;; (:init "init1" nil (":init" ("(" ("eq" # "=" # ".") ")") "by" "{" (("Y" "<-" #) ";") "}"))
-                 ;; (:init "init2" nil (":init" ("[" ("label") "]") "by" "{" (("Y" "<-" #) ";") "}"))
                  (let ((ax (get-target-axiom *current-module* (second form)))
                        (subst (resolve-subst-form *current-module* 
-                                                  (fifth form)
+                                                  (third form)
                                                   nil)))
                    (setq tactic (make-tactic-init :name name
                                                   :axiom ax
                                                   :subst subst
-                                                  :context *current-module*))))
+                                                  :context *current-module*
+                                                  :kind (second form)))))
                 ((eq tactic-name :ind)
                  ;; ind
                  (setq tactic (make-tactic-ind :name name

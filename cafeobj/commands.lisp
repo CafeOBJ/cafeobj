@@ -2235,7 +2235,7 @@ a [stop pattern](#switch-stop-pattern) has been found."
 (define ("citp")
     :type :doc-only
     :title "CITP"
-    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":def" ":imp" ":ord")
+    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":def" ":imp" ":ord" ":use" ":embed" ":reset")
     :doc "Constructor Based Induction Theorem Prover
 
 The sub-system provides a certain level of automatization for theorem proving.
@@ -2477,7 +2477,7 @@ CITP prover returns to the original state before the reduce action."
     :parser citp-parse-define
     :evaluator eval-citp-define
     :related ("citp")
-    :title "`:def <symbol> = { <ctf> | <csp> | <ind> }`"
+    :title "`:def <symbol> = { <ctf> | <csp> | <ind> | <init> }`"
     :doc "Assigns a name to a specific case splitting (`:ctf` or `:csp`)
  or induction `:ind`),
 so that it can be used as tactics in `:apply`."
