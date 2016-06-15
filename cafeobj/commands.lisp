@@ -2270,7 +2270,7 @@ PNAT> :goal {
 the current goal, or the goal given as `<goal-name>`."
 )
 
-(define (":ind")
+(define (":ind" ":induction")
     :category :proof
     :parser citp-parse-ind-on
     :evaluator eval-citp-ind-on
@@ -2315,7 +2315,7 @@ the current goal, or the goal given as `<goal-name>`."
 The current target goal is removed from the proof tree."
 )
 
-(define (":init")
+(define (":init" ":init!")
     :category :proof
     :parser citp-parse-init
     :evaluator eval-citp-init
@@ -2477,15 +2477,17 @@ CITP prover returns to the original state before the reduce action."
     :parser citp-parse-define
     :evaluator eval-citp-define
     :related ("citp")
-    :title "`:def <symbol> = { <ctf> | <csp>}`"
-    :doc "Assigns a name to a specific case splitting (`ctf` or `csp`),
+    :title "`:def <symbol> = { <ctf> | <csp> | <ind> }`"
+    :doc "Assigns a name to a specific case splitting (`:ctf` or `:csp`)
+ or induction `:ind`),
 so that it can be used as tactics in `:apply`."
     :example "~~~~~
-:def name-1 = ctf [ <Term> . ]
-:def name-2 = ctf-{ eq LHS = RHS . }
-:def name-3 = csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
-:def name-4 = csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
-:apply(SI TC name-1 name-2 name-3 name-4)
+:def name-0 = :ind { :on (<Variable>...) :base <Term> . :step <Term> . }
+:def name-1 = :ctf [ <Term> . ]
+:def name-2 = :ctf-{ eq LHS = RHS . }
+:def name-3 = :csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
+:def name-4 = :csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
+:apply(name-0 TC name-1 name-2 name-3 name-4)
 ~~~~~"
 )
 
@@ -2562,6 +2564,30 @@ provability using the RD strategy. Defaults to `off`."
     :evaluator citp-eval-order
     :title "`:order (<op>, ..., <op>)`"
     :doc ""
+    )
+
+(define (":use")
+    :category :proof
+    :parser citp-parse-use
+    :evaluator citp-eval-use
+    :title "`:use (<label> ... <label>)`"
+    :doc "Incorporate discharged goal sentences as new axioms."
+    )
+
+(define (":embed")
+    :category :proof
+    :parser citp-parse-embed
+    :evaluator citp-eval-embed
+    :title "`:embed (<label> ... <label>`"
+    :doc "Icorporate proved goals into the current proof context module."
+    )
+    
+(define (":reset")
+    :category :proof
+    :parser citp-parse-reset
+    :evaluator citp-eval-reset
+    :title "`:reset`"
+    :doc "Discard the current proof session."
     )
 
 (define (":binspect")

@@ -59,9 +59,18 @@
 ;;; rule-copy-cononicalized : rule module -> rule
 ;;; copy rule with all variables are renewed and noralized.
 ;;;
+(defun remove-nonexec (rule)
+  (let ((l nil))
+    (dolist (lb (rule-labels rule))
+      (unless (member lb non-exec-labels)
+        (push lb l)))
+    (setf (rule-labels rule) (nreverse l))
+    (setf (rule-non-exec rule) nil)
+    rule))
+
 (defun rule-copy-canonicalized (rule module &optional label)
   (with-in-module (module)
-    (let* ((new-rule (rule-copy rule))
+    (let* ((new-rule (remove-nonexec (rule-copy rule)))
            (canon (canonicalize-variables (list (rule-lhs new-rule)
                                                 (rule-rhs new-rule)
                                                 (rule-condition new-rule))
@@ -2115,6 +2124,20 @@
         (with-output-chaos-warning ()
           (princ "no module open."))))))
 
+;;; apply-init : tactic-init -> void
+;;; apply :def(ed) :init command to the current goal
+;;;
+(defun apply-init (ptree-node tactic)
+  (declare (type ptree-node ptree-node)
+           (type tactic-ctf tactic))
+  (let ((goal (ptree-node-goal ptree-node)))
+    (with-in-module ((goal-context goal))
+      (let ((ax (tactic-init-axiom tactic))
+            (subst (tactic-init-subst tactic)))
+        (print tactic)))))
+
+;;; supporting function around :init
+
 (defun report-instanciated-axiom (instance)
   (let ((*print-indent* (+ 2 *print-indent*))
         (*print-line-limit* 80)
@@ -2132,15 +2155,13 @@
 (defun instanciate-axiom-in-goal (module target-axiom subst)
   (with-next-context (*proof-tree*)
     (let ((instance (make-axiom-instance module subst target-axiom)))
-      #||
-      (when (citp-flag citp-normalize-init)
+      (when (citp-flag citp-normalize-lhs)
         ;; we normalize the LHS of the instance
         (with-spoiler-on
             (multiple-value-bind (n-sen applied?)
                 (normalize-sentence instance module)
               (when applied?
             (setf instance n-sen)))))
-      ||#
       ;; input the instance to current context
       (with-in-module (module)
         (let ((goal (ptree-node-goal .context.)))
@@ -2781,6 +2802,29 @@
             (dolist (ngoal next-goals)
               (do-apply-rd ngoal nil (tactic-csp-minus tactic) tactic)))
           (values t next-goals))))))
+
+;;;
+;;; use discharged sentences as axioms
+;;;
+(defun use-discharged-goals (list-labels)
+  (let ((unp (get-unproved-nodes *proof-tree*)))
+    (unless unp
+      (with-output-chaos-warning ()
+        (princ "All goals are alredy discharged.")
+        (return-from use-discharged-goals nil)))
+    (let ((axs (find-discharged-sentences-with-label list-labels)))
+      (unless axs
+        (with-output-chaos-error ()
+          (format t "No setences with specified names are found.")))
+      (dolist (goal (mapcar #'ptree-node-goal unp))
+        (use-sentences-in-goal goal axs)))))
+
+;;;
+;;; embed-discharged-goals (list-labels)
+;;;
+(defun embed-discharged-goals (list-labels)
+  (let ((axs (find-discharged-sentences-with-label list-labels)))
+    (embed-sentences-in-module (get-context-module) axs)))
 
 ;;; -----------------------------------------------------------
 ;;; report-citp-stat

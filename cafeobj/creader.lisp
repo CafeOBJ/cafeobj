@@ -328,6 +328,34 @@
                        #.FoplAXDeclaration)
         |}|))
 
+  (defparameter INIT
+      '((:+ |:init| init |:init!| init!) 
+        (:one-of (\( (:one-of #.EqDeclaration
+                              #.CeqDeclaration
+                              #.RlDeclaration
+                              #.CRlDeclaration
+                              #.BeqDeclaration
+                              #.BCeqDeclaration
+                              #.BRLDeclaration
+                              #.BCRLDeclaration
+                              #.FoplAXDeclaration)
+                  \))
+                 (\[ (:symbol) \]))
+        |by| |{| ((:! SubstList)) |}|))
+  (defparameter IND
+      '((:+ |:ind| |:induction|)
+        (:one-of (on \( (:seq-of :term) \))
+                 (\{ (on \( (:seq-of :term) \))
+                     (base \( (:upto (|.| \)) :term)
+                           :append (:seq-of |.|
+                                      (:upto (|.| \)) :term))
+                           \)
+                      )
+                  (step \( (:upto (|.| \)) :term )
+                           :append (:seq-of |.|
+                                            (:upto (|.| \)) :term))
+                        \))
+                  \}))))
 )
 
 ;;;-----------------------------------------------------------------------------
@@ -766,6 +794,7 @@
                  |}|)
         (|:apply| (:if-present to (:symbol)) (\( (:seq-of :symbol) \)))
         (|:auto|)
+        #||
         (|:ind| (:+ on |:on|) \( (:seq-of :term) \))
         (|:ind+| (:+ on |:on|) \( (:seq-of :term) \)
                  with (base \( (:upto (|.| \)) :term)
@@ -776,8 +805,11 @@
                       (step \( (:upto (|.| \)) :term )
                                :append (:seq-of |.|
                                                  (:upto (|.| \)) :term))
-                           \)))
+        \)))
+        ||#
+        #.IND
         (|:roll| (:+ back |:back|))
+        #||
         ((:+ |:init| init) (:one-of (\( (:one-of #.EqDeclaration
                                                  #.CeqDeclaration
                                                  #.RlDeclaration
@@ -789,7 +821,9 @@
                                                  #.FoplAXDeclaration)
                                         \))
                                     (\[ (:symbol) \]))
-                 |by| |{| ((:! SubstList)) |}|)
+        |by| |{| ((:! SubstList)) |}|)
+        ||#
+        #.INIT
         ((:+ |:imply| |:imp|) (\[ (:symbol) \])
                               (:one-of (|by| |{| ((:! SubstList)) |}|)
                                        (|.|)))
@@ -822,12 +856,12 @@
         ((:+ |:red| |lred| |:lred| |:exec| |:bred|)
          (:rdr #..term-delimiting-chars. (:if-present  in :symbol |:|)) (:seq-of :term) |.|)
         (|:verbose| :symbol)
-        ;; (|:normalize| :symbol)
         #.CTF
         #.CSP
         ((:+ |:show| |:sh| |:describe| |:desc|) :args)
         ((:+ |:def| |:define|) :symbol = (:one-of #.CTF
                                                   #.CSP
+                                                  #.INIT  
                                                   (\( (:seq-of :symbol) \))))
         (|:spoiler| (:one-of (on) (off) (|.|)))
         (|:binspect|
@@ -842,7 +876,10 @@
                         (:upto (|,| \)) :opname)
                         :append (:seq-of |,|
                                          (:upto (|,| \)) :opname))
-                  \))
+                        \))
+        (|:use|   \( (:seq-of :symbol) \))
+        (|:embed| \( (:seq-of :symbol) \))
+        (|:reset|)
         ))                              ; end Top-Form
 
       ;; some separated definitions of non-terminals.
