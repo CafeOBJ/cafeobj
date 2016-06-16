@@ -2824,11 +2824,13 @@
         (use-sentences-in-goal goal axs)))))
 
 ;;;
-;;; embed-discharged-goals (list-labels)
+;;; embed-discharged-goals : list-labels module-name -> embeded module
 ;;;
-(defun embed-discharged-goals (list-labels)
-  (let ((axs (find-discharged-sentences-with-label list-labels)))
-    (embed-sentences-in-module (get-context-module) axs)))
+(defun embed-discharged-goals (list-labels module-name)
+  (let ((axs (find-discharged-sentences-with-label list-labels))
+        (emod (make-embed-module module-name (get-context-module))))
+    (embed-sentences-in-module emod axs)
+    emod))
 
 ;;; -----------------------------------------------------------
 ;;; report-citp-stat

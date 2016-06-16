@@ -398,10 +398,10 @@
   (third args))
 
 ;;; citp-parse-embed
-;;; :embed (<label> ... <label>)
-;;;
+;;; :embed (<label> ... <label>) as <module_name>
+;;; (":embed" "(" ("l1" "l2") ")" "as" "MODULE")
 (defun citp-parse-embed (args)
-  (third args))
+  (cons (third args) (sixth args)))
 
 ;;; citp-parse-reset
 ;;; :reset
@@ -673,7 +673,7 @@
                  (let ((ax (get-target-axiom *current-module* (second form)))
                        (subst (resolve-subst-form *current-module* 
                                                   (third form)
-                                                  nil)))
+                                                  (citp-flag citp-normalize-init))))
                    (setq tactic (make-tactic-init :name name
                                                   :axiom ax
                                                   :subst subst
@@ -744,7 +744,7 @@
 ;;;
 (defun citp-eval-embed (args)
   (check-ptree)
-  (embed-discharged-goals args))
+  (embed-discharged-goals (car args) (cdr args)))
 
 ;;;
 ;;; :reset

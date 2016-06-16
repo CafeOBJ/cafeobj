@@ -408,7 +408,7 @@
   (initialize-citp-flag)
   )
 
-;;; messaing when :verbose on
+;;; messaging when :verbose on
 ;;;
 (eval-when (:compile-toplevel :execute :load-toplevel)
 
@@ -611,6 +611,14 @@
 
 ;;; embed-sentences-in-module (module new-axs)
 ;;;
+(defparameter .citp-embed-module. (%module-decl* "for_embed_dummy" :module :system nil))
+
+(defun make-embed-module (name context-module)
+  (let ((decl-form (copy-tree .citp-embed-module.)))
+    (setf (%module-decl-name decl-form) name)
+    (let ((embeded-module (eval-ast decl-form)))
+      (import-module embeded-module :protecting context-module))))
+
 (defun embed-sentences-in-module (module new-axs)
   (let ((num (length new-axs)))
     (unless (zerop num)
@@ -702,7 +710,7 @@
 
 ;;; context module creator
 ;;;
-(defparameter .next-context-module. (%module-decl* "next-context-dummy" :object :user nil))
+(defparameter .next-context-module. (%module-decl* "next-context-dummy" :module :system nil))
 
 (defun make-next-context-module-name (goal-name)
   (declare (type string goal-name))
@@ -1382,12 +1390,16 @@
 
 (defun reset-proof-session ()
   (with-output-simple-msg ()
-    (format t "!! Discarding the corrent proof..."))
+    (format t "!! Discarding the current proof..."))
   (setf (citp-proof-context *the-citp-proof*) nil
         (citp-proof-discharged *the-citp-proof*) nil)
   (setf .user-defined-tactics. nil)
   (reset-proof *proof-tree*)
   (setq *proof-tree* nil))
+
+(defun citp-reset-proof-if-need (redefined-module)
+  (when (eq redefined-module (citp-proof-context *the-citp-proof*))
+    (reset-proof-session)))
 
 (defun save-discharged-sentences ()
   (setf (citp-proof-discharged *the-citp-proof*)
