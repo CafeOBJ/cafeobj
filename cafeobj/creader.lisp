@@ -878,7 +878,7 @@
                                          (:upto (|,| \)) :opname))
                         \))
         (|:use|   \( (:seq-of :symbol) \))
-        (|:embed| \( (:seq-of :symbol) \))
+        (|:embed| \( (:seq-of :symbol) \) as :symbol)
         (|:reset|)
         ))                              ; end Top-Form
 
