@@ -753,8 +753,12 @@
             (when (module-is-write-protected modval)
               (with-output-chaos-error ('invalid-module-decl)
                 (format t "Module ~a is protected!" name)))
+            ;; redefining existing user's (unprotected) module..
             (with-output-chaos-warning ()
-              (format t "Redefining module ~a " name)))
+              (format t "Redefining module ~a " name))
+            ;; if redefined module is a context of the current citp session
+            ;; we must discard the current proof session
+            (citp-reset-proof-if-need modval))
         ;;
         (propagate-module-change modval)
         ;;
