@@ -604,7 +604,7 @@
   (declare (type goal goal))
   (let ((num (length new-axs)))
     (unless (zerop num)
-      (format t "~%** In goal ~s, use setence~p as new axiom~p:" (goal-name goal) num num)
+      (format t "~%** In goal ~s, use the following sentence~p as new axiom~p:" (goal-name goal) num num)
       (incorporate-sentences-into-module (goal-context goal) new-axs)
       (setf (goal-assumptions goal) 
         (append (goal-assumptions goal) new-axs)))))
@@ -1390,7 +1390,7 @@
 
 (defun reset-proof-session ()
   (with-output-simple-msg ()
-    (format t "!! Discarding the current proof..."))
+    (format t "** !! Discarding the current proof..."))
   (setf (citp-proof-context *the-citp-proof*) nil
         (citp-proof-discharged *the-citp-proof*) nil)
   (setf .user-defined-tactics. nil)

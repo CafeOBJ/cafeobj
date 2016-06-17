@@ -2810,18 +2810,27 @@
 ;;;
 ;;; use discharged sentences as axioms
 ;;;
+; (defun use-discharged-goals (list-labels)
+;   (let ((unp (get-unproved-nodes *proof-tree*)))
+;     (unless unp
+;       (with-output-chaos-warning ()
+;         (princ "All goals are alredy discharged.")
+;         (return-from use-discharged-goals nil)))
+;     (let ((axs (find-discharged-sentences-with-label list-labels)))
+;       (unless axs
+;         (with-output-chaos-error ()
+;           (format t "No setences with specified names are found.")))
+;       (dolist (goal (mapcar #'(lambda (x) (ptree-node-goal x)) unp))
+;         (use-sentences-in-goal goal axs)))))
+
 (defun use-discharged-goals (list-labels)
-  (let ((unp (get-unproved-nodes *proof-tree*)))
-    (unless unp
-      (with-output-chaos-warning ()
-        (princ "All goals are alredy discharged.")
-        (return-from use-discharged-goals nil)))
-    (let ((axs (find-discharged-sentences-with-label list-labels)))
+  (with-next-context (*proof-tree*)
+    (let ((goal (ptree-node-goal .context.))
+          (axs (find-discharged-sentences-with-label list-labels)))
       (unless axs
         (with-output-chaos-error ()
           (format t "No setences with specified names are found.")))
-      (dolist (goal (mapcar #'(lambda (x) (ptree-node-goal x)) unp))
-        (use-sentences-in-goal goal axs)))))
+      (use-sentences-in-goal goal axs))))
 
 ;;;
 ;;; embed-discharged-goals : list-labels module-name -> embeded module

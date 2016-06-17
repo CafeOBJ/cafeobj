@@ -244,7 +244,7 @@
 (defun citp-parse-verbose (args)
   (second args))
 
-;;; citp-parse-normalize-init
+;;; citp-parse-normalize
 ;;; :normalize {on | off}
 (defun citp-parse-normalize (args)
   (second args))
