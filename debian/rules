@@ -28,6 +28,7 @@ build-arch-stamp:
 	rm -f doc/PigNose/pnguide.pdf
 	rm -f doc/RefCard/interp.pdf
 	rm -f doc/RefCard/syntax.pdf
+	rm -f doc/namespace/namespace.pdf
 	make build
 	touch build-arch-stamp
 
