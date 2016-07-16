@@ -1,0 +1,25 @@
+\def\firstcircle{(0,0) ellipse (2.3cm and 1.9cm)}
+\def\secondcircle{(3.5cm,0) ellipse (2.3cm and 1.9cm)}
+\definecolor{blueish}{HTML}{A4C0FF}
+\definecolor{reddish}{HTML}{B7C5B3}
+\begin{center}
+\begin{tikzpicture}
+  \draw[fill=white,blur shadow={shadow xshift=-0.4ex, shadow yshift=-1ex}] \firstcircle;
+  \draw[fill=white,blur shadow={shadow xshift=0.4ex, shadow yshift=-1ex}] \secondcircle;
+  \fill[blueish] \firstcircle;
+  \fill[reddish]  \secondcircle;
+  \begin{scope}
+    \clip \firstcircle;
+    \clip \secondcircle;
+    \fill[white] \secondcircle;
+  \end{scope}
+  \begin{scope}[fill opacity=0.5]
+    \fill[blueish] \firstcircle;
+    \fill[reddish]  \secondcircle;
+  \end{scope}
+  \draw \firstcircle node[above] {モジュールの};
+  \draw \firstcircle node[below] {名前};
+  \draw \secondcircle node[above] {viewの};
+  \draw \secondcircle node[below] {名前};
+\end{tikzpicture}
+\end{center}

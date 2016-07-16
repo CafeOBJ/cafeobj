@@ -13,8 +13,8 @@
 %\usepackage{luatexja}
 \usepackage{fontspec}
 \usepackage{indentfirst}
-\setmainfont[Mapping=tex-text]{M+ 2p regular}
-\setsansfont[Mapping=tex-text]{M+ 2c regular}
+\setmainfont[Mapping=tex-text]{M+ 2p medium}
+\setsansfont[Mapping=tex-text]{M+ 2c}
 \setmonofont[Mapping=tex-text]{M+ 2m medium}
 \XeTeXlinebreaklocale "ja"
 \XeTeXlinebreakskip=0em plus 0.1em minus 0.01em
@@ -24,6 +24,8 @@
 %%%%
 \usepackage{dcolumn,hhline,colortbl}
 \usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shadows.blur,shapes,positioning,arrows.meta,arrows,decorations,calc}
 %%%%% 色付表
 \newcolumntype{G}{%
   >{\columncolor[gray]{0.9}}c}
@@ -175,7 +177,8 @@ CafeOBJ言語の名前空間には次の2種がある:
 
 \begin{figure}[H]
 \begin{center}
-  \includegraphics[scale=0.7]{toplevel.pdf}
+  \input toplevel.tikz
+  %\includegraphics[scale=0.7]{toplevel.pdf}
 \caption{トップレベルの名前空間}
 \label{fig:toplevel}
 \end{center}
@@ -201,7 +204,8 @@ CafeOBJ言語の名前空間には次の2種がある:
 図~\ref{fig:flat-module-namespece}に示す:
 \begin{figure}[H]
 \begin{center}
-  \includegraphics[scale=0.7]{flat-module.pdf}
+  \input flat-module.tikz
+  %\includegraphics[scale=0.7]{flat-module.pdf}
 \caption{サブモジュールなしのモジュールの名前空間}
 \label{fig:flat-module-namespece}
 \end{center}
@@ -245,7 +249,8 @@ CafeOBJ言語の名前空間には次の2種がある:
 有向グラフ構造となるが，ここでの議論に関して違いは無い．}．
 \begin{figure}[!ht]
 \begin{center}
-  \includegraphics[scale=0.7]{hir-module-namespace.pdf}
+  \input hir-module-namespace.tikz
+  %\includegraphics[scale=0.7]{hir-module-namespace.pdf}
   \caption{階層的モジュールの名前空間}
   \label{fig:hir-module}
 \end{center}
@@ -276,7 +281,8 @@ $M$ はパラメータの仕様を規定するモジュール式．}，
 ある名前$\alpha$の参照が曖昧となる事があり得る．
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.7]{disunbig.pdf}
+\input disunbig.tikz
+%\includegraphics[scale=0.7]{disunbig.pdf}
 \end{center}
 \caption{名前の衝突と文脈限定名による解決}
 \label{fig:disunbig}
@@ -1019,3 +1025,8 @@ FOO>
 
 \end{document}
 
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

@@ -1,0 +1,30 @@
+\begin{center}
+\begin{tikzpicture}
+  \node[circle,fill=white,draw,minimum width=2cm,align=center,circular drop shadow,label={[shift={(0,-20pt)}]north:A}] (a) at (0, 0) {};
+  \node[circle,fill=white,draw,minimum width=2cm,align=center,circular drop shadow,label={[shift={(0,-20pt)}]north:C}] (c) at (2.8cm, -2.2cm) {};
+  \node[circle,fill=white,draw,minimum width=2cm,align=center,circular drop shadow,label={[shift={(0,-20pt)}]north:B}] (b) at (-0.8cm, -3.5cm) {};
+  \node[circle,fill=white,draw,minimum width=2cm,align=center,circular drop shadow,label={[shift={(0,-20pt)}]north:D}] (d) at (2.5cm, -5.2cm) {};
+  \node[circle,fill=white,draw,minimum width=2cm,align=center,circular drop shadow,label={[shift={(0,-20pt)}]north:E}] (e) at (5.7cm, -4cm) {};
+  \node (a1) at (2cm,0.6cm) {$\alpha$} ;
+  \node (a2) at (-0.8cm,-3.8cm) {$\alpha$} ;
+  \node (a3) at (3cm,-2.4cm) {$\alpha$} ;
+  \node (a4) at (5.9cm,-4.3cm) {$\alpha$} ;
+  \draw[fill] (2.6cm,-2.3cm) circle (2pt);
+  \draw[fill] (-1.2cm,-3.7cm) circle (2pt);
+  \draw[fill] (5.5cm,-4.2cm) circle (2pt);
+  \draw[dotted] (a1) to node[very near start] {?} (a2) ;
+  \draw[dotted] (a1) to node[near start] {?} (a3) ;
+  \draw[dotted] (a1) to node[very near start] {?} (a4) ;
+  \node (ac) at (4.8cm,-1.1cm) {$\alpha$.C} ;
+  \draw[-{Latex[length=3mm, width=1mm]}] (ac) -- (a3) ;
+  \node[align=center] (ae) at (5cm,-6.3cm) {$\alpha$.E\\または\\$\alpha$.D} ;
+  \draw[-{Latex[length=3mm, width=1mm]}] (ae) -- (a4) ;
+  \node (ab) at (-1cm, -5.8cm) {$\alpha$.B} ;
+  \draw[-{Latex[length=3mm, width=1mm]}] (ab) -- (a2) ;
+  %
+  \draw[draw=black!50,line width=1mm, -{Stealth[length=5mm, open]}] (e) -- (d) ;
+  \draw[draw=black!50,line width=1mm, -{Stealth[length=5mm, open]}] (d) -- (b) ;
+  \draw[draw=black!50,line width=1mm, -{Stealth[length=5mm, open]}] (b) -- (a) ;
+  \draw[draw=black!50,line width=1mm, -{Stealth[length=5mm, open]}] (c) -- (a) ;
+\end{tikzpicture}
+\end{center}
