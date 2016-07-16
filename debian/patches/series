@@ -1,3 +1,4 @@
 fix-refman-fonts
 fix-syntax-font
 armhf-remove-buildopts
+namespace-use-tikz

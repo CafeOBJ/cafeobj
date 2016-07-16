@@ -4,8 +4,10 @@ cafeobj (1.5.5-1) unstable; urgency=medium
   * update copyright file
   * debian/control: update Vcs and homepage fields
   * fix emacs startup file, thanks to Kevin Ryde (Closes: #806932)
+  * cherry pick upstream change to use tikz instead of graffle generated
+    images in namespace documentation
 
- -- Norbert Preining <preining@debian.org>  Mon, 28 Dec 2015 17:52:53 +0900
+ -- Norbert Preining <preining@debian.org>  Sun, 17 Jul 2016 00:14:38 +0900
 
 cafeobj (1.5.4-4) unstable; urgency=medium
 
