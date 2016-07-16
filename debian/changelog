@@ -7,8 +7,9 @@ cafeobj (1.5.5-1) unstable; urgency=medium
   * cherry pick upstream change to use tikz instead of graffle generated
     images in namespace documentation
   * add texlive-generic-extra to build deps (Closes: #830445) 
+  * bump standards version, no changes necessary
 
- -- Norbert Preining <preining@debian.org>  Sun, 17 Jul 2016 00:17:06 +0900
+ -- Norbert Preining <preining@debian.org>  Sun, 17 Jul 2016 00:18:23 +0900
 
 cafeobj (1.5.4-4) unstable; urgency=medium
 
