@@ -189,6 +189,7 @@ ifeq ($(enable_rebuild_doc),yes)
 		doc/RefCard/interp.pdf			\
 		doc/RefCard/syntax.pdf			\
 		doc/PigNose/pnguide.pdf			\
+		doc/namespace/namespace.pdf		\
 		doc/citp-manual/citp.pdf
 endif
 
