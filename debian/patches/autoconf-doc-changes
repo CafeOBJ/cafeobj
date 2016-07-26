@@ -1,8 +1,8 @@
 ---
- Makefile.in  |    6 ++++--
+ Makefile.in  |   15 +++++++--------
  configure    |   18 ++++++++++++++++--
  configure.ac |    2 ++
- 3 files changed, 22 insertions(+), 4 deletions(-)
+ 3 files changed, 25 insertions(+), 10 deletions(-)
 
 --- cafeobj-1.5.5.orig/configure.ac
 +++ cafeobj-1.5.5/configure.ac
@@ -24,7 +24,29 @@
  		doc/citp-manual/citp.pdf
  endif
  
-@@ -315,9 +316,10 @@
+@@ -284,12 +285,7 @@
+ 	# doc files
+ 	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)
+ 	$(INSTALL) -m 0644 				\
+-		doc/manual/manual.pdf			\
+-		doc/PigNose/pnguide.pdf			\
+-		doc/RefCard/interp.pdf			\
+-		doc/RefCard/syntax.pdf			\
+-		doc/refman/reference-manual.pdf		\
+-		doc/citp-manual/citp.pdf		\
++		$(doc_targets)				\
+ 		doc/etc/cafe-citp.txt			\
+ 		elisp/cafeobj-mode.el			\
+ 		lib/icons/cafeobj-logo.png		\
+@@ -309,15 +305,18 @@
+ 	$(MAKE) -C doc/refman reference-manual.pdf
+ doc/manual/manual.pdf:
+ 	$(MAKE) -C doc/manual manual.pdf
++doc/namespace/namespace.pdf:
++	$(MAKE) -C doc/namespace namespace.pdf
+ doc/PigNose/pnguide.pdf:
+ 	$(MAKE) -C doc/PigNose pnguide.pdf
+ doc/RefCard/interp.pdf:
  	$(MAKE) -C doc/RefCard interp.pdf
  doc/RefCard/syntax.pdf:
  	$(MAKE) -C doc/RefCard syntax.pdf
