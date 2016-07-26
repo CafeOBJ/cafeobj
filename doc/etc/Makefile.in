@@ -1,0 +1,11 @@
+
+kosakusha-logo-grap.png: kosakusha-logo-gray.pdf
+	convert kosakusha-logo-gray.pdf kosakusha-logo-grap.png
+
+kosakusha-logo-gray.pdf: kosakusha-logo-tikz.pdf
+	pdfcrop kosakusha-logo-tikz.pdf kosakusha-logo-gray.pdf
+
+kosakusha-logo-tikz.pdf: kosakusha-logo-tikz.tex
+	xelatex kosakusha-logo-tikz.tex
+
+
