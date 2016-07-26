@@ -1,0 +1,50 @@
+\begin{tikzpicture}[>=latex']
+  \tikzstyle{goal} = [draw, rectangle, minimum width=1.9cm, minimum height=3em, thick, rounded corners=1mm]
+  \def\deltay{1.8}
+  \def\deltax{2.4}
+  \definecolor{t1c}{RGB}{4,141,159}
+  \definecolor{t2c}{RGB}{158,141,44}
+  \definecolor{t3c}{RGB}{170,94,51}
+
+  \node (root) at (11,11.5) {} ;
+  \node (n)    at (10,10) [goal] {n};
+  \node (n-dots)  at (10.3, 10-\deltay) [goal] {\ldots};
+  \node (n-2)  at (10.3-\deltax, 10-\deltay) [goal] {n-2};
+  \node (n-1)  at (10.3-2*\deltax, 10-\deltay) [goal] {n-1};
+  %
+  \node (n-2-dots)  at (10.3, 10-2*\deltay) [goal] {\ldots};
+  \node (n-2-1)  at (10.3-\deltax, 10-2*\deltay) [goal] {n-2-1};
+  \node (n-1-dots)  at (10.3-2*\deltax, 10-2*\deltay) [goal] {\ldots};
+  \node (n-1-1)  at (10.3-3*\deltax, 10-2*\deltay) [goal] {n-1-1};
+  %
+  \node (n-2-1-dots)  at (9, 10-3*\deltay) [goal] {\ldots};
+  \node (n-2-1-1)  at (9-\deltax, 10-3*\deltay) [goal] {n-2-1-1};
+  \node (n-1-1-dots)  at (3.5, 10-3*\deltay) [goal] {\ldots};
+  \node (n-1-1-1)  at (3.5-\deltax, 10-3*\deltay) [goal] {n-1-1-1};
+  %
+  \path (root) edge (n) ;
+  \path (n) edge (n-1) edge (n-2) edge (n-dots) ;
+  \path (n-2) edge (n-2-1) edge (n-2-dots) ;
+  \path (n-1) edge (n-1-1) edge (n-1-dots) ;
+  \path (n-2-1) edge (n-2-1-dots) edge (n-2-1-1) ;
+  \path (n-1-1) edge (n-1-1-dots) edge (n-1-1-1) ;
+  %
+  \draw[fill,color=t1c] (8.8,10-0.5*\deltay) ellipse (1.7 and 0.1) ;
+  \draw[fill,color=t2c] (7.1,10-1.5*\deltay) ellipse (3.3   and 0.1) ;
+  \draw[fill,color=t3c] (6,10-2.5*\deltay) ellipse (4.3   and 0.1) ;
+
+  \node[fill=t1c,text=white] (t1) at (7,10.8) [draw,circle] {T1};
+  \node[fill=t2c,text=white] (t2) at (3.2,10.8-\deltay) [draw,circle] {T2} ;
+  \node[fill=t3c,text=white] (t3) at (1,10.8-2*\deltay) [draw,circle] {T3} ;
+  
+  \path[->] (t1) edge (n) ;
+  \path[->] (t2) edge (n-1) edge (n-2) edge (n-dots) ;
+  \path[->] (t3) edge (n-1-1) edge (n-1-dots) edge (n-2-1) edge (n-2-dots) ;
+
+  \def\foobar{1}
+  \node at (2-\foobar,10.8) {\Large :apply (} ;
+  \node[fill=t1c,text=white] at (3.3-\foobar,10.8) [draw,circle] {T1} ;
+  \node[fill=t2c,text=white] at (4.3-\foobar,10.8) [draw,circle] {T2} ;
+  \node[fill=t3c,text=white] at (5.3-\foobar,10.8) [draw,circle] {T3} ;
+  \node at (6.3-\foobar,10.8)   {\Large \ldots )} ;
+\end{tikzpicture}
