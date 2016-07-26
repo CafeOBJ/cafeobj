@@ -5,7 +5,7 @@ backport kosakusha logo conversion to tikz
  2 files changed, 66 insertions(+)
 
 --- /dev/null
-+++ cafeobj.git/doc/etc/kosakusha-logo-tikz.tex
++++ cafeobj-1.5.5/doc/etc/kosakusha-logo-tikz.tex
 @@ -0,0 +1,55 @@
 +\documentclass{article}
 +\usepackage{fontspec}
@@ -63,11 +63,11 @@ backport kosakusha logo conversion to tikz
 +%%% TeX-master: t
 +%%% End:
 --- /dev/null
-+++ cafeobj.git/doc/etc/Makefile.in
++++ cafeobj-1.5.5/doc/etc/Makefile.in
 @@ -0,0 +1,11 @@
 +
-+kosakusha-logo-grap.png: kosakusha-logo-gray.pdf
-+	convert kosakusha-logo-gray.pdf kosakusha-logo-grap.png
++kosakusha-logo-gray.png: kosakusha-logo-gray.pdf
++	convert kosakusha-logo-gray.pdf kosakusha-logo-gray.png
 +
 +kosakusha-logo-gray.pdf: kosakusha-logo-tikz.pdf
 +	pdfcrop kosakusha-logo-tikz.pdf kosakusha-logo-gray.pdf
