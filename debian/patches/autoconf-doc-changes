@@ -1,0 +1,14 @@
+---
+ configure.ac |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- cafeobj.git.orig/configure.ac
++++ cafeobj.git/configure.ac
+@@ -333,5 +333,7 @@
+   doc/RefCard/Makefile
+   doc/PigNose/Makefile
+   doc/citp-manual/Makefile
++  doc/namespace/Makefile
++  doc/etc/Makefile
+ ])
+ AC_OUTPUT()
