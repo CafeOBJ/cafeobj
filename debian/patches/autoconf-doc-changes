@@ -1,11 +1,11 @@
 ---
- Makefile.in  |    5 +++--
+ Makefile.in  |    6 ++++--
  configure    |   18 ++++++++++++++++--
  configure.ac |    2 ++
- 3 files changed, 21 insertions(+), 4 deletions(-)
+ 3 files changed, 22 insertions(+), 4 deletions(-)
 
---- cafeobj.git.orig/configure.ac
-+++ cafeobj.git/configure.ac
+--- cafeobj-1.5.5.orig/configure.ac
++++ cafeobj-1.5.5/configure.ac
 @@ -333,5 +333,7 @@
    doc/RefCard/Makefile
    doc/PigNose/Makefile
@@ -14,9 +14,17 @@
 +  doc/etc/Makefile
  ])
  AC_OUTPUT()
---- cafeobj.git.orig/Makefile.in
-+++ cafeobj.git/Makefile.in
-@@ -315,9 +315,10 @@
+--- cafeobj-1.5.5.orig/Makefile.in
++++ cafeobj-1.5.5/Makefile.in
+@@ -193,6 +193,7 @@
+ 		doc/RefCard/interp.pdf			\
+ 		doc/RefCard/syntax.pdf			\
+ 		doc/PigNose/pnguide.pdf			\
++		doc/namespace/namespace.pdf		\
+ 		doc/citp-manual/citp.pdf
+ endif
+ 
+@@ -315,9 +316,10 @@
  	$(MAKE) -C doc/RefCard interp.pdf
  doc/RefCard/syntax.pdf:
  	$(MAKE) -C doc/RefCard syntax.pdf
@@ -29,8 +37,8 @@
  
  
  clean:
---- cafeobj.git.orig/configure
-+++ cafeobj.git/configure
+--- cafeobj-1.5.5.orig/configure
++++ cafeobj-1.5.5/configure
 @@ -668,6 +668,7 @@
  docdir
  oldincludedir
