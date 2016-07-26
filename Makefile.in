@@ -184,13 +184,15 @@ engine_dumps = $(patsubst acl,$(ACL_DUMP),\
 doc_targets =
 ifeq ($(enable_rebuild_doc),yes)
 	doc_targets += \
-		doc/refman/reference-manual.pdf		\
+		doc/binspect/binspect.pdf		\
+		doc/citp-manual/citp.pdf		\
 		doc/manual/manual.pdf			\
+		doc/namespace/namespace.pdf		\
+		doc/PigNose/pnguide.pdf			\
 		doc/RefCard/interp.pdf			\
 		doc/RefCard/syntax.pdf			\
-		doc/PigNose/pnguide.pdf			\
-		doc/namespace/namespace.pdf		\
-		doc/citp-manual/citp.pdf
+		doc/refman/reference-manual.pdf		\
+
 endif
 
 #
@@ -281,14 +283,7 @@ endif
 	# doc files
 	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)
 	$(INSTALL) -m 0644 				\
-		doc/manual/manual.pdf			\
-		doc/PigNose/pnguide.pdf			\
-		doc/RefCard/interp.pdf			\
-		doc/RefCard/syntax.pdf			\
-		doc/refman/reference-manual.pdf		\
-		doc/citp-manual/citp.pdf		\
-		doc/binspect/binspect.pdf		\
-		doc/namespace/namespace.pdf		\
+		$(doc_targets)				\
 		doc/etc/cafe-citp.txt			\
 		elisp/cafeobj-mode.el			\
 		lib/icons/cafeobj-logo.png		\
