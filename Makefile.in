@@ -287,6 +287,8 @@ endif
 		doc/RefCard/syntax.pdf			\
 		doc/refman/reference-manual.pdf		\
 		doc/citp-manual/citp.pdf		\
+		doc/binspect/binspect.pdf		\
+		doc/namespace/namespace.pdf		\
 		doc/etc/cafe-citp.txt			\
 		elisp/cafeobj-mode.el			\
 		lib/icons/cafeobj-logo.png		\
@@ -312,8 +314,12 @@ doc/RefCard/interp.pdf:
 	$(MAKE) -C doc/RefCard interp.pdf
 doc/RefCard/syntax.pdf:
 	$(MAKE) -C doc/RefCard syntax.pdf
-doc/citp-manual/citp.pdf:
+doc/namespace/namespace.pdf:
+	$(MAKE) -C doc/namespace namespace.pdf
+doc/citp-manual/citp.pdf: doc/etc/kosakusha-logo-gray.png
 	$(MAKE) -C doc/citp-manual citp.pdf
+doc/binspect/binspect.pdf: doc/etc/kosakusha-logo-gray.png
+	$(MAKE) -C doc/binspect binspect.pdf
 
 
 
@@ -322,7 +328,10 @@ clean:
 	-test -f doc/manual/Makefile && $(MAKE) -C doc/manual clean
 	-test -f doc/PigNose/Makefile && $(MAKE) -C doc/PigNose clean
 	-test -f doc/RefCard/Makefile && $(MAKE) -C doc/RefCard clean
+	-test -f doc/namespace/Makefile && $(MAKE) -C doc/namespace clean
+	-test -f doc/binspect/Makefile && $(MAKE) -C doc/binspect clean
 	-test -f doc/citp-manual/Makefile && $(MAKE) -C doc/citp-manual clean
+	-test -f doc/etc/Makefile && $(MAKE) -C doc/etc clean
 	rm -rf dumps
 	rm -f stamp-windows-prepare stamp-windows-build
 	rm -f build-stamp

@@ -333,5 +333,7 @@ AC_CONFIG_FILES([
   doc/RefCard/Makefile
   doc/PigNose/Makefile
   doc/citp-manual/Makefile
+  doc/namespace/Makefile
+  doc/etc/Makefile
 ])
 AC_OUTPUT()

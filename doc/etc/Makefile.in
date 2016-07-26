@@ -8,4 +8,9 @@ kosakusha-logo-gray.pdf: kosakusha-logo-tikz.pdf
 kosakusha-logo-tikz.pdf: kosakusha-logo-tikz.tex
 	xelatex kosakusha-logo-tikz.tex
 
+clean:
+	rm -f *.aux *.log *.toc *.out kosakusha-logo-gray.png
+	rm -f kosakusha-logo-gray.pdf
+
+distclean:
 
