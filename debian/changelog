@@ -6,10 +6,12 @@ cafeobj (1.5.5-1) unstable; urgency=medium
   * fix emacs startup file, thanks to Kevin Ryde (Closes: #806932)
   * cherry pick upstream change to use tikz instead of graffle generated
     images in namespace documentation
+  * adjust autoconf files to rebuild all documentation
   * add texlive-generic-extra to build deps (Closes: #830445) 
+  * documentation files: use tikz instead of graffle generated pdf
   * bump standards version, no changes necessary
 
- -- Norbert Preining <preining@debian.org>  Sun, 17 Jul 2016 00:18:23 +0900
+ -- Norbert Preining <preining@debian.org>  Wed, 27 Jul 2016 06:05:33 +0900
 
 cafeobj (1.5.4-4) unstable; urgency=medium
 
