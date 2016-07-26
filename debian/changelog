@@ -11,7 +11,7 @@ cafeobj (1.5.5-1) unstable; urgency=medium
   * documentation files: use tikz instead of graffle generated pdf
   * bump standards version, no changes necessary
 
- -- Norbert Preining <preining@debian.org>  Wed, 27 Jul 2016 06:12:35 +0900
+ -- Norbert Preining <preining@debian.org>  Wed, 27 Jul 2016 06:40:58 +0900
 
 cafeobj (1.5.4-4) unstable; urgency=medium
 
