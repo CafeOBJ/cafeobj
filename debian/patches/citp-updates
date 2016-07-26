@@ -1,0 +1,207 @@
+---
+ doc/citp-manual/apply-order.tikz.tex |   50 ++++++++++++++++++++++++++++++++++
+ doc/citp-manual/bib.bib              |    2 -
+ doc/citp-manual/citp.tex             |   51 ++++++++++++++++++++++++-----------
+ 3 files changed, 87 insertions(+), 16 deletions(-)
+
+--- /dev/null
++++ cafeobj.git/doc/citp-manual/apply-order.tikz.tex
+@@ -0,0 +1,50 @@
++\begin{tikzpicture}[>=latex']
++  \tikzstyle{goal} = [draw, rectangle, minimum width=1.9cm, minimum height=3em, thick, rounded corners=1mm]
++  \def\deltay{1.8}
++  \def\deltax{2.4}
++  \definecolor{t1c}{RGB}{4,141,159}
++  \definecolor{t2c}{RGB}{158,141,44}
++  \definecolor{t3c}{RGB}{170,94,51}
++
++  \node (root) at (11,11.5) {} ;
++  \node (n)    at (10,10) [goal] {n};
++  \node (n-dots)  at (10.3, 10-\deltay) [goal] {\ldots};
++  \node (n-2)  at (10.3-\deltax, 10-\deltay) [goal] {n-2};
++  \node (n-1)  at (10.3-2*\deltax, 10-\deltay) [goal] {n-1};
++  %
++  \node (n-2-dots)  at (10.3, 10-2*\deltay) [goal] {\ldots};
++  \node (n-2-1)  at (10.3-\deltax, 10-2*\deltay) [goal] {n-2-1};
++  \node (n-1-dots)  at (10.3-2*\deltax, 10-2*\deltay) [goal] {\ldots};
++  \node (n-1-1)  at (10.3-3*\deltax, 10-2*\deltay) [goal] {n-1-1};
++  %
++  \node (n-2-1-dots)  at (9, 10-3*\deltay) [goal] {\ldots};
++  \node (n-2-1-1)  at (9-\deltax, 10-3*\deltay) [goal] {n-2-1-1};
++  \node (n-1-1-dots)  at (3.5, 10-3*\deltay) [goal] {\ldots};
++  \node (n-1-1-1)  at (3.5-\deltax, 10-3*\deltay) [goal] {n-1-1-1};
++  %
++  \path (root) edge (n) ;
++  \path (n) edge (n-1) edge (n-2) edge (n-dots) ;
++  \path (n-2) edge (n-2-1) edge (n-2-dots) ;
++  \path (n-1) edge (n-1-1) edge (n-1-dots) ;
++  \path (n-2-1) edge (n-2-1-dots) edge (n-2-1-1) ;
++  \path (n-1-1) edge (n-1-1-dots) edge (n-1-1-1) ;
++  %
++  \draw[fill,color=t1c] (8.8,10-0.5*\deltay) ellipse (1.7 and 0.1) ;
++  \draw[fill,color=t2c] (7.1,10-1.5*\deltay) ellipse (3.3   and 0.1) ;
++  \draw[fill,color=t3c] (6,10-2.5*\deltay) ellipse (4.3   and 0.1) ;
++
++  \node[fill=t1c,text=white] (t1) at (7,10.8) [draw,circle] {T1};
++  \node[fill=t2c,text=white] (t2) at (3.2,10.8-\deltay) [draw,circle] {T2} ;
++  \node[fill=t3c,text=white] (t3) at (1,10.8-2*\deltay) [draw,circle] {T3} ;
++  
++  \path[->] (t1) edge (n) ;
++  \path[->] (t2) edge (n-1) edge (n-2) edge (n-dots) ;
++  \path[->] (t3) edge (n-1-1) edge (n-1-dots) edge (n-2-1) edge (n-2-dots) ;
++
++  \def\foobar{1}
++  \node at (2-\foobar,10.8) {\Large :apply (} ;
++  \node[fill=t1c,text=white] at (3.3-\foobar,10.8) [draw,circle] {T1} ;
++  \node[fill=t2c,text=white] at (4.3-\foobar,10.8) [draw,circle] {T2} ;
++  \node[fill=t3c,text=white] at (5.3-\foobar,10.8) [draw,circle] {T3} ;
++  \node at (6.3-\foobar,10.8)   {\Large \ldots )} ;
++\end{tikzpicture}
+--- cafeobj.git.orig/doc/citp-manual/bib.bib
++++ cafeobj.git/doc/citp-manual/bib.bib
+@@ -1,5 +1,5 @@
+ @article{Futatsugi:2012:PPS:2397725.2397950,
+- author = {Futatsugi, Kokichi and Gin, Daniel and Ogata, Kazuhiro},
++ author = {Futatsugi, Kokichi and G{\u a}in{\u a}, Daniel and Ogata, Kazuhiro},
+  title = {Principles of proof scores in CafeOBJ},
+  journal = {Theor. Comput. Sci.},
+  issue_date = {December, 2012},
+--- cafeobj.git.orig/doc/citp-manual/citp.tex
++++ cafeobj.git/doc/citp-manual/citp.tex
+@@ -1,6 +1,6 @@
+ % !TEX TS-program = xelatex
+ % !TEX encoding = UTF-8
+-% 2015/12/25: CITP for CafeOBJ
++% 2016/2/29: CITP for CafeOBJ
+ % toshi.swd@gmail.com
+ %
+ \documentclass[a4paper,oneside,10pt,here]{memoir}
+@@ -15,8 +15,8 @@
+ %%% Japanese
+ \usepackage{fontspec}
+ \usepackage{indentfirst}
+-\setmainfont[Mapping=tex-text]{M+ 2p regular}
+-\setsansfont[Mapping=tex-text]{M+ 2c regular}
++\setmainfont[Mapping=tex-text]{M+ 2p}
++\setsansfont[Mapping=tex-text]{M+ 2c}
+ \setmonofont[Mapping=tex-text]{M+ 2m medium}
+ % \setmainfont[Ligatures=TeX]{Meiryo}
+ % \setsansfont[Ligatures=TeX]{Hiragino Kaku Gothic ProN W3}
+@@ -125,16 +125,16 @@
+ \pagestyle{empty}
+ % 表紙 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \title{CITP for CafeOBJ \\
+-ver. 1.1}
++ver. 1.2}
+ \vfill
+ \author{澤田 寿実\\
+   (株) 考作舎\\
+   tswd@kosakusha.com}
+-\date{2015/12/25}
++\date{2016/2/29}
+ \maketitle
+ \vfill
+ \begin{center}
+-\includegraphics[scale=0.2]{kosakusha2_gray.pdf}
++\includegraphics[scale=0.4]{../etc/kosakusha-logo-gray.png}
+ \end{center}
+ \vfill
+ \thispagestyle{empty}
+@@ -282,7 +282,7 @@
+     \begin{simplev}
+     apply コマンド ::= :apply [ to <GoalName> : ] (<Tactic> ... <Tactic> )
+     <GoalName>     ::= ゴールに付与された名前
+-    <Tactic>       ::= SI | CA | TC | IP | RD | RD- | <DefinedTactic>
++    <Tactic>       ::= SI | CA | TC | IP | IP+ | RD | RD- | <DefinedTactic>
+     \end{simplev}
+   \end{vvtm}
+ 
+@@ -299,13 +299,13 @@
+ \label{tab:tactics}
+ \caption{戦略一覧}
+ \begin{center}
+-\begin{tabular}[htbp]{|l|l|}\hline
++\begin{tabular}[htbp]{|c|l|}\hline
+ 戦略名 & 演繹規則 \\\hline\hline
+ SI & Simultaneous Induction (同時帰納法) \\\hline
+ CA & Case Analysis (場合分け)\\\hline
+ TC & Theorem of Constants  \\\hline
+-IP & Implication (含意)\\\hline
+-RD & Reduction (簡約化) \\\hline
++IP, IP+ & Implication (含意)\\\hline
++RD, RD- & Reduction (簡約化) \\\hline
+ \end{tabular}
+ \end{center}
+ \end{table}
+@@ -314,7 +314,8 @@
+ 
+ \begin{figure}[htbp]
+ \begin{center}
+-  \includegraphics[scale=0.4]{apply-order.pdf}
++  %\includegraphics[scale=0.4]{apply-order.pdf}
++  \input apply-order.tikz
+ \end{center}
+ \caption{戦略の適用順序}
+ \label{fig:apply-tactic}
+@@ -416,15 +417,19 @@
+     \item 帰納法の仮定+ステップケース
+   \end{itemize}
+   それぞれに対応した新たなゴールを生成する
+-\item induction variables は \verb|:ind on| コマンドによって指定する．
++\item induction variables は \verb|:ind on| あるいは \verb|:ind+ on| コマンドによって指定する．
++
+   \begin{vvtm}
+     \begin{simplev}
+     :ind コマンド ::= :ind on ( <変数> ... )      
++    :ind+ コマンド::= :ind+ on ( <変数> ...) 
++                     with base ( <項> . ...<項m> .)
++                          step ( <項> . ...<項n> .)
+     \end{simplev}
+   \end{vvtm}
+    \verb|<変数>| は on-the-fly の変数宣言形式で指定する．
+- \item \verb|:ind| コマンドで指定した変数に対応するソートが，構成子を
+-   持たないソートであった場合はエラーとする．
++ \item \verb|:ind| あるいは \verb|:int+| コマンドで指定した変数に対応するソートが，
++   構成子を持たないソートであった場合はエラーとする．
+  \item 帰納法の仮定や，証明対象とするステップケースの文では，
+   帰納法による定数が必要となるが，それらは次のようにして生成する．
+   \begin{itemize}
+@@ -436,6 +441,15 @@
+   <ソート名> は文脈に応じて適切なソートが選択される．
+ \end{itemize}
+ 
++\subsubsection{利用者指定の帰納スキーム}\label{sec::ind+}
++\verb|:ind| コマンドの場合，システムが自動的に指定の帰納変数のソートの
++構成子定義からベースケースとステップケースに対応する項のパターンを
++生成するが，
++\verb|:ind+| は帰納法のベースおよびステップのパターンを，
++それぞれ \verb|base| および \verb|step| で指定するものである．
++\verb|<項>| のパターンを引数として与え，それに基づいて各々の
++ケースの項のパターンを生成する．
++
+ \subsection{TC: Theorem of Constants}\label{sec:TC}
+ \begin{prooftree}
+ \AXC{$\PR(\SP,Y)\vdash^{sp} (\forall\{\})\varepsilon$}
+@@ -502,6 +516,14 @@
+ %%% spoiler \item 以上を実施した後，生成されたゴールに対して暗黙の戦略 CT および ST を適用する．
+ \end{itemize}
+ 
++\subsection{IP+: Implication 2} \label{sec:IP+}
++IP+ の挙動は IP と同様であるが，条件部から生成された前提 C を公理として追加するのではなく，
++証明対象の文の左辺 LHS を，
++\begin{verbatim}
++ C implies LHS = RHS
++\end{verbatim}
++のように，組み込みのオペレータ implies を用いて導入する．
++
+ \subsection{CA: Case Analysis}\label{sec:CA}
+ 
+ \begin{prooftree}
+@@ -698,7 +720,6 @@
+ 
+ \subsection{:imply コマンド}\label{sec:imply}
+ 
+-
+ \begin{itemize}
+ \item :imply コマンドは :init コマンドと似ているが，指定可能な等式は実行文脈に
+   すでに存在している \verb|eq[label]: lhs = true . | という形の等式しか指定することができない．
