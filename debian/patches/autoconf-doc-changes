@@ -1,9 +1,10 @@
 ---
+ Makefile.in  |    5 +++--
  configure.ac |    2 ++
- 1 file changed, 2 insertions(+)
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
---- cafeobj.git.orig/configure.ac
-+++ cafeobj.git/configure.ac
+--- cafeobj-1.5.5.orig/configure.ac
++++ cafeobj-1.5.5/configure.ac
 @@ -333,5 +333,7 @@
    doc/RefCard/Makefile
    doc/PigNose/Makefile
@@ -12,3 +13,18 @@
 +  doc/etc/Makefile
  ])
  AC_OUTPUT()
+--- cafeobj-1.5.5.orig/Makefile.in
++++ cafeobj-1.5.5/Makefile.in
+@@ -315,9 +315,10 @@
+ 	$(MAKE) -C doc/RefCard interp.pdf
+ doc/RefCard/syntax.pdf:
+ 	$(MAKE) -C doc/RefCard syntax.pdf
+-doc/citp-manual/citp.pdf:
++doc/citp-manual/citp.pdf: doc/etc/kosakusha-logo-gray.png
+ 	$(MAKE) -C doc/citp-manual citp.pdf
+-
++doc/etc/kosakusha-logo-gray.png:
++	$(MAKE) -C doc/etc kosakusha-logo-gray.png
+ 
+ 
+ clean:
