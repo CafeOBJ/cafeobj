@@ -1,13 +1,14 @@
 ---
+ doc/namespace/Makefile.in               |   11 +++++
  doc/namespace/disunbig.tikz             |   30 +++++++++++++++
  doc/namespace/flat-module.tikz          |   28 ++++++++++++++
  doc/namespace/hir-module-namespace.tikz |   63 ++++++++++++++++++++++++++++++++
  doc/namespace/namespace.tex             |   23 ++++++++---
  doc/namespace/toplevel.tikz             |   25 ++++++++++++
- 5 files changed, 163 insertions(+), 6 deletions(-)
+ 6 files changed, 174 insertions(+), 6 deletions(-)
 
 --- /dev/null
-+++ cafeobj.git/doc/namespace/disunbig.tikz
++++ cafeobj-1.5.5/doc/namespace/disunbig.tikz
 @@ -0,0 +1,30 @@
 +\begin{center}
 +\begin{tikzpicture}
@@ -40,7 +41,7 @@
 +\end{tikzpicture}
 +\end{center}
 --- /dev/null
-+++ cafeobj.git/doc/namespace/flat-module.tikz
++++ cafeobj-1.5.5/doc/namespace/flat-module.tikz
 @@ -0,0 +1,28 @@
 +\definecolor{blueish}{HTML}{9CA4F2}
 +\definecolor{grenish}{HTML}{8BFDBD}
@@ -71,7 +72,7 @@
 +\end{tikzpicture}
 +\end{center}
 --- /dev/null
-+++ cafeobj.git/doc/namespace/hir-module-namespace.tikz
++++ cafeobj-1.5.5/doc/namespace/hir-module-namespace.tikz
 @@ -0,0 +1,63 @@
 +\definecolor{blueish}{HTML}{9CA4F2}
 +\definecolor{grenish}{HTML}{8BFDBD}
@@ -136,8 +137,8 @@
 +  
 +\end{tikzpicture}
 +\end{center}
---- cafeobj.git.orig/doc/namespace/namespace.tex
-+++ cafeobj.git/doc/namespace/namespace.tex
+--- cafeobj-1.5.5.orig/doc/namespace/namespace.tex
++++ cafeobj-1.5.5/doc/namespace/namespace.tex
 @@ -13,8 +13,8 @@
  %\usepackage{luatexja}
  \usepackage{fontspec}
@@ -208,7 +209,7 @@
 +%%% TeX-master: t
 +%%% End:
 --- /dev/null
-+++ cafeobj.git/doc/namespace/toplevel.tikz
++++ cafeobj-1.5.5/doc/namespace/toplevel.tikz
 @@ -0,0 +1,25 @@
 +\def\firstcircle{(0,0) ellipse (2.3cm and 1.9cm)}
 +\def\secondcircle{(3.5cm,0) ellipse (2.3cm and 1.9cm)}
@@ -235,3 +236,17 @@
 +  \draw \secondcircle node[below] {名前};
 +\end{tikzpicture}
 +\end{center}
+--- /dev/null
++++ cafeobj-1.5.5/doc/namespace/Makefile.in
+@@ -0,0 +1,11 @@
++
++namespace.pdf: namespace.tex disunbig.tikz flat-module.tikz hir-module-namespace.tikz toplevel.tikz
++	xelatex namespace
++	xelatex namespace
++	xelatex namespace
++
++clean:
++	rm -f *.aux namespace.log namespace.toc namespace.out
++
++distclean:
++
