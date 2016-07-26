@@ -1,7 +1,4 @@
-\documentclass{standalone}
-\usepackage{luatex85}
-\usepackage{ifluatex}
-\ifluatex\else\PackageError{logo}{You need lualatex to run this file!}\fi
+\documentclass{article}
 \usepackage{fontspec}
 \newfontface\hira{Hiragino Maru Gothic Pro}
 \usepackage{tikz}
@@ -9,6 +6,7 @@
 \usetikzlibrary{shadows.blur}
 \usetikzlibrary{shadings}
 \begin{document}
+\thispagestyle{empty}
 \begin{tikzpicture}
   \def\yy{2.5cm}
   \begin{scope}[shift={(0,9pt)}]
