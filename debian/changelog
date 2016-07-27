@@ -10,8 +10,9 @@ cafeobj (1.5.5-1) unstable; urgency=medium
   * add texlive-generic-extra to build deps (Closes: #830445) 
   * documentation files: use tikz instead of graffle generated pdf
   * bump standards version, no changes necessary
+  * add fonts-noto-cjk to build dependencies
 
- -- Norbert Preining <preining@debian.org>  Wed, 27 Jul 2016 22:47:57 +0900
+ -- Norbert Preining <preining@debian.org>  Wed, 27 Jul 2016 22:50:00 +0900
 
 cafeobj (1.5.4-4) unstable; urgency=medium
 
