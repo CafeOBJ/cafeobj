@@ -9,7 +9,7 @@
  \usepackage{fontspec}
 -\newfontface\hira{Hiragino Maru Gothic Pro}
 +%\newfontface\hira{Hiragino Maru Gothic Pro}
-+\newfontface\hira{Noto Sans CJK JP}
++\newfontface\hira{MotoyaLMaru}
  \usepackage{tikz}
  \usetikzlibrary{shadows}
  \usetikzlibrary{shadows.blur}
