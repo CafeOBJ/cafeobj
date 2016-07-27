@@ -1,0 +1,15 @@
+---
+ doc/etc/kosakusha-logo-tikz.tex |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- cafeobj-1.5.5.orig/doc/etc/kosakusha-logo-tikz.tex
++++ cafeobj-1.5.5/doc/etc/kosakusha-logo-tikz.tex
+@@ -1,6 +1,7 @@
+ \documentclass{article}
+ \usepackage{fontspec}
+-\newfontface\hira{Hiragino Maru Gothic Pro}
++%\newfontface\hira{Hiragino Maru Gothic Pro}
++\newfontface\hira{Noto Sans CJK JP}
+ \usepackage{tikz}
+ \usetikzlibrary{shadows}
+ \usetikzlibrary{shadows.blur}
