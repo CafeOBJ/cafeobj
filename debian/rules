@@ -55,9 +55,9 @@ install-arch-stamp: build-arch
 	dh_prep
 	DESTDIR=$(co) $(MAKE) install
 	# make install does also install the cafeobj-mode.el, remove it
-	rm $(coel)/usr/share/emacs/site-lisp/cafeobj-mode.el
-	rmdir $(coel)/usr/share/emacs/site-lisp/
-	rmdir $(coel)/usr/share/emacs
+	rm $(co)/usr/share/emacs/site-lisp/cafeobj-mode.el
+	rmdir $(co)/usr/share/emacs/site-lisp/
+	rmdir $(co)/usr/share/emacs
 	touch install-arch-stamp
 
 install-indep-stamp: DH_OPTIONS=-i
