@@ -81,8 +81,8 @@
                         (eq x (car y))))))
 
 (defun get-bound-value (let-sym &optional (mod (get-context-module)))
-  (or (cdr (assoc let-sym (module-bindings mod) :test #'equal))
-      (when *allow-$$term*
+  (let ((bound-token (assoc let-sym (module-bindings mod) :test #'equal)))
+    (if (and (null bound-token) *allow-$$term*)
         (cond ((equal let-sym "$$term")
                (when (or (null $$term) (eq 'void $$term))
                  (with-output-simple-msg ()
@@ -105,7 +105,14 @@
                $$subterm)
               ((is-special-let-variable? let-sym)
                (cdr (assoc let-sym (module-bindings mod) :test #'equal)))
-              (t nil)))))
+              (t nil))
+      (if bound-token
+          ;; parse 
+          (let* ((*parse-variables* nil)
+                 (res (simple-parse-from-string (cdr bound-token) mod *cosmos*)))
+            (setq res (car (canonicalize-variables (list res) mod)))
+            res)
+        nil))))
 
 (defun set-bound-value (let-sym value &optional (mod (get-context-module)))
   (when (or (equal let-sym "$$term")

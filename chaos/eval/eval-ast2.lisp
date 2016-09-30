@@ -517,6 +517,11 @@
       (setf (%module-decl-kind *module-open-form*) (module-kind mod))
       (setq open-mod (eval-ast *module-open-form*))
       (import-module open-mod :using (compile-module mod))
+      ;; copy bindings
+      (setf (module-bindings open-mod) (copy-tree (module-bindings mod))
+            (module-special-bindings open-mod)
+            (copy-tree (module-special-bindings mod)))
+      ;; prepare for immediage use
       (compile-module open-mod)
       (change-context *last-before-open* open-mod)
       open-mod)))
