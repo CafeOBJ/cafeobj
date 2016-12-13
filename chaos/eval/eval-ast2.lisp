@@ -312,10 +312,6 @@
         (trace-whole-on)
       (trace-whole-off))))
 
-(defun under-debug-rewrite ()
-  (or $$trace-rewrite $$trace-rewrite-whole *rewrite-stepping*
-      *rewrite-count-limit* *rewrite-stop-pattern*))
-
 (defun rewrite-debug-on () ())
 (defun rewrite-debug-off () ())
 
