@@ -92,10 +92,10 @@
 (define ("#define")
     :category :element
     :parser identity
-    :title "`#define <symbol> := <term> .`"
+    :title "`#define <pattern> := <term> .`"
     :mdkey "sharp-define"
     :evaluator cafeobj-eval-module-element-proc
-    :doc "Defines <symbol> to be <term>, that is, when <symbol>
+    :doc "Defines <pattern> to be <term>, that is, when <pattern>
 appers in term, it is expanded to <term> and then parsed."
 )
 
@@ -2275,26 +2275,22 @@ the current goal, or the goal given as `<goal-name>`."
     :parser citp-parse-ind-on
     :evaluator eval-citp-ind-on
     :related ("citp")
-    :title "`:ind on <variable> ... .`"
-    :doc "Defines the variable for the induction tactic of CITP."
+    :title "`:ind { on (<variable> ...) | 
+'{' on (<variable> ...) 
+    base (<Term> . ... <Term> .)
+    step (<Term> . ... <Term> .)
+'}'`"
+    :doc "':ind on (<variable> ...)' defines the variable for the induction tactic of CITP.
+':ind { ... }' defines induction variable(s) and base pattern and step pattern specified by <Term>s."
     :example "
 ~~~~~
 :ind on (M:PNat)
+:ind { on (M:PNat) 
+       base (<Term> . ... <Term> .) 
+       step (<Term> . ... <Term> .)
+     }
 ~~~~~"
 )
-
-(define (":ind+")
-    :category :proof
-    :parser citp-parse-ind-on+
-    :evaluator eval-citp-ind-on+
-    :related ("citp")
-    :title "`:ind on <variable> ... .`"
-    :doc "Defines the variable for the induction tactic of CITP."
-    :example "
-~~~~~
-:ind+ on (M:PNat) with base (<Term> . ... <Term> .) step (<Term> . ... <Term> .)
-~~~~~"
-    )
 
 (define (":auto")
     :category :proof
