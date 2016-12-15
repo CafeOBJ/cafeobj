@@ -668,6 +668,9 @@
   ` (let ((type (module-type ,_mod_)))
       (or (eq type :user) (null type))))
 
+(defmacro module-delayed-declarations (_mod) 
+  `(getf (object-misc-info ,_mod) ':delayed-declarations))
+
 ;;; HIDDEN
 (defmacro module-hidden (_mod)
   ` (getf (object-misc-info ,_mod) ':module-hidden))

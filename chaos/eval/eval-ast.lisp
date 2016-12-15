@@ -275,7 +275,7 @@
                                     error-operator
                                     )
       (when delayed
-        (push op-decl (module-error-op-decl *current-module*))
+        (pushnew op-decl (module-error-op-decl *current-module*) :test #'equal)
         (mark-need-parsing-preparation *current-module*)
         (return-from declare-operator t))
       ;;
@@ -295,8 +295,7 @@
                   (setf (method-theory meth *current-opinfo-table*)
                         *the-empty-theory*)
                   (compute-method-theory-info-for-matching meth
-                                                           *current-opinfo-table*)
-                  ))
+                                                           *current-opinfo-table*)))
             (when assoc
               (if (eq (method-module meth)
                       *current-module*)
@@ -337,8 +336,6 @@
                     (print-simple-mod-name (method-module meth))
                     (print-next)
                     (princ "ignoring.."))))
-            ;; (when constr (declare-method-constr meth constr))
-            ;; (when coherent (declare-method-coherent meth coherent))
             (set-needs-parse)
             (set-needs-rule)
             meth)
@@ -490,7 +487,7 @@
                                     :labels labels
                                     :behavioural behavioural
                                     :type type)))
-                   (chaos-error 'invalid-axiom-decl) ))))
+                   (chaos-error 'invalid-axiom-decl-1) ))))
           
           ;; normal rule
           (t (let* ((parses-lhs (let ((*parsing-axiom-lhs* t))
@@ -520,7 +517,9 @@
                          (princ "[Error] bad axiom (ignored): ")
                          ;; show LHS 
                          (if (null parses-lhs)
-                             (format t "~& No possible parse for LHS")
+                             (progn
+                               (format t "~%No possible parse for LHS")
+                               (format t "~%~{~s~^ ~}" lhs))
                            (progn
                              (format t "~&- LHS")
                              (dolist (f parses-lhs)
@@ -528,13 +527,15 @@
                                (print-term-tree f t))))
                          ;; show RHS
                          (if (null parses-rhs)
-                             (format t "~& No possible parse for RHS")
+                             (progn
+                               (format t "~%No possible parse for RHS")
+                               (format t "~%~{~s~^ ~}" rhs))
                            (progn
                              (format t "~&- RHS")
                              (dolist (f parses-rhs)
                                (print-next)
                                (print-term-tree f t)))))
-                       (chaos-error 'invalid-axiom-decl))
+                       (chaos-error 'invalid-axiom-decl-2))
                      ;;
                      (progn
                        (unless (null (cdr res))
@@ -602,15 +603,15 @@
                                      (with-in-module (*current-module*)
                                        (print-next)
                                        (print-chaos-object the-axiom)))))))
-                           (chaos-error 'invalid-axiom-decl))))))))
-    ;; check the axiom
-    (check-axiom-error-method *current-module* the-axiom t)
+                           (chaos-error 'invalid-axiom-decl-3))))))))
+    ;; warn if the axiom contains error operators
+    (warn-axiom-if-contains-error-op the-axiom *current-module*)
     ;; additionaly if condition part contains match-op...
     (when (term-contains-match-op (axiom-condition the-axiom))
       (setf (axiom-contains-match-op the-axiom) t))
     the-axiom))
 
-(defun declare-axiom (ast)
+(defun declare-axiom-now (ast)
   (let ((the-axiom (parse-axiom-declaration ast)))
     ;; add to module: was add-axiom-to-module...
     (adjoin-axiom-to-module *current-module* the-axiom)
@@ -620,6 +621,11 @@
     ;; set module status
     (set-needs-rule)
     the-axiom))
+
+(defun declare-axiom (ast)
+  (pushnew (change-axiom-decl-to-now ast) (module-delayed-declarations *current-module*)
+           :test #'equal)
+  (set-needs-rule))
 
 ;;;=============================================================================
 ;;; LET
@@ -643,6 +649,9 @@
           ;; avoiding side effect.
           (when (or (equal "$$term" sym) (equal "$$subtem" sym))
             (setq res (simple-copy-term res)))
+          (when (term-contains-error-method res)
+            (with-output-chaos-error ('invalid-form)
+              (format t "In 'let' form, term must not have error operators in it.")))
           ;; we do not set term, but its printing image
           ;; for enabling let sym in opened module.
           (setq val (with-output-to-string (s)
@@ -695,6 +704,10 @@
         (with-output-chaos-error ('invalid-macro)
           (format t "macro can only be defined for operators with no equational theory.~%")
           (print-chaos-object ast)))
+      (when (or (term-contains-error-method lhs)
+                (term-contains-error-method rhs))
+        (with-output-chaos-error ('invalid-macro)
+          (format t "macro must not have error operators in its declaration.~%")))
       ;; LHS & RHS must be of the same sort -- too rigid?
       (unless (is-in-same-connected-component (term-sort lhs)
                                               (term-sort rhs)

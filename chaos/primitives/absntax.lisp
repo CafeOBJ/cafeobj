@@ -407,6 +407,15 @@
   :eval declare-axiom
   :print print-axiom-decl-form)
 
+(defterm axiom-decl-now (%ast)
+  :visible (type labels lhs rhs cond &optional behavioural)
+  :eval declare-axiom-now
+  :print print-axiom-decl-form)
+
+(defun change-axiom-decl-to-now (ast)
+  (setf (car ast) '%axiom-decl-now)
+  ast)
+
 ;;; Axiom Reference_____________________________________________________________
 ;;; representing a reference to axioms (a name can be represents multiple
 ;;; axioms).

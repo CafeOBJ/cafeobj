@@ -964,6 +964,20 @@
 
 (defvar *optimize-error-operators* t)
 
+(defun axiom-contains-error-method (axiom)
+  (or (term-contains-error-method (axiom-lhs axiom))
+      (term-contains-error-method (axiom-rhs axiom))
+      (term-contains-error-method (axiom-condition axiom))))
+
+(defun warn-axiom-if-contains-error-op (axiom &optional (module (get-context-module)))
+  (when (axiom-contains-error-method axiom)
+    (with-in-module (module)
+      (with-output-chaos-warning ()
+        (format t "axiom : ")
+        (print-chaos-object axiom)
+        (print-next)
+        (format t "contains error operators.")))))
+
 (defun check-axiom-error-method (module axiom &optional message?)
   (declare (type module module)
            (type axiom axiom)
@@ -985,14 +999,8 @@
                (rhs-e (term-error-operators&variables rhs nil))
                (cond (axiom-condition axiom))
                (cond-e (term-error-operators&variables cond nil)))
-          (when (and (or lhs-e rhs-e cond-e)
-                     message?)
-            (when t                     ; *chaos-verbose* ; should always be reported.
-              (with-output-chaos-warning ()
-                (format t "axiom : ")
-                (print-chaos-object axiom)
-                (print-next)
-                (format t "contains error operators."))))
+          (when message?
+            (warn-axiom-if-contains-error-op axiom module))
           ;; check 
           (when *optimize-error-operators*
             (check-check lhs-e)

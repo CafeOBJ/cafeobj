@@ -104,8 +104,9 @@
     (when print-var-sort
       (unless (or (member term (cdr vars-so-far)
                           :test #'variable-eq)
-                  (rassoc term (module-variables *current-module*)
-                          :test #'equal))
+                  (and (not (eq print-var-sort :always))
+                       (rassoc term (module-variables *current-module*)
+                               :test #'equal)))
         (push term (cdr vars-so-far))
         (when (and '(let ((sort (variable-sort term)))
                      (not (or (eq sort *universal-sort*)
@@ -222,7 +223,8 @@
        (= (length tok) 1)
        (assoc (char tok 0) .default-single-chars.)))
 
-(defun term-print1 (term &optional (stream *standard-output*) (print-var-sort t)
+(defun term-print1 (term &optional (stream *standard-output*) 
+                                   (print-var-sort t)
                                    (vars-so-far (cons nil nil)))
   (declare (type stream stream)
            (type (or null t) print-var-sort)
@@ -326,7 +328,7 @@
     (when (print-check .file-col. 0 stream)             ; 20?? 
       (setq .file-col. (file-column stream)))
     ;;
-    (when (and (term-is-red term) *print-term-color*)
+    (when (and *print-term-color* (term-is-red term))
       (princ "r::" stream))
 
     (cond ((or (term-is-variable? term) (term-is-psuedo-constant? term))

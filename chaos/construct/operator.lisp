@@ -1184,7 +1184,7 @@
                                                     new-module
                                                     sort-map)))))
       ;;
-      (multiple-value-bind (newop newmeth)
+      (multiple-value-bind (newop newmeth error-op?)
           (declare-operator-in-module op-symbol
                                       arity
                                       coarity
@@ -1193,29 +1193,31 @@
                                       behavioural
                                       coherent
                                       error-operator)
-        (declare (ignore newop))
-        (setf (method-supplied-strategy newmeth) sup-strat
-              (method-precedence newmeth) prec
-              (method-associativity newmeth) assoc)
-        (setf (method-derived-from newmeth) meth)
-        (setf (method-has-memo newmeth) memo)
-        (setf (method-is-meta-demod newmeth) meta-demod)
-        (setf (method-id-symbol newmeth) id-symbol)
-        ;;
-        ;; check identity in theory
-        (if (theory-contains-identity theory)
-            (let ((zero (theory-zero theory)))
-              (setq zero (cons '%to-rename zero))
-              (setf (method-theory newmeth)
-                    (theory-make (theory-info theory) zero))
-              (compute-method-theory-info-for-matching newmeth)
-              )
-            ;;
+        (declare (ignore newop error-op?))
+        (when (and *on-modexp-debug* newmeth)
+          (format t "~%recreating operator in module: ~s" new-module)
+          (print-chaos-object newmeth))
+        (when newmeth
+          (setf (method-supplied-strategy newmeth) sup-strat
+                (method-precedence newmeth) prec
+                (method-associativity newmeth) assoc)
+          (setf (method-derived-from newmeth) meth)
+          (setf (method-has-memo newmeth) memo)
+          (setf (method-is-meta-demod newmeth) meta-demod)
+          (setf (method-id-symbol newmeth) id-symbol)
+          ;; check identity in theory
+          (if (theory-contains-identity theory)
+              (let ((zero (theory-zero theory)))
+                (setq zero (cons '%to-rename zero))
+                (setf (method-theory newmeth)
+                  (theory-make (theory-info theory) zero))
+                (compute-method-theory-info-for-matching newmeth))
             (progn
               (setf (method-theory newmeth) theory)
-              (compute-method-theory-info-for-matching newmeth)))
+              (compute-method-theory-info-for-matching newmeth))))
         ;;
         newmeth))))
+
         
 ;;; ******************************
 ;;; PREPARATIONS FOR PARSING TERMS______________________________________________

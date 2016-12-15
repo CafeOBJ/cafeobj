@@ -301,8 +301,9 @@
            (values t))
   (with-in-module (module)
     (print-in-progress "*")
-    ;; add axioms in paramters as theorems if any.
-    ;; (add-parameter-theorem module)
+    ;; do evaluation of delayed declarations such as imported axioms
+    ;; with error operator in them.
+    (do-delayed-declarations module)
     ;; add operator theory axioms
     (unless (and *open-module*
                  (equal "%" (get-module-print-name module)))
@@ -310,10 +311,10 @@
         (add-operator-theory-axioms module oinfo)))
     ;;
     (add-identity-completions module)
-    ;; add equations for behavioural congruence relation.
+    ;; add equations for behavioural congruence relation
     (construct-beh-stuff module)
-    ;; we need fix axioms before rwl axioms are generated.
-    (fix-error-method-terms module)
+    ;; we need fix axioms before rwl axioms are generated
+    ;; (fix-error-method-terms module)
     ;; add rwl axioms if need
     (add-rwl-axioms module)
     ;; genrate rewrite rules
@@ -323,24 +324,30 @@
               (fix-strategy-and-rules module opinfo))
           (module-all-operators module))
     ;; TODO.
-    (fix-rewrite-rules module)
+    ;; (fix-rewrite-rules module)
     (check-behavioural-rules module)
     (normalize-rules-in module)
     (module-error-check module)
     (check-operator-congruency module)
-    ;;
+    ;; add labels into symbol table for inspection commands
     (let* ((*module-all-rules-every* t)
            (axs (get-module-axioms module)))
-      ;; (format t "~%# axioms=~d" (length axs))
       (dolist (ax axs)
         (let ((labels (axiom-labels ax)))
            (dolist (lab labels)
-             ;; (format t " ~a" lab)
              (symbol-table-add (module-symbol-table module)
                                lab
                                ax)))))
     ;; set status.
     (mark-module-ready-for-rewriting module)))
+
+(defun do-delayed-declarations (module)
+  (with-in-module (module)
+    (dolist (decl (reverse (module-delayed-declarations module)))
+      (eval-ast decl))
+    ;; if this is the opening module, we don't want to
+    (when (eq module (eval-modexp "%"))
+      (setf (module-delayed-declarations module) nil))))
 
 (defun check-behavioural-rules (module)
   (declare (type module module)
@@ -351,6 +358,7 @@
       (setf (module-has-behavioural-axioms module) t)
       (return-from check-behavioural-rules t))))
 
+#|
 (defun fix-error-method-terms (module &optional clean)
   (declare (type module module)
            (type (or null t) clean)
@@ -378,7 +386,9 @@
         (when clean
           (setf (module-terms-to-be-fixed module) nil
                 (module-axioms-to-be-fixed module) nil))))))
+|#
 
+#|
 (defun fix-rewrite-rules (module)
   (declare (type module module)
            (values t))
@@ -389,8 +399,10 @@
                 rl)
             res))
     (setf (module-rewrite-rules module)
-          (nreverse res))))
+      (nreverse res))))
+|#
 
+#|
 (defun check-module-rules (module)
   (declare (type module module)
            (values t))
@@ -398,6 +410,7 @@
   (setf (module-axioms-to-be-fixed module) nil)
   (dolist (rule (module-all-rules module))
     (check-axiom-error-method module rule)))
+|#
 
 (defun module-error-check (module)
   (declare (type module module)
