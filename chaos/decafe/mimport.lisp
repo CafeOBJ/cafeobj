@@ -338,10 +338,10 @@
 
 ;;; import module copying
 (defun incorporate-module-copying (module submodule
-                                          &optional
-                                          copy-parameters
-                                          theory-module
-                                          (context-module *current-module*))
+                                   &optional
+                                   copy-parameters
+                                   theory-module
+                                   (context-module *current-module*))
   (let ((*import-local-vars* nil)
         (imported-params nil))
     (labels ((import-recreate-sort (s)
@@ -354,10 +354,10 @@
                        (let ((news (import-recreate-sort sort_)))
                          (when *on-import-debug*
                            (format t "~%[copy] putting ~a to *import-sort-map*"
-                                         (cons sort_ news)))
+                                   (cons sort_ news)))
                          (push (cons sort_ news) *import-sort-map*)
                          news))
-                   sort_))
+                 sort_))
 
              (using-find-sort (_sort)
                (or (cdr (assq _sort *import-sort-map*)) _sort))
@@ -371,19 +371,19 @@
                          (princ "imported variable discarded due to name conflict")
                          (print-next)
                          (format t "with the existing variable: ~a" nm))
-                       (unless val
-                         (setq val (make-variable-term sort nm))
-                         (when *copy-variables*
-                           (push (cons nm val) (module-variables module)))
-                         (push (cons nm val) *import-local-vars*))))))
+                     (unless val
+                       (setq val (make-variable-term sort nm))
+                       (when *copy-variables*
+                         (push (cons nm val) (module-variables module)))
+                       (push (cons nm val) *import-local-vars*))))))
              ;;
              (using-find-sort-err (s)
                (let ((sort (cdr (assq s *import-sort-map*))))
                  (cond (sort sort)
                        ((err-sort-p s)
                         (setq sort
-                              (find-compatible-err-sort s module
-                                                        *import-sort-map*))
+                          (find-compatible-err-sort s module
+                                                    *import-sort-map*))
                         (if sort
                             (progn
                               (when *on-import-debug*
@@ -391,9 +391,9 @@
                                         (cons s sort)))
                               (push (cons s sort) *import-sort-map*)
                               sort)
-                            (with-output-panic-message ()
-                              (format t "could not find compatible error sort of ~a"
-                                      s))))
+                          (with-output-panic-message ()
+                            (format t "could not find compatible error sort of ~a"
+                                    s))))
                        (t s))))
              ;;
              (using-recreate-term (term)
@@ -407,11 +407,11 @@
                           (if (and val2 (sort= new-sort
                                                (variable-sort (cdr val2))))
                               (cdr val2)
-                              (let ((new-var (make-variable-term
-                                              new-sort var-name)))
-                                (push (cons var-name new-var)
-                                      *import-local-vars*)
-                                new-var)))))
+                            (let ((new-var (make-variable-term
+                                            new-sort var-name)))
+                              (push (cons var-name new-var)
+                                    *import-local-vars*)
+                              new-var)))))
                      ((term-is-lisp-form? term) term)
                      (t (let ((head (term-head term)))
                           (let ((new-head
@@ -420,7 +420,7 @@
                                   (method-symbol head)
                                   (mapcar #'(lambda (x)
                                               (using-find-sort-err x))
-                                          (method-arity head))
+                                           (method-arity head))
                                   (using-find-sort-err 
                                    (method-coarity head)))))
                             (when (null new-head)
@@ -436,24 +436,25 @@
                                            new-head
                                            (mapcar #'(lambda (tm)
                                                        (using-recreate-term tm))
-                                                   (term-subterms term))))))))
+                                                    (term-subterms term))))))))
+             #|| not used now
              (using-recreate-axiom (axiom)
-               (when *on-import-debug*
-                 (princ "[using-recreate-axiom]")
-                 (with-in-module (submodule)
-                   (print-axiom-brief axiom)))
-               (make-rule :lhs (using-recreate-term (axiom-lhs axiom))
-                          :rhs (using-recreate-term (axiom-rhs axiom))
-                          :condition (if (is-true? (axiom-condition axiom))
-                                         *bool-true*
-                                         (using-recreate-term (axiom-condition axiom)))
-                          :labels (axiom-labels axiom)
-                          :type (axiom-type axiom)
-                          :behavioural (axiom-is-behavioural axiom)
-                          :kind (axiom-kind axiom)
-                          :non-exec (axiom-non-exec axiom)
-                          :meta-and-or (axiom-meta-and-or axiom)))
-             ;;
+             (when *on-import-debug*
+             (princ "[using-recreate-axiom]")
+             (with-in-module (submodule)
+             (print-axiom-brief axiom)))
+             (make-rule :lhs (using-recreate-term (axiom-lhs axiom))
+             :rhs (using-recreate-term (axiom-rhs axiom))
+             :condition (if (is-true? (axiom-condition axiom))
+             *bool-true*
+             (using-recreate-term (axiom-condition axiom)))
+             :labels (axiom-labels axiom)
+             :type (axiom-type axiom)
+             :behavioural (axiom-is-behavioural axiom)
+             :kind (axiom-kind axiom)
+             :non-exec (axiom-non-exec axiom)
+             :meta-and-or (axiom-meta-and-or axiom)))
+             ||#
              (using-import-sub (s mode)
                (let ((subs (module-all-submodules module)))
                  (unless (assq s subs)
@@ -464,31 +465,30 @@
                          (if (and copy-parameters
                                   (not (eq (fourth (module-name s))
                                            context-module)))
-                               (import-module-internal module
-                                                       mode
-                                                       param-mod
-                                                       arg-name
-                                                       module)
-                               (progn
-                                 (import-module-internal module
-                                                         mode
-                                                         param-mod
-                                                         nil
-                                                         (or theory-module
-                                                             submodule))
-                                 (add-modexp-local-defn (list arg-name
-                                                              (module-name module))
-                                                        param-mod)
-                                 (push (cons (cons arg-name param-mod) mode)
-                                       (module-parameters module))
-                                 )))
-                       (if (eq mode :using)
-                           (using-import-subs s)
-                           (import-module-internal module
-                                                   mode
-                                                   s
-                                                   nil
-                                                   (or theory-module submodule)))))))
+                             (import-module-internal module
+                                                     mode
+                                                     param-mod
+                                                     arg-name
+                                                     module)
+                           (progn
+                             (import-module-internal module
+                                                     mode
+                                                     param-mod
+                                                     nil
+                                                     (or theory-module
+                                                         submodule))
+                             (add-modexp-local-defn (list arg-name
+                                                          (module-name module))
+                                                    param-mod)
+                             (push (cons (cons arg-name param-mod) mode)
+                                   (module-parameters module)))))
+                     (if (eq mode :using)
+                         (using-import-subs s)
+                       (import-module-internal module
+                                               mode
+                                               s
+                                               nil
+                                               (or theory-module submodule)))))))
              (using-import-subs (smod)
                (dolist (s (reverse (module-direct-submodules smod)))
                  (using-import-sub (car s) (cdr s))))
@@ -521,9 +521,9 @@
                                (make-sort-relation
                                 (using-find-sort (sort-relation-sort new-rel))
                                 (mapcar #'(lambda (x) (using-find-sort x))
-                                        (_subsorts new-rel))
+                                         (_subsorts new-rel))
                                 (mapcar #'(lambda (x) (using-find-sort x))
-                                        (_supersorts new-rel))))))
+                                         (_supersorts new-rel))))))
               (when xnew-rel
                 (adjoin-sort-relation xnew-rel module))
               (add-relation-to-order xnew-rel so)))
@@ -550,14 +550,14 @@
                                           submodule)))))
                     (let* ((new-arity (mapcar #'(lambda (x)
                                                   (using-find-sort-err x))
-                                              (method-arity meth)))
+                                               (method-arity meth)))
                            (new-coarity (using-find-sort-err
                                          (method-coarity meth)))
                            (new-meth nil))
                       (when *on-import-debug*
-                      (format t "~%* trying to make new method ~a:" op-symbol)
-                      (format t "~%  arity = ~a" new-arity)
-                      (format t "~%  coarity = ~a" new-coarity))
+                        (format t "~%* trying to make new method ~a:" op-symbol)
+                        (format t "~%  arity = ~a" new-arity)
+                        (format t "~%  coarity = ~a" new-coarity))
                       (setq new-meth (recreate-method submodule
                                                       meth
                                                       module
@@ -583,66 +583,56 @@
                       (theory-make (theory-info theory) zero))
                     (compute-method-theory-info-for-matching new-meth)))))))
         ;;
-        ;; dumn it!
-        ;;
-        (dolist (e (reverse (module-opattrs submodule)))
-          (eval-ast e))
-        ;;
         ;; vertually import variables copying
         ;;
         (dolist (v (nreverse (mapcar #'cdr (module-variables submodule))))
           (using-import-var v))
-        ;; (setq *import-local-vars* (module-variables module))
+
+        ;;
         ;; inherit principal-sort if defined.
-        ;;(break)
+        ;;
         (when (and (module-psort-declaration submodule)
                    (null (module-psort-declaration module)))
           (setf (module-psort-declaration module)
-                (copy-tree (module-psort-declaration submodule))))
+            (copy-tree (module-psort-declaration submodule))))
         ;;
         ;; import error operator declarations
-        ;;
+        ;; the evaluation will be delayed
         (dolist (eop (module-error-op-decl submodule))
           (when *on-import-debug*
             (with-output-msg ()
-              (format t "* evaluating imported err op decl:")
+              (format t "* importing err op decl:")
               (print-next) (princ "  ")
               (print-chaos-object eop)))
-          (eval-ast eop))
+          (pushnew eop (module-error-op-decl module) :test #'equal))
         
-        ;;
-        ;; import variable declarations of error sorts
-        ;; nothing todo ... NO TODO
-
         ;;
         ;; copy macros
         ;;
         (dolist (macro (module-macros submodule))
-          (let ((new-macro (make-macro :lhs (using-recreate-term
-                                             (macro-lhs macro))
-                                       :rhs (using-recreate-term
-                                             (macro-rhs macro)))))
-            ;; (print macro)
+          (let ((new-macro (make-macro :lhs (using-recreate-term (macro-lhs macro))
+                                       :rhs (using-recreate-term (macro-rhs macro)))))
             (add-macro-to-module module new-macro)))
+        ;;
+        ;; copy let bindings
+        ;;
+        (setf (module-bindings module) (copy-tree (module-bindings submodule))
+              (module-special-bindings module)
+              (copy-tree (module-special-bindings submodule)))
 
         ;;
         ;; import equations & rules copying
         ;;
         (prepare-for-parsing module nil t)
+
         ;; in this stage, error sorts & methods are all available,
-        ;; but there can happen reorganizing operators in different ways,
-        ;; thus we need still `check-axiom-error-method'.
+        ;; but we must delay the axiom importation
+        ;; because there can happen reorganizing operators in different ways
         (dolist (e (reverse (module-equations submodule)))
-          (adjoin-axiom-to-module module
-                                  (check-axiom-error-method
-                                   module
-                                   (using-recreate-axiom e))))
+          (delay-axiom-importation module e submodule))
         
         (dolist (r (reverse (module-rules submodule)))
-          (adjoin-axiom-to-module module
-                                  (check-axiom-error-method
-                                   module
-                                   (using-recreate-axiom r))))
+          (delay-axiom-importation module r submodule))
         ;;
         ;; all done, hopefully
         ;;
@@ -671,9 +661,7 @@
                                               module)))
     ;;
     (with-in-module (module)
-      (let ((from-opinfo (module-opinfo-table from-module))
-            (to-opinfo (module-opinfo-table module))
-            (so (module-sort-order module)))
+      (let ((so (module-sort-order module)))
         ;; find the method group to be inserted
         (dolist (method (opinfo-methods opinfo))
           (when (and (not (method-is-error-method method))
@@ -713,40 +701,54 @@
             (when *on-import-debug*
               (format t "~%-- importing method ~s : " method)
               (print-chaos-object method))
+            ;; adding to 
             (modexp-add-method-to-table new-opinfo method module)
+            ;; import attributes
             (transfer-operator-attributes method module from-module theory-mod)
             ;; import axioms
-            (let ((all-rules (module-all-rules module)))
-              (dolist (rule (rule-ring-to-list
-                             (method-rules-with-same-top method from-opinfo)))
-                (when (or (not (memq rule all-rules))
-                          (eq method (term-head (axiom-lhs rule))))
-                  (when *on-import-debug*
-                    (with-in-module (from-module)
-                      (format t "~%-- importing axiom ")
-                      (print-chaos-object rule)
-                      (format t "~%   for method : ")
-                      (print-chaos-object method)))
-                  (add-rule-to-method (check-axiom-error-method module rule)
-                                      method to-opinfo)
-                  (pushnew rule (module-all-rules module) :test #'rule-is-similar?)))
-              ;;
-              (dolist (r (reverse (method-rules-with-different-top method
-                                                                   from-opinfo)))
-                (when (or (not (memq r all-rules))
-                          (eq method (term-head (axiom-lhs r))))
-                  (when *on-import-debug*
-                    (with-in-module (from-module)
-                      (format t "~%-- importing axiom ")
-                      (print-chaos-object r)
-                      (format t "~%   for method : ")
-                      (print-chaos-object method)))
-                  (add-rule-to-method (check-axiom-error-method module r)
-                                      method to-opinfo)
-                  (pushnew r (module-all-rules module) :test #'rule-is-similar?)))
-              )))
+            (import-operator-axioms module method from-module)))
         (when *on-import-debug*
           (format t "~%* done transfer-operator"))))))
+
+(defun import-operator-axioms (module method from-module)
+  (let ((from-opinfo (module-opinfo-table from-module)))
+    (dolist (rule (rule-ring-to-list
+                   (method-rules-with-same-top method from-opinfo)))
+      (import-an-axiom module rule method from-module))
+    (dolist (rule (reverse (method-rules-with-different-top method
+                                                            from-opinfo)))
+      (import-an-axiom module rule method from-module))))
+
+;;; delay-axiom-importation
+;;; if an axiom contains error operator, 
+;;; we must delay importation after all error operator is generated
+;;; 
+(defun delay-axiom-importation (module axiom from-module)
+  (let ((ast (parse-module-element-1 (cafeobj-parse-from-string (axiom-declaration-string axiom from-module)))))
+    (pushnew (change-axiom-decl-to-now ast)
+             (module-delayed-declarations module)
+             :test #'equal)))
+
+(defun import-an-axiom (module rule method from-module)
+  (when (eq method (term-head (axiom-lhs rule)))
+    (if (axiom-contains-error-method rule)
+        (progn
+          (when *on-import-debug*
+            (with-in-module (from-module)
+              (format t "~%-- delaying importing axiom ")
+              (print-chaos-object rule)))
+          (delay-axiom-importation module rule from-module))
+      (progn
+        (when *on-import-debug*
+          (with-in-module (from-module)
+            (format t "~%-- importing axiom ")
+            (print-chaos-object rule)
+            (format t "~%   for method : ")
+            (print-chaos-object method)))
+        (add-rule-to-method rule
+                            method
+                            (module-opinfo-table module))
+        (pushnew rule (module-all-rules module) :test #'rule-is-similar?)))))
 
 (defun modexp-add-method-to-table (opinfo method module)
   (let ((pmeth (find method (opinfo-methods opinfo)
