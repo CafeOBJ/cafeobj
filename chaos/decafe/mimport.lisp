@@ -542,12 +542,12 @@
             (let ((op-symbol (operator-symbol (opinfo-operator opinfo))))
               (dolist (meth (opinfo-methods opinfo))
                 (when (eq submodule (method-module meth))
-                  (when (or ;; (method-is-user-defined-error-method meth)
-                         (and (not (method-is-error-method meth))
-                              (not (method-is-user-defined-error-method meth))
-                              (not (memq meth
-                                         (module-methods-for-regularity
-                                          submodule)))))
+                  (when (or (method-is-user-defined-error-method meth)
+                            (and (not (method-is-error-method meth))
+                                 (not (method-is-user-defined-error-method meth))
+                                 (not (memq meth
+                                            (module-methods-for-regularity
+                                             submodule)))))
                     (let* ((new-arity (mapcar #'(lambda (x)
                                                   (using-find-sort-err x))
                                                (method-arity meth)))
@@ -629,10 +629,12 @@
         ;; but we must delay the axiom importation
         ;; because there can happen reorganizing operators in different ways
         (dolist (e (reverse (module-equations submodule)))
-          (delay-axiom-importation module e submodule))
+          (unless (axiom-kind e)
+            (delay-axiom-importation module e submodule)))
         
         (dolist (r (reverse (module-rules submodule)))
-          (delay-axiom-importation module r submodule))
+          (unless (axiom-kind r)
+            (delay-axiom-importation module r submodule)))
         ;;
         ;; all done, hopefully
         ;;
