@@ -99,7 +99,7 @@
   ;; :init as def(ed) tactic
   (defparameter .tactic-init. (make-tactic :name :init
                                            :executor 'apply-init))
-  ;; :ind as def(ed) tactic
+  ;; :ind, user defined induction scheme
   (defparameter .tactic-ind. (make-tactic :name :ind
                                           :executor 'apply-ind))
 
@@ -364,7 +364,7 @@
 
 (defun pr-citp-flag-internal (index)
   (unless (equal "" (citp-flag-name index))
-    (format t "~&Flag ~a is ~a" (subseq (citp-flag-name index) 5) (if (citp-flag index) "on" "off"))))
+    (format t "~&- Flag ~a is ~a" (subseq (citp-flag-name index) 5) (if (citp-flag index) "on" "off"))))
 
 ;;; help-citp-flag : index
 ;;;
@@ -480,8 +480,10 @@
   (proved nil :type list)               ; proved targets
   (critical-pairs nil :type list)       ; list of critical pairs not yet axiomatized
   (defs nil :type list)                 ; list of :defined tactics
-  (base-ops nil :type list)             ; list of user specified induction base ops
-  (step-ops nil :type list)             ; list of user specifief induction step ops
+  (base-ops nil :type list)             ; constructors
+  (step-ops nil :type list)             ; induction step operators
+  (bases nil :type list)                ; list of user specified induction bases
+  (steps nil :type list)                ; list of user specifief induction steps
   )
 
 (defun goal-is-discharged (goal)
@@ -512,8 +514,8 @@
             (axs (goal-targets goal))
             (proved (goal-proved goal))
             (discharged (goal-is-discharged goal))
-            (bases (goal-base-ops goal))
-            (steps (goal-step-ops goal)))
+            (bases (goal-bases goal))
+            (steps (goal-steps goal)))
         (print-next)
         (format stream "-- context module: ~a"
                 (get-module-simple-name (ptree-context *proof-tree*)))
@@ -537,14 +539,14 @@
           (dolist (b bases)
             (let ((*print-indent* (+ 2 *print-indent*)))
               (print-next)
-              (print-method-brief b))))
+              (term-print-with-sort b))))
         (when steps
           (print-next)
           (format stream "-- user specified induction step~p" (length steps))
           (dolist (s steps)
             (let ((*print-indent* (+ 2 *print-indent*)))
               (print-next)
-              (print-method-brief s))))
+              (term-print-with-sort s))))
         (when v-consts
           (print-next)
           (format stream "-- introduced constant~p" (length v-consts))
@@ -659,10 +661,12 @@
 (defmacro ptree-node-goal (ptree-node)
   `(ptree-node-datum ,ptree-node))
 
-(defun clear-induction-ops (ptree-node)
+(defun clear-induction-scheme (ptree-node)
   (let ((goal (ptree-node-goal ptree-node)))
     (setf (goal-base-ops goal) nil
-          (goal-step-ops goal) nil)))
+          (goal-step-ops goal) nil
+          (goal-bases goal) nil
+          (goal-steps goal) nil)))
 
 ;;; initialize-ptree-node : ptree-node -> ptree-node
 ;;; discard existing child nodes. 
@@ -743,7 +747,9 @@
             (goal-assumptions next-goal) (goal-assumptions cur-goal)
             (goal-defs next-goal) (goal-defs cur-goal)
             (goal-base-ops next-goal) (goal-base-ops cur-goal)
-            (goal-step-ops next-goal) (goal-step-ops cur-goal))
+            (goal-step-ops next-goal) (goal-step-ops cur-goal)
+            (goal-bases next-goal) (goal-bases cur-goal)
+            (goal-steps next-goal) (goal-steps cur-goal))
       (prepare-for-parsing next-context)
       (setq *next-default-proof-node* nil) ; we reset the next default target
       next-goal)))

@@ -47,6 +47,11 @@
     (with-output-chaos-error ('no-proof-tree)
       (format t "No proof is ongoing."))))
 
+(defun check-on-going()
+  (unless (and *proof-tree* (get-unproved-nodes *proof-tree*))
+    (with-output-chaos-error ('no-target)
+      (format t "There are no unproved goals."))))
+
 (defun check-context-module-and-ptree ()
   (check-context-module)
   (check-ptree))
@@ -86,33 +91,10 @@
 ;;; citp-parse-ind-on
 ;;; :ind on (var ... var)
 ;;; (":ind" ("on" "(" ("A:S-1" "B:S-2" "C:S-3") ")"))
-(defun citp-parse-ind-on (args)
-  (check-context-module)
-  (with-in-module (*current-module*)
-    (let ((ind-type (first (second args))))
-      (if (equal ind-type "on")
-          (let ((vars nil))
-            (dolist (var-decl (third (second args)))
-              (let ((var (simple-parse-from-string var-decl)))
-                (when (term-ill-defined var)
-                  (with-output-chaos-error ('no-parse)
-                    (format t "Illegal variable form: ~s" var-decl)))
-                (unless (term-is-variable? var)
-                  (with-output-chaos-error ('no-var)
-                    (format t "Invalid argument to ':ind' command: ~s" var-decl)))
-                (push var vars)))
-            (cons :simple (nreverse vars)))
-        ;; :ind { .... }
-        ;; NOT YET
-        nil))))
+;;; (":ind" ("{" ("on" #1="(" ("L1:List") #2=")") 
+;;;              ("base" #1# ("nil") "." nil #2#) 
+;;;              ("step" #1# ("X:Elm" "T:List") "." nil #2#) "}"))
 
-;;; :ind+ on
-;;: (":ind+" "on" "(" ("L1:List") ")" "with"
-;;; 0   1      2   3       4       5    6
-;;; ("base" "(" ("nil") "." ("1" "+" "2") ")")
-;;;                      7
-;;; ("step" "(" ("L1:List" "L2:List") "." ("X" "*" "2" "+" "4") ")")) 
-;;;                      8
 (defun citp-parse-seq-of-terms (module token-list)
   (let ((terms nil))
     (dolist (term? token-list)
@@ -127,15 +109,31 @@
           (push target-term terms))))
     (nreverse terms)))
 
-(defun citp-parse-ind-on+ (args)
+(defun citp-parse-ind-on (args)
   (check-context-module)
-  ;; (format t "~%args=~s" args)
-  (with-in-module ((get-context-module))
-    (let ((vars (citp-parse-ind-on args)))
-      (let ((bases (citp-parse-seq-of-terms *current-module* (nth 6 args)))
-            (steps (citp-parse-seq-of-terms *current-module* (nth 7 args))))
-        (list vars bases steps)))))
-        
+  (with-in-module (*current-module*)
+    (let ((ind-type (first (second args))))
+      (flet ((parse-vars (decls)
+               (let ((vars nil))
+                 (dolist (var-decl decls)
+                   (let ((var (simple-parse-from-string var-decl)))
+                     (when (term-ill-defined var)
+                       (with-output-chaos-error ('no-parse)
+                         (format t "Illegal variable form: ~a" var-decl)))
+                     (unless (term-is-variable? var)
+                       (with-output-chaos-error ('no-var)
+                         (format t "Invalid argument to ':ind' command: ~a" var-decl)))
+                     (push var vars)))
+                 (nreverse vars))))
+        (if (equal ind-type "on")
+            (let ((vars (parse-vars (third (second args)))))
+              (cons :simple vars))
+          ;; :ind { on () base() step() }
+          (let* ((decl (second args))
+                 (vars (parse-vars (third (second decl))))
+                 (bases (citp-parse-seq-of-terms *current-module* (third decl)))
+                 (steps (citp-parse-seq-of-terms *current-module* (fourth decl))))
+            (list :user vars bases steps)))))))
 
 ;;;
 ;;; :auto
@@ -450,32 +448,15 @@
           (ind-form (cdr args)))
       (if (eq type :simple)
           (set-induction-variables ind-form)
-        ;; not yet
-        (print args)))))
-
-(defun eval-citp-ind-on+ (args)
-  (check-ptree)
-  (let ((vars (first args))
-        (bases (second args))
-        (steps (third args)))
-    (with-in-module ((get-context-module))
-      #||
-      (format t "~%[vars]")
-      (dolist (v vars)
-        (print-next)
-        (term-print v))
-      (format t "~%[bases]")
-      (dolist (v bases)
-        (print-next)
-        (term-print v))
-      (format t "~%[steps]")
-      (dolist (v steps)
-        (print-next)
-      (term-print v))
-      ||#
-      (set-induction-variables-and-constructors vars
-                                                bases
-                                                steps))))
+        ;; :user defined induction scheme
+        (let ((vars (first ind-form))
+              (bases (second ind-form))
+              (steps (third ind-form)))
+          (check-on-going)
+          (let ((target-node (get-next-proof-context *proof-tree*)))
+            (set-induction-variables-and-scheme target-node vars bases steps)
+            ;; then do the job
+            (apply-user-defined-induction-scheme target-node)))))))
 
 ;;; :roll back
 ;;;
@@ -564,7 +545,7 @@
 ;;;
 (defun eval-citp-ctf (ax-form)
   (check-ptree)
-  (with-in-module (*current-module*)
+  (with-in-module ((get-context-module))
     (reset-rewrite-counters)
     (begin-rewrite)
     (apply-ctf (car ax-form) (cadr ax-form) (cddr ax-form))
@@ -575,7 +556,7 @@
 ;;; :csp
 (defun eval-citp-csp (goal-ax-decls)
   (check-ptree)
-  (with-in-module (*current-module*)
+  (with-in-module ((get-context-module))
     (reset-rewrite-counters)
     (begin-rewrite)
     (apply-csp (car goal-ax-decls) (cdr goal-ax-decls))
@@ -611,6 +592,8 @@
            (check-ptree)
            (let ((goal-name (first rest-args)))
              (print-defs describe goal-name)))
+          ((member target '("switch" "switches" "flag" "flags") :test #'equal)
+           (print-citp-flag citp-all))
           (t (with-output-chaos-error ('unknown)
                (format t "Unknown parameter to :show/:describe ~S" target))))))
 
