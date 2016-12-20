@@ -492,6 +492,12 @@
              (using-import-subs (smod)
                (dolist (s (reverse (module-direct-submodules smod)))
                  (using-import-sub (car s) (cdr s))))
+
+             (theory-axiom (ax)
+               (let ((kind (axiom-kind ax)))
+                 (and kind
+                      (not (eq kind :bad-rule)))))
+
              )                          ; end labels
       ;;
       (with-in-module (module)
@@ -629,11 +635,11 @@
         ;; but we must delay the axiom importation
         ;; because there can happen reorganizing operators in different ways
         (dolist (e (reverse (module-equations submodule)))
-          (unless (axiom-kind e)
+          (unless (theory-axiom e)
             (delay-axiom-importation module e submodule)))
         
         (dolist (r (reverse (module-rules submodule)))
-          (unless (axiom-kind r)
+          (unless (theory-axiom r)
             (delay-axiom-importation module r submodule)))
         ;;
         ;; all done, hopefully

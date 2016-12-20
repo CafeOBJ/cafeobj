@@ -305,26 +305,20 @@
     ;; with error operator in them.
     (do-delayed-declarations module)
     ;; add operator theory axioms
-    (unless (and *open-module*
-                 (equal "%" (get-module-print-name module)))
-      (dolist (oinfo (module-all-operators module))
-        (add-operator-theory-axioms module oinfo)))
-    ;;
+    (dolist (oinfo (module-all-operators module))
+      (add-operator-theory-axioms module oinfo))
+    ;; identity completions
     (add-identity-completions module)
     ;; add equations for behavioural congruence relation
     (construct-beh-stuff module)
-    ;; we need fix axioms before rwl axioms are generated
-    ;; (fix-error-method-terms module)
     ;; add rwl axioms if need
     (add-rwl-axioms module)
-    ;; genrate rewrite rules
+    ;; final generation of rewrite rules
     (generate-rewrite-rules module)
     (mapc #'(lambda (opinfo)
               (compute-rew-strategy module opinfo)
               (fix-strategy-and-rules module opinfo))
           (module-all-operators module))
-    ;; TODO.
-    ;; (fix-rewrite-rules module)
     (check-behavioural-rules module)
     (normalize-rules-in module)
     (module-error-check module)
