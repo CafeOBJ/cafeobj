@@ -2390,7 +2390,7 @@ fi
 
 VMINOR=.6
 VMEMO=PigNose0.99
-PATCHLEVEL=b12
+PATCHLEVEL=b13
 
 
 
@@ -3222,7 +3222,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile make-cafeobj.lisp version.lisp xbin/cafeobj.in doc/refman/Makefile doc/manual/Makefile doc/RefCard/Makefile doc/PigNose/Makefile doc/citp-manual/Makefile"
+ac_config_files="$ac_config_files Makefile make-cafeobj.lisp version.lisp xbin/cafeobj.in doc/refman/Makefile doc/manual/Makefile doc/RefCard/Makefile doc/PigNose/Makefile doc/citp-manual/Makefile doc/namespace/Makefile doc/etc/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -3951,6 +3951,8 @@ do
     "doc/RefCard/Makefile") CONFIG_FILES="$CONFIG_FILES doc/RefCard/Makefile" ;;
     "doc/PigNose/Makefile") CONFIG_FILES="$CONFIG_FILES doc/PigNose/Makefile" ;;
     "doc/citp-manual/Makefile") CONFIG_FILES="$CONFIG_FILES doc/citp-manual/Makefile" ;;
+    "doc/namespace/Makefile") CONFIG_FILES="$CONFIG_FILES doc/namespace/Makefile" ;;
+    "doc/etc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/etc/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
