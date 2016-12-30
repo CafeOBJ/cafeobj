@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2016, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -96,9 +96,7 @@
                         strat))
       (with-output-chaos-error ('invalid-op-attribute)
         (format t "invalid strategy ~a for opeator ~a, ignored."
-                strat (operator-name op))
-        ))
-    ;; 
+                strat (operator-name op))))
     (setf (operator-strategy op) strat)))
 
 (defun complete-strategy (num-args strat)
@@ -135,32 +133,31 @@
      
 ;;; *RESTRICTION*: NOW IDENTITY TERM MUST BE A CONSTANT.
 ;;; *TODO* : 
-#||
-(defun declare-operator-theory (operator theory &optional (module *current-module*))
+(defun declare-operator-theory (operator theory &optional (module (get-context-module)))
   (declare (type operator operator)
            (type list theory)
            (type module module)
            (values list))
-  (let ((theory (compute-theory-from-attr-decl (operator-num-args operator)
+  (let ((theory (compute-theory-from-attr-decl operator
                                                theory
-                                               (operator-theory operator)
                                                module)))
     (setf (operator-theory operator) theory) ))
-||#
 
-(defun compute-theory-from-attr-decl (arity theory-decl old-theory &optional (module *current-module*))
-  (declare (type list arity)
+(defun compute-theory-from-attr-decl (operator theory-decl module)
+  (declare (type operator operator)
            (type list theory-decl)
-           (type (or null op-theory) old-theory)
-           (type module module))
-  (unless old-theory (setf old-theory *the-empty-theory*))
-  (let ((num-args (length arity))
-        (code (theory-code old-theory))
-        (t-code 0)
-        (is-iden-r nil)
-        (id nil))
+           (type module module)
+           (ignore module))
+  (let* ((num-args (operator-num-args operator))
+         (old-theory (operator-theory operator))
+         (code (theory-code old-theory))
+         (op-name (operator-name operator))
+         (t-code 0)
+         (is-iden-r nil)
+         (id nil))
     (declare (type fixnum num-args code)
              (type (or null fixnum) t-code))
+    (unless old-theory (setf old-theory *the-empty-theory*))
     (dolist (theory-elt theory-decl)
       (cond ((symbolp theory-elt)
              (setf t-code (cdr (assq theory-elt .theory-code-table.)))
@@ -184,27 +181,18 @@
                  (princ "unknown opertor theory ")
                  (princ theory-elt)
                  (princ ", ignored.")))))
-    ;; identity
-    (when id
-      (prepare-for-parsing module)
-      (let ((trm (simple-parse module id (car (maximal-sorts arity *current-sort-order*)))))
-        (when (term-ill-defined trm)
-          (with-output-chaos-error ('invalid-op-attribute)
-            (format t "invalid identity term ~a" id)))
-        (setq id trm)))
-
     ;; associativity
     (when (test-theory .A. code)
       (unless (= num-args 2)
         (with-output-chaos-warning ()
-          (princ "associativity theory is meaning-less for non-binary operators, ignored")
+          (format t "associativity theory is meaning-less for non-binary operator ~a, ignored" op-name)
           (setq code (unset-theory code .A.)))))
 
     ;; commutativity
     (when (test-theory .C. code)
       (unless (= num-args 2)
         (with-output-chaos-warning ()
-          (princ "commutativity theory is meaning-less for non-binary operators, ignored")
+          (format t "commutativity theory is meaning-less for non-binary operator ~a, ignored" op-name)
           (setq code (unset-theory code .C.)))))
 
     ;; final result.
@@ -262,9 +250,6 @@
                               attr)))
       (if memo-decl t nil))))
 
-;; (defun declare-operator-memo-attr (op memo)
-;;   (setf (operator-has-memo op) memo))
-
 ;;; ***************************
 ;;; DECLARING METHOD ATTRIBUTES_________________________________________________
 ;;; ***************************
@@ -277,15 +262,87 @@
 
 ;;; EQUATIONAL THEORY __________________________________________________________
 
-(defun declare-method-theory (method attr &optional (info *current-opinfo-table*))
+(defun compute-method-theory-from-attr-decl (method theory-decl old-theory module)
+  (let* ((arity (method-arity method))
+         (num-args (length arity))
+         (code (theory-code old-theory))
+         (op-name (operator-name (method-operator method)))
+         (t-code 0)
+         (is-iden-r nil)
+         (id nil))
+    (declare (type fixnum num-args code)
+             (type (or null fixnum) t-code))
+    (unless old-theory (setf old-theory *the-empty-theory*))
+    (dolist (theory-elt theory-decl)
+      (cond ((symbolp theory-elt)
+             (setf t-code (cdr (assq theory-elt .theory-code-table.)))
+             (unless t-code
+               (with-output-chaos-error ('invalid-op-attribute)
+                 (princ "invalid opertor theory ")
+                 (princ theory-elt)))
+             (setf code (logior code t-code)))
+            ((and (listp theory-elt) (= 2 (length theory-elt)))
+             (setq t-code
+               (cdr (assq (car theory-elt) .theory-code-table.)))
+             (unless t-code
+               (with-output-chaos-error ('invalid-op-attribute)
+                 (princ "invalid operator theory ")
+                 (princ theory-elt)))
+             (setq code (logior code t-code))
+             (setq id (if (consp (cadr theory-elt)) (cadr theory-elt)
+                        (cdr theory-elt)))
+             (when (eq (car theory-elt) ':idr) (setq is-iden-r t)))
+            (t (with-output-chaos-warning ()
+                 (princ "unknown opertor theory ")
+                 (princ theory-elt)
+                 (princ ", ignored.")))))
+    ;; identity
+    (when id
+      (prepare-for-parsing module)
+      (let ((trm (simple-parse module id (car (maximal-sorts arity *current-sort-order*)))))
+        (when (term-ill-defined trm)
+          (with-output-chaos-error ('invalid-op-attribute)
+            (format t "invalid identity term ~a" id)))
+        (setq id trm)))
+    ;; associativity
+    (when (test-theory .A. code)
+      (unless (= num-args 2)
+        (with-output-chaos-warning ()
+          (format t "associativity theory is meaning-less for non-binary operator ~a, ignored" op-name)
+          (setq code (unset-theory code .A.)))))
+
+    ;; commutativity
+    (when (test-theory .C. code)
+      (unless (= num-args 2)
+        (with-output-chaos-warning ()
+          (format t "commutativity theory is meaning-less for non-binary operator ~a, ignored" op-name)
+          (setq code (unset-theory code .C.)))))
+
+    ;; final result.
+    (theory-make (theory-code-to-info code)
+                 (if id (cons id is-iden-r)) )))
+
+(defun declare-method-theory (method attr &optional (info (module-opinfo-table (get-context-module))))
   (declare (type method method)
            (type list attr)
            (type hash-table info)
            (values t))
-  (let ((theory (compute-theory-from-attr-decl (method-arity method)
-                                               attr
-                                               (operator-theory (method-operator method info)))))
+  (let ((theory (compute-method-theory-from-attr-decl method
+                                                      attr
+                                                      (operator-theory (method-operator method info))
+                                                      (get-context-module))))
     (set-method-theory method theory info)))
+
+(defun add-and-merge-method-theory (method attr module)
+  (let* ((info (module-opinfo-table module))
+         (old-theory (or (method-theory method info) *the-empty-theory*))
+         (theory (compute-method-theory-from-attr-decl method
+                                                       attr
+                                                       (operator-theory (method-operator method info))
+                                                       module)))
+    (let ((new-theory (merge-operator-theory-in module method old-theory theory)))
+      (set-method-theory method new-theory info))))
+    
 
 (defun set-method-theory (method theory
                                  &optional

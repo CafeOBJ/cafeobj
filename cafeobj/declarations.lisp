@@ -5,7 +5,7 @@
                        File: declarations.lisp
 ==============================================================================|#
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2016, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -124,7 +124,13 @@
     :category :signature 
     :parser process-predicate-declaration-form
     :evaluator eval-ast)
-              
+
+(define ("attr" ":attr")
+    :type :inner-module
+    :category :signature 
+    :parser process-opattr-declaration-form
+    :evaluator eval-ast)
+
 #|| obsolete
 (define ("rec" "record")
     :type :inner-module

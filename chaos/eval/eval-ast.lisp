@@ -341,6 +341,39 @@
             meth)
         nil))))
 
+;;; DECLARE-OPERATOR-ATTRIBUTES : decl -> operator
+;;; returns operator if success, otherwise nil.
+;;;
+(defun declare-operator-attributes (decl)
+  (I-miss-current-module declare-operator-attributes)
+  ;; *NOTE* qualifier in opref is ignored, is it OK?
+  (let ((name (%opref-name (%opattr-decl-opref decl)))
+	(num-args (%opref-num-args (%opattr-decl-opref decl)))
+	(attr (%opattr-decl-attribute decl)))
+    (let ((opinfo (find-qual-operator-in *current-module* name num-args)))
+      (unless opinfo
+	(with-output-chaos-error ('operator-not-found)
+	  (format t "declaring attributes, could not found unique operator ~a."
+		  name)))
+      (let ((op (opinfo-operator opinfo))
+	    (memo (%opattrs-memo attr))
+	    (theory (%opattrs-theory attr))
+	    (assoc (%opattrs-assoc attr))
+	    (prec (%opattrs-prec attr))
+	    (strat (%opattrs-strat attr)))
+	(when memo
+	  (with-output-chaos-warning ()
+	    (format t "memo attribute is now obsolate.")))
+	(when theory (declare-operator-theory op theory))
+	(when assoc (declare-operator-associativity op assoc))
+	(when prec (declare-operator-precedence op prec))
+	(when strat (declare-operator-strategy op strat))
+	(set-needs-parse)
+	(set-needs-rule)
+	;; save the declaration form.
+	(pushnew decl (module-opattrs *current-module*) :test #'equal)
+	op))))
+
 ;;;=============================================================================
 ;;;                            AXIOMS, VARIABLES
 ;;;=============================================================================

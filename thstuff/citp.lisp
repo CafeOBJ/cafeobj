@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2016, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -391,21 +391,54 @@
 
 ;;; citp-parse-use
 ;;; :use (<label> ... <label>)
-;;;
+;;; :use [<label>] { assoc | comm | id: <term> }
+;;; (":use" ("(" ("a" "b" "c") ")"))
+;;; (":use" ("[" "foo" "]" "{" (("assoc")) "}"))
 (defun citp-parse-use (args)
-  (third args))
+  (let* ((body (second args))
+         (type (first body)))
+    (cond ((equal type "(")
+           (cons :use (second body)))
+          ((equal type "[")
+           (let ((label (second body))
+                 (theory (fifth body)))
+             (list* :use-theory label theory)))
+          (t (with-output-chaos-error ('invalid-form)
+               (format t "invalid form of :use ~s" type))))))
 
 ;;; citp-parse-embed
 ;;; :embed (<label> ... <label>) as <module_name>
-;;; (":embed" "(" ("l1" "l2") ")" "as" "MODULE")
+;;; (":embed" ("(" ("a" "b" "c") ")" "as" "foo"))
+;;; (":embed" ("[" "foo" "]" "{" (("assoc") ("comm")) "}" "as" "foo"))
 (defun citp-parse-embed (args)
-  (cons (third args) (sixth args)))
+  (let* ((body (second args))
+         (type (first body)))
+    (cond ((equal type "(")
+           (let ((labels (second body))
+                 (mod-name (fifth body))
+                 (into (equal (fourth body) "into")))
+             (list :embed labels mod-name into)))
+          ((equal type "[")
+           (let ((label (second body))
+                 (theory (fifth body))
+                 (into (equal (seventh body) "into"))
+                 (mod-name (eighth body)))
+             (list :embed-theory label theory mod-name into)))
+          (t (with-output-chaos-error ('invalid-form)
+               (format t "invalid :embed type ~s" type))))))
 
 ;;; citp-parse-reset
 ;;; :reset
 ;;;
 (defun citp-parse-reset (args)
   args)
+
+;;; citp-process-opattr-declaration-form
+;;;
+(defun citp-process-opattr-declaration-form (args &rest ignore)
+  (declare (ignore ignore))
+  (format t "~s" args))
+  
 
 
 
@@ -720,14 +753,35 @@
 ;;;
 (defun citp-eval-use (args)
   (check-ptree)
-  (use-discharged-goals args))
+  (let ((type (car args))
+        (body (cdr args)))
+    (case type
+      (:use
+       (use-discharged-goals body))
+      (:use-theory
+       (let ((label (car body))
+             (theory (cdr body)))
+         (use-theory label theory))))))
 
 ;;;
 ;;; :embed
 ;;;
 (defun citp-eval-embed (args)
   (check-ptree)
-  (embed-discharged-goals (car args) (cdr args)))
+  (let ((type (car args))
+        (body (cdr args)))
+    (case type
+      (:embed
+       (let ((labels (car body))
+             (mod-name (cadr body))
+             (into (caddr body)))
+         (embed-discharged-goals labels mod-name into)))
+      (:embed-theory
+       (let ((label (first body))
+             (theory (second body))
+             (mod-name (third body))
+             (into (fourth body)))
+       (embed-theory label theory mod-name into))))))
 
 ;;;
 ;;; :reset
@@ -737,5 +791,32 @@
   (check-ptree)
   (reset-proof-session))
 
+;;;
+;;; :theory <opname> : <arity> -> <coarity> { assoc | comm | id: <term> }
+;;;
+(defun add-method-theory (decl)
+  (check-ptree)
+  (let ((theory (%opattrs-theory (%theory-decl-attribute decl)))
+        (name (%theory-decl-name decl))
+        (arity (%theory-decl-arity decl))
+        (coarity (%theory-decl-coarity decl))
+        (goal (ptree-node-goal (get-next-proof-context *proof-tree*))))
+    (with-in-module ((goal-context goal))
+      (let ((r-arity (mapcar #'(lambda (x) (or (find-sort-in *current-module* x)
+                                               (with-output-chaos-error ('no-sort)
+                                                 (princ "No such sort ")
+                                                 (print-sort-ref x))))
+                              arity))
+            (r-coarity (or (find-sort-in *current-module* coarity)
+                           (with-output-chaos-error ('no-sort)
+                             (princ "No such sort ")
+                             (print-sort-ref coarity)))))
+        (let ((meth (find-method-in *current-module* name r-arity r-coarity)))
+          (unless meth
+            (with-output-chaos-error ('no-op)
+              (format t "No such operator ~s" name)))
+          (add-and-merge-method-theory meth theory *current-module*)
+          (set-needs-parse)
+          (set-needs-rule))))))
 
 ;;; EOF

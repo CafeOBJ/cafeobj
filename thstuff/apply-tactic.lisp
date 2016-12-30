@@ -2930,35 +2930,48 @@
 ;;;
 ;;; use discharged sentences as axioms
 ;;;
-; (defun use-discharged-goals (list-labels)
-;   (let ((unp (get-unproved-nodes *proof-tree*)))
-;     (unless unp
-;       (with-output-chaos-warning ()
-;         (princ "All goals are alredy discharged.")
-;         (return-from use-discharged-goals nil)))
-;     (let ((axs (find-discharged-sentences-with-label list-labels)))
-;       (unless axs
-;         (with-output-chaos-error ()
-;           (format t "No setences with specified names are found.")))
-;       (dolist (goal (mapcar #'(lambda (x) (ptree-node-goal x)) unp))
-;         (use-sentences-in-goal goal axs)))))
-
 (defun use-discharged-goals (list-labels)
   (with-next-context (*proof-tree*)
     (let ((goal (ptree-node-goal .context.))
           (axs (find-discharged-sentences-with-label list-labels)))
-      (unless axs
-        (with-output-chaos-error ()
-          (format t "No setences with specified names are found.")))
       (use-sentences-in-goal goal axs))))
+
+;;;
+;;; use-theory
+;;;
+(defun use-theory (label theory)
+  (with-next-context (*proof-tree*)
+    (let ((goal (ptree-node-goal .context.))
+          (ax (get-discharged-sentence-with-label label)))
+      (use-theory-in-goal goal ax theory))))
 
 ;;;
 ;;; embed-discharged-goals : list-labels module-name -> embeded module
 ;;;
-(defun embed-discharged-goals (list-labels module-name)
+(defun embed-discharged-goals (list-labels module-name into)
   (let ((axs (find-discharged-sentences-with-label list-labels))
-        (emod (make-embed-module module-name (get-context-module))))
+        (emod (if into
+                  (eval-modexp module-name)
+                (make-embed-module module-name (get-context-module)))))
+    (unless emod
+      (with-output-chaos-error ()
+        (format t "No such module ~a" module-name)))
     (embed-sentences-in-module emod axs)
+    emod))
+
+;;;
+;;; embed-theory
+;;;
+(defun embed-theory (label theory module-name into)
+  (let ((ax (get-discharged-sentence-with-label label))
+        (emod (if into
+                  (eval-modexp module-name)
+                (make-embed-module module-name (get-context-module)))))
+    (unless emod
+      (with-output-chaos-error ()
+        (format t "[:embed] No such module ~a" module-name)))
+    (print-chaos-object ax)
+    (embed-theory-in-module emod (term-head (axiom-lhs (car ax))) theory)
     emod))
 
 ;;; -----------------------------------------------------------

@@ -1,6 +1,6 @@
 ;;;-*- Mode: Lisp; Syntax:Common-Lisp; Package:CHAOS; Base:10 -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2016, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -342,6 +342,23 @@
                   \))
                  (\[ (:symbol) \]))
         |by| |{| ((:! SubstList)) |}|))
+  (defparameter USE
+      '(|:use|
+        (:one-of (\( (:seq-of :symbol) \))
+                 (\[ :symbol \] 
+                  |{| (:many-of ((:+ assoc comm associative commutative))
+                                (|id:| :chaos-item)
+                                (|identity:| :chaos-item))
+                  |}|))))
+  (defparameter EMBED
+      '(|:embed| 
+        (:one-of (\( (:seq-of :symbol) \) (:+ as into) :symbol)
+                 (\[ :symbol \]
+                  |{| (:many-of ((:+ assoc comm associative commutative))
+                                (|id:| :chaos-item)
+                                (|identity:| :chaos-item))
+                  |}| (:+ as into) :symbol))))
+
   (defparameter IND
       '((:+ |:ind| |:induction|)
         (:one-of (on \( (:seq-of :term) \))
@@ -356,6 +373,11 @@
                                             (:upto (|.| \)) :term))
                         \))
                   \}))))
+  (defparameter CITPATTR
+      '(|:theory| (:seq-of :opname) |:| :sorts -> :sort
+        |{| (:many-of ((:+ assoc comm associative commutative))
+             (|id:| :chaos-item))
+        |}|))
 )
 
 ;;;-----------------------------------------------------------------------------
@@ -531,15 +553,11 @@
                      (:if-present  in :modexp |:|) (:seq-of :term) |.|))
         ((:+ lisp ev eval evq lispq)
          (:call (read)))
-        (;; (:+ show sh set select describe desc) ; do 
-         set
+        (set
          (:seq-of :top-opname))
-        ;; (select :modexp :args)
-        ((:+ show sh select describe desc) :args)
-        ;; (trans-chaos (:seq-of :top-opname))
+        ((:+ show sh select describe desc :sh :show) :args)
 
         ;; module elements which can appear at top(iff a module is opened.)
-
         #.PrDeclaration
         #.ExDeclaration
         #.UsDeclaration
@@ -794,35 +812,8 @@
                  |}|)
         (|:apply| (:if-present to (:symbol)) (\( (:seq-of :symbol) \)))
         (|:auto|)
-        #||
-        (|:ind| (:+ on |:on|) \( (:seq-of :term) \))
-        (|:ind+| (:+ on |:on|) \( (:seq-of :term) \)
-                 with (base \( (:upto (|.| \)) :term)
-                               :append (:seq-of |.|
-                                                 (:upto (|.| \)) :term))
-                               \)
-                      )
-                      (step \( (:upto (|.| \)) :term )
-                               :append (:seq-of |.|
-                                                 (:upto (|.| \)) :term))
-        \)))
-        ||#
         #.IND
         (|:roll| (:+ back |:back|))
-        #||
-        ((:+ |:init| init) (:one-of (\( (:one-of #.EqDeclaration
-                                                 #.CeqDeclaration
-                                                 #.RlDeclaration
-                                                 #.CRlDeclaration
-                                                 #.BeqDeclaration
-                                                 #.BCeqDeclaration
-                                                 #.BRLDeclaration
-                                                 #.BCRLDeclaration
-                                                 #.FoplAXDeclaration)
-                                        \))
-                                    (\[ (:symbol) \]))
-        |by| |{| ((:! SubstList)) |}|)
-        ||#
         #.INIT
         ((:+ |:imply| |:imp|) (\[ (:symbol) \])
                               (:one-of (|by| |{| ((:! SubstList)) |}|)
@@ -858,6 +849,7 @@
         (|:verbose| :symbol)
         #.CTF
         #.CSP
+        #.CITPATTR
         ((:+ |:show| |:sh| |:describe| |:desc|) :args)
         ((:+ |:def| |:define|) :symbol = (:one-of #.CTF
                                                   #.CSP
@@ -877,8 +869,8 @@
                         :append (:seq-of |,|
                                          (:upto (|,| \)) :opname))
                         \))
-        (|:use|   \( (:seq-of :symbol) \))
-        (|:embed| \( (:seq-of :symbol) \) as :symbol)
+        #.USE
+        #.EMBED
         (|:reset|)
         ))                              ; end Top-Form
 

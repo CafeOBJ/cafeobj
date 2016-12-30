@@ -2235,7 +2235,7 @@ a [stop pattern](#switch-stop-pattern) has been found."
 (define ("citp")
     :type :doc-only
     :title "CITP"
-    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":def" ":imp" ":ord" ":use" ":embed" ":reset")
+    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":def" ":imp" ":ord" ":use" ":embed" ":reset" ":attr")
     :doc "Constructor Based Induction Theorem Prover
 
 The sub-system provides a certain level of automatization for theorem proving.
@@ -2491,7 +2491,7 @@ so that it can be used as tactics in `:apply`."
     :category :inspect
     :parser citp-parse-show
     :evaluator eval-citp-show
-    :title "`:show goal|unproved|proof`"
+    :title "`:show goal|unproved|proof|discharged`"
     :related ("citp" ":describe")
     :doc "Shows the current goal, the up-to-now unproven (sub-)goals, and the current proof."
     :example "
@@ -2578,7 +2578,16 @@ provability using the RD strategy. Defaults to `off`."
     :doc "Icorporate proved goals into the module specified by <module_name>
 which will import the current proof context module."
     )
-    
+
+(define (":theory")
+    :category :proof
+    :parser process-operator-declaration-form
+    :evaluator eval-ast
+    :title "`:theory <op_name> : <arity> -> <coarity> { assoc | comm | id: <term> }`"
+    :doc "Adds operator theory 'associativity', 'commutativity', and/or 'identity' to 
+an operator specfied by '<op_name> : <arity> -> <coarity> ."
+    )
+
 (define (":reset")
     :category :proof
     :parser citp-parse-reset

@@ -336,16 +336,19 @@
   :eval declare-operator
   :print print-op-decl-ast)
 
+(defterm theory-decl (%ast)
+  :visible (name arity coarity attribute)
+  :eval add-method-theory
+  :print print-op-decl-ast)
+
 ;;; ATTRIBUTE DECLARATION_______________________________________________________
 ;;; opref      : operator reference, see opref above.
 ;;; attributes : attribute to to be declared, type = opattrs.
 ;;;
-#||
 (defterm opattr-decl (%ast)
   :visible (opref attribute)
   :eval declare-operator-attributes
   :print print-opattr-decl)
-||#
 
 ;;; METHOD REFERENCE, *NOTE* NOT USED.
 ;;; name       : operator name.

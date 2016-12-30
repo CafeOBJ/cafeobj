@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2016, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -410,7 +410,12 @@
                              (process-sort-reference-form x))
                          (if flg nil (nth 3 e))))
           (coarity (process-sort-reference-form (nth (if flg 4 5) e)))
-          (attr (process-opattr-form (cadr (nth (if flg 5 6) e)))))
+          (attr (nth (if flg 5 6) e)))
+      ;;
+      (if (atom attr)
+          (setq attr (process-opattr-form (nth (if flg 6 7) e)))
+        (setq attr (process-opattr-form (cadr attr))))
+      
       ;; check mixfix op decl.
       (let ((args 0))
         (declare (type fixnum args))
@@ -424,17 +429,22 @@
                       pat)
               (format t "~% arity = ~a, coarity=~a" arity coarity)
               (return-from process-operator-declaration-form nil)))))
-      (if (equal type "op")
-          (%make-op-decl  :name pat
-                          :arity arity
-                          :coarity coarity
-                          :attribute attr
-                          :hidden nil)
-        (%make-op-decl  :name pat
-                        :arity arity
-                        :coarity coarity
-                        :attribute attr
-                        :hidden :hidden)))))
+      (cond ((equal type "op")
+             (%make-op-decl  :name pat
+                             :arity arity
+                             :coarity coarity
+                             :attribute attr
+                             :hidden nil))
+            ((equal type ":theory")
+             (%make-theory-decl :name pat
+                                :arity arity
+                                :coarity coarity
+                                :attribute attr))
+            (t (%make-op-decl  :name pat
+                               :arity arity
+                               :coarity coarity
+                               :attribute attr
+                               :hidden :hidden))))))
 
 ;;; pred op-pattern : arity [ attr ]
 ;;;
@@ -573,7 +583,6 @@
 ;;; ***********************************
 ;;; input form: '("attr" (opname) ("{" attributes "}"))
 ;;;
-#||
 (defun process-opattr-declaration-form (decl &rest ignore)
   (declare (ignore ignore))
   (let ((pat (let ((val (nth 1 decl)))
@@ -582,13 +591,15 @@
                  (if (check-enclosing-parens val)
                      (butlast (cdr val))
                    val))))
-        (attrs (nth 3 decl)))
+        (attrs (let ((val (nth 3 decl)))
+                 (if (atom val)
+                     (cdddr decl)
+                   val))))
     (multiple-value-bind (op-id num-args)
         (implode-op-ref pat)
       (%make-opattr-decl :opref (%make-opref :name op-id
                                              :num-args num-args)
                          :attribute (process-opattr-form attrs)))))
-||#
 
 ;;; *********
 ;;; SIGNATURE
