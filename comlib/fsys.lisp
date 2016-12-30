@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:Common-Lisp; Package:CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2016, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -521,7 +521,7 @@
     (dolist (p path)
       (if (not (member p *chaos-libpath* :test #'equal))
           (with-output-chaos-warning ()
-            (format t "The path ~s does not in 'libpath'." p))
+            (format t "The path ~s is not in 'libpath'." p))
         (setq *chaos-libpath* (remove p *chaos-libpath* :test #'equal))))
     *chaos-libpath*))
 
