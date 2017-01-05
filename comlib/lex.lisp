@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -506,26 +506,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun skip-multi-comment (stream)
-  (block exit
-    (loop
-      (reader-get-char stream)
-      (cond ((at-eof)
-             (setf .reader-ch. 'space)
-             (!read-discard)
-             (return-from skip-multi-comment *lex-eof*))
-            (t (case .reader-ch.
-                 (#\" (lex-read-string stream))
-                 (#\|
-                  (reader-get-char stream)
-                  (when (equal .reader-ch. #\#)
-                    (!read-discard)
-                    (setq .reader-ch. 'space)
-                    (return-from skip-multi-comment nil))
-                  (when (at-eof)
-                    (setf .reader-ch. 'space)
-                    (!read-discard)
-                    (return-from skip-multi-comment *lex-eof*))
-                  (reader-unread .reader-ch. stream))))))))
+  (loop
+    (reader-get-char stream)
+    (cond ((at-eof)
+           (setf .reader-ch. 'space)
+           (!read-discard)
+           (return-from skip-multi-comment *lex-eof*))
+          (t (case .reader-ch.
+               (#\|
+                 (reader-get-char stream)
+                 (when (equal .reader-ch. #\#)
+                   (!read-discard)
+                   (setq .reader-ch. 'space)
+                   (return-from skip-multi-comment nil))
+                 (when (at-eof)
+                   (setf .reader-ch. 'space)
+                   (!read-discard)
+                   (return-from skip-multi-comment *lex-eof*))
+                 (reader-unread .reader-ch. stream)))))))
 
 ;;; READ-SYM : STREAM -> TOKEN
 ;;; read characters considered to be constructs of a token, returns
@@ -555,7 +553,8 @@
     (skip-whites)
     ;; get token
     ;; (setq *last-token* nil)
-    (cond ((at-eof) (setf .reader-ch. 'space)
+    (tagbody retry
+      (cond ((at-eof) (setf .reader-ch. 'space)
                     (!read-discard)
                     (return-from read-sym (progn (setq *last-token* *reader-void*) *lex-eof*)))
           ((see-input-escape)
@@ -565,7 +564,7 @@
            (clear-input)
            (throw :aborting-read :aborting-read))
           (t (case .reader-ch.
-               (|(| (if parse-list
+               (\( (if parse-list
                         (setq *last-token* (lex-read-list stream))
                       (progn
                         (setq .reader-ch. 'space)
@@ -588,10 +587,9 @@
                       ((eq .reader-ch. *chaos-escape-char*)
                        (return-from read-sym (setq *last-token* (lex-read-chaos-value stream))))
                       ((equal .reader-ch. #\|) ; begin multi comment
-                       (setq .lex-inner-multi-comment. t)
                        (skip-multi-comment stream)
-                       (setq .lex-inner-multi-comment. nil)
-                       (skip-whites))
+                       (skip-whites)
+                       (go retry))
                       (t (reader-unread .reader-ch. stream)
                          (setq .reader-ch. #\#)
                          (let ((tok (read-lexicon stream)))
@@ -610,7 +608,7 @@
                      (return-from read-sym
                        (progn (setq *last-token* *reader-void*)
                               *lex-eof*))
-                   (return-from read-sym (setq *last-token* tok)))))))))
+                   (return-from read-sym (setq *last-token* tok))))))))))
 
 ;;; builtin string reader
 (defun lex-read-string (stream)
@@ -702,7 +700,7 @@
     (reader-get-char stream))
   (if (at-eof)
       *lex-eof*
-      (if (eq '|)| .reader-ch.)
+      (if (eq '\) .reader-ch.)
           (progn
             (reader-get-char stream)
             (list "(" ")"))
@@ -775,14 +773,14 @@
   '(#\Return #\Newline))
 
 (defparameter .default-single-chars.
-  `((#\( . |(|)
-    (#\) . |)|)
+  `((#\( . \()
+    (#\) . \))
     (#\, . |,|)
     (#\[ . |[|)
     (#\] . |]|)
     (#\{ . |{|)
     (#\} . |}|)
-    (#\; . |;|)
+    (#\; . \;)
     ;; (#\_ . |_|)
     ;; (#\% . "%")
     ;; (#\! . |!|)
