@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2016, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -632,7 +632,7 @@
       (with-in-module (module)
         (add-and-merge-method-theory meth theory module)
         (let ((*print-indent* (+ 2 *print-indent*)))
-          (format t "~%~a add operator theory ~a in module ~a" msg-header theory (module-print-name module))
+          (format t "~%~a add operator theory ~a into module ~a" msg-header theory (module-print-name module))
           (prepare-for-parsing module t)
           (print-next)
           (print-method-brief meth)
@@ -1447,6 +1447,7 @@
         (with-in-module ((citp-proof-context *the-citp-proof*))
           (let ((*print-indent* (+ 2 *print-indent*)))
             (format t "~&** Discharged sentence~p" (length discharged))
+            (format t "~%-- context module: ~a" (module-print-name *current-module*))
             (dolist (ax discharged)
               (print-next)
               (print-axiom-brief ax)
@@ -1486,9 +1487,8 @@
   ;; if the context module is changed, we begin a brand new proof session
   (unless (eq (citp-proof-context *the-citp-proof*)
               context-module)
-    (when-citp-verbose ()
-      (with-output-simple-msg ()
-        (princ "** Beginning a new proof.")))
+    (with-output-simple-msg ()
+      (format t "** Beginning a new proof in ~a" (module-print-name context-module)))
     (setq *the-citp-proof*
       (make-citp-proof :context context-module :discharged nil)))
   (let* ((*chaos-quiet* t)
