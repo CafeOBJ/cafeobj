@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -2970,7 +2970,6 @@
     (unless emod
       (with-output-chaos-error ()
         (format t "[:embed] No such module ~a" module-name)))
-    (print-chaos-object ax)
     (embed-theory-in-module emod (term-head (axiom-lhs (car ax))) theory)
     emod))
 
