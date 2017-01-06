@@ -654,6 +654,17 @@ In this case an expression like `q1(1 2 3)` would reduce to
 the same term with `or` instead."
 )
 
+(define ("escape")
+    :type :doc-only
+    :title "`esc return`"
+    :mdkey "help"
+    :doc "There would be a situation that you hit return expecting some 
+feed-back from the interpreter, but it does not respond.
+When this happen, try type in esc(escape key) and return, 
+it will immediately be back to you discarding preceding input 
+and makes a fresh start."
+)
+
 (define ("exec limit switch")
     :type :doc-only
     :title "`exec limit` switch"
@@ -2473,7 +2484,7 @@ CITP prover returns to the original state before the reduce action."
     :parser citp-parse-define
     :evaluator eval-citp-define
     :related ("citp")
-    :title "`:def <symbol> = { <ctf> | <csp> | <ind> | <init> }`"
+    :title "`:def <symbol> = { <ctf> | <csp> | <init> }`"
     :doc "Assigns a name to a specific case splitting (`:ctf` or `:csp`)
  or induction `:ind`),
 so that it can be used as tactics in `:apply`."
