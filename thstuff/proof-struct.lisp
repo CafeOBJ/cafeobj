@@ -632,7 +632,7 @@
       (with-in-module (module)
         (add-and-merge-method-theory meth theory module)
         (let ((*print-indent* (+ 2 *print-indent*)))
-          (format t "~%~a add operator theory ~a into module ~a" msg-header theory (module-print-name module))
+          (format t "~%~a adding operator theory ~a into module ~a" msg-header theory (module-print-name module))
           (prepare-for-parsing module t)
           (print-next)
           (print-method-brief meth)

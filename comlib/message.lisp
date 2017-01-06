@@ -238,10 +238,16 @@
       (flush-all)))
 
 ;;;
+#||
 (defun print-in-progress (str)
   (unless *chaos-quiet*
     (princ str *error-output*)
     (finish-output *error-output*)))
+||#
+
+(defun print-in-progress (str)
+  (declare (ignore str))
+  nil)
 
 ;;; I-miss-current-module me
 ;;; Checks if the *current-module* is bound, returns nil with an error mesage if

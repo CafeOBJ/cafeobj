@@ -858,7 +858,7 @@
                 (change-context (get-context-module t) real-mod)))
           ;;
           (unless (module-is-parameter-theory real-mod)
-            (print-in-progress " done."))
+            (princ " done."))
           ;;
           real-mod)))))
 
@@ -895,7 +895,7 @@
         (add-depend-relation vw :view (view-src vw))
         (add-depend-relation vw :view (view-target vw))
         (add-view-defn real-name vw)
-        (print-in-progress " done.")
+        (princ " done.")
         ;;
         (mark-view-as-consistent vw)
         vw))))

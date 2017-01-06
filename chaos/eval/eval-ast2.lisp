@@ -708,7 +708,7 @@
     (clear-term-memo-table *term-memo-table*)
     ;;
     (when msg?
-      (print-in-progress " done")
+      (princ " done")
       (terpri))
     (setq *chaos-features* nil)
     (setq *open-module* nil)
