@@ -409,10 +409,6 @@ This is in addition to cafeobj-continued-statement-offset."
       "ops"
       "sort"
       "hsort"
-;      "["
-;      "]"
-;      "*["
-;      "]*"
       "bop"
       "pred"
       "bops"
@@ -564,7 +560,9 @@ This is in addition to cafeobj-continued-statement-offset."
       ":csp"
       ":csp-"
       ":show"
+      ":sh"
       ":describe"
+      ":desc"
       ":verbose"
       ":backward"
       ":equation"
@@ -573,6 +571,9 @@ This is in addition to cafeobj-continued-statement-offset."
       ":order"
       ":use"
       ":embed"
+      ":red"
+      ":define"
+      ":set"
       )
   "CafeOBJ top-level commands")
 
@@ -711,8 +712,9 @@ This is in addition to cafeobj-continued-statement-offset."
 ;;; se use extended abbriv 
 (autoload 'expand-abbrev-hook "expand")
 
-;;; some default abbreviations define here
-(if cafeobj-mode-abbrev-table
+;;; some default abbreviations defined here
+;;; 
+'(if cafeobj-mode-abbrev-table
     nil
   (define-abbrev-table 'cafeobj-mode-abbrev-table
     '(;; top level declaration
