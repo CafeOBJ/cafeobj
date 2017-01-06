@@ -464,7 +464,6 @@
 ;;; ***********
 (defun eval-open-module (ast)
   (let ((modexp (%open-module-modexp ast))
-        ;; (*current-module* nil)
         mod)
     (setf mod (if (null modexp)
                   (get-context-module)
@@ -473,22 +472,10 @@
       (with-output-chaos-error ('no-such-module)
         (princ "incorrect module expression or uknown module ")
         (print-modexp modexp)))
-    ;;
     (unless mod
       (with-output-chaos-error ('no-context)
         (princ "no module to be opened!")))
-    ;;
-    (unless *chaos-quiet*
-      (fresh-all)
-      (flush-all)
-      (print-in-progress "-- opening module ")
-      (print-mod-name mod)
-      (flush-all)
-      (print-in-progress "."))
-    (!open-module mod)
-    (unless *chaos-quiet*
-      (print-in-progress ". done.")
-      (terpri))))
+    (!open-module mod)))
 
 (defparameter *module-open-form*
     (%module-decl* "%"
