@@ -451,7 +451,6 @@
 
 (defun parse-axiom-declaration (ast)
   (I-miss-current-module parse-axiom-declaration)
-  ;; 
   (let* ((sort *cosmos*)
          (*fill-rc-attribute* t)
          (*parse-variables* nil)
@@ -465,21 +464,17 @@
          (behavioural (%axiom-decl-behavioural ast))
          (the-axiom nil)
          (meta-rule nil))
-    ;;
     (dolist (ml .special-meta-rule-labels.)
       (when (member ml labels)
         (when meta-rule
           (with-output-chaos-error ('invalid-meta-rule)
             (format t "You cannot specify multiple :m-and, :m-or, .e.t.c at once!")))
         (setq meta-rule ml)))
-    ;;
     (when (eq type :rule)
       (include-rwl *current-module*))
     (prepare-for-parsing *current-module*)
-    ;;
     (cond ((or (is-lisp-form-token-sequence rhs)
                (is-chaos-value-token-sequence rhs))
-           ;;
            (when meta-rule
              (with-output-chaos-error ('invalid-special-rule)
                (format t "Invalid special rule ~s for built-in axiom." meta-rule)))
@@ -488,40 +483,37 @@
                   (parsed-rhs (simple-parse *current-module* rhs sort))
                   (parsed-cnd (if cond-part
                                   (simple-parse *current-module* cond-part sort)
-                                  *bool-true*))
+                                *bool-true*))
                   (error-p nil))
              (setf sort (term-sort parsed-lhs))
              (when (and parsed-cnd (term-ill-defined parsed-cnd))
                (with-output-simple-msg ()
                  (princ "[Error] no parse for condition part of the axiom."))
                (setf error-p t))
-             ;;
-             ;;
              (if (or (term-ill-defined parsed-lhs)
                      (null sort))
                  (with-output-chaos-error ('invalid-lhs)
                    (princ "no parse for LHS of the axiom (ignored): "))
-                 (if (not error-p)
-                     (let ((canon (canonicalize-variables (list parsed-lhs parsed-rhs parsed-cnd) *current-module*)))
-                       (when (term-is-builtin-constant? parsed-lhs)
-                         (with-output-chaos-error ('bad-axiom)
-                           (format t "System does not support sole built-in constant on LHS, sorry.")
-                           (format t "~&-- LHS : ")
-                           (term-print-with-sort parsed-lhs)))
-                       (unless (sort<= (term-sort (third canon)) *condition-sort* *current-sort-order*)
-                         (with-output-chaos-error ('invalid-condition)
-                           (format t "Illegal condition part of conditional axiom:")
-                           (print-next)
-                           (term-print-with-sort (third canon))))
-                       (setq the-axiom
-                         (make-rule :lhs (first canon)
-                                    :rhs (second canon)
-                                    :condition (third canon)
-                                    :labels labels
-                                    :behavioural behavioural
-                                    :type type)))
-                   (chaos-error 'invalid-axiom-decl-1) ))))
-          
+               (if (not error-p)
+                   (let ((canon (canonicalize-variables (list parsed-lhs parsed-rhs parsed-cnd) *current-module*)))
+                     (when (term-is-builtin-constant? parsed-lhs)
+                       (with-output-chaos-error ('bad-axiom)
+                         (format t "System does not support sole built-in constant on LHS, sorry.")
+                         (format t "~&-- LHS : ")
+                         (term-print-with-sort parsed-lhs)))
+                     (unless (sort<= (term-sort (third canon)) *condition-sort* *current-sort-order*)
+                       (with-output-chaos-error ('invalid-condition)
+                         (format t "Illegal condition part of conditional axiom:")
+                         (print-next)
+                         (term-print-with-sort parsed-cnd)))
+                     (setq the-axiom
+                       (make-rule :lhs (first canon)
+                                  :rhs (second canon)
+                                  :condition (third canon)
+                                  :labels labels
+                                  :behavioural behavioural
+                                  :type type)))
+                 (chaos-error 'invalid-axiom-decl-1) ))))
           ;; normal rule
           (t (let* ((parses-lhs (let ((*parsing-axiom-lhs* t))
                                   (parser-parses *current-module* lhs sort)))
@@ -530,21 +522,18 @@
                                     (simple-parse *current-module*
                                                   cond-part
                                                   sort)
-                                    *bool-true*))
+                                  *bool-true*))
                     (error-p nil))
-               ;;
                ;; check condition part.
-               ;;
                (when (and cond-part (term-ill-defined parsed-cnd))
                  (with-output-simple-msg ()
                    (princ "[Error] no parse for axiom condition"))
                  (setf error-p t))
-               
                ;; find apropreate pair of LHS & RHS.
                (let ((res (parser-find-rule-pair
                            *current-module* parses-lhs parses-rhs)))
                  (if (null res)
-                     ;; completely no found.
+                     ;; completely none are found.
                      (progn
                        (with-output-simple-msg ()
                          (princ "[Error] bad axiom (ignored): ")
@@ -569,74 +558,75 @@
                                (print-next)
                                (print-term-tree f t)))))
                        (chaos-error 'invalid-axiom-decl-2))
-                     ;;
-                     (progn
-                       (unless (null (cdr res))
-                         (with-output-chaos-warning ()
-                           (princ "axiom is ambiguous: ") (print-next)
-                           (unless (null (cdr parses-lhs))
-                             (princ "-- More than one parse for the LHS")
-                             (print-next)
-                             (format t "form : ~a" lhs)
-                             (print-next)
-                             (format t "trees:")
-                             (parse-show-diff parses-lhs)
-                             (format t "~&...adopting [1]..."))
-                           (unless (null (cdr parses-rhs))
-                             (princ "-- More than one parse for the RHS")
-                             (print-next)
-                             (format t "form : ~a" rhs)
-                             (print-next)
-                             (format t "trees:")
-                             (parse-show-diff parses-rhs)
-                             (format t "~&...adopting [1]..."))))
-                       (if (not error-p)
-                           (let ((lhs-result (car (car res)))
-                                 (rhs-result (parse-convert (cadr (car res)))))
-                             (when (term-is-builtin-constant? lhs-result)
-                               (with-output-chaos-error ('bad-axiom)
-                                 (format t "System does not support sole built-in constant on LHS, sorry.")
-                                 (format t "~&-- LHS : ")
-                                 (term-print-with-sort lhs-result)))
-                             (when meta-rule
-                               ;; lhs must be associative 
-                               (unless (eq *bool-true* parsed-cnd)
-                                 (with-output-chaos-error ('invalid-cond)
-                                   (format t "Sorry, but now ~s can only be specified for non-conditional axioms." meta-rule)))
-                               (unless (is-in-same-connected-component *bool-sort* 
-                                                                       (term-sort rhs-result)
-                                                                       *current-sort-order*)
-                                 (with-output-chaos-error ('invalid-rhs)
-                                   (format t "RHS must be a term of sort Bool for ~s axiom." meta-rule))))
+                   ;; found candiates
+                   (progn
+                     (unless (null (cdr res))
+                       ;; more than 1
+                       (with-output-chaos-warning ()
+                         (princ "axiom is ambiguous: ") (print-next)
+                         (unless (null (cdr parses-lhs))
+                           (princ "-- More than one parse for the LHS")
+                           (print-next)
+                           (format t "form : ~a" lhs)
+                           (print-next)
+                           (format t "trees:")
+                           (parse-show-diff parses-lhs)
+                           (format t "~&...adopting [1]..."))
+                         (unless (null (cdr parses-rhs))
+                           (princ "-- More than one parse for the RHS")
+                           (print-next)
+                           (format t "form : ~a" rhs)
+                           (print-next)
+                           (format t "trees:")
+                           (parse-show-diff parses-rhs)
+                           (format t "~&...adopting [1]..."))))
+                     (if (not error-p)
+                         (let ((lhs-result (car (car res)))
+                               (rhs-result (parse-convert (cadr (car res)))))
+                           (when (term-is-builtin-constant? lhs-result)
+                             (with-output-chaos-error ('bad-axiom)
+                               (format t "System does not support sole built-in constant on LHS, sorry.")
+                               (format t "~&-- LHS : ")
+                               (term-print-with-sort lhs-result)))
+                           (when meta-rule
+                             ;; lhs must be associative 
+                             (unless (eq *bool-true* parsed-cnd)
+                               (with-output-chaos-error ('invalid-cond)
+                                 (format t "Sorry, but now ~s can only be specified for non-conditional axioms." meta-rule)))
+                             (unless (is-in-same-connected-component *bool-sort* 
+                                                                     (term-sort rhs-result)
+                                                                     *current-sort-order*)
+                               (with-output-chaos-error ('invalid-rhs)
+                                 (format t "RHS must be a term of sort Bool for ~s axiom." meta-rule))))
+                           ;;
+                           (let ((canon (canonicalize-variables (list lhs-result rhs-result parsed-cnd) *current-module*)))
+                             (unless (sort<= (term-sort (third canon)) *condition-sort* *current-sort-order*)
+                               (with-output-chaos-error ('invalid-condition)
+                                 (format t "Illegal condition part of conditional axiom:")
+                                 (print-next)
+                                 (print-chaos-object parsed-cnd))) ; !
                              ;;
-                             (let ((canon (canonicalize-variables (list lhs-result rhs-result parsed-cnd) *current-module*)))
-                               (unless (sort<= (term-sort (third canon)) *condition-sort* *current-sort-order*)
-                                 (with-output-chaos-error ('invalid-condition)
-                                   (format t "Illegal condition part of conditional axiom:")
-                                   (print-next)
-                                   (term-print-with-sort (third canon))))
-                               ;;
-                               (setq the-axiom
-                                 (make-rule :lhs (first canon)
-                                            :rhs (second canon)
-                                            :condition (third canon)
-                                            :behavioural behavioural
-                                            :labels labels
-                                            :type type
-                                            :meta-and-or meta-rule)))
-                             ;;
-                             (when *chaos-verbose*
-                               (when behavioural
-                                 (unless (and (term-can-be-in-beh-axiom?
-                                               lhs-result)
-                                              (term-can-be-in-beh-axiom?
-                                               rhs-result))
-                                   (with-output-chaos-warning ()
-                                     (format t "non-behavioural operation on hidden sorts appearing in the behavioural axiom:")
-                                     (with-in-module (*current-module*)
-                                       (print-next)
-                                       (print-chaos-object the-axiom)))))))
-                           (chaos-error 'invalid-axiom-decl-3))))))))
+                             (setq the-axiom
+                               (make-rule :lhs (first canon)
+                                          :rhs (second canon)
+                                          :condition (third canon)
+                                          :behavioural behavioural
+                                          :labels labels
+                                          :type type
+                                          :meta-and-or meta-rule)))
+                           ;;
+                           (when *chaos-verbose*
+                             (when behavioural
+                               (unless (and (term-can-be-in-beh-axiom?
+                                             lhs-result)
+                                            (term-can-be-in-beh-axiom?
+                                             rhs-result))
+                                 (with-output-chaos-warning ()
+                                   (format t "non-behavioural operation on hidden sorts appearing in the behavioural axiom:")
+                                   (with-in-module (*current-module*)
+                                     (print-next)
+                                     (print-chaos-object the-axiom)))))))
+                       (chaos-error 'invalid-axiom-decl-3))))))))
     ;; warn if the axiom contains error operators
     (warn-axiom-if-contains-error-op the-axiom *current-module*)
     ;; additionaly if condition part contains match-op...
