@@ -777,6 +777,13 @@
              (values discharged normalized-target original-target)))
    :else (values nil nil (car (goal-targets goal)))))
 
+(defun make= (lhs rhs mod)
+  (let ((eq-form (make-applform-simple *bool-sort*
+                                       *eql-op* ; _=_
+                                       (list lhs rhs))))
+    (with-in-module (mod)
+      (update-lowest-parse eq-form))))
+
 (defun do-check-sentence (target goal &optional report-header)
   (let ((mod (goal-context goal)))
     (multiple-value-bind (result norm-target marked-target)
@@ -787,10 +794,7 @@
             ((and (is-true? (rule-condition target))
                   (eq (rule-type target) :equation))
              (setf target (rule-copy-canonicalized target mod))
-             (setf (rule-lhs target) (make-applform-simple *bool-sort*
-                                                           *eql-op* ; _=_
-                                                           (list (rule-lhs target)
-                                                                 (rule-rhs target)))
+             (setf (rule-lhs target) (make= (rule-lhs target) (rule-rhs target) mod)
                    (rule-rhs target) *bool-true*)
              (multiple-value-bind (res-2 norm-target-2 marked-target-2)
                  (check-sentence&mark-label target goal report-header)
