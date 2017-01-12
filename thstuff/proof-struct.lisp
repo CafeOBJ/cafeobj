@@ -482,8 +482,9 @@
   (defs nil :type list)                 ; list of :defined tactics
   (base-ops nil :type list)             ; constructors
   (step-ops nil :type list)             ; induction step operators
-  (bases nil :type list)                ; list of user specified induction bases
-  (steps nil :type list)                ; list of user specifief induction steps
+  (bases nil :type list)                ; list of user specified induction base patterns
+  (hypos nil :type list)                ; list of user specified hypothesis patterns
+  (steps nil :type list)                ; list of user specifief induction step patterns
   )
 
 (defun goal-is-discharged (goal)

@@ -94,9 +94,14 @@
 ;;; (":ind" ("{" ("on" #1="(" ("L1:List") #2=")") 
 ;;;              ("base" #1# ("nil") "." nil #2#) 
 ;;;              ("step" #1# ("X:Elm" "T:List") "." nil #2#) "}"))
-
+;;; (":ind" ("{" ("on" #1="(" ("S1:Seq") #2=")")
+;;;              ("base" #1# ("nil") "." nil #2#)
+;;;              ("hypo" #1# ("SQ:Seq") "." nil #2#) 
+;;;              ("step" #1# ("EL:Elt" "SQ:Seq") "." nil #2#) "}"))
 (defun citp-parse-seq-of-terms (module token-list)
   (let ((terms nil))
+    (when (atom token-list)
+      (return-from citp-parse-seq-of-terms nil))
     (dolist (term? token-list)
       ;; (format t "~%<<>> ~s" term?)
       (when (consp term?)
@@ -128,12 +133,15 @@
         (if (equal ind-type "on")
             (let ((vars (parse-vars (third (second args)))))
               (cons :simple vars))
-          ;; :ind { on () base() step() }
+          ;; :ind { on () base() [hypo ()] step() }
           (let* ((decl (second args))
                  (vars (parse-vars (third (second decl))))
                  (bases (citp-parse-seq-of-terms *current-module* (third decl)))
-                 (steps (citp-parse-seq-of-terms *current-module* (fourth decl))))
-            (list :user vars bases steps)))))))
+                 (hypo (citp-parse-seq-of-terms *current-module* (fourth decl)))
+                 (steps (citp-parse-seq-of-terms *current-module* (fifth decl))))
+            (if steps
+                (list :user vars bases hypo steps)
+              (list :user vars bases nil hypo))))))))
 
 ;;;
 ;;; :auto
@@ -160,16 +168,23 @@
     (cons :axiom (second target))))
 
 (defun citp-parse-init (args)
-  (let ((target-form (make-axiom-pattern (second args)))
-        (subst-list (fifth args))
-        (subst-pairs nil))
-    (dolist (subst-form subst-list)
-      (unless (atom subst-form)
-        (push (cons (first subst-form) (third subst-form)) subst-pairs)))
-    (with-citp-debug ()
-      (format t "~%[:init] target = ~s" target-form)
-      (format t "~%        subst  = ~s" subst-pairs))
-    (list (first args) target-form subst-pairs)))
+  (let ((name (if (equal (first (second args)) "as")
+                  (second (second args))
+                nil)))
+    (let ((target-form (make-axiom-pattern (if name 
+                                               (third args)
+                                             (second args))))
+          (subst-list (if name 
+                          (sixth args)
+                        (fifth args)))
+          (subst-pairs nil))
+      (dolist (subst-form subst-list)
+        (unless (atom subst-form)
+          (push (cons (first subst-form) (third subst-form)) subst-pairs)))
+      (with-citp-debug ()
+        (format t "~%[:init] target = ~s" target-form)
+        (format t "~%        subst  = ~s" subst-pairs))
+      (list (first args) target-form subst-pairs name))))
 
 ;;; :imply [<label>] by { <var> <- <term>; ...<var> <- <term>; }
 ;;;
@@ -484,10 +499,11 @@
         ;; :user defined induction scheme
         (let ((vars (first ind-form))
               (bases (second ind-form))
-              (steps (third ind-form)))
+              (hypo (third ind-form))
+              (steps (fourth ind-form)))
           (check-on-going)
           (let ((target-node (get-next-proof-context *proof-tree*)))
-            (set-induction-variables-and-scheme target-node vars bases steps)
+            (set-induction-variables-and-scheme target-node vars bases hypo steps)
             ;; then do the job
             (apply-user-defined-induction-scheme target-node)))))))
 
@@ -512,7 +528,8 @@
     (with-in-module (target-module)
       (instanciate-axiom (second args)  ; target
                          (third  args)  ; variable-term pairs
-                         citp?))))      ; init to where
+                         citp?          ; init to where?
+                         (fourth args))))) ; label
 
 ;;; :imp
 ;;;

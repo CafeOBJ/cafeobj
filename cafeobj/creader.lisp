@@ -330,6 +330,7 @@
 
   (defparameter INIT
       '((:+ |:init| init |:init!| init!) 
+        (:if-present as :symbol)
         (:one-of (\( (:one-of #.EqDeclaration
                               #.CeqDeclaration
                               #.RlDeclaration
@@ -366,8 +367,12 @@
                      (base \( (:upto (|.| \)) :term)
                            :append (:seq-of |.|
                                       (:upto (|.| \)) :term))
-                           \)
-                      )
+                           \))
+                  (:if-present hypo
+                   \( (:upto (|.| \)) :term )
+                           :append (:seq-of |.|
+                                            (:upto (|.| \)) :term))
+                        \))
                   (step \( (:upto (|.| \)) :term )
                            :append (:seq-of |.|
                                             (:upto (|.| \)) :term))

@@ -92,14 +92,17 @@
         (rule-condition axiom) (if (is-true? (rule-condition axiom))
                                    *bool-true*
                                  (substitution-image-simplifying subst (rule-condition axiom))))
-  (when label
-    (if add
-        (setf (rule-labels axiom) (append (if (atom label)
-                                              (list label)
-                                            label)
-                                          (rule-labels axiom)))
-      (setf (rule-labels axiom) label)))
-  axiom)
+  (when (and label (atom label))
+    (setf label (list label)))
+  (let ((new-label (if add
+                       (append label
+                               (rule-labels axiom))
+                     ;; overwrite, but preserves :nonexec
+                     (if (axiom-non-exec axiom)
+                         (append label :nonexec)
+                       label))))
+    (setf (rule-labels axiom) new-label)
+    axiom))
 
 ;;; copy-constant-term
 ;;;
@@ -1024,7 +1027,7 @@
                          (let* ((next-target (rule-copy-canonicalized sentence *current-module*))
                                 (vars (axiom-variables next-target))
                                 (subst (make-tc-variable-substitutions cgoal vars)))
-                           (apply-substitution-to-axiom subst next-target '(tc) t)
+                           (apply-substitution-to-axiom subst next-target 'tc t)
                            (compute-rule-method next-target)
                            (compile-module *current-module* t)
                            (setf (goal-targets cgoal)
@@ -1197,7 +1200,7 @@
                (real-subst (make-real-induction-subst subst (axiom-variables new-target))))
           (when real-subst
             (setq app? t)
-            (apply-substitution-to-axiom real-subst new-target)
+            (apply-substitution-to-axiom real-subst new-target 'induction-base)
             (push new-target all-targets)))))
     (setf (goal-targets goal) (nconc (goal-targets goal) all-targets))
     app?))
@@ -1374,7 +1377,7 @@
             (print-next)
             (princ "to ")
             (print-axiom-brief hypo))
-          (apply-substitution-to-axiom subst hypo '(si) t) 
+          (apply-substitution-to-axiom subst hypo 'si t) 
           (compute-rule-method hypo)
           (set-operator-rewrite-rule *current-module* hypo)
           (adjoin-axiom-to-module *current-module* hypo)
@@ -1393,7 +1396,7 @@
       (with-citp-debug
         (format t "~%[applying step subst] ")
         (print-substitution subst))
-      (apply-substitution-to-axiom subst new-target)
+      (apply-substitution-to-axiom subst new-target 'step)
       (setf (goal-targets step-goal) (nconc (goal-targets step-goal) (list new-target))))))
                                 
 ;;; induction-cases
@@ -1491,28 +1494,35 @@
 ;;; =======================================
 ;;; applying user defined induction scheme
 ;;;
-(defun set-induction-variables-and-scheme (node variables bases steps)
+(defun set-induction-variables-and-scheme (node variables bases hypos steps)
   (declare (type list variables bases steps))
-  (set-indvars node variables)
-  (set-indbases node bases)
-  (set-indsteps node steps))
-
-;;; (defun get-induction-ops (terms)
-;;;  (mapcar #'(lambda (x) (term-head x)) terms))
-
-(defun set-indbases (node terms)
   (let ((goal-node (ptree-node-goal node)))
-    (setf (goal-bases goal-node) terms)
+    (set-indvars node variables)
+    (set-indbases goal-node bases)
+    (set-indhypos goal-node hypos)
+    (set-indsteps goal-node steps)))
+
+(defun set-indbases (goal-node terms)
+  (setf (goal-bases goal-node) terms)
     (let ((bases (goal-bases goal-node)))
       (format t "~%--> :ind{} setting induction base~p" (length bases))
       (dolist (b bases)
         (let ((*print-indent* (+ 2 *print-indent*)))
           (print-next)
           (term-print b)))
-      (flush-all))))
+      (flush-all)))
 
-(defun set-indsteps (node terms)
-  (let ((goal-node (ptree-node-goal node)))
+(defun set-indhypos (goal-node terms)
+  (setf (goal-hypos goal-node) terms)
+  (let ((hypos (goal-hypos goal-node)))
+    (format t "~%--> :ind{} setting hypothesis pattern~p" (length hypos))
+    (dolist (h hypos)
+      (let ((*print-indent* (+ 2 *print-indent*)))
+        (print-next)
+        (term-print h)))
+    (flush-all)))
+
+(defun set-indsteps (goal-node terms)
     (setf (goal-steps goal-node) terms)
     (let ((steps (goal-steps goal-node)))
       (format t "~%--> :ind{} setting induction step~p" (length steps))
@@ -1520,7 +1530,7 @@
         (let ((*print-indent* (+ 2 *print-indent*)))
           (print-next)
           (term-print s)))
-      (flush-all))))
+      (flush-all)))
 
 (defun get-ind-substitutions (indvars bases)
   (let ((ivar-map nil))
@@ -1552,7 +1562,7 @@
     ;;
     (dolist (sub v-term-list)
       (let* ((iv (car sub))   ; induction variable
-             (term (cdr sub))   ; term
+             (term (cdr sub)) ; term
              (op (term-head term))
              (rv nil))        ; real induction variable in target
         (when (setq rv (get-real-target-variable iv axiom-vars))
@@ -1579,6 +1589,7 @@
            (targets (goal-targets goal))
            (base-generated nil)
            (base-goal (prepare-next-goal ptree-node .tactic-ind.))
+           (given-hypos (goal-hypos goal))
            (step-goals nil)
            (remainings nil))
       ;; base cases
@@ -1587,7 +1598,7 @@
             (push target remainings)
           (setq base-generated t)))
       (unless base-generated (setq base-goal nil))
-      ;; step cases
+      ;; step cases 
       (dolist (subst (get-ind-substitutions indvars (goal-steps goal)))
         (let ((step-goal (prepare-next-goal ptree-node .tactic-ind.)))
           (with-in-module ((goal-context step-goal))
@@ -2221,31 +2232,39 @@
           (term-print-with-sort (car vt-pair)))))
     rsubst))
 
-;;; make-axiom-instance : module substitution axiom -> axiom'
+;;; make-axiom-instance : module substitution axiom label -> axiom'
 ;;; terms in resulting axiom must be ground terms.
 ;;;
-(defun make-axiom-instance (module subst axiom)
+(defun make-axiom-instance (module subst axiom &optional label)
+  (declare (type (or null string) label))
   (let ((new-axiom (rule-copy-canonicalized axiom module)))
-    (when subst
-      (apply-substitution-to-axiom (make-real-instanciation-subst subst 
-                                                                  (axiom-variables new-axiom))
-                                   new-axiom 
-                                   '(init)
-                                   t))
+    (if subst
+        (apply-substitution-to-axiom (make-real-instanciation-subst subst 
+                                                                    (axiom-variables new-axiom))
+                                     new-axiom 
+                                     (if label
+                                         (intern label)
+                                       'init)
+                                     (if label
+                                         nil
+                                       t))
+      (setf (rule-labels new-axiom) (if label 
+                                        (list (intern label))
+                                      (cons (intern label) (rule-labels new-axiom)))))
     new-axiom))
 
 ;;; instanciate-axiom
 ;;; 
-(defun instanciate-axiom (target-form subst-form &optional (citp? t))
+(defun instanciate-axiom (target-form subst-form &optional (citp? t) (label nil))
   (let* ((target-axiom (get-target-axiom *current-module* target-form))
          (subst (resolve-subst-form *current-module* 
                                     subst-form 
                                     (and citp?
                                          (citp-flag citp-normalize-init)))))
     (if citp?
-        (instanciate-axiom-in-goal *current-module* target-axiom subst)
+        (instanciate-axiom-in-goal *current-module* target-axiom subst label)
       (if *open-module*
-          (instanciate-axiom-in-module *current-module* target-axiom subst)
+          (instanciate-axiom-in-module *current-module* target-axiom subst label)
         (with-output-chaos-warning ()
           (princ "no module open."))))))
 
@@ -2278,9 +2297,9 @@
       (adjoin-axiom-to-module module einstance)
       (compile-module module t))))
 
-(defun instanciate-axiom-in-goal (module target-axiom subst)
+(defun instanciate-axiom-in-goal (module target-axiom subst &optional (label nil))
   (with-next-context (*proof-tree*)
-    (let ((instance (make-axiom-instance module subst target-axiom)))
+    (let ((instance (make-axiom-instance module subst target-axiom label)))
       (when (citp-flag citp-normalize-lhs)
         ;; we normalize the LHS of the instance
         (with-spoiler-on
@@ -2298,9 +2317,9 @@
         (when-citp-verbose ()
           (pr-goal (ptree-node-goal .context.)))))))
 
-(defun instanciate-axiom-in-module (module target-axiom subst)
+(defun instanciate-axiom-in-module (module target-axiom subst &optional (label nil))
   (with-in-module (module)
-    (let ((instance (make-axiom-instance module subst target-axiom)))
+    (let ((instance (make-axiom-instance module subst target-axiom label)))
       (format t "~%**> initialized the axiom in module ~a" (get-module-simple-name module))
       (report-instanciated-axiom instance)
       (introduce-instanciated-axiom-to-module instance module))))
