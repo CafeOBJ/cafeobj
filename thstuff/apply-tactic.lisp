@@ -381,7 +381,6 @@
             (let ((lhs (rule-lhs ax)))
               (multiple-value-bind (match? subst)
                   (@pat-match .ls-pat. lhs)
-                (declare (ignore subst))
                 (cond (match? (push (cons (term-arg-1 lhs) (term-arg-2 lhs)) ls-pats))
                       (t (multiple-value-setq (match? subst)
                            (@pat-match .le-pat. lhs))
@@ -2235,23 +2234,27 @@
 ;;; make-axiom-instance : module substitution axiom label -> axiom'
 ;;; terms in resulting axiom must be ground terms.
 ;;;
-(defun make-axiom-instance (module subst axiom &optional label)
-  (declare (type (or null string) label))
-  (let ((new-axiom (rule-copy-canonicalized axiom module)))
-    (if subst
-        (apply-substitution-to-axiom (make-real-instanciation-subst subst 
-                                                                    (axiom-variables new-axiom))
-                                     new-axiom 
-                                     (if label
-                                         (intern label)
-                                       'init)
-                                     (if label
-                                         nil
-                                       t))
-      (setf (rule-labels new-axiom) (if label 
-                                        (list (intern label))
-                                      (cons (intern label) (rule-labels new-axiom)))))
-    new-axiom))
+(defun make-axiom-instance (module subst axiom &optional (label nil))
+  ;; (declare (type (or null string) label))
+  (flet ((make-proper-label (label)
+           (if (stringp label)
+               (intern label)
+             label)))
+    (let ((new-axiom (rule-copy-canonicalized axiom module)))
+      (if subst
+          (apply-substitution-to-axiom (make-real-instanciation-subst subst 
+                                                                      (axiom-variables new-axiom))
+                                       new-axiom 
+                                       (if label
+                                           (make-proper-label label)
+                                         'init)
+                                       (if label
+                                           nil
+                                         t))
+        (setf (rule-labels new-axiom) (if label 
+                                          (make-proper-label label)
+                                        (cons (make-proper-label label) (rule-labels new-axiom)))))
+      new-axiom)))
 
 ;;; instanciate-axiom
 ;;; 
