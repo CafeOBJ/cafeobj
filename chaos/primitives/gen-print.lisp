@@ -116,21 +116,16 @@
                    (or *print-with-sort*
                        (not (rassoc term
                                     (module-variables *current-module*)))))
-          (let ((sn (make-array '(0) :element-type 'base-char
-                                :fill-pointer 0
-                                :adjustable t)))
-            (with-output-to-string (str sn)
-              (let ((*standard-output* str))
-                (print-sort-name (variable-sort term) *current-module*)))
+          (let ((sn (with-output-to-string (str)
+                      (let ((*standard-output* str))
+                        (print-sort-name (variable-sort term) *current-module*))
+                      str)))
             (setq name (concatenate 'string name ":" sn))))))
     name))
 
 (defun bconst-print-string (term)
-  (let ((val (term-builtin-value term))
-        (bstr (make-array '(0) :element-type 'base-char
-                          :fill-pointer 0
-                          :adjustable t)))
-    (with-output-to-string (ss bstr)
+  (let ((val (term-builtin-value term)))
+    (with-output-to-string (ss)
       (let ((*standard-output* ss))
         (if (and (bsort-p (term-sort term))
                  (bsort-term-printer (term-sort term)))
@@ -145,8 +140,8 @@
                  (princ (string val)))
                 ((characterp val)
                  (print-character val))
-                (t (princ val))))))
-    bstr))
+                (t (princ val))))
+        ss))))
 
 (defun term-to-sexpr (term &optional (print-var-sort t)
                                      (vars-so-far (cons nil nil))

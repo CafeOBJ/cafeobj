@@ -1491,10 +1491,10 @@
     (when (or constr coherent
               strat prec memo meta-demod assoc thy)
       (let ((flag nil)
-            (outstr (make-array '(0) :element-type 'base-char
-                                :fill-pointer 0 :adjustable t)))
-        (with-output-to-string (fs outstr)
-          (let ((*standard-output* fs))
+            (outstr nil))
+        (setq outstr
+          (with-output-to-string (fs)
+            (let ((*standard-output* fs))
             (when header (print-next) (princ header))
             (princ " { ")
             (setq .file-col. (1- (file-column *standard-output*)))
@@ -1533,7 +1533,8 @@
                   (princ "l-assoc")
                 (princ "r-assoc")))
             ;; (print-check .file-col.)
-            (princ " }")))
+            (princ " }"))
+            fs))
         (print-check 0 (length outstr))
         (princ outstr)))))
 
@@ -1842,7 +1843,7 @@
 ;;; axiom-declaration-string : axiom -> string
 ;;; 
 (defun axiom-declaration-string (axiom &optional (mod (get-context-module)))
-  (with-output-to-string (stream nil)
+  (with-output-to-string (stream)
     (with-in-module (mod)
       (let ((*term-print-depth* nil)
             (*chaos-verbose* nil)
