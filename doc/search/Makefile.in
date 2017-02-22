@@ -1,0 +1,6 @@
+search-predicate.pdf: search-predicate.tex
+	xelatex search-predicate
+	xelatex search-predicate
+	xelatex search-predicate
+clean:
+	rm -f *.aux search-predicate.log search-predicate.toc search-predicate.out search-predicate.lot

@@ -192,6 +192,7 @@ ifeq ($(enable_rebuild_doc),yes)
 		doc/RefCard/interp.pdf			\
 		doc/RefCard/syntax.pdf			\
 		doc/refman/reference-manual.pdf		\
+		doc/search/search-predicate.pdf 	\
 
 endif
 

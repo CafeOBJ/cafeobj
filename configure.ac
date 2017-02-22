@@ -35,7 +35,7 @@ AM_INIT_AUTOMAKE
 AC_PREREQ(2.6)
 VMINOR=.6
 VMEMO=PigNose0.99
-PATCHLEVEL=b15
+PATCHLEVEL=b16
 AC_SUBST(VMINOR)
 AC_SUBST(VMEMO)
 AC_SUBST(PATCHLEVEL)
@@ -335,5 +335,6 @@ AC_CONFIG_FILES([
   doc/citp-manual/Makefile
   doc/namespace/Makefile
   doc/etc/Makefile
+  doc/search/Makefile
 ])
 AC_OUTPUT()
