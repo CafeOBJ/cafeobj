@@ -1,0 +1,18 @@
+module Figure2 {
+  [ State ]
+  ops A B C D E F G H I J K : -> State
+  trans A => B .
+  trans A => C .
+  trans B => H .
+  trans B => K .
+  trans C => D .
+  trans C => E .
+  trans C => F .
+  trans C => J .
+  trans E => F .
+  trans F => B .
+  trans I => J .
+  trans J => E .
+  trans J => C .
+  trans K => F .
+}
