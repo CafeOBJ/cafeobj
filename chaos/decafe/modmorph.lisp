@@ -258,8 +258,8 @@
         (dolist (opinfo (reverse (module-all-operators mod)))
           ;; want to preserve the original order of operators
           (dolist (method (opinfo-methods opinfo))
-            (when (or (not (memq method (module-methods-for-regularity mod)))
-                      (assq method opmap))
+            (when (and (not (memq method (module-methods-for-regularity mod)))
+                       (not (assq method opmap)))
               (modmorph-recreate-method mod newmod sortmap method))))
         ;; report progress
         (if *chaos-verbose*
