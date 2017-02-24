@@ -392,15 +392,12 @@
     (let ((torf nil))
       (if (abst-and-p bt)
           (progn
-            (setq torf (xtract-tfs :and (abst-bterm-term bt)))
+            (setq torf (xtract-and-subterms (abst-bterm-term bt)))
             (princ ">> and --->"))
         (progn
-          (setq torf (xtract-tfs :xor (abst-bterm-term bt)))
+          (setq torf (xtract-xor-subterms (abst-bterm-term bt)))
           (when torf
             (princ ">> xor ***>"))))
-      (dolist (sub torf)
-        (print-next)
-        (term-print sub))
       (let ((bs nil))
         (dolist (sub (abst-bterm-subst bt))
           (if (abst-bterm-p sub)
