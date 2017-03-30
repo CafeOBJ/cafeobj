@@ -63,6 +63,7 @@ mkdir cafeobj-$version
 tar --exclude=cafeobj-$version	\
 	--exclude=.git			\
 	--exclude=.gitignore		\
+        --exclude=tswd \
 	-cvf - . | tar -C cafeobj-$version -xvf - 
 tar --owner=0 --group=0 -cvzf cafeobj-$version.tar.gz cafeobj-$version
 rm -rf cafeobj-$version
