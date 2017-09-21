@@ -600,11 +600,13 @@
                                  (format t "RHS must be a term of sort Bool for ~s axiom." meta-rule))))
                            ;;
                            (let ((canon (canonicalize-variables (list lhs-result rhs-result parsed-cnd) *current-module*)))
+                             #||
                              (unless (sort<= (term-sort (third canon)) *condition-sort* *current-sort-order*)
                                (with-output-chaos-error ('invalid-condition)
                                  (format t "Illegal condition part of conditional axiom:")
                                  (print-next)
                                  (print-chaos-object parsed-cnd))) ; !
+                             ||#
                              ;;
                              (setq the-axiom
                                (make-rule :lhs (first canon)

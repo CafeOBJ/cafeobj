@@ -294,15 +294,17 @@
                                   (apply fun bindings))
                 t)))))
 
-;;;
-;;;
-;;;
-(defun make-ext-rule-label (ls modif)
-  (let ((lbl (car ls)))
-    (if lbl
-        (list (intern (format nil "~a_ext_~a" lbl modif)))
-      nil)))
+;;; 
+(defparameter non-exec-labels '(|:nonexec| |:non-exec| |:no-ex| |:noex| |:noexec|))
 
+(defun make-ext-rule-label (ls modif)
+  (let ((non-exec? (if (intersection ls non-exec-labels)
+                       (list (car non-exec-labels))
+                     nil))
+        (lbl (car ls)))
+    (if lbl
+        (cons (intern (format nil "~a_ext_~a" lbl modif)) non-exec?)
+      non-exec?)))
 
 ;;; COMPUTE-A-EXTENSIONS : rule method -> List[Rule]
 ;;;-----------------------------------------------------------------------------
@@ -346,9 +348,9 @@
                      :id-ext-theory
                    :A-left-theory)
            :meta-and-or (axiom-meta-and-or rule)))
-        ;; (compute-rule-method ext-rule)
+        (when (axiom-is-not-for-rewriting ext-rule)
+          (setf (axiom-non-exec ext-rule) t))
         (push ext-rule listext)
-
         ;; the right associative extension:
         (setf ext-rule
           (make-rule
@@ -372,6 +374,8 @@
                      :id-ext-theory
                    :A-right-theory)
            :meta-and-or (axiom-meta-and-or rule)))
+        (when (axiom-is-not-for-rewriting ext-rule)
+          (setf (axiom-non-exec ext-rule) t))
         (push ext-rule listext)
         ;; the middle associative extension:
         (setf ext-rule
@@ -393,7 +397,8 @@
                      :id-ext-theory
                    :A-middle-theory)
            :meta-and-or (axiom-meta-and-or rule)))
-        ;;
+        (when (axiom-is-not-for-rewriting ext-rule)
+          (setf (axiom-non-exec ext-rule) t))
         (push ext-rule listext)
         (setf (axiom-A-extensions rule) listext)))))
 
@@ -434,9 +439,9 @@
                      ':id-ext-theory
                    ':ac-theory)
            :meta-and-or (axiom-meta-and-or rule)))
-          ;;
+        (when (axiom-is-not-for-rewriting ext-rule)
+          (setf (axiom-non-exec ext-rule) t))
         (setf (axiom-AC-extension rule) (list ext-rule))))))
-
 
 ;;; GIVE-AC-EXTENSION : rule -> List[Rule]
 ;;;-----------------------------------------------------------------------------
