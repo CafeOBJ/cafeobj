@@ -62,32 +62,41 @@
 
 ;;; HANDLER
 ;;;
+(defun chaos-exit-with-error-code (value)
+  (format t "~%** Exiting CafeOBJ due to an error.~%")
+  #+:sbcl (sb-ext:exit :code value)
+  #+:allegro (excl:exit value)
+  #-(or :sbcl :allegro) (bye-bye-bye)
+   )
+
 (defun get-chaos-error-proc (val)
-  (if (symbolp val)
-      (get val ':chaos-error-handler)
-      nil))
+  (if *cafeobj-batch*
+      'chaos-exit-with-error
+    (if (symbolp val)
+        (get val ':chaos-error-handler)
+      nil)))
 
 (defmacro with-chaos-error ((&optional error-proc) &body body)
   (if error-proc
-      ` (let ((ret-val nil))
-          (let ((val (catch 'chaos-main-error
-                       (setq ret-val
-                             (progn ,@body))
-                       nil)))
-            (if val
-                (funcall ,error-proc val)
-                ret-val)))
-        ` (let ((ret-val nil))
-            (let ((val (catch 'chaos-main-error
-                         (setq ret-val
-                               (progn ,@body))
-                         nil)))
-              (if val
-                  (let ((std-proc (get-chaos-error-proc val)))
-                    (if std-proc
-                        (funcall std-proc val)
-                        (chaos-to-top)))
-                  ret-val)))))
+      `(let ((ret-val nil))
+         (let ((val (catch 'chaos-main-error
+                      (setq ret-val
+                        (progn ,@body))
+                      nil)))
+           (if val
+               (funcall ,error-proc val)
+             ret-val)))
+    `(let ((ret-val nil))
+       (let ((val (catch 'chaos-main-error
+                    (setq ret-val
+                      (progn ,@body))
+                    nil)))
+         (if val
+             (let ((std-proc (get-chaos-error-proc 1)))
+               (if std-proc
+                   (funcall std-proc val)
+                 (chaos-to-top)))
+           ret-val)))))
   
 (defun chaos-indicate-position ()
   (unless *suppress-err-handler-msg*

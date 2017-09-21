@@ -279,6 +279,7 @@
 (defvar *show-tree-horizontal* nil)
 
 ;;; CafeOBJ variables
+(defvar *cafeobj-batch* nil)
 (defvar *cafeobj-input-quiet* nil)
 (defvar $)
 (defvar -cafeobj-load-time- nil)

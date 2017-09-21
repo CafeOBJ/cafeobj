@@ -136,7 +136,7 @@
               (with-chaos-top-error ()
                 (with-chaos-error ()
                   (cafeobj-init-files)))))
-          (with-simple-restart (nil "Exit CafeOBJ.")
+          (with-simple-restart (exit "Exit CafeOBJ.")
             (loop
               (with-simple-restart (abort "Return to CafeOBJ Top level.")
                 (catch *top-level-tag*
@@ -145,6 +145,61 @@
                 (when quit-flag (return :ok-exit))))))
         (format t "[Leaving CafeOBJ]~%")))
   (finish-output))
+
+(eval-when (:compile-toplevel :execute :load-toplevel)
+            
+(defparameter *platform-specific-interrupt-condition*
+    ;; #+sbcl 'sb-sys:interactive-interrupt
+  #+:allegro 'excl:interrupt-signal
+  #+:ccl 'ccl:interrupt-signal-condition
+  #+:clisp 'system::simple-interrupt-condition
+  #-(or :allegro :ccl :clisp) 'unknown)
+)
+
+(defmacro with-handling-interrupt (&body body)
+  `(handler-case (progn ,@body)
+     (#.*platform-specific-interrupt-condition* (c)
+      (chaos-exit-with-error-code c))))
+
+;;; When run in batch mode, we want to handle Ctrl-C properly,
+;;; i.e. exit CafeOBJ.
+;;; We also want to exit CafeOBJ when the system dive into
+;;; debugger. Unfortunately, this can only be done for SBCL only.
+;;;
+(defun process-initial-files-handling-interrupt ()
+  (flet ((handle-init-files ()
+           (catch *top-level-tag*
+             (with-chaos-top-error ()
+               (with-chaos-error ()
+                 (dolist (f (reverse *cafeobj-initial-load-files*))
+                   (cafeobj-input f)))))))
+    ;; if we run on sbcl, we can handle both Ctrl-C and
+    ;; internal error, such as stack overflow, 
+    ;; by hooking a function to 'debugger-hook'.
+    #+:sbcl
+     (when *cafeobj-batch*
+       (setf sb-ext:*invoke-debugger-hook*  
+         (lambda (condition hook) 
+           (declare (ignore conditoin hook))
+           (sb-ext:exit :code 2))))
+     ;; for now, other platforms handle Ctrl-C only.
+     #-:sbcl
+      (if *cafeobj-batch*
+          (with-handling-interrupt
+              (handle-init-files))
+        (handle-init-files))
+      #+:sbcl
+       (handle-init-files)))
+
+(defun process-cafeobj-with-restart ()
+  (let ((quit-flag nil))
+    (with-simple-restart (exit "Exit CafeOBJ.")
+      (loop
+        (with-simple-restart (abort "Return to CafeOBJ Top level.")
+          (catch *top-level-tag*
+            (process-cafeobj-input)
+            (setq quit-flag t))
+          (when quit-flag (return :ok-exit)))))))
 
 #+microsoft
 (defun cafeobj (&optional no-init)

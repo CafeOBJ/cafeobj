@@ -37,7 +37,7 @@
 ;;; CafeOBJ interpreter global variables and parameters.
 ;;;
 
-(defvar *cafeobj-batch* nil)
+;; (defvar *cafeobj-batch* nil) ; moved to comlib/globals.lisp
 (defvar *cafeobj-no-banner* nil)
 ;; (defvar *cafeobj-input-quiet* nil)
 ;; (defvar $)
