@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -181,6 +181,7 @@ NOTE: this switch is obsolete now. please use `print mode' switch instead."
        "set path of user defined \"BOOL\" module."
        chaos-set-bool-path)
       ;; debug flags : invisible from user, internal use only
+      ("development" () parity *development-mode* "" nil nil t)
       ("no" ("idcomp") parity *no-id-completion* "" nil nil t)
       ("sys" ("universal-sort") parity *allow-universal-sort* "" nil nil t)
       ("debug" ("rewrite") parity *rewrite-debug* "" nil nil t)
