@@ -63,15 +63,18 @@
 ;;; HANDLER
 ;;;
 (defun chaos-exit-with-error-code (value)
-  (format t "~%** Exiting CafeOBJ due to an error.~%")
-  #+:sbcl (sb-ext:exit :code value)
-  #+:allegro (excl:exit value)
-  #-(or :sbcl :allegro) (bye-bye-bye)
-   )
+  (let ((exit-status 1))
+    (if (symbolp value)
+        (format t "~%** Exiting CafeOBJ due to ~%" value)
+      (setq exit-status 2))
+    #+:sbcl (sb-ext:exit :code exit-status)
+    #+:allegro (excl:exit exit-status)
+    #-(or :sbcl :allegro) (bye-bye-bye)
+     ))
 
 (defun get-chaos-error-proc (val)
   (if *cafeobj-batch*
-      'chaos-exit-with-error
+      'chaos-exit-with-error-code
     (if (symbolp val)
         (get val ':chaos-error-handler)
       nil)))
@@ -92,7 +95,7 @@
                       (progn ,@body))
                     nil)))
          (if val
-             (let ((std-proc (get-chaos-error-proc 1)))
+             (let ((std-proc (get-chaos-error-proc val)))
                (if std-proc
                    (funcall std-proc val)
                  (chaos-to-top)))
@@ -117,26 +120,26 @@
 
 (defmacro with-chaos-top-error ((&optional error-proc) &body body)
   (if error-proc
-      ` (let ((ret-val nil))
-          (let ((val (catch 'chaos-top-level-error
-                       (setq ret-val
-                             (progn ,@body))
-                       nil)))
-            (if val
-                (funcall ,error-proc val)
-                ret-val)))
-        ` (let ((ret-val nil))
-            (let ((val (catch 'chaos-top-level-error
-                         (setq ret-val
-                               (progn ,@body))
-                         nil)))
-              (if val
-                  (let ((std-proc (get-chaos-error-proc val)))
-                    (if std-proc
-                        (funcall std-proc val)
-                        ;; we assume no more error handlers.
-                        nil))
-                  ret-val)))))
+      `(let ((ret-val nil))
+         (let ((val (catch 'chaos-top-level-error
+                      (setq ret-val
+                        (progn ,@body))
+                      nil)))
+           (if val
+               (funcall ,error-proc val)
+             ret-val)))
+    `(let ((ret-val nil))
+       (let ((val (catch 'chaos-top-level-error
+                    (setq ret-val
+                      (progn ,@body))
+                    nil)))
+         (if val
+             (let ((std-proc (get-chaos-error-proc val)))
+               (if std-proc
+                   (funcall std-proc val)
+                 ;; we assume no more error handlers.
+                 nil))
+           ret-val)))))
 
 (defmacro ignoring-chaos-error (&body body)
   ` (catch 'chaos-top-level-error

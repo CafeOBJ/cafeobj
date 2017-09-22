@@ -94,7 +94,8 @@
       (print-centering (concatenate
                            'string "built on " .lisp-implementation.))
       (fresh-line)
-      (print-centering .lisp-version.))))
+      (print-centering .lisp-version.)
+      (force-output))))
 
 ;;;=============================================================================
 ;;; The top level loop
@@ -105,146 +106,134 @@
 (defun cafeobj (&optional no-init)
   (cafeobj-init)
   (unless no-init
-    (cafeobj-process-args)
-    nil)
+    (cafeobj-process-args))
   ;; greeting message
   (cafeobj-greeting)
-  ;;
   (sub-message)
-  ;;
-  (catch *top-level-tag*
-    (with-chaos-top-error ()
-      (with-chaos-error ()
-        (dolist (f (reverse *cafeobj-initial-load-files*))
-          (cafeobj-input f)))))
-  ;;
-  (if (not *cafeobj-batch*)
-      (progn
-        ;;
-        (let ((quit-flag nil)
-              (*print-case* :downcase)
-              #+CMU (common-lisp:*compile-verbose* nil)
-              #+CMU (common-lisp:*compile-print* nil)
-              #+CMU (ext:*gc-verbose* nil)
-              #+:ALLEGRO (*global-gc-behavior* :auto)
-              #+:ALLEGRO (*print-pretty* nil)
-              )
-          #+:ALLEGRO
-          (declare (special *global-gc-behaviour* *print-pretty*))
-          (unless no-init
-            (catch *top-level-tag*
-              (with-chaos-top-error ()
-                (with-chaos-error ()
-                  (cafeobj-init-files)))))
-          (with-simple-restart (exit "Exit CafeOBJ.")
-            (loop
-              (with-simple-restart (abort "Return to CafeOBJ Top level.")
-                (catch *top-level-tag*
-                  (process-cafeobj-input)
-                  (setq quit-flag t))
-                (when quit-flag (return :ok-exit))))))
-        (format t "[Leaving CafeOBJ]~%")))
+  ;; process files given as arguments
+  (process-init-files-handling-exceptions)
+  (unless *cafeobj-batch*
+    (let ((*print-case* :downcase)
+          #+CMU (common-lisp:*compile-verbose* nil)
+          #+CMU (common-lisp:*compile-print* nil)
+          #+CMU (ext:*gc-verbose* nil)
+          #+:ALLEGRO (*global-gc-behavior* :auto)
+          #+:ALLEGRO (*print-pretty* nil)
+          )
+      (unless no-init
+        (catch *top-level-tag*
+          (with-chaos-top-error ()
+            (with-chaos-error ()
+              (cafeobj-init-files)))))
+      (process-cafeobj-with-restart)))
+  (format t "[Leaving CafeOBJ]~%")
   (finish-output))
 
 (eval-when (:compile-toplevel :execute :load-toplevel)
             
 (defparameter *platform-specific-interrupt-condition*
-    ;; #+sbcl 'sb-sys:interactive-interrupt
+  #+sbcl 'sb-sys:interactive-interrupt
   #+:allegro 'excl:interrupt-signal
   #+:ccl 'ccl:interrupt-signal-condition
   #+:clisp 'system::simple-interrupt-condition
-  #-(or :allegro :ccl :clisp) 'unknown)
+  #-(or :sbcl :allegro :ccl :clisp) 'unknown)
 )
 
 (defmacro with-handling-interrupt (&body body)
   `(handler-case (progn ,@body)
      (#.*platform-specific-interrupt-condition* (c)
-      (chaos-exit-with-error-code c))))
+      (format t "~%** Caught an interrupt ~a" c)
+      (format t "~%[Leaving CafeOBJ]~%")
+      (chaos-exit-with-error-code 2))))
 
 ;;; When run in batch mode, we want to handle Ctrl-C properly,
 ;;; i.e. exit CafeOBJ.
 ;;; We also want to exit CafeOBJ when the system dive into
-;;; debugger. Unfortunately, this can only be done for SBCL only.
-;;;
-(defun process-initial-files-handling-interrupt ()
+;;; debugger. 
+(defun process-init-files-handling-exceptions ()
   (flet ((handle-init-files ()
            (catch *top-level-tag*
+             ;; when in batch mode, default error handler of CafeOBJ will 
+             ;; exit from the interpreter with an error code 1
              (with-chaos-top-error ()
                (with-chaos-error ()
                  (dolist (f (reverse *cafeobj-initial-load-files*))
                    (cafeobj-input f)))))))
-    ;; if we run on sbcl, we can handle both Ctrl-C and
-    ;; internal error, such as stack overflow, 
-    ;; by hooking a function to 'debugger-hook'.
-    #+:sbcl
-     (when *cafeobj-batch*
-       (setf sb-ext:*invoke-debugger-hook*  
-         (lambda (condition hook) 
-           (declare (ignore conditoin hook))
-           (sb-ext:exit :code 2))))
-     ;; for now, other platforms handle Ctrl-C only.
-     #-:sbcl
-      (if *cafeobj-batch*
-          (with-handling-interrupt
-              (handle-init-files))
-        (handle-init-files))
-      #+:sbcl
-       (handle-init-files)))
+    ;; In batch mode, when we encounter interrupts or internal error,
+    ;; such as stack overflow, we terminate CafeOBJ process immediately.
+    ;; For this, we hook a function to 'debugger-hook' and 
+    ;; make system 'break' when catch signals.
+    (let ((*debugger-hook* nil)
+          (*break-on-signals* nil)
+          #+:sbcl (sb-ext:*invoke-debugger-hook* nil))
+      (when *cafeobj-batch*
+        (setf *break-on-signals* t)
+        (setf *debugger-hook* #'(lambda (condition hook)
+                                  (declare (ignore hook))
+                                  (let ((*print-escape* t))
+                                    (format t "~%** Caught an exception: ~a" condition)
+                                    (format t "~%[Leaving CafeOBJ]~%")
+                                    (chaos-exit-with-error-code condition))))
+        #+:sbcl (setf sb-ext:*invoke-debugger-hook* *debugger-hook*))
+      (handle-init-files))))
 
 (defun process-cafeobj-with-restart ()
   (let ((quit-flag nil))
-    (with-simple-restart (exit "Exit CafeOBJ.")
-      (loop
-        (with-simple-restart (abort "Return to CafeOBJ Top level.")
-          (catch *top-level-tag*
-            (process-cafeobj-input)
-            (setq quit-flag t))
-          (when quit-flag (return :ok-exit)))))))
+    (if *development-mode*
+        ;; in development mode, we jump into 'debugger' of the underlying system
+        (with-simple-restart (quit "Quit CafeOBJ.")
+          (loop
+            (with-simple-restart (return "Return to CafeOBJ Top level.")
+              (catch *top-level-tag*
+                (process-cafeobj-input)
+                (setq quit-flag t))
+              (when quit-flag (return :ok-exit)))))
+      ;; we are in user mode, we return from 'debugger' without interaction
+      (let ((*debugger-hook* nil)
+            (*break-on-signals* nil)
+            #+:sbcl (sb-ext:*invoke-debugger-hook* nil))
+        (setf *break-on-signals* t)
+        (setf *debugger-hook* #'(lambda (condition hook)
+                                  (declare (ignore hook))
+                                  (let ((*print-escape* t))
+                                    (format t "~%** Caught an exception: ~a" condition)
+                                    (format t "~%[Returning to Toplevel]~%")
+                                    (throw *top-level-tag* t))))
+        #+:sbcl (setf sb-ext:*invoke-debugger-hook* *debugger-hook*)
+         (loop
+           (catch *top-level-tag*
+             (process-cafeobj-input)
+             (setq quit-flag t))
+           (when quit-flag (return :ok-exit)))))))
 
 #+microsoft
 (defun cafeobj (&optional no-init)
   (let ((*terminal-io* *terminal-io*)
         (*standard-input* *terminal-io*)
         (*standard-output* *terminal-io*)
-        #+:ALLEGRO (*print-pretty* nil))
-    (declare (special *print-pretty*))
-    ;;
+        (*print-case* :downcase)
+        #+:ALLEGRO (*print-pretty* nil)
+        #+:ALLEGRO (*global-gc-behavior* :auto)
+        )
     (cafeobj-init)
     (unless no-init
       (cafeobj-process-args)
       nil)
     ;; greeting message
     (cafeobj-greeting)
-    ;; additional message
     (sub-message)
-    ;; load preludes
-    (catch *top-level-tag*
-      (with-chaos-top-error ()
-        (with-chaos-error ()
-          (dolist (f (reverse *cafeobj-initial-load-files*))
-            (cafeobj-input f)))))
-    ;;
-    (if (not *cafeobj-batch*)
-        (progn
-          ;; do the job interactively
-          (let ((quit-flag nil)
-                (*print-case* :downcase)
-                (*global-gc-behavior* :auto))
-            (declare (special *global-gc-behaviour*))
-            (unless no-init
-              (catch *top-level-tag*
-                (with-chaos-top-error ()
-                  (with-chaos-error ()
-                    (cafeobj-init-files)))))
-            (with-simple-restart (nil "Exit CafeOBJ.")
-              (loop
-                (with-simple-restart (abort "Return to CafeOBJ Top level.")
-                  (catch *top-level-tag*
-                    (process-cafeobj-input)
-                    (setq quit-flag t))
-                  (when quit-flag (return :ok-exit))))))
-          (format t "[Leaving CafeOBJ]~%")))
-    (finish-output) ))
+    ;; 
+    (process-init-files-handling-exceptions)
+    (unless *cafeobj-batch*)
+    ;; do the job interactively
+    (unless no-init
+      (catch *top-level-tag*
+        (with-chaos-top-error ()
+          (with-chaos-error ()
+            (cafeobj-init-files)))))
+    (process-cafeobj-with-restart))
+  (format t "[Leaving CafeOBJ]~%")
+  (finish-output))
 
 ;;;=============================================================================
 ;;; MISC TOPLEVEL SUPPORT ROUTINES
