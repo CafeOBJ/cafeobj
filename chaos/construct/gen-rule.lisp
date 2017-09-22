@@ -68,7 +68,6 @@
              (when (variable-occurs-in t1 sub)
                (return-from variable-occurs-in t))))))
 
-(defparameter non-exec-labels '(|:nonexec| |:non-exec| |:no-ex| |:noex| |:noexec|))
 (defparameter bad-rule-types '(:bad-rule :bad-beh))
 
 (defun axiom-is-non-exec? (ax)

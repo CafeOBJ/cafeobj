@@ -470,9 +470,8 @@
     (unless (or fname bin-fname)
       (if errorp
           (with-output-chaos-error ('no-such-file)
-            (format t "no such file: ~a" (namestring file)))
-        (return-from chaos-input-file nil)
-        ))
+            (format t "No such file: ~a" (namestring file)))
+        (return-from chaos-input-file nil)))
     (when (and bin-fname fname (>= (file-write-date bin-fname)
                                    (file-write-date fname)))
       (setq fname bin-fname))
@@ -491,11 +490,9 @@
             (with-output-chaos-warning ()
               (format t "input nesting is ~d~%" *chaos-input-level*)
               (print-next)
-              (princ "probable input loop (can increase *chaos-input-nesting-limit*)")
-              ))
+              (princ "probable input loop (can increase *chaos-input-nesting-limit*)")))
           (apply proc args)
-          fname
-          )))))
+          fname)))))
 ;;;
 (defun set-search-path (paths)
   (when (consp paths)

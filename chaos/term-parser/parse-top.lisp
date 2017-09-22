@@ -73,7 +73,7 @@
     (if (null preterm)
         (progn
           (with-output-simple-msg ()
-            (princ "[Error] empty input, no parse."))
+            (princ "[Error]: empty input, no parse."))
           (make-bconst-term *syntax-err-sort* '(the input is empty)))
       (let ((res nil))
         (setq res (catch :parse-error
@@ -127,7 +127,7 @@
           (setq *parse-raw-parse* result)
           (when (term-ill-defined result)
             (with-output-simple-msg ()
-              (format t "~&[Error] no successful parse")))
+              (format t "~&[Error]: no successful parse")))
           (parse-convert result module))))))
 
 (defun select-parse (module final &optional print-warning)
