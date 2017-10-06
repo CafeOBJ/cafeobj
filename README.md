@@ -21,8 +21,10 @@ complete source code for CafeOBJ interpreter.
 
 CONTACT
 -------
-Please use `info AT cafeobj DOT org' to contact us for bug reports,
-suggestions, requests, etc.
+Please use [Github Issues](https://github.com/CafeOBJ/cafeobj/issues)
+for bug reports, requests, suggestions, etc.
+
+Contact by email is available at `info AT cafeobj DOT org'.
 
 
 BINARY DISTRIBUTION
