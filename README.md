@@ -52,9 +52,9 @@ For more information on building see INSTALL
 OBTAINING THE SOURCES
 ---------------------
 
-Source files are available from the CafeOBJ git server
+Source files are available from [Github](https://github.com/CafeOBJ/cafeobj):
 ```bash
-% git clone git://git.cafeobj.org/cafeobj.git
+$ git clone https://github.com/CafeOBJ/cafeobj.git
 ```
 
 ----------------------------------------------------------------------
@@ -91,4 +91,3 @@ in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 even the implied warranty of MERCHANT-ABILITY of FITNESS FOR A PARTICULAR
 PURPOSE.
 
--- EOF
