@@ -184,11 +184,11 @@
 ;;; reduces the ground terms in given term by rewriting.
 ;;; if rewritten, returned term is distructively changed.
 ;;;
-(defun normalize-term-in (module term &optional (reduction-mode :red))
+(defun normalize-term-in (module term &optional (reduction-mode :red) var-is-const)
   (let ((applied? nil)
         (targets nil)
         (rule-count-save (number-rewritings)))
-    (if (term-variables term)
+    (if (and (not var-is-const) (term-variables term))
         (setq targets (get-gterms term))
       (setq targets (list term)))
     (if targets
@@ -207,55 +207,56 @@
 ;;; normalize an axiom by reduction, returns the result.
 ;;; NOTE: given axiom is preserved (not changed).
 ;;;
-(defun normalize-sentence (ax module)
+(defun normalize-sentence (ax module &optional lhs-only variable-is-constant)
   (if-spoiler-on 
    ;; normalize sentence only if :spoiler is on
    :then (let ((target (rule-copy-canonicalized ax module)))
            (with-in-module (module)
              (let ((lhs (rule-lhs target))
-                (rhs (rule-rhs target))
-                (condition (rule-condition target))
-                (reduction-mode (if (eq (rule-type ax) :equation)
-                                    :red
-                                  :exec))
-                (applied nil)
-                (app? nil))
-            (flet ((set-applied (val)
-                     (or app? (setq app? val))))
-              (with-citp-debug ()
-                (with-in-module (module)
-                  (format t "~%[NF] target:")
-                  (print-next)
-                  (print-axiom-brief target)))
-              ;; normalize lhs
-              (multiple-value-setq (lhs applied)
-                (normalize-term-in module (reset-reduced-flag lhs) :red))
-              (set-applied applied)
-              (when (eq reduction-mode :exec)
-                (multiple-value-setq (lhs applied) 
-                  (normalize-term-in module (reset-reduced-flag lhs) :exec))
-                (set-applied applied))
-              ;; normalize rhs
-              (multiple-value-setq (rhs applied) 
-                (normalize-term-in module (reset-reduced-flag rhs)))
-              (set-applied applied)
-              ;; normalize condition
-              (unless (is-true? condition)
-                (multiple-value-setq (condition applied)
-                  (normalize-term-in module (reset-reduced-flag condition) :red))
-                (set-applied  applied))
-              (setf (rule-lhs target) lhs)
-              (setf (rule-rhs target) rhs)
-              (setf (rule-condition target) condition)
-              ;; 
-              (with-citp-debug ()
-                (if (not app?)
-                    (format t "~%    ...not applied: ")
-                  (progn
-                    (print-next)
-                    (princ "==> ") (print-axiom-brief target))))
-              ;;
-              (return-from normalize-sentence (values target app?))))))
+                   (rhs (rule-rhs target))
+                   (condition (rule-condition target))
+                   (reduction-mode (if (eq (rule-type ax) :equation)
+                                       :red
+                                     :exec))
+                   (applied nil)
+                   (app? nil))
+               (flet ((set-applied (val)
+                        (or app? (setq app? val))))
+                 (with-citp-debug ()
+                   (with-in-module (module)
+                     (format t "~%[NF] target:")
+                     (print-next)
+                     (print-axiom-brief target)))
+                 ;; normalize lhs
+                 (multiple-value-setq (lhs applied)
+                   (normalize-term-in module (reset-reduced-flag lhs) :red variable-is-constant))
+                 (set-applied applied)
+                 (when (eq reduction-mode :exec)
+                   (multiple-value-setq (lhs applied) 
+                     (normalize-term-in module (reset-reduced-flag lhs) :exec variable-is-constant))
+                   (set-applied applied))
+                 ;; normalize rhs
+                 (unless lhs-only
+                   (multiple-value-setq (rhs applied) 
+                     (normalize-term-in module (reset-reduced-flag rhs)))
+                   (set-applied applied))
+                 ;; normalize condition
+                 (unless (or lhs-only (is-true? condition))
+                   (multiple-value-setq (condition applied)
+                     (normalize-term-in module (reset-reduced-flag condition) :red variable-is-constant))
+                   (set-applied  applied))
+                 (setf (rule-lhs target) lhs)
+                 (setf (rule-rhs target) rhs)
+                 (setf (rule-condition target) condition)
+                 ;; 
+                 (with-citp-debug ()
+                   (if (not app?)
+                       (format t "~%    ...not applied: ")
+                     (progn
+                       (print-next)
+                       (princ "==> ") (print-axiom-brief target))))
+                 ;;
+                 (return-from normalize-sentence (values target app?))))))
    ;; do nothing if :spoiler is off
    :else (values ax nil)))
 
@@ -2307,7 +2308,7 @@
         ;; we normalize the LHS of the instance
         (with-spoiler-on
             (multiple-value-bind (n-sen applied?)
-                (normalize-sentence instance module)
+                (normalize-sentence instance module :lhs-only :variable-is-constant)
               (when applied?
             (setf instance n-sen)))))
       ;; input the instance to current context
