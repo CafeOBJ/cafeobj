@@ -336,16 +336,19 @@
   :eval declare-operator
   :print print-op-decl-ast)
 
+(defterm theory-decl (%ast)
+  :visible (name arity coarity attribute)
+  :eval add-method-theory
+  :print print-op-decl-ast)
+
 ;;; ATTRIBUTE DECLARATION_______________________________________________________
 ;;; opref      : operator reference, see opref above.
 ;;; attributes : attribute to to be declared, type = opattrs.
 ;;;
-#||
 (defterm opattr-decl (%ast)
   :visible (opref attribute)
   :eval declare-operator-attributes
   :print print-opattr-decl)
-||#
 
 ;;; METHOD REFERENCE, *NOTE* NOT USED.
 ;;; name       : operator name.
@@ -406,6 +409,15 @@
   :visible (type labels lhs rhs cond &optional behavioural)
   :eval declare-axiom
   :print print-axiom-decl-form)
+
+(defterm axiom-decl-now (%ast)
+  :visible (type labels lhs rhs cond &optional behavioural)
+  :eval declare-axiom-now
+  :print print-axiom-decl-form)
+
+(defun change-axiom-decl-to-now (ast)
+  (setf (car ast) '%axiom-decl-now)
+  ast)
 
 ;;; Axiom Reference_____________________________________________________________
 ;;; representing a reference to axioms (a name can be represents multiple

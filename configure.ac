@@ -33,7 +33,7 @@ AC_INIT([CafeOBJ],[1.5], [], [cafeobj], [http://www.cafeobj.org/])
 AC_CONFIG_SRCDIR([make-cafeobj.lisp.in])
 AM_INIT_AUTOMAKE
 AC_PREREQ(2.6)
-VMINOR=.5
+VMINOR=.6
 VMEMO=PigNose0.99
 PATCHLEVEL=
 AC_SUBST(VMINOR)
@@ -333,5 +333,8 @@ AC_CONFIG_FILES([
   doc/RefCard/Makefile
   doc/PigNose/Makefile
   doc/citp-manual/Makefile
+  doc/namespace/Makefile
+  doc/etc/Makefile
+  doc/search/Makefile
 ])
 AC_OUTPUT()

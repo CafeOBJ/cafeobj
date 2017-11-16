@@ -213,13 +213,16 @@
   (declare (type rwl-sch-node dag))
   (let* ((st (dag-node-datum dag))
          (term (rwl-state-term st))
-         (rl (rule-pat-rule (rwl-state-rule-pat st)))
+         (rule-pat (rwl-state-rule-pat st))
+         (rl (if rule-pat (rule-pat-rule rule-pat)
+               nil))
          (state (rwl-state-state st)))
     (when (and rl path?)
       (print-next)
       (princ "  ")
       (let ((*print-indent* (+ 8 *print-indent*)))
-        (print-axiom-brief rl)))
+        (print-chaos-object rl) ; (print-axiom-brief rl)
+        ))
     (format t "~%[state ~D] " state)
     (term-print-with-sort term)
     (dolist (sub (rwl-state-subst st))
@@ -593,8 +596,9 @@
             (format t "~%.check condition return with no-match."))
           (return-from rwl-sch-check-conditions nil))
         ;; expand subst with 
-        (when rule-pat
-          (setq sub (append sub (rule-pat-subst rule-pat))))
+        (let ((rule-subst (and rule-pat (rule-pat-subst rule-pat))))
+          (when (car rule-subst)
+            (setq sub (append sub rule-subst))))
         ;; additionaly expand subst 'if' part bindings
         (when if-var
           (setq sub (substitution-add sub if-var (or (rwl-state-condition state)
@@ -611,7 +615,9 @@
             (next-match gs))
           (when no-match (return))
           ;; expand subst with 
-          (setq sub (append sub (rule-pat-subst rule-pat)))
+          (let ((rule-subst (and rule-pat (rule-pat-subst rule-pat))))
+            (when (car rule-subst)
+              (setq sub (append sub rule-subst))))
           (when if-var
             (setq sub (substitution-add sub if-var (or (rwl-state-condition state)
                                                        *bool-true*))))

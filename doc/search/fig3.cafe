@@ -1,0 +1,7 @@
+module Figure3 {
+  protecting(Figure2)
+  pred isOK : State 
+  eq isOK(B) = true .
+  eq isOK(D) = true .
+  eq isOK(F) = true .
+}

@@ -52,7 +52,7 @@ sys:mod! NAT
     var NN : NzNat
     eq [:BDEMOD]: sd(M,N) = #! (abs (- m n)) .
     eq [:BDEMOD]: (M + N) = #! (+ m n) .
-    eq [:BDEMOD]: (N * 0) = 0 .
+    eq [:BDEMOD]: (M * N) = #! (* m n) .
     eq [:BDEMOD]: (M quo NN) = #! (truncate m nn) .
     eq [:BDEMOD]: (M rem NN) = #! (rem m nn) .
     eq [:BDEMOD]: (NN divides M) = #! (= 0 (rem m nn)) .

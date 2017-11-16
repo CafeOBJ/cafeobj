@@ -48,6 +48,7 @@
                        next-match-method 
                        labels
                        (meta-and-or nil)
+                       (non-exec nil)
                        no-method-computation)
   (declare (type (or null term) lhs rhs)
            (type list condition)
@@ -69,7 +70,8 @@
                             first-match-method
                             next-match-method
                             labels
-                            meta-and-or)))
+                            meta-and-or
+                            non-exec)))
     (if (term-is-lisp-form? rhs)
         (setf (axiom-rhs rule)
           (convert-lisp-form-term rhs (axiom-lhs rule)))
@@ -80,7 +82,7 @@
       (compute-rule-method rule))
     rule))
 
-(defun make-simple-axiom (lhs rhs type &optional behavioural meta-and-or)
+(defun make-simple-axiom (lhs rhs type &optional behavioural meta-and-or non-exec)
   (declare (type term lhs rhs)
            (type (or null t) behavioural))
   (make-rule :lhs lhs
@@ -91,7 +93,8 @@
              :type type
              :kind nil
              :labels nil
-             :meta-and-or meta-and-or))
+             :meta-and-or meta-and-or
+             :non-exec non-exec))
 ;;;
 (defun make-fun (f)
   #+GCL f
@@ -291,15 +294,17 @@
                                   (apply fun bindings))
                 t)))))
 
-;;;
-;;;
-;;;
-(defun make-ext-rule-label (ls modif)
-  (let ((lbl (car ls)))
-    (if lbl
-        (list (intern (format nil "~a_ext_~a" lbl modif)))
-      nil)))
+;;; 
+(defparameter non-exec-labels '(|:nonexec| |:non-exec| |:no-ex| |:noex| |:noexec|))
 
+(defun make-ext-rule-label (ls modif)
+  (let ((non-exec? (if (intersection ls non-exec-labels)
+                       (list (car non-exec-labels))
+                     nil))
+        (lbl (car ls)))
+    (if lbl
+        (cons (intern (format nil "~a_ext_~a" lbl modif)) non-exec?)
+      non-exec?)))
 
 ;;; COMPUTE-A-EXTENSIONS : rule method -> List[Rule]
 ;;;-----------------------------------------------------------------------------
@@ -343,9 +348,9 @@
                      :id-ext-theory
                    :A-left-theory)
            :meta-and-or (axiom-meta-and-or rule)))
-        ;; (compute-rule-method ext-rule)
+        (when (axiom-is-not-for-rewriting ext-rule)
+          (setf (axiom-non-exec ext-rule) t))
         (push ext-rule listext)
-
         ;; the right associative extension:
         (setf ext-rule
           (make-rule
@@ -369,6 +374,8 @@
                      :id-ext-theory
                    :A-right-theory)
            :meta-and-or (axiom-meta-and-or rule)))
+        (when (axiom-is-not-for-rewriting ext-rule)
+          (setf (axiom-non-exec ext-rule) t))
         (push ext-rule listext)
         ;; the middle associative extension:
         (setf ext-rule
@@ -390,7 +397,8 @@
                      :id-ext-theory
                    :A-middle-theory)
            :meta-and-or (axiom-meta-and-or rule)))
-        ;;
+        (when (axiom-is-not-for-rewriting ext-rule)
+          (setf (axiom-non-exec ext-rule) t))
         (push ext-rule listext)
         (setf (axiom-A-extensions rule) listext)))))
 
@@ -431,9 +439,9 @@
                      ':id-ext-theory
                    ':ac-theory)
            :meta-and-or (axiom-meta-and-or rule)))
-          ;;
+        (when (axiom-is-not-for-rewriting ext-rule)
+          (setf (axiom-non-exec ext-rule) t))
         (setf (axiom-AC-extension rule) (list ext-rule))))))
-
 
 ;;; GIVE-AC-EXTENSION : rule -> List[Rule]
 ;;;-----------------------------------------------------------------------------
@@ -557,7 +565,8 @@
     (cond ((term$is-variable? t1-body)
            (or (eq t1 t2)
                (and (term$is-variable? t2-body)
-                    (variable= t1 t2))))
+                    (sort= (variable-sort t1) ; was variable=
+                           (variable-sort t2)))))
           ((term$is-variable? t2-body) nil)
           ((term$is-application-form? t1-body)
            (and (term$is-application-form? t2-body)
@@ -570,7 +579,7 @@
                               (return nil))
                             (setf sl1 (cdr sl1)
                                   sl2 (cdr sl2))))
-                    nil)))
+                  nil)))
           ((term$is-builtin-constant? t1-body)
            (term$builtin-equal t1-body t2-body))
           ((term$is-builtin-constant? t2-body) nil)
@@ -584,10 +593,11 @@
 (defun rule-is-similar? (r1 r2)
   (declare (type axiom r1 r2)
            (values (or null t)))
-  (and (eq (axiom-type r1) (axiom-type r2))
-       (term-is-congruent-2? (axiom-lhs r1) (axiom-lhs r2))
-       (term-is-congruent-2? (axiom-condition r1) (axiom-condition r2))
-       (term-is-congruent-2? (axiom-rhs r1) (axiom-rhs r2))))
+  (or (eq r1 r2)
+      (and (eq (axiom-type r1) (axiom-type r2))
+           (term-is-congruent? (axiom-lhs r1) (axiom-lhs r2))
+           (term-is-congruent? (axiom-condition r1) (axiom-condition r2))
+           (term-is-congruent? (axiom-rhs r1) (axiom-rhs r2)))))
 
 ;;; RULE-MEMBER : Rule RuleSet -> Bool
 ;;;-----------------------------------------------------------------------------
@@ -959,6 +969,20 @@
 
 (defvar *optimize-error-operators* t)
 
+(defun axiom-contains-error-method (axiom)
+  (or (term-contains-error-method (axiom-lhs axiom))
+      (term-contains-error-method (axiom-rhs axiom))
+      (term-contains-error-method (axiom-condition axiom))))
+
+(defun warn-axiom-if-contains-error-op (axiom &optional (module (get-context-module)))
+  (when (axiom-contains-error-method axiom)
+    (with-in-module (module)
+      (with-output-chaos-warning ()
+        (format t "axiom : ")
+        (print-chaos-object axiom)
+        (print-next)
+        (format t "contains error operators.")))))
+
 (defun check-axiom-error-method (module axiom &optional message?)
   (declare (type module module)
            (type axiom axiom)
@@ -980,14 +1004,8 @@
                (rhs-e (term-error-operators&variables rhs nil))
                (cond (axiom-condition axiom))
                (cond-e (term-error-operators&variables cond nil)))
-          (when (and (or lhs-e rhs-e cond-e)
-                     message?)
-            (when t                     ; *chaos-verbose* ; should always be reported.
-              (with-output-chaos-warning ()
-                (format t "axiom : ")
-                (print-chaos-object axiom)
-                (print-next)
-                (format t "contains error operators."))))
+          (when message?
+            (warn-axiom-if-contains-error-op axiom module))
           ;; check 
           (when *optimize-error-operators*
             (check-check lhs-e)

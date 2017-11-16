@@ -312,10 +312,10 @@
       (format t "~% -- rewrite rules in module : ")
       (print-simple-mod-name mod)
       (dolist (r (get-module-axioms mod t))
-        (format t "~&~3D : " i)
-        (print-axiom-brief r)
-        (incf i))
-      )))
+        (unless (axiom-is-not-for-rewriting r)
+          (format t "~&~3D : " i)
+          (print-axiom-brief r)
+          (incf i))))))
 
 ;;; *********
 ;;; SHOW SUBS

@@ -1,0 +1,11 @@
+
+namespace.pdf: namespace.tex disunbig.tikz flat-module.tikz hir-module-namespace.tikz toplevel.tikz
+	xelatex namespace
+	xelatex namespace
+	xelatex namespace
+
+clean:
+	rm -f *.aux namespace.log namespace.toc namespace.out
+
+distclean:
+

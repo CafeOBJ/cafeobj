@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:Common-Lisp; Package:CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2016, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -470,9 +470,8 @@
     (unless (or fname bin-fname)
       (if errorp
           (with-output-chaos-error ('no-such-file)
-            (format t "no such file: ~a" (namestring file)))
-        (return-from chaos-input-file nil)
-        ))
+            (format t "No such file: ~a" (namestring file)))
+        (return-from chaos-input-file nil)))
     (when (and bin-fname fname (>= (file-write-date bin-fname)
                                    (file-write-date fname)))
       (setq fname bin-fname))
@@ -491,11 +490,9 @@
             (with-output-chaos-warning ()
               (format t "input nesting is ~d~%" *chaos-input-level*)
               (print-next)
-              (princ "probable input loop (can increase *chaos-input-nesting-limit*)")
-              ))
+              (princ "probable input loop (can increase *chaos-input-nesting-limit*)")))
           (apply proc args)
-          fname
-          )))))
+          fname)))))
 ;;;
 (defun set-search-path (paths)
   (when (consp paths)
@@ -521,7 +518,7 @@
     (dolist (p path)
       (if (not (member p *chaos-libpath* :test #'equal))
           (with-output-chaos-warning ()
-            (format t "The path ~s does not in 'libpath'." p))
+            (format t "The path ~s is not in 'libpath'." p))
         (setq *chaos-libpath* (remove p *chaos-libpath* :test #'equal))))
     *chaos-libpath*))
 

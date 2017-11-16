@@ -92,10 +92,11 @@
 (define ("#define")
     :category :element
     :parser identity
-    :title "`#define <symbol> := <term> .`"
+    :title "`#define <pattern> := <term> .`"
     :mdkey "sharp-define"
     :evaluator cafeobj-eval-module-element-proc
-    :doc "TODO"
+    :doc "Defines <pattern> to be <term>, that is, when <pattern>
+appers in term, it is expanded to <term> and then parsed."
 )
 
 (define ("--" "**")
@@ -569,7 +570,9 @@ displayed when run through the interpreter."
     :type :doc-only
     :title "`cond limit` switch"
     :mdkey "switch-cond-limit"
-    :doc "TODO"
+    :doc "Setting maximal number of evaluation of condition part 
+of an axiom. This is useful for detecting a kind of inifinite loop
+of rewriting."
 )
 
 (define ("ctrans" "ctr")
@@ -651,6 +654,17 @@ In this case an expression like `q1(1 2 3)` would reduce to
 the same term with `or` instead."
 )
 
+(define ("escape")
+    :type :doc-only
+    :title "`esc return`"
+    :mdkey "help"
+    :doc "There would be a situation that you hit return expecting some 
+feed-back from the interpreter, but it does not respond.
+When this happen, try type in esc(escape key) and return, 
+it will immediately be back to you discarding preceding input 
+and makes a fresh start."
+)
+
 (define ("exec limit switch")
     :type :doc-only
     :title "`exec limit` switch"
@@ -701,7 +715,8 @@ See [`module expression`](#moduleexpression) for format of `modexp`."
     :category :proof
     :parser parse-find-command
     :evaluator eval-ast
-    :doc "TODO"
+    :title "`find {+rule | -rule}`"
+    :doc "Find all axioms which possibly rewrite the current term."
 )
 
 (define ("find all rules switch")
@@ -1232,7 +1247,8 @@ command will prompt for one of the trees."
     :type :doc-only
     :title "`parse normalize` switch"
     :mdkey "switch-parse-normalize"
-    :doc "TODO"
+    :doc "If this switch is 'on' (defalult is 'off'), terms with
+associative operators are always parsed as right associative."
 )
 
 (define ("pred" "pd" "preds" "pds")
@@ -1442,6 +1458,19 @@ would search for `foo/bar.cafe` in the pathes from `libpath`"
 affect other modules."
 )
 
+(define ("restore")
+    :category :io
+    :parser parse-restore-command
+    :evaluator eval-ast
+    :title "`restore <pathname>`"
+    :related ("input" "save" "save-system")
+    :doc "Restores module definitions from the designated file `pathname` which 
+has been saved with the `save` command. `input` can also be used but
+the effects might be different.
+
+TODO -- should we keep the different effects? What is the real difference?
+")
+
 (define ("rewrite limit switch" "rew limit")
     :type :doc-only
     :title "`rewrite limit` switch"
@@ -1452,6 +1481,19 @@ affect other modules."
 Allows limiting the number of rewrite steps during a step-wise
 execution."
 )
+
+(define ("save")
+    :category :io
+    :parser parse-save-command
+    :evaluator eval-ast
+    :title "`save <pathname>`"
+    :related ("input" "restore" "save-system")
+    :doc "Saves module definitions into the designated file `pathname`.
+File names should be suffixed with `.bin`. 
+
+`save` also saves the contents of prelude files as well as module definitions
+given in the current session.
+")
 
 (define ("search predicates")
     :type :doc-only
@@ -1849,7 +1891,10 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
     :category :misc
     :parser parse-dribble-command
     :evaluator eval-ast
-    :doc "TODO"
+    :title "`dribble { <file-name> | .}`"
+    :doc "If <file-name> is give, the evaluation process of the system is
+output to the <file-name> in internal form. '.' stops the recording. 
+Only usefule for developer of the system."
 )
 
 (define ("exec!" "execute!")
@@ -1858,7 +1903,8 @@ view NAT-AS-MONOID from MONOID to SIMPLE-NAT {
     :evaluator eval-ast
     :title "`exec! [ in <mod-exp> : ] <term> .`"
     :mdkey "execute-dash"
-    :doc "TODO"
+    :doc "Obsolete command. Implicitly invokes RWL search predicate in a 
+specific manner. "
 )
 
 (define  ("stop")
@@ -1926,7 +1972,8 @@ module expression `<mod_exp>`."
     :category :element
     :parser identity
     :evaluator cafeobj-eval-module-element-proc
-    :doc "TODO"
+    :title "`bsort token-predicate creater printer term-predicate`"
+    :doc "Defines a built-in sort. Internal use only."
 )
 
 
@@ -2088,7 +2135,7 @@ a [stop pattern](#switch-stop-pattern) has been found."
     :parser parse-case-command
     :evaluator eval-ast
     :title "`scase (<term>) in (<mod-exp>) as <name> { <decl> ..} : <term> .`"
-    :doc "TODO"
+    :doc "Obsolete citp command. Split the goal by user specified cases."
 )
 
 (define ("sos" "passive")
@@ -2199,7 +2246,7 @@ a [stop pattern](#switch-stop-pattern) has been found."
 (define ("citp")
     :type :doc-only
     :title "CITP"
-    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":def" ":imp")
+    :related (":goal" ":apply" ":ind" ":auto" ":roll" ":init" ":cp" ":equation" ":rule" ":backward" ":select" ":red" ":csp" ":csp-" ":ctf" ":ctf-" ":def" ":imp" ":ord" ":use" ":embed" ":reset" ":attr")
     :doc "Constructor Based Induction Theorem Prover
 
 The sub-system provides a certain level of automatization for theorem proving.
@@ -2234,16 +2281,25 @@ PNAT> :goal {
 the current goal, or the goal given as `<goal-name>`."
 )
 
-(define (":ind")
+(define (":ind" ":induction")
     :category :proof
     :parser citp-parse-ind-on
     :evaluator eval-citp-ind-on
     :related ("citp")
-    :title "`:ind on <variable> ... .`"
-    :doc "Defines the variable for the induction tactic of CITP."
+    :title "`:ind { on (<variable> ...) | 
+'{' on (<variable> ...) 
+    base (<Term> . ... <Term> .)
+    step (<Term> . ... <Term> .)
+'}'`"
+    :doc "':ind on (<variable> ...)' defines the variable for the induction tactic of CITP.
+':ind { ... }' defines induction variable(s) and base pattern and step pattern specified by <Term>s."
     :example "
 ~~~~~
 :ind on (M:PNat)
+:ind { on (M:PNat) 
+       base (<Term> . ... <Term> .) 
+       step (<Term> . ... <Term> .)
+     }
 ~~~~~"
 )
 
@@ -2266,16 +2322,29 @@ the current goal, or the goal given as `<goal-name>`."
 The current target goal is removed from the proof tree."
 )
 
-(define (":init")
+(define (":init" ":init!")
     :category :proof
     :parser citp-parse-init
     :evaluator eval-citp-init
     :related ("citp")
-    :title "`:init { \"[\" <label> \"]\" | \"(\" <sentence> \"\")} by \"{\" <variable> <- <term>; ... \"}\"`"
+    :title "`:init [as <name>] { \"[\" <label> \"]\" | \"(\" <sentence> \"\")} by \"{\" <variable> <- <term>; ... \"}\"`"
     :doc "Instantiates an equation specified by `<label>` by replacing the `<variable>`s 
 in the equation with the respective `<term>`s. The resulting equation is added
-to the set of axioms."
+to the set of axioms.
+If optional `as <name>` is given, label of the instantiated axiom is overwritten by <name>."
 )
+
+(define ("init")
+    :category :proof
+    :parser citp-parse-init
+    :evaluator eval-citp-init
+    :related ("open")
+    :title "`init [as <name>] { \"[\" <label> \"]\" | \"(\" <sentence> \"\")} by \"{\" <variable> <- <term>; ... \"}\"`"
+    :doc "Instantiates an equation specified by `<label>` by replacing the `<variable>`s 
+in the equation with the respective `<term>`s. The resulting equation is added
+to the set of axioms.
+If optional `as <name>` is given, label of the instantiated axiom is overwritten by <name>."
+    )
 
 (define (":imply" ":imp")
     :category :proof
@@ -2417,15 +2486,17 @@ CITP prover returns to the original state before the reduce action."
     :parser citp-parse-define
     :evaluator eval-citp-define
     :related ("citp")
-    :title "`:def <symbol> = { <ctf> | <csp>}`"
-    :doc "Assigns a name to a specific case splitting (`ctf` or `csp`),
+    :title "`:def <symbol> = { <ctf> | <csp> | <init> }`"
+    :doc "Assigns a name to a specific case splitting (`:ctf` or `:csp`)
+ or induction `:ind`),
 so that it can be used as tactics in `:apply`."
     :example "~~~~~
-:def name-1 = ctf [ <Term> . ]
-:def name-2 = ctf-{ eq LHS = RHS . }
-:def name-3 = csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
-:def name-4 = csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
-:apply(SI TC name-1 name-2 name-3 name-4)
+:def name-0 = :ind { :on (<Variable>...) :base <Term> . :step <Term> . }
+:def name-1 = :ctf [ <Term> . ]
+:def name-2 = :ctf-{ eq LHS = RHS . }
+:def name-3 = :csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
+:def name-4 = :csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
+:apply(name-0 TC name-1 name-2 name-3 name-4)
 ~~~~~"
 )
 
@@ -2433,7 +2504,7 @@ so that it can be used as tactics in `:apply`."
     :category :inspect
     :parser citp-parse-show
     :evaluator eval-citp-show
-    :title "`:show goal|unproved|proof`"
+    :title "`:show goal|unproved|proof|discharged`"
     :related ("citp" ":describe")
     :doc "Shows the current goal, the up-to-now unproven (sub-)goals, and the current proof."
     :example "
@@ -2495,6 +2566,48 @@ provability using the RD strategy. Defaults to `off`."
     :related ("citp")
     :doc "Set or show various flags of CITP CafeOBJ."
 )
+
+(define (":order")
+    :category :proof
+    :parser pignose-parse-lex
+    :evaluator citp-eval-order
+    :title "`:order (<op>, ..., <op>)`"
+    :doc ""
+    )
+
+(define (":use")
+    :category :proof
+    :parser citp-parse-use
+    :evaluator citp-eval-use
+    :title "`:use (<label> ... <label>)`"
+    :doc "Incorporate discharged goal sentences as new axioms."
+    )
+
+(define (":embed")
+    :category :proof
+    :parser citp-parse-embed
+    :evaluator citp-eval-embed
+    :title "`:embed (<label> ... <label>) as <module_name>`"
+    :doc "Icorporate proved goals into the module specified by <module_name>
+which will import the current proof context module."
+    )
+
+(define (":theory")
+    :category :proof
+    :parser process-operator-declaration-form
+    :evaluator eval-ast
+    :title "`:theory <op_name> : <arity> -> <coarity> { assoc | comm | id: <term> }`"
+    :doc "Adds operator theory 'associativity', 'commutativity', and/or 'identity' to 
+an operator specfied by '<op_name> : <arity> -> <coarity> ."
+    )
+
+(define (":reset")
+    :category :proof
+    :parser citp-parse-reset
+    :evaluator citp-eval-reset
+    :title "`:reset`"
+    :doc "Discard the current proof session."
+    )
 
 (define (":binspect")
     :category :proof
@@ -2589,7 +2702,8 @@ where
     :parser citp-parse-bguess
     :evaluator bguess
     :title "`{bguess | :bguess} {imply|and|or} [ with <predicate name> ]`"
-    :doc "TODO")
+    :doc "Try to find true/false assignments which satisfies the Bool term
+specified by 'binspect' or ':binspect'.")
 
 ;;;
 

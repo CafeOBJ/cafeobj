@@ -586,6 +586,7 @@
              (<= *rewrite-count-limit* *rule-count*))
     (format *error-output* "~%>> aborting rewrite due to rewrite count limit (= ~d) <<"
             *rewrite-count-limit*)
+    (flush-all)
     (throw 'rewrite-abort $$term))
   ;;
   $$term)
@@ -1391,11 +1392,16 @@
         (values nil nil t nil)
       (first-match pat term))))
 
+(declaim (inline under-debug-rewrite))
+(defun under-debug-rewrite ()
+  (or $$trace-rewrite $$trace-rewrite-whole *rewrite-stepping*
+      *rewrite-count-limit* *rewrite-stop-pattern*))
+
 (defun apply-one-rule (rule term)
   (when (rule-non-exec rule)
     (return-from apply-one-rule nil))
   (let ((mandor (axiom-meta-and-or rule))
-        (.trace-or-step. (or $$trace-rewrite-whole $$trace-rewrite *rewrite-stepping*)))
+        (.trace-or-step. (under-debug-rewrite)))
     (declare (special .trace-or-step.))
     (cond (mandor
            (let ((all-subst nil)

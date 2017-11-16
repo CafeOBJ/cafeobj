@@ -312,10 +312,6 @@
         (trace-whole-on)
       (trace-whole-off))))
 
-(defun under-debug-rewrite ()
-  (or $$trace-rewrite $$trace-rewrite-whole *rewrite-stepping*
-      *rewrite-count-limit* *rewrite-stop-pattern*))
-
 (defun rewrite-debug-on () ())
 (defun rewrite-debug-off () ())
 
@@ -468,7 +464,6 @@
 ;;; ***********
 (defun eval-open-module (ast)
   (let ((modexp (%open-module-modexp ast))
-        ;; (*current-module* nil)
         mod)
     (setf mod (if (null modexp)
                   (get-context-module)
@@ -477,22 +472,10 @@
       (with-output-chaos-error ('no-such-module)
         (princ "incorrect module expression or uknown module ")
         (print-modexp modexp)))
-    ;;
     (unless mod
       (with-output-chaos-error ('no-context)
         (princ "no module to be opened!")))
-    ;;
-    (unless *chaos-quiet*
-      (fresh-all)
-      (flush-all)
-      (print-in-progress "-- opening module ")
-      (print-mod-name mod)
-      (flush-all)
-      (print-in-progress "."))
-    (!open-module mod)
-    (unless *chaos-quiet*
-      (print-in-progress ". done.")
-      (terpri))))
+    (!open-module mod)))
 
 (defparameter *module-open-form*
     (%module-decl* "%"
@@ -511,13 +494,15 @@
     (setq *open-module* mod)
     (setq *last-before-open* (get-context-module t))
     (clear-term-memo-table *term-memo-table*)
-    (let ((*chaos-quiet* t)
+    (let ((*chaos-quiet* nil)
           (*copy-variables* t)
           open-mod)
       (setf (%module-decl-kind *module-open-form*) (module-kind mod))
       (setq open-mod (eval-ast *module-open-form*))
-      (import-module open-mod :using (compile-module mod))
-      (compile-module open-mod)
+      (ignoring-chaos-error 
+       (import-module open-mod :using (compile-module mod))
+       ;; prepare for immediage use
+       (compile-module open-mod))
       (change-context *last-before-open* open-mod)
       open-mod)))
 
@@ -663,7 +648,11 @@
     (with-chaos-top-error ()
       (with-chaos-error ()
         (let ((*chaos-quiet* (not *chaos-verbose*)))
-          (load file))))))
+          (if (probe-file file)
+              (progn (load file)
+                     (format t "~%done restoring."))
+            (with-output-chaos-error ('no-file)
+              (format t "No such file ~a" file))))))))
 
 ;;; ************
 ;;; RESET SYSTEM
@@ -719,7 +708,7 @@
     (clear-term-memo-table *term-memo-table*)
     ;;
     (when msg?
-      (print-in-progress " done")
+      (princ " done")
       (terpri))
     (setq *chaos-features* nil)
     (setq *open-module* nil)
@@ -1093,7 +1082,8 @@
                  ;; (princ "  show select <Modexp>") (terpri)
                  (terpri)
                  (princ "** print view.")
-                 (princ "  show view <view-name>") (terpri)
+                 (terpri)
+                 (princ "  show view <view-name>")
                  (terpri)
                  (princ "** print submodules/prameters")
                  (terpri)

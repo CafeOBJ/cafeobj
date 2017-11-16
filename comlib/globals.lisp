@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -279,6 +279,7 @@
 (defvar *show-tree-horizontal* nil)
 
 ;;; CafeOBJ variables
+(defvar *cafeobj-batch* nil)
 (defvar *cafeobj-input-quiet* nil)
 (defvar $)
 (defvar -cafeobj-load-time- nil)
@@ -645,6 +646,9 @@
 
 ;;; find command control
 (defvar *find-all-rules* nil)
+
+;;; DEVELOPMENT MODE
+(defvar *development-mode* nil)
 
 ;;; NO ID COMPLETION
 (defvar *no-id-completion* nil)

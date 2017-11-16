@@ -459,6 +459,8 @@
 
 (defmacro method-symbol (_m) `(car (method-name ,_m)))
 
+(defmacro method-num-args (_m) `(cdr (method-name ,_m)))
+
 (defmacro method-is-behavioural (_m) `(method-behavioural ,_m)) ; synonym
 
 (defmacro method-is-user-defined-error-method (_m)

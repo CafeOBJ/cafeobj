@@ -1313,6 +1313,12 @@
     (print-check .file-col. 0)
     (print-method-attrs meth)))
 
+(defun operator-decl-form-string (op)
+  (with-output-to-string (stream nil)
+    (let ((*standard-output* stream))
+      (print-method-brief op))
+    stream))
+
 ;;; PRINT-OP-BRIEF operator
 ;;;
 (defun print-op-brief (op &optional (module *current-module*)
@@ -1485,10 +1491,10 @@
     (when (or constr coherent
               strat prec memo meta-demod assoc thy)
       (let ((flag nil)
-            (outstr (make-array '(0) :element-type 'base-char
-                                :fill-pointer 0 :adjustable t)))
-        (with-output-to-string (fs outstr)
-          (let ((*standard-output* fs))
+            (outstr nil))
+        (setq outstr
+          (with-output-to-string (fs)
+            (let ((*standard-output* fs))
             (when header (print-next) (princ header))
             (princ " { ")
             (setq .file-col. (1- (file-column *standard-output*)))
@@ -1527,7 +1533,8 @@
                   (princ "l-assoc")
                 (princ "r-assoc")))
             ;; (print-check .file-col.)
-            (princ " }")))
+            (princ " }"))
+            fs))
         (print-check 0 (length outstr))
         (princ outstr)))))
 
@@ -1594,7 +1601,9 @@
 (defun print-axiom-brief (rul &optional (stream *standard-output*)
                                         (no-type nil)
                                         (no-label nil)
-                                        (meta nil))
+                                        (meta nil)
+                                        (on-the-fly-var **print-var-sort**)
+                                        (full-stop nil))
   (declare (type axiom rul)
            (type stream stream)
            (type (or null t) no-type no-label meta))
@@ -1658,7 +1667,7 @@
           (*print-indent* (+ *print-indent* (length axiom-header))))
       ;; LHS
       (setq .printed-vars-so-far.
-        (term-print (axiom-lhs rul)))
+        (term-print (axiom-lhs rul) stream on-the-fly-var))
       (unless (memq type '(:pignose-axiom :pignose-goal))
         (setq .file-col. (file-column *standard-output*))
         (print-check 0 .file-col.)
@@ -1667,7 +1676,7 @@
           (princ " = "))
         (setq .file-col. (file-column *standard-output*))
         ;; RHS
-        (term-print (axiom-rhs rul))))
+        (term-print (axiom-rhs rul) stream on-the-fly-var)))
     (let ((.file-col. (file-column *standard-output*)))
       ;; CONDITION
       (when (or cnd
@@ -1680,14 +1689,16 @@
         (setq .file-col. (+ 4 .file-col.))
         (let ((*print-indent* (+ 5 *print-indent*)))
           (when cnd
-            (term-print (axiom-condition rul)))
+            (term-print (axiom-condition rul) stream on-the-fly-var))
           (when meta
             (princ "]"))
           (when (and *chaos-verbose* (not meta))
             (when (and cnd (axiom-id-condition rul)) (princ " and "))
             (when (axiom-id-condition rul)
               (print-id-condition (axiom-id-condition rul)
-                                  *standard-output*))))))))
+                                  *standard-output*))))))
+    (when full-stop
+      (princ " ."))))
 
 (eval-when (:execute :load-toplevel)
   (setf (symbol-function 'print-rule-brief)
@@ -1733,6 +1744,9 @@
     (when (axiom-labels rul)
       (print-rule-labels rul)
       (princ " "))
+    ;; 
+    (when (axiom-non-exec rul)
+      (princ "** non executable"))
     ;; LHS
     (let ((*print-indent* (+ *print-indent* 2)))
       (print-next)
@@ -1825,6 +1839,25 @@
     (dolist (r rules)
       (print-chaos-object r) (terpri))
     ))
+
+;;; axiom-declaration-string : axiom -> string
+;;; 
+(defun axiom-declaration-string (axiom &optional (mod (get-context-module)))
+  (with-output-to-string (stream)
+    (with-in-module (mod)
+      (let ((*term-print-depth* nil)
+            (*chaos-verbose* nil)
+            (*print-with-sort* nil)
+            (*print-xmode* :normal))
+        (print-axiom-brief axiom
+                           stream
+                           nil          ; with type
+                           nil          ; with label
+                           nil          ; not in meta representation form
+                           :always      ; variables is always printed with sort
+                           t            ; with full stop at end
+                           )
+        stream))))
 
 ;;;-----------------------------------------------------------------------------
 ;;; MODMORPH

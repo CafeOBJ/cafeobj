@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2014, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -61,6 +61,9 @@
   ;; Implication
   (defparameter .tactic-ip. (make-tactic :name :ip
                                          :executor 'apply-ip))
+  ;; Implication by modifying the goal by 'imply'
+  (defparameter .tactic-ip+. (make-tactic :name :ip+
+                                         :executor 'apply-ip+))
   ;; Reduction: goal sentence will be destructively changed
   (defparameter .tactic-rd. (make-tactic :name :rd
                                          :executor 'apply-rd))
@@ -79,7 +82,8 @@
 
   ;; list of all builtin tactics
   (defparameter .all-builtin-tactics. 
-      (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-rd. .tactic-rd-. .tactic-nf. .tactic-ct.))
+      (list .tactic-si. .tactic-ca. .tactic-tc. .tactic-ip. .tactic-ip+. 
+            .tactic-rd. .tactic-rd-. .tactic-nf. .tactic-ct.))
 
   ;; default tatics is a seriase of SI CA TC IP RD.
   (defparameter .default-tactics. 
@@ -92,6 +96,13 @@
   (defparameter .tactic-csp. (make-tactic :name :csp
                                           :executor 'apply-csp))
   
+  ;; :init as def(ed) tactic
+  (defparameter .tactic-init. (make-tactic :name :init
+                                           :executor 'apply-init))
+  ;; :ind, user defined induction scheme
+  (defparameter .tactic-ind. (make-tactic :name :ind
+                                          :executor 'apply-ind))
+
   ;; user defiled tactics: assoc list of (name . list-of-tactics)
   ;;
   (defvar .user-defined-tactics. nil)
@@ -181,6 +192,39 @@
         (print-axiom-brief ax stream)
         (princ " . " stream))
       (princ "}" stream))))
+
+;;; :init as tactic
+;;;
+(defstruct (tactic-init (:include tactic (executor 'apply-init-tactic))
+            (:print-function pr-tactic-init))
+  (axiom nil)                           ; axiom
+  (subst nil)                           ; substitution
+  (context nil)                         ; context module
+  (kind nil)                            ; how the axiom is specified, :label or :term
+  )
+
+(defun pr-tactic-init (obj stream &rest ignore)
+  (declare (type tactic-init obj)
+           (ignore ignore))
+  (format stream ":init")
+  (with-in-module ((tactic-init-context obj))
+    (let ((*print-indent* (+ 2 *print-indent*)))
+      (if (eq (first (tactic-init-kind obj)) :label)
+          (format stream "[~a]" (second (tactic-init-kind obj)))
+        (progn
+          (princ "(")
+          (print-axiom-brief (tactic-init-axiom obj))
+          (princ " .)")))
+      (print-next)
+      (princ "by ")
+      (print-substitution (tactic-init-subst obj)))))
+
+;;; :ind as tactic
+;;;
+(defstruct (tactic-ind (:include tactic (executor 'apply-ind-tactic)))
+  (vars nil)
+  (base nil)
+  (step nil))
 
 ;;; get-defined-tactic
 ;;;
@@ -293,6 +337,7 @@
 (defconstant citp-spoiler 3)
 (defconstant citp-print-message 4)
 (defconstant citp-normalize-init 5)
+(defconstant citp-normalize-lhs 6)
 
 ;;; FIND-CITP-FLAG-INDEX : Name -> Index
 ;;;
@@ -319,7 +364,7 @@
 
 (defun pr-citp-flag-internal (index)
   (unless (equal "" (citp-flag-name index))
-    (format t "~&Flag ~a is ~a" (subseq (citp-flag-name index) 5) (if (citp-flag index) "on" "off"))))
+    (format t "~&- Flag ~a is ~a" (subseq (citp-flag-name index) 5) (if (citp-flag index) "on" "off"))))
 
 ;;; help-citp-flag : index
 ;;;
@@ -337,9 +382,11 @@
         (citp-flag-name citp-show-rwl) "citp-show-rwl"
         (citp-flag-name citp-spoiler) "citp-spoiler"
         (citp-flag-name citp-print-message) "citp-print-message"
-        (citp-flag-name citp-normalize-init) "citp-normalize-init")
+        (citp-flag-name citp-normalize-init) "citp-normalize-init"
+        (citp-flag-name citp-normalize-lhs) "citp-normalize-lhs")
   ;; set default
   (setf (citp-flag citp-print-message) t) ; others are 'off'
+  (setf (citp-flag citp-normalize-init) t)
   ;; verbose flag hook
   (setf (citp-flag-hook citp-verbose)
     #'(lambda (name value)
@@ -361,7 +408,7 @@
   (initialize-citp-flag)
   )
 
-;;; messaing when :verbose on
+;;; messaging when :verbose on
 ;;;
 (eval-when (:compile-toplevel :execute :load-toplevel)
 
@@ -433,6 +480,11 @@
   (proved nil :type list)               ; proved targets
   (critical-pairs nil :type list)       ; list of critical pairs not yet axiomatized
   (defs nil :type list)                 ; list of :defined tactics
+  (base-ops nil :type list)             ; constructors
+  (step-ops nil :type list)             ; induction step operators
+  (bases nil :type list)                ; list of user specified induction base patterns
+  (hypos nil :type list)                ; list of user specified hypothesis patterns
+  (steps nil :type list)                ; list of user specifief induction step patterns
   )
 
 (defun goal-is-discharged (goal)
@@ -462,7 +514,9 @@
             (vs (goal-indvars goal))
             (axs (goal-targets goal))
             (proved (goal-proved goal))
-            (discharged (goal-is-discharged goal)))
+            (discharged (goal-is-discharged goal))
+            (bases (goal-bases goal))
+            (steps (goal-steps goal)))
         (print-next)
         (format stream "-- context module: ~a"
                 (get-module-simple-name (ptree-context *proof-tree*)))
@@ -480,6 +534,20 @@
             (let ((*print-indent* (+ 2 *print-indent*)))
               (print-next)
               (term-print-with-sort v))))
+        (when bases
+          (print-next)
+          (format stream "-- user specified induction base~p" (length bases))
+          (dolist (b bases)
+            (let ((*print-indent* (+ 2 *print-indent*)))
+              (print-next)
+              (term-print-with-sort b))))
+        (when steps
+          (print-next)
+          (format stream "-- user specified induction step~p" (length steps))
+          (dolist (s steps)
+            (let ((*print-indent* (+ 2 *print-indent*)))
+              (print-next)
+              (term-print-with-sort s))))
         (when v-consts
           (print-next)
           (format stream "-- introduced constant~p" (length v-consts))
@@ -519,6 +587,78 @@
         (if discharged
             (format t " << proved >>"))))))
 
+;;; use-sentence-in-goal : goal list-axioms
+;;;
+
+(defun incorporate-sentences-into-module (module new-axs)
+  (unless module
+    (with-output-chaos-error ('no-context)
+      (format t "No context module is specified.")))
+  (with-in-module (module)
+    (dolist (ax new-axs)
+      (let ((*print-indent* (+ 2 *print-indent*)))
+        (print-next)
+        (print-axiom-brief ax))
+      (adjoin-axiom-to-module module ax)
+      (set-operator-rewrite-rule module ax))
+    (compile-module module)))
+
+(defun use-sentences-in-goal (goal new-axs)
+  (declare (type goal goal))
+  (let ((num (length new-axs)))
+    (unless (zerop num)
+      (format t "~%** In goal ~s, use the following sentence~p as new axiom~p:" (goal-name goal) num num)
+      (incorporate-sentences-into-module (goal-context goal) new-axs)
+      (setf (goal-assumptions goal) 
+        (append (goal-assumptions goal) new-axs)))))
+
+(defun use-theory-in-goal (goal axiom theory-decl)
+  (declare (type goal goal)
+           (type axiom axiom))
+  (with-in-module ((goal-context goal))
+    (use-theory-in-module *current-module*
+                          (term-head (axiom-lhs axiom))
+                          theory-decl
+                          "[:use]")))
+
+(defun use-theory-in-module (module meth theory-decl &optional (msg-header ""))
+  (flet ((theory-decl-to-theory (td)
+           (let ((tdd (caar td)))
+             (cond ((member tdd '("assoc" "associative") :test #'equal)
+                    (list :assoc))
+                   ((member tdd '("comm" "commutative") :test #'equal)
+                    (list :comm))
+                   (t (list (cons :id (cdar td))))))))
+    (let ((theory (theory-decl-to-theory theory-decl)))
+      (with-in-module (module)
+        (add-and-merge-method-theory meth theory module)
+        (let ((*print-indent* (+ 2 *print-indent*)))
+          (format t "~%~a adding operator theory ~a into module ~a" msg-header theory (module-print-name module))
+          (prepare-for-parsing module t)
+          (print-next)
+          (print-method-brief meth)
+          (print-next))))))
+
+;;; embed-sentences-in-module (module new-axs)
+;;;
+(defparameter .citp-embed-module. (%module-decl* "for_embed_dummy" :module :system nil))
+
+(defun make-embed-module (name context-module)
+  (let ((decl-form (copy-tree .citp-embed-module.)))
+    (setf (%module-decl-name decl-form) name)
+    (let ((embeded-module (eval-ast decl-form)))
+      (import-module embeded-module :protecting context-module))))
+
+(defun embed-sentences-in-module (module new-axs)
+  (let ((num (length new-axs)))
+    (unless (zerop num)
+      (format t "~%[:embed] adding setence~p as new axiom~p into module ~a:" num num
+              (get-module-simple-name module))
+      (incorporate-sentences-into-module module new-axs))))
+
+(defun embed-theory-in-module (module meth theory)
+  (use-theory-in-module module meth theory "[:embed]"))
+
 ;;; the-goal-needs-undo : goal -> bool
 ;;; returns t iff the goal is generated by :defined :ctf- or :csp-
 ;;;
@@ -551,6 +691,13 @@
 
 (defmacro ptree-node-goal (ptree-node)
   `(ptree-node-datum ,ptree-node))
+
+(defun clear-induction-scheme (ptree-node)
+  (let ((goal (ptree-node-goal ptree-node)))
+    (setf (goal-base-ops goal) nil
+          (goal-step-ops goal) nil
+          (goal-bases goal) nil
+          (goal-steps goal) nil)))
 
 ;;; initialize-ptree-node : ptree-node -> ptree-node
 ;;; discard existing child nodes. 
@@ -598,7 +745,7 @@
 
 ;;; context module creator
 ;;;
-(defparameter .next-context-module. (%module-decl* "next-context-dummy" :object :user nil))
+(defparameter .next-context-module. (%module-decl* "next-context-dummy" :module :system nil))
 
 (defun make-next-context-module-name (goal-name)
   (declare (type string goal-name))
@@ -629,7 +776,11 @@
             (goal-indvars next-goal) (goal-indvars cur-goal)
             (goal-skolems next-goal) (goal-skolems cur-goal)
             (goal-assumptions next-goal) (goal-assumptions cur-goal)
-            (goal-defs next-goal) (goal-defs cur-goal))
+            (goal-defs next-goal) (goal-defs cur-goal)
+            (goal-base-ops next-goal) (goal-base-ops cur-goal)
+            (goal-step-ops next-goal) (goal-step-ops cur-goal)
+            (goal-bases next-goal) (goal-bases cur-goal)
+            (goal-steps next-goal) (goal-steps cur-goal))
       (prepare-for-parsing next-context)
       (setq *next-default-proof-node* nil) ; we reset the next default target
       next-goal)))
@@ -720,10 +871,11 @@
   (context nil :type (or null module))  ; context module
   (num-gen-const 0 :type fixnum)        ; number of generated constants so far
   (num-gen-const-ind 0 :type fixnum)    ; number of generated constants for induction so far
-  (root    nil :type (or null ptree-node)) ; root goal
-  (indvar-subst nil :type list)
-  (var-subst nil :type list)
+  (root nil :type (or null ptree-node)) ; root goal
+  (indvar-subst nil :type list)         ; <variable> -> <constantForInduction>
+  (var-subst nil :type list)            ; <variable> -> <constantForTheremOfConstants>
   (defs-so-far nil :type list)          ; :defined name so far
+  (constructor-ops nil :type list)      ; list of constructor operators
   )
 
 (defun pr-ptree (ptree &optional (stream *standard-output*) &rest ignore)
@@ -732,11 +884,10 @@
            (ignore ignore))
   (let ((*standard-output* stream))
     (format t "~%Proof Tree ===================================")
-    (format t "~%-- number of generated constants: ~d" (ptree-num-gen-const ptree))
-    (format t "~%-- induction variable bases:")
     (with-in-module ((goal-context (ptree-node-goal (ptree-root ptree))))
       (let ((indvar-subst (ptree-indvar-subst ptree))
             (*print-indent* (+ 2 *print-indent*)))
+        (format t "~%-- induction variable bases:")
         (if indvar-subst
             (dolist (is indvar-subst)
               (print-next)
@@ -754,6 +905,12 @@
               (princ " => ")
               (princ (cdr is)))
           (progn (print-next) (princ "none" stream))))
+      (format stream "~%-- constructors:")
+      (let ((num 0))
+        (dolist (op (ptree-constructor-ops ptree))
+          (print-next)
+          (format t "(~d) " (incf num))
+          (print-method-brief op)))
       (format stream "~%-- root node")
       (pr-goal (ptree-node-goal (ptree-root ptree))))))
 
@@ -765,6 +922,41 @@
 (defun existing-def-name? (ptree name)
   (setq name (canonicalize-tactic-name name))
   (member name (ptree-defs-so-far ptree) :test #'equal))
+
+;;; PROOF
+;;;
+(defstruct citp-proof
+  (context nil)                         ; context module in which proof is performed
+  (discharged nil)                      ; list of proved sentences
+  )
+
+(defvar *the-citp-proof* (make-citp-proof :context :none :discharged nil))
+
+(defun get-discharged-sentence-with-label (label)
+  (declare (type string label))
+  (let ((name (intern label))
+        (res nil))
+    (dolist (ax (citp-proof-discharged *the-citp-proof*))
+      (when (member name (axiom-labels ax))
+        (push ax res)))
+    (when (> (length res) 1)
+      (with-output-chaos-warning ()
+        (format t "Found more than 1 sentences with name ~s." label)))
+    (unless res
+      (with-output-chaos-error ()
+        (format t "No such discharged sentence with name ~s." label)))
+    res))
+
+(defun find-discharged-sentences-with-label (list-labels)
+  (let ((axs nil))
+    (dolist (label list-labels)
+      (setq axs (nconc axs
+                       (get-discharged-sentence-with-label label))))
+    axs))
+
+;;;--------------------------------------------------------------------
+;;; Support functions for introducing new constants used in the proof.
+;;; 
 
 ;;; intro-const-returns-subst : module name variable -> (variable . constant-term)
 ;;; introduces a new constant of sort(variable) into a module.
@@ -785,7 +977,6 @@
     meth))
   
 (defun intro-const-returns-subst (module name variable)
-
   (cons variable (make-applform-simple (variable-sort variable)
                                        (citp-intro-const module name (variable-sort variable))
                                        nil)))
@@ -797,16 +988,6 @@
 
 (defun make-tc-pconst-name (name)
   (format nil "`~:@(~a~)" name))
-
-;;; intro-fresh-constant : goal -> term (introduced constant)
-;;; introduces brand new constant in the current proof context
-;;;
-(defun intro-fresh-constant (goal name-seed sort)
-  (let* ((name (make-tc-const-name name-seed sort))
-         (meth (citp-intro-const (goal-context goal) name sort))
-         (v-const (make-applform-simple sort meth nil)))
-    (push (cons meth v-const) (goal-constants goal))
-    v-const))
 
 ;;; introduces on-the-fly constant
 ;;;
@@ -839,6 +1020,144 @@
           (push v-const (goal-constants goal))
           (cdr v-const)))))
 
+;;; -----------------------------------------------------------
+;;; Utils for constructors
+;;;
+
+;;; gather-constructor-ops : module -> List(constructor)
+;;; list up all the constructor ops in a given module
+;;;
+(defun gather-constructor-ops (module)
+  (flet ((method-is-user-defined-or-tf? (x)
+           (or (eq x *bool-true-meth*)
+               (eq x *bool-false-meth*)
+               (and (not (sort= (method-coarity x) *sort-id-sort*))
+                    (module-is-user-module (method-module x))))))
+    (let ((res nil))
+      (with-in-module (module)
+        (dolist (opinfo (module-all-operators module))
+          (dolist (meth (opinfo-methods opinfo))
+            (when (and (method-is-constructor? meth)
+                       (method-is-user-defined-or-tf? meth))
+              (push meth res))))
+        res))))
+
+;;; get-constructors-of-sort : sort -> List[constructor]
+;;; returns the list of constructors of sort.
+;;;
+(defun get-constructors-of-sort (sort &optional (context (get-context-module)))
+  (let ((ops nil))
+    (dolist (meth (ptree-constructor-ops *proof-tree*))
+      (when (and (method-is-constructor? meth)
+                 (sort<= (method-coarity meth) sort (module-sort-order context)))
+        (push meth ops)))
+    (reverse ops)))
+
+;;; default-constructor-order
+;;;
+(defun default-constructor-order (constructors)
+  (sort constructors 
+        #'(lambda (x y) 
+            ;; first precedence is number of arguments
+            (let ((ax (method-num-args x))
+                  (ay (method-num-args y)))
+              (if (< ax ay)
+                  t
+                (if (> ax ay)
+                    nil
+                  (if (eq x *bool-true-meth*)
+                      ;; this orders true > ... > false
+                      t
+                    (if (eq y *bool-true-meth*)
+                        nil
+                      (if (eq (op-lex-precedence x y) :greater)
+                          nil
+                        t)))))))))
+
+;;; order-constructors : List[constructor] -> List[constructor]' 
+;;;
+(defun order-constructors (constructors &optional (order-spec nil))
+  (cond ((null order-spec) (default-constructor-order constructors))
+        (t 
+         ;; order is specified by :order command
+         ;; first initialize the order to default
+         (let* ((pos-star (position :* order-spec))
+                (first-half (subseq order-spec 0 pos-star))
+                (second-half (subseq order-spec (1+ pos-star))))
+           (setq constructors (set-difference constructors
+                                                (append first-half second-half)))
+           (setq constructors (default-constructor-order constructors))
+           (append first-half constructors second-half)))))
+
+;;; show-constructor-order : ptree -> void
+;;;
+(defun show-constructor-order (ptree)
+  (let ((num 0))
+    (with-output-msg ()
+      (format t "Current order of constructors:")
+      (dolist (op (ptree-constructor-ops ptree))
+        (print-next)
+        (format t "(~d) " (incf num))
+        (print-method-brief op)))
+    (terpri)))
+
+;;; handler of :order command
+;;; :order (<op>, ..., <op>)
+;;;
+(defun citp-eval-order (ast)
+  (check-context-module-and-ptree)
+  (with-in-module ((get-context-module))
+    (let ((optokens (%pn-lex-ops ast)))
+      (cond ((and (null (cdr optokens))
+                  (null (car optokens)))
+             (show-constructor-order *proof-tree*))
+            (t (with-output-msg ()
+                 (format t "start setting constructor ordering..."))
+               (set-constructor-order *proof-tree* optokens)
+               (format t "~%done.")
+               (when-citp-verbose ()
+                 (show-constructor-order *proof-tree*)))))))
+
+(defun set-constructor-order (ptree optokens)
+  (let ((prec-list nil))
+    (dolist (e optokens)
+      (cond ((equal e '("*"))
+             (if (not (memq :* prec-list))
+                 (setq prec-list (append prec-list '(:*)))
+               (with-output-chaos-warning ()
+                 (format t "* is already specified."))))
+            (t (let ((parsedop (parse-op-name e)))
+                 (multiple-value-bind (ops mod)
+                     (resolve-operator-reference parsedop)
+                   (with-in-module (mod)
+                     (let ((overs nil))
+                       (dolist (opinfo ops)
+                         (dolist (meth (opinfo-methods opinfo))
+                           (if (method-is-constructor? meth)
+                               (if (member meth prec-list)
+                                   (with-output-chaos-warning ()
+                                     (format t "operator ~{~a~}/~d is already ordered, ignored." 
+                                             (method-symbol meth)
+                                             (method-num-args meth)))
+                                 (push meth overs))
+                             (unless (method-is-error-method meth)
+                               (with-output-chaos-warning ()
+                                 (format t "operator ~{~s~} is not a constructor, ignored." 
+                                         (method-symbol meth)))))))
+                       ;; order overloaded ops by number of arguments
+                       (setq overs (sort overs #'(lambda (x y) 
+                                                   (let ((x-num (method-num-args x))
+                                                         (y-num (method-num-args y)))
+                                                     (declare (type fixnum x-num y-num))
+                                                     (< x-num y-num)))))
+                       ;; set the result
+                       (setq prec-list (append prec-list overs)))))))))
+    (unless (memq :* prec-list)
+      (setq prec-list (append prec-list '(:*))))
+    (setf (ptree-constructor-ops ptree)
+      (order-constructors (ptree-constructor-ops ptree)
+                          prec-list))))
+
 ;;; variable->constructor : goal variable op -> term
 ;;;
 (defun make-ind-const-name (name-prefix sort)
@@ -870,6 +1189,16 @@
               (setq vconst (make-iv-const v-name))
               (pushnew (cons svar v-name) (ptree-indvar-subst *proof-tree*) :test #'equal)
               vconst))))))
+
+;;; intro-fresh-constant : goal -> term (introduced constant)
+;;; introduces brand new constant in the current proof context
+;;;
+(defun intro-fresh-constant (goal name-seed sort)
+  (let* ((name (make-ind-const-name name-seed sort))
+         (meth (citp-intro-const (goal-context goal) name sort))
+         (v-const (make-applform-simple sort meth nil)))
+    (push (cons meth v-const) (goal-ind-constants goal))
+    v-const))
 
 ;;; SKOLEMITIZE
 ;;; allow citp to represent the goal sentence in FOPLE-SENTENCE
@@ -920,7 +1249,10 @@
       (let* ((targets (mapcar #'skolemize-if-need initial-goals))
              (root (make-ptree-root goal-module targets)))
           (setq *next-default-proof-node* nil)
-          (make-ptree :root root :context context-module)))))
+          (make-ptree :root root 
+                      :context context-module
+                      :constructor-ops 
+                      (order-constructors (gather-constructor-ops context-module) nil))))))
 
 ;;;
 ;;; check-success : ptree -> Bool
@@ -933,6 +1265,7 @@
       (format t "~%>> Remaining ~d goal~p.~%" (length unp) (length unp))
       (return-from check-success nil))
     (format t "~%** All goals are successfully discharged.~%")
+    (save-discharged-sentences)
     (setq *next-default-proof-node* nil)
     t))
 
@@ -979,10 +1312,9 @@
       (return-from print-named-goal nil)))
   (let ((goal-node (if name
                        (find-goal-node ptree name)
-                     (if (next-proof-target-is-specified?)
-                         (get-next-proof-context ptree)
-                       (with-output-chaos-error ('no-goal)
-                         (format t "No default goal is specified."))))))
+                     (or (get-next-proof-context ptree)
+                         (with-output-chaos-error ('no-goal)
+                           (princ "No default goal is specified."))))))
     (unless goal-node
       (with-output-chaos-error ('no-such-goal)
         (format t "No such goal with the name ~s" name)))
@@ -1087,10 +1419,41 @@
 ;;; TOP LEVEL FUNCTIONS
 ;;; ====================
 
-;;;
 ;;; begin-proof
+;;; starting the new proof
 ;;;
 (defparameter .root-context-module. (%module-decl* "#Goal-root" :object :user nil))
+
+(defun reset-proof-session ()
+  (with-output-simple-msg ()
+    (format t "** !! Discarding the current proof..."))
+  (setf (citp-proof-context *the-citp-proof*) nil
+        (citp-proof-discharged *the-citp-proof*) nil)
+  (setf .user-defined-tactics. nil)
+  (reset-proof *proof-tree*)
+  (setq *proof-tree* nil))
+
+(defun citp-reset-proof-if-need (redefined-module)
+  (when (eq redefined-module (citp-proof-context *the-citp-proof*))
+    (reset-proof-session)))
+
+(defun save-discharged-sentences ()
+  (setf (citp-proof-discharged *the-citp-proof*)
+    (append (citp-proof-discharged *the-citp-proof*)
+            (goal-targets (ptree-node-goal (ptree-root *proof-tree*))))))
+
+(defun print-discharged-sentences ()
+  (let ((discharged (citp-proof-discharged *the-citp-proof*)))
+    (if discharged
+        (with-in-module ((citp-proof-context *the-citp-proof*))
+          (let ((*print-indent* (+ 2 *print-indent*)))
+            (format t "~&** Discharged sentence~p" (length discharged))
+            (format t "~%-- context module: ~a" (module-print-name *current-module*))
+            (dolist (ax discharged)
+              (print-next)
+              (print-axiom-brief ax)
+              (princ " ."))))
+      (format t "None~%"))))
 
 ;;; for LE check
 ;; (defvar .int-module. nil)
@@ -1122,6 +1485,13 @@
   (declare (type module context-module)
            (type list goal-axioms))
   (unless goal-axioms (return-from begin-proof nil))
+  ;; if the context module is changed, we begin a brand new proof session
+  (unless (eq (citp-proof-context *the-citp-proof*)
+              context-module)
+    (with-output-simple-msg ()
+      (format t "** Beginning a new proof in ~a" (module-print-name context-module)))
+    (setq *the-citp-proof*
+      (make-citp-proof :context context-module :discharged nil)))
   (let* ((*chaos-quiet* t)
          (root-module (eval-ast .root-context-module.)))
     (setf (module-hidden root-module) t)
@@ -1197,73 +1567,15 @@
           (princ "*"))))
     (let ((subnodes (ptree-node-subnodes node)))
       (when subnodes
-        (let (;; (*print-indent* (+ 4 *print-indent*))
-              )
-          (dolist (sub subnodes)
-            (print-next-prefix #\Space)
-            (!print-proof-horizontal sub next-target stream)))))))
-
-
-#||
-(defun describe-proof-tree (node)
-  (declare (type ptree-node node))
-  (flet ((proved? ()
-           (format nil "~:[unproved~;proved~]" (node-is-discharged? node))))
-    (let ((goal (ptree-node-goal node))
-          (*print-line-limit* 80)
-          (*print-xmode* :fancy))
-      (with-in-module ((goal-context goal))
-        (if (goal-tactic goal)
-            (format t "[~a]=> GOAL(~a) ~a" (tactic-name (goal-tactic goal)) (goal-name goal) (proved?))
-          (format t "=> GOAL(~a) ~a" (goal-name goal) (proved?)))
-        (princ " ------------------------")
-        (let ((*print-indent* (+ 4 *print-indent*)))
-          (print-next)
-          (format t "** context module: ~a" (get-module-simple-name *current-module*))
-          (let ((assumptions (goal-assumptions goal)))
-            (when assumptions
-              (print-next)
-              (format t "** assumption~p" (length assumptions))
-              (let ((*print-indent* (+ 2 *print-indent*))
-                    (*print-xmode* :fancy))
-                (dolist (as assumptions)
-                  (print-next)
-                  (print-axiom-brief as)
-                  (princ " .")))))
-          (let ((proved (goal-proved goal)))
-            (when proved
-              (print-next)
-              (format t "** discharged sentence~p:" (length proved))
-              (let ((*print-indent* (+ 2 *print-indent*)))
-                (dolist (ax proved)
-                  (print-next)
-                  (print-axiom-brief ax)
-                  (princ " .")))))
-          (let ((targets (goal-targets goal)))
-            (when targets
-              (print-next)
-              (if (node-is-discharged? node)
-                  (format t "** targeted sentence~p:" (length targets))
-                (format t "** sentence~p to be proved:" (length targets)))
-              (let ((*print-indent* (+ 2 *print-indent*)))
-                (dolist (target targets)
-                  (print-next)
-                  (print-axiom-brief target)
-                  (princ " .")))))))
-      (let ((subnodes (ptree-node-subnodes node)))
-        (when subnodes
-          (let ((*print-indent* (+ 2 *print-indent*)))
-            (dolist (sub subnodes)
-              (print-next-prefix #\.)
-              (describe-proof-tree sub))))))))
-||#
+        (dolist (sub subnodes)
+          (print-next-prefix #\Space)
+          (!print-proof-horizontal sub next-target stream))))))
 
 (defparameter *proof-indent* 0)
 
 (defun describe-proof-tree (node)
   (declare (type ptree-node node))
   (flet ((proved? ()
-           ;; (format nil "~:[unproved~;proved~]" (node-is-discharged? node))
            (format nil "~:[ ~;*~]" (node-is-discharged? node))))
     (let ((goal (ptree-node-goal node))
           (*print-line-limit* 80)
@@ -1343,6 +1655,5 @@
             (print-next)))
       (with-output-chaos-warning ()
         (format t "No current goal.")))))
-
 
 ;;; EOF

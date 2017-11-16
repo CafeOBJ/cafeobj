@@ -61,6 +61,7 @@
     ("EQL" . "eql")
     ("QID" . "qid")
     ("META-LEVEL" . "metalevel")
+    ("BOOL+" . "bool+")
     ))
 )
 ;;; EOF

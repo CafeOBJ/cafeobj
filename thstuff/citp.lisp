@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2016, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -47,6 +47,11 @@
     (with-output-chaos-error ('no-proof-tree)
       (format t "No proof is ongoing."))))
 
+(defun check-on-going()
+  (unless (and *proof-tree* (get-unproved-nodes *proof-tree*))
+    (with-output-chaos-error ('no-target)
+      (format t "There are no unproved goals."))))
+
 (defun check-context-module-and-ptree ()
   (check-context-module)
   (check-ptree))
@@ -85,22 +90,58 @@
 
 ;;; citp-parse-ind-on
 ;;; :ind on (var ... var)
-;;; (":ind" "on" "(" ("M:S-1" ... "N:S-N") ")")
-;;;
+;;; (":ind" ("on" "(" ("A:S-1" "B:S-2" "C:S-3") ")"))
+;;; (":ind" ("{" ("on" #1="(" ("L1:List") #2=")") 
+;;;              ("base" #1# ("nil") "." nil #2#) 
+;;;              ("step" #1# ("X:Elm" "T:List") "." nil #2#) "}"))
+;;; (":ind" ("{" ("on" #1="(" ("S1:Seq") #2=")")
+;;;              ("base" #1# ("nil") "." nil #2#)
+;;;              ("hypo" #1# ("SQ:Seq") "." nil #2#) 
+;;;              ("step" #1# ("EL:Elt" "SQ:Seq") "." nil #2#) "}"))
+(defun citp-parse-seq-of-terms (module token-list)
+  (let ((terms nil))
+    (when (atom token-list)
+      (return-from citp-parse-seq-of-terms nil))
+    (dolist (term? token-list)
+      ;; (format t "~%<<>> ~s" term?)
+      (when (consp term?)
+        (let* ((*parse-variables* nil)
+               (target-term (simple-parse module term? *cosmos*)))
+          (when (or (null (term-sort target-term))
+                    (sort<= (term-sort target-term) *syntax-err-sort* *chaos-sort-order*))
+            (with-output-chaos-error ('invalid-term)
+              (format t "Could not parse ~s" term?)))
+          (push target-term terms))))
+    (nreverse terms)))
+
 (defun citp-parse-ind-on (args)
   (check-context-module)
   (with-in-module (*current-module*)
-    (let ((vars nil))
-      (dolist (var-decl (fourth args))
-        (let ((var (simple-parse-from-string var-decl)))
-          (when (term-ill-defined var)
-            (with-output-chaos-error ('no-parse)
-              (format t "Illegal variable form: ~s" var-decl)))
-          (unless (term-is-variable? var)
-            (with-output-chaos-error ('no-var)
-              (format t "Invalid argument to ':ind' command: ~s" var-decl)))
-          (push var vars)))
-      (nreverse vars))))
+    (let ((ind-type (first (second args))))
+      (flet ((parse-vars (decls)
+               (let ((vars nil))
+                 (dolist (var-decl decls)
+                   (let ((var (simple-parse-from-string var-decl)))
+                     (when (term-ill-defined var)
+                       (with-output-chaos-error ('no-parse)
+                         (format t "Illegal variable form: ~a" var-decl)))
+                     (unless (term-is-variable? var)
+                       (with-output-chaos-error ('no-var)
+                         (format t "Invalid argument to ':ind' command: ~a" var-decl)))
+                     (push var vars)))
+                 (nreverse vars))))
+        (if (equal ind-type "on")
+            (let ((vars (parse-vars (third (second args)))))
+              (cons :simple vars))
+          ;; :ind { on () base() [hypo ()] step() }
+          (let* ((decl (second args))
+                 (vars (parse-vars (third (second decl))))
+                 (bases (citp-parse-seq-of-terms *current-module* (third decl)))
+                 (hypo (citp-parse-seq-of-terms *current-module* (fourth decl)))
+                 (steps (citp-parse-seq-of-terms *current-module* (fifth decl))))
+            (if steps
+                (list :user vars bases hypo steps)
+              (list :user vars bases nil hypo))))))))
 
 ;;;
 ;;; :auto
@@ -127,16 +168,23 @@
     (cons :axiom (second target))))
 
 (defun citp-parse-init (args)
-  (let ((target-form (make-axiom-pattern (second args)))
-        (subst-list (fifth args))
-        (subst-pairs nil))
-    (dolist (subst-form subst-list)
-      (unless (atom subst-form)
-        (push (cons (first subst-form) (third subst-form)) subst-pairs)))
-    (with-citp-debug ()
-      (format t "~%[:init] target = ~s" target-form)
-      (format t "~%        subst  = ~s" subst-pairs))
-    (list target-form subst-pairs)))
+  (let ((name (if (equal (first (second args)) "as")
+                  (second (second args))
+                nil)))
+    (let ((target-form (make-axiom-pattern (if name 
+                                               (third args)
+                                             (second args))))
+          (subst-list (if name 
+                          (sixth args)
+                        (fifth args)))
+          (subst-pairs nil))
+      (dolist (subst-form subst-list)
+        (unless (atom subst-form)
+          (push (cons (first subst-form) (third subst-form)) subst-pairs)))
+      (with-citp-debug ()
+        (format t "~%[:init] target = ~s" target-form)
+        (format t "~%        subst  = ~s" subst-pairs))
+      (list (first args) target-form subst-pairs name))))
 
 ;;; :imply [<label>] by { <var> <- <term>; ...<var> <- <term>; }
 ;;;
@@ -209,7 +257,7 @@
 (defun citp-parse-verbose (args)
   (second args))
 
-;;; citp-parse-normalize-init
+;;; citp-parse-normalize
 ;;; :normalize {on | off}
 (defun citp-parse-normalize (args)
   (second args))
@@ -239,7 +287,7 @@
     (cons (nreverse ax-decls) dash?)))
 
 ;;; citp-parse-define
-;;; :def <symbol> = <ctf> | <csp>
+;;; :def <symbol> = <ctf> | <csp> | <init> | 
 ;;;
 ;;; (":def" "cf1" "=" (":ctf" ("[" (<Term>) "." "]")))
 ;;; ==> (:ctf "cf1" nil (:term (<Term>)))
@@ -249,7 +297,9 @@
 ;;; ==> (:csp "sp1" nil ((<Equation> ".") (<Equation> ".")))
 ;;; (":def" "tactic-1" "=" ("(" ("si" "rd" "tc") ")"))
 ;;; ==> (:seq "tactic-1" ("si" "rd" "tc"))
-;;;
+;;; (":define" "*disr" "=" (":init" ("[" ("*disr") "]") "by" "{" (("X:PNat.PNAT" "<-" ("X#PNat")) #1=";" ("Y:PNat.PNAT" "<-" ("Y@PNat")) #1# ("Z:PNat.PNAT" "<-" ("Z@PNat")) #1#) "}"))
+;;; ==> (:init "*disr" nil (":init" ("[" ("*disr") "]") "by" "{" (("X:PNat.PNAT" "<-" #) #1=";" ("Y:PNat.PNAT" "<-" #) #1# ("Z:PNat.PNAT" "<-" #) #1#) "}"))
+
 (defun citp-parse-define (args)
   (flet ((name-to-com (name)
            (cond ((equal name "(")
@@ -258,21 +308,27 @@
                   :ctf)
                  ((equal (subseq name 0 4) ":csp")
                   :csp)
+                 ((equal (subseq name 0 4) ":ini") 
+                  :init)
                  (t (with-output-chaos-error ('invalid-def)
                       (format t "Internal error, :def accepted ~a" name))))))
     (let* ((name (second args))
            (com-name (first (fourth args)))
            (command (name-to-com com-name))
-           (dash (> (length com-name) 4))
-           (body-form (if (eq command :ctf)
-                          (if (equal "[" (first (second (fourth args))))
-                              (list :term (second (second (fourth args))))
-                            (list :eq (second (second (fourth args)))))
-                        (if (eq command :csp)
-                            (third (fourth args))
-                          ;; :seq
-                          (second (fourth args))))))
-      (list command name dash body-form))))
+           (dash-or-bang (or (and (member command '(:ctf :csp))
+                                  (> (length com-name) 4))
+                             (and (eq command :init)
+                                  (> (length com-name) 5))))
+           (body-form (case command
+                        (:ctf (if (equal "[" (first (second (fourth args))))
+                                  (list :term (second (second (fourth args))))
+                                (list :eq (second (second (fourth args))))))
+                        (:csp (third (fourth args)))
+                        (:init (citp-parse-init (fourth args)))
+                        (:seq (second (fourth args)))
+                        (otherwise (with-output-chaos-error ('invalid-command)
+                                     (format t "Internal error, :def invalid ~s" command))))))
+      (list command name dash-or-bang body-form))))
 
 ;;; { :show | :describe } <something>
 ;;;
@@ -297,7 +353,7 @@
                   (if (equal on-off '("off"))
                       nil
                     (progn (format t "~&:spoiler flag is ~s" (if *citp-spoiler* "on" "off"))
-                           (return-from citp-parse-spoiler nil))))))
+                           (return-from citp-parse-spoiler t))))))
     (setq *citp-spoiler* value)
     (setf (citp-flag citp-spoiler) value)
     t))
@@ -348,6 +404,57 @@
 (defun citp-parse-bguess (args)
   (cdr args))
 
+;;; citp-parse-use
+;;; :use (<label> ... <label>)
+;;; :use [<label>] { assoc | comm | id: <term> }
+;;; (":use" ("(" ("a" "b" "c") ")"))
+;;; (":use" ("[" "foo" "]" "{" (("assoc")) "}"))
+(defun citp-parse-use (args)
+  (let* ((body (second args))
+         (type (first body)))
+    (cond ((equal type "(")
+           (cons :use (second body)))
+          ((equal type "[")
+           (let ((label (second body))
+                 (theory (fifth body)))
+             (list* :use-theory label theory)))
+          (t (with-output-chaos-error ('invalid-form)
+               (format t "invalid form of :use ~s" type))))))
+
+;;; citp-parse-embed
+;;; :embed (<label> ... <label>) as <module_name>
+;;; (":embed" ("(" ("a" "b" "c") ")" "as" "foo"))
+;;; (":embed" ("[" "foo" "]" "{" (("assoc") ("comm")) "}" "as" "foo"))
+(defun citp-parse-embed (args)
+  (let* ((body (second args))
+         (type (first body)))
+    (cond ((equal type "(")
+           (let ((labels (second body))
+                 (mod-name (fifth body))
+                 (into (equal (fourth body) "into")))
+             (list :embed labels mod-name into)))
+          ((equal type "[")
+           (let ((label (second body))
+                 (theory (fifth body))
+                 (into (equal (seventh body) "into"))
+                 (mod-name (eighth body)))
+             (list :embed-theory label theory mod-name into)))
+          (t (with-output-chaos-error ('invalid-form)
+               (format t "invalid :embed type ~s" type))))))
+
+;;; citp-parse-reset
+;;; :reset
+;;;
+(defun citp-parse-reset (args)
+  args)
+
+;;; citp-process-opattr-declaration-form
+;;;
+(defun citp-process-opattr-declaration-form (args &rest ignore)
+  (declare (ignore ignore))
+  (format t "~s" args))
+  
+
 
 
 ;;; ================================
@@ -382,10 +489,23 @@
 
 ;;; :ind on
 ;;;
-(defun eval-citp-ind-on (vars)
+(defun eval-citp-ind-on (args)
   (check-ptree)
-  (with-in-module (*current-module*)
-    (set-induction-variables vars)))
+  (with-in-module ((get-context-module))
+    (let ((type (car args))
+          (ind-form (cdr args)))
+      (if (eq type :simple)
+          (set-induction-variables ind-form)
+        ;; :user defined induction scheme
+        (let ((vars (first ind-form))
+              (bases (second ind-form))
+              (hypo (third ind-form))
+              (steps (fourth ind-form)))
+          (check-on-going)
+          (let ((target-node (get-next-proof-context *proof-tree*)))
+            (set-induction-variables-and-scheme target-node vars bases hypo steps)
+            ;; then do the job
+            (apply-user-defined-induction-scheme target-node)))))))
 
 ;;; :roll back
 ;;;
@@ -398,18 +518,26 @@
 ;;; :init
 ;;;
 (defun eval-citp-init (args)
-  (check-ptree)
-  (with-in-module (*current-module*)
-    (instanciate-axiom (first args)     ; target
-                       (second args)))) ; variable-term pairs
+  (let ((citp? (equal (first args) ":init"))
+        (target-module nil))
+    (cond (citp? (check-ptree)
+                 (setq target-module
+                   (goal-context (ptree-node-goal (get-target-goal-node)))))
+          (t (I-miss-current-module eval-citp-init)
+             (setq target-module (get-context-module))))
+    (with-in-module (target-module)
+      (instanciate-axiom (second args)  ; target
+                         (third  args)  ; variable-term pairs
+                         citp?          ; init to where?
+                         (fourth args))))) ; label
 
 ;;; :imp
 ;;;
 (defun eval-citp-imp (args)
   (check-ptree)
   (with-in-module ((goal-context (ptree-node-goal (get-target-goal-node))))
-    (introduce-implication-to-goal (first args)
-                                   (second args))))
+    (introduce-implication-to-goal (first args) ; target
+                                   (second args)))) ;variable-term pairs
 
 ;;; :cp
 (defun eval-citp-critical-pair (args)
@@ -467,7 +595,7 @@
 ;;;
 (defun eval-citp-ctf (ax-form)
   (check-ptree)
-  (with-in-module (*current-module*)
+  (with-in-module ((get-context-module))
     (reset-rewrite-counters)
     (begin-rewrite)
     (apply-ctf (car ax-form) (cadr ax-form) (cddr ax-form))
@@ -478,7 +606,7 @@
 ;;; :csp
 (defun eval-citp-csp (goal-ax-decls)
   (check-ptree)
-  (with-in-module (*current-module*)
+  (with-in-module ((get-context-module))
     (reset-rewrite-counters)
     (begin-rewrite)
     (apply-csp (car goal-ax-decls) (cdr goal-ax-decls))
@@ -495,6 +623,9 @@
     (cond ((member target '("unproved" "unp") :test #'equal)
            (check-ptree)
            (print-unproved-goals *proof-tree*))
+          ((member target '("proved" "discharged") :test #'equal)
+           (check-ptree)
+           (print-discharged-sentences))
           ((equal target "goal")
            (check-ptree)
            (let ((name (car rest-args)))
@@ -511,6 +642,8 @@
            (check-ptree)
            (let ((goal-name (first rest-args)))
              (print-defs describe goal-name)))
+          ((member target '("switch" "switches" "flag" "flags") :test #'equal)
+           (print-citp-flag citp-all))
           (t (with-output-chaos-error ('unknown)
                (format t "Unknown parameter to :show/:describe ~S" target))))))
 
@@ -527,6 +660,7 @@
 ;;; (:ctf "cf2" t   (:eq (<Equation>)))
 ;;; (:csp "sp1" nil ((<Equation> ".") ...))
 ;;; (:csp "sp2" t   ((<Equation> ".") ...))
+;;; (:init "ini1" nil (:init ....))
 ;;; (:seq "tactic-1" nil (<tactic-name> ....))
 ;;;
 (defun eval-citp-define (arg)
@@ -568,6 +702,22 @@
                                                  :forms (nreverse forms)
                                                  :minus dash
                                                  :context *current-module*))))
+                ((eq tactic-name :init)
+                 (let ((ax (get-target-axiom *current-module* (second form)))
+                       (subst (resolve-subst-form *current-module* 
+                                                  (third form)
+                                                  (citp-flag citp-normalize-init))))
+                   (setq tactic (make-tactic-init :name name
+                                                  :axiom ax
+                                                  :subst subst
+                                                  :context *current-module*
+                                                  :kind (second form)))))
+                ((eq tactic-name :ind)
+                 ;; ind
+                 (setq tactic (make-tactic-ind :name name
+                                               :vars ()
+                                               :base ()
+                                               :step ())))
                 ((eq tactic-name :seq)
                  (setq tactic (make-tactic-seq :name name
                                                :tactics (mapcar #'(lambda (x)
@@ -614,5 +764,76 @@
         (setf (citp-flag index) value))
       ;; run hook
       (funcall (citp-flag-hook index) name value))))
+
+;;;
+;;; :use
+;;;
+(defun citp-eval-use (args)
+  (check-ptree)
+  (let ((type (car args))
+        (body (cdr args)))
+    (case type
+      (:use
+       (use-discharged-goals body))
+      (:use-theory
+       (let ((label (car body))
+             (theory (cdr body)))
+         (use-theory label theory))))))
+
+;;;
+;;; :embed
+;;;
+(defun citp-eval-embed (args)
+  (check-ptree)
+  (let ((type (car args))
+        (body (cdr args)))
+    (case type
+      (:embed
+       (let ((labels (car body))
+             (mod-name (cadr body))
+             (into (caddr body)))
+         (embed-discharged-goals labels mod-name into)))
+      (:embed-theory
+       (let ((label (first body))
+             (theory (second body))
+             (mod-name (third body))
+             (into (fourth body)))
+       (embed-theory label theory mod-name into))))))
+
+;;;
+;;; :reset
+;;;
+(defun citp-eval-reset (&rest args)
+  (declare (ignore args))
+  (check-ptree)
+  (reset-proof-session))
+
+;;;
+;;; :theory <opname> : <arity> -> <coarity> { assoc | comm | id: <term> }
+;;;
+(defun add-method-theory (decl)
+  (check-ptree)
+  (let ((theory (%opattrs-theory (%theory-decl-attribute decl)))
+        (name (%theory-decl-name decl))
+        (arity (%theory-decl-arity decl))
+        (coarity (%theory-decl-coarity decl))
+        (goal (ptree-node-goal (get-next-proof-context *proof-tree*))))
+    (with-in-module ((goal-context goal))
+      (let ((r-arity (mapcar #'(lambda (x) (or (find-sort-in *current-module* x)
+                                               (with-output-chaos-error ('no-sort)
+                                                 (princ "No such sort ")
+                                                 (print-sort-ref x))))
+                              arity))
+            (r-coarity (or (find-sort-in *current-module* coarity)
+                           (with-output-chaos-error ('no-sort)
+                             (princ "No such sort ")
+                             (print-sort-ref coarity)))))
+        (let ((meth (find-method-in *current-module* name r-arity r-coarity)))
+          (unless meth
+            (with-output-chaos-error ('no-op)
+              (format t "No such operator ~s" name)))
+          (add-and-merge-method-theory meth theory *current-module*)
+          (set-needs-parse)
+          (set-needs-rule))))))
 
 ;;; EOF

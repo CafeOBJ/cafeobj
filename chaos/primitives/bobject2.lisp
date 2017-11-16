@@ -489,6 +489,7 @@
   ($$selection-stack nil :type list)    ; selection stack for choose
   ($$stop-pattern nil :type list)       ; stop pattern
   ($$ptree nil)                         ; proof tree
+  ($$rule-counter 0)                    ; generated number of rules
   )
 
 ;;;

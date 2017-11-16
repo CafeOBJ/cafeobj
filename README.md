@@ -1,7 +1,7 @@
 CafeOBJ Interpreter
 ===================
-*Version 1.5.4*
-2015-10-20
+*Version 1.5.6*
+2017-03-30
 
 CafeOBJ is a new generation algebraic specification and programming language.
 As a direct successor of OBJ, it inherits all its features (flexible mix-fix
@@ -21,8 +21,10 @@ complete source code for CafeOBJ interpreter.
 
 CONTACT
 -------
-Please use `info AT cafeobj DOT org' to contact us for bug reports,
-suggestions, requests, etc.
+Please use [Github Issues](https://github.com/CafeOBJ/cafeobj/issues)
+for bug reports, requests, suggestions, etc.
+
+Contact by email is available at `info AT cafeobj DOT org'.
 
 
 BINARY DISTRIBUTION
@@ -52,9 +54,9 @@ For more information on building see INSTALL
 OBTAINING THE SOURCES
 ---------------------
 
-Source files are available from Bitbucket.
+Source files are available from [Github](https://github.com/CafeOBJ/cafeobj):
 ```bash
-% git clone git://git.cafeobj.org/cafeobj.git
+$ git clone https://github.com/CafeOBJ/cafeobj.git
 ```
 
 ----------------------------------------------------------------------
@@ -91,4 +93,3 @@ in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 even the implied warranty of MERCHANT-ABILITY of FITNESS FOR A PARTICULAR
 PURPOSE.
 
--- EOF

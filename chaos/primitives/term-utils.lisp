@@ -201,7 +201,7 @@
            (some #'term-contains-user-defined-error-method
                  (term-subterms term)))))
 
-;;; test if a appl form contains math-operator(:=).
+;;; test if a appl form contains match-operator(:=).
 
 (defun term-contains-match-op (term)
   (declare (type term term)
@@ -210,6 +210,27 @@
        (or (method= *bool-match* (term-head term))
            (some #'term-contains-match-op
                  (term-subterms term)))))
+
+;;; test if a appl form contains search predicate which may
+;;; introduce new variables
+#||
+(defparameter sch-op-names
+    '(("_" "=" "(" "_" "," "_" ")" "=>+" "_" "if" "_" "suchThat" "_" "{" "_" "}")))
+
+(defun term-contains-sp-sch-predicate (term)
+  (and (term-is-application-form? term)
+       (or (member (method-symbol (term-head term))
+                   sch-op-names
+                   :test #'equal)
+           (some #'term-contains-sp-sch-predicate
+                  (term-subterms term)))))
+||#
+
+(defun term-contains-sp-sch-predicate (term)
+  (and (term-is-application-form? term)
+       (or (eq (method-module (term-head term)) *rwl-module*)
+           (some #'term-contains-sp-sch-predicate
+                  (term-subterms term)))))
 
 ;;; ****************
 ;;; RECOMPUTING SORT____________________________________________________________
@@ -531,7 +552,7 @@
     (cond ((term$is-variable? t1-body)
            (or (eq t1 t2)
                (and (term$is-variable? t2-body)
-                    ;; (eq (variable$name t1-body) (variable$name t2-body))
+                     (eq (variable$name t1-body) (variable$name t2-body))
                     (sort= (variable$sort t1-body) (variable$sort t2-body)))))
           ((term$is-variable? t2-body) nil)
           ((term$is-application-form? t1-body)
@@ -624,7 +645,6 @@
   (declare (type term t1 t2)
            (values (or null t)))
   (or (term-eq t1 t2)
-      ;; (equal t1 t2)
       (let ((t1-body (term-body t1))
             (t2-body (term-body t2)))
         (cond ((term$is-applform? t1-body)
@@ -632,11 +652,10 @@
                  (if (theory-info-empty-for-matching
                       (method-theory-info-for-matching f1))
                      (match-with-empty-theory t1 t2)
-                     (E-equal-in-theory (method-theory f1) t1 t2))))
+                   (E-equal-in-theory (method-theory f1) t1 t2))))
               ((term$is-builtin-constant? t1-body)
                (term$builtin-equal t1-body t2-body))
               ((term$is-builtin-constant? t2-body) nil)
-              ;;
               ((term$is-variable? t1-body)
                (setq *used==* t)
                (eq t1-body t2-body))
@@ -667,18 +686,16 @@
                             (let ((subs1 (term$subterms t1-body))
                                   (subs2 (term$subterms t2-body)))
                               (loop
-                               ;; (when (null subs1) (return (null subs2)))
-                               (when (null subs1) (return t))
-                               (unless (term-is-similar? (car subs1) (car subs2))
+                                ;; (when (null subs1) (return (null subs2)))
+                                (when (null subs1) (return t))
+                                (unless (term-is-similar? (car subs1) (car subs2))
                                  (return nil))
                                (setq subs1 (cdr subs1)  subs2 (cdr subs2))))
                             nil)))
                   ((term$is-variable? t1-body)
                    (and (term$is-variable? t2-body)
-                        (eq (variable$name t1-body)
-                             (variable$name t2-body))
-                        (sort= (variable$sort t1-body)
-                               (variable$sort t2-body))))
+                        (sort= (variable$name t1-body)
+                               (variable$name t2-body))))
                   ((term$is-variable? t2-body) nil)
                   ((term$is-builtin-constant? t1-body)
                    (term$builtin-equal t1-body t2-body))

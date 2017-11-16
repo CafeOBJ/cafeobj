@@ -96,16 +96,19 @@
 
 (defvar *print-term-color* nil)
 
-(defun variable-print-string (term &optional (print-var-sort nil)
+(defun variable-print-string (term &optional (print-var-sort t)
                                              (vars-so-far (cons nil nil)))
   (let ((name (if (numberp (variable-print-name term))
                   (format nil "_v~d" (variable-print-name term))
                 (string (variable-print-name term)))))
     (when print-var-sort
-      (unless (member term (cdr vars-so-far)
-                      :test #'variable-eq)
+      (unless (or (member term (cdr vars-so-far)
+                          :test #'variable-eq)
+                  (and (not (eq print-var-sort :always))
+                       (rassoc term (module-variables *current-module*)
+                               :test #'equal)))
         (push term (cdr vars-so-far))
-        (when (and (let ((sort (variable-sort term)))
+        (when (and '(let ((sort (variable-sort term)))
                      (not (or (eq sort *universal-sort*)
                               (eq sort *huniversal-sort*)
                               (eq sort *bottom-sort*)
@@ -113,21 +116,16 @@
                    (or *print-with-sort*
                        (not (rassoc term
                                     (module-variables *current-module*)))))
-          (let ((sn (make-array '(0) :element-type 'base-char
-                                :fill-pointer 0
-                                :adjustable t)))
-            (with-output-to-string (str sn)
-              (let ((*standard-output* str))
-                (print-sort-name (variable-sort term) *current-module*)))
+          (let ((sn (with-output-to-string (str)
+                      (let ((*standard-output* str))
+                        (print-sort-name (variable-sort term) *current-module*))
+                      str)))
             (setq name (concatenate 'string name ":" sn))))))
     name))
 
 (defun bconst-print-string (term)
-  (let ((val (term-builtin-value term))
-        (bstr (make-array '(0) :element-type 'base-char
-                          :fill-pointer 0
-                          :adjustable t)))
-    (with-output-to-string (ss bstr)
+  (let ((val (term-builtin-value term)))
+    (with-output-to-string (ss)
       (let ((*standard-output* ss))
         (if (and (bsort-p (term-sort term))
                  (bsort-term-printer (term-sort term)))
@@ -142,8 +140,8 @@
                  (princ (string val)))
                 ((characterp val)
                  (print-character val))
-                (t (princ val))))))
-    bstr))
+                (t (princ val))))
+        ss))))
 
 (defun term-to-sexpr (term &optional (print-var-sort t)
                                      (vars-so-far (cons nil nil))
@@ -220,7 +218,8 @@
        (= (length tok) 1)
        (assoc (char tok 0) .default-single-chars.)))
 
-(defun term-print1 (term &optional (stream *standard-output*) (print-var-sort t)
+(defun term-print1 (term &optional (stream *standard-output*) 
+                                   (print-var-sort t)
                                    (vars-so-far (cons nil nil)))
   (declare (type stream stream)
            (type (or null t) print-var-sort)
@@ -324,7 +323,7 @@
     (when (print-check .file-col. 0 stream)             ; 20?? 
       (setq .file-col. (file-column stream)))
     ;;
-    (when (and (term-is-red term) *print-term-color*)
+    (when (and *print-term-color* (term-is-red term))
       (princ "r::" stream))
 
     (cond ((or (term-is-variable? term) (term-is-psuedo-constant? term))
@@ -383,7 +382,7 @@
                         (princ ")" stream))))
                    ;; mix fix operators
                    (t (let ((prec-test (and (get-method-precedence hd)
-                                            (<= prec (get-method-precedence hd))))
+                                            (< prec (get-method-precedence hd)))) ; was <=
                             (assoc-test (method-is-associative hd))
                             (token-seq (operator-token-sequence
                                         (method-operator hd)))
@@ -431,6 +430,9 @@
            (type (or t stream))
            (type (or null t) print-var-sort)
            (values t))
+  (unless *current-module*
+    (with-output-chaos-error ('no-context)
+      (format t "Internal error: printing term, no current context")))
   (when (eq stream t)
     (setq stream *standard-output*))
   (let* ((vars-so-far (cons nil .printed-vars-so-far.))
@@ -464,7 +466,7 @@
            (type stream stream)
            (values t))
   (let ((*print-indent* (+ *print-indent* 2))
-        (**print-var-sort** nil)
+        (**print-var-sort** t)
         (paren? nil))
     (setq paren?
           (case *print-xmode*
@@ -483,6 +485,10 @@
                    nil
                  t)))
             (otherwise  nil)))
+    (when (and (or (eq *print-xmode* :fancy)
+                   (eq *print-xmode* :normal))
+               (term-is-variable? term))
+      (setq **print-var-sort** nil))
     ;;
     (when paren? (princ "(" stream))
     (term-print term stream)

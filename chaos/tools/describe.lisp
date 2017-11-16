@@ -210,18 +210,9 @@
                              (princ "strat: ") (print-simple strat))
                            (print-check)
                            (princ " }")))))
-                   n))
-         ;; (n-len (length header))
-         )
+                   n)))
     (print-next)
     (print-centering header ".")
-    #||
-    (format t "~a" header)
-    (if (< n-len (- *print-line-limit* *print-indent*))
-        (dotimes (x (- *print-line-limit* n-len *print-indent*))
-          (princ "_"))
-        (princ "*"))
-    ||#
     ;; declarations with axioms
     (let ((*print-indent* (+ 2 *print-indent*)))
       (dolist (meth (reverse methods))
@@ -241,6 +232,7 @@
               (print-mod-name (method-module meth) *standard-output* t t)
               (princ ")")))
           (let ((*print-indent* (+ 2 *print-indent*)))
+            (print-next)
             (print-method-attrs meth "- attributes: "))
         (let ((axioms (method-all-rules meth)))
           (let ((*print-indent* (+ 2 *print-indent*)))
@@ -251,8 +243,7 @@
                 (dolist (rl axioms)
                   (print-next)
                   (print-axiom-brief rl)))))))))
-    (flush-all)
-    ))
+    (flush-all)))
 
 ;;; DESCRIBE-SORT sort
 ;;; * must be run in `with-in-module'
@@ -540,6 +531,8 @@
                                                               (module-name x)))))
                        (not (eq (cdr sub) :using)))
               (push sub subs)))
+          (setq subs (delete-if #'(lambda (x) (ignore-from-import-list (car x)))
+                                 subs))
           (when subs
             (print-next)
             (princ "imports {")
@@ -547,22 +540,21 @@
               (let ((flg nil))
                 (print-next)
                 (dolist (sb subs)
-                  (unless (ignore-from-import-list (car sb))
-                    (if flg (print-next) (setf flg t))
-                    (print-check)
-                    ;; importation-mode
-                    (format t "~a " (string-downcase (string (cdr sb))))
-                    ;; alias
-                    (let ((a-name (cdr (assoc (car sb) (module-alias mod)))))
-                      (when a-name
-                        (format t "as ~a " a-name)))
-                    ;; modexpr
-                    (let ((*print-indent* (+ 4 *print-indent* (length (string (cdr sb))))))
-                      (princ "(") (print-mod-name (car sb)
-                                                  *standard-output*
-                                                  t
-                                                  t)
-                      (princ ")"))))))
+                   (if flg (print-next) (setf flg t))
+                  (print-check)
+                  ;; importation-mode
+                  (format t "~a " (string-downcase (string (cdr sb))))
+                  ;; alias
+                  (let ((a-name (cdr (assoc (car sb) (module-alias mod)))))
+                    (when a-name
+                      (format t "as ~a " a-name)))
+                  ;; modexpr
+                  (let ((*print-indent* (+ 4 *print-indent* (length (string (cdr sb))))))
+                    (princ "(") (print-mod-name (car sb)
+                                                *standard-output*
+                                                t
+                                                t)
+                    (princ ")")))))
             (print-next)
             (princ "}")))
         ;; SIGNATURE
@@ -790,7 +782,7 @@
         (dolist (r (module-rules mod))
           (if describe
               (print-rule r)
-              (print-axiom-brief r)))))))
+            (print-axiom-brief r)))))))
 
 ;;; PRINT-MODULE-AXS
 ;;;-----------------------------------------------------------------------------

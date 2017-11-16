@@ -1,5 +1,5 @@
 % -*- Mode:LaTeX -*-
-% CafeOBJ 1.4.0 syntax reference card.
+% CafeOBJ 1.5.X syntax reference card.
 % comment out the following 2 lines if you use old latex209
 % \documentclass[a4paper]{article}
 \documentclass[a4paper]{article}
@@ -60,11 +60,10 @@
 %** end of header
 
 \title{\cafeobj\ Syntax Quick Reference \\
-  {\small for Interpreter version 1.4.8 or later}}
+  {\small for Interpreter version 1.5.0 or later}}
 \date{\today}
 %\author{}
-\author{Toshimi Sawada\thanks{\texttt{sawada@cafeobj.org}} \\
-  Kosakusha Inc.
+\author{Toshimi Sawada\thanks{\texttt{sawada@cafeobj.org}}
   }
 \begin{document}
 \maketitle
@@ -512,6 +511,22 @@ non-self-terminating tokens.\footnote{The same rule is applied to
 
 Comments also act as separators, but their apperance is limited to
 some specific places (see section ~\ref{sec:cafeobj-syntax}).
+
+\paragraph{Multiline comments}
+A multiple lines which starts with \verb+#|+ and ends with \verb+|#+
+is treated as multiline comment.
+\begin{center}
+\begin{verbatim}
+#|---------------------------------------------------
+  This is an example of multiline comment.
+  Multiline comments are used for large text descriptions of
+  code or to comment out chunks of code while developping
+  your specification. 
+  Multiline comments are ignored by the system.
+ ---------------------------------------------------|#
+\end{verbatim}
+\end{center}
+
 
 \end{document}
 

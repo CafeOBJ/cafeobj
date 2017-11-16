@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{fontspec}
+\newfontface\hira{Hiragino Maru Gothic Pro}
+\usepackage{tikz}
+\usetikzlibrary{shadows}
+\usetikzlibrary{shadows.blur}
+\usetikzlibrary{shadings}
+\begin{document}
+\thispagestyle{empty}
+\begin{tikzpicture}
+  \def\yy{2.5cm}
+  \begin{scope}[shift={(0,9pt)}]
+    \fill[black!63,blur shadow={shadow scale=1, shadow yshift=-6pt,
+    shadow xshift=0,shadow opacity=30,shadow blur radius=4pt, shadow
+    blur steps=8}] (0,2*\yy) -- (-4,\yy) -- (0,0) -- (4,\yy) -- (0,2*\yy);
+  
+  \clip (0,2*\yy) -- (-4,\yy) -- (0,0) -- (4,\yy) -- (0,2*\yy);
+  \shade[left color=black!63,right color=black!60] (-4pt,0) rectangle (0,2*\yy) ;
+  \shade[right color=black!63,left color=black!60] (4pt,0) rectangle (0,2*\yy) ;
+  \end{scope}
+  \begin{scope}[shift={(6pt,-3pt)}] 
+    \fill[black!45] (0,0) -- (4,\yy) -- (4,-\yy) -- (0,0); 
+    \fill[black!39,blur shadow={shadow scale=1, shadow yshift=-6pt,
+      shadow xshift=0,shadow opacity=30,shadow blur radius=4pt, shadow
+      blur steps=8}] (0,0) -- (4,-\yy) -- (0,-2*\yy) -- (0,0) ;
+    % extra stripe of different color
+    \clip (0,0) -- (4,\yy) -- (4,-\yy) -- (0,-2*\yy) --  (0,0);
+    \fill[black!44] (0,0) -- (4,-\yy) -- (4,-\yy+5pt) -- (0,5pt) --
+    (0,0) ;
+    \fill[black!38] (0,0) -- (4,-\yy) -- (4,-\yy-5pt) -- (0,-5pt) --
+    (0,0) ;
+  \end{scope}
+  \begin{scope}[shift={(-6pt,-3pt)}]
+    \fill[black!27] (0,0) -- (-4,\yy) -- (-4,-\yy) -- (0,0) ;
+    \fill[black!22,blur shadow={shadow scale=1, shadow yshift=-6pt,
+      shadow xshift=0,shadow opacity=30,shadow blur radius=4pt, shadow
+      blur steps=8}] (0,0) -- (-4,-\yy) -- (0,-2*\yy) -- (0,0) ;
+    \clip (0,0) -- (-4,\yy) -- (-4,-\yy) -- (0,-2*\yy) -- (0,0) ;
+    \fill[black!26] (0,0) -- (-4,-\yy) -- (-4,-\yy+5pt) -- (0,5pt) --
+    (0,0) ;
+    \fill[black!21] (0,0) -- (-4,-\yy) -- (-4,-\yy-5pt) -- (0,-5pt) --
+    (0,0) ;
+  \end{scope}
+
+  \node [rotate=32] at (2.5,-4.4) {\hira\fontsize{30}{30}\selectfont
+    {\color{black!22}考}{\color{black!62}作舍}} ;
+  %
+  % shading of the upper block
+  
+\end{tikzpicture}
+\end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

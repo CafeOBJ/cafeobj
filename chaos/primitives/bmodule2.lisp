@@ -605,7 +605,8 @@
         (module-context-$$subterm context) nil
         (module-context-$$action-stack context) nil
         (module-context-$$selection-stack context) nil
-        (module-context-$$ptree context) nil)
+        (module-context-$$ptree context) nil
+        (module-context-$$rule-counter context) 0)
   )
 
 (defun clean-up-context (context)
@@ -666,6 +667,9 @@
 (defmacro module-is-user-module (_mod_)
   ` (let ((type (module-type ,_mod_)))
       (or (eq type :user) (null type))))
+
+(defmacro module-delayed-declarations (_mod) 
+  `(getf (object-misc-info ,_mod) ':delayed-declarations))
 
 ;;; HIDDEN
 (defmacro module-hidden (_mod)

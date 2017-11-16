@@ -1,0 +1,5 @@
+module Figure4 {
+  protecting(Figure2)
+  pred G=F : State State
+  eq G=F(S1:State, S2:State) = (S1 == G and S2 == F) or (S1 == F and S2 == G) .
+}

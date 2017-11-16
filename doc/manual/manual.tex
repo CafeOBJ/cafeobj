@@ -19,11 +19,11 @@
 \frontmatter
 \pagestyle{empty}
 %%
-\title{\cafeobj~User's Manual \\ --- ver.1.5.4 ---}
+\title{\cafeobj~User's Manual \\ --- ver.1.5.6 ---}
 \author{Ataru T. Nakagawa \and Toshimi Sawada \and Kokichi Futatsugi
   \and Norbert Preining}
 %\date{\today}
-\date{2015-11-24}
+\date{2016-3-4}
 \bibliographystyle{plain}
 
 \maketitle
@@ -245,23 +245,22 @@ a welcoming message.
 % cafeobj
 -- loading standard prelude
 
-            -- CafeOBJ system Version 1.5.4(PigNose0.99) --
-                  built: 2015 Nov 23 Mon 14:13:42 GMT
+          -- CafeOBJ system Version 1.5.6(PigNose0.99,b3) --
+                  built: 2016 Jan 20 Wed 13:27:45 GMT
                          prelude file: std.bin
                                   ***
-                      2015 Nov 24 Tue 1:36:52 GMT
+                      2016 Feb 29 Mon 1:22:30 GMT
                             Type ? for help
                                   ***
                   -- Containing PigNose Extensions --
                                   ---
                              built on SBCL
-                             1.3.0.debian
-
+                                 1.3.1
 CafeOBJ>
 \end{ccode}
 \end{vvtm}
 For a moment, ignore the message.
-``\verb|cafeobj>|'' is a prompt for your requests. You may type
+``\verb|CafeOBJ>|'' is a prompt for your requests. You may type
 modules, views, parsing instructions, reduction commands, and so on,
 each of which shall be gradually introduced in the rest of the manual.
 
@@ -780,9 +779,9 @@ following pair of commands for configuration management.
 
 \kbd{require} requires a feature, which usually
 denotes a set of module definitions. Given this command, the
-system searches for a file named the feature, and read the file
+system searches for a file named the \textit{feature}, and read the file
 if found. If a pathname is given, the system searches for a file
-named the pathname instead. If the feature contains double colons
+named the pathname instead. If the \textit{feature} contains double colons
 (\verb|::|) then they are interpreted as directory separators, that
 is, a call to \verb|require foo::bar| would search for a file
 \verb|foo/bar.cafe| in the current \verb|libpath|.
@@ -858,8 +857,77 @@ saying that the topmost help command is
 \begin{bsyntax} command listing command \texttt{?}(help command)\index{\texttt{?} (help command)}\Hline
 \texttt{?}
 \end{bsyntax}
+which prints out a online help guidance. 
+This is a good startng point for navigating the system.
+\begin{vvtm}
+\begin{ccode}
+CafeOBJ> ?
+You are at top level, no context module is set.
 
-which lists the top-level commands. They may be classified as follows.
+** Here are commands for CafeOBJ online help system.
+'?com [<class>]'          Shows available commands classified by <class>,
+                          ommiting <classy> shows a list of <class>.
+'? <name>'                Gives the reference manual description of <name>
+'?ex <name>'              Similar to '? <name>', but in this case
+                          shows examples if available.
+'?ap <term> [<term>] ...' Searches all available online docs for the terms
+                          passed. Type '? ?ap' for more detailed descriptions.
+** Typing 'com' will show the list of major toplevel commands.
+** URL 'http://cafeobj.org' provides anything you want to know about CafeOBJ.
+\end{ccode}
+\end{vvtm}
+
+Typing \texttt{com} will show majour tope level commands avaiable:
+\begin{vvtm}
+\begin{ccode}
+CafeOBJ> com
+-- CafeOBJ major top level commands:
+   NOTE: Top level definitional forms include declaration of `module' and ...
+-- help:
+   ?                   shows the current context and the brief guide for ... 
+-- exit:
+   quit -or- q         exit from CafeOBJ interpreter.
+-- setting working context:
+   select <Modexp> .   set the module specified by a module expression ...
+   open <Modexp> .     open the module specified by a module expression ...
+                       <Modexp> will be a current module.
+   close               close the opening module.
+-- term rewriting commands:
+   reduce -or-
+   red [in <Modexp> : ] <term> . 
+                       rewrite <term> using equations as rewerite rules
+                       optional <Modexp> specifies the rewriting context ...
+   exec [in <Modexp> : ] <term> .
+                       rewrite <term> using both equations and rules
+                       optional <Modexp> specifies the rewriting context ...
+-- term parser:
+  parse [in <Modexp> : ] <term> . 
+                       parse <term>, print out the result
+                       optional <Modexp> specfies the parsing context ...
+-- inspection:
+   show -or- describe  print various info., for further help, type `show ?'
+-- setting switches:
+   set                 set toplevel switches, for further help: type `set ?'
+   protect <Modexp>    prevent module <Modexp> from redefinition
+   unprotect <Modexp>  un-set protection of module <Modexp>
+-- reading in files:
+  input -or-
+  in <pathname>        requests the system to read the file specified by ...
+                       The file itself may contain 'input' commands.
+-- system intialization
+  reset                restores the definitions of built-in modules and ...
+                       but does not affect other modules.
+  full reset           reinitializes the internal state of the system. 
+                       all supplied modules definitions are lost.
+-- misc. commands
+  cd <directory>       change the system's working directory
+  ls <directory>       list files in directory
+  pwd                  print the current directory
+  ! <command>          fork shell <command> (Unix only)
+\end{ccode}
+\end{vvtm}
+
+All available commands may be classified as follows.
 \begin{itemize}
 \item[-] Starting module declarations. \kbd{module}
  (Section \ref{sec:p2-module-decl-syntax}), \kbd{view}

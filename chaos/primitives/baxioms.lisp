@@ -49,7 +49,7 @@
 ;;; REWRITE RULE : internal use only
 ;;; ************
 
-(defstruct (rewrite-rule (:include object (-type 'rewreite-rule))
+(defstruct (rewrite-rule (:include object (-type 'rewrite-rule))
                          (:copier nil)
                          (:constructor make-rewrite-rule)
                          (:constructor
@@ -252,7 +252,7 @@
                      first-match-method
                      next-match-method
                      labels
-                     &optional (meta-and-or nil))
+                     &optional (meta-and-or nil) (non-exec nil))
   (declare (type term lhs rhs condition)
            (type (or null t) behavioural)
            (type symbol type kind first-match-method next-match-method)
@@ -267,6 +267,7 @@
     (setf (axiom-next-match-method r) next-match-method)
     (setf (axiom-labels r) labels)
     (setf (axiom-meta-and-or r) meta-and-or)
+    (setf (axiom-non-exec r) non-exec)
     (set-object-context-module r)
     r))
 

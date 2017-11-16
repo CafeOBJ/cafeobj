@@ -1,6 +1,6 @@
 % !TEX TS-program = xelatex
 % !TEX encoding = UTF-8
-% 2015/12/25: CITP for CafeOBJ
+% 2016/2/29: CITP for CafeOBJ
 % toshi.swd@gmail.com
 %
 \documentclass[a4paper,oneside,10pt,here]{memoir}
@@ -15,12 +15,9 @@
 %%% Japanese
 \usepackage{fontspec}
 \usepackage{indentfirst}
-\setmainfont[Mapping=tex-text]{M+ 2p regular}
-\setsansfont[Mapping=tex-text]{M+ 2c regular}
+\setmainfont[Mapping=tex-text]{M+ 2p}
+\setsansfont[Mapping=tex-text]{M+ 2c}
 \setmonofont[Mapping=tex-text]{M+ 2m medium}
-% \setmainfont[Ligatures=TeX]{Meiryo}
-% \setsansfont[Ligatures=TeX]{Hiragino Kaku Gothic ProN W3}
-% \setmonofont[Ligatures=TeX]{Osaka-Mono}
 \XeTeXlinebreaklocale "ja_JP"
 \XeTeXlinebreakskip=0em plus 0.1em minus 0.01em
 \XeTeXlinebreakpenalty=0
@@ -125,18 +122,13 @@
 \pagestyle{empty}
 % 表紙 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{CITP for CafeOBJ \\
-ver. 1.1}
+ver. 1.3}
 \vfill
-\author{澤田 寿実\\
+\author{澤田 壽實\\
   (株) 考作舎\\
-  tswd@kosakusha.com}
-\date{2015/12/25}
+  toshi.swd@gmail.com}
+\date{2017年2月の佳き日}
 \maketitle
-\vfill
-\begin{center}
-\includegraphics[scale=0.2]{kosakusha2_gray.pdf}
-\end{center}
-\vfill
 \thispagestyle{empty}
 \newpage
 %%%%%%
@@ -148,27 +140,27 @@ ver. 1.1}
 \EnableBpAbbreviations
 \newpage
 \chapter{用語}\label{sec:terms}
-本書は形式的証明について基礎的な知識を持つ CafeOBJ ユーザーを対象とした
-CITP for CafeOBJ(以降ではCITPと略称する)と呼ばれる証明譜作成支援システムの利用ガイドである．
-本書で記述する CITP の機能は version 1.5.4 以降のCafeOBJ システムで利用可能である\footnote{最新版の CafeOBJ システムは http://cafeobj.org/download/ からダウンロード可能である)}．
+本書は CITP for CafeOBJ(以降では\textsl{citp-cafe} と略称する)と呼ばれる%
+証明譜作成支援システムの利用ガイドである．
+読者が CafeOBJ 言語および形式的証明について基礎的な知識を持っていることを仮定している．
 
-表\ref{table:terms}に以下で使用するいくつかの用語の定義を示す．
+本書で記述する cit-cafe の機能は version 1.5.4 以降のCafeOBJ システムで利用可能である\footnote{最新版の CafeOBJ システムは http://cafeobj.org/download/ からダウンロード可能である}．
+
+表\ref{table:terms}に本文内で使用するいくつかの用語の定義を示す．
+
 \begin{table}
 \caption{用語の定義}
 \label{table:terms}
 \begin{center}
 \begin{tabular}[htb]{|l|p{0.6\textwidth}|}\hline
 用語 & 定義 \\\hline\hline
-文(sentence)   & 自由変数を含まない(条件付き)等式($t = t' if C$) あるいは、(条件付き)遷移規則 ($t \Rightarrow t'$)．
-CafeOBJ の等式宣言や遷移規則宣言のフォームで表記する． \\\hline 
-文脈(context) & 証明を実施するモジュール．CafeOBJ で提供されているコマンドには，
-ある特定のモジュールを対象としたコマンドが多数存在する．
-CITP for CafeOBJ で提供されるコマンドも多くがそうであり，
-それらのコマンドを使う際に，一々対象とするモジュールを指定するのは煩わしいために%
-導入されたのが\textbf{文脈}という概念である．
-文脈は ``select'' や ``open'' コマンドによって設定され，
-モジュールをパラメータとして持つコマンドの適用先を暗黙的に指定した--つまりパラメータを省略した際に適用先として%
-採用されるモジュール--となる．
+文(sentence)   & 自由変数を含まない(条件付き)等式($t = t' if C$)．
+CafeOBJ の等式宣言の形式で表記する(CafeOBJの等式宣言では%
+そこに含まれる変数が，暗黙的に全称記号($\forall$)によって束縛されていると見なされる事に注意．) \\\hline 
+文脈(context) & citp-cafeでの証明は，ある CafeOBJ モジュール内で宣言された公理(等式)の集合から%
+証明対象とする文を導出できることを示す事によって実施される．
+このモジュールのことを(証明の)文脈と呼ぶ．
+文脈は CafeOBJ インタプリタのコマンド ``select'' や ``open'' によって設定される．
 \\\hline
 ゴール(goal) & 四つ組 $<M,G,C,H>$． 文脈($M$)とそこで証明したい文の集合($G$)，
 証明に際して使用した戦略(tactic)により導入された定数(constants)の集合($C$)と
@@ -181,8 +173,10 @@ CITP for CafeOBJ で提供されるコマンドも多くがそうであり，
 
 
 \chapter{CITP for CafeOBJ のコマンド}\label{chap:new-commands}
-本章では CITP for CafeOBJ で提供されるコマンドの挙動について述べる．
-厳密な動作の理解のためには参考文献を参照されたい．
+本章では CITP for CafeOBJ で提供されるコマンドの機能と挙動について説明する．
+説明にあたってはできるだけ例を示すように心がけた．
+厳密な理解のためには参考文献\cite{Futatsugi:2012:PPS:2397725.2397950}を参照されたい．
+
 \section{証明の開始(ゴールの設定)} \label{sec:start-proof}
 ある特定のモジュール $M$ を文脈として，その中で証明したい文の集合 $G$ がすべて成立することを%
 演繹規則(戦略)を順次適用することによって証明することが本システムの目標である．
@@ -190,7 +184,8 @@ CITP for CafeOBJ で提供されるコマンドも多くがそうであり，
 \begin{itemize}
 \item 証明を開始するには，証明を行う文脈を設定し，次いで証明したい文の集合を宣言する．\\
   文脈の設定は，既存の CafeOBJ コマンド \verb|select <ModuleExpression> .| あるいは \verb|open <ModuleExpression> .|
-  によって行う．
+  によって行う\footnote{<ModuleExpression> は "モジュール式'' と呼ばれ，%
+あるモジュールから別のモジュールを系統的に定義するための式である．モジュール名もモジュール式の一つであり，そのモジュール自身を示す．}
 \item 証明を実施する文脈の設定後，下に示す \verb|:goal| コマンドによって証明したい文の集合を指定する．\\
   \begin{vvtm}
     \begin{simplev}
@@ -198,30 +193,26 @@ CITP for CafeOBJ で提供されるコマンドも多くがそうであり，
     \end{simplev}
   \end{vvtm}
 \end{itemize}
-\verb|sentence| は，CafeOBJ の(条件付き)等式あるいは(条件付き)遷移規則のいずれかで表記する．
-
+\verb|sentence| は，CafeOBJ の(条件付き)等式で表記する\footnote{
+（条件付き)遷移規則を記述することも可能だが，CITP による証明は主として等式論理における%
+証明を対象としたものであり，遷移規則の証明のためにはあまり馴染まない．}．
 
 \subsubsection{文脈とゴールの設定例}
+下は文脈の設定に引き続いたゴールの宣言の例である．
+
 %\begin{vvtm}
   \begin{examplev}
- select CLOUD . 
- :goal {
-  ceq [inv1 :nonexec]: true = false if statusp(S:Sys,I:Client) = updated /\
-                                        statusc(S:Sys)= idlec .
-  ceq [inv2 :nonexec]: true = false if statusp(S:Sys,I:Client) = gotval /\ 
-                                       statusc(S:Sys)= idlec .
-  ceq [inv3 :nonexec]: true = false if statusp(S:Sys,J:Client) = updated /\
-                                       statusp(S:Sys,I:Client) = gotval .
-  ceq [inv4 :nonexec]: true = false if (I:Client ~ J:Client) = false /\
-                                       statusp(S:Sys,J:Client) = gotval /\ 
-                                       statusp(S:Sys,I:Client) = gotval .
-  ceq [inv5 :nonexec]: true = false if (I:Client ~ J:Client) = false /\
-       statusp(S:Sys,J:Client)= updated /\ statusp(S:Sys,I:Client)= updated .}
+  select LIST@ .
+  :goal {eq [@ri]: (L1:List @ nil) = L1 .}
   \end{examplev}
 %\end{vvtm}
 
+ここでは事前に定義されている \texttt{LIST@} というモジュールを%
+\texttt{select} コマンドにより文脈モジュールとして設定している．
+その状態で \texttt{:goal} コマンドによって1個の文が証明対象の文として宣言されている．
+
 \section{証明木の構造}\label{sec:proof-struct}
-ここでは他のコマンドを説明する前に，CITP for CafeOBJ の構成する
+他のコマンドを説明する前に，CITP for CafeOBJ の構成する%
 証明木(proof tree)の構造について説明する．
 
 証明木は全体としてゴールをノードとする有向の木構造(directed tree structure)を持ち，
@@ -268,7 +259,7 @@ $G$ から各 $G_i (i = 1 \cdots n)$ への枝は，全て適用した戦略$T$�
     \end{itemize}
   \end{enumerate}
   これらのいずれかが成立した時，そのゴールに含まれる当該文はゴールから
-  取り去られる (dischage されると言う)．
+  取り去られる (discharge されると言う)．
   ゴールから証明対象の文がすべてなくなった時，そのゴールは証明されたと言う．
 \end{itemize}
 
@@ -282,7 +273,7 @@ $G$ から各 $G_i (i = 1 \cdots n)$ への枝は，全て適用した戦略$T$�
     \begin{simplev}
     apply コマンド ::= :apply [ to <GoalName> : ] (<Tactic> ... <Tactic> )
     <GoalName>     ::= ゴールに付与された名前
-    <Tactic>       ::= SI | CA | TC | IP | RD | RD- | <DefinedTactic>
+    <Tactic>       ::= SI | CA | TC | IP | IP+ | RD | RD- | <DefinedTactic>
     \end{simplev}
   \end{vvtm}
 
@@ -299,13 +290,13 @@ CITP for CafeOBJ で提供される戦略を表~\ref{tab:tactics} に示す．
 \label{tab:tactics}
 \caption{戦略一覧}
 \begin{center}
-\begin{tabular}[htbp]{|l|l|}\hline
+\begin{tabular}[htbp]{|c|l|}\hline
 戦略名 & 演繹規則 \\\hline\hline
 SI & Simultaneous Induction (同時帰納法) \\\hline
 CA & Case Analysis (場合分け)\\\hline
 TC & Theorem of Constants  \\\hline
-IP & Implication (含意)\\\hline
-RD & Reduction (簡約化) \\\hline
+IP, IP+ & Implication (含意)\\\hline
+RD, RD- & Reduction (簡約化) \\\hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -314,7 +305,8 @@ RD & Reduction (簡約化) \\\hline
 
 \begin{figure}[htbp]
 \begin{center}
-  \includegraphics[scale=0.4]{apply-order.pdf}
+  %\includegraphics[scale=0.4]{apply-order.pdf}
+  \input apply-order.tikz
 \end{center}
 \caption{戦略の適用順序}
 \label{fig:apply-tactic}
@@ -416,15 +408,21 @@ instantiationについて成り立つなら $(\forall X)\varepsilon$ が成り�
     \item 帰納法の仮定+ステップケース
   \end{itemize}
   それぞれに対応した新たなゴールを生成する
-\item induction variables は \verb|:ind on| コマンドによって指定する．
+\item induction variables は \verb|:ind on| あるいは \verb|:ind {...}| コマンドによって指定する．
+
   \begin{vvtm}
     \begin{simplev}
-    :ind コマンド ::= :ind on ( <変数> ... )      
+    :ind コマンド         ::= :ind on ( <変数1> ... )      
+    :ind{...} コマンド::= :ind { on ( <変数1> ...) 
+                                base ( <項1> . ...<項k> .)
+                                hypo ( <項1> . ...<項m> .)
+                                step ( <項> .)
+                              }
     \end{simplev}
   \end{vvtm}
    \verb|<変数>| は on-the-fly の変数宣言形式で指定する．
- \item \verb|:ind| コマンドで指定した変数に対応するソートが，構成子を
-   持たないソートであった場合はエラーとする．
+ \item \verb|:ind| あるいは \verb|:int{...}| コマンドで指定した変数に対応するソートが，
+   構成子を持たないソートであった場合はエラーとする．
  \item 帰納法の仮定や，証明対象とするステップケースの文では，
   帰納法による定数が必要となるが，それらは次のようにして生成する．
   \begin{itemize}
@@ -435,6 +433,15 @@ instantiationについて成り立つなら $(\forall X)\varepsilon$ が成り�
   導入される定数名は \verb|I#<ソート名>| となる．
   <ソート名> は文脈に応じて適切なソートが選択される．
 \end{itemize}
+
+\subsubsection{利用者指定の帰納スキーム}\label{sec::ind+}
+\verb|:ind| コマンドの場合，システムが自動的に指定の帰納変数のソートの
+構成子定義からベースケースとステップケースに対応する項のパターンを
+生成するが，
+\verb|:ind{...}| は帰納法のベース，仮定，ステップのパターンを，
+それぞれ \verb|base|，\verb|hypo|，\verb|step| で指定するものである．
+\verb|<項>| のパターンを引数として与え，それに基づいて各々の
+ケースの項のパターンを生成する．
 
 \subsection{TC: Theorem of Constants}\label{sec:TC}
 \begin{prooftree}
@@ -501,6 +508,14 @@ CITP CafeOBJ ではこの演繹規則に対応するものを戦略として提�
   \end{itemize}
 %%% spoiler \item 以上を実施した後，生成されたゴールに対して暗黙の戦略 CT および ST を適用する．
 \end{itemize}
+
+\subsection{IP+: Implication 2} \label{sec:IP+}
+IP+ の挙動は IP と同様であるが，条件部から生成された前提 C を公理として追加するのではなく，
+証明対象の文の左辺 LHS を，
+\begin{verbatim}
+ C implies LHS = RHS
+\end{verbatim}
+のように，組み込みのオペレータ implies を用いて導入する．
 
 \subsection{CA: Case Analysis}\label{sec:CA}
 
@@ -697,7 +712,6 @@ ceq [INIT]: true = false if statusp(S#Sys, I@Client) = updated /\
 が追加される．
 
 \subsection{:imply コマンド}\label{sec:imply}
-
 
 \begin{itemize}
 \item :imply コマンドは :init コマンドと似ているが，指定可能な等式は実行文脈に

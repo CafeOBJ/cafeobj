@@ -68,94 +68,96 @@
              (when (variable-occurs-in t1 sub)
                (return-from variable-occurs-in t))))))
 
-(defparameter non-exec-labels '(|:nonexec| |:non-exec| |:no-ex| |:noex| |:noexec|))
+(defparameter bad-rule-types '(:bad-rule :bad-beh))
 
 (defun axiom-is-non-exec? (ax)
   (intersection (axiom-labels ax) non-exec-labels))
 
 (defun condition-has-match-condition (condition)
   (and condition
-       (member *bool-match* (term-methods condition))))
+       (memq *bool-match* (term-methods condition))))
   
-(defun gen-rule-internal (ax module &aux (rule ax))
+(defun axiom-is-not-for-rewriting (ax)
+  (or (axiom-is-non-exec? ax)
+      (memq (axiom-kind ax) bad-rule-types)))
+
+(defun check-axiom-validity (ax module)
   (declare (type axiom ax)
-           (type module module)
-           (type axiom rule)
-           (values t))
-  (when (memq (axiom-type ax) '(:pignose-axiom :pignose-goal))
-    (return-from gen-rule-internal nil))
-  ;;
-  (setq rule (or (cdr (assq ax (module-axioms-to-be-fixed module)))
-                 ax))
-  ;;
-  (when (axiom-is-non-exec? ax)
-    (setf (axiom-non-exec ax) t)
-    (setf (rule-non-exec rule) t))
-  ;;
-  (let ((lhsv (term-variables (axiom-lhs rule))))
+           (ignore module))
+  ;; check form of LHS
+  (let ((lhsv (term-variables (axiom-lhs ax))))
     (declare (type list lhsv))
     ;; for trans sole variable on LHS is allowed
-    (when (term-is-variable? (axiom-lhs rule))
-      (when (variable-occurs-in (axiom-lhs rule)
-                                (axiom-rhs rule))
-        (setf (axiom-need-copy rule) t))
-      (unless (eq (axiom-type rule) :rule)
-        (unless (axiom-non-exec rule)
+    (when (term-is-variable? (axiom-lhs ax))
+      (when (variable-occurs-in (axiom-lhs ax)
+                                (axiom-rhs ax))
+        (setf (axiom-need-copy ax) t))  ; !!
+      ;; LHS of non trans axiom must not be a variable
+      (unless (eq (axiom-type ax) :rule)
+        ;; we are ok if it is explicitly declared as non-exec
+        (unless (axiom-is-non-exec? ax) 
           (with-output-chaos-warning ()
             (princ "the LHS of axiom : ")
             (print-next)
-            (print-chaos-object rule)
+            (print-chaos-object ax)
             (print-next)
-            (princ "   is just a variable, ignored as rewrite rule.")))
-        (setf (axiom-kind rule) ':bad-rule)
-        (setf (axiom-kind ax) ':bad-rule))
-      (return-from gen-rule-internal nil))
-    (let ((rhs-vars (term-variables (axiom-rhs rule)))
-          (cond-vars (term-variables (axiom-condition rule))))
+            (princ "is just a variable, ignored as rewrite rule.")))
+        (setf (axiom-kind ax) ':bad-rule))) ; !!
+    ;; check vars(RHS+COND) <= vars(LHS)
+    (let ((rhs-vars (term-variables (axiom-rhs ax)))
+          (cond-vars (term-variables (axiom-condition ax))))
       (declare (type list rhs-vars cond-vars))
-      (cond ((and lhsv
-                  (or (not (subsetp rhs-vars lhsv))
-                      (not (subsetp cond-vars lhsv))))
-             (unless (or (term-contains-match-op (axiom-rhs rule))
-                         (term-contains-match-op (axiom-condition rule)))
-               (when *chaos-verbose*
-                 (with-output-chaos-warning ()
-                   (format t "RHS of the axiom has extra variable(s) which does not occur in LHS.")
-                   (print-next)
-                   (print-axiom-brief rule))))
-             (add-rule-to-module module rule)
-             (unless (term-is-variable? (axiom-lhs rule))
-               (add-associative-extensions module
-                                           (term-head (axiom-lhs rule))
-                                           rule)
-               (specialize-rule rule module)))
-            ((and (axiom-is-behavioural rule)
-                  (not (and (term-can-be-in-beh-axiom? (axiom-lhs rule))
-                            (term-can-be-in-beh-axiom? (axiom-rhs rule)))))
-             (when *chaos-verbose*
-               (with-output-chaos-warning ()
-                 (princ "axiom violates context condition of behavioural axiom")
-                 (print-next)
-                 (print-chaos-object rule)))
-             (if *allow-illegal-beh-axiom*
-                 (progn
-                   (setf (axiom-kind rule) ':bad-beh)
-                   (setf (axiom-kind ax) ':bad-beh)
-                   (add-rule-to-module module rule)
-                   (add-associative-extensions module
-                                               (term-head (axiom-lhs rule))
-                                               rule)
-                   (specialize-rule rule module))
-                 (progn
-                   (setf (axiom-kind rule) ':bad-rule)
-                   (setf (axiom-kind ax) ':bad-rule))))
-            ;; all is ok, we can use this axiom as a rewrite rule
-            (t (add-rule-to-module module rule)
-               (unless (term-is-variable? (axiom-lhs rule))
-                 (add-associative-extensions module
-                                             (term-head (axiom-lhs rule))
-                                             rule)
-                 (specialize-rule rule module)))))))
+      (when (or (not (subsetp rhs-vars lhsv))
+                (not (subsetp cond-vars lhsv)))
+        ;; we are OK if right hand side contains := operator
+        (unless (or (axiom-is-non-exec? ax)
+                    (term-contains-match-op (axiom-rhs ax))
+                    (term-contains-match-op (axiom-condition ax))
+                    (term-contains-sp-sch-predicate (axiom-rhs ax)))
+          (with-output-chaos-warning ()
+            (format t "RHS of the axiom has extra variable(s) which does not occur in LHS.")
+            (print-next)
+            (print-axiom-brief ax)
+            (format t ", ignored as rewrite rule."))
+          (setf (axiom-kind ax) :bad-rule))) ;!!
+      (when (and (axiom-is-behavioural ax)
+                 (not (and (term-can-be-in-beh-axiom? (axiom-lhs ax))
+                           (term-can-be-in-beh-axiom? (axiom-rhs ax)))))
+        (when *chaos-verbose*
+          (with-output-chaos-warning ()
+            (princ "axiom violates context condition of behavioural axiom")
+            (print-next)
+            (print-chaos-object ax)))
+        (if *allow-illegal-beh-axiom*
+            (setf (axiom-kind ax) ':bad-beh)
+          (setf (axiom-kind ax) ':bad-rule)))
+      ;; check this axiom can be used for rewriting or not.
+      (when (axiom-is-not-for-rewriting ax)
+        (setf (axiom-non-exec ax) t))   ; memoise for later use in rewriting
+      ax)))
+
+(defun gen-rule-internal (ax module &aux (rule ax))
+  (declare (type axiom ax)
+           (type module module)
+           (type axiom rule))
+  (let ((*chaos-quiet* nil))
+    (when (memq (axiom-type ax) '(:pignose-axiom :pignose-goal))
+      (return-from gen-rule-internal nil))
+    ;;
+    (setq rule (or (cdr (assq ax (module-axioms-to-be-fixed module)))
+                   ax))
+    (unless (eq rule ax)
+      (setf (axiom-need-copy rule) (axiom-need-copy ax))
+      (setf (axiom-kind rule) (axiom-kind ax)))
+    (when (memq (axiom-kind rule) bad-rule-types)
+      (return-from gen-rule-internal nil))
+    ;;
+    (add-rule-to-module module rule)
+    (unless (term-is-variable? (axiom-lhs rule))
+      (add-associative-extensions module
+                                  (term-head (axiom-lhs rule))
+                                  rule)
+      (specialize-rule rule module))))
 
 (defun gather-submodule-rules (module)
   (declare (type module module)
@@ -226,8 +228,7 @@
                      nil
                      (module-protected-modules mod)))
          (opinfo-table (module-opinfo-table mod)))
-    (when (and method
-               (null (get-method-info method (module-opinfo-table mod))))
+    (when (and method (null (get-method-info method (module-opinfo-table mod))))
       (return-from specialize-rule nil))
     ;;
     (when (and method (method-is-error-method method))
@@ -258,8 +259,7 @@
     (dolist (method methods)
       (when (rule-check-down mod method (term-subterms lhs))
         (add-rule-to-method r method (module-opinfo-table mod))
-        (add-associative-extensions mod method r)
-        ))
+        (add-associative-extensions mod method r)))
     (add-associative-extensions mod (term-head lhs) r)
     mod))
 
@@ -297,7 +297,7 @@
                                                ))
                      :condition (axiom-condition r)
                      :id-condition (axiom-id-condition r)
-                     :labels (axiom-labels r)
+                     :labels (append (axiom-labels r) '(:acex))
                      :type (axiom-type r)
                      :meta-and-or (rule-meta-and-or r)
                      :behavioural (axiom-is-behavioural r)
@@ -470,16 +470,13 @@
 ;;;               SPECIAL AXIOMS FOR IDEMPOTENT & IDENTITY
 ;;;_____________________________________________________________________________
 
-(let (($rule-counter 0))
-  (declare (type fixnum $rule-counter))
-  
-  (defun create-rule-name (mod label)
-    (declare (ignore mod)
-             (type simple-string label)
-             (values list))
-    (prog1
-        (list (intern (format nil "~a~a" label $rule-counter)))
-      (incf $rule-counter))))
+(defun create-rule-name (mod label)
+  (declare (type simple-string label)
+           (values list))
+  (prog1
+      (list (intern (format nil "~a~a" label 
+                            (module-context-$$rule-counter (module-context mod)))))
+    (incf (module-context-$$rule-counter (module-context mod)))))
 
 (defun add-operator-theory-axioms (module opinfo)
   (declare (type module module)
@@ -497,19 +494,29 @@
         (setf thy (method-theory meth))
         ;; IDEM
         (when (theory-contains-idempotency thy)
-          (setq l-sort (car (method-arity meth)))
-          (setq var (make-variable-term l-sort '|U-idem|))
-          (adjoin-axiom-to-module
-           module
-           (make-rule
-            :lhs (make-applform (method-coarity meth)
-                                meth
-                                (list var var))
-            :rhs var
-            :condition *BOOL-TRUE*
-            :labels (create-rule-name module "idem")
-            :type ':equation
-            :kind ':IDEM-THEORY)))
+          (let ((condition *BOOL-TRUE*))
+            (setq l-sort (car (method-arity meth)))
+            (setq var (make-variable-term l-sort '|U-idem|))
+            ;; check theory also contains identity
+            (when (theory-zero thy)
+              (let ((id (car (theory-zero thy))))
+                ;; make condition 'not (U-idem == id)'
+                (setq condition (make-applform *bool-sort*
+                                               *bool-not*
+                                               (list (make-applform *bool-sort*
+                                                                    *bool-equal*
+                                                                    (list var id)))))))
+            (adjoin-axiom-to-module
+             module
+             (make-rule
+              :lhs (make-applform (method-coarity meth)
+                                  meth
+                                  (list var var))
+              :rhs var
+              :condition condition
+              :labels (create-rule-name module "idem")
+              :type ':equation
+              :kind ':IDEM-THEORY))))
         ;; IDENT
         (when (and (or (theory-contains-identity thy) (theory-zero thy))
                    (= 2 (the fixnum (operator-num-args op))))
@@ -715,6 +722,7 @@
                   (print-chaos-object newrule))
                 (adjoin-axiom-to-module module newrule)))))))))
 
+
 ;;; mark rules which brings problematic rewrting (LHS is var, infinite loop) as 'bad
 ;;;
 (defun test-bad-axiom (ax)
@@ -747,27 +755,19 @@
 (defun term-occurs-as-subterm (t1 t2)
   (declare (type term t1 t2)
            (values (or null t)))
-  (when *gen-rule-debug*
-    (with-output-simple-msg ()
-      (format t "[term-occurs-as-subterm]: t1 = ")
-      (print-chaos-object t1)
-      (print-next)
-      (format t "-- t2 = ")
-      (print-chaos-object t2)))
   (if (term-is-variable? t2)
       nil
-      (if (term-is-applform? t2)
-          (multiple-value-bind (gst subs nomatch eequal)
-              (if (method-is-of-same-operator (term-head t1) (term-head t2))
-                  (first-match t1 t2)
-                  (values nil nil t nil))
-            (declare (ignore gst subs eequal))
-            (if (not nomatch)
-                t
-                (dolist (t2st (term-subterms t2) nil)
-                  (when (term-occurs-as-subterm t1 t2st) (return t)))))
-          ;;
-          nil)))
+    (if (term-is-applform? t2)
+        (multiple-value-bind (gst subs nomatch eequal)
+            (if (method-is-of-same-operator (term-head t1) (term-head t2))
+                (first-match t1 t2)
+              (values nil nil t nil))
+          (declare (ignore gst subs eequal))
+          (if (not nomatch)
+              t
+            (dolist (t2st (term-subterms t2) nil)
+              (when (term-occurs-as-subterm t1 t2st) (return t)))))
+      nil)))
 
 (defun compute-var-for-identity-completions (term donesubst)
   (declare (type term term)
@@ -849,7 +849,7 @@
                         module))))
       (when *gen-rule-debug*
         (format t "~%[insert-val]:----------")
-        (format t "~% given rule : ")
+        (format t "~%>> given rule : ")
         (print-axiom-brief rul)
         (format t "~% subst : ")
         (print-substitution subs)
@@ -889,10 +889,10 @@
                    :type (axiom-type rul)
                    :kind ':id-completion
                    :meta-and-or (rule-meta-and-or rul)
-                   :labels (cons (car (create-rule-name 'dummy "idcomp")) (axiom-labels rul))))
+                   :labels (create-rule-name module "idcomp")))
             ;;
             (when *gen-rule-debug*
-              (format t "~% gen rule : ")
+              (format t "~%<< gen rule : ")
               (print-chaos-object rule))
             rule)))))
   

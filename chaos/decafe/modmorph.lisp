@@ -93,13 +93,17 @@
 (declaim (special *modmorph-local-vars*))
 (defvar *modmorph-local-vars* nil)
 
+(defun apply-modmorph-map-to-op-decl (decl map)
+  (declare (ignore map))
+  decl)
+
 (defun apply-modmorph-internal (map mod newmod)
   (flet ((inherit-principal-sort (s s-mapped)
            (when (and (null (module-principal-sort newmod))
                       (sort= s (module-principal-sort mod)))
              ;; this will be evaluated later on compilation stage.
              (setf (module-psort-declaration newmod)
-                   (%psort-decl* s-mapped))
+               (%psort-decl* s-mapped))
              ;; the following seems redundant, but there are
              ;; some cases the real module compilation is not done
              ;; while evaluating modexprs, and we also want
@@ -151,14 +155,14 @@
 
         (modmorph-import-submodules mod newmod map mod)
         (print-in-progress ",")
-      
+        
         ;; at this point have already got a lot of sorts and operators (etc.)
         ;;   from the incorporated modules
 
         ;; after have created sub-modules need to "fix" renaming
         (when (modmorph-is-rename map) (fix-sort-renaming map newmod))
         (print-in-progress ",")
-      
+        
         ;; now, maps may have been updated, so re-new the local cache.
         (setq sortmap (modmorph-sort map))
         (setq opmap (modmorph-op map))
@@ -176,35 +180,35 @@
                     (inherit-principal-sort x ims)
                     (unless (memq ims (module-all-sorts newmod))
                       (add-sort-to-module ims newmod))) ; check sort order
-                  ;; 
-                  (if (eq mod (sort-module x))
-                      (let ((sortim (modmorph-recreate-sort newmod
-                                                            modmap
-                                                            sortmap
-                                                            x))) 
-                        (inherit-principal-sort x sortim)
-                        (unless (eq x sortim)
-                          (push (cons x sortim) sortmap)
-                          (setf (modmorph-sort map) sortmap)
-                          (setq x sortim))
-                        (add-sort-to-module sortim newmod))
-                      ;;
-                      (let ((modv (assq (sort-module x) modmap)))
-                        (if modv
-                            (let ((sortim (modmorph-recreate-sort newmod
-                                                                  modmap
-                                                                  sortmap
-                                                                  x)))
-                              (inherit-principal-sort x sortim)
-                              (unless (eq x sortim)
-                                (push (cons x sortim) sortmap)
-                                (setf (modmorph-sort map) sortmap)))
-                            (inherit-principal-sort x x))))))))
-        ;;
+                ;; 
+                (if (eq mod (sort-module x))
+                    (let ((sortim (modmorph-recreate-sort newmod
+                                                          modmap
+                                                          sortmap
+                                                          x))) 
+                      (inherit-principal-sort x sortim)
+                      (unless (eq x sortim)
+                        (push (cons x sortim) sortmap)
+                        (setf (modmorph-sort map) sortmap)
+                        (setq x sortim))
+                      (add-sort-to-module sortim newmod))
+                  ;;
+                  (let ((modv (assq (sort-module x) modmap)))
+                    (if modv
+                        (let ((sortim (modmorph-recreate-sort newmod
+                                                              modmap
+                                                              sortmap
+                                                              x)))
+                          (inherit-principal-sort x sortim)
+                          (unless (eq x sortim)
+                            (push (cons x sortim) sortmap)
+                            (setf (modmorph-sort map) sortmap)))
+                      (inherit-principal-sort x x))))))))
+        ;; print progress info
         (if *chaos-verbose*
             (print-in-progress "s")     ; done mapping sorts
-            (print-in-progress ","))
-      
+          (print-in-progress ","))
+        
         ;; sort-relation
         (let ((self-rel (modmorph-recreate-sort-relations newmod
                                                           mod
@@ -213,10 +217,10 @@
                                                           (module-sort-relations
                                                            newmod))))
           (setf (module-sort-relations newmod)
-                (modmorph-merge-sort-relations
-                 (modmorph-recreate-sort-relations newmod mod modmap sortmap
-                                                   (module-sort-relations mod)) 
-                 self-rel)))
+            (modmorph-merge-sort-relations
+             (modmorph-recreate-sort-relations newmod mod modmap sortmap
+                                               (module-sort-relations mod)) 
+             self-rel)))
         (let ((so (module-sort-order newmod)))
           (dolist (sl (module-sort-relations newmod))
             (add-relation-to-order (copy-sort-relation sl) so))
@@ -226,10 +230,10 @@
               (format t " generating error sorts")))
           (generate-err-sorts so)
           (setq no-error-sort t))
-        ;;
+        ;; print progress
         (if *chaos-verbose*
             (print-in-progress "<")     ; done mapping sort relations
-            (print-in-progress ","))
+          (print-in-progress ","))
 
         ;; MAP OPERATORS ----------------------------------------------------
         ;;
@@ -241,29 +245,46 @@
             (with-output-msg ()
               (format t " fixing operator renaming ..")))
           (fix-method-renaming map newmod))
-        ;;
+        ;; we postpone error operator declarations by user
+        #||
+        (let ((new-eop-decls nil))
+          (dolist (decl (module-error-op-decl mod))
+            (pushnew (apply-modmorph-map-to-op-decl decl map)
+                     new-eop-decls
+                     :test #'equal))
+        (setf (module-error-op-decl newmod) (nreverse new-eop-decls)))
+        ||#
+        ;; non error operators
         (dolist (opinfo (reverse (module-all-operators mod)))
           ;; want to preserve the original order of operators
           (dolist (method (opinfo-methods opinfo))
-            (when (or ;; (method-is-user-defined-error-method method)
-                      (and (not (method-is-error-method method))
-                           (not (memq method
-                                      (module-methods-for-regularity mod)))))
-              (unless (assq method opmap)
-                (modmorph-recreate-method mod newmod sortmap method)))))
-        ;;
+            (when (and (not (memq method (module-methods-for-regularity mod)))
+                       (not (assq method opmap)))
+              (modmorph-recreate-method mod newmod sortmap method))))
+        ;; report progress
         (if *chaos-verbose*
             (print-in-progress "o")     ; done mapping operators
-            (print-in-progress ","))
+          (print-in-progress ","))
 
-        ;; At this point all operators should exist; term recreation is possible.
-        ;; all of the error sorts & error method should be
-        ;; generated here.
+        ;; At this point all operators should exist except error operators.
+        ;; all of the error sorts & error method should be generated here.
         (modmorph-prepare-for-parsing newmod map no-error-sort)
 
         ;;  MAP AXIOMS ------------------------------------------------------
-        ;;
+        ;; axioms must evaluated when compiling module,
+        ;; so we delay their evaluation.
+        #||
         ;; equations
+        (dolist (e (reverse (module-equations mod)))
+          (delay-axiom-importation newmod 
+                                   (modmorph-recreate-axiom newmod sortmap opmap modmap e)
+                                   newmod))
+        ;; transisions
+        (dolist (r (reverse (module-rules mod)))
+          (delay-axiom-importation newmod
+                                   (modmorph-recreate-axiom newmod sortmap opmap modmap r)
+        newmod))
+        ||#
         (setf (module-equations newmod)
               (append
                (mapcar #'(lambda (r)
@@ -281,10 +302,11 @@
                            (modmorph-recreate-axiom newmod sortmap opmap modmap r))
                        (module-rules mod))
                (module-rules newmod)))
+
         (if *chaos-verbose*
             (print-in-progress "a")     ; done mapping axioms 
-            (print-in-progress ","))
-        
+          (print-in-progress ","))
+      
         ;; THEOREMS ---------------------------------------------------------
         ;; NO YET
       
@@ -295,7 +317,7 @@
           (print-mod-name newmod))
         (if *chaos-verbose*
             (print-in-progress "]")     ; done whole work.
-            (print-in-progress ","))
+          (print-in-progress ","))
         newmod                          ;the final result
         ))))
 
@@ -374,7 +396,6 @@
               (method-associativity to) assoc
               (method-constructor to) constr)
         (set-method-theory to theory)))))
-
     
 (defun modmorph-find-user-defined-error-method (method module sortmap)
   (let ((arity (modmorph-find-mapped-sorts module
@@ -1234,19 +1255,18 @@
       (let ((val (find-method-in module op-symbol arity coarity)))
         (when *on-modexp-debug*
           (when val
-            ;; (break)
             (format t "~%[modmorph-recreate-method] :")
             (format t "~&-method image is already in module ")
             (print-chaos-object method)))
         (if val
             (modmorph-recreate-method-aux-2 oldmodule module sortmap val)
-            (modmorph-recreate-method-aux-1 oldmodule
-                                            module
-                                            method
-                                            op-symbol
-                                            arity
-                                            coarity
-                                            sortmap))))))
+          (modmorph-recreate-method-aux-1 oldmodule
+                                          module
+                                          method
+                                          op-symbol
+                                          arity
+                                          coarity
+                                          sortmap))))))
 
 (defun modmorph-recreate-method-aux-1 (oldmodule module
                                                  method
@@ -1271,7 +1291,6 @@
                        (let ((zero (theory-zero thy)))
                          (if zero
                              (progn
-                               ;; (break)       ; 
                                (theory-make
                                 (theory-info thy)
                                 (let ((srtmap (modmorph-sort map))
@@ -1351,8 +1370,7 @@
                                 (setq new-head (term-head term)))
                          (setq new-head (cddr val))))
                    (when *on-modexp-debug*
-                     (format t "~% image not found in map.")
-                     ))
+                     (format t "~% not mapped (image not found in map.)")))
                (unless new-head
                  ;; method is not mapped
                  (if (method-is-error-method head)
@@ -1393,6 +1411,9 @@
                    (princ "was not found in the module ")
                    (print-chaos-object module)
                    ))
+               (when *on-modexp-debug*
+                 (format t "~% new op: ")
+                 (print-method-internal new-head))
                ;;
                (if (term-is-builtin-constant? term)
                    term

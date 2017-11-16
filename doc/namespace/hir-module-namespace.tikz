@@ -1,0 +1,63 @@
+\definecolor{blueish}{HTML}{9CA4F2}
+\definecolor{grenish}{HTML}{8BFDBD}
+\definecolor{yellish}{HTML}{D4FE76}
+\definecolor{pinkish}{HTML}{B8AAB1}
+\definecolor{greyish}{HTML}{F2FCF4}
+\begin{center}
+\begin{tikzpicture}
+  \def\xs{0cm}
+  \def\ys{0cm}
+  \node[ellipse,draw,fill=yellish,fill opacity=0.5,minimum width=2.8cm,minimum height=1.8cm,align=center] (a1) at (0 + \xs, 1cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (0 + \xs,1cm + \ys) {ソートの\\[5pt]名前};
+  \node[ellipse,draw,fill=blueish,fill opacity=0.5,minimum width=4cm,minimum height=2cm,align=center] (a2) at (1.8cm + \xs, 0cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (1.8cm + \xs,0cm + \ys) {オペレータの\\[5pt]名前};
+  \node[ellipse,draw,fill=pinkish,fill opacity=0.5,minimum width=1.6cm,minimum height=2.4cm,align=center] (a3) at (0.1cm + \xs, -0.9cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (0.1cm + \xs,-0.9cm + \ys) {公理の\\[5pt]名前};
+  \node[ellipse,draw,fill=grenish,fill opacity=0.5,minimum width=2.4cm,minimum height=1.4cm,align=center] (a4) at (-1cm + \xs, 0cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (-1cm + \xs,0cm + \ys) {変数の\\[5pt]名前};
+  \node[minimum width=7.4cm, minimum height=5cm,draw] (a) at (0.7cm,-0.1cm) {};
+  \draw (4.4cm + \xs,2.4cm + \ys) node[below left] {モジュールA};
+  %
+  \def\xs{2cm}
+  \def\ys{-5.5cm}
+  \node[ellipse,draw,fill=yellish,fill opacity=0.5,minimum width=2.8cm,minimum height=1.8cm,align=center] (b1) at (0 + \xs, 1cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (0 + \xs,1cm + \ys) {ソートの\\[5pt]名前};
+  \node[ellipse,draw,fill=blueish,fill opacity=0.5,minimum width=4cm,minimum height=2cm,align=center] (b2) at (1.8cm + \xs, 0cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (1.8cm + \xs,0cm + \ys) {オペレータの\\[5pt]名前};
+  \node[ellipse,draw,fill=pinkish,fill opacity=0.5,minimum width=1.6cm,minimum height=2.4cm,align=center] (b3) at (0.1cm + \xs, -0.9cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (0.1cm + \xs,-0.9cm + \ys) {公理の\\[5pt]名前};
+  \node[ellipse,draw,fill=grenish,fill opacity=0.5,minimum width=2.4cm,minimum height=1.4cm,align=center] (b4) at (-1cm + \xs, 0cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (-1cm + \xs,0cm + \ys) {変数の\\[5pt]名前};
+  \node[minimum width=7.4cm, minimum height=5cm,draw] (b) at (0.7cm + \xs,-0.1cm + \ys) {};
+  \draw (4.4cm + \xs,2.4cm + \ys) node[below left] {モジュールB};
+  %
+  \def\xs{4cm}
+  \def\ys{-11cm}
+  \node[ellipse,draw,fill=yellish,fill opacity=0.5,minimum width=2.8cm,minimum height=1.8cm,align=center] (c1) at (0 + \xs, 1cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (0 + \xs,1cm + \ys) {ソートの\\[5pt]名前};
+  \node[ellipse,draw,fill=blueish,fill opacity=0.5,minimum width=4cm,minimum height=2cm,align=center] (c2) at (1.8cm + \xs, 0cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (1.8cm + \xs,0cm + \ys) {オペレータの\\[5pt]名前};
+  \node[ellipse,draw,fill=pinkish,fill opacity=0.5,minimum width=1.6cm,minimum height=2.4cm,align=center] (c3) at (0.1cm + \xs, -0.9cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (0.1cm + \xs,-0.9cm + \ys) {公理の\\[5pt]名前};
+  \node[ellipse,draw,fill=grenish,fill opacity=0.5,minimum width=2.4cm,minimum height=1.4cm,align=center] (c4) at (-1cm + \xs, 0cm + \ys) {};
+  \node[draw=none,fill=none,align=center] at (-1cm + \xs,0cm + \ys) {変数の\\[5pt]名前};
+  \node[minimum width=7.4cm, minimum height=5cm,draw] (c) at (0.7cm + \xs,-0.1cm + \ys) {};
+  \draw (4.4cm + \xs,2.4cm + \ys) node[below left] {モジュールC};
+
+%
+  \node[ellipse,draw=none,fill=greyish,circular drop shadow,minimum width=5cm,minimum height=3.6cm,align=center] (m) at (9cm,-0.1cm) {トップレベルの\\[5pt]名前空間} ; 
+  \draw [-{Latex[length=5mm, width=2mm]}] (m) to [bend right=20] ([yshift=-20pt]a.north east) ;
+  \draw [-{Latex[length=5mm, width=2mm]}] (m) to [bend left=20] ([xshift=-20pt]c.north east) ;
+  \draw [-{Latex[length=5mm, width=2mm]}] (m) to [bend left=20] ([yshift=-20pt]b.north east) ;
+  %
+  \draw [-{Latex[length=5mm, width=2mm]}] (b2.north) to [bend right=80] (a2.east) ;
+  \draw [-{Latex[length=5mm, width=2mm]}] (c2.north) to [bend right=80] (b2.east) ;
+  %
+  \draw [-{Latex[length=5mm, width=2mm]}] (b3.west) to [bend left=90] (a3.west) ;
+  \draw [-{Latex[length=5mm, width=2mm]}] (c3.west) to [bend left=90] (b3.west) ;
+  %
+  \draw [-{Latex[length=5mm, width=2mm]}] (b1.west) to [bend left=90] (a1.west) ;
+  \draw [-{Latex[length=5mm, width=2mm]}] (c1.west) to [bend left=90] (b1.west) ;
+  
+\end{tikzpicture}
+\end{center}

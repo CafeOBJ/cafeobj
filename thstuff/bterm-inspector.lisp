@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -99,8 +99,9 @@
           (progn
             (let ((var (car sub))
                   (term (cdr sub)))
-              (princ (string (variable-print-name var)))
-              (princ " = ")
+              (when (consp var)
+                (princ (string (variable-print-name var)))
+                (princ " = "))
               (term-print term))))))
     (princ " ]" stream)))
 
@@ -109,7 +110,8 @@
     (dolist (sub (abst-bterm-subst bterm))
       (if (abst-bterm-p sub)
           (setq vars (nconc vars (abst-bterm-variables sub)))
-        (pushnew  (car sub) vars)))
+        (when (consp (car sub))
+          (pushnew  (car sub) vars))))
     (delete-duplicates vars)))
 
 ;;;==========================================================================
@@ -165,8 +167,10 @@
   (let ((subst nil))
     (dolist (sub subterms)
       (let ((ss (get-bterm-variable sub)))
-        (when ss 
-          (push (cons ss sub) subst))))
+        (if ss 
+            (push (cons ss sub) subst)
+          ;; true of false
+          (push (cons nil sub) subst))))
     (make-abst-and :term term :subst (nreverse subst) :module module)))
 
 ;;; assign-tf 
@@ -248,8 +252,8 @@
   (declare (type abst-bterm bterm))
   (dolist (sub (abst-bterm-subst bterm))
     (if (abst-bterm-p sub)
-        (let ((subst (find-bvar-subst var sub)))
-          (when subst (return-from find-bvar-subst subst)))
+        (let ((res (find-bvar-subst var sub)))
+          (when res (return-from find-bvar-subst res)))
       (when (eq (variable-name var) (variable-name (car sub)))
         (return-from find-bvar-subst (cdr sub))))))
 
@@ -311,12 +315,15 @@
             (if as 
                 (push (make-and-abstraction xs as module) subst)
               (let ((ss (get-bterm-variable xs)))
-                (when ss 
-                  (push (cons ss xs) subst))))))
+                (if ss 
+                    (push (cons ss xs) subst)
+                  ;; true or false
+                  (push (cons nil xs) subst))))))
       ;; top operator is not xor
       (let ((as (xtract-and-subterms term)))
         (if as
-            (push (make-and-abstraction term as module) subst)
+            (let ((and-abst (make-and-abstraction term as module)))
+              (push and-abst subst))
           ;; we only accept xor-and normal form
           (with-output-msg ()
             (format t "'bresolve' does not treate trivial form like this.")
@@ -331,27 +338,29 @@
 ;;;
 (defun make-and-representation (abst-and)
   (declare (type abst-and abst-and))
-  (let ((and-subs (xtract-tfs :and (abst-and-term abst-and))))
-    (let ((repre (make-right-assoc-normal-form 
-                  *bool-and*
-                  (nconc and-subs
-                         (mapcar #'(lambda (x) (car x))
-                                 (abst-and-subst abst-and))))))
-      (update-lowest-parse repre)
-      repre)))
+  (let ((repre (make-right-assoc-normal-form 
+                *bool-and*
+                (mapcar #'(lambda (x) (if (consp (car x))
+                                          (car x)
+                                        ;; true or false
+                                        (cdr x)))
+                         (abst-and-subst abst-and)))))
+    (update-lowest-parse repre)
+    repre))
 
 (defun make-xor-representation (bterm)
   (declare (type abst-bterm bterm))
-  (let ((xor-subs (xtract-tfs :xor (abst-bterm-term bterm))))
-    (let ((repre (make-right-assoc-normal-form 
+  (let ((repre (make-right-assoc-normal-form 
                   *bool-xor*
-                  (nconc xor-subs
-                         (mapcar #'(lambda (x) (if (abst-and-p x)
-                                                   (make-and-representation x)
-                                                 (car x)))
-                                 (abst-bterm-subst bterm))))))
+                  (mapcar #'(lambda (x) (if (abst-and-p x)
+                                            (make-and-representation x)
+                                          (if (consp (car x))
+                                              (car x)
+                                            ;; true or false
+                                            (cdr x))))
+                           (abst-bterm-subst bterm)))))
       (update-lowest-parse repre)
-      repre)))
+      repre))
 
 (defun make-bterm-representation (bterm)
   (let ((subst (abst-bterm-subst bterm)))
@@ -392,28 +401,28 @@
     (let ((torf nil))
       (if (abst-and-p bt)
           (progn
-            (setq torf (xtract-tfs :and (abst-bterm-term bt)))
+            (setq torf (xtract-and-subterms (abst-bterm-term bt)))
             (princ ">> and --->"))
         (progn
-          (setq torf (xtract-tfs :xor (abst-bterm-term bt)))
+          (setq torf (xtract-xor-subterms (abst-bterm-term bt)))
           (when torf
             (princ ">> xor ***>"))))
-      (dolist (sub torf)
-        (print-next)
-        (term-print sub))
       (let ((bs nil))
         (dolist (sub (abst-bterm-subst bt))
           (if (abst-bterm-p sub)
               (print-bterm-grinding sub)
             (let ((var (car sub))
                   (term (cdr sub)))
-              (push (cons (string (variable-print-name var))term) bs))))
+              (if (consp var)
+                  (push (cons (string (variable-print-name var))term) bs)
+                (push sub bs)))))
         (when bs 
           (dolist (vt (sort bs #'(lambda (x y)
-                                   (string< (car x) (car y)))))
+                                   (string< (string (car x)) (string (car y))))))
             (print-next)
-            (princ (car vt))
-            (princ " = ")
+            (when (stringp (car vt))
+              (princ (car vt))
+              (princ " = "))
             (term-print (cdr vt)))))
       (print-next)
       (if (abst-and-p bt)
@@ -825,5 +834,15 @@
            (do-bguess :or))
           (t (with-output-chaos-error ('unknown-strat)
                (format t "Unknown strategy ~s" strategy))))))
+
+;;; bgrind
+;;; built-in op
+;;; accepting boolean term and print it in 'grind' form
+;;;
+(defun bgrind-bool-term (bt &optional (doit *grind-bool-term*))
+  (when doit
+    (let ((abst (abstract-boolean-term bt *current-module*)))
+      (print-bterm-grinding abst)))
+  bt)
 
 ;;; EOF
