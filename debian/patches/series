@@ -1,9 +1,4 @@
 fix-refman-fonts
 fix-syntax-font
 armhf-remove-buildopts
-namespace-use-tikz
-kosakusha-logo
-citp-updates
-autoconf-doc-changes
-fix-pn-fonts
 change-logo-font
