@@ -1,3 +1,11 @@
+cafeobj (1.5.6.2017116-1) unstable; urgency=medium
+
+  * new upstream release plus git status
+    - fixes FTBFS with new sbcl (Closes: #881192)
+  * clean up patches
+
+ -- Norbert Preining <preining@debian.org>  Thu, 16 Nov 2017 15:03:32 +0900
+
 cafeobj (1.5.5-1) unstable; urgency=medium
 
   * new upstream release
