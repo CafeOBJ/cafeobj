@@ -3,10 +3,10 @@ Section: science
 Priority: optional
 Maintainer: Norbert Preining <preining@debian.org>
 Build-Depends: debhelper (>= 8.1.0~), sbcl, fonts-mplus, fonts-freefont-otf, texlive-latex-recommended, texlive-fonts-recommended, texlive-latex-extra, texlive-bibtex-extra, texlive-xetex, lmodern, pandoc, pandoc-citeproc, texlive-generic-extra, imagemagick, fonts-motoya-l-maruberi, texlive-extra-utils, ghostscript
-Standards-Version: 3.9.8
+Standards-Version: 4.1.1
 Homepage: http://cafeobj.org/
-Vcs-Git: git://git.cafeobj.org/cafeobj.git
-Vcs-Browser: http://git.cafeobj.org/?p=cafeobj.git
+Vcs-Git: https://github.com/CafeOBJ/cafeobj.git
+Vcs-Browser: https://github.com/CafeOBJ/cafeobj
 
 
 Package: cafeobj
