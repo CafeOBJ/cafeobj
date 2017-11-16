@@ -2,7 +2,7 @@ Source: cafeobj
 Section: science
 Priority: optional
 Maintainer: Norbert Preining <preining@debian.org>
-Build-Depends: debhelper (>= 8.1.0~), sbcl, fonts-mplus, fonts-freefont-otf, texlive-latex-recommended, texlive-fonts-recommended, texlive-latex-extra, texlive-bibtex-extra, texlive-xetex, lmodern, pandoc, pandoc-citeproc, texlive-generic-extra, imagemagick, fonts-motoya-l-maruberi, texlive-extra-utils, ghostscript
+Build-Depends: debhelper (>= 10), sbcl, fonts-mplus, fonts-freefont-otf, texlive-latex-recommended, texlive-fonts-recommended, texlive-latex-extra, texlive-bibtex-extra, texlive-xetex, lmodern, pandoc, pandoc-citeproc, texlive-generic-extra, imagemagick, fonts-motoya-l-maruberi, texlive-extra-utils, ghostscript
 Standards-Version: 4.1.1
 Homepage: http://cafeobj.org/
 Vcs-Git: https://github.com/CafeOBJ/cafeobj.git
