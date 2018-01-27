@@ -36,6 +36,9 @@
 --       the definition of module TRUTH
 --
 lispq
+(when (fboundp 'setup-truth) (fmakunbound 'setup-truth))
+
+lispq
 (defun setup-truth ()
   (setq *TRUTH-module* (eval-modexp "TRUTH"))
   (prepare-for-parsing *truth-module*)

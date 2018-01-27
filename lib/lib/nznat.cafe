@@ -63,6 +63,9 @@ sys:mod! NZNAT
 }
 
 lispq
+(when (fboundp 'chaos-nznat-tram-interface) (fmakunbound 'chaos-nznat-tram-interface))
+
+lispq
 (defun chaos-nznat-tram-interface ()
   (setq *z-nznat* (get-z-module-or-panic "NZNAT"))
   (pushnew *z-nznat* *tram-builtin-modules*))

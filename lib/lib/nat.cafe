@@ -70,6 +70,9 @@ sys:mod! NAT
 }
 
 lispq
+(when (fboundp 'chaos-nat-tram-interface) (fmakunbound 'chaos-nat-tram-interface))
+
+lispq
 (defun chaos-nat-tram-interface ()
   (setq *z-nat* (get-z-module-or-panic "NAT"))
   (push *z-nat* *tram-builtin-modules*))

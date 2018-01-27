@@ -308,6 +308,9 @@ sys:mod! RWL
   }
 }
 
+lispq
+(when (fboundp 'setup-rwl) (fmakunbound 'setup-rwl))
+
 ** setup 
 lispq
 (defun setup-rwl ()
