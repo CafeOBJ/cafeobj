@@ -506,7 +506,7 @@
                          :fill-pointer 0
                          :adjustable t)))
     (with-output-to-string (s str)
-      (term-print-with-sort term str))
+      (term-print-with-sort term s))
     str))
 
 ;;;-----------------------------------------------------------------------------
