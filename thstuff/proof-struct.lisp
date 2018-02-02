@@ -387,6 +387,7 @@
   ;; set default
   (setf (citp-flag citp-print-message) t) ; others are 'off'
   (setf (citp-flag citp-normalize-init) t)
+  (setf (citp-flag citp-normalize-lhs) t)
   ;; verbose flag hook
   (setf (citp-flag-hook citp-verbose)
     #'(lambda (name value)
