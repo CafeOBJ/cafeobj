@@ -989,8 +989,6 @@
 (defun normalize-term (term)
   (declare (type term term)
            (values (or null t)))
-  ;; (unless (term-is-lowest-parsed? term)
-  ;;  (update-lowest-parse term))
   (when *rewrite-debug*
     (with-output-simple-msg ()
       (format t "[normalize-term]:(NF=~A,LP=~A,OD=~A) "
@@ -998,24 +996,22 @@
               (term-is-lowest-parsed? term)
               (term-is-on-demand? term))
       (term-print-with-sort term)))
-  (let ((strategy nil))
-    (cond ((term-is-reduced? term)
-           ;(when (term-is-builtin-constant? term)
-           ;  (update-lowest-parse term))
-           t)
-          ((null (setq strategy
-                   (method-rewrite-strategy (term-head term))))
-           ;; (check-closed-world-assumption term)
-           (mark-term-as-reduced term)
-           t)
-          ((and *memo-rewrite*
-                (or *always-memo* (method-has-memo (term-head term))))
-           (term-replace term
-                         (term-memo-get-normal-form term strategy))
-           nil)
-          ;;
-          (t (reduce-term term strategy)
-             nil))))
+
+    (cond ((term-is-reduced? term) t)
+          ((term-is-application-form? term)
+           (let ((strategy nil))
+             (cond ((null (setq strategy
+                            (method-rewrite-strategy (term-head term))))
+                    (mark-term-as-reduced term)
+                    t)
+                   ((and *memo-rewrite*
+                         (or *always-memo* (method-has-memo (term-head term))))
+                    (term-replace term
+                                  (term-memo-get-normal-form term strategy))
+                    nil)
+                   (t (reduce-term term strategy)
+                      nil))))
+          (t (mark-term-as-reduced term) t)))
 
 (defun !normalize-term (term)
   (declare (type term term)
