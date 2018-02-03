@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CAFEIN; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -66,7 +66,7 @@
   (if (or (term-is-variable? term)
           (term-is-builtin-constant? term))
       t
-      (let ((meth (term-method term)))
+      (let ((meth (term-head term)))
         (if (or (not (= 2 (the fixnum
                             (operator-num-args (method-operator meth)))))
                 (theory-info-empty-for-matching
@@ -95,7 +95,7 @@
                   (and (term-is-variable? x)
                        (sort= (variable-sort x) y)))
               (term-subterms pattern)
-              (method-arity (term-method pattern)))
+              (method-arity (term-head pattern)))
        ;; check linearlity
        (do* ((lst (term-subterms pattern) (cdr lst))
              (elt (car lst) (car lst)))
@@ -209,7 +209,7 @@
     (when (term-is-variable? pattern)   ; pattern itself must be no-variable. 
       (return-from exit nil))
 
-    (let* ((meth (term-method pattern))
+    (let* ((meth (term-head pattern))
            (op (method-operator meth)))
       ;; operator must be AC.
       (unless (and (operator-is-associative op) (operator-is-commutative op))
@@ -322,7 +322,7 @@
            (values list list (or null t) (or null t)))
   (let* ((subs (term-subterms pattern))
          (indep (car subs))
-         (method (term-method pattern))
+         (method (term-head pattern))
          (coarity (method-coarity method))
          (new-pat (make-applform coarity method (list indep *match-dep-var*)))
          (so *current-sort-order*))

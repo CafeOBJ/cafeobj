@@ -138,7 +138,7 @@
                (pushnew obj (stable-submodules tbl))))
             ((axiom-p obj)
              (pushnew obj (stable-axioms tbl)))
-            ((and (termp obj)
+            ((and (term? obj)
                   (term-is-variable? obj))
              (pushnew obj (stable-variables tbl)))
             (t (pushnew obj (stable-unknowns tbl))))

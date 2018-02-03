@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:Common-Lisp; Package:CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -98,7 +98,7 @@
 ;;;
 (defun rotate-list (list num minusp)
   (declare (type fixnum num)
-           (type t minusp))
+           (type list list))
   (let ((len (length list))
         (new-stack (copy-list list)))
     (declare (type fixnum len)
@@ -121,7 +121,8 @@
 ;;; Returns a new list deleted the nth element
 ;;;
 (defun delete-nth (nth lst)
-  (declare (fixnum nth))
+  (declare (fixnum nth)
+           (type list lst))
   (let ((len (length lst))
         (new-lst nil))
     (when (>= nth len)

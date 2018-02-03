@@ -1,6 +1,6 @@
 ;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -63,7 +63,7 @@
             (oldlhs (macro-lhs r)))
         (when (and (not (term-is-variable? newlhs))
                    (not (term-is-variable? oldlhs))
-                   (not (method= (term-method newlhs) (term-method oldlhs)))
+                   (not (method= (term-head newlhs) (term-head oldlhs)))
                    (sort<= (term-sort oldlhs) (term-sort newlhs)))
           (rplaca lst r))
         (return-from adjoin-macro ms)))))

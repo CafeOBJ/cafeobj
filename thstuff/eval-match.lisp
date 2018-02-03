@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -81,7 +81,7 @@
     (find-rewrite-rules-top target what type)))
 
 (defun find-rewrite-rules-top (target what &optional (type :match))  
-  (let* ((real-target (supply-psuedo-variables target))
+  (let* ((real-target (supply-pconstants target))
          (patterns (find-matching-rules what real-target (get-context-module) type)))
     (unless patterns
       (with-in-module ((get-context-module))
@@ -124,7 +124,7 @@
                                           extra))))))))
 
 (defun find-rewrite-rules-all (target what &optional (type :match))  
-  (let* ((real-target (supply-psuedo-variables target))
+  (let* ((real-target (supply-pconstants target))
          (patterns (find-matching-rules-all what real-target (get-context-module) type)))
     (unless patterns
       (with-in-module ((get-context-module))
@@ -178,7 +178,7 @@
 
 (defun perform-match (target pre-pattern &optional (type :match))
   (let ((real-target (if (eq type :match)
-                         (supply-psuedo-variables target)
+                         (supply-pconstants target)
                        target)))
     (let ((first-match-meth (if (eq type :match)
                                 (if *use-choose-match*

@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -544,7 +544,7 @@
                 (format t "~& op-map =")
                 (dolist (opmap op-mapping)
                   (terpri)
-                  (print-term-method (car opmap))
+                  (print-term-head (car opmap))
                   (princ " --> ")
                   (princ (cdr opmap))
                   ;; (print-chaos-object opmap)
@@ -848,7 +848,7 @@
                   (format t "~& op-map =")
                   (dolist (opmap op-mapping)
                     (terpri)
-                    (print-term-method (car opmap))
+                    (print-term-head (car opmap))
                     (princ " --> ")
                     (princ (cdr opmap))
                     ;; (print-chaos-object opmap)
@@ -1278,8 +1278,8 @@
                           (term-is-of-functional? dst))
                (with-output-simple-msg ()
                  (format t "[Error] source and target must be non-behavioural for `op' map:")
-                 (format t "~&- source ") (print-term-method src src-mod)
-                 (format t "~&- target ") (print-term-method dst dst-mod)
+                 (format t "~&- source ") (print-term-head src src-mod)
+                 (format t "~&- target ") (print-term-head dst dst-mod)
                  (setq error t))))
             (otherwise
              (unless (and (term-is-of-behavioural*?  src (module-opinfo-table
@@ -1288,8 +1288,8 @@
                                                          dst-mod)))
                (with-output-simple-msg ()
                  (format t "[Error] source and target must be behavioural for `bop' map:")
-                 (format t "~&- source ") (print-term-method src src-mod)
-                 (format t "~&- target ") (print-term-method dst dst-mod)
+                 (format t "~&- source ") (print-term-head src src-mod)
+                 (format t "~&- target ") (print-term-head dst dst-mod)
                  (setq error t)))))))
       (when error (chaos-to-top)))
     ;; 

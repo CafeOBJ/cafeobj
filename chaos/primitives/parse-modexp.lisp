@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -798,24 +798,26 @@
              (prog1
                  (parse-balanced-context '(")"))
                (modexp-skip)))
-      (let ((res nil))
-        (loop (when (null *modexp-parse-input*)
-                (if (null cntxt)
-                    (return)
-                  (with-output-chaos-error ('invalid-modexp)
-                    (princ "premature end of input in operator pattern.")
-                    (print-next)
-                    (princ "beginning of pattern: ")
-                    (print-simple-princ-open (nreverse res))
-                    (print-next)
-                    (princ "expecting one of: ")
-                    (princ cntxt))))
-          (when (member (car *modexp-parse-input*) cntxt :test #'equal)
-            (return))
-          (setq res (nconc res (parse-balanced-context cntxt))))
-        (setq res (mapcan #'(lambda (x) (remove "" (parse-with-delimiter2 x #\_) :test #'equal)) res))
-        ;; (setq res (remove "" res :test #'equal))
-        res)))
+    (let ((res nil))
+      (loop (when (null *modexp-parse-input*)
+              (if (null cntxt)
+                  (return)
+                (with-output-chaos-error ('invalid-modexp)
+                  (princ "premature end of input in operator pattern.")
+                  (print-next)
+                  (princ "beginning of pattern: ")
+                  (print-simple-princ-open (nreverse res))
+                  (print-next)
+                  (princ "expecting one of: ")
+                  (princ cntxt))))
+        (when (member (car *modexp-parse-input*) cntxt :test #'equal)
+          (return))
+        (setq res (nconc res (parse-balanced-context cntxt))))
+      (setq res (mapcan #'(lambda (x) 
+                            (declare (type simple-string x))
+                            (remove "" (parse-with-delimiter x #\_) :test #'equal))
+                         res))
+      res)))
 
 ;;; PARSE PARAMETER REFERENCE
 ;;;*****************************************************************************

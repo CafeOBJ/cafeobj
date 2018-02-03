@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -147,7 +147,7 @@
     ;; be ready for parsing
     (prepare-for-parsing module)
     ;; setup target term
-    (if (termp pre-term)
+    (if (term? pre-term)
         (setq $$target-term pre-term)
       ;; not yet parsed term
       (progn
@@ -265,7 +265,7 @@
         (if (term-is-application-form? term)
             (apply-rules-with-different-top term
                                             (method-rules-with-different-top
-                                             (term-method term)))
+                                             (term-head term)))
           term))))
   )
 

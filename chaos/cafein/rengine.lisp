@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -619,25 +619,21 @@
 
 (defun apply-rules (term strategy)
   (declare (type term term)
-           (type list strategy)
-           (values (or null t)))
-  (labels ((apply-rules-internal ()
-             (let ((top nil))
-               ;; (unless (term-is-lowest-parsed? term) (update-lowest-parse term))
-               (setq top (term-head term))
-               ;; apply same top rules
-               (apply-rules-with-same-top term (method-rules-with-same-top top))
-               (if (not (eq top (term-head term)))
+           (type list strategy))
+  (flet ((apply-rules-internal ()
+           (let ((top (term-head term)))
+             ;; apply same top rules
+             (apply-rules-with-same-top term (method-rules-with-same-top top))
+             (if (not (eq top (term-head term)))
+                 (progn
+                   (mark-term-as-not-lowest-parsed term)
+                   (normalize-term term))
+               (if (apply-rules-with-different-top term
+                                                   (method-rules-with-different-top top))
                    (progn
                      (mark-term-as-not-lowest-parsed term)
                      (normalize-term term))
-                 (if (apply-rules-with-different-top term
-                                                     (method-rules-with-different-top top))
-                     (progn
-                       (mark-term-as-not-lowest-parsed term)
-                       (normalize-term term))
-                   (reduce-term term (cdr strategy)))))))
-    ;;
+                 (reduce-term term (cdr strategy)))))))
     (if *memo-rewrite*
         ;; check memo
         (if (or *always-memo*
@@ -787,7 +783,7 @@
 
       ;; then there may be some extensions.
       (when (and (not is-applied) (term-is-applform? term))
-        (let ((top (term-method term)))
+        (let ((top (term-head term)))
           (declare (type method top))
           (unless (let ((val (axiom-kind rule)))
                     (and val
@@ -837,7 +833,7 @@
                  (update-lowest-parse term)
                (declare (ignore xterm))
                (when (or assoc?
-                         (not (method= (term-method term) top)))
+                         (not (method= (term-head term) top)))
                  (when *rewrite-debug*
                    (with-output-msg ()
                      (format t "- resetting reduced flag ...")))
@@ -1004,8 +1000,8 @@
       (term-print-with-sort term)))
   (let ((strategy nil))
     (cond ((term-is-reduced? term)
-           (when (term-is-builtin-constant? term)
-             (update-lowest-parse term))
+           ;(when (term-is-builtin-constant? term)
+           ;  (update-lowest-parse term))
            t)
           ((null (setq strategy
                    (method-rewrite-strategy (term-head term))))

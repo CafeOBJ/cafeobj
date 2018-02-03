@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -344,7 +344,7 @@
                               (new-rhs nil)
                               (new-cond (axiom-condition ax))
                               )
-                          (when (and image (term-is-psuedo-constant? image))
+                          (when (and image (term-is-pconstant? image))
                             (setq found? t)
                             (setq subst
                                   (substitution-add (new-substitution)
@@ -425,7 +425,7 @@
                    (values nil nil t nil)
                    (first-match pat term)))))
     ;;
-    (let ((real-target (supply-psuedo-variables target)))
+    (let ((real-target (supply-pconstants target)))
       ;; ---- first match 
       (multiple-value-bind (global-state subst no-match e-equal)
           (matcher pattern real-target)
@@ -685,7 +685,7 @@
            (type term))
   (let ((*consider-object* t))
     (cond ((or (term-is-variable? term)
-               (term-is-psuedo-constant? term))
+               (term-is-pconstant? term))
            (let ((im (variable-image-slow sigma term)))
              (if im
                  (values im (sort= (variable-sort term)

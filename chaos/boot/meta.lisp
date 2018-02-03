@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: Chaos; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -93,7 +93,7 @@
 ;;; CREATE-SYSTEM-OBJECT-TERM
 ;;;
 (defun create-system-object-term (obj &optional (module *current-module*))
-  (if (and (termp obj) (term-is-system-object? obj))
+  (if (and (term? obj) (term-is-system-object? obj))
       obj
     (with-in-module (module)
       (let ((sort (cond ((null obj) *chaos-void-sort*)
@@ -102,7 +102,7 @@
                         ((method-p obj) *operator-sort*)
                         ((module-p obj) *module-sort*)
                         ((axiom-p obj) *axiom-sort*)
-                        ((termp obj) *term-sort*)
+                        ((term? obj) *term-sort*)
                         ((chaos-list-p obj) *chaos-list-sort*)
                         ((subst*-p obj) *subst-sort*)
                         ((signature-struct-p obj) *signature-sort*)
@@ -118,29 +118,14 @@
 
 ;;; msubterms
 (defun msubterms (term)
-  (and (termp term)
+  (and (term? term)
        (term-is-applform? term)
        (make-chaos-list :list (term-subterms term))))
 
 ;;; mterm-sort
 (defun mterm-sort (term)
-  (and (termp term)
+  (and (term? term)
        (term-sort term)))
-
-;;; 
-#||
-(defun create-list-of-objects (fun system-obj-term)
-  (create-system-object-term (mapcar #'(lambda (x) (create-system-object-term x))
-                                     (funcall fun (term-system-object system-obj-term)))))
-||#
-
-#||
-(defun create-list-of-objects (fun system-obj-term)
-  (let ((vals (funcall fun (term-system-object system-obj-term))))
-    (if vals
-        (create-system-object-term (make-chaos-list :list (mapcar #'(lambda (x) (create-system-object-term x)) vals)))
-      (create-system-object-term *chaos-null*))))
-||#
 
 (defun create-list-of-objects (fun system-obj-term)
   (let ((vals (funcall fun (term-system-object system-obj-term))))
@@ -205,8 +190,8 @@
   (print-substitution (subst*-bindings obj) stream))
 
 (defun meta-get-context-module (module)
-  (let ((rmod (if (termp module)
-                  (cond ((and (termp module) (term-is-system-object? module))
+  (let ((rmod (if (term? module)
+                  (cond ((and (term? module) (term-is-system-object? module))
                          (term-system-object module))
                         ((and (term-is-builtin-constant? module)
                               (sort= (term-sort module) *string-sort*))
@@ -221,7 +206,7 @@
       rmod)))
 
 (defun meta-get-term (pterm &optional (module *current-module*))
-  (unless (termp pterm)
+  (unless (term? pterm)
     (with-output-chaos-error ('ivalid-term)
       (format t "Invalid representation of meta term ~S" pterm)))
   (with-in-module (module)
@@ -276,7 +261,7 @@
       (when rpos
         (setq rtarget (get-subterm-pos rtarget rpos)))
       (let ((real-target (if (eq type :match)
-                             (supply-psuedo-variables rtarget)
+                             (supply-pconstants rtarget)
                            rtarget)))
         (let ((first-match-meth (if (eq type :match)
                                     (if *use-choose-match*
@@ -298,35 +283,6 @@
           ;; 
           (perform-meta-match* real-target rpattern rdepth first-match-meth next-match-meth))))))
     
-#||
-(defun perform-meta-match* (target pattern depth fm nm)
-  (let 
-
-        ;; ---- first match 
-        (multiple-value-bind (global-state subst no-match e-equal)
-            (funcall first-match-meth pattern real-target)
-          (when no-match
-            (if (eq type :match)
-                (format t "~&-- no match")
-              (format t "~&-- no unify"))
-            (return-from do-meta-match *chaos-null*))
-          (if (eq type :match)
-              (format t "~&-- match success.")
-            (format t "~&-- unify success."))
-          (when e-equal
-            (format t "~&-- given terms are equational equal.")
-            (return-from do-meta-match *chaos-null*))
-          (push (make-subst* :bindings subst) result)
-          (multiple-value-setq (global-state subst no-match)
-            (funcall next-match-meth global-state))
-          (while (not no-match)
-            (push (make-subst* :bindings subst) result)
-            (multiple-value-setq (global-state subst no-match)
-              (funcall next-match-meth global-state)))
-          (make-chaos-list :list (nreverse result)))))
-
-||#
-
 (defun meta-subst-image (term sub)
   (let ((subst (subst*-bindings sub))
         (image nil))
