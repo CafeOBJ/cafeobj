@@ -572,7 +572,7 @@
     (dolist (lit (clause-literals clause))
       (declare (type literal lit))
       (setq vars (nunion vars (term-variables (literal-atom lit))
-                         :test #'!term-eq)))
+                         :test #'(lambda(x y) (term-eq x y)))))
     vars))
 
 ;;; CLAUSE-DISTINCT-VARIABLES (clause)

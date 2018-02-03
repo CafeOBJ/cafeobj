@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -604,7 +604,7 @@ Based on the implementation of OBJ3 system.
       (let ((t1 (equation-t1 eq)))
         (declare (type term t1))
         (if (term-is-application-form? t1)
-            (let ((t1-top (term-method t1)))
+            (let ((t1-top (term-head t1)))
               (cond
                 ;; t1-top has no specific theory for matching.
                 ((theory-info-empty-for-matching

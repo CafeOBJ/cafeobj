@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:CommonLisp; Package: CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -120,11 +120,11 @@
               meth1 (if (or (term-is-constant? t1)
                             (term-is-variable? t1))
                         nil 
-                        (term-method t1))
+                        (term-head t1))
               meth2 (if (or (term-is-constant? t2)
                             (term-is-variable? t2))
                         nil 
-                        (term-method t2)))
+                        (term-head t2)))
         (cond ((and (= r 0)             ; as if no thoery applied - 11 22
                     meth1 meth2)
                (add-equation-to-m-system new-sys 

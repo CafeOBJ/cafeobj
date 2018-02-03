@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -812,7 +812,7 @@
   ;; (print-chaos-object attrs)
   (let* ((attr-list (cond ((and attrs
                                 (sort= (term-sort attrs) *attribute-list-sort*))
-                           (list-ac-subterms attrs (term-method attrs)))
+                           (list-ac-subterms attrs (term-head attrs)))
                           (attrs (list attrs))
                           (t nil)))
          (specified-slot-names (mapcar #'(lambda (x)

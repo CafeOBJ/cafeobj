@@ -1,6 +1,6 @@
 ;;;-*- Mode: Lisp; Syntax: CommonLisp Package: CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -137,7 +137,7 @@
                               (unless (term-builtin-equal st1 st2) (return nil)))
                              (t (unless (if (theory-info-empty-for-matching
                                              (method-theory-info-for-matching
-                                              (term-method st1)))
+                                              (term-head st1)))
                                             (match-empty-equal st1 st2)
                                             (term-equational-equal st1 st2))
                                   (return nil)))))

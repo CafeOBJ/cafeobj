@@ -765,7 +765,7 @@
               (*ast-log* nil)
               (f nil))
           (setq f (chaos-input-file :file file :proc processor
-                                    :load-path *system-prelude-dir*
+                                    :load-path (list *system-prelude-dir*)
                                     :errorp errorp))
           (if (and *system-standard-prelude* (not override))
               (setq *system-standard-prelude*
@@ -1696,7 +1696,6 @@
     ;;
     (setq *cafeobj-standard-prelude-path* f)
     ;; now not uses AST
-    ;; (eval-ast (%load-prelude* f 'process-cafeobj-input))
     (load-prelude+ f 'process-cafeobj-input)))
 
 ;;; ********

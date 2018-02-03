@@ -78,8 +78,7 @@
 ;;;
 (defun dag-dfs (dag &optional (function #'identity))
   (declare (type dag-node dag)
-           (type (or symbol function) function)
-           (values t))
+           (type function function))
   (labels ((do-dag-dfs (d)
              (unless (dag-node-is-marked? d)
                (dolist (sub (dag-node-subnodes d))
@@ -95,8 +94,7 @@
 ;;;
 (defun dag-wfs (dag &optional (function #'identity))
   (declare (type dag-node dag)
-           (type (or symbol function) function)
-           (values t))
+           (type function function))
   (labels ((do-dag-wfs (ld)
              (dolist (d ld)
                (unless (dag-node-is-marked? d)

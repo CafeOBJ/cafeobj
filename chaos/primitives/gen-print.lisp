@@ -1,6 +1,6 @@
 ;;;-*- Mode: Lisp; Syntax:CommonLisp; Package:CHAOS; Base:10 -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -155,7 +155,7 @@
                `(":var" ,(variable-print-string term print-var-sort vars-so-far)))
            (return-from term-to-sexpr
              (variable-print-string term print-var-sort vars-so-far))))
-        ((term-is-psuedo-constant? term)
+        ((term-is-pconstant? term)
          (if as-tree
              (return-from term-to-sexpr
                `(":literal" ,(variable-print-string term print-var-sort vars-so-far)))
@@ -224,7 +224,7 @@
   (declare (type stream stream)
            (type (or null t) print-var-sort)
            (values t))
-  (unless (termp term)
+  (unless (term? term)
     (format stream " ~s " term)
     (return-from term-print1))
   (let ((*standard-output* stream)
@@ -241,7 +241,7 @@
     (when (and (term-is-red term) *print-term-color*)
       (princ "r::"))
     ;; 
-    (cond ((or (term$is-variable? body) (term$is-psuedo-constant? body))
+    (cond ((or (term$is-variable? body) (term$is-pconstant? body))
            (let ((vstr (variable-print-string term print-var-sort vars-so-far)))
              (princ vstr stream)))
           ((term$is-system-object? body)
@@ -263,7 +263,7 @@
            (let ((*print-pretty* t))
              (format t "~s" (term$lisp-form-original-form body))))
           ((term$is-applform? body)
-           (let* ((hd (term$head body))
+           (let* ((hd (appl$head body))
                   (op (method-operator hd)))
              (cond ((not (operator-is-mixfix op))
                     (princ (format nil "~{~a~^ ~}" (operator-symbol op)) stream)
@@ -308,7 +308,7 @@
            (type fixnum prec)
            (type stream stream)
            (type (or null t) print-var-sort))
-  (unless (termp term)
+  (unless (term? term)
     (format stream " ~s " term)
     (return-from term-print2))
   (let ((*standard-output* stream)
@@ -326,7 +326,7 @@
     (when (and *print-term-color* (term-is-red term))
       (princ "r::" stream))
 
-    (cond ((or (term-is-variable? term) (term-is-psuedo-constant? term))
+    (cond ((or (term-is-variable? term) (term-is-pconstant? term))
            (let ((vstr (variable-print-string term
                                               print-var-sort
                                               vars-so-far)))
@@ -472,12 +472,12 @@
           (case *print-xmode*
             (:fancy
              (if (or (term-is-variable? term)
-                     (term-is-psuedo-constant? term))
+                     (term-is-pconstant? term))
                  nil
                t))
             (:normal
              (if (or (term-is-variable? term)
-                     (term-is-psuedo-constant? term))
+                     (term-is-pconstant? term))
                  nil
                (if (and (term-is-applform? term)
                         (operator-is-mixfix (method-operator

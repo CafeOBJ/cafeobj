@@ -351,7 +351,7 @@
     (cond ((null key))
           ((atom key)           ; method/built-in value
            (nlist-push value (lookup key dtree)))
-          ((not (termp key))
+          ((not (term? key))
            (dtree-index (first key) value
                         (or (dtree-first dtree)
                             (setf (dtree-first dtree) (make-dtree))))
@@ -414,7 +414,7 @@
 (defun dtree-fetch (pat dtree var-list-in var-n-in best-list best-n)
   (if (or (null dtree)
           (null pat)
-          (and (termp pat) (term-is-variable? pat)))
+          (and (term? pat) (term-is-variable? pat)))
       (values best-list best-n)
     (let* ((var-nlist (dtree-var dtree))
            (var-n (+ var-n-in (nlist-n var-nlist)))
@@ -430,7 +430,7 @@
                                var-n
                                best-list
                                best-n))
-            ((not (termp pat))
+            ((not (term? pat))
              (multiple-value-bind (list1 n1)
                  (dtree-fetch (first pat)
                               (dtree-first dtree)
@@ -500,7 +500,7 @@
              (let ((nlist (lookup key dtree)))
                (when nlist
                  (nlist-delete (lookup key dtree)))))
-            ((not (termp key))
+            ((not (term? key))
              (dtree-delete (first key)
                            value
                            (dtree-first dtree)

@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -449,7 +449,7 @@
       (format t "~%== simplify: ")
       (format t "~% lhs = ")(term-print-with-sort lhs)
       (format t "~% rhs = ")(term-print-with-sort rhs))
-    (cond ((is-builtin= (term-method lhs))
+    (cond ((is-builtin= (term-head lhs))
            (with-citp-debug ()
              (format t "~%** case _=_"))
            ;; (T1 = T2) = true/false  ==> T1 = T2
@@ -550,11 +550,11 @@
                                              r-rhs *bool-true*)
                                      (setf r-lhs lhs
                                            r-rhs rhs)))))))))))
-          ((method= *bool-match* (term-method lhs))
+          ((method= *bool-match* (term-head lhs))
            ;; (T1 := T2) = true  ==> T2 = T1
            (setf r-lhs (term-arg-2 lhs)
                  r-rhs (term-arg-1 lhs)))
-          ((method= *rwl-predicate* (term-method lhs))
+          ((method= *rwl-predicate* (term-head lhs))
            ;; (T1 => T2) = true ==> T1 => T2
            (setf r-lhs (term-arg-1 lhs)
                  r-rhs (term-arg-2 lhs))
@@ -575,15 +575,15 @@
     (let ((r-lhs lhs)
           (r-rhs *bool-true*)
           (type :equation))
-      (when (is-builtin= (term-method lhs))
+      (when (is-builtin= (term-head lhs))
         ;; (T1 = T2) = true  ==> T1 = T2
         (setf r-lhs (term-arg-1 lhs)
               r-rhs (term-arg-2 lhs)))
-      (when (method= *bool-match* (term-method lhs))
+      (when (method= *bool-match* (term-head lhs))
         ;; (T1 := T2) = true  ==> T2 = T1
         (setf r-lhs (term-arg-2 lhs)
               r-rhs (term-arg-1 lhs)))
-      (when (method= *rwl-predicate* (term-method lhs))
+      (when (method= *rwl-predicate* (term-head lhs))
         ;; (T1 => T2) = true ==> T1 => T2
         (setf r-lhs (term-arg-1 lhs)
               r-rhs (term-arg-2 lhs))
@@ -1178,7 +1178,7 @@
     (dolist (sub subst)
       (let* ((iv (car sub))
              (op-or-term (cdr sub))
-             (term (if (termp op-or-term)
+             (term (if (term? op-or-term)
                        (term-copy-and-returns-list-variables op-or-term)
                      (make-applform-simple (method-coarity op-or-term)
                                            op-or-term
@@ -1872,7 +1872,7 @@
     (let ((case-axioms nil))
       (dolist (condition conditions)
         (let ((list-lhs nil))
-          (if (method= *bool-cond-op* (term-method condition))
+          (if (method= *bool-cond-op* (term-head condition))
               (dolist (arg (list-assoc-subterms condition *bool-cond-op*))
                 (push arg list-lhs))
             (setq list-lhs (list condition)))
@@ -2835,7 +2835,7 @@
     (let ((cur-goal (ptree-node-goal cur-node)))
       (when (already-proved? cur-goal)
         (return-from do-apply-ctf nil))
-      (if (termp term-or-equation)
+      (if (term? term-or-equation)
           (do-apply-ctf-with-constructors cur-node term-or-equation tactic)
         (do-apply-ctf-to-equation cur-node term-or-equation tactic)))))
 

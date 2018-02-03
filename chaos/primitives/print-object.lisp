@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -1396,11 +1396,11 @@
                   (print-method-attrs meth)
                   ))))))))
   
-;;; PRINT-TERM-METHOD : term module stream -> void
+;;; PRINT-TERM-HEAD : term module stream -> void
 ;;;
-(defun print-term-method (term &optional
-                               (module *current-module*)
-                               (stream *standard-output*))
+(defun print-term-head (term &optional
+                             (module *current-module*)
+                             (stream *standard-output*))
   (if (operator-method-p term)
       (print-method term module stream)
       (if (term-is-builtin-constant? term)

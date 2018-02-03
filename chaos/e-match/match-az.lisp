@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:CommonLisp; Package:CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -249,7 +249,7 @@
       (dolist (equation (m-system-to-list sys))
         (let ((t1 (equation-t1 equation))
               (t2 (equation-t2 equation)))
-          (setq meth (term-method t1))
+          (setq meth (term-head t1))
           (let ((sub1 (list-assoc-id-subterms t1 meth))
                 (sub1add nil)
                 (sub2 (list-assoc-id-subterms t2 meth)))
@@ -265,7 +265,7 @@
                             (if (and (term-is-application-form? ima)
                                      (method-is-of-same-operator+ meth
                                                                   (setq head
-                                                                    (term-method ima))))
+                                                                    (term-head ima))))
                                 (setq sub1add
                                       (nconc (reverse
                                               (list-assoc-id-subterms ima head))

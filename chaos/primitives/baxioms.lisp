@@ -272,7 +272,7 @@
     r))
 
 (defmacro rule-is-builtin (_rule_)
-  ` (term$is-lisp-code? (term-body (rule-rhs ,_rule_))))
+  `(term$is-lisp-form? (term-body (rule-rhs ,_rule_))))
 
 ;;; AXIOM-CONTAINS-ERROR-METHOD? : Axiom -> Bool
 ;;; retrurns true iff the axiom contains terms with error-method as top.

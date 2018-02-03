@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -427,17 +427,12 @@
            ;; no strat, or exhausted.
            (unless (term-is-lowest-parsed? term)
              (update-lowest-parse term)
-             (unless (method= (term-method term) top)
+             (unless (method= (term-head term) top)
                (return-from demod-reduce-term (demod-normalize-term term))))
-           (mark-term-as-reduced term)
-           )
+           (mark-term-as-reduced term))
           
           ;; whole
           ((= 0 (the fixnum (setf occ (car strategy))))
-           #||
-           (when (eq top *rwl-predicate*)
-             (setq *cexec-target* term))
-           ||#
            (unless (term-is-reduced? term)
              (apply-demodulators term strategy)))
 
@@ -448,42 +443,10 @@
              (demod-reduce-term term (cdr strategy))))
 
           ;; normal case, reduce specified subterm
-          #||
-          (t (if (method-is-associative top)
-                 (let ((list-subterms (list-assoc-subterms term top))
-                       (lowest-parsed t))
-                   (declare (type list list-subterms))
-                   (dolist (x list-subterms)
-                     (unless (demod-normalize-term x)
-                       (setf lowest-parsed nil)))
-                   (unless lowest-parsed
-                     (mark-term-as-not-lowest-parsed term))
-                   (demod-reduce-term term (list 0)))
-                 (progn
-                   (unless (demod-normalize-term (term-arg-n term (1- occ)))
-                     (mark-term-as-not-lowest-parsed term))
-                   (demod-reduce-term term (cdr strategy)))))
-          ||#
           (t (unless (demod-normalize-term (term-arg-n term (1- occ)))
                (mark-term-as-not-lowest-parsed term))
              (demod-reduce-term term (cdr strategy)))
           )))
-
-;;;
-
-#||
-(defun demod-method-rewrite-strategy (meth)
-  (let ((strat (method-rewrite-strategy meth)))
-    (if strat
-        (if (= 0 (car (last strat)))
-            strat
-          (append strat '(0)))
-      (progn
-        (dotimes (x (cdr (method-name meth)))
-          (push (1+ x) strat))
-        (push 0 strat)
-        (nreverse strat)))))
-||#
 
 (defvar .demod-strat. 
     #((0)

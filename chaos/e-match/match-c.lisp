@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:CommonLisp; Package: CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -65,8 +65,8 @@
     (dolist (equation (m-system-to-list sys))
       (unless (and (not (term-is-variable? (equation-t2 equation)))
                    (method-is-commutative-restriction-of
-                    (term-method (equation-t2 equation))
-                    (term-method (equation-t1 equation))))
+                    (term-head (equation-t2 equation))
+                    (term-head (equation-t1 equation))))
         (return-from no-match (values nil t))))
     (values (create-match-C-state 0 sys)
             nil)))

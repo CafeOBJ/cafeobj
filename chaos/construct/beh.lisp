@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -152,8 +152,8 @@
       ;;
       (setq hvars (list (make-variable-term hs '|hs1|)
                         (make-variable-term hs '|hs2|)))
-      (setq pvars (list (make-pvariable-term hs '|`phs-1|)
-                          (make-pvariable-term hs '|`phs-2|)))
+      (setq pvars (list (make-pconst-term hs '|`phs-1|)
+                        (make-pconst-term hs '|`phs-2|)))
       (setq cond (make-term-with-sort-check *beh-equal* hvars))
       (dolist (attr attributes)
         (let ((arity (method-arity attr)))
@@ -191,10 +191,10 @@
                 (mapcar #'(lambda (x)
                             (if (sort-is-hidden x)
                                 (car pvars)
-                              (make-pvariable-term x
-                                                   (intern (format nil
-                                                                     "`pvs~D"
-                                                                     (incf var-num))))))
+                              (make-pconst-term x
+                                                (intern (format nil
+                                                                "`pvs~D"
+                                                                (incf var-num))))))
                         arity))
           (setf rhs-args (copy-list lhs-args))
           (setf (nth hs-pos rhs-args) (cadr pvars))
@@ -243,10 +243,9 @@
                   (mapcar #'(lambda (x)
                               (if (sort-is-hidden x)
                                   (car pvars)
-                                (make-pvariable-term x
-                                (intern (format nil "`bpvs~D"
-                                                (incf
-                                                 var-num))))))
+                                (make-pconst-term x
+                                                  (intern (format nil "`bpvs~D"
+                                                                  (incf var-num))))))
                           marity))
             (setq rhs-args (copy-list lhs-args))
             (setf (nth mhpos rhs-args) (cadr pvars))
