@@ -873,60 +873,56 @@
   (declare (type term term)
            (type module module)
            (values term))
-  (variable2vconstant term)
-  (case mode
-    (:exec+
-     (let ((*rwl-search-no-state-report* t))
-       (rwl-search* term
-                    nil                 ; pattern
-                    1                   ; max result
-                    most-positive-fixnum ; max depth
-                    nil                 ; zero?
-                    t                   ; final?
-                    nil                 ; cond
-                    nil                 ; pred
-                    *current-module*    ; module
-                    )
-       (if (rwl-sch-context-answers .rwl-sch-context.)
-           (term-replace term
-                         (rwl-state-term
-                          (car (rwl-sch-context-answers .rwl-sch-context.))))
-         (with-output-chaos-error ()
-           (format t "PANIC!")))))
-    (otherwise
-     (setq $$trials 1)
-     (when *memo-rewrite*
-       (when (or *clean-memo-in-normalize*
-                 (not (eq module *memoized-module*)))
-         (clear-term-memo-table *term-memo-table*))
-       (setq *memoized-module* module))
-     (let ((*trace-level* 0))
-       (with-in-module (module)
-         (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
-                                   (module-has-behavioural-axioms module))))
-           (declare (special *beh-rewrite*))
-           (set-term-color-top term)
-           (normalize-term term))))))
-  (vconstant2variable term)
-  term)
+  (with-variable-as-constant (term)
+    (case mode
+      (:exec+
+       (let ((*rwl-search-no-state-report* t))
+         (rwl-search* term
+                      nil               ; pattern
+                      1                 ; max result
+                      most-positive-fixnum ; max depth
+                      nil               ; zero?
+                      t                 ; final?
+                      nil               ; cond
+                      nil               ; pred
+                      *current-module*  ; module
+                      )
+         (if (rwl-sch-context-answers .rwl-sch-context.)
+             (term-replace term
+                           (rwl-state-term
+                            (car (rwl-sch-context-answers .rwl-sch-context.))))
+           (with-output-chaos-error ()
+             (format t "PANIC!")))))
+      (otherwise
+       (setq $$trials 1)
+       (when *memo-rewrite*
+         (when (or *clean-memo-in-normalize*
+                   (not (eq module *memoized-module*)))
+           (clear-term-memo-table *term-memo-table*))
+         (setq *memoized-module* module))
+       (let ((*trace-level* 0))
+         (with-in-module (module)
+           (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
+                                     (module-has-behavioural-axioms module))))
+             (declare (special *beh-rewrite*))
+             (set-term-color-top term)
+             (normalize-term term))))))))
 
 (defun rewrite* (term)
   (declare (type term term)
            (values term))
-  (variable2vconstant term)
-  (setq $$trials 1)
-  (when *memo-rewrite*
-    (when (or *clean-memo-in-normalize*
-              (not (eq *current-module* *memoized-module*)))
-      (clear-term-memo-table *term-memo-table*))
-    (setq *memoized-module* *current-module*))
-  (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
-                            (module-has-behavioural-axioms *current-module*))))
-    (declare (special *beh-rewrite*))
-    (set-term-color-top term)
-    (normalize-term term))
-  (vconstant2variable term)
-  term)
+  (with-variable-as-constant (term)
+    (setq $$trials 1)
+    (when *memo-rewrite*
+      (when (or *clean-memo-in-normalize*
+                (not (eq *current-module* *memoized-module*)))
+        (clear-term-memo-table *term-memo-table*))
+      (setq *memoized-module* *current-module*))
+    (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
+                              (module-has-behavioural-axioms *current-module*))))
+      (declare (special *beh-rewrite*))
+      (set-term-color-top term)
+      (normalize-term term))))
 
 ;;; rewrite-exec
 ;;; 
@@ -934,45 +930,43 @@
   (declare (type term term)
            (type module module)
            (values term))
-  (variable2vconstant term)
-  (case mode
-    (:exec+
-     (let ((*rwl-search-no-state-report* t))
-       (rwl-search* term
-                    nil                 ; pattern
-                    1                   ; max result
-                    most-positive-fixnum ; max depth
-                    nil                 ; zero?
-                    t                   ; final?
-                    nil                 ; cond
-                    nil                 ; pred
-                    *current-module*    ; module
-                    )
-       (if (rwl-sch-context-answers .rwl-sch-context.)
-           (term-replace term
-                         (rwl-state-term
-                          (car (rwl-sch-context-answers .rwl-sch-context.))))
-         (with-output-chaos-error ()
-           (format t "PANIC!")))))
-    (otherwise
-     (setq $$trials 1)
-     (when *memo-rewrite*
-       (when (or *clean-memo-in-normalize*
-                 (not (eq module *memoized-module*)))
-         (clear-term-memo-table *term-memo-table*))
-       (setq *memoized-module* module))
-     (let ((*trace-level* 0))
-       (setq $$matches 0)
-       (setq *term-memo-hash-hit* 0)
-       (with-in-module (module)
-         (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
-                                   (module-has-behavioural-axioms module))))
-           (declare (special *beh-rewrite*))
-           ;;
-           (set-term-color-top term)
-           (normalize-term term))))))
-  (vconstant2variable term)
-  term)
+  (with-variable-as-constant (term)
+    (case mode
+      (:exec+
+       (let ((*rwl-search-no-state-report* t))
+         (rwl-search* term
+                      nil               ; pattern
+                      1                 ; max result
+                      most-positive-fixnum ; max depth
+                      nil               ; zero?
+                      t                 ; final?
+                      nil               ; cond
+                      nil               ; pred
+                      *current-module*  ; module
+                      )
+         (if (rwl-sch-context-answers .rwl-sch-context.)
+             (term-replace term
+                           (rwl-state-term
+                            (car (rwl-sch-context-answers .rwl-sch-context.))))
+           (with-output-chaos-error ()
+             (format t "PANIC!")))))
+      (otherwise
+       (setq $$trials 1)
+       (when *memo-rewrite*
+         (when (or *clean-memo-in-normalize*
+                   (not (eq module *memoized-module*)))
+           (clear-term-memo-table *term-memo-table*))
+         (setq *memoized-module* module))
+       (let ((*trace-level* 0))
+         (setq $$matches 0)
+         (setq *term-memo-hash-hit* 0)
+         (with-in-module (module)
+           (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
+                                     (module-has-behavioural-axioms module))))
+             (declare (special *beh-rewrite*))
+             ;;
+             (set-term-color-top term)
+             (normalize-term term))))))))
 
 ;;;
 (defun term-memo-get-normal-form (term strategy)
@@ -985,13 +979,6 @@
       (setq normal-form term)
       (set-hashed-term term-nu *term-memo-table* normal-form))
     normal-form))
-
-(defmacro check-closed-world-assumption (?term)
-  ` (when *closed-world*
-      (when (and (sort= (term-sort ,?term) *bool-sort*)
-                 (not (is-true? ,?term))
-                 (term-is-applform? ,?term))
-        (term-replace-dd-simple ,?term *bool-false*))))
 
 ;;; NORMALIZE-TERM : TERM -> BOOL
 ;;;----------------------------------------------------------------------------

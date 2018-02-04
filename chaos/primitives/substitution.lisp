@@ -95,7 +95,7 @@
   `(cdr (assoc ,_*variable ,_*sigma :test #'eq)))
 
 (defmacro variable-image-slow (_*sigma _*variable)
-  `(cdr (assoc ,_*variable ,_*sigma :test #'variable=)))
+  `(cdr (assoc ,_*variable ,_*sigma :test #'variable-equal)))
 
 ;;; SUBSTITUTION-LIST-OF-PAIRS sigma
 ;;; returns the list of pair in substitution-
@@ -430,17 +430,22 @@
 ;;;
 
 ;; NO COPY of Term is done.
-(defun substitution-image-no-copy (sigma term)
+(defun substitution-image-no-copy (sigma term &optional (subst-pconst nil))
   (declare (type list sigma)
            (type term term)
            (values t))
   (let ((im nil))
+    ;; '-image-slow' because the use case often distructively changes terms.
     (cond ((term-is-variable? term)
-           (when (setq im (variable-image sigma term))
+           (when (setq im (variable-image-slow sigma term))
              (term-replace term im)))
-          ((term-is-constant? term) ) ;; do nothing
+          ((term-is-constant? term)
+           (when subst-pconst
+             (when (setq im (variable-image-slow sigma term))
+               (term-replace term im))))
           (t (dolist (s-t (term-subterms term))
-               (substitution-image-no-copy sigma s-t))))))
+               (substitution-image-no-copy sigma s-t subst-pconst))))
+    term))
 
 (defun substitution-partial-image (sigma term)
   (declare (type list sigma)

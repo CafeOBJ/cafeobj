@@ -95,9 +95,6 @@
 (defconstant builtin-constant-type (logior psuedo-constant-type
                                            pure-builtin-constant-type
                                            system-object-type))
-;;; this type requires both flags are on
-(defconstant constant-variable-type (logior variable-type
-                                            psuedo-constant-type))
 
 ;;; TERM-STATUS
 ;;; represents states
@@ -272,8 +269,6 @@
   `(eq psuedo-constant-type (term$type ,_term-body)))
 (defmacro term$is-system-object? (_term-body)
   `(eq system-object-type (term$type ,_term-body)))
-(defmacro term$is-constant-variable? (_term-body)
-  `(eq constant-variable-type (term$type ,_term-body)))
 
 ;;; TEST via term cell
 (defmacro term-is-variable? (_term)
@@ -302,8 +297,6 @@
         (let ((value (term-builtin-value ,_term)))
           (and (consp value)
                (eq (car value) '|%Chaos|)))))
-(defmacro term-is-constant-variable? (_term)
-  `(term$is-constant-variable? (term-body ,_term)))
 
 ;;; TERM-IS-CONSTANT? : term -> bool
 ;;; *note* we include variable-type and psuedo-constant-type for safety.
@@ -320,19 +313,6 @@
 
 (defmacro term-is-constant? (_term)
   `(term$is-constant? (term-body ,_term)))
-
-;;; CHANGING treatment of vairables according to a situation.
-;;; when we reduce a term with variables, we want treate them as if 
-;;; they are constants.
-;; mark variable as if its a constant
-(defmacro mark-variable-as-constant (term)
-  (once-only (term)
-     `(and (term-is-variable? ,term)
-           (setf (term-type ,term) constant-variable-type))))
-(defmacro unmark-variable-as-constant (term)
-  (once-only (term)
-   `(and (term-is-constant-variable? ,term)
-         (setf (term-type ,term) variable-type))))                   
 
 ;;; ----------------------
 ;;; TERM STATUS PREDICATES -----------------------------------------------------
@@ -686,18 +666,6 @@
                (declare (type list res))
                (dolist (st (appl$subterms body) res)
                  (setq res (delete-duplicates (append res (term-pvariables st))
-                                              :test #'(lambda (x y)
-                                                        (eq (variable-name x)
-                                                            (variable-name y)))))))))))
-
-(defun term-constant-variables (term)
-  (let ((body (term-body term)))
-    (cond ((term$is-constant-variable? body) (list term))
-          ((term$is-constant? body) nil)
-          (t (let ((res nil))
-               (declare (type list res))
-               (dolist (st (appl$subterms body) res)
-                 (setq res (delete-duplicates (append res (term-constant-variables st))
                                               :test #'(lambda (x y)
                                                         (eq (variable-name x)
                                                             (variable-name y)))))))))))

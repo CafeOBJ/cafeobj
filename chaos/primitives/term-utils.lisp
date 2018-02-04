@@ -69,7 +69,7 @@
 (defun reset-reduced-flag (term)
   (declare (type term term))
   (when (or (term-is-builtin-constant? term)
-            (variable-term? term))
+            (pvariable-term? term))
     (return-from reset-reduced-flag term))
   (mark-term-as-not-reduced term)
   (when (term-is-application-form? term)
@@ -77,20 +77,49 @@
       (reset-reduced-flag sub)))
   term)
 
-;;; ***********************
+;;; **************************
+;;; WITH-VARIABLE-AS-CONSTANT------------------------------------------------
 ;;; VARIABLES <-> CONSTANTS
-;;; ***********************
-(defun variable2vconstant (term)
-  (let ((vars (term-variables term)))
-    (mapcar #'(lambda (x) (mark-variable-as-constant x))
-             vars)
-    term))
+;;; **************************
+(defun make-pconst-from-var (var)
+  (let ((name (variable-name var))
+        (print-name (variable-print-name var))
+        (sort (variable-sort var))
+        (unique-marker (gensym))
+        (pc-name nil)
+        (pc-pname nil))
+    (setq pc-name (intern (concatenate 'string "`" (string unique-marker) "-" (string name))))
+    (if print-name
+        (setq pc-pname (intern (concatenate 'string "`" (string print-name))))
+      (setq pc-pname pc-name))
+    (make-pconst-term sort pc-name pc-pname)))
 
-(defun vconstant2variable (term)
-  (let ((cvars (term-constant-variables term)))
-    (mapcar #'(lambda (x) (unmark-variable-as-constant x))
-             cvars)
-    term))
+(defun variables->pconstants (term)
+  (let ((vars (term-variables term))
+        (subst (new-substitution))
+        (rsubst (new-substitution)))
+    (dolist (var vars)
+      (let ((pc (make-pconst-from-var var)))
+        (setq subst (substitution-add subst var pc))
+        (setq rsubst (substitution-add rsubst pc var))))
+    (setq rsubst (copy-tree rsubst))    ; because substitution-image-no-copy 
+                                        ; destructively changes given term
+    (substitution-image-no-copy subst term)
+    rsubst))
+
+(defun revert-pconstants (term rsubst)
+  (substitution-image-no-copy rsubst term :subst-pconstance)
+  term)
+
+;;; do some computtation with term within a env 
+(defmacro with-variable-as-constant ((_term_) &body body)
+  (once-only (_term_)
+    `(let ((_rsubst (variables->pconstants ,_term_)))
+       (progn
+         (block with-variable-as-constant
+           ,@body)
+         (revert-pconstants ,_term_ _rsubst)
+         ,_term_))))
 
 ;;; ****************
 ;;; ILL FORMED TERMS___________________________________________________________
@@ -291,7 +320,7 @@
            (values t))
   (let ((body (term-body term))
         (assoc-applied nil))
-    (unless (or (variable-term? term) (term-is-an-error term))
+    (unless (or (pvariable-term? term) (term-is-an-error term))
       (when (term-is-application-form? term)
         (let ((ts (term-sort term))
               (mso (method-coarity (term-head term))))
@@ -398,8 +427,8 @@
           (when (and (method-is-associative head) *do-assoc-arrangement*)
             ;; &&&& the following transformation tends to put
             ;; term into standard form even when sort doesn't decrease.
-            (when (and (not (or (variable-term-body? (setq son (term-body
-                                                                (term$arg-1 body))))
+            (when (and (not (or (pvariable-term-body? (setq son (term-body
+                                                                 (term$arg-1 body))))
                                 (term$is-builtin-constant? son)))
                        (method-is-associative-restriction-of (appl$head son) head)
                        (is-in-same-connected-component (term-sort (setq t1 (term$arg-2 son)))
@@ -442,8 +471,8 @@
 
             ;; would only like to do the following if the
             ;; sort really decreases
-            (when (and (not (or (variable-term-body? (setq son (term-body
-                                                                (term$arg-2 body))))
+            (when (and (not (or (pvariable-term-body? (setq son (term-body
+                                                                 (term$arg-2 body))))
                                 (term$is-builtin-constant? son)))
                        (method-is-associative-restriction-of (appl$head son) head)
                        (is-in-same-connected-component (term-sort (setq t1 (term$arg-1 body)))
@@ -504,9 +533,9 @@
 (defmacro is-false? (!_obj)
   `(eq (term-head ,!_obj) *bool-false-meth*))
 
-;;; VARIABLE= : VARIABLE VARIABLE -> BOOL
+;;; VARIABLE-EQUAL : VARIABLE VARIABLE -> BOOL
 ;;; returns true iff
-;;; (1) two variables are phigically equal, or
+;;; (1) two variables are phisically equal, or
 ;;; (2) have same name and same sort.
 ;;;
 (defun variable-equal (x y)
@@ -561,15 +590,12 @@
            (values (or null t)))
   (let ((t1-body (term-body t1))
         (t2-body (term-body t2)))
-    (cond ((or (term$is-variable? t1-body)
-               (term$is-constant-variable? t1-body))
+    (cond ((term$is-variable? t1-body)
            (or (eq t1 t2)
-               (and (or (term$is-variable? t2-body)
-                        (term$is-constant-variable? t2-body))
+               (and (term$is-variable? t2-body)
                     (eq (variable$name t1-body) (variable$name t2-body))
                     (sort= (variable$sort t1-body) (variable$sort t2-body)))))
-          ((or (term$is-variable? t2-body)(term$is-constant-variable? t2-body))
-           nil)
+          ((term$is-variable? t2-body) nil)
           ((term$is-application-form? t1-body)
            (and (term$is-application-form? t2-body)
                 (if (method-is-same-qual-method (appl$head t1-body)
@@ -1091,13 +1117,10 @@
   ;; (format t "~&ranf: ")
   ;; (term-print t1)
   (let ((body (term-body t1)))
-    ;; (break "OK?")
     (cond ((term$is-constant? body) t1)
           ((term$is-variable? body) t1)
           (t (let ((h-op (appl$head body)))
-               ;; (print-chaos-object h-op)
                (cond ((theory-contains-associativity (method-theory h-op))
-                      ;; (break "OK3")
                       (make-right-assoc-normal-form-with-sort-check
                        h-op 
                        (mapcar #'right-associative-normal-form 
@@ -1112,27 +1135,6 @@
 ;;; the head operator has associative theory with identity.
 ;;; * NOTE *
 ;;; head method must be associaitive method with identity.
-
-#||
-(defun right-associative-id-normal-form (t1)
-  (declare (type term t1)
-           (values term))
-  ;; (break)
-  (let ((body (term-body t1)))
-    (cond ((term$is-variable? body) t1)
-          ((term$is-constant? body) t1)
-          (t (let ((meth (appl$head body)))
-              (cond ((theory-contains-AZ (method-theory meth))
-                     (make-right-assoc-normal-form
-                      meth
-                      (mapcar
-                       #'right-associative-id-normal-form  
-                       (list-assoc-id-subterms t1 meth))
-                      ))
-                    ;; note this is only top-level normalization.
-                    (t t1)))))))
-||#
-
 (defun right-associative-id-normal-form (t1)
   (declare (type term t1))
   (if (term-is-applform? t1)
