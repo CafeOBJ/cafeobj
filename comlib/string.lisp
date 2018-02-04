@@ -57,6 +57,18 @@
           (t
            (list line)))))
 
+(defun parse-with-delimiter2 (line &optional (delim #\newline))
+  (declare (type simple-string line)
+           (type character delim))
+  ;; what about #\return instead of #\newline?
+  (let ((pos (position delim line)))
+    (cond (pos
+           (cons (subseq line 0 pos)
+                 (cons (string delim)
+                       (parse-with-delimiter2 (subseq line (1+ pos)) delim))))
+          (t
+           (list line)))))
+
 ;;; numeric-char-p
 ;;;
 (defmacro numeric-char-p (char)

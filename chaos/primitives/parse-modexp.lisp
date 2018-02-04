@@ -815,7 +815,7 @@
         (setq res (nconc res (parse-balanced-context cntxt))))
       (setq res (mapcan #'(lambda (x) 
                             (declare (type simple-string x))
-                            (remove "" (parse-with-delimiter x #\_) :test #'equal))
+                            (remove "" (parse-with-delimiter2 x #\_) :test #'equal))
                          res))
       res)))
 

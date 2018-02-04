@@ -214,7 +214,7 @@
 ;;; *******
 (defun inspect-canon-name (name)
   (if (stringp name)
-      (let ((sname (parse-with-delimiter name #\_)))
+      (let ((sname (parse-with-delimiter2 name #\_)))
         (if (null (cdr sname))
             (car sname)
           (remove "" sname :test #'equal)))
