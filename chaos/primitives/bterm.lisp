@@ -352,6 +352,9 @@
 (defmacro term-is-red (term)
   `(term$test-red-flag (term-body ,term)))
 
+(defmacro term-is-green (term)
+  `(zerop (logand red-flag (term$status (term-body ,term)))))
+
 ;;; lowest parsed flag
 ;;; ------------------
 
@@ -389,8 +392,9 @@
 
 (defmacro term$unset-reduced-flag (term-body)
   (once-only (term-body)
-    `(setf (term$status ,term-body)
-           (make-xor reduced-flag (term$status ,term-body)))))
+     `(unless (zerop (logand reduced-flag (term$status ,term-body)))
+        (setf (term$status ,term-body)
+          (make-xor reduced-flag (term$status ,term-body))))))
 
 (defmacro term-unset-reduced-flag (term)
   `(term$unset-reduced-flag (term-body ,term)))
@@ -410,8 +414,9 @@
 
 (defmacro term$set-green (term-body)
   (once-only (term-body)
-     `(setf (term$status ,term-body)
-        (make-xor red-flag (term$status ,term-body)))))
+     `(unless (zerop (logand red-flag (term$status ,term-body)))
+        (setf (term$status ,term-body)
+          (make-xor red-flag (term$status ,term-body))))))
 
 (defmacro term-set-green (term)
   `(term$set-green (term-body ,term)))
@@ -433,9 +438,10 @@
 
 (defmacro term$unset-lowest-parsed-flag (term-body)
   (once-only (term-body)
-    `(setf (term$status ,term-body)
-           (make-xor lowest-parsed-flag
-                     (term$status ,term-body)))))
+    `(unless (zerop (logand lowest-parsed-flag (term$status ,term-body)))
+       (setf (term$status ,term-body)
+         (make-xor lowest-parsed-flag
+                   (term$status ,term-body))))))
 
 (defmacro term-unset-lowest-parsed-flag (term)
   `(term$unset-lowest-parsed-flag (term-body ,term)))
@@ -460,9 +466,10 @@
 
 (defmacro term$unset-on-demand-flag (term-body)
   (once-only (term-body)
-   `(setf (term$status ,term-body)
-          (make-xor on-demand-flag
-                    (term$status ,term-body)))))
+   `(unless (zerop (logand on-demand-flag (term$status ,term-body)))
+      (setf (term$status ,term-body)
+        (make-xor on-demand-flag
+                  (term$status ,term-body))))))
 
 (defmacro term-unset-on-demand-flag (term)
   `(term$unset-on-demand-flag ,term))

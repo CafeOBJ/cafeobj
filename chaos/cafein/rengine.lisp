@@ -253,7 +253,7 @@
 
 (defmacro beh-context-ok? (rule term)
    `(if (axiom-is-behavioural ,rule)
-        (or (not (term-is-red ,term))
+        (or (term-is-green ,term)
             (and *beh-rewrite*
                  (eq $$term ,term)))
       t))
@@ -336,6 +336,11 @@
           (when no-match (return-from the-end nil))
           ;; 
           (unless (beh-context-ok? rule term)
+            (when *rewrite-debug*
+              (format t "~%[apply-one-rule] bad beh context~%")
+              (print-axiom-brief rule)
+              (terpri)
+              (term-print-with-sort term))
             (return-from the-end nil))
           
           ;; technical assignation related to substitution-image.
