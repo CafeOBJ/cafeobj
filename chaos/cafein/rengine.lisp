@@ -1001,22 +1001,23 @@
               (term-is-lowest-parsed? term)
               (term-is-on-demand? term))
       (term-print-with-sort term)))
-
-    (cond ((term-is-reduced? term) t)
-          ((term-is-application-form? term)
-           (let ((strategy nil))
-             (cond ((null (setq strategy
-                            (method-rewrite-strategy (term-head term))))
-                    (mark-term-as-reduced term)
-                    t)
-                   ((and *memo-rewrite*
-                         (or *always-memo* (method-has-memo (term-head term))))
-                    (term-replace term
-                                  (term-memo-get-normal-form term strategy))
-                    nil)
-                   (t (reduce-term term strategy)
-                      nil))))
-          (t (mark-term-as-reduced term) t)))
+  (let ((strategy nil))
+    (when (term-is-reduced? term) 
+      (when (term-is-builtin-constant? term)
+        (update-lowest-parse term))
+      (return-from normalize-term t))
+    (when (term-is-application-form? term)
+      (setq strategy (method-rewrite-strategy (term-head term))))
+    (cond ((null strategy)
+           (mark-term-as-reduced term)
+           t)
+          ((and *memo-rewrite*
+                (or *always-memo* (method-has-memo (term-head term))))
+           (term-replace term
+                         (term-memo-get-normal-form term strategy))
+           nil)
+          (t (reduce-term term strategy)
+             nil))))
 
 (defun !normalize-term (term)
   (declare (type term term)
