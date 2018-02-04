@@ -127,8 +127,8 @@
                       "primitives/gen-eval"
                       "primitives/gen-print"
                       "primitives/context"
-                      "primitives/term-utils"
                       "primitives/substitution"
+                      "primitives/term-utils"
                       "primitives/find"
                       "primitives/print-object"))
     (:serial
