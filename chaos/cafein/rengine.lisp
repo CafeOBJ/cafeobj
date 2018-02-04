@@ -873,6 +873,7 @@
   (declare (type term term)
            (type module module)
            (values term))
+  (variable2vconstant term)
   (case mode
     (:exec+
      (let ((*rwl-search-no-state-report* t))
@@ -906,11 +907,13 @@
            (declare (special *beh-rewrite*))
            (set-term-color-top term)
            (normalize-term term))))))
+  (vconstant2variable term)
   term)
 
 (defun rewrite* (term)
   (declare (type term term)
            (values term))
+  (variable2vconstant term)
   (setq $$trials 1)
   (when *memo-rewrite*
     (when (or *clean-memo-in-normalize*
@@ -922,6 +925,7 @@
     (declare (special *beh-rewrite*))
     (set-term-color-top term)
     (normalize-term term))
+  (vconstant2variable term)
   term)
 
 ;;; rewrite-exec
@@ -930,6 +934,7 @@
   (declare (type term term)
            (type module module)
            (values term))
+  (variable2vconstant term)
   (case mode
     (:exec+
      (let ((*rwl-search-no-state-report* t))
@@ -966,6 +971,7 @@
            ;;
            (set-term-color-top term)
            (normalize-term term))))))
+  (vconstant2variable term)
   term)
 
 ;;;
@@ -1372,13 +1378,6 @@
   (let ((*fancy-print* nil)
         (*print-with-sort* t))
     (term-print $$term)))
-
-#||
-(defun apply-one-rule (rule term)
-  (declare (ignore rule term))
-  (format t "~%APPLY-ONE-RULE : INTERNAL ERROR, SPECIFIC REWRITEING ENGINE ISN'T SPECIFIED.")
-  (break))
-||#
 
 (defun rew-matcher (pat term)
   (if (term-is-variable? pat)

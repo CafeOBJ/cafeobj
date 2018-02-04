@@ -64,12 +64,12 @@
   (make-applform-simple sort meth args))
 
 ;;; ******************
-;;; RESET-REDUCED-FLAG
+;;; RESET-REDUCED-FLAG---------------------------------------------------------
 ;;; ******************
 (defun reset-reduced-flag (term)
   (declare (type term term))
   (when (or (term-is-builtin-constant? term)
-            (term-is-variable? term))
+            (variable-term? term))
     (return-from reset-reduced-flag term))
   (mark-term-as-not-reduced term)
   (when (term-is-application-form? term)
@@ -77,6 +77,20 @@
       (reset-reduced-flag sub)))
   term)
 
+;;; ***********************
+;;; VARIABLES <-> CONSTANTS
+;;; ***********************
+(defun variable2vconstant (term)
+  (let ((vars (term-variables term)))
+    (mapcar #'(lambda (x) (mark-variable-as-constant x))
+             vars)
+    term))
+
+(defun vconstant2variable (term)
+  (let ((cvars (term-constant-variables term)))
+    (mapcar #'(lambda (x) (unmark-variable-as-constant x))
+             cvars)
+    term))
 
 ;;; ****************
 ;;; ILL FORMED TERMS___________________________________________________________
@@ -277,9 +291,7 @@
            (values t))
   (let ((body (term-body term))
         (assoc-applied nil))
-    (unless (or (term$is-variable? body) (term$is-pconstant? body)
-                (term-is-an-error term))
-      ;;
+    (unless (or (variable-term? term) (term-is-an-error term))
       (when (term-is-application-form? term)
         (let ((ts (term-sort term))
               (mso (method-coarity (term-head term))))
@@ -386,8 +398,8 @@
           (when (and (method-is-associative head) *do-assoc-arrangement*)
             ;; &&&& the following transformation tends to put
             ;; term into standard form even when sort doesn't decrease.
-            (when (and (not (or (term$is-variable? (setq son (term-body
-                                                              (term$arg-1 body))))
+            (when (and (not (or (variable-term-body? (setq son (term-body
+                                                                (term$arg-1 body))))
                                 (term$is-builtin-constant? son)))
                        (method-is-associative-restriction-of (appl$head son) head)
                        (is-in-same-connected-component (term-sort (setq t1 (term$arg-2 son)))
@@ -430,8 +442,8 @@
 
             ;; would only like to do the following if the
             ;; sort really decreases
-            (when (and (not (or (term$is-variable? (setq son (term-body
-                                                              (term$arg-2 body))))
+            (when (and (not (or (variable-term-body? (setq son (term-body
+                                                                (term$arg-2 body))))
                                 (term$is-builtin-constant? son)))
                        (method-is-associative-restriction-of (appl$head son) head)
                        (is-in-same-connected-component (term-sort (setq t1 (term$arg-1 body)))
@@ -549,12 +561,15 @@
            (values (or null t)))
   (let ((t1-body (term-body t1))
         (t2-body (term-body t2)))
-    (cond ((term$is-variable? t1-body)
+    (cond ((or (term$is-variable? t1-body)
+               (term$is-constant-variable? t1-body))
            (or (eq t1 t2)
-               (and (term$is-variable? t2-body)
-                     (eq (variable$name t1-body) (variable$name t2-body))
+               (and (or (term$is-variable? t2-body)
+                        (term$is-constant-variable? t2-body))
+                    (eq (variable$name t1-body) (variable$name t2-body))
                     (sort= (variable$sort t1-body) (variable$sort t2-body)))))
-          ((term$is-variable? t2-body) nil)
+          ((or (term$is-variable? t2-body)(term$is-constant-variable? t2-body))
+           nil)
           ((term$is-application-form? t1-body)
            (and (term$is-application-form? t2-body)
                 (if (method-is-same-qual-method (appl$head t1-body)
@@ -598,48 +613,40 @@
                    (subs2 (term-subterms t2)))
                (declare (type list subs1 subs2)
                         (type method head1 head2))
-               ;;
                (if (null subs1)
                    (and (null subs2)
                         (eq head1 head2))
-                   (if (method-is-of-same-operator head1 head2)
-                       (do* ((sub1 subs1 (cdr sub1))
-                             (sub2 subs2 (cdr sub2))
-                             (st1 nil)
-                             (st2 nil))
-                            ((null sub1) t)
-                         (setq st1 (car sub1))
-                         (setq st2 (car sub2))
-                         ;; (unless st2 (return nil))
-                         (cond ((term-is-applform? st1)
-                                (unless
-                                    (and (term-is-applform? st2)
-                                         (if (theory-info-empty-for-matching
-                                               (method-theory-info-for-matching
-                                                (term-head st1)))
-                                              (match-with-empty-theory st1 st2)
-                                              (term-equational-equal st1 st2)))
-                                  (return nil)))
-                               ((term-is-variable? st1)
-                                (setq *used==* t)
-                                (unless (variable= st1 st2) (return nil)))
-                               ;;
-                               ((term-is-variable? st2)
-                                (setq *used==* t)
-                                (return nil))
-                               ;;
-                               ((term-is-builtin-constant? st1)
-                                (unless (term-builtin-equal st1 st2) (return nil)))
-                               ;;
-                               (t
-                                (break "Panic: unknown type of term")
-                                ;;
-                                )))
-                       nil))))
+                 (if (method-is-of-same-operator head1 head2)
+                     (do* ((sub1 subs1 (cdr sub1))
+                           (sub2 subs2 (cdr sub2))
+                           (st1 nil)
+                           (st2 nil))
+                         ((null sub1) t)
+                       (setq st1 (car sub1))
+                       (setq st2 (car sub2))
+                       (cond ((term-is-applform? st1)
+                              (unless
+                                  (and (term-is-applform? st2)
+                                       (if (theory-info-empty-for-matching
+                                            (method-theory-info-for-matching
+                                             (term-head st1)))
+                                           (match-with-empty-theory st1 st2)
+                                         (term-equational-equal st1 st2)))
+                                (return nil)))
+                             ((term-is-variable? st1)
+                              (setq *used==* t)
+                              (unless (variable= st1 st2) (return nil)))
+                             ((term-is-variable? st2)
+                              (setq *used==* t)
+                              (return nil))
+                             ((term-is-builtin-constant? st1)
+                              (unless (term-builtin-equal st1 st2) (return nil)))
+                             (t
+                              (break "Panic: unknown type of term"))))
+                   nil))))
             ((term-is-builtin-constant? t1)
              (term-builtin-equal t1 t2))
-            ((term-is-builtin-constant? t2) nil)
-            )))
+            ((term-is-builtin-constant? t2) nil))))
 
 (defun term-equational-equal (t1 t2)
   (declare (type term t1 t2)

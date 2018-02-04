@@ -179,7 +179,7 @@
     (number (typecase y
               (number (if (< x y)
                           :lt
-                        (if (< y number x)
+                        (if (< y x)
                             :gt
                           :eq)))
               ((or symbol integer cons) :gt)

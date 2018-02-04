@@ -96,6 +96,19 @@
 
 (defvar *print-term-color* nil)
 
+;;; VARIABLE-TERM? : term -> Bool
+;;; returns t if pure varible, pconstant or variable as constant
+;;;
+(defun variable-term? (term)
+  (or (test-and variable-type (term$type (term-body term)))
+      (term-is-pconstant? term)))
+
+(defun variable-term-body? (term-body)
+  (or (test-and variable-type (term$type term-body))
+      (term$is-pconstant? term-body)))
+
+;;; VARIABLE-PRINT-STRING: variable -> String
+;;;
 (defun variable-print-string (term &optional (print-var-sort t)
                                              (vars-so-far (cons nil nil)))
   (let ((name (if (numberp (variable-print-name term))
@@ -149,7 +162,8 @@
   (unless term
     (princ "!! empty term !!")
     (return-from term-to-sexpr nil))
-  (cond ((term-is-variable? term)
+  (cond ((or (term-is-variable? term)
+             (term-is-constant-variable? term))
          (if as-tree
              (return-from term-to-sexpr
                `(":var" ,(variable-print-string term print-var-sort vars-so-far)))
@@ -241,7 +255,7 @@
     (when (and (term-is-red term) *print-term-color*)
       (princ "r::"))
     ;; 
-    (cond ((or (term$is-variable? body) (term$is-pconstant? body))
+    (cond ((variable-term? term)
            (let ((vstr (variable-print-string term print-var-sort vars-so-far)))
              (princ vstr stream)))
           ((term$is-system-object? body)
@@ -326,7 +340,7 @@
     (when (and *print-term-color* (term-is-red term))
       (princ "r::" stream))
 
-    (cond ((or (term-is-variable? term) (term-is-pconstant? term))
+    (cond ((variable-term? term)
            (let ((vstr (variable-print-string term
                                               print-var-sort
                                               vars-so-far)))
@@ -471,13 +485,11 @@
     (setq paren?
           (case *print-xmode*
             (:fancy
-             (if (or (term-is-variable? term)
-                     (term-is-pconstant? term))
+             (if (variable-term? term)
                  nil
                t))
             (:normal
-             (if (or (term-is-variable? term)
-                     (term-is-pconstant? term))
+             (if (variable-term? term)
                  nil
                (if (and (term-is-applform? term)
                         (operator-is-mixfix (method-operator
@@ -487,7 +499,7 @@
             (otherwise  nil)))
     (when (and (or (eq *print-xmode* :fancy)
                    (eq *print-xmode* :normal))
-               (term-is-variable? term))
+               (variable-term? term))
       (setq **print-var-sort** nil))
     ;;
     (when paren? (princ "(" stream))
@@ -540,8 +552,7 @@
 (defun !print-term-tree (tree show-sort stream &optional (show-as-graph t))
   (let* ((*show-sort* show-sort)
          (leaf?
-          #'(lambda (tree) (or (term-is-variable? tree)
-                               (term-is-constant? tree))))
+          #'(lambda (tree) (variable-term? tree)))
          (leaf-name
           #'(lambda (term)
               (let ((name (if (term-is-builtin-constant? term)
@@ -551,7 +562,7 @@
                                       ((symbolp value)
                                        (string value))
                                       (t (format nil "(~s)" value))))
-                            (if (term-is-variable? term)
+                            (if (variable-term? term)
                                 (string (variable-print-name term))
                               (if (term-is-lisp-form? term)
                                   (lisp-form-original-form term)
