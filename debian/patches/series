@@ -2,3 +2,4 @@ fix-refman-fonts
 fix-syntax-font
 armhf-remove-buildopts
 change-logo-font
+add-rule-for-logo-png

@@ -1,0 +1,17 @@
+---
+ Makefile.in |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- cafeobj-1.5.7.orig/Makefile.in
++++ cafeobj-1.5.7/Makefile.in
+@@ -320,8 +320,8 @@
+ 	$(MAKE) -C doc/citp-manual citp.pdf
+ doc/binspect/binspect.pdf: doc/etc/kosakusha-logo-gray.png
+ 	$(MAKE) -C doc/binspect binspect.pdf
+-
+-
++doc/etc/kosakusha-logo-gray.png:
++	$(MAKE) -C doc/etc kosakusha-logo-gray.png
+ 
+ clean:
+ 	-test -r doc/refman/Makefile && $(MAKE) -C doc/refman clean
