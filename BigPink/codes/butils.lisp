@@ -113,24 +113,14 @@
          (let ((var (find-if #'(lambda (x) (variable-eq term x)) variables)))
            (if var
                var
-             #||
-             (if variables
-                 (with-output-panic-message-n (:p-pn-0010 (list (variable-name term)))
-                   ;; (format t "copying term, could not find var ~a"
-                   ;;        (variable-name term))
-                   (break "type in :q for returning to top-level.")
-                   )
-               term)
-             ||#
              term )))
         ((term-is-application-form? term)
-         (@create-application-form-term
-          (term-head term)
-          (term-sort term)
-          (mapcar #'(lambda (x)
-                      (copy-term-reusing-variables x
-                                                   variables))
-                  (term-subterms term))))
+         (make-application-term (term-head term)
+                                (term-sort term)
+                                (mapcar #'(lambda (x)
+                                            (copy-term-reusing-variables x
+                                                                         variables))
+                                         (term-subterms term))))
         (t (simple-copy-term term))))
 
 (defun allocate-new-term-cell (term)

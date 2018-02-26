@@ -1,0 +1,33 @@
+% \documentclass{minimal}
+% \usepackage{amsmath}
+% \usepackage{tikz}
+% \begin{document}
+\begin{tikzpicture}[node distance=3cm,every node/.style={inner sep=3pt, anchor=west, text width=1.6cm}]
+  \def\xx{2}
+  \def\foo{項}
+  \def\vd{$\vphantom{0^0}\smash[t]{\vdots}\hphantom{\foo1-1-1}$}
+  \def\bb#1{\foo#1\hfill $\downarrow$}
+  \node at (0,0) [text width=0.8cm] (1) {\bb1} ;
+  \node at (\xx,4) [text width=1.2cm] (1-1) {\bb{1-1}} ;
+  \node at (\xx,0.5) [text width=1.2cm] (1-2) {\bb{1-2}} ;
+  \node at (\xx,-1) [text width=1.2cm] (1-i) {\vd} ;
+  \node at (\xx,-4) [text width=1.2cm] (1-k) {\bb{1-1}} ;
+  \path (1.east) edge (1-1.west) edge (1-2.west) edge (1-i.west) edge (1-k.west) ;
+  
+  \node at (2 * \xx, 5.5) (1-1-1) {\bb{1-1-1}} ;
+  \node at (2 * \xx, 4.5) (1-1-2) {\bb{1-1-2}} ;
+  \node at (2 * \xx, 3.5) (1-1-ii) {\vd} ;
+  \node at (2 * \xx, 2.5) (1-1-i) {\bb{1-1-i}} ;
+  \path (1-1.east) edge (1-1-1.west) edge (1-1-2.west) edge (1-1-ii.west) edge (1-1-i.west) ;
+  \node at (2 * \xx, 1.5) (1-2-1) {\bb{1-2-1}} ;
+  \node at (2 * \xx, 0.5) (1-2-2) {\bb{1-2-2}} ;
+  \node at (2 * \xx, -0.5) (1-2-ii) {\vd} ;
+  \node at (2 * \xx, -1.5) (1-2-i) {\bb{1-2-j}} ;
+  \path (1-2.east) edge (1-2-1.west) edge (1-2-2.west) edge (1-2-ii.west) edge (1-2-i.west) ;
+  \node at (2 * \xx, -2.5) (1-k-1) {\bb{1-k-1}} ;
+  \node at (2 * \xx, -3.5) (1-k-2) {\bb{1-k-2}} ;
+  \node at (2 * \xx, -4.5) (1-k-ii) {\vd} ;
+  \node at (2 * \xx, -5.5) (1-k-i) {\bb{1-k-n}} ;
+  \path (1-k.east) edge (1-k-1.west) edge (1-k-2.west) edge (1-k-ii.west) edge (1-k-i.west) ;
+\end{tikzpicture}
+%\end{document}

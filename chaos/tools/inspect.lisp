@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -215,8 +215,8 @@
 (defun inspect-canon-name (name)
   (if (stringp name)
       (let ((sname (parse-with-delimiter2 name #\_)))
-        (if (stringp sname)
-            sname
+        (if (null (cdr sname))
+            (car sname)
           (remove "" sname :test #'equal)))
     (mapcan #'inspect-canon-name 
             (remove ")" (remove "(" name :test #'equal) :test #'equal))))

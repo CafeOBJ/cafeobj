@@ -1,7 +1,7 @@
 ;;; -*- Mode: LISP; Syntax: Common-lisp; Base: 10; Lowercase: T;  -*-
 ;;;
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -71,9 +71,9 @@
      (:module "chaos"
               :components ((:module primitives
                                     :serial t
-                                    :components ((:file "term2")
+                                    :components ((:file "bterm")
                                                  (:file "defterm")
-                                                 (:file "bobject2")
+                                                 (:file "bobject")
                                                  (:file "absntax")
                                                  (:file "script")
                                                  (:file "op-theory")
@@ -89,8 +89,8 @@
                                                  (:file "gen-eval")
                                                  (:file "gen-print")
                                                  (:file "context")
-                                                 (:file "term-utils")
                                                  (:file "substitution")
+                                                 (:file "term-utils")
                                                  (:file "find")
                                                  (:file "print-object")
                                                  ))
@@ -119,6 +119,7 @@
                                                     (:file "match2")
                                                     ))
                               (:module construct
+                                       :serial t
                                        :components ((:file "sort")
                                                     (:file "operator")
                                                     (:file "variable")

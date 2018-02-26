@@ -1,6 +1,6 @@
 ;;;-*- Mode: Lisp; Syntax:CommonLisp; Package:CHAOS; Base:10 -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -54,8 +54,8 @@
 (defmacro method-is-record-constructor (__method__)
   `(eq (method-constructor ,__method__) ':record))
 
-(defmacro make-applform-simple (!_sort !_meth &optional !_subterms)
-  `(the term (@create-application-form-term ,!_meth ,!_sort ,!_subterms)))
+(defmacro make-applform-simple (_sort _meth &optional _subterms)
+  `(make-application-term ,_meth ,_sort ,_subterms))
 
 (defun make-applform (sort meth &optional args)
   (declare (type sort* sort)
@@ -64,12 +64,12 @@
   (make-applform-simple sort meth args))
 
 ;;; ******************
-;;; RESET-REDUCED-FLAG
+;;; RESET-REDUCED-FLAG---------------------------------------------------------
 ;;; ******************
 (defun reset-reduced-flag (term)
   (declare (type term term))
   (when (or (term-is-builtin-constant? term)
-            (term-is-variable? term))
+            (pvariable-term? term))
     (return-from reset-reduced-flag term))
   (mark-term-as-not-reduced term)
   (when (term-is-application-form? term)
@@ -77,6 +77,49 @@
       (reset-reduced-flag sub)))
   term)
 
+;;; **************************
+;;; WITH-VARIABLE-AS-CONSTANT------------------------------------------------
+;;; VARIABLES <-> CONSTANTS
+;;; **************************
+(defun make-pconst-from-var (var)
+  (let ((name (variable-name var))
+        (print-name (variable-print-name var))
+        (sort (variable-sort var))
+        (unique-marker (gensym))
+        (pc-name nil)
+        (pc-pname nil))
+    (setq pc-name (intern (concatenate 'string "`" (string unique-marker) "-" (string name))))
+    (if print-name
+        (setq pc-pname (intern (concatenate 'string "`" (string print-name))))
+      (setq pc-pname pc-name))
+    (make-pconst-term sort pc-name pc-pname)))
+
+(defun variables->pconstants (term)
+  (let ((vars (term-variables term))
+        (subst (new-substitution))
+        (rsubst (new-substitution)))
+    (dolist (var vars)
+      (let ((pc (make-pconst-from-var var)))
+        (setq subst (substitution-add subst var pc))
+        (setq rsubst (substitution-add rsubst pc var))))
+    (setq rsubst (copy-tree rsubst))    ; because substitution-image-no-copy 
+                                        ; destructively changes given term
+    (substitution-image-no-copy subst term)
+    rsubst))
+
+(defun revert-pconstants (term rsubst)
+  (substitution-image-no-copy rsubst term :subst-pconstance)
+  term)
+
+;;; do some computtation with term within a env 
+(defmacro with-variable-as-constant ((_term_) &body body)
+  (once-only (_term_)
+    `(let ((_rsubst (variables->pconstants ,_term_)))
+       (progn
+         (block with-variable-as-constant
+           ,@body)
+         (revert-pconstants ,_term_ _rsubst)
+         ,_term_))))
 
 ;;; ****************
 ;;; ILL FORMED TERMS___________________________________________________________
@@ -104,7 +147,7 @@
            (values (or null t)))
   (let ((body (term-body tm)))
     (and (term$is-application-form? body)
-         (method-is-error-method (term$head body)))))
+         (method-is-error-method (appl$head body)))))
 
 ;;; Returns true iff the term is application form and has user defined
 ;;; error method as its top.
@@ -187,7 +230,7 @@
            (values (or null t)))
   (let ((body (term-body term)))
     (when (term$is-application-form? body)
-      (or (method-is-error-method (term$head body))
+      (or (method-is-error-method (appl$head body))
           (some #'term-contains-error-method (term$subterms body))))))
 
 
@@ -277,9 +320,7 @@
            (values t))
   (let ((body (term-body term))
         (assoc-applied nil))
-    (unless (or (term$is-variable? body) (term$is-psuedo-constant? body)
-                (term-is-an-error term))
-      ;;
+    (unless (or (pvariable-term? term) (term-is-an-error term))
       (when (term-is-application-form? term)
         (let ((ts (term-sort term))
               (mso (method-coarity (term-head term))))
@@ -323,7 +364,7 @@
               term))
 
         ;; application form
-        (let* ((head (term$head body))
+        (let* ((head (appl$head body))
                (mod (get-object-context (method-operator head)))
                (son nil)
                (t1 nil)
@@ -386,10 +427,10 @@
           (when (and (method-is-associative head) *do-assoc-arrangement*)
             ;; &&&& the following transformation tends to put
             ;; term into standard form even when sort doesn't decrease.
-            (when (and (not (or (term$is-variable? (setq son (term-body
-                                                              (term$arg-1 body))))
+            (when (and (not (or (pvariable-term-body? (setq son (term-body
+                                                                 (term$arg-1 body))))
                                 (term$is-builtin-constant? son)))
-                       (method-is-associative-restriction-of (term$head son) head)
+                       (method-is-associative-restriction-of (appl$head son) head)
                        (is-in-same-connected-component (term-sort (setq t1 (term$arg-2 son)))
                                                        (term-sort (setq t2 (term$arg-2 body)))
                                                        sort-order))
@@ -430,10 +471,10 @@
 
             ;; would only like to do the following if the
             ;; sort really decreases
-            (when (and (not (or (term$is-variable? (setq son (term-body
-                                                              (term$arg-2 body))))
+            (when (and (not (or (pvariable-term-body? (setq son (term-body
+                                                                 (term$arg-2 body))))
                                 (term$is-builtin-constant? son)))
-                       (method-is-associative-restriction-of (term$head son) head)
+                       (method-is-associative-restriction-of (appl$head son) head)
                        (is-in-same-connected-component (term-sort (setq t1 (term$arg-1 body)))
                                                        (term-sort (setq t2 (term$arg-1 son)))
                                                        sort-order))
@@ -485,16 +526,16 @@
 ;;; CONSIDERING EQUATIONAL THEORY    -------------------------------------------
 ;;; *********************************
 
-;;; NOTE: compare term-method with eq is NOT dangerous.
+;;; NOTE: compare term-head with eq is NOT dangerous.
 
 (defmacro is-true? (!_obj)
-  `(eq (term-method ,!_obj) *bool-true-meth*))
+  `(eq (term-head ,!_obj) *bool-true-meth*))
 (defmacro is-false? (!_obj)
-  `(eq (term-method ,!_obj) *bool-false-meth*))
+  `(eq (term-head ,!_obj) *bool-false-meth*))
 
-;;; VARIABLE= : VARIABLE VARIABLE -> BOOL
+;;; VARIABLE-EQUAL : VARIABLE VARIABLE -> BOOL
 ;;; returns true iff
-;;; (1) two variables are phigically equal, or
+;;; (1) two variables are phisically equal, or
 ;;; (2) have same name and same sort.
 ;;;
 (defun variable-equal (x y)
@@ -552,15 +593,15 @@
     (cond ((term$is-variable? t1-body)
            (or (eq t1 t2)
                (and (term$is-variable? t2-body)
-                     (eq (variable$name t1-body) (variable$name t2-body))
+                    (eq (variable$name t1-body) (variable$name t2-body))
                     (sort= (variable$sort t1-body) (variable$sort t2-body)))))
           ((term$is-variable? t2-body) nil)
           ((term$is-application-form? t1-body)
            (and (term$is-application-form? t2-body)
-                (if (method-is-same-qual-method (term$method t1-body)
-                                                (term$method t2-body))
-                    (let ((sl1 (term$subterms t1-body))
-                          (sl2 (term$subterms t2-body)))
+                (if (method-is-same-qual-method (appl$head t1-body)
+                                                (appl$head t2-body))
+                    (let ((sl1 (appl$subterms t1-body))
+                          (sl2 (appl$subterms t2-body)))
                       (loop (when (null sl1) (return (null sl2)))
                             (unless (term-is-congruent? (car sl1) (car sl2))
                               (return nil))
@@ -598,48 +639,40 @@
                    (subs2 (term-subterms t2)))
                (declare (type list subs1 subs2)
                         (type method head1 head2))
-               ;;
                (if (null subs1)
                    (and (null subs2)
                         (eq head1 head2))
-                   (if (method-is-of-same-operator head1 head2)
-                       (do* ((sub1 subs1 (cdr sub1))
-                             (sub2 subs2 (cdr sub2))
-                             (st1 nil)
-                             (st2 nil))
-                            ((null sub1) t)
-                         (setq st1 (car sub1))
-                         (setq st2 (car sub2))
-                         ;; (unless st2 (return nil))
-                         (cond ((term-is-applform? st1)
-                                (unless
-                                    (and (term-is-applform? st2)
-                                         (if (theory-info-empty-for-matching
-                                               (method-theory-info-for-matching
-                                                (term-method st1)))
-                                              (match-with-empty-theory st1 st2)
-                                              (term-equational-equal st1 st2)))
-                                  (return nil)))
-                               ((term-is-variable? st1)
-                                (setq *used==* t)
-                                (unless (variable= st1 st2) (return nil)))
-                               ;;
-                               ((term-is-variable? st2)
-                                (setq *used==* t)
-                                (return nil))
-                               ;;
-                               ((term-is-builtin-constant? st1)
-                                (unless (term-builtin-equal st1 st2) (return nil)))
-                               ;;
-                               (t
-                                (break "Panic: unknown type of term")
-                                ;;
-                                )))
-                       nil))))
+                 (if (method-is-of-same-operator head1 head2)
+                     (do* ((sub1 subs1 (cdr sub1))
+                           (sub2 subs2 (cdr sub2))
+                           (st1 nil)
+                           (st2 nil))
+                         ((null sub1) t)
+                       (setq st1 (car sub1))
+                       (setq st2 (car sub2))
+                       (cond ((term-is-applform? st1)
+                              (unless
+                                  (and (term-is-applform? st2)
+                                       (if (theory-info-empty-for-matching
+                                            (method-theory-info-for-matching
+                                             (term-head st1)))
+                                           (match-with-empty-theory st1 st2)
+                                         (term-equational-equal st1 st2)))
+                                (return nil)))
+                             ((term-is-variable? st1)
+                              (setq *used==* t)
+                              (unless (variable= st1 st2) (return nil)))
+                             ((term-is-variable? st2)
+                              (setq *used==* t)
+                              (return nil))
+                             ((term-is-builtin-constant? st1)
+                              (unless (term-builtin-equal st1 st2) (return nil)))
+                             (t
+                              (break "Panic: unknown type of term"))))
+                   nil))))
             ((term-is-builtin-constant? t1)
              (term-builtin-equal t1 t2))
-            ((term-is-builtin-constant? t2) nil)
-            )))
+            ((term-is-builtin-constant? t2) nil))))
 
 (defun term-equational-equal (t1 t2)
   (declare (type term t1 t2)
@@ -648,7 +681,7 @@
       (let ((t1-body (term-body t1))
             (t2-body (term-body t2)))
         (cond ((term$is-applform? t1-body)
-               (let ((f1 (term$head t1-body)))
+               (let ((f1 (appl$head t1-body)))
                  (if (theory-info-empty-for-matching
                       (method-theory-info-for-matching f1))
                      (match-with-empty-theory t1 t2)
@@ -682,7 +715,7 @@
                 (t2-body (term-body t2)))
             (cond ((term$is-application-form? t1-body)
                    (and (term$is-application-form? t2-body)
-                        (if (method-w= (term$head t1-body) (term$head t2-body))
+                        (if (method-w= (appl$head t1-body) (appl$head t2-body))
                             (let ((subs1 (term$subterms t1-body))
                                   (subs2 (term$subterms t2-body)))
                               (loop
@@ -817,7 +850,7 @@
   (let ((body (term-body term)))
     (if (term$is-application-form? body)
         (progn
-          (if (method-is-of-same-operator (term$method body) method)
+          (if (method-is-of-same-operator (appl$head body) method)
               (list-assoc-subterms-aux (term$arg-1 body) method
                                        (list-assoc-subterms-aux (term$arg-2 body)
                                                                 method
@@ -838,7 +871,7 @@
              (let ((body (term-body term)))
                (if (term$is-application-form? body)
                    (progn
-                     (if (method-is-of-same-operator (term$method body) method)
+                     (if (method-is-of-same-operator (appl$head body) method)
                          (list-a-subs (term$arg-1 body) method
                                       (list-a-subs (term$arg-2 body)
                                                    method
@@ -868,7 +901,7 @@
         (if (term-is-zero-for-method term method)
             lst
             (if (term$is-application-form? body)
-                (if (method-is-of-same-operator (term$head body) method)
+                (if (method-is-of-same-operator (appl$head body) method)
                     (list-assoc-id-subterms-aux (term$arg-1 body)
                                                 method
                                                 (list-assoc-id-subterms-aux
@@ -894,7 +927,7 @@
                    (if (term-is-zero-for-method term method)
                        lst
                        (if (term$is-application-form? body)
-                           (if (method-is-of-same-operator (term$head body) method)
+                           (if (method-is-of-same-operator (appl$head body) method)
                                (list-a-subs (term$arg-1 body)
                                             method
                                             (list-a-subs
@@ -925,7 +958,7 @@
            (type list lst))
   (let ((body (term-body term)))
     (if (term$is-application-form? body)
-        (if (method-is-ac-restriction-of (term$head body) method)
+        (if (method-is-ac-restriction-of (appl$head body) method)
             (list-ac-subterms-aux (term$arg-1 body)
                                   method
                                   (list-ac-subterms-aux (term$arg-2 body)
@@ -944,7 +977,7 @@
                       (type list lst))
              (let ((body (term-body term)))
                (if (term$is-application-form? body)
-                   (if (method-is-ac-restriction-of (term$head body) method)
+                   (if (method-is-ac-restriction-of (appl$head body) method)
                        (list-subs (term$arg-1 body)
                                   method
                                   (list-subs (term$arg-2 body)
@@ -983,7 +1016,7 @@
         (if (term-is-zero-for-method term method)
             lst
             (if (term$is-application-form? body)
-                (if (method-is-ac-restriction-of (term$head body) method)
+                (if (method-is-ac-restriction-of (appl$head body) method)
                     ;; then the operator is binary of course
                     (list-ACZ-subterms-aux (term$arg-1 body)
                                            method
@@ -1006,9 +1039,9 @@
                  (if (term-is-zero-for-method term method)
                      lst
                    (if (term$is-application-form? body)
-                       (if ;; (method-is-ac-restriction-of (term$head body)
+                       (if ;; (method-is-ac-restriction-of (appl$head body)
                            ;;                               method)
-                           (method-is-of-same-operator (term$head body)
+                           (method-is-of-same-operator (appl$head body)
                                                        method)
                            ;; then the operator is binary of course
                            (list-subs (term$arg-1 body)
@@ -1084,13 +1117,10 @@
   ;; (format t "~&ranf: ")
   ;; (term-print t1)
   (let ((body (term-body t1)))
-    ;; (break "OK?")
     (cond ((term$is-constant? body) t1)
           ((term$is-variable? body) t1)
-          (t (let ((h-op (term$head body)))
-               ;; (print-chaos-object h-op)
+          (t (let ((h-op (appl$head body)))
                (cond ((theory-contains-associativity (method-theory h-op))
-                      ;; (break "OK3")
                       (make-right-assoc-normal-form-with-sort-check
                        h-op 
                        (mapcar #'right-associative-normal-form 
@@ -1105,27 +1135,6 @@
 ;;; the head operator has associative theory with identity.
 ;;; * NOTE *
 ;;; head method must be associaitive method with identity.
-
-#||
-(defun right-associative-id-normal-form (t1)
-  (declare (type term t1)
-           (values term))
-  ;; (break)
-  (let ((body (term-body t1)))
-    (cond ((term$is-variable? body) t1)
-          ((term$is-constant? body) t1)
-          (t (let ((meth (term$head body)))
-              (cond ((theory-contains-AZ (method-theory meth))
-                     (make-right-assoc-normal-form
-                      meth
-                      (mapcar
-                       #'right-associative-id-normal-form  
-                       (list-assoc-id-subterms t1 meth))
-                      ))
-                    ;; note this is only top-level normalization.
-                    (t t1)))))))
-||#
-
 (defun right-associative-id-normal-form (t1)
   (declare (type term t1))
   (if (term-is-applform? t1)
@@ -1146,7 +1155,7 @@
   (let ((body (term-body t1)))
     (cond ((term$is-constant? body) t1)
           ((term$is-variable? body) t1)
-        (t (let ((meth (term$head body)))
+        (t (let ((meth (appl$head body)))
              (cond ((term-is-zero-for-method (term$arg-1 body) meth)
                     (id-normal-form (term$arg-2 body)))
                    ((term-is-zero-for-method (term$arg-2 body) meth)
@@ -1242,7 +1251,7 @@
   (declare (type term term))
   (let ((body (term-body term)))
     (if (term$is-application-form? body)
-        (let* ((f (term$head body))
+        (let* ((f (appl$head body))
                (subterms (mapcar #'theory-standard-form (term$subterms body)))
                (th (method-theory f))
                (theory-info  (theory-info th))
@@ -1303,7 +1312,7 @@
     (dolist (sub (term-subterms term))
       (get-term-all-methods sub ans))))
 
-(defun term-methods (term)
+(defun term-heads (term)
   (declare (type term term))
   (let ((res (cons nil nil)))
     (get-term-all-methods term res)
@@ -1311,7 +1320,7 @@
 
 ;;; synonym
 (defmacro term-operators (term)
-  `(term-methods ,term))
+  `(term-heads ,term))
 
 (defun clean-term (term)
   (declare (type term term))
@@ -1329,20 +1338,20 @@
         zero
         nil)))
 
-;;; SUPPLY-PSUEDO-VARIABLES
+;;; SUPPLY-PCONSTANTS
 ;;;
-(defun supply-psuedo-variables (term)
+(defun supply-pconstants (term)
   (declare (type term term)
            (values term))
   (let ((target (simple-copy-term term)))
     (declare (type term target))
     (let ((vars (term-variables target)))
-      (unless vars (return-from supply-psuedo-variables term))
+      (unless vars (return-from supply-pconstants term))
       (dolist (var vars target)
         (term-replace var
-                      (make-pvariable-term (variable-sort var)
-                                           (variable-name var)
-                                           (variable-print-name var)))))))
+                      (make-pconst-term (variable-sort var)
+                                        (variable-name var)
+                                        (variable-print-name var)))))))
 
 ;;; *********************** 
 ;;; MISC PREDICATES ON TERM
@@ -1408,17 +1417,17 @@
 (let ((*var-num* 0))
   (declare (type fixnum *var-num*))
   (defun generate-variable (sort)
-    (@create-variable-term (intern (format nil "#Genvar-~d" (incf *var-num*)))
-                           sort ))
+    (make-variable-term sort
+                        (intern (format nil "#Genvar-~d" (incf *var-num*)))))
   (defun make-new-variable (name sort &optional (pname name))
-    (@create-variable-term (intern (format nil "~a-~d" name (incf *var-num*)))
-                           sort
-                           pname))
+    (make-variable-term sort
+                        (intern (format nil "~a-~d" name (incf *var-num*)))
+                        pname))
   (defun rename-variable (var)
-    (@create-variable-term (intern (format nil "~a-~d"
-                                           (variable-name var)
-                                           (incf *var-num*)))
-                           (variable-sort var)))
+    (make-variable-term (variable-sort var)
+                        (intern (format nil "~a-~d"
+                                        (variable-name var)
+                                        (incf *var-num*)))))
   )
 
 ;;; inspecting term --- for debugging -----------------------------------------
@@ -1452,7 +1461,7 @@
     (cond (vars
            (dolist (var vars)
              (unless (assoc var subst)
-               (let ((toc (make-pvariable-term
+               (let ((toc (make-pconst-term
                            (variable-sort var)
                            (intern (concatenate 'string "`" (string (variable-name var)))))))
                  (push (cons var toc) subst))))
@@ -1467,7 +1476,7 @@
              (car res)))
           (t term))))
 
-;;; canonicalize--variables
+;;; canonicalize-variables
 ;;;
 (defun canonicalize-variables (list-term module)
   (with-in-module (module)

@@ -2,7 +2,7 @@
 ;;;
 ;;; defsystem for Allegro CL (version 5.0 or higher)
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -108,9 +108,9 @@
       :comlib
       (:module-group :primitives
                      (:serial
-                      "primitives/term2"
+                      "primitives/bterm"
                       "primitives/defterm"
-                      "primitives/bobject2"
+                      "primitives/bobject"
                       "primitives/bflags"
                       "primitives/absntax"
                       "primitives/script"
@@ -127,8 +127,8 @@
                       "primitives/gen-eval"
                       "primitives/gen-print"
                       "primitives/context"
-                      "primitives/term-utils"
                       "primitives/substitution"
+                      "primitives/term-utils"
                       "primitives/find"
                       "primitives/print-object"))
     (:serial
@@ -154,7 +154,7 @@
                      "e-match/match"
                      "e-match/match2"))
      (:module-group :construct
-                    (:parallel
+                    (:serial
                      "construct/sort"
                      "construct/operator"
                      "construct/variable"

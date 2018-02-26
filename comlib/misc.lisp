@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:Common-Lisp; Package:CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -63,88 +63,17 @@
       ;; name must be a symbol
       (intern (symbol-name name) *keyword-package*)))
 
-;;; Searches the arglist for keyword key, and returns the following mark,
-;;; or the default if supplied. If no-value is non-nil, then if nothing follows
-;;; the key it is returned.
-
-(defun extract-keyword (key arglist &optional (default nil)
-                            &key (no-value nil))
-  (declare (type list arglist)
-           (type t default)
-           (type keyword key)
-           (values symbol)
-           )
-  (let ((binding (member key arglist :test #'eql)))
-    (cond ((and (null binding) no-value)
-           no-value)
-          ((cdr binding)
-           (cadr binding))
-          (t
-           default))))
-
 ;;; *****************
 ;;; OBJECT ALLOCATION____________________________________________________________
 ;;; *****************
 
 ;;; Allocating simple vector
 ;
-#+GCL
-(Clines "
-static
-object alloc_svec (size)
- object size;
-{
-  object vect ;
-  vect = alloc_object(t_vector);
-  vect->v.v_self = 0 ;
-  vect->v.v_elttype = aet_object;
-  vect->v.v_dim = Mfix(size);
-  vect->v.v_displaced = Cnil ;
-  vect->v.v_hasfillp = 0 ;
-  vect->v.v_fillp = vect->v.v_dim;
-  vect->v.v_adjustable = 0;
-  array_allocself(vect, 1, Cnil);
-  return vect;
-}
-"
-)
-
-#+GCL
-(defentry alloc-svec (object) (object alloc_svec))
-
-#-GCL
 (defmacro alloc-svec (size)
   `(the simple-vector (make-array ,size :initial-element nil)))
 
-#+GCL
-(Clines "
-static
-object alloc_svec_fixnum (size)
- object size;
-{
-  object vect ;
-  int i;
-  vect = alloc_object(t_vector);
-  vect->v.v_self = 0 ;
-  vect->v.v_elttype = aet_object;
-  vect->v.v_dim = Mfix(size);
-  vect->v.v_displaced = Cnil ;
-  vect->v.v_hasfillp = 0 ;
-  vect->v.v_fillp = vect->v.v_dim;
-  vect->v.v_adjustable = 0;
-  array_allocself(vect, 0, small_fixnum(0));
-  return vect;
-}
-"
-)
-
-#+GCL
-(defentry alloc-svec-fixnum (object) (object alloc_svec_fixnum))
-
-#-GCL
 (defmacro alloc-svec-fixnum (size)
-  ` (the simple-vector
-      (make-array ,size :initial-element 0)))
+  `(the simple-vector (make-array ,size :initial-element 0)))
 
 ;;; GCL doesn't hadle simple-vector properly!
 
@@ -160,8 +89,6 @@ object alloc_svec_fixnum (size)
 (defmacro %svref (vector index)
   `(aref (the vector ,vector) (the fixnum ,index)))
 
-(declaim (inline svref aref))
-
 ;;; AT-TOP-LEVEL : -> Bool
 ;;; determins whether we are at top level or not.
 ;;; *NOTE* : the top-level must maintain the following two
@@ -172,10 +99,8 @@ object alloc_svec_fixnum (size)
 ;;;                           inputs levels. 
 ;;;
 (defun at-top-level ()
-  (declare (values (or null t)))
   (and (null *chaos-input-source*)
-       (<= *chaos-input-level* 0))
-  )
+       (<= *chaos-input-level* 0)))
 
 ;;; ********************
 ;;; ENVIRONMENT-VARIABLE________________________________________________________
@@ -252,9 +177,9 @@ object alloc_svec_fixnum (size)
             ((or symbol integer) :gt)
             (otherwise :lt)))
     (number (typecase y
-              (number (if (< (the number x) (the number y))
+              (number (if (< x y)
                           :lt
-                        (if (< (the number y) (the number x))
+                        (if (< y x)
                             :gt
                           :eq)))
               ((or symbol integer cons) :gt)
@@ -270,16 +195,16 @@ object alloc_svec_fixnum (size)
                  ((or number cons symbol) :gt)
                  (otherwise :lt)))
     (string (typecase y
-              (string (if (string-lessp (the string x) (the string y))
+              (string (if (string-lessp x y)
                           :lt
-                        (if (string-lessp (the string y) (the string x))
+                        (if (string-lessp y x)
                             :gt
                           :eq)))
               ((or character number cons symbol) :gt)
               (otherwise :lt)))
     (sequence (typecase y
-                (sequence (let ((lenx (length (the sequence x)))
-                                (leny (length (the sequence y))))
+                (sequence (let ((lenx (length x))
+                                (leny (length y)))
                             (declare (type fixnum lenx leny))
                             (dotimes (i (min lenx leny) (ob-compare lenx leny))
                               (declare (type fixnum i))
@@ -307,7 +232,7 @@ object alloc_svec_fixnum (size)
 ;;;
 (defun topo-sort (lst pred)
   (declare (type list lst)
-           (type (or symbol function) pred))
+           (type function pred))
   (let ((res lst))                      ; save original list as final value
   ;; run through the positions of lst successively filling them in
   (loop
@@ -327,7 +252,6 @@ object alloc_svec_fixnum (size)
     (setq lst (cdr lst)))
   res))
 
-
 ;;; *******
 ;;; ADDRESS______________________________________________________________________
 ;;; *******
@@ -335,9 +259,6 @@ object alloc_svec_fixnum (size)
 ;;; address of objects.
 ;;; The intention is to only use this for printing.
 ;;;
-
-;;; *** TODO FOR ALLEGRO ___
-
 #+GCL
 (Clines "static object addr_of(x) object x; {return(make_fixnum((int)x));}")
 ;;(defCfun "object addr_of(x) object x;" 0
@@ -397,9 +318,8 @@ object alloc_svec_fixnum (size)
 ;;; y-or-n-p-wait is like y-or-n-p, but will timeout
 ;;; after a specified number of seconds
 (defun internal-real-time-in-seconds ()
-  (declare (values float))
-  (float (/ (get-internal-real-time) 
-            internal-time-units-per-second)))
+  (/ (get-internal-real-time) 
+     internal-time-units-per-second))
 
 (defun read-char-wait (&optional (timeout 20) input-stream &aux char)
   (do ((start (internal-real-time-in-seconds)))
@@ -435,8 +355,9 @@ object alloc_svec_fixnum (size)
   (loop
    (let* ((read-char (if *use-timeouts*
                          (read-char-wait timeout *query-io*)
-                         (read-char *query-io*)))
+                       (read-char *query-io*)))
           (char (or read-char default)))
+     (declare (type character char))
      ;; We need to ignore #\newline because otherwise the bugs in 
      ;; clear-input will cause y-or-n-p-wait to print the "Type ..."
      ;; message every time... *sigh*
@@ -588,77 +509,6 @@ object alloc_svec_fixnum (size)
           (cdr pair)
           0))))
 
-;;; MULTISET-COPY m
-;;; returns a new multiset with the same contents and the same equality function as m.
-;;;
-(defmacro multiset-copy (m)
-  `(multiset-create (multiset-equal-fun ,m)
-                    (copy-tree (multiset-elements ,m))))
-
-;;; ***********
-;;; Boolean Ops_________________________________________________________________
-;;; ***********
-
-;;; define boolean control extensions to and, or, not... the bit operators
-;;; are there, but not the more general short-circuting ones. 
-;;; Some of these will only make sense on two operands, and many can't short
-;;; circuit (exclusive ops, for instance).
-
-;;; xor
-;;;   True only if exactly one predicate is true. Short circutes when it finds
-;;;   a second one is true. Returns the true predicate.
-
-#-:Allegro-v6.0
-(defmacro xor (&rest predicates)
-  (let ((result (gensym))
-        (temp (gensym))
-        (block-name (gensym)))
-    `(block ,block-name
-       (let ((,result ,(car predicates))
-             ,temp)
-         ,@(let (code-result)
-             (dolist (pred (cdr predicates))
-               (push `(cond
-                        ((and (setq ,temp ,pred)
-                              ,result)
-                         (return-from ,block-name nil))
-                        (,temp
-                         (setq ,result ,temp)))
-                     code-result))
-             (nreverse code-result))
-         ,result))))
-         
-;;; nand
-;;;   True only if all predicates are not true. Short circutes when it finds
-;;;   one is false.
-
-(defmacro nand (&rest predicates)
-  (let ((block-name (gensym)))
-    `(block ,block-name
-       ,@(let (code-result)
-           (dolist (pred predicates)
-             (push `(if (not ,pred)
-                        (return-from ,block-name t))
-                   code-result))
-           (nreverse code-result))
-       nil)))
-
-;;; nor
-;;;  True only if all predicates are false. Short circutes when it finds a one
-;;;  is true.
-
-(defmacro nor (&rest predicates)
-  (let ((block-name (gensym)))
-    `(block ,block-name
-       ,@(let (code-result)
-           (dolist (pred predicates)
-             (push `(if ,pred
-                        (return-from ,block-name nil))
-                   code-result))
-           (nreverse code-result))
-       t)))
-
-
 ;;; ****
 ;;; TIME________________________________________________________________________
 ;;; ****
@@ -686,16 +536,12 @@ object alloc_svec_fixnum (size)
 ;;;  then divides by the number of internal units per second to get seconds.
 
 (defun elapsed-time-in-seconds (base now)
-  (declare (type integer base now)
-           (values single-float))
-  (coerce (/ (- now base)
-             internal-time-units-per-second)
-          'single-float))
+  (declare (type integer base now))
+  (coerce (/ (- now base) internal-time-units-per-second) 'float))
 
 (defun time-in-seconds (sum)
-  (declare (type integer sum)
-           (values single-float))
-  (coerce (/ sum internal-time-units-per-second) 'single-float))
+  (declare (type integer sum))
+  (coerce (/ sum internal-time-units-per-second) 'float))
 
 ;;; ****
 ;;; MISC________________________________________________________________________
@@ -782,93 +628,18 @@ object alloc_svec_fixnum (size)
 ;;; FIXNUM COMPUTATIONS
 ;;; *******************
 
-
-;; (declaim (inline test-and make-and make-or make-xor))
-;; (declaim (inline logand logior logxor))
-;; #-GCL (declaim (ftype (function (fixnum fixnum) (or null t)) test-and))
-;; #-GCL (declaim (ftype (function (fixnum fixnum) (or null t)) make-and))
-;; #-GCL (declaim (ftype (function (fixnum fixnum) (or null t)) make-or))
-;; #-GCL (declaim (ftype (function (fixnum fixnum) (or null t)) make-xor))
-
-#+gcl (Clines "static object test_and (a, b) object a, b;
-        {register int x = fix(a); register int y = fix(b); return(x & y) ? Ct : Cnil;}")
-#+gcl (defentry test-and (object object) (object test_and))
-#-gcl
 (defmacro test-and (a b)
-  `(not (zerop (logand (the fixnum ,a) (the fixnum ,b)))))
+  `(not (zerop (logand ,a ,b))))
 
-#+gcl (Clines "static object make_and (a, b) object a, b;
-        {register object res = alloc_object(t_fixnum);
-         register int x = fix(a); register int y = fix(b);
-         fix(res) = x & y;
-         return res;}")
-#+gcl (defentry make-and (object object) (object make_and))
-#-gcl
 (defmacro make-and (*a *b)
-  `(logand (the fixnum ,*a) (the fixnum ,*b)))
+  `(logand ,*a ,*b))
 
-#+gcl (Clines "static object make_or (a,b) object a,b;
-         {register object x = alloc_object(t_fixnum);
-          register int ax = fix(a); register bx = fix(b);
-          fix(x) = ax | bx;
-          return x;}")
-#+gcl (defentry make-or (object object) (object make_or))
-#-gcl
 (defmacro make-or (*a *b)
-  `(logior (the fixnum ,*a) (the fixnum ,*b)))
+  `(logior ,*a ,*b))
 
-#+gcl (Clines "static object make_xor (a,b) object a,b;
-        {register object x = alloc_object(t_fixnum);
-        register int ax = fix(a); register bx = fix(b);
-        fix(x) = ax ^ bx;
-        return x;}")
-#+gcl (defentry make-xor (object object) (object make_xor))
-#-gcl
 (defmacro make-xor (*a *b)
-  `(logxor (the fixnum ,*a) (the fixnum ,*b)))
+  `(logxor ,*a ,*b))
 
-#+gcl (Clines "static object expt_fixnum (a, b) object a,b;
-        {object result = alloc_object(t_fixnum);
-         unsigned int x = fix(a);
-         unsigned int y = fix(b);
-         unsigned int z = 1;
-         while (y > 0)
-           if (y%2 == 0) { x *= x; y /= 2; } else {z *= x; --y;}
-         fix(result) = z;
-         return result;}")
-
-#+gcl (defentry expt-fixnum (object object) (object expt_fixnum))
-
-;;; (declaim (inline expt-fixnum expt2))
-#-gcl
-(defmacro expt-fixnum (x y)
-  `(expt (the fixnum ,x) (the fixnum ,y)))
-
-#+gcl
-(Clines "
-  static unsigned int bit_vector[32] = {
-     1<<0, 1<<1, 1<<2, 1<<3, 1<<4, 1<<5, 1<<6, 1<<7, 1<<8, 1<<9,
-     1<<10, 1<<11, 1<<12, 1<<13, 1<<14, 1<<15, 1<<16, 1<<17, 1<<18, 1<<19,
-     1<<20, 1<<21, 1<<22, 1<<23, 1<<24, 1<<25, 1<<26, 1<<27, 1<<28, 1<<29,
-     1<<30, 1<<31,
- };"
-        )
-
-#+gcl
-(Clines "static object expt2 (a) object a;
-       {unsigned int res;
-        register int x = fix(a);
-        if (x < 32) {
-           return (make_fixnum(bit_vector[x]));
-        } else { FEerror(\"aho\");}
-       }"
-        )
-
-#+gcl
-(defentry expt2 (object)(object expt2))
-
-;;; (declaim (inline expt2))
-#-gcl
 (defmacro expt2 (x)
   `(expt 2 (the fixnum ,x)))
 

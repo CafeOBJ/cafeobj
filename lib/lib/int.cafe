@@ -67,6 +67,9 @@ sys:mod! INT
 }
 
 lispq
+(when (fboundp 'chaos-int-tram-interface) (fmakunbound 'chaos-int-tram-interface))
+
+lispq
 (defun chaos-int-tram-interface ()
   (setq *z-int* (get-z-module-or-panic "INT"))
   (push *z-int* *tram-builtin-modules*))

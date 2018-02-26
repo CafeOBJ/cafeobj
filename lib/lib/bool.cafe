@@ -43,6 +43,9 @@ require base_bool
 --       the definition of module BOOL
 --
 lispq
+(when (fboundp 'setup-bool) (fmakunbound 'setup-bool))
+
+lispq
 (defun setup-bool ()
   (unless *bootstrapping-bool*
     (setf *bootstrapping-bool* t)

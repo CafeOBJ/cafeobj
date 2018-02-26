@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -156,7 +156,7 @@
         ;;
         var))))
  
-(defun declare-pvariable-in-module (var-name sort-ref
+(defun declare-pconst-in-module (var-name sort-ref
                                     &optional (module *current-module*))
   (let ((mod (if (module-p module)
                  module
@@ -178,19 +178,7 @@
           (princ sort-ref)
           (princ ", pseud constant declaration for ")
           (princ var-name)
-          (princ " is ignored.")
-          ))
-
-      #||
-      ;; check name --
-      (when (eql #\` (char (the simple-string (string var-name)) 0))
-        (with-output-chaos-error ('invalid-var-decl)
-          (format t "variable name must not start with \"`\",")
-          (print-next)
-          (princ "this is reserved for pseud variables declared on the fly.")
-          ))
-      ||#
-      ;;
+          (princ " is ignored.")))
       (if (stringp var-name)
           (setf var-name (intern var-name))
           (unless (symbolp var-name)
@@ -198,11 +186,10 @@
               (princ "internal error: invalid pconstant name ")
               (princ var-name)
               (chaos-error 'invalid-var-decl))))
-      
       (let ((old (assoc var-name (module-variables mod)))
             var)
         (when (and old (sort= sort (variable-sort (cdr old))))
-          (return-from declare-pvariable-in-module (cdr old)))
+          (return-from declare-pconst-in-module (cdr old)))
         (when old
           (with-output-chaos-warning ()
             (princ "pseud constant ")
@@ -212,15 +199,12 @@
             (princ ", but re-declared as sort ")
             (princ (string (sort-id sort)))
             (princ ", ignored.")
-            (return-from declare-pvariable-in-module nil)
-            ))
-        (setf var (make-pvariable-term sort var-name))
+            (return-from declare-pconst-in-module nil)))
+        (setf var (make-pconst-term sort var-name))
         (push (cons var-name var) (module-variables mod))
-        ;;
         (symbol-table-add (module-symbol-table mod)
                           var-name
                           var)
-        ;;
         var))))
 
 ;;;

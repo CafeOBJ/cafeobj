@@ -57,6 +57,9 @@ sys:mod! EQL {
 }
 
 lispq
+(when (fboundp 'setup-eql) (fmakunbound 'setup-eql))
+
+lispq
 (defun setup-eql ()
   (setq *eql-module* (eval-modexp "EQL"))
   (prepare-for-parsing *eql-module*)

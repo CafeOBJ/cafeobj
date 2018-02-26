@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -241,7 +241,7 @@
                           (dolist (a args) (normalize-term a))
                           (if (every #'(lambda (x)
                                          (and (term-is-builtin-constant? x)
-                                              (not (term-is-psuedo-constant? x))))
+                                              (not (term-is-pconstant? x))))
                                      args)
                               (progn
                                 (normalize-term value)
@@ -280,7 +280,7 @@
                           (dolist (a args) (normalize-term a))
                           (if (every #'(lambda (x)
                                          (and (term-is-builtin-constant? x)
-                                              (not (term-is-psuedo-constant? x))))
+                                              (not (term-is-pconstant? x))))
                                      args)
                               (progn
                                 (normalize-term value)
@@ -333,7 +333,7 @@
                                               (cons new-var
                                                     (list-assoc-subterms
                                                      (axiom-lhs rule)
-                                                     (term-method
+                                                     (term-head
                                                       (axiom-lhs rule)))))
            :rhs (make-applform (method-coarity top)
                                top
@@ -358,7 +358,7 @@
                                               (append
                                                (list-assoc-subterms
                                                 (axiom-lhs rule)
-                                                (term-method
+                                                (term-head
                                                  (axiom-lhs rule)))
                                                (list new-var)))
            :rhs (make-applform (method-coarity top)
@@ -424,7 +424,7 @@
                                               (cons new-var
                                                     (list-assoc-subterms
                                                      (axiom-lhs rule)
-                                                     (term-method
+                                                     (term-head
                                                       (axiom-lhs rule)))))
            :rhs (make-applform (method-coarity top)
                                top
@@ -454,7 +454,7 @@
     (when (or (null listext) (null (car listext)))
       ;; then need to pre-compute the extensions and store then
       (setq listext (compute-AC-extension 
-                     rule (term-method (axiom-lhs rule)))))
+                     rule (term-head (axiom-lhs rule)))))
     listext))
 
 ;;; GIVE-A-EXTENSIONS : rule -> List[Rule]
@@ -468,7 +468,7 @@
     (when (or (null listext) (null (car listext)))
       ;; then need to pre-compute the extensions and store then
       (setq listext (compute-A-extensions
-                     rule (term-method (axiom-lhs rule)))))
+                     rule (term-head (axiom-lhs rule)))))
     listext))
 
 ;;; COMPUTE-RULE-METHOD : rule -> rule'
@@ -541,8 +541,8 @@
           (cdr val)
         (variable-copy tm)              ; This should never occur
         )))
-   (t (make-applform (method-coarity (term-method tm))
-                     (term-method tm)
+   (t (make-applform (method-coarity (term-head tm))
+                     (term-head tm)
                      (mapcar #'(lambda (stm)
                                  (term-copy-id-cond stm vars))
                              (term-subterms tm))))))
@@ -570,8 +570,8 @@
           ((term$is-variable? t2-body) nil)
           ((term$is-application-form? t1-body)
            (and (term$is-application-form? t2-body)
-                (if (method-is-of-same-operator+ (term$method t1-body)
-                                                 (term$method t2-body))
+                (if (method-is-of-same-operator+ (appl$head t1-body)
+                                                 (appl$head t2-body))
                     (let ((sl1 (term$subterms t1-body))
                           (sl2 (term$subterms t2-body)))
                       (loop (when (null sl1) (return (null sl2)))
@@ -643,7 +643,7 @@
             (oldlhs (axiom-lhs r)))
         (when (and (not (term-is-variable? newlhs))
                    (not (term-is-variable? oldlhs))
-                   (not (method= (term-method newlhs) (term-method oldlhs)))
+                   (not (method= (term-head newlhs) (term-head oldlhs)))
                    (sort<= (term-sort oldlhs) (term-sort newlhs)))
           (rplaca lst rule))
         (return-from adjoin-rule rs)))))
@@ -705,7 +705,7 @@
         ;; compare lhs of rules.
         (when (and (not (term-is-variable? newlhs))
                    (not (term-is-variable? oldlhs))
-                   (not (method= (term-method newlhs) (term-method oldlhs)))
+                   (not (method= (term-head newlhs) (term-head oldlhs)))
                    (sort<= (term-sort oldlhs) (term-sort newlhs)
                            *current-sort-order*)) 
           ;; we keep higher one.
@@ -756,7 +756,7 @@
   (setf (method-rewrite-strategy method opinfo-table) nil)
   ;;
   (if (and (term-is-applform? (rule-rhs rule))
-           (method= (rule-lhs rule) (term-method (rule-rhs rule))))
+           (method= (rule-lhs rule) (term-head (rule-rhs rule))))
       (rule-ring-adjoin-rule (method-rules-with-same-top method opinfo-table)
                              rule) 
     (setf (method-rules-with-different-top method opinfo-table)
@@ -782,8 +782,8 @@
         (or (term-is-variable? lhs1)
             (and (term-is-application-form? lhs1)
                  (term-is-application-form? lhs2)
-                 (method-is-of-same-operator (term-method lhs1)
-                                             (term-method lhs2))
+                 (method-is-of-same-operator (term-head lhs1)
+                                             (term-head lhs2))
                  (multiple-value-bind  (gs subst no eeq)
                      (first-match lhs1 lhs2)
                    (declare (ignore gs))

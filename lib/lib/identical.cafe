@@ -36,6 +36,9 @@
 --       the definition of module IDENTICAL
 --
 lispq
+(when (fboundp 'setup-identical) (fmakunbound 'chaos-float-tram-interface))
+
+lispq
 (defun setup-identical ()
   (let ((id-opinfo nil)
 	(nid-opinfo nil))

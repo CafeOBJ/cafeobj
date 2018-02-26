@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2014, Norbert Preining. All rights reserved.
+# Copyright (c) 2014, 2017, Norbert Preining. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
 $^W=1;
 use strict;
 
-open IDX, ">wiki/index.mdwn" || die "Cannot create file wiki/index.mdwn: $!";
+open IDX, ">wiki/index.md" || die "Cannot create file wiki/index.md: $!";
 
 while (<>) { 
   chomp;
@@ -38,9 +38,9 @@ while (<>) {
   if (m/^## (.*) ## \{#(.*)\}$/) {
     #print "found header $1 with target $2\n";
     close FOO;
-    open FOO, ">wiki/$2.mdwn" || die "Cannot create file wiki/$2: $!";
+    open FOO, ">wiki/$2.md" || die "Cannot create file wiki/$2: $!";
     print FOO "## $1 ##\n";
-    print IDX "- [$1](/wiki/$2)\n";
+    print IDX "- [$1](/CafeOBJ/cafeobj/wiki/$2)\n";
   } else {
     # we need to convert in-document links to urls
     print FOO necch($_), "\n";
@@ -50,7 +50,7 @@ close IDX;
 
 sub necch {
   my $a = shift;
-  $a =~ s/\[([^]]*)\]\(#([^)]*)\)/[$1](\/wiki\/$2)/g;
+  $a =~ s!\[([^]]*)\]\(#([^)]*)\)![$1](/CafeOBJ/cafeobj/wiki/$2)!g;
   $a;
 }
 

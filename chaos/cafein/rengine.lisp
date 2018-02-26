@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -253,7 +253,7 @@
 
 (defmacro beh-context-ok? (rule term)
    `(if (axiom-is-behavioural ,rule)
-        (or (not (term-is-red ,term))
+        (or (term-is-green ,term)
             (and *beh-rewrite*
                  (eq $$term ,term)))
       t))
@@ -336,6 +336,11 @@
           (when no-match (return-from the-end nil))
           ;; 
           (unless (beh-context-ok? rule term)
+            (when *rewrite-debug*
+              (format t "~%[apply-one-rule] bad beh context~%")
+              (print-axiom-brief rule)
+              (terpri)
+              (term-print-with-sort term))
             (return-from the-end nil))
           
           ;; technical assignation related to substitution-image.
@@ -619,25 +624,21 @@
 
 (defun apply-rules (term strategy)
   (declare (type term term)
-           (type list strategy)
-           (values (or null t)))
-  (labels ((apply-rules-internal ()
-             (let ((top nil))
-               ;; (unless (term-is-lowest-parsed? term) (update-lowest-parse term))
-               (setq top (term-head term))
-               ;; apply same top rules
-               (apply-rules-with-same-top term (method-rules-with-same-top top))
-               (if (not (eq top (term-head term)))
+           (type list strategy))
+  (flet ((apply-rules-internal ()
+           (let ((top (term-head term)))
+             ;; apply same top rules
+             (apply-rules-with-same-top term (method-rules-with-same-top top))
+             (if (not (eq top (term-head term)))
+                 (progn
+                   (mark-term-as-not-lowest-parsed term)
+                   (normalize-term term))
+               (if (apply-rules-with-different-top term
+                                                   (method-rules-with-different-top top))
                    (progn
                      (mark-term-as-not-lowest-parsed term)
                      (normalize-term term))
-                 (if (apply-rules-with-different-top term
-                                                     (method-rules-with-different-top top))
-                     (progn
-                       (mark-term-as-not-lowest-parsed term)
-                       (normalize-term term))
-                   (reduce-term term (cdr strategy)))))))
-    ;;
+                 (reduce-term term (cdr strategy)))))))
     (if *memo-rewrite*
         ;; check memo
         (if (or *always-memo*
@@ -787,7 +788,7 @@
 
       ;; then there may be some extensions.
       (when (and (not is-applied) (term-is-applform? term))
-        (let ((top (term-method term)))
+        (let ((top (term-head term)))
           (declare (type method top))
           (unless (let ((val (axiom-kind rule)))
                     (and val
@@ -837,7 +838,7 @@
                  (update-lowest-parse term)
                (declare (ignore xterm))
                (when (or assoc?
-                         (not (method= (term-method term) top)))
+                         (not (method= (term-head term) top)))
                  (when *rewrite-debug*
                    (with-output-msg ()
                      (format t "- resetting reduced flag ...")))
@@ -872,56 +873,56 @@
   (declare (type term term)
            (type module module)
            (values term))
-  (case mode
-    (:exec+
-     (let ((*rwl-search-no-state-report* t))
-       (rwl-search* term
-                    nil                 ; pattern
-                    1                   ; max result
-                    most-positive-fixnum ; max depth
-                    nil                 ; zero?
-                    t                   ; final?
-                    nil                 ; cond
-                    nil                 ; pred
-                    *current-module*    ; module
-                    )
-       (if (rwl-sch-context-answers .rwl-sch-context.)
-           (term-replace term
-                         (rwl-state-term
-                          (car (rwl-sch-context-answers .rwl-sch-context.))))
-         (with-output-chaos-error ()
-           (format t "PANIC!")))))
-    (otherwise
-     (setq $$trials 1)
-     (when *memo-rewrite*
-       (when (or *clean-memo-in-normalize*
-                 (not (eq module *memoized-module*)))
-         (clear-term-memo-table *term-memo-table*))
-       (setq *memoized-module* module))
-     (let ((*trace-level* 0))
-       (with-in-module (module)
-         (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
-                                   (module-has-behavioural-axioms module))))
-           (declare (special *beh-rewrite*))
-           (set-term-color-top term)
-           (normalize-term term))))))
-  term)
+  (with-variable-as-constant (term)
+    (case mode
+      (:exec+
+       (let ((*rwl-search-no-state-report* t))
+         (rwl-search* term
+                      nil               ; pattern
+                      1                 ; max result
+                      most-positive-fixnum ; max depth
+                      nil               ; zero?
+                      t                 ; final?
+                      nil               ; cond
+                      nil               ; pred
+                      *current-module*  ; module
+                      )
+         (if (rwl-sch-context-answers .rwl-sch-context.)
+             (term-replace term
+                           (rwl-state-term
+                            (car (rwl-sch-context-answers .rwl-sch-context.))))
+           (with-output-chaos-error ()
+             (format t "PANIC!")))))
+      (otherwise
+       (setq $$trials 1)
+       (when *memo-rewrite*
+         (when (or *clean-memo-in-normalize*
+                   (not (eq module *memoized-module*)))
+           (clear-term-memo-table *term-memo-table*))
+         (setq *memoized-module* module))
+       (let ((*trace-level* 0))
+         (with-in-module (module)
+           (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
+                                     (module-has-behavioural-axioms module))))
+             (declare (special *beh-rewrite*))
+             (set-term-color-top term)
+             (normalize-term term))))))))
 
 (defun rewrite* (term)
   (declare (type term term)
            (values term))
-  (setq $$trials 1)
-  (when *memo-rewrite*
-    (when (or *clean-memo-in-normalize*
-              (not (eq *current-module* *memoized-module*)))
-      (clear-term-memo-table *term-memo-table*))
-    (setq *memoized-module* *current-module*))
-  (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
-                            (module-has-behavioural-axioms *current-module*))))
-    (declare (special *beh-rewrite*))
-    (set-term-color-top term)
-    (normalize-term term))
-  term)
+  (with-variable-as-constant (term)
+    (setq $$trials 1)
+    (when *memo-rewrite*
+      (when (or *clean-memo-in-normalize*
+                (not (eq *current-module* *memoized-module*)))
+        (clear-term-memo-table *term-memo-table*))
+      (setq *memoized-module* *current-module*))
+    (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
+                              (module-has-behavioural-axioms *current-module*))))
+      (declare (special *beh-rewrite*))
+      (set-term-color-top term)
+      (normalize-term term))))
 
 ;;; rewrite-exec
 ;;; 
@@ -929,43 +930,43 @@
   (declare (type term term)
            (type module module)
            (values term))
-  (case mode
-    (:exec+
-     (let ((*rwl-search-no-state-report* t))
-       (rwl-search* term
-                    nil                 ; pattern
-                    1                   ; max result
-                    most-positive-fixnum ; max depth
-                    nil                 ; zero?
-                    t                   ; final?
-                    nil                 ; cond
-                    nil                 ; pred
-                    *current-module*    ; module
-                    )
-       (if (rwl-sch-context-answers .rwl-sch-context.)
-           (term-replace term
-                         (rwl-state-term
-                          (car (rwl-sch-context-answers .rwl-sch-context.))))
-         (with-output-chaos-error ()
-           (format t "PANIC!")))))
-    (otherwise
-     (setq $$trials 1)
-     (when *memo-rewrite*
-       (when (or *clean-memo-in-normalize*
-                 (not (eq module *memoized-module*)))
-         (clear-term-memo-table *term-memo-table*))
-       (setq *memoized-module* module))
-     (let ((*trace-level* 0))
-       (setq $$matches 0)
-       (setq *term-memo-hash-hit* 0)
-       (with-in-module (module)
-         (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
-                                   (module-has-behavioural-axioms module))))
-           (declare (special *beh-rewrite*))
-           ;;
-           (set-term-color-top term)
-           (normalize-term term))))))
-  term)
+  (with-variable-as-constant (term)
+    (case mode
+      (:exec+
+       (let ((*rwl-search-no-state-report* t))
+         (rwl-search* term
+                      nil               ; pattern
+                      1                 ; max result
+                      most-positive-fixnum ; max depth
+                      nil               ; zero?
+                      t                 ; final?
+                      nil               ; cond
+                      nil               ; pred
+                      *current-module*  ; module
+                      )
+         (if (rwl-sch-context-answers .rwl-sch-context.)
+             (term-replace term
+                           (rwl-state-term
+                            (car (rwl-sch-context-answers .rwl-sch-context.))))
+           (with-output-chaos-error ()
+             (format t "PANIC!")))))
+      (otherwise
+       (setq $$trials 1)
+       (when *memo-rewrite*
+         (when (or *clean-memo-in-normalize*
+                   (not (eq module *memoized-module*)))
+           (clear-term-memo-table *term-memo-table*))
+         (setq *memoized-module* module))
+       (let ((*trace-level* 0))
+         (setq $$matches 0)
+         (setq *term-memo-hash-hit* 0)
+         (with-in-module (module)
+           (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
+                                     (module-has-behavioural-axioms module))))
+             (declare (special *beh-rewrite*))
+             ;;
+             (set-term-color-top term)
+             (normalize-term term))))))))
 
 ;;;
 (defun term-memo-get-normal-form (term strategy)
@@ -979,13 +980,6 @@
       (set-hashed-term term-nu *term-memo-table* normal-form))
     normal-form))
 
-(defmacro check-closed-world-assumption (?term)
-  ` (when *closed-world*
-      (when (and (sort= (term-sort ,?term) *bool-sort*)
-                 (not (is-true? ,?term))
-                 (term-is-applform? ,?term))
-        (term-replace-dd-simple ,?term *bool-false*))))
-
 ;;; NORMALIZE-TERM : TERM -> BOOL
 ;;;----------------------------------------------------------------------------
 ;;; normalize term, returns NIL iff the term is rewriten.
@@ -993,8 +987,6 @@
 (defun normalize-term (term)
   (declare (type term term)
            (values (or null t)))
-  ;; (unless (term-is-lowest-parsed? term)
-  ;;  (update-lowest-parse term))
   (when *rewrite-debug*
     (with-output-simple-msg ()
       (format t "[normalize-term]:(NF=~A,LP=~A,OD=~A) "
@@ -1003,13 +995,13 @@
               (term-is-on-demand? term))
       (term-print-with-sort term)))
   (let ((strategy nil))
-    (cond ((term-is-reduced? term)
-           (when (term-is-builtin-constant? term)
-             (update-lowest-parse term))
-           t)
-          ((null (setq strategy
-                   (method-rewrite-strategy (term-head term))))
-           ;; (check-closed-world-assumption term)
+    (when (term-is-reduced? term) 
+      (when (term-is-builtin-constant? term)
+        (update-lowest-parse term))
+      (return-from normalize-term t))
+    (when (term-is-application-form? term)
+      (setq strategy (method-rewrite-strategy (term-head term))))
+    (cond ((null strategy)
            (mark-term-as-reduced term)
            t)
           ((and *memo-rewrite*
@@ -1017,7 +1009,6 @@
            (term-replace term
                          (term-memo-get-normal-form term strategy))
            nil)
-          ;;
           (t (reduce-term term strategy)
              nil))))
 
@@ -1374,13 +1365,6 @@
   (let ((*fancy-print* nil)
         (*print-with-sort* t))
     (term-print $$term)))
-
-#||
-(defun apply-one-rule (rule term)
-  (declare (ignore rule term))
-  (format t "~%APPLY-ONE-RULE : INTERNAL ERROR, SPECIFIC REWRITEING ENGINE ISN'T SPECIFIED.")
-  (break))
-||#
 
 (defun rew-matcher (pat term)
   (if (term-is-variable? pat)

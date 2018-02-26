@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -116,12 +116,6 @@
      (when (memq *string-sort*
                  (module-all-sorts *current-module*))
        (make-bconst-term *string-sort* (cadr token))))
-    #||
-    ((|Character| %character)
-     (when (memq *character-sort* (module-all-sorts *current-module*))
-       (make-bconst-term *character-sort*
-                               (character (cadr token)))))
-    ||#
     (%slisp (make-simple-lisp-form-term (cadr token)))
     (%glisp (make-general-lisp-form-term (cadr token)))
     (|%Chaos|
@@ -136,11 +130,10 @@
 
 (defun variable-copy-modifying (var)
   (declare (type term var))
-  (@create-variable-term
-   (intern (concatenate 'string (the simple-string
-                                  (string (variable-name var)))
-                        "'"))
-   (variable-sort var)))
+  (make-variable-term (variable-sort var)
+                      (intern (concatenate 'string (the simple-string
+                                                     (string (variable-name var)))
+                                           "'"))))
 
 (defun simple-copy-term-sharing-variables (term dict)
   (declare (type term term)
@@ -164,12 +157,12 @@
                     *parse-variables*)
               term))))
       (if (term-is-application-form? term)
-          (@create-application-form-term (term-head term)
-                                         (term-sort term)
-                                         (mapcar #'(lambda (x)
-                                                     (simple-copy-term-sharing-variables x dict))
-                                                 (term-subterms term)))
-          (simple-copy-term term))))
+          (make-application-term (term-head term)
+                                 (term-sort term)
+                                 (mapcar #'(lambda (x)
+                                             (simple-copy-term-sharing-variables x dict))
+                                          (term-subterms term)))
+        (simple-copy-term term))))
 
 (defun get-qualified-op-pattern (tok &optional (module (get-context-module)))
   (labels ((destruct-op-name (expr)
@@ -337,7 +330,7 @@
                                          ;; check name, if it start with `, we make
                                          ;; pseudo variable
                                          (if (eql #\` (char (the simple-string (string var-name)) 0))
-                                             (setf var (make-pvariable-term sort var-name))
+                                             (setf var (make-pconst-term sort var-name))
                                            (setf var (make-variable-term sort var-name)))
                                          (push (cons var-name var) *parse-variables*)))
                                      (if old-var
@@ -408,8 +401,7 @@
     (when *on-parse-debug*
       (format t "~% : sort constraint = ")
       (print-chaos-object sort-constraint)
-      (format t "~& : result info = ~s" res)
-      (print-chaos-object res))
+      (format t "~& : result info = ~s" res))
     (values res (car mod-token))))
 
 (defun dictionary-delete-vars (lst)
@@ -1814,12 +1806,12 @@
         id-var)
     (unless (term-is-variable? attr-id)
       (setf id-var (get-attribute-id-variable
-                    (car (method-symbol (term-method attr-id)))
+                    (car (method-symbol (term-head attr-id)))
                     cr-sort))
       (unless id-var
         (with-output-panic-message ()
           (format t "could not find id variable for slot ~a of sort ~a"
-                  (car (method-symbol (term-method attr-id)))
+                  (car (method-symbol (term-head attr-id)))
                   (sort-id cr-sort))
           (print-next)
           (princ "id term = ")

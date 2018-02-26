@@ -78,6 +78,9 @@ sys:mod! STRING principal-sort String
 }
 
 lispq
+(when (fboundp 'chaos-string-tram-interface) (fmakunbound 'chaos-string-tram-interface))
+
+lispq
 (defun chaos-string-tram-interface ()
   (setq *z-string* (get-z-module-or-panic "STRING"))
   (push *z-string* *tram-builtin-modules*)

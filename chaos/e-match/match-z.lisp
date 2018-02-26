@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:CommonLisp; Package:CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -92,10 +92,10 @@
               t2 (equation-t2 equation)
               meth1 (if (term-is-constant? t1) ; note veriable also returns t
                         nil 
-                        (term-method t1))
+                        (term-head t1))
               meth2 (if (term-is-constant? t2)
                         nil 
-                        (term-method t2)))
+                        (term-head t2)))
         ;;
         (when *match-debug*
           (format t "~%z-next-state: k = ~d, r = ~d" k r)

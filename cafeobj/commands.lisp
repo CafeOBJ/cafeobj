@@ -657,12 +657,11 @@ the same term with `or` instead."
 (define ("escape")
     :type :doc-only
     :title "`esc return`"
-    :mdkey "help"
-    :doc "There would be a situation that you hit return expecting some 
-feed-back from the interpreter, but it does not respond.
-When this happen, try type in esc(escape key) and return, 
-it will immediately be back to you discarding preceding input 
-and makes a fresh start."
+    :mdkey "escape"
+    :doc "In case that, after hitting `return` expecting some feed-back,
+no such feed-back whatsoever is returned, typing the `escape` key followed by the
+`return` key will make the interpreter discard the preceding input 
+and make a fresh start."
 )
 
 (define ("exec limit switch")
@@ -2588,7 +2587,7 @@ provability using the RD strategy. Defaults to `off`."
     :parser citp-parse-embed
     :evaluator citp-eval-embed
     :title "`:embed (<label> ... <label>) as <module_name>`"
-    :doc "Icorporate proved goals into the module specified by <module_name>
+    :doc "Incorporate proved goals into the module specified by <module_name>
 which will import the current proof context module."
     )
 

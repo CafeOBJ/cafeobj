@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -54,7 +54,7 @@
 
 (defun make-bterm-variable ()
   (let ((varname (intern (format nil "`P-~d" (incf .bvar-num.)))))
-    (make-pvariable-term *bool-sort* varname)))
+    (make-pconst-term *bool-sort* varname)))
 
 (defun get-bterm-variable (term)
   (unless (or (is-true? term)
@@ -459,7 +459,7 @@
   (declare (type list sigma)
            (type term term))
   (let ((*consider-object* t))
-    (cond ((term-is-psuedo-constant? term)
+    (cond ((term-is-pconstant? term)
            (let ((im (pvar-image sigma term)))
              (if im;; i.e. im = sigma(term)
                  (values im nil)

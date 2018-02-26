@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -409,8 +409,8 @@
     ;; 
     (nreverse res)))
 
-(defun declare-pvariable (ast)
-  (I-miss-current-module declare-pvariable)
+(defun declare-pconst (ast)
+  (I-miss-current-module declare-pconst)
   ;; (set-needs-parse) ; too early to set the flag.
   (include-BOOL)
   (let ((sort (find-sort-in *current-module* (%pvar-decl-sort ast)))
@@ -420,7 +420,7 @@
           (progn
             ;; may be declaration of variable of error sorts.
             (push ast (module-error-var-decl *current-module*))
-            (return-from declare-pvariable t))
+            (return-from declare-pconst t))
           ;;
           (with-output-chaos-error ('no-such-sort)
             (format t "declaring pseud variable(s)~{~^ ~a~^,~}, no such sort."
@@ -428,7 +428,7 @@
             (print-ast (%pvar-decl-sort ast))
             )))
     (dolist (name (%pvar-decl-names ast))
-      (push (declare-pvariable-in-module name sort *current-module*) res))
+      (push (declare-pconst-in-module name sort *current-module*) res))
     ;; - patch, now we are safe to set the flag.
     (set-needs-parse)
     ;; 

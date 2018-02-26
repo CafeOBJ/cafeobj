@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -71,7 +71,7 @@
       (let ((t1-body (term-body t1))
             (t2-body (term-body t2)))
         (cond ((term$is-applform? t1-body)
-               (let ((f1 (term$head t1-body)))
+               (let ((f1 (appl$head t1-body)))
                  ;; (break)
                  (if (theory-info-empty-for-matching
                       (method-theory-info-for-matching f1))

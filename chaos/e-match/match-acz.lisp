@@ -1,6 +1,6 @@
 ;;;-*- Mode:Lisp; Syntax:CommonLisp; Package: CHAOS -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -388,7 +388,7 @@
            ;; (optimize (speed 3) (safety 0))
            )
   (if (term-is-applform? t2)
-      (let ((op (term-method t1)))
+      (let ((op (term-head t1)))
         (declare (type method op))
         (if (method-is-of-same-operator op (term-head t2))
             (match-ACZ-ms-equal
@@ -595,9 +595,9 @@
         (setf eqn-number (1+ eqn-number))
         (let* ((lhs-1 (equation-t1 equation))
                (rhs-1 (equation-t2 equation))
-               (lh-meth (term-method lhs-1))
+               (lh-meth (term-head lhs-1))
                (rhs-meth (if (term-is-applform? rhs-1)
-                             (term-method rhs-1)
+                             (term-head rhs-1)
                            nil))
                (lhs-2 (list-ACZ-subterms lhs-1 lh-meth))
                (rhs-2 (if (and rhs-meth
@@ -631,7 +631,7 @@
                            ((term-is-constant? image)
                             (push (cons image eqn-number) lhs-constants))
                            ((method-is-AC-restriction-of lh-meth
-                                                         (term-method image))
+                                                         (term-head image))
                             (dolist (term2 (list-ACZ-subterms image (term-head image)))
                               (cond ((term-is-variable? term2)
                                      (push (cons term2 eqn-number)

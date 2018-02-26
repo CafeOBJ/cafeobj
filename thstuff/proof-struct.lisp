@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -387,6 +387,7 @@
   ;; set default
   (setf (citp-flag citp-print-message) t) ; others are 'off'
   (setf (citp-flag citp-normalize-init) t)
+  (setf (citp-flag citp-normalize-lhs) t)
   ;; verbose flag hook
   (setf (citp-flag-hook citp-verbose)
     #'(lambda (name value)
@@ -678,7 +679,7 @@
   (next-child 0 :type fixnum)           ; next child to be proved
   (my-num 0 :type fixnum)               ; position in siblings, first = 1
   (my-name "" :type string)             ; name
-  (done nil :type (or null t)))         ; t iff the node is dischaged
+  (done nil))                           ; t iff the node is dischaged
 
 (defun pr-ptree-node (ptree-node &optional (stream *standard-output*) &rest ignore)
   (declare (type ptree-node ptree-node)
@@ -994,7 +995,7 @@
 (defun intro-fresh-pconstant (goal name-seed sort)
   (declare (ignore goal))
   (let ((name (make-tc-pconst-name name-seed)))
-    (make-pvariable-term sort name)))
+    (make-pconst-term sort name)))
 
 ;;; variable->constant : goal variable -> term
 ;;; In the given goal, introduces fresh constant which should substitute the given varirable.
@@ -1326,8 +1327,11 @@
 (defun get-unproved-nodes (ptree)
   (let ((nodes nil))
     (dag-dfs (ptree-root ptree)
-             #'(lambda (x) (unless (or (ptree-node-subnodes x) (goal-is-discharged (ptree-node-goal x)))
-                             (push x nodes))))
+             #'(lambda (x) 
+                 (declare (type ptree-node))
+                 (unless (or (ptree-node-subnodes x)
+                             (goal-is-discharged (ptree-node-goal x)))
+                   (push x nodes))))
     (nreverse nodes)))
 
 ;;; get-unproved-goals : ptree -> List(goal)

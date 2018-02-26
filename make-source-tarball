@@ -52,7 +52,7 @@ if [ ! "x$pver$pmin" = "x$version" ] ; then
 fi
 
 # check git status
-if ! git status --ignored | grep -q 'nothing to commit, working directory clean' ; then
+if ! git status --ignored | grep -q 'nothing to commit, working tree clean' ; then
   echo "git repo in unclean state, call git status --ignored!" >&2
   exit 1
 fi

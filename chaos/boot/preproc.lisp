@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -276,35 +276,28 @@
         (eq (car ,_val) '|%Chaos|)))
 
 (defun print-chaos-value (val)
-  #||
-  (format t "#% ~s"
-          (if (is-compiled-chaos-value val)
-              (nth 2 val)
-            val))
-  ||#
-  (print-chaos-object val)
-  )
+  (print-chaos-object val))
 
 (defun is-variable? (val)
-  (and (is-term? val) (term-is-variable? val)))
+  (and (term? val) (term-is-variable? val)))
 
 (defun is-applform? (val)
-  (and (is-term? val) (term-is-applform? val)))
+  (and (term? val) (term-is-applform? val)))
 
 (defun is-pvariable? (val)
-  (and (is-term? val) (term-is-psuedo-constant? val)))
+  (and (term? val) (term-is-pconstant? val)))
 
 (defun is-lisp-form? (val)
-  (and (is-term? val) (term-is-lisp-form? val)))
+  (and (term? val) (term-is-lisp-form? val)))
 
 (defun is-slisp-form? (val)
-  (and (is-term? val) (term-is-simple-lisp-form? val)))
+  (and (term? val) (term-is-simple-lisp-form? val)))
 
 (defun is-glisp-form? (val)
-  (and (is-term? val) (term-is-general-lisp-form? val)))
+  (and (term? val) (term-is-general-lisp-form? val)))
 
 (defun is-bconst-term? (val)
-  (and (is-term? val) (term-is-builtin-constant? val)))
+  (and (term? val) (term-is-builtin-constant? val)))
 
 ;;;-----------------------------------------------------------------------------
 ;;; TRUTH-VALUE, TRUTH & BOOL

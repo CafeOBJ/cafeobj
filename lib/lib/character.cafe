@@ -75,6 +75,8 @@ sys:mod! CHARACTER
 }
 
 lispq
+(when (fboundp 'chaos-character-tram-interface) (fmakunbound 'chaos-character-tram-interface))
+lispq
 (defun chaos-character-tram-interface ()
   (setq *z-char* (get-z-module-or-panic "CHARACTER"))
   (push *z-char* *tram-builtin-modules*))

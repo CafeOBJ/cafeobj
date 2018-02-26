@@ -64,6 +64,9 @@ sys:mod! RAT
 }
 
 lispq
+(when (fboundp 'chaos-rat-tram-interface) (fmakunbound 'chaos-rat-tram-interface))
+
+lispq
 (defun chaos-rat-tram-interface ()
   (setq *z-rat* (get-z-module-or-panic "RAT"))
   (push *z-rat* *tram-builtin-modules*))
