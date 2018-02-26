@@ -1,0 +1,32 @@
+% \documentclass{minimal}
+% \usepackage{amsmath}
+% \usepackage{tikz}
+% \usetikzlibrary{arrows,arrows.meta,decorations.markings}
+% \begin{document}
+\definecolor{tempcolor}{RGB}{255,189,255}
+\tikzstyle{sstate} = [draw, circle, fill=red!20, minimum width=0.7cm,node distance=3cm]
+\tikzstyle{sstateother} = [draw, circle, fill=tempcolor, minimum width=0.7cm,node distance=3cm]
+\tikzstyle{fatarr} = [>={Latex[width=2mm,length=2mm]}]
+\begin{tikzpicture}
+  \def\nnn(#1,#2,#3){\node [sstate] (#3) at (#1,#2) {#3} ; }
+  \def\nnno(#1,#2,#3){\node [sstateother] (#3) at (#1,#2) {#3} ; }
+  \nnn(0,0,A)
+  \nnn(-0.5,-1.8,I)
+  \nnn(0.7,1.9,G)
+  \nnn(1.4,-2.3,J)
+  \nnn(1.9,-1.1,C)
+  \nnn(3.5,-2,E)
+  \nnno(3.3,-0.3,D)
+  \nnno(3.1,1.5,B)
+  \nnno(5,-1.1,F)
+  \nnn(6.8,-1.1,K)
+  \nnn(6.8,0.2,H)
+  \path[->,fatarr] (A) edge (C) edge (B) ;
+  \path[->,fatarr] (I) edge (J) ;
+  \path[<->,fatarr] (C) edge (J) ;
+  \path[->,fatarr] (C) edge (E) edge (F) edge (D) ;
+  \path[->,fatarr] (J) edge (E) ;
+  \path[->,fatarr] (E) edge (F) ;
+  \path[->,fatarr] (F) edge (B) (B) edge (K) (K) edge (F) (B) edge (H) ;
+\end{tikzpicture}
+%\end{document}

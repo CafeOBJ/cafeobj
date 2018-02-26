@@ -1,4 +1,7 @@
 \documentclass{article}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
 \usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
 \geometry{a4paper}                   % ... or a4paper or a5paper or ... 
 %\geometry{landscape}                % Activate for for rotated page geometry
@@ -121,7 +124,8 @@ CafeOBJ処理系 version 1.4.8 で新たに導入された組み込みのサー�
 次いで得られた遷移<項1-1> \ldots <項1-n>のすべてに対して、それぞれの既約形を求めた後に改めてそれらの可能な遷移をすべて求めるという展開の仕方である。この深さに対する上限を指定するのがN2である。
 \begin{figure}[htbp]
   \begin{center}
-    \includegraphics[scale=0.6]{dfs.pdf}
+    %\includegraphics[scale=0.6]{dfs.pdf}
+    \input dfs.tikz
     \caption{{サーチ述語の探索木展開}}
     \label{fig:dfs}
   \end{center}
@@ -161,7 +165,8 @@ CafeOBJ処理系 version 1.4.8 で新たに導入された組み込みのサー�
 
 \begin{figure}[htbp]
   \begin{center}
-    \includegraphics[scale=0.6]{dfs2.pdf}
+    % \includegraphics[scale=0.6]{dfs2.pdf}
+    \input dfs2.tikz
     \caption{{状態遷移例}}
     \label{fig:dfs2}
   \end{center}
@@ -477,7 +482,8 @@ isOK は状態 B、D および F について \texttt{true} であると宣言�
 図~\ref{fig:figure3} にこの様子を図示した。
 \begin{figure}[htbp]
   \begin{center}
-    \includegraphics[scale=0.6]{figure3.pdf}
+    % \includegraphics[scale=0.6]{figure3.pdf}
+    \input figure3.tikz
     \caption{条件付きサーチの探索空間}
     \label{fig:figure3}
   \end{center}
