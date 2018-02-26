@@ -747,13 +747,12 @@ as equation to the current goal.
 
 Related: [`:rule`](#citp-rule), [`:cp`](#citp-cp), [`citp`](#citp)
 
-## `esc return` ## {#help}
+## `esc return` ## {#escape}
 
-There would be a situation that you hit return expecting some 
-feed-back from the interpreter, but it does not respond.
-When this happen, try type in esc(escape key) and return, 
-it will immediately be back to you discarding preceding input 
-and makes a fresh start.
+In case that, after hitting `return` expecting some feed-back,
+no such feed-back whatsoever is returned, typing the `escape` key followed by the
+`return` key will make the interpreter discard the preceding input 
+and make a fresh start.
 
 ## `exec limit` switch ## {#switch-exec-limit}
 
