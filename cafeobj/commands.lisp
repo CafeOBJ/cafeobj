@@ -2588,7 +2588,7 @@ provability using the RD strategy. Defaults to `off`."
     :parser citp-parse-embed
     :evaluator citp-eval-embed
     :title "`:embed (<label> ... <label>) as <module_name>`"
-    :doc "Icorporate proved goals into the module specified by <module_name>
+    :doc "Incorporate proved goals into the module specified by <module_name>
 which will import the current proof context module."
     )
 
