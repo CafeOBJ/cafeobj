@@ -316,8 +316,8 @@ doc/citp-manual/citp.pdf: doc/etc/kosakusha-logo-gray.png
 	$(MAKE) -C doc/citp-manual citp.pdf
 doc/binspect/binspect.pdf: doc/etc/kosakusha-logo-gray.png
 	$(MAKE) -C doc/binspect binspect.pdf
-
-
+doc/etc/kosakusha-logo-gray.png:
+	$(MAKE) -C doc/etc kosakusha-logo-gray.png
 
 clean:
 	-test -r doc/refman/Makefile && $(MAKE) -C doc/refman clean
