@@ -6,9 +6,9 @@ Terminates the input and exit from the interpreter.
 
 On Unix only, forks a shell and executes the given `<command>`.
 
-## `#define <symbol> := <term> .` ## {#sharp-define}
+## `#define <pattern> := <term> .` ## {#sharp-define}
 
-Defines <symbol> to be <term>, that is, when <symbol>
+Defines <pattern> to be <term>, that is, when <pattern>
 appers in term, it is expanded to <term> and then parsed.
 
 ## `**`, `**>` ## {#starstar}
@@ -498,7 +498,7 @@ The sub-system provides a certain level of automatization for theorem proving.
 
 Please see the accompanying manual for CITP for details.
 
-Related: [`:ord`](#citp-order), [`:imp`](#citp-imply), [`:def`](#citp-def), [`:ctf-`](#citp-ctf-), [`:ctf`](#citp-ctf), [`:csp-`](#citp-csp-), [`:csp`](#citp-csp), [`:red`](#citp-red), [`:select`](#citp-select), [`:backward`](#citp-backward), [`:rule`](#citp-rule), [`:equation`](#citp-equation), [`:cp`](#citp-cp), [`:init`](#citp-init), [`:roll`](#citp-roll), [`:auto`](#citp-auto), [`:ind`](#citp-ind), [`:apply`](#citp-apply), [`:goal`](#citp-goal)
+Related: [`:attr`](#target_not_found), [`:reset`](#citp-reset), [`:embed`](#citp-embed), [`:use`](#citp-use), [`:ord`](#citp-order), [`:imp`](#citp-imply), [`:def`](#citp-def), [`:ctf-`](#citp-ctf-), [`:ctf`](#citp-ctf), [`:csp-`](#citp-csp-), [`:csp`](#citp-csp), [`:red`](#citp-red), [`:select`](#citp-select), [`:backward`](#citp-backward), [`:rule`](#citp-rule), [`:equation`](#citp-equation), [`:cp`](#citp-cp), [`:init`](#citp-init), [`:roll`](#citp-roll), [`:auto`](#citp-auto), [`:ind`](#citp-ind), [`:apply`](#citp-apply), [`:goal`](#citp-goal)
 
 ## `clause <term> .` ## {#clause}
 
@@ -614,9 +614,10 @@ Related: [`bctrans`](#bctrans), [`btrans`](#btrans), [`trans`](#trans)
 
 (pignose)
 
-## `:def <symbol> = { <ctf> | <csp>}` ## {#citp-def}
+## `:def <symbol> = { <ctf> | <csp> | <init> }` ## {#citp-def}
 
-Assigns a name to a specific case splitting (`ctf` or `csp`),
+Assigns a name to a specific case splitting (`:ctf` or `:csp`)
+ or induction `:ind`),
 so that it can be used as tactics in `:apply`.
 
 Related: [`citp`](#citp)
@@ -624,11 +625,12 @@ Related: [`citp`](#citp)
 ### Example ###
 
 ~~~~~
-:def name-1 = ctf [ <Term> . ]
-:def name-2 = ctf-{ eq LHS = RHS . }
-:def name-3 = csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
-:def name-4 = csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
-:apply(SI TC name-1 name-2 name-3 name-4)
+:def name-0 = :ind { :on (<Variable>...) :base <Term> . :step <Term> . }
+:def name-1 = :ctf [ <Term> . ]
+:def name-2 = :ctf-{ eq LHS = RHS . }
+:def name-3 = :csp { eq lhs1 = rhs1 . eq lhs2 = rhs2 . }
+:def name-4 = :csp-{ eq lhs3 = rhs3 . eq lhs4 = rhs4 . }
+:apply(name-0 TC name-1 name-2 name-3 name-4)
 ~~~~~
 
 ## `demod` ## {#demod}
@@ -677,6 +679,11 @@ Related: [`popd`](#popd), [`pwd`](#pwd), [`pushd`](#pushd), [`cd`](#cd), [`ls`](
 If <file-name> is give, the evaluation process of the system is
 output to the <file-name> in internal form. '.' stops the recording. 
 Only usefule for developer of the system.
+
+## `:embed (<label> ... <label>) as <module_name>` ## {#citp-embed}
+
+Incorporate proved goals into the module specified by <module_name>
+which will import the current proof context module.
 
 ## `eof` ## {#eof}
 
@@ -739,6 +746,14 @@ Adds the critical pair computed by the last [`:cp`](#citp-cp) command
 as equation to the current goal.
 
 Related: [`:rule`](#citp-rule), [`:cp`](#citp-cp), [`citp`](#citp)
+
+## `esc return` ## {#help}
+
+There would be a situation that you hit return expecting some 
+feed-back from the interpreter, but it does not respond.
+When this happen, try type in esc(escape key) and return, 
+it will immediately be back to you discarding preceding input 
+and makes a fresh start.
 
 ## `exec limit` switch ## {#switch-exec-limit}
 
@@ -866,9 +881,14 @@ See [`module expression`](#moduleexpression) for format of `modexp`.
 
 Related: [module expression](#moduleexpression), [`using`](#using), [`protecting`](#protecting), [`extending`](#extending)
 
-## `:ind on <variable> ... .` ## {#citp-ind}
+## `:ind { on (<variable> ...) | 
+'{' on (<variable> ...) 
+    base (<Term> . ... <Term> .)
+    step (<Term> . ... <Term> .)
+'}'` ## {#citp-ind}
 
-Defines the variable for the induction tactic of CITP.
+':ind on (<variable> ...)' defines the variable for the induction tactic of CITP.
+':ind { ... }' defines induction variable(s) and base pattern and step pattern specified by <Term>s.
 
 Related: [`citp`](#citp)
 
@@ -877,34 +897,27 @@ Related: [`citp`](#citp)
 
 ~~~~~
 :ind on (M:PNat)
+:ind { on (M:PNat) 
+       base (<Term> . ... <Term> .) 
+       step (<Term> . ... <Term> .)
+     }
 ~~~~~
 
-## `:ind on <variable> ... .` ## {#citp-ind+}
-
-Defines the variable for the induction tactic of CITP.
-
-Related: [`citp`](#citp)
-
-### Example ###
-
-
-~~~~~
-:ind+ on (M:PNat) with base (<Term> . ... <Term> .) step (<Term> . ... <Term> .)
-~~~~~
-
-## `init { "[" <label> "]" | "(" <sentence> "")} by "{" <variable> <- <term>; ... "}"` ## {#init}
+## `init [as <name>] { "[" <label> "]" | "(" <sentence> "")} by "{" <variable> <- <term>; ... "}"` ## {#init}
 
 Instantiates an equation specified by `<label>` by replacing the `<variable>`s 
 in the equation with the respective `<term>`s. The resulting equation is added
 to the set of axioms.
+If optional `as <name>` is given, label of the instantiated axiom is overwritten by <name>.
 
 Related: [`open`](#open)
 
-## `:init { "[" <label> "]" | "(" <sentence> "")} by "{" <variable> <- <term>; ... "}"` ## {#citp-init}
+## `:init [as <name>] { "[" <label> "]" | "(" <sentence> "")} by "{" <variable> <- <term>; ... "}"` ## {#citp-init}
 
 Instantiates an equation specified by `<label>` by replacing the `<variable>`s 
 in the equation with the respective `<term>`s. The resulting equation is added
 to the set of axioms.
+If optional `as <name>` is given, label of the instantiated axiom is overwritten by <name>.
 
 Related: [`citp`](#citp)
 
@@ -1572,6 +1585,10 @@ CafeOBJ> require foo::bar
 ~~~~~
 would search for `foo/bar.cafe` in the pathes from `libpath`
 
+## `:reset` ## {#citp-reset}
+
+Discard the current proof session.
+
 ## `reset` ## {#reset}
 
 Restores the definitions of built-in modules and preludes,  but does not
@@ -1723,7 +1740,7 @@ values, use `show switches`. To single out two general purpose switches,
 
 Related: [`switches`](#switches), [`show`](#show)
 
-## `:show goal|unproved|proof` ## {#citp-show}
+## `:show goal|unproved|proof|discharged` ## {#citp-show}
 
 Shows the current goal, the up-to-now unproven (sub-)goals, and the current proof.
 
@@ -1922,6 +1939,11 @@ The single switches are described separately in this manual.
 
 Related: [`show`](#show), [`set`](#set)
 
+## `:theory <op_name> : <arity> -> <coarity> { assoc | comm | id: <term> }` ## {#citp-theory}
+
+Adds operator theory 'associativity', 'commutativity', and/or 'identity' to 
+an operator specfied by '<op_name> : <arity> -> <coarity> .
+
 ## `trace [whole]` switch ## {#switch-trace}
 
 During evaluation, it is sometimes desirable to see the rewrite
@@ -1952,6 +1974,10 @@ with the `protect` call. Some modules vital for the system
 are initially protected.
 
 Related: [`protect`](#protect)
+
+## `:use (<label> ... <label>)` ## {#citp-use}
+
+Incorporate discharged goal sentences as new axioms.
 
 ## `using ( <modexp> )` ## {#using}
 
