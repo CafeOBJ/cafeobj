@@ -34,12 +34,15 @@
 (eval-when (eval load)
   (push :bigpink *features*)
   (push :cltl2 *features*)
-  (require :asdf))
+  (require :asdf)
+  #+(and :allegro :MSWINDOWS)
+  (defun make-module-path-string (rel-path)
+     (concatenate 'string (namestring (current-directory)) rel-path))
+)
 
 (excl:defsystem :cl-ppcre
     (:default-pathname
-        #+:mswindows
-        "c:/Users/sawada/prj/CafeOBJ/cl-ppcre/"
+        #+:mswindows  #.(make-module-path-string "cl-ppcre/")
       #-:mswindows
       "cl-ppcre/"
       :default-package :cl-ppcre)
@@ -73,8 +76,7 @@
 
 (excl:defsystem :comlib
     (:default-pathname 
-        #+:mswindows 
-        "c:/Users/sawada/prj/CafeOBJ/comlib/"
+        #+:mswindows #.(make-module-path-string "comlib/")
       #-:mswindows
       "comlib/"
       :default-package "CHAOS")
@@ -99,8 +101,7 @@
 
 (excl:defsystem :chaos
     (:default-pathname 
-        #+:mswindows 
-        "c:/Users/sawada/prj/CafeOBJ/chaos/"
+        #+:mswindows #.(make-module-path-string "chaos/")
       #-:mswindows
       "chaos/"
       :default-package "CHAOS")
@@ -214,8 +215,8 @@
 
 (excl:defsystem :chaosx
     (:default-pathname 
-        #+:mswindows "c:/Users/sawada/prj/CafeOBJ/"
-      #-:Mswindows "./"
+        #+:mswindows  #.(make-module-path-string "")
+      #-:mswindows "./"
       :default-package "CHAOS")
   (:definitions
       "chaos-package"
