@@ -669,7 +669,7 @@
                       (print-axiom-brief (car r))
                       (print-next)))
                 (progn (princ "none") (print-next)))
-              (princ "-- Generated, but might cause inifinite loop:")
+              (princ "-- Generated axiom, but it might cause inifinite loop which system will not introduce:")
               (print-next)
               (if errs
                   (let ((lst errs))
@@ -695,10 +695,10 @@
               (when *chaos-verbose*
                 (unless (and (null newidcond) (eq r newrule))
                   (if (eq r newrule)
-                      (format t "~%  -- Modified with Id condition:~%  ")
+                      (format t "~%-- Modified with Id condition:~%  ")
                     (if (rule-occurs newrule (module-equations module))
-                        (format t "~%  -- Required rule: ~%  ")
-                      (format t "~%  -- Added rule: ~%  "))))
+                        (format t "~%-- Required rule: ~%  ")
+                      (format t "~%-- Added rule: ~%  "))))
                 (flush-all))
               ;;
               (setf (axiom-id-condition newrule) newidcond)
