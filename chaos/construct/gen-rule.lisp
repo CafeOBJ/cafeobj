@@ -669,7 +669,7 @@
                       (print-axiom-brief (car r))
                       (print-next)))
                 (progn (princ "none") (print-next)))
-              (princ "-- Generated, but invalid rules:")
+              (princ "-- Generated, but might cause inifinite loop:")
               (print-next)
               (if errs
                   (let ((lst errs))
