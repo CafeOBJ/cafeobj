@@ -865,6 +865,10 @@
          (:rdr #..term-delimiting-chars. (:if-present in :symbol |:|)) (:seq-of :term) |.|)
         (binspect
          (:rdr #..term-delimiting-chars. (:if-present  in :modexp |:|)) (:seq-of :term) |.|)
+        (|:bgrind|
+         (:rdr #..term-delimiting-chars. (:if-present in :symbol |:|)) (:seq-of :term) |.|)
+        (bgrind
+         (:rdr #..term-delimiting-chars. (:if-present  in :modexp |:|)) (:seq-of :term) |.|)
         ((:+ |:bresolve| bresolve) :args)
         ((:+ |:bshow| bshow) :args)
         ((:+ |:bg| |:bguess| bg bguess) :args)

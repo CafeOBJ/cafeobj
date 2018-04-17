@@ -222,22 +222,22 @@
   (!setup-reduction module)
   (with-in-module (module)
     (reset-reduced-flag term)
-    (when *citp-verbose*
-      (format t "~%-- computing normal form."))
     (let* ((*always-memo* t)
-           (target (reducer-no-stat term module :red)))
+           (target (reducer term module :red)))
+      (format t "~%~a" (generate-statistics-form-rewriting-only))
       (format t "~%--> ")
       (term-print term)
       ;; abstract
-      (when *citp-verbose*
-        (format t "~%-- starting abstraction"))
-      (let ((bterm (abstract-boolean-term target module)))
+      (let ((bterm (abstract-boolean-term target module))
+            (abs-start (get-internal-run-time)))
         (when bterm
           (setq *abst-bterm* bterm)
           (setq *abst-bterm-representation*
-          (make-bterm-representation bterm))
+            (make-bterm-representation bterm))
           (let ((*print-indent* (+ 2 *print-indent*)))
             (format t "~%** Abstracted boolean term:")
+            (format t "~%(consumed ~,3f sec. for abstraction)~%"
+                    (elapsed-time-in-seconds abs-start (get-internal-run-time)))
             (with-in-module (module)
               (print-next)
               (term-print *abst-bterm-representation*)
@@ -731,7 +731,7 @@
   (binspect-intro-predicates *abst-bterm* (get-binspect-module)))
 
 ;;;=========================================================================
-;;; TOP LEVEL FUNCTION
+;;; TOP LEVEL FUNCTIONS
 ;;; 
 
 ;;; binspect-in
@@ -836,13 +836,52 @@
                (format t "Unknown strategy ~s" strategy))))))
 
 ;;; bgrind
+;;;
+(defun bgrind-in (mode goal-or-module preterm)
+  (let ((*chaos-quiet* t)
+        (*no-prompt* t))
+    (cond ((eq mode :citp)
+           (bgrind-in-goal goal-or-module preterm))
+          (t
+           (bgrind-in-module goal-or-module preterm)))))
+
+(defun bgrind-in-goal (goal-name preterm)
+  (let* ((goal-node (get-target-goal-node goal-name))
+         (context-module (goal-context (ptree-node-goal goal-node)))
+         (target (do-parse-term* preterm context-module)))
+    (show-grind context-module target)))
+
+(defun bgrind-in-module (mod-name preterm)
+  (multiple-value-bind (target context-module)
+      (do-parse-term* preterm mod-name)
+    (show-grind context-module target)))
+
+(defun show-grind (context-module target)
+  (unless (eq *bool-sort* (term-sort target))
+    (with-output-chaos-error ('term-is-not-bool)
+      (format t "Given term is not of sort Bool.")))
+  (with-in-module (context-module)
+    (format t "~%** Start normalization...")
+    (let* ((*always-memo* t)
+           (bt (reducer target context-module :red)))
+      (format t "~%~a" (generate-statistics-form-rewriting-only))
+      (bgrind-bool-term bt t t))))
+
+;;; bgrind-bool-term
 ;;; built-in op
 ;;; accepting boolean term and print it in 'grind' form
 ;;;
-(defun bgrind-bool-term (bt &optional (doit *grind-bool-term*))
+(defun bgrind-bool-term (bt &optional (doit *grind-bool-term*) (do-report nil))
   (when doit
-    (let ((abst (abstract-boolean-term bt *current-module*)))
-      (print-bterm-grinding abst)))
+    (let ((abs-start (get-internal-run-time)))
+      (when do-report
+        (format t "~%** Start term abstraction..."))
+      (let ((abst (abstract-boolean-term bt *current-module*)))
+        (when do-report
+          (format t "~%(consumed ~,3f sec. for abstraction)"
+                  (elapsed-time-in-seconds abs-start
+                                           (get-internal-run-time))))
+        (print-bterm-grinding abst))))
   bt)
 
 ;;; EOF
