@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package: Chaos; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -204,7 +204,7 @@
                     (return-from get-importing-path
                       (nconc path im2))))))))))
 
-(defun get-real-importing-mode (module2 &optional (module (get-context-module)))
+(defun get-real-importing-mode (module2 &optional (module (get-context-module :no-error)))
   (declare (type module module2 module)
            (values symbol))
   (let ((path (get-importing-path module2 module)))
@@ -1097,7 +1097,7 @@
 ;;;-----------------------------------------------------------------------------
 ;;; FIND-MODULE-IN-ENV : modexp -> { module | nil }
 ;;;
-(defun find-module-in-env (me &optional (context *current-module*))
+(defun find-module-in-env (me &optional (context (get-context-module :no-error)))
   (declare (type (or null module) context))
   (if context
       (or (get-modexp-local (list me (module-name context)))
@@ -1106,49 +1106,44 @@
       (or (find-modexp-eval me)
           (find-global-module me))))
 
-(defun find-module-in-env-ext (name &optional (context *current-module*)
+(defun find-module-in-env-ext (name &optional (context (get-context-module :no-error))
                                     no-error)
   (declare (type (or module simple-string) name)
            (type (or null module) context))
-  ;; 
+  ;; trivial cases
   (when (module-p name)
     (return-from find-module-in-env-ext name))
+  (when (and context (equal name (module-name context)))
+      (return-from find-module-in-env-ext context))
   ;;
-  (when context
-    (when (equal name (module-name context))
-      (return-from find-module-in-env-ext context)))
-  ;;
+  (when (and context (module-is-parameter-theory context))
+    (let ((wcontext (fourth (get-module-print-name context))))
+      ;; widen context
+      ;; (format t "~%[fmiee] ~s" wcontext)
+      (let ((m (find-module-in-env-ext name wcontext no-error)))
+        (return-from find-module-in-env-ext m))))
   (let ((quals (parse-with-delimiter name #\.)))
-    ;; scan qualifires from right to left
-    ;; the last one is the target we are looking for.
     (let ((c context)
-          (tmod nil))
-      (dolist (qname (reverse quals))
-        (let ((subs (module-all-submodules c)))
-          (setq tmod (or (find-module-in-sublist qname subs c)
-                         ;; Wed Feb 17 13:27:44 JST 1999
-                         ;; (find-module-in-env qname c)
-                         nil))
-          (unless tmod
-            (when no-error
-              (return-from find-module-in-env-ext nil))
-            ;; (break)
+          (tmod nil)
+          (qname (car quals)))
+      (let ((subs (module-all-submodules c)))
+        (setq tmod (or (find-module-in-sublist qname subs c)
+                       ;; Wed Feb 17 13:27:44 JST 1999
+                       ;; (find-module-in-env qname c)
+                       nil))
+        (unless tmod
+          (if no-error
+              (return-from find-module-in-env-ext nil)
             (with-output-chaos-error ('no-such-module)
-              (format t "no such module ~a in the context "
-                      qname)
-              (print-mod-name context *standard-output* t)
-              ))
-          (when (atom tmod) (setq tmod (list tmod)))
-          (when (cdr tmod)
-            (with-output-chaos-error ('ambiguous-module-name)
-              (format t "module name ~a is ambiguous in the context."
-                      qname)
-              (print-mod-name context *standard-output* t)
-              ))
-          (setq c (car tmod))))
-      (car tmod))))
+              (format t "no such module ~a in the context " qname)
+              (print-mod-name context *standard-output* t))))
+        (when (cdr tmod)
+          (with-output-chaos-error ('ambiguous-module-name)
+              (format t "module name ~a is ambiguous in the context." qname)
+              (print-mod-name context *standard-output* t)))
+      (car tmod)))))
 
-(defun find-module-in-sublist (name subs &optional (context *current-module*))
+(defun find-module-in-sublist (name subs &optional (context (get-context-module :no-error)))
   (let ((res nil))
     (when context
       (let ((als (rassoc name (module-alias context) :test #'equal)))
