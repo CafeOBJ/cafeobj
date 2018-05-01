@@ -1,0 +1,15 @@
+---
+ doc/refman/Makefile.in |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- cafeobj.git.orig/doc/refman/Makefile.in
++++ cafeobj.git/doc/refman/Makefile.in
+@@ -42,7 +42,7 @@
+ 	-V sansfont='FreeSans'				\
+ 	-V monofont='FreeMono'				\
+ 	-V documentclass=memoir				\
+-	--latex-engine=$(ENGINE)
++	--pdf-engine=$(ENGINE)
+ 
+ #
+ # included md files, order is important!!!

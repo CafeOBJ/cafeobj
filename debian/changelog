@@ -1,3 +1,9 @@
+cafeobj (1.5.7-2) unstable; urgency=medium
+
+  * fix FTBFS with new pandoc (Closes: #897105)
+
+ -- Norbert Preining <preining@debian.org>  Tue, 01 May 2018 09:07:28 +0900
+
 cafeobj (1.5.7-1) unstable; urgency=medium
 
   * new upstream releases
