@@ -1,3 +1,9 @@
+cafeobj (1.5.7-3) unstable; urgency=medium
+
+  * exclude pandoc on armhf in B-Ds, lagging behind too badly
+
+ -- Norbert Preining <preining@debian.org>  Tue, 08 May 2018 13:52:04 +0900
+
 cafeobj (1.5.7-2) unstable; urgency=medium
 
   * fix FTBFS with new pandoc (Closes: #897105)
