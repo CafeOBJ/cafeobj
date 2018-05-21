@@ -1,0 +1,36 @@
+---
+ Makefile.in |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+--- cafeobj.git.orig/Makefile.in
++++ cafeobj.git/Makefile.in
+@@ -185,9 +185,7 @@
+ 	       $(patsubst gcl,$(GCL_DUMP),$(lisp)))))))))
+ 
+ # documentation rebuilding
+-doc_targets =
+-ifeq ($(enable_rebuild_doc),yes)
+-	doc_targets += \
++doc_targets = \
+ 		doc/binspect/binspect.pdf		\
+ 		doc/citp-manual/citp.pdf		\
+ 		doc/manual/manual.pdf			\
+@@ -198,6 +196,9 @@
+ 		doc/refman/reference-manual.pdf		\
+ 		doc/search/search-predicate.pdf 	\
+ 
++
++ifeq ($(enable_rebuild_doc),yes)
++	doc_build_targets=$(doc_targets)
+ endif
+ 
+ #
+@@ -221,7 +222,7 @@
+ # first target on Unix!
+ build: build-stamp
+ 
+-build-stamp: version.lisp make-cafeobj.lisp $(engine_dumps) xbin/cafeobj $(doc_targets)
++build-stamp: version.lisp make-cafeobj.lisp $(engine_dumps) xbin/cafeobj $(doc_build_targets)
+ 	touch build-stamp
+ 
+ #

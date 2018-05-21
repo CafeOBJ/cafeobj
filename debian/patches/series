@@ -1,6 +1,7 @@
-fix-refman-fonts
-fix-syntax-font
+#fix-refman-fonts
+#fix-syntax-font
 armhf-remove-buildopts
-change-logo-font
-add-rule-for-logo-png
-fix-for-new-pandoc
+#change-logo-font
+#add-rule-for-logo-png
+#fix-for-new-pandoc
+install-docs-without-rebuild

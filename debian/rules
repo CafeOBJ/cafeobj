@@ -21,14 +21,15 @@ build-indep: build-indep-stamp
 
 build-arch-stamp:
 	dh_testdir
-	./configure --prefix=/usr --with-lisp=sbcl --enable-rebuild-doc
+	./configure --prefix=/usr --with-lisp=sbcl
+	#./configure --prefix=/usr --with-lisp=sbcl --enable-rebuild-doc
 	# remove prebuild documentation pdf and rebuild them
-	rm -f doc/manual/manual.pdf
-	rm -f doc/refman/reference-manual.pdf
-	rm -f doc/PigNose/pnguide.pdf
-	rm -f doc/RefCard/interp.pdf
-	rm -f doc/RefCard/syntax.pdf
-	rm -f doc/namespace/namespace.pdf
+	#rm -f doc/manual/manual.pdf
+	#rm -f doc/refman/reference-manual.pdf
+	#rm -f doc/PigNose/pnguide.pdf
+	#rm -f doc/RefCard/interp.pdf
+	#rm -f doc/RefCard/syntax.pdf
+	#rm -f doc/namespace/namespace.pdf
 	make build
 	touch build-arch-stamp
 

@@ -1,3 +1,9 @@
+cafeobj (1.5.7-4) unstable; urgency=medium
+
+  * ship prebuild documentation file and remove all of pandoc dependency
+
+ -- Norbert Preining <preining@debian.org>  Mon, 21 May 2018 09:31:59 +0900
+
 cafeobj (1.5.7-3) unstable; urgency=medium
 
   * exclude pandoc on armhf in B-Ds, lagging behind too badly
