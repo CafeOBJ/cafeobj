@@ -187,21 +187,12 @@
 (defun normalize-term-in (module term &optional (reduction-mode :red) var-is-const)
   (let ((applied? nil)
         (targets nil)
-        (rule-count-save (number-rewritings)))
-    (if (and (not var-is-const) (term-variables term))
-        (setq targets (get-gterms term))
-      (setq targets (list term)))
-    (if targets
-        (progn
-          (dolist (gt targets)
-            (block next
-              (when (term-is-reduced? gt) 
-                (return-from next nil))
-              (reducer-no-stat gt module reduction-mode)
-              (unless (= rule-count-save (number-rewritings))
-                (setq applied? t))))
-          (values term applied?))
-      (values term nil))))
+        (rule-count-save (number-rewritings))
+        (*variable-as-constant* var-is-const))
+    (reducer-no-stat term module reduction-mode)
+    (unless (= rule-count-save (number-rewritings))
+      (setq applied? t))
+    (values term applied?)))
 
 ;;; normalize-sentence : axiom module -> axiom' Bool
 ;;; normalize an axiom by reduction, returns the result.

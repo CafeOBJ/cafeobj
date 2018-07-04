@@ -92,6 +92,8 @@
       ("exec" ("limit") general *cexec-limit*
        "limit maximum number of concurrent execution."
        chaos-set-cexec-limit)
+      (("variable" "variables") ("as" "constant") parity *variable-as-constant*
+       "if on, variables in terms are treated as constants.")
       (:comment "** system behaviour control ----------------------------")
       ("include" ("BOOL") parity *include-BOOL* "import BOOL implicitly.")
       ("include" ("RWL") parity *include-rwl* "import RWL implicitly.")

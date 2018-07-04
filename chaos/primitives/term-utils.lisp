@@ -81,6 +81,11 @@
 ;;; WITH-VARIABLE-AS-CONSTANT------------------------------------------------
 ;;; VARIABLES <-> CONSTANTS
 ;;; **************************
+
+;;; if T variables are treated as constants
+;;; default is nil
+(defvar *variable-as-constant* nil)
+
 (defun make-pconst-from-var (var)
   (let ((name (variable-name var))
         (print-name (variable-print-name var))
@@ -111,14 +116,19 @@
   (substitution-image-no-copy rsubst term :subst-pconstance)
   term)
 
-;;; do some computtation with term within a env 
+;;; do some computation with term within a env 
 (defmacro with-variable-as-constant ((_term_) &body body)
   (once-only (_term_)
-    `(let ((_rsubst (variables->pconstants ,_term_)))
+    `(if *variable-as-constant*
+         (let ((_rsubst (variables->pconstants ,_term_)))
+           (progn
+             (block with-variable-as-constant
+               ,@body)
+             (revert-pconstants ,_term_ _rsubst)
+             ,_term_))
        (progn
-         (block with-variable-as-constant
+         (block with-variable-as-it-is
            ,@body)
-         (revert-pconstants ,_term_ _rsubst)
          ,_term_))))
 
 ;;; ****************
