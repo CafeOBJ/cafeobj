@@ -1,3 +1,14 @@
+* CafeOBJ 1.5.8
+===============
+
+  - Several bug fixes
+    . make 'variables as constants' to only apply in the context of :init
+    . id-completion should not aplied to non-exec axioms
+    . minor bug fixes in making id conditions
+    . fix inapropreate context handling in parameterized module
+  - New command :bgrind/bgrind
+    . prints xor-and normal form in 'grind' manner
+
 * CafeOBJ 1.5.7
 ===============
 
@@ -29,7 +40,7 @@
       of the goal sentence if the sentence is not satisfied.
    - new switch 'tree horizontal'. if on 'show term tree' displays the
      term tree structure horizontally (default off).
-
+ 
 * CafeOBJ 1.5.4
 ===============
 
