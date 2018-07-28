@@ -600,7 +600,7 @@
           subst
           val)
       (loop
-        (setq val (car newres))
+        (setq val (car newres))         ; (axiom subst status)
         (setq newres (cdr newres))
         (setq a-axiom (car val))
         (setq subst (cadr val))
@@ -609,8 +609,11 @@
         ;; -- a-axiom: rule generating new axioms from
         ;; -- status : bad/good --- in res have status, but not in newres
         (if (and (not (eq r a-axiom)) (test-bad-axiom a-axiom))
-            (unless (rule-inf-subst-member subst res)
-              (setq res (cons (list a-axiom subst 'bad) res)))
+            (progn
+              (when *gen-rule-debug*
+                (format t "~%[idcomp]: the rule is BAD: ~a" a-axiom))
+              (unless (rule-inf-subst-member subst res)
+                (setq res (cons (list a-axiom subst 'bad) res))))
           (progn
             (setq res (cons (list a-axiom subst 'good) res))
             (let ((donesubst nil)
@@ -732,8 +735,7 @@
   (declare (type axiom ax)
            (values (or null t)))
   (or (term-is-variable? (axiom-lhs ax))
-      (and (is-true? (axiom-condition ax))
-           (term-occurs-as-subterm (axiom-lhs ax) (axiom-rhs ax)))
+      (term-occurs-as-subterm (axiom-lhs ax) (axiom-rhs ax))
       (term-occurs-as-subterm (axiom-lhs ax) (axiom-condition ax))
       (term-is-similar? (axiom-lhs ax) (axiom-rhs ax))))
 
