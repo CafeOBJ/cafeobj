@@ -114,7 +114,8 @@
         nil))
     #+:Allegro
     (if (excl:file-directory-p dpath)
-        (pathname (concatenate 'string dpath "/"))
+        #-:mswindows (pathname (concatenate 'string dpath "/"))
+	#+:mswindows (pathname dpath)
       nil)
     #+(and :CCL (not :openmcl)) (if (directoryp dpath) dpath nil)
     #+:CLISP

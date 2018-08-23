@@ -2608,6 +2608,7 @@ an operator specfied by '<op_name> : <arity> -> <coarity> ."
     :doc "Discard the current proof session."
     )
 
+
 (define (":binspect")
     :category :proof
     :parser parse-citp-binspect
@@ -2615,6 +2616,22 @@ an operator specfied by '<op_name> : <arity> -> <coarity> ."
     :title "`:binspect [in <goal-name> :] <boolean-term> .`"
     :doc "Used during [CITP](#citp) proofs instead of [`binspect`](#binspect)"
 )
+
+(define (":bgrind")
+    :category :proof
+    :parser parse-citp-bgrind
+    :evaluator eval-citp-bgrind
+    :title "`:bgrind [in <goal-name> :] <boolean-term> .`"
+    :doc "Used diring [CITP](#citp) proofs instead of [`bgrind`](#bgrind)"
+    )
+
+(define ("bgrind")
+    :category :proof
+    :parser parse-citp-bgrind
+    :evaluator eval-citp-bgrind
+    :title "`bgrind [in <module-name> :] <boolean-term> .`"
+    :doc "Print given boolean term in 'grind'ed manner after computes its xor-and normal form."
+    )
 
 (define ("binspect")
     :category :proof

@@ -49,11 +49,11 @@
                           :fileutil
                           :foreign
                           :trace
-                          :hmac
+                          ;; :hmac
                           :locale
                           :regexp2
                           #-:mswindows :sigio 
-                          :ssl
+                          ;; :ssl
                           :streama
                           :streamm
                           :streamc

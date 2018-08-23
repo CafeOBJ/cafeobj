@@ -358,13 +358,18 @@
     (setf (citp-flag citp-spoiler) value)
     t))
 
-;;; {:binspect | binspect} [in <goal-name> : ] <boolean-term> .
+;;; {:binspect | binspect} [in {<goal-name> | <module-name>} : ] <boolean-term> .
 ;;;
 (defun parse-citp-binspect (args)
+  (parse-term-in-context args))
+
+(defun parse-term-in-context (args)
   (let (mode
         goal-name
-        preterm)
-    (if (equal (first args) ":binspect")
+        preterm
+        (type (first args)))
+    (if (and (stringp type)
+             (eql (elt type 0) #\:))
         (setq mode :citp)
       (setq mode :general))
     (if (= 4 (length args))
@@ -375,6 +380,11 @@
         (setq goal-name nil)
         (setq preterm (nth 1 args))))
     (list mode goal-name preterm)))
+
+;;; {:bgrind | bgrind} [in {<goal-name> | <module-name>} : ] <boolean-term> .
+;;;
+(defun parse-citp-bgrind (args)
+  (parse-term-in-context args))
 
 ;;; {bshow | :bshow} [ { tree | grind } ]
 ;;;
@@ -647,13 +657,22 @@
           (t (with-output-chaos-error ('unknown)
                (format t "Unknown parameter to :show/:describe ~S" target))))))
 
-;;; :binspect
+;;; { :binspect | binspect }
 ;;;
 (defun eval-citp-binspect (args)
   (let ((mode (first args))
         (goal-or-mod (second args))
         (preterm (third args)))
   (binspect-in mode goal-or-mod preterm)))
+
+
+;;; { :bgrind | bgrind }
+;;;
+(defun eval-citp-bgrind (args)
+  (bgrind-in (first args)               ; mode
+             (second args)              ; goal or module
+             (third args)               ; term tokens
+             ))
 
 ;;; eval-citp-define : arg -> tactic-ctf or tactic-csp
 ;;; (:ctf "cf1" nil (:term (<Term>)))

@@ -566,25 +566,29 @@
 (defun add-identity-completions (module)
   (declare (type module module)
            (values t))
-  (when *no-id-completion*
-    (return-from add-identity-completions nil))
-  (with-in-module (module)
-    (when (some #'(lambda (opinfo)
-                    (dolist (meth (opinfo-methods opinfo))
-                      (let ((thy (method-theory meth)))
-                        (when (and (theory-contains-identity thy)
-                                   (not (cdr (theory-zero thy))))
-                          (return t)))))
-                (module-all-operators module))
-      (dolist (a (axiom-set$equations (module-axiom-set module)))
-        (add-identity-completions-internal a module))
-      (dolist (r (axiom-set$rules (module-axiom-set module)))
-        (add-identity-completions-internal r module)))))
+  (flet ((should-apply-id-comp (ax)
+           (not (or (axiom-is-non-exec? ax)
+                    (eq ':id-completion (axiom-kind ax))))))
+    (when *no-id-completion*
+      (return-from add-identity-completions nil))
+    (with-in-module (module)
+      (when (some #'(lambda (opinfo)
+                      (dolist (meth (opinfo-methods opinfo))
+                        (let ((thy (method-theory meth)))
+                          (when (and (theory-contains-identity thy)
+                                     (not (cdr (theory-zero thy))))
+                            (return t)))))
+                   (module-all-operators module))
+        (dolist (a (axiom-set$equations (module-axiom-set module)))
+          (when (should-apply-id-comp a)
+            (add-identity-completions-internal a module)))
+        (dolist (r (axiom-set$rules (module-axiom-set module)))
+          (when (should-apply-id-comp r)
+            (add-identity-completions-internal r module)))))))
 
 (defun add-identity-completions-internal (r module)
   (declare (type axiom r)
-           (type module module)
-           (values t))
+           (type module module))
   (when *gen-rule-debug*
     (format t "~%[id-compl] given rule ~a, of kind ~a " r (axiom-kind r))
     (print-next))
@@ -596,37 +600,40 @@
           subst
           val)
       (loop
-         (setq val (car newres))
-         (setq newres (cdr newres))
-         (setq a-axiom (car val))
-         (setq subst (cadr val))
-         ;; -- res    : LIST[rule subst [status]].
-         ;; -- varval : value to substitute in,
-         ;; -- a-axiom: rule generating new axioms from
-         ;; -- status : bad/good --- in res have status, but not in newres
-         (if (test-bad-axiom a-axiom)
-             (unless (rule-inf-subst-member subst res)
-               (setq res (cons (list a-axiom subst 'bad) res)))
-             (progn
-               (setq res (cons (list a-axiom subst 'good) res))
-               (let ((donesubst nil)
-                     sub1
-                     new-axiom
-                     newsubst)
-                 (loop
-                    (setq varval
-                          (compute-var-for-identity-completions
-                           (axiom-lhs a-axiom)
-                           donesubst))
-                    (unless varval (return))
-                    (setq sub1 (cons varval nil))
-                    (setq newsubst (substitution-can (cons varval subst)))
-                    (setq donesubst (cons (car sub1) donesubst))
-                    (setq new-axiom (insert-val sub1 a-axiom module))
-                    (unless (or (null new-axiom)
-                                (rule-inf-subst-member newsubst res))
-                      (setq newres (cons (list new-axiom newsubst) newres)))))))
-         (unless newres (return)))
+        (setq val (car newres))         ; (axiom subst status)
+        (setq newres (cdr newres))
+        (setq a-axiom (car val))
+        (setq subst (cadr val))
+        ;; -- res    : LIST[rule subst [status]].
+        ;; -- varval : value to substitute in,
+        ;; -- a-axiom: rule generating new axioms from
+        ;; -- status : bad/good --- in res have status, but not in newres
+        (if (and (not (eq r a-axiom)) (test-bad-axiom a-axiom))
+            (progn
+              (when *gen-rule-debug*
+                (format t "~%[idcomp]: the rule is BAD: ~a" a-axiom))
+              (unless (rule-inf-subst-member subst res)
+                (setq res (cons (list a-axiom subst 'bad) res))))
+          (progn
+            (setq res (cons (list a-axiom subst 'good) res))
+            (let ((donesubst nil)
+                  sub1
+                  new-axiom
+                  newsubst)
+              (loop
+                (setq varval
+                  (compute-var-for-identity-completions
+                   (axiom-lhs a-axiom)
+                   donesubst))
+                (unless varval (return))
+                (setq sub1 (cons varval nil))
+                (setq newsubst (substitution-can (cons varval subst)))
+                (setq donesubst (cons (car sub1) donesubst))
+                (setq new-axiom (insert-val sub1 a-axiom module))
+                (unless (or (null new-axiom)
+                            (rule-inf-subst-member newsubst res))
+                  (setq newres (cons (list new-axiom newsubst) newres)))))))
+        (unless newres (return)))
       ;;
       (let ((errs nil)
             (rules1 nil)
@@ -636,8 +643,8 @@
           (let ((rul (car ruli)))
             (if (eq 'bad (nth 2 ruli))
                 (push ruli errs)
-                (unless (rule-inf-member rul rules1)
-                  (push ruli rules1)))))
+              (unless (rule-inf-member rul rules1)
+                (push ruli rules1)))))
         ;;
         (setq rules2 (list (list r nil)))
         (dolist (ruli rules1)
@@ -651,12 +658,11 @@
                                        (rule-strictly-subsumes rul2 rul))
                               (return t)))))
               (push ruli rules2))))
-        ;;
+        ;; report 
         (when *chaos-verbose*
-          (let ((rs (reverse rules1)))
-            (format t "~%** id-completion for rule: ")
-            (print-axiom-brief r)
-            (let ((*print-indent* (+ 2 *print-indent*)))
+          (format t "~%** id-completion for rule: ")
+          (print-axiom-brief r)
+          (let ((rs (remove r rules2 :key #'car)))
               (print-next)
               (princ "-- Generated rules:")
               (print-next)
@@ -665,20 +671,20 @@
                     (dolist (r (reverse rs))
                       (print-axiom-brief (car r))
                       (print-next)))
-                  (progn (princ "none") (print-next)))
-              (princ "-- Generated, but invalid rules:")
+                (progn (princ "none") (print-next)))
+              (princ "-- Generated axiom, but it might cause inifinite loop which system will not introduce:")
               (print-next)
               (if errs
-                  (let ((lst (reverse errs)))
+                  (let ((lst errs))
                     (loop
                        (when (null lst) (return))
                        (unless (rule-inf-member (caar lst) (cdr lst))
                          (print-axiom-brief (caar lst))
                          (print-next))
                        (setq lst (cdr lst))))
-                (progn (princ "none") (print-next)))))
+                (progn (princ "none") (print-next))))
           (flush-all))
-        ;;
+        ;; 
         (dolist (ruli rules2)
           (let ((rul (car ruli))
                 (rulsubst (cadr ruli)))
@@ -692,17 +698,17 @@
               (when *chaos-verbose*
                 (unless (and (null newidcond) (eq r newrule))
                   (if (eq r newrule)
-                      (format t "~%  -- Modified with Id condition:~%  ")
-                      (if (rule-occurs newrule (module-equations module))
-                          (format t "~%  -- Required rule: ~%  ")
-                        (format t "~%  -- Added rule: ~%  "))))
+                      (format t "~%-- Modified with Id condition:~%  ")
+                    (if (rule-occurs newrule (module-equations module))
+                        (format t "~%-- Required rule: ~%  ")
+                      (format t "~%-- Added rule: ~%  "))))
                 (flush-all))
               ;;
               (setf (axiom-id-condition newrule) newidcond)
               (when (and (null (axiom-labels newrule))
                          (not (eq r newrule)))
                 (setf (axiom-labels newrule)
-                      (create-rule-name module "compl")))
+                  (create-rule-name module "compl")))
               (when (axiom-extensions newrule)
                 (dolist (e (axiom-a-extensions newrule)) 
                   (setf (axiom-id-condition e) newidcond))
@@ -729,8 +735,7 @@
   (declare (type axiom ax)
            (values (or null t)))
   (or (term-is-variable? (axiom-lhs ax))
-      (and (is-true? (axiom-condition ax))
-           (term-occurs-as-subterm (axiom-lhs ax) (axiom-rhs ax)))
+      (term-occurs-as-subterm (axiom-lhs ax) (axiom-rhs ax))
       (term-occurs-as-subterm (axiom-lhs ax) (axiom-condition ax))
       (term-is-similar? (axiom-lhs ax) (axiom-rhs ax))))
 
