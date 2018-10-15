@@ -470,7 +470,7 @@
                 (eval-modexp modexp)))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
-        (princ "incorrect module expression or uknown module ")
+        (princ "incorrect module expression or unknown module ")
         (print-modexp modexp)))
     (unless mod
       (with-output-chaos-error ('no-context)
@@ -1519,7 +1519,7 @@
                 (eval-modexp modexp)))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
-        (princ "incorrect module expression or uknown module: ")
+        (princ "incorrect module expression or unknown module: ")
         (print-modexp modexp)))
     ;;
     (unless mod
