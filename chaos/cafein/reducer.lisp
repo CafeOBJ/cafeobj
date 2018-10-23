@@ -46,7 +46,8 @@
                  begin-rewrite end-rewrite time-for-rewriting-in-seconds
                  number-metches number-rewritings number-memo-hits
                  clear-rewriting-fc prepare-term reset-rewrite-counters
-                 prepare-reduction-env reducer reducer-no-stat))
+                 prepare-reduction-env reducer reducer-no-stat
+                 number-hash-size))
 
 
 (let ((*m-pattern-subst* nil)
@@ -69,7 +70,8 @@
       (parse-begin-time 0)
       (time-for-parsing 0.0)
       (rewrite-begin-time 0)
-      (time-for-rewriting 0.0))
+      (time-for-rewriting 0.0)
+      (.hash-size. 0))
   (declare (special *m-pattern-subst*
                     .rwl-context-stack.
                     .rwl-states-so-far.
@@ -87,7 +89,8 @@
                     $$cond
                     $$target-term
                     $$norm
-                    *do-empty-match*))
+                    *do-empty-match*
+                    .hash-size.))
   (declare (type (or null t) *perform-on-demand-reduction* *do-empty-match*)
            (type fixnum *steps-to-be-done* $$matches *rule-count* .rwl-states-so-far.
                  *term-memo-hash-hit*)
@@ -128,12 +131,15 @@
   (defun number-memo-hits ()
     *term-memo-hash-hit*)
 
+  (defun number-hash-size ()
+    .hash-size.)
   ;; 
   (defun clear-rewriting-fc (module mode)
     (setf *m-pattern-subst* nil
           .rwl-context-stack. nil
           .rwl-sch-context. nil
           .rwl-states-so-far. 0
+          .hash-size. 0
           *steps-to-be-done* 1
           *do-empty-match* nil
           *rewrite-exec-mode* (or (eq mode :exec) (eq mode :exec+))
@@ -174,8 +180,8 @@
 
   ;; reset-term-memo-table
   (defun reset-term-memo-table (module)
-    (unless (eq module (get-context-module t))
-      (clear-term-memo-table *term-memo-table*)))
+    (declare (ignore module))
+    (clear-term-memo-table *term-memo-table*))
 
   ;; prepare-reduction-env
   ;; all-in-one proc for setting up environment variables for rewriting,
@@ -212,7 +218,9 @@
       (concatenate 'string stat-form
                    (if (zerop (number-memo-hits))
                        ")"
-                     (format nil ", ~d memo hits)" (number-memo-hits))))))
+                     (format nil ", ~d/~d memo hits)" 
+                             (number-memo-hits)
+                             (number-hash-size))))))
   
   (defun generate-statistics-form-rewriting-only ()
     (let ((stat-form ""))

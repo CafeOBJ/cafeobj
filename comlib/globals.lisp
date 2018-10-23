@@ -202,7 +202,7 @@
 (declaim (special *hash-hit*)
          (type (unsigned-byte 29) *hash-hit*))
 (defvar *term-memo-hash-hit* 0)
-
+(defvar .hash-size. 0)
 (defvar *allow-illegal-beh-axiom* t)
 
 ;;;*********************

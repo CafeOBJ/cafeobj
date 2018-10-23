@@ -682,40 +682,25 @@
 
 (defun initialize-cexec-term-hash ()
   (unless .cexec-term-hash.
-    (setq .cexec-term-hash. (alloc-svec term-hash-size)))
+    (setq .cexec-term-hash. (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7)))
   (clear-term-memo-table .cexec-term-hash.))
 
-#-GCL
 (declaim (inline get-sch-hashed-term))
 
-(#-GCL defun #+GCL si:define-inline-function
- get-sch-hashed-term (term term-hash)
- (let ((val (hash-term term)))
-   ;; (declare (type term-hash-key val))
-   (let* ((ent (svref term-hash
-                      (mod val term-hash-size)))
-          (val (cdr (assoc term ent :test #'term-equational-equal))))
-     (when val (incf (the (unsigned-byte 29) *term-memo-hash-hit*)))
-     val)))
+(defun get-sch-hashed-term (term-id term-hash)
+  (get-hashed-term term-id term-hash))
 
 #-GCL
 (declaim (inline set-sch-hashed-term))
 
-(#-GCL defun #+GCL si:define-inline-function
- set-sch-hashed-term (term term-hash value)
- (let ((val (hash-term term)))
-   ;; (declare (type term-hash-key val))
-   (let ((ind (mod val term-hash-size)))
-     (let ((ent (svref term-hash ind)))
-       (let ((pr (assoc term ent :test #'term-equational-equal)))
-         (if pr (rplacd pr value)
-           (setf (svref term-hash ind) (cons (cons term value) ent))))))))
+(defun set-sch-hashed-term (term-id term-hash value)
+  (set-hashed-term term-id term-hash value))
 
 (defmacro cexec-get-hashed-term (term)
-  `(get-sch-hashed-term ,term .cexec-term-hash.))
+  `(get-sch-hashed-term (term-id ,term) .cexec-term-hash.))
 
 (defmacro cexec-set-hashed-term (term state-num)
-  `(set-sch-hashed-term ,term .cexec-term-hash. ,state-num))
+  `(set-sch-hashed-term (term-id ,term) .cexec-term-hash. ,state-num))
 
 (defun cexec-sch-check-predicate (term t1 pred-pat)
   (let ((pred (car pred-pat))
@@ -760,12 +745,12 @@
   (or (cexec-get-hashed-term term)
       (let ((pred-pat (rwl-sch-context-state-predicate sch-context)))
         (if pred-pat
-            (dotimes (x term-hash-size nil)
-              (let ((ent (svref .cexec-term-hash. x)))
-                (dolist (e ent)
-                  (let ((t1 (car e)))
-                    (when (cexec-sch-check-predicate term t1 pred-pat)
-                      (return-from cexec-loop-check (cdr e)))))))
+            (maphash #'(lambda (key e)
+                         (declare (ignore key))
+                         (let ((t1 (car e)))
+                           (when (cexec-sch-check-predicate term t1 pred-pat)
+                             (return-from cexec-loop-check (cdr e)))))
+                      .cexec-term-hash.)
           nil))))
 
 ;;; 

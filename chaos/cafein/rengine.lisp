@@ -45,146 +45,92 @@
  ;;; -------
  ;;; MEMOIZE
  ;;; -------
-
-(deftype term-hash-key () '(unsigned-byte 29))
-
-(defconstant term-hash-mask #x1FFFFFFF)
-
-(defconstant term-hash-size 9001)
-
-(defmacro method-has-memo-safe (m)
-  `(and (method-p ,m) (method-has-memo ,m)))
-
-#-GCL (declaim (inline term-hash-equal))
-#-(or GCL CMU)
-(defun term-hash-equal (x)
-  (logand term-hash-mask (sxhash x)))
-#+CMU
-(defun term-hash-equal (x)
-  (sxhash x))
-#+GCL
-(si:define-inline-function term-hash-equal (x) (sxhash x))
-
-#+GCL
-(Clines "static object term_hash_eq(x) 
-   object x;
-   { return(make_fixnum(((((int)x) & 0x1fffffff)+3)>>3)); }
- ")
-
-#+GCL
-(defentry term-hash-eq (object) (object term_hash_eq))
-
-#-GCL
-(declaim (inline term-hash-eq))
-#-GCL
-(defun term-hash-eq (object)
-  (ash (+ (the term-hash-key
-	    (logand term-hash-mask
-		    (the (unsigned-byte 32) (addr-of object))))
-	  3)
-       -3))
-
-#-GCL
-(declaim (inline term-hash-comb))
-
-#||
-(defun term-hash-comb (x y)
-  ;; (declare (type term-hash-key x y))
-  (the term-hash-key
-    (logxor (the term-hash-key (ash x -5))
-	    y
-	    (the term-hash-key
-	      (logand term-hash-mask
-		      (the term-hash-key (ash (logand x 31) 26)))))))
-||#
-
-#-GCL
-(defun term-hash-comb (x y)
-  ;; (declare (type term-hash-key x y))
-  (the term-hash-key (logand term-hash-mask (logand term-hash-mask (+ x y)))))
-
-                                        ;#+GCL
-                                        ;(si:define-inline-function term-hash-comb (x y)
-                                        ;  (make-and term-hash-mask (+ x y)))
-
-;;; #+GCL
-;;; (si:define-inline-function term-hash-comb (x y)
-;;;   (make-xor (ash x -5) y (ash (make-and x 31) 26))
-;;;  )
-
-;;;
-;;; term-hash
-;;;
-;;; (defvar *on-term-hash-debug* nil)
-
-(defstruct term-hash
-  (size term-hash-size :type (unsigned-byte 14) :read-only t)
-  (table nil :type (or null simple-array)) )
-
-(defun hash-term (term)
-  (cond ((term-is-applform? term)
-         (let ((res (sxhash (the symbol (method-id-symbol (term-head term))))))
-           (dolist (subterm (term-subterms term))
-             (setq res (term-hash-comb res (hash-term subterm))))
-           res))
-        ((term-is-builtin-constant? term)
-         (term-hash-comb (sxhash (the symbol (sort-id (term-sort term))))
-                         (term-hash-equal (term-builtin-value term))))
-        ((term-is-variable? term) (term-hash-eq term))))
-
-(defun dump-term-hash (term-hash &optional (size term-hash-size))
-  (dotimes (x size)
-    (let ((ent (svref term-hash x)))
-      (when ent
-        (format t "~%[~3d]: ~d entrie(s)" x (length ent))
-        (dotimes (y (length ent))
-          (let ((e (nth y ent)))
-            (format t "~%(~d)" y)
-            (let ((*print-indent* (+ 2 *print-indent*)))
-              (term-print (car e))
-              (print-next)
-              (princ "==>")
-              (print-next)
-              (term-print (cdr e)))))))))
-
-#-GCL
-(declaim (inline get-hashed-term))
-
-(#-GCL defun #+GCL si:define-inline-function
- get-hashed-term (term term-hash)
- (let ((val (hash-term term)))
-   (let* ((ent (svref term-hash
-		      (mod val term-hash-size)))
-	  (val (cdr (assoc term ent :test #'term-is-similar?))))
-     (when val (incf *term-memo-hash-hit*))
-     val)))
-
-#-GCL
-(declaim (inline set-hashed-term))
-
-(#-GCL defun #+GCL si:define-inline-function
- set-hashed-term (term term-hash value)
- (let ((val (hash-term term)))
-   (let ((ind (mod val term-hash-size)))
-     (let ((ent (svref term-hash ind)))
-       (let ((pr (assoc term ent :test #'term-is-similar?)))
-         (if pr (rplacd pr value)
-           (setf (svref term-hash ind) (cons (cons term value) ent))) )))))
-
+(defvar *memo-debug* nil)
+(defparameter .hash-size-limit. 1001)
 ;;; *TERM-MEMO-TABLE*
-
 (defvar *term-memo-table* nil)
 (defvar *memoized-module* nil)
 
 (defun create-term-memo-table ()
   (unless *term-memo-table*
     (setq *term-memo-table*
-      (alloc-svec term-hash-size))))
+      #-:SBCL
+       (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7)
+      #+:SBCL
+       (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7 :weakness :value))))
 
-(defun clear-term-memo-table (table)
-  (dotimes (x term-hash-size)
-    (setf (svref table x) nil))
-  table)
+(defun clear-term-memo-table (&optional (table *term-memo-table*))
+  (clrhash table))
+
+(defun dump-term-hash (&optional (mod (get-context-module)))
+  (unless mod
+    (with-output-chaos-error ('no-context)
+      (format t "No context module")))
+  (with-in-module (mod)
+    (maphash #'(lambda (key val)
+                 (format t "~%[~3d]==>" key)
+                 (let ((*print-indent* (+ 2 *print-indent*)))
+                   (term-print val)))
+              *term-memo-table*)))
+
+;;; hash-term
+;;; compute hash
+(defvar *term-id-debug* nil)
+(defvar .id-conf. nil)
+(defparameter .term-id-size-limit. 1001)
+
+(defun longest-term-id ()
+  (let ((maxlen 0))
+    (declare (special maxlen))
+    (maphash #'(lambda (key value)
+                 (declare (ignore value))
+                 (let ((keylen (length key)))
+                   (when (> keylen maxlen)
+                     (setq maxlen keylen))))
+              *term-memo-table*)
+    (format t "~%* The longest key: ~d" maxlen)
+    maxlen))
+
+(defmacro check-term-id-size (term-id)
+  `(<= (length ,term-id) .term-id-size-limit.))
+
+(declaim (inline term-id))
+(defun term-id (term)
+  (labels ((get-term-id (term)
+             (let ((.id-conf. nil))
+               (declare (special .id-conf.))
+               (cond ((term-is-applform? term)
+                      (push (the symbol (method-id-symbol (term-head term))) .id-conf.)
+                      (dolist (subterm (term-subterms term) .id-conf.)
+                        (setq .id-conf. (nconc .id-conf. (get-term-id subterm)))))
+                     ((term-is-builtin-constant? term)
+                      (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
+                                                             (term-builtin-value term)))))
+                     ((term-is-variable? term)
+                      (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
+                                                             (variable-name term)))))
+                     (t (abort))))))
+    (let ((term-id (get-term-id term)))
+      (when *term-id-debug*
+        (with-in-module ((get-context-module))
+          (format t "~%..hash_term..: ~s" term-id)
+          (format t "~%  term: ")
+          (term-print term)))
+      (cons (sort-id (term-sort term)) term-id))))
+
+(declaim (inline get-hashed-term))
+
+(defun get-hashed-term (term-id term-hash)
+  (let ((val (gethash term-id term-hash)))
+    (when val 
+      (incf *term-memo-hash-hit*))
+    val))
+
+(declaim (inline set-hashed-term))
+
+(defun set-hashed-term (term-id term-hash-table value)
+  (setf (gethash term-id term-hash-table) value)
+  (incf .hash-size.))
 
 ;;;		      BASIC COMMON ROUTINES FOR REWRITING
 
@@ -262,7 +208,6 @@
 
 ;;; ----------------------------------------
 ;;; BASIC PROCS for REWRITE RULE APPLICATION
-(defvar *memo-debug* nil)
 
 (declaim (inline term-replace-dd-simple))
 #-gcl
@@ -639,17 +584,7 @@
                      (mark-term-as-not-lowest-parsed term)
                      (normalize-term term))
                  (reduce-term term (cdr strategy)))))))
-    (if *memo-rewrite*
-        ;; check memo
-        (if (or *always-memo*
-                (method-has-memo (term-head term)))
-            (let ((normal-form (get-hashed-term term *term-memo-table*)))
-              (if normal-form
-                  (term-replace term normal-form)
-                (apply-rules-internal)))
-          (apply-rules-internal))
-      ;; non memoise
-      (apply-rules-internal))))
+    (apply-rules-internal)))
 
 ;;; APPLY-A-EXTENSIONS : rule term method -> Bool
 ;;;-----------------------------------------------------------------------------
@@ -895,11 +830,6 @@
              (format t "PANIC!")))))
       (otherwise
        (setq $$trials 1)
-       (when *memo-rewrite*
-         (when (or *clean-memo-in-normalize*
-                   (not (eq module *memoized-module*)))
-           (clear-term-memo-table *term-memo-table*))
-         (setq *memoized-module* module))
        (let ((*trace-level* 0))
          (with-in-module (module)
            (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
@@ -913,11 +843,6 @@
            (values term))
   (with-variable-as-constant (term)
     (setq $$trials 1)
-    (when *memo-rewrite*
-      (when (or *clean-memo-in-normalize*
-                (not (eq *current-module* *memoized-module*)))
-        (clear-term-memo-table *term-memo-table*))
-      (setq *memoized-module* *current-module*))
     (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
                               (module-has-behavioural-axioms *current-module*))))
       (declare (special *beh-rewrite*))
@@ -952,11 +877,6 @@
              (format t "PANIC!")))))
       (otherwise
        (setq $$trials 1)
-       (when *memo-rewrite*
-         (when (or *clean-memo-in-normalize*
-                   (not (eq module *memoized-module*)))
-           (clear-term-memo-table *term-memo-table*))
-         (setq *memoized-module* module))
        (let ((*trace-level* 0))
          (setq $$matches 0)
          (setq *term-memo-hash-hit* 0)
@@ -970,15 +890,30 @@
 
 ;;;
 (defun term-memo-get-normal-form (term strategy)
-  (let ((term-nu nil)
-        (normal-form (get-hashed-term term *term-memo-table*)))
-    (unless normal-form
-      (setq term-nu (simple-copy-term  term))
-      ;; compute the normal form of "term"
-      (reduce-term term strategy)
-      (setq normal-form term)
-      (set-hashed-term term-nu *term-memo-table* normal-form))
-    normal-form))
+  (let* ((term-id (term-id term))
+         (term-id-size-is-ok (check-term-id-size term-id))
+         (normal-form (if term-id-size-is-ok
+                          (get-hashed-term term-id *term-memo-table*)
+                        nil)))
+    (when *memo-debug*
+      (format t "~%[term hash] term: ")
+      (term-print term)
+      (format t "~%-- hash: ~d" term-id)
+      (format t "~%-- hashed: ")
+      (if normal-form
+          (term-print term)
+        (princ "None")))
+    (if normal-form
+        normal-form
+      (progn
+        ;; compute the normal form of "term"
+        (reduce-term term strategy)
+        (when *memo-debug*
+          (format t "~%**> ~d= " term-id)
+          (term-print term))
+        (when term-id-size-is-ok
+          (set-hashed-term term-id *term-memo-table* term))
+        term))))
 
 ;;; NORMALIZE-TERM : TERM -> BOOL
 ;;;----------------------------------------------------------------------------
