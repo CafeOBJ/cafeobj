@@ -46,7 +46,7 @@
  ;;; MEMOIZE
  ;;; -------
 (defvar *memo-debug* nil)
-(defparameter .hash-size-limit. 1001)
+
 ;;; *TERM-MEMO-TABLE*
 (defvar *term-memo-table* nil)
 (defvar *memoized-module* nil)
@@ -77,46 +77,52 @@
 ;;; compute hash
 (defvar *term-id-debug* nil)
 (defvar .id-conf. nil)
-(defparameter .term-id-size-limit. 1001)
 
 (defun longest-term-id ()
-  (let ((maxlen 0))
+  (let ((maxlen 0)
+        (lkey nil))
     (declare (special maxlen))
     (maphash #'(lambda (key value)
                  (declare (ignore value))
                  (let ((keylen (length key)))
                    (when (> keylen maxlen)
+                     (setq lkey key)
                      (setq maxlen keylen))))
               *term-memo-table*)
     (format t "~%* The longest key: ~d" maxlen)
+    (format t "~% ~s" lkey)
     maxlen))
 
-(defmacro check-term-id-size (term-id)
-  `(<= (length ,term-id) .term-id-size-limit.))
-
 (declaim (inline term-id))
+(defparameter *term-id-limit* 51)
 (defun term-id (term)
-  (labels ((get-term-id (term)
-             (let ((.id-conf. nil))
-               (declare (special .id-conf.))
-               (cond ((term-is-applform? term)
-                      (push (the symbol (method-id-symbol (term-head term))) .id-conf.)
-                      (dolist (subterm (term-subterms term) .id-conf.)
-                        (setq .id-conf. (nconc .id-conf. (get-term-id subterm)))))
-                     ((term-is-builtin-constant? term)
-                      (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
-                                                             (term-builtin-value term)))))
-                     ((term-is-variable? term)
-                      (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
-                                                             (variable-name term)))))
-                     (t (abort))))))
-    (let ((term-id (get-term-id term)))
-      (when *term-id-debug*
-        (with-in-module ((get-context-module))
-          (format t "~%..hash_term..: ~s" term-id)
-          (format t "~%  term: ")
-          (term-print term)))
-      (cons (sort-id (term-sort term)) term-id))))
+  (let ((.call-depth. 0))
+    (declare (special .call-depth.)
+             (type fixnum .call-depth.))
+    (labels ((get-term-id (term)
+               (incf .call-depth.)
+               (unless (< .call-depth. *term-id-limit*)
+                 (return-from term-id nil))
+               (let ((.id-conf. nil))
+                 (declare (special .id-conf.))
+                 (cond ((term-is-applform? term)
+                        (push (the symbol (method-id-symbol (term-head term))) .id-conf.)
+                        (dolist (subterm (term-subterms term) .id-conf.)
+                          (setq .id-conf. (nconc .id-conf. (get-term-id subterm)))))
+                       ((term-is-builtin-constant? term)
+                        (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
+                                                               (term-builtin-value term)))))
+                       ((term-is-variable? term)
+                        (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
+                                                               (variable-name term)))))
+                       (t (abort))))))
+      (let ((term-id (get-term-id term)))
+        (when *term-id-debug*
+          (with-in-module ((get-context-module))
+            (format t "~%..hash_term..: ~s" term-id)
+            (format t "~%  term: ")
+            (term-print term)))
+        (cons (sort-id (term-sort term)) term-id)))))
 
 (declaim (inline get-hashed-term))
 
@@ -891,8 +897,7 @@
 ;;;
 (defun term-memo-get-normal-form (term strategy)
   (let* ((term-id (term-id term))
-         (term-id-size-is-ok (check-term-id-size term-id))
-         (normal-form (if term-id-size-is-ok
+         (normal-form (if term-id
                           (get-hashed-term term-id *term-memo-table*)
                         nil)))
     (when *memo-debug*
@@ -911,7 +916,7 @@
         (when *memo-debug*
           (format t "~%**> ~d= " term-id)
           (term-print term))
-        (when term-id-size-is-ok
+        (when term-id
           (set-hashed-term term-id *term-memo-table* term))
         term))))
 
