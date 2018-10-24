@@ -176,7 +176,8 @@
   (defun reset-rewrite-counters ()
     (setf $$matches 0
           *rule-count* 0
-          *term-memo-hash-hit* 0))
+          *term-memo-hash-hit* 0
+          .hash-size. 0))
 
   ;; reset-term-memo-table
   (defun reset-term-memo-table (module)
@@ -233,7 +234,9 @@
       (concatenate 'string stat-form
                    (if (zerop (number-memo-hits))
                        ")"
-                     (format nil ", ~d memo hits)" (number-memo-hits))))))
+                     (format nil ", ~d/~d memo hits)" 
+                             (number-memo-hits)
+                             (number-hash-size))))))
 
   ;; REDUCER
   ;; perform reduction

@@ -78,7 +78,7 @@ ACL_STANDALONE_DUMPFILE      = build-acl-dist.cl
 
 SBCL_DUMP         = dumps/sbcl/@sbcl_dump@
 SBCL_INTERPRETER  = @sbcl_interp@
-SBCL_BUILDOPTS    = --dynamic-space-size 2048
+SBCL_BUILDOPTS    = --dynamic-space-size 4096
 SBCL_DUMPFILE      = make-cafeobj.lisp
 
 CMU_DUMP          = dumps/cmu/@cmu_dump@
