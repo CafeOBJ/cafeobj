@@ -57,7 +57,7 @@
       #-:SBCL
        (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7)
       #+:SBCL
-       (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7 :weakness :value))))
+       (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7 :weakness :key-or-value))))
 
 (defun clear-term-memo-table (&optional (table *term-memo-table*))
   (clrhash table))
