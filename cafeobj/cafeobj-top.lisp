@@ -246,6 +246,9 @@
   (setq excl:*print-startup-message* nil)
   #+:ALLEGRO
   (setf (sys:gsgc-switch :print) nil)
+  #+:SBCL
+  (sb-alien:alien-funcall
+   (sb-alien:extern-alien "disable_lossage_handler" (function sb-alien:void)))
   (!lex-read-init)
   (chaos-initialize-fsys))
 
