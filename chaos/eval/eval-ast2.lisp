@@ -363,7 +363,7 @@
 (defun get-int-or-null (value)
   (if (or (null value)
           (equal value '(".")))
-      null
+      nil
     (multiple-value-bind (num len) 
         (parse-integer (car value) :junk-allowed t)
       (if (= len (length (car value)))
@@ -384,7 +384,7 @@
 (defun set-term-id-size-limit (value)
   (let ((num (get-int-or-null value)))
     (if num
-        (setq *term-id-limit. num)
+        (setq *term-id-limit* num)
       (setq *term-id-limit* 51)))) ; the default value
 
 ;;; ********************
