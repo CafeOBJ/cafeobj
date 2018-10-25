@@ -1,8 +1,8 @@
 dnl configure.ac for Chaos(CafeOBJ)
 dnl apply autoconf to this file for producing a configure script.
 dnl
-dnl Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
-dnl Copyright (c) 2014-2015, Norbert Preining. All rights reserved.
+dnl Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
+dnl Copyright (c) 2014-2018, Norbert Preining. All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
 dnl modification, are permitted provided that the following conditions
@@ -277,6 +277,11 @@ AC_SUBST(cmu_dump)
 AC_SUBST(ccl32_dump)
 AC_SUBST(ccl64_dump)
 AC_SUBST(gcl_dump)
+
+# test for 64/32 bit
+AC_CHECK_SIZEOF([long])
+AS_IF([test "$ac_cv_sizeof_long" -eq 8],
+    [AC_SUBST([OSBIT],64)], [AC_SUBST([OSBIT],32)])
 
 AC_ARG_ENABLE([rebuild_doc],
        [AS_HELP_STRING([--enable-rebuild-doc],
