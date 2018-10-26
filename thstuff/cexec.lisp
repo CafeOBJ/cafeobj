@@ -1198,8 +1198,9 @@
           (setf (rwl-sch-context-state-predicate sch-context) (make-state-pred-pat))
           (let ((.rwl-sch-context. sch-context)
                 (.cexec-term-hash. (rwl-sch-context-term-hash sch-context))
-                (.rwl-search-depth. (1+ .rwl-search-depth.)))
-            (declare (special .rwl-sch-context. .cexec.term-hash.))
+                (.rwl-search-depth. (1+ .rwl-search-depth.))
+                (.ignore-term-id-limit. t))
+            (declare (special .rwl-sch-context. .cexec.term-hash. .ignore-term-id-limit.))
             (push sch-context .rwl-context-stack.)
             ;; the first state is 0
             (cexec-set-hashed-term t1 0)
