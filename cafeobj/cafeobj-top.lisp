@@ -120,11 +120,6 @@
           #+:ALLEGRO (*global-gc-behavior* :auto)
           #+:ALLEGRO (*print-pretty* nil)
           )
-      (unless no-init
-        (catch *top-level-tag*
-          (with-chaos-top-error ()
-            (with-chaos-error ()
-              (cafeobj-init-files)))))
       (process-cafeobj-with-restart)))
   (format t "[Leaving CafeOBJ]~%")
   (finish-output))
@@ -157,6 +152,7 @@
              ;; exit from the interpreter with an error code 1
              (with-chaos-top-error ()
                (with-chaos-error ()
+                 (cafeobj-init-files)
                  (dolist (f (reverse *cafeobj-initial-load-files*))
                    (cafeobj-input f)))))))
     ;; In batch mode, when we encounter interrupts or internal error,
@@ -226,11 +222,6 @@
     (process-init-files-handling-exceptions)
     (unless *cafeobj-batch*)
     ;; do the job interactively
-    (unless no-init
-      (catch *top-level-tag*
-        (with-chaos-top-error ()
-          (with-chaos-error ()
-            (cafeobj-init-files)))))
     (process-cafeobj-with-restart))
   (format t "[Leaving CafeOBJ]~%")
   (finish-output))
