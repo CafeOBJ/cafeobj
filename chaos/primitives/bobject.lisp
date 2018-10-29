@@ -166,12 +166,6 @@
   (decl-form nil :type list)
   (symbol-table (make-symbol-table) :type symbol-table))
 
-; (eval-when (:execute :load-toplevel)
-;   (setf (symbol-function 'is-top-object)(symbol-function 'top-object-p))
-;   (setf (get 'top-object ':type-predicate) (symbol-function 'is-top-object))
-;   (setf (get 'top-object :eval) nil)
-;   (setf (get 'top-object :print) nil))
-
 ;;;
 ;;; basic accessors via top-object
 ;;;
@@ -502,7 +496,7 @@
                    (:constructor make-module)
                    (:constructor module* (name))
                    (:print-function print-module-object))
-  (print-name "" :type string)
+  (print-name nil :type symbol)
   (signature nil :type (or null signature-struct))
                                         ; own signature.
   (axiom-set nil :type (or null axiom-set))

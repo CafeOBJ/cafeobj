@@ -148,7 +148,7 @@
 
 (defun print-sort-object (obj stream &rest ignore)
   (declare (ignore ignore))
-  (let ((name (concatenate 'string (string (sort-id obj)) "." (module-print-name (sort-module obj)))))
+  (let ((name (concatenate 'string (string (sort-id obj)) "." (string (module-print-name (sort-module obj))))))
     (if (sort-is-hidden obj)
         (format stream ":hsort[~s]" name)
       (format stream ":sort[~s]" name))))
@@ -1198,39 +1198,37 @@
 ;;; like `is-in-same-connected-component' but does not assume
 ;;; error-sort.
 ;;;
+(declaim (inline is-in-same-connected-component*))
 (defun is-in-same-connected-component* (s1 s2 so)
   (declare (type sort* s1 s2)
            (type sort-order so)
            (values (or null t)))
-  (or (eq s1 s2)
-      (if (or (eq s1 *cosmos*) (eq s2 *cosmos*))
-          t
-          (and (eq (sort-is-hidden s1) (sort-is-hidden s2))
-               (cond ((err-sort-p s1)
-                      (if (err-sort-p s2)
-                          nil
-                          (let ((lowers (err-sort-lowers s1)))
-                            (intersection lowers
-                                          (sub-or-equal-sorts s2 so)))))
-                     ((err-sort-p s2)
-                      (let ((lowers (err-sort-lowers s2)))
-                        (intersection lowers
-                                      (sub-or-equal-sorts s1 so))))
-                     (t (or (if (sort-is-hidden s1)
-                                (or (sort= *huniversal-sort* s1)
-                                    (sort= *huniversal-sort* s2)
-                                    (sort= *hbottom-sort* s1)
-                                    (sort= *hbottom-sort* s2))
-                                (or (sort= *universal-sort* s1)
-                                    (sort= *universal-sort* s2)
-                                    (sort= *bottom-sort* s1)
-                                    (sort= *bottom-sort* s2)))
-                            (sort<= s1 s2 so)
-                            (sort<= s2 s1 so)
-                            (have-common-subsort s1 s2 so)
-                            (let ((t1 (component-top s1 so)))
-                              (and t1 (sort-set-equal t1
-                                                      (component-top s2 so)))))))))))
+  (or (sort= s1 s2)
+      (sort= s1 *cosmos*)
+      (sort= s2 *cosmos*)
+      (and (eq (sort-is-hidden s1) (sort-is-hidden s2))
+           (cond ((err-sort-p s1)
+                  (and (not (err-sort-p s2))
+                       (intersection (err-sort-lowers s1)
+                                     (sub-or-equal-sorts s2 so))))
+                 ((err-sort-p s2)
+                  (intersection (err-sort-lowers s2)
+                                (sub-or-equal-sorts s1 so)))
+                 (t (or (if (sort-is-hidden s1)
+                            (or (sort= *huniversal-sort* s1)
+                                (sort= *huniversal-sort* s2)
+                                (sort= *hbottom-sort* s1)
+                                (sort= *hbottom-sort* s2))
+                          (or (sort= *universal-sort* s1)
+                              (sort= *universal-sort* s2)
+                              (sort= *bottom-sort* s1)
+                              (sort= *bottom-sort* s2)))
+                        (sort<= s1 s2 so)
+                        (sort<= s2 s1 so)
+                        (have-common-subsort s1 s2 so)
+                        (let ((t1 (component-top s1 so)))
+                          (and t1 (sort-set-equal t1
+                                                  (component-top s2 so))))))))))
 
 ;;; HAVE-COMMON-SUBSORT : Sort Sort SortOrder -> Bool
 ;;;
