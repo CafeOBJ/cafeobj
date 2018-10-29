@@ -689,21 +689,14 @@
 
 (defun get-sch-hashed-term (term-id term-hash)
   (if term-id
-      (get-hashed-term term-id term-hash)
+      (gethash term-id term-hash)
     nil))
 
-#-GCL
 (declaim (inline set-sch-hashed-term))
 
 (defun set-sch-hashed-term (term-id term-hash value)
-  (if term-id
-      (set-hashed-term term-id term-hash value)))
-
-(defmacro cexec-get-hashed-term (term)
-  `(get-sch-hashed-term (term-id ,term) .cexec-term-hash.))
-
-(defmacro cexec-set-hashed-term (term state-num)
-  `(set-sch-hashed-term (term-id ,term) .cexec-term-hash. ,state-num))
+  (when term-id
+    (setf (gethash term-id term-hash) value)))
 
 (defun cexec-sch-check-predicate (term t1 pred-pat)
   (let ((pred (car pred-pat))
@@ -1203,7 +1196,7 @@
             (declare (special .rwl-sch-context. .cexec.term-hash. .ignore-term-id-limit.))
             (push sch-context .rwl-context-stack.)
             ;; the first state is 0
-            (cexec-set-hashed-term t1 0)
+            (set-sch-hashed-term (term-id t1) .cexec-term-hash. 0)
             ;;
             ;; do the search
             ;;
@@ -1343,9 +1336,6 @@
         (print-next)
         (term-print if)
         (setq if nil)))
-    ;; ***
-    ;; (clear-term-memo-table *term-memo-table*)
-    ;; ***
     (when *cexec-normalize*
       (let ((*rewrite-exec-mode* nil)
             (*clean-memo-in-normalize* nil))
@@ -1399,7 +1389,6 @@
                   ("!" (setq final? t))
                   ("*" (setq zero? t))
                   (otherwise nil))
-      (clear-term-memo-table *term-memo-table*)
       (rwl-search* t1 t2 1 max zero? final? cond nil *current-module*))))
 
 ;;; EOF

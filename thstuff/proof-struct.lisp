@@ -978,9 +978,9 @@
     meth))
   
 (defun intro-const-returns-subst (module name variable)
-  (cons variable (make-applform-simple (variable-sort variable)
-                                       (citp-intro-const module name (variable-sort variable))
-                                       nil)))
+  (cons variable (make-applform (variable-sort variable)
+                                (citp-intro-const module name (variable-sort variable))
+                                nil)))
 
 ;;; make-tc-const-name : variable -> string
 ;;;
@@ -1172,7 +1172,7 @@
                 variable)))
     (flet ((make-iv-const (name)
              (if op
-                 (let ((constant (make-applform-simple (method-coarity op) op nil)))
+                 (let ((constant (make-applform (method-coarity op) op nil)))
                    (push (cons variable constant) (goal-ind-constants goal))
                    constant)
                (let ((con (intro-const-returns-subst (goal-context goal)
@@ -1197,7 +1197,7 @@
 (defun intro-fresh-constant (goal name-seed sort)
   (let* ((name (make-ind-const-name name-seed sort))
          (meth (citp-intro-const (goal-context goal) name sort))
-         (v-const (make-applform-simple sort meth nil)))
+         (v-const (make-applform sort meth nil)))
     (push (cons meth v-const) (goal-ind-constants goal))
     v-const))
 
@@ -1479,8 +1479,8 @@
         (setq le-m (lowest-method* (car (opinfo-methods le))))
         (setq var-x (make-variable-term int-sort 'X))
         (setq var-y (make-variable-term int-sort 'Y))
-        (setq .ls-pat. (make-applform-simple *bool-sort* less-m (list var-x var-y)))
-        (setq .le-pat. (make-applform-simple *bool-sort* le-m (list var-x var-y))))))
+        (setq .ls-pat. (make-applform *bool-sort* less-m (list var-x var-y)))
+        (setq .le-pat. (make-applform *bool-sort* le-m (list var-x var-y))))))
   (import-module root-module :protecting context-module)
   (import-module root-module :protecting .int-module.)
   (compile-module root-module t))
