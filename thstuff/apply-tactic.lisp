@@ -3019,7 +3019,7 @@
           (return-from apply-tactic nil)))
       (format t "~%[~a]=> :goal{~a}" (tactic-name tactic) (goal-name (ptree-node-goal ptree-node)))
       (initialize-ptree-node ptree-node)
-      (prepare-goal-context (goal-context (ptree-node-goal ptree-node)) t)
+      (prepare-goal-context (goal-context (ptree-node-goal ptree-node)))
       (with-citp-debug ()
         (let ((exe (tactic-executor tactic)))
           (format t "~%Funcalling ~a" exe)))
