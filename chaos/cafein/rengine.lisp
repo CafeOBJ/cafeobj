@@ -935,7 +935,7 @@
           (format t "~%**> ~d= " term-id)
           (term-print term))
         (when term-id
-          (set-hashed-term term-id *term-memo-table* (simple-copy-term term)))
+          (set-hashed-term term-id *term-memo-table* term))
         term))))
 
 ;;; NORMALIZE-TERM : TERM -> BOOL
