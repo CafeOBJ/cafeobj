@@ -203,9 +203,9 @@
                  (head (term-head f)))
              (declare (type list args)
                       (type method head))
-             (setq f (make-applform-simple (term-sort f)
-                                           head
-                                           args))
+             (setq f (make-applform (term-sort f)
+                                    head
+                                    args))
              (cond ((memq head (list *bool-equal* *beh-equal* *eql-op*))
                     #||
                     (when (eq head *beh-eq-pred*)

@@ -725,8 +725,7 @@
     (let ((mod (if modexp 
                    (eval-modexp modexp)
                  (get-context-module t))))
-      (unless (eq mod (get-context-module t))
-        (clear-term-memo-table *term-memo-table*))
+      (reset-term-memo-table mod)
       (if (or (null mod) (modexp-is-error mod))
           (if (null mod)
               (with-output-chaos-error ('no-context)
