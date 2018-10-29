@@ -56,7 +56,8 @@
 ;;; RESET-REDUCED-FLAG---------------------------------------------------------
 ;;; ******************
 (defun reset-reduced-flag (term)
-  (declare (type term term))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (when (or (term-is-builtin-constant? term)
             (pvariable-term? term))
     (return-from reset-reduced-flag term))
@@ -76,6 +77,7 @@
 (defvar *variable-as-constant* nil)
 
 (defun make-pconst-from-var (var)
+  (declare (optimize (speed 3) (safety 0)))
   (let ((name (variable-name var))
         (print-name (variable-print-name var))
         (sort (variable-sort var))
@@ -89,6 +91,7 @@
     (make-pconst-term sort pc-name pc-pname)))
 
 (defun variables->pconstants (term)
+  (declare (optimize (speed 3) (safety 0)))
   (let ((vars (term-variables term))
         (subst (new-substitution))
         (rsubst (new-substitution)))
@@ -102,6 +105,7 @@
     rsubst))
 
 (defun revert-pconstants (term rsubst)
+  (declare (optimize (speed 3) (safety 0)))
   (substitution-image-no-copy rsubst term :subst-pconstance)
   term)
 
@@ -128,7 +132,7 @@
 
 (defun term-is-an-error (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (and (term? term)
        (let ((sort (term-sort term)))
          (and (not (sort= *bottom-sort* sort))
@@ -255,19 +259,6 @@
 
 ;;; test if a appl form contains search predicate which may
 ;;; introduce new variables
-#||
-(defparameter sch-op-names
-    '(("_" "=" "(" "_" "," "_" ")" "=>+" "_" "if" "_" "suchThat" "_" "{" "_" "}")))
-
-(defun term-contains-sp-sch-predicate (term)
-  (and (term-is-application-form? term)
-       (or (member (method-symbol (term-head term))
-                   sch-op-names
-                   :test #'equal)
-           (some #'term-contains-sp-sch-predicate
-                  (term-subterms term)))))
-||#
-
 (defun term-contains-sp-sch-predicate (term)
   (and (term-is-application-form? term)
        (or (eq (method-module (term-head term)) *rwl-module*)
@@ -316,7 +307,7 @@
 
 (defun update-lowest-parse (term)
   (declare (type term term)
-           (values t))
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body term))
         (assoc-applied nil))
     (unless (or (pvariable-term? term) (term-is-an-error term))
@@ -537,21 +528,24 @@
 ;;; (1) two variables are phisically equal, or
 ;;; (2) have same name and same sort.
 ;;;
+(declaim (inline variable-equal))
 (defun variable-equal (x y)
   (declare (type term x y)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (or (term-eq x y)
       (and (eq (variable-name x) (variable-name y))
            (sort= (variable-sort x) (variable-sort y)))))
 
+(declaim (inline variable=))
 (defun variable= (x y)
   (declare (type term x y)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (term-eq x y))
 
+(declaim (inline variable-eq))
 (defun variable-eq (x y)
   (declare (type term x y)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (term-eq x y))
 
 ;;; TERM-IS-ZERO-FOR-METHOD : TERM METHOD -> BOOL
@@ -586,7 +580,7 @@
 ;;;
 (defun term-is-congruent? (t1 t2)
   (declare (type term t1 t2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (let ((t1-body (term-body t1))
         (t2-body (term-body t2)))
     (cond ((term$is-variable? t1-body)
@@ -625,7 +619,7 @@
 
 (defun match-with-empty-theory (t1 t2)
   (declare (type term t1 t2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (or (term-eq t1 t2)
       (cond ((term-is-applform? t1)
              (unless (term-is-applform? t2)
@@ -675,7 +669,7 @@
 
 (defun term-equational-equal (t1 t2)
   (declare (type term t1 t2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (or (term-eq t1 t2)
       (let ((t1-body (term-body t1))
             (t2-body (term-body t2)))
@@ -707,7 +701,7 @@
 (defun term-is-similar? (t1 t2)
   (declare (type term t1)
            (type (or term null) t2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (or (term-eq t1 t2)
       (if t2
           (let ((t1-body (term-body t1))
@@ -746,10 +740,13 @@
 
 ;;; op make-term-check-op : method {subterms}list[term] -> term
 ;;;
+(declaim (inline make-term-check-op))
 (defun make-term-check-op (f subterms &optional module)
   (declare (type method f)
            (type list subterms)
-           (type (or null module) module))
+           (type (or null module) module)
+           (optimize (speed 3) (safety 0))
+           (inline make-term-with-sort-check))
   (make-term-with-sort-check f subterms module))
 
 ;;; op make-term-check-op-with-sort-check :
@@ -760,7 +757,8 @@
   (declare (type method f)
            (type list subterms)
            (type (or null module) module)
-           (values term))
+           (optimize (safety 0) (speed 3))
+           (inline make-term-with-sort-check))
   (make-term-with-sort-check f subterms module))
 
 ;;; MAKE-TERM-WITH-SORT-CHECK : METHOD SUBTERMS -> TERM
@@ -768,11 +766,13 @@
 ;;; the lowest method is searched and if found, construct a term with found
 ;;; method, otherwise, given method is used.
 (defvar **sa-debug** nil)
+(declaim (inline make-term-with-sort-check))
 (defun make-term-with-sort-check (meth subterms
                                   &optional (module (get-context-module)))
   (declare (type method meth)
            (type list subterms)
-           (type module module))
+           (type module module)
+           (optimize (speed 3) (safety 0)))
   (let ((res nil))
     (if (do ((arl (method-arity meth) (cdr arl))
              (sl subterms (cdr sl)))
@@ -801,7 +801,7 @@
   (declare (type method meth)
            (type list subterms)
            (type (or null module) module)
-           (values term))
+           (optimize (speed 3)(safety 0)))
   (let ((s1 (term-sort (car subterms)))
         (s2 (term-sort (cadr subterms)))
         (res nil))
@@ -838,7 +838,7 @@
 (defun list-assoc-subterms (term method)
   (declare (type term term)
            (type method method)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let ((res (list-assoc-subterms-aux term method nil)))
     res))
 
@@ -861,7 +861,7 @@
 (defun list-assoc-subterms (term method)
   (declare (type term term)
            (type method method)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (labels ((list-a-subs (term method lst)
              (declare (type term term)
                       (type method method)
@@ -887,13 +887,15 @@
 
 (defun list-assoc-id-subterms (term method)
   (declare (type term term)
-           (type method method))
+           (type method method)
+           (optimize (speed 3) (safety 0)))
   (list-assoc-id-subterms-aux term method nil))
 
 (defun list-assoc-id-subterms-aux (term method lst)
   (declare (type term term)
            (type method method)
-           (type list lst))
+           (type list lst)
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body term)))
     (if (term$is-variable? body)
         (cons term lst)
@@ -914,7 +916,7 @@
 (defun list-assoc-id-subterms (term method)
   (declare (type term term)
            (type method method)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (labels ((list-a-subs (term method lst)
              (declare (type term term)
                       (type method method)
@@ -969,7 +971,8 @@
 #-GCL
 (defun list-AC-subterms (term method)
   (declare (type term term)
-                      (type method method))
+           (type method method)
+           (optimize (speed 3) (safety 0)))
   (labels ((list-subs (term method lst)
              (declare (type term term)
                       (type method method)
@@ -1027,7 +1030,8 @@
 #-GCL
 (defun list-ACZ-subterms (term meth)
   (declare (type term term)
-           (type method meth))
+           (type method meth)
+           (optimize (speed 3) (safety 0)))
   (labels ((list-subs (term method lst)
              (declare (type term term)
                       (type method method)
@@ -1062,17 +1066,8 @@
 ;;;
 (defun make-right-assoc-normal-form (meth subterms)
   (declare (type method meth)
-           (type list subterms))
-  ;;#||
-  (when *term-debug*
-    (format t "~&make-right-assoc-normal-form:")
-    (format t "~& method = ")
-    (print-chaos-object meth)
-    (format t "~& subterms = ")
-    (print-chaos-object subterms)
-    (format t "~& length = ~d" (length subterms))
-    (force-output))
-  ;;||#
+           (type list subterms)
+           (optimize (speed 3) (safety 0)))
   (let ((res (if (= (length subterms) 2)
                  (make-applform (method-coarity meth) meth subterms)
                (make-applform (method-coarity meth)
@@ -1091,7 +1086,7 @@
 (defun make-right-assoc-normal-form-with-sort-check (meth subterms)
   (declare (type method meth)
            (type list subterms)
-           (values term))
+           (optimize (speed 3) (safety 0)))
   (if (= 1 (length subterms))
       (car subterms)
     (if (= 2 (length subterms))
@@ -1112,9 +1107,8 @@
 ;;; which represent the associative class.
 
 (defun right-associative-normal-form (t1)
-  (declare (type term t1))
-  ;; (format t "~&ranf: ")
-  ;; (term-print t1)
+  (declare (type term t1)
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body t1)))
     (cond ((term$is-constant? body) t1)
           ((term$is-variable? body) t1)
@@ -1135,7 +1129,8 @@
 ;;; * NOTE *
 ;;; head method must be associaitive method with identity.
 (defun right-associative-id-normal-form (t1)
-  (declare (type term t1))
+  (declare (type term t1)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? t1)
       (let ((meth (term-head t1)))
         (if (theory-contains-az (method-theory meth))
@@ -1150,7 +1145,8 @@
 ;;; returns the term simplified by considering identity theory among subterms.
 ;;;
 (defun id-normal-form (t1)
-  (declare (type term t1))
+  (declare (type term t1)
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body t1)))
     (cond ((term$is-constant? body) t1)
           ((term$is-variable? body) t1)
@@ -1166,12 +1162,13 @@
 (defun make-right-assoc-id-normal-form (method subterms)
   (declare (type method method)
            (type list subterms)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (make-right-assoc-normal-form method (filter-zero method subterms)))
 
 (defun filter-zero (method subterms)
   (declare (type method method)
-           (type list subterms))
+           (type list subterms)
+           (optimize (speed 3) (safety 0)))
   (when subterms
     (if (term-is-zero-for-method (car subterms) method)
         (filter-zero method (cdr subterms))
@@ -1188,7 +1185,7 @@
 
 (defun term-copy-and-returns-list-variables (term)
   (declare (type term term)
-           (values term list))
+           (optimize (speed 3) (safety 0)))
   (multiple-value-bind (res list-new-var)
       (copy-list-term-using-list-var (list term) nil)
     (declare (type list res list-new-var))
@@ -1196,7 +1193,7 @@
 
 (defun copy-list-term-using-list-var (term-list list-new-var &key (test #'variable-eq))
   (declare (type list term-list list-new-var)
-           (values list list))
+           (optimize (speed 3) (safety 0)))
   (let ((v-image nil)
         (list-copied-term nil))
     (values (mapcar #'(lambda (term)
@@ -1225,7 +1222,7 @@
 (defun copy-term-using-variable (term list-new-var &optional (test #'variable-eq))
   (declare (type term term)
            (type list list-new-var)
-           (values term))
+           (optimize (speed 3) (safety 0)))
   (multiple-value-bind (res list-new-var-res)
       (copy-list-term-using-list-var (list term) list-new-var :test test)
     (declare (ignore list-new-var-res)
@@ -1247,7 +1244,8 @@
 ;;; TERM is supposed of the application form f(t1,...,tn).
 ;;;
 (defun theory-standard-form (term)
-  (declare (type term term))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body term)))
     (if (term$is-application-form? body)
         (let* ((f (appl$head body))
@@ -1289,14 +1287,16 @@
 
 (defun A-idempotent-normal-form (f t1 t2)
   (declare (type method f)
-           (type term t1 t2))
+           (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-similar? t1 t2)
       t1
     (make-applform (method-coarity f) f (list t1 t2))))
 
 (defun AC-idempotent-normal-form (f t1 t2)
   (declare (type method f)
-           (type term t1 t2))
+           (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-similar? t1 t2)
       t1
     (make-applform (method-coarity f) f (list t1 t2))))
@@ -1306,13 +1306,17 @@
 ;;; **********
 
 (defun get-term-all-methods (term ans)
+  (declare (type term term)
+           (type list ans)
+           (optimize (speed 3) (safety 0)))
   (when (term-is-application-form? term)
     (pushnew (term-head term) (cdr ans) :test #'eq)
     (dolist (sub (term-subterms term))
       (get-term-all-methods sub ans))))
 
 (defun term-heads (term)
-  (declare (type term term))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (let ((res (cons nil nil)))
     (get-term-all-methods term res)
     (cdr res)))
@@ -1322,7 +1326,8 @@
   `(term-heads ,term))
 
 (defun clean-term (term)
-  (declare (type term term))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-application-form? term)
       (make-applform (method-coarity (term-head term))
                      (term-head term)
@@ -1331,17 +1336,17 @@
 
 (defun term-make-zero (method)
   (declare (type method method)
-           (values (or null term)))
+           (optimize (speed 3) (safety 0)))
   (let ((zero (car (theory-zero (method-theory method)))))
     (if zero
         zero
-        nil)))
+      nil)))
 
 ;;; SUPPLY-PCONSTANTS
 ;;;
 (defun supply-pconstants (term)
   (declare (type term term)
-           (values term))
+           (optimize (speed 3) (safety 0)))
   (let ((target (simple-copy-term term)))
     (declare (type term target))
     (let ((vars (term-variables target)))
@@ -1356,17 +1361,23 @@
 ;;; MISC PREDICATES ON TERM
 ;;; ***********************
 (defun term-is-of-functional? (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? term)
       (not (method-is-behavioural (term-head term)))
-      t))
+    t))
           
 (defun term-is-of-behavioural? (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? term)
       (method-is-behavioural (term-head term))
-      nil))
+    nil))
 
 (defun term-is-of-behavioural*? (term
                                  &optional (opinfo-table *current-opinfo-table*))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? term)
       (or (method-is-behavioural (term-head term))
           (method-is-coherent (term-head term) opinfo-table))
@@ -1374,7 +1385,7 @@
 
 (defun term-is-behavioural? (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (and (sort-is-hidden (term-sort term))
        (or (term-is-constant? term)
            (let ((head (term-head term)))
@@ -1383,7 +1394,7 @@
 
 (defun term-can-be-in-beh-axiom? (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (cond ((term-is-applform? term)
          (if (eq (term-head term) *bool-if*)
              (and (term-can-be-in-beh-axiom? (term-arg-2 term))
@@ -1400,13 +1411,15 @@
 
 (defun term-is-non-behavioural? (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (not (term-is-behavioural? term)))
 
 ;;; returns t iff given term is a constructor, i.e.,
 ;;; the root is a constrctor operator, or it is a term of built-in sort.
 ;;;
 (defun term-is-constructor? (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (or (term-is-builtin-constant? term)
       (and (term-is-application-form? term)
            (method-is-constructor? (term-head term)))))
@@ -1416,13 +1429,22 @@
 (let ((*var-num* 0))
   (declare (type fixnum *var-num*))
   (defun generate-variable (sort)
+    (declare (type sort* sort)
+             (optimize (speed 3) (safety 0))
+             (inline make-variable-term))
     (make-variable-term sort
                         (intern (format nil "#Genvar-~d" (incf *var-num*)))))
   (defun make-new-variable (name sort &optional (pname name))
+    (declare (type sort*)
+             (optimize (speed 3) (safety 0))
+             (inline make-variable-term))
     (make-variable-term sort
                         (intern (format nil "~a-~d" name (incf *var-num*)))
                         pname))
   (defun rename-variable (var)
+    (declare (type term var)
+             (optimize (speed 3) (safety 0))
+             (inline make-variable-term))
     (make-variable-term (variable-sort var)
                         (intern (format nil "~a-~d"
                                         (variable-name var)
@@ -1453,6 +1475,8 @@
 ;;; REPLACE-VARIABLES-WITH-TOC
 ;;;
 (defun replace-variables-with-toc (term &optional (warn nil))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (unless (term-is-applform? term)
     (return-from replace-variables-with-toc term))
   (let ((vars (term-variables term))
@@ -1478,6 +1502,9 @@
 ;;; canonicalize-variables
 ;;;
 (defun canonicalize-variables (list-term module)
+  (declare (type list list-term)
+           (type module module)
+           (optimize (speed 3) (safety 0)))
   (with-in-module (module)
     (multiple-value-bind (list-copied-term list-new-var)
         (copy-list-term-using-list-var list-term nil :test #'variable-equal)
