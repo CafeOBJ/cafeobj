@@ -47,21 +47,10 @@
 ;;;*****************************
 ;;; Application form constructor________________________________________________
 ;;;*****************************
-
-(defmacro method-is-object-constructor (__method__)
-  `(eq (method-constructor ,__method__) ':object))
-
-(defmacro method-is-record-constructor (__method__)
-  `(eq (method-constructor ,__method__) ':record))
-
-(defmacro make-applform-simple (_sort _meth &optional _subterms)
-  `(make-application-term ,_meth ,_sort ,_subterms))
-
+(declaim (inline make-appl-form))
 (defun make-applform (sort meth &optional args)
-  (declare (type sort* sort)
-           (type method meth)
-           (type list args))
-  (make-applform-simple sort meth args))
+  (declare (optimize (speed 3) (safety 0)))
+  (make-application-term meth sort args))
 
 ;;; ******************
 ;;; RESET-REDUCED-FLAG---------------------------------------------------------
@@ -141,7 +130,7 @@
   (declare (type term term)
            (values (or null t)))
   (and (term? term)
-       (let ((sort (term$sort (term-body term))))
+       (let ((sort (term-sort term)))
          (and (not (sort= *bottom-sort* sort))
               (sort<= sort *syntax-err-sort* *chaos-sort-order*)))))
 
@@ -195,13 +184,13 @@
   (declare (type method head)
            (type list subterms)
            (values term))
-  (make-applform-simple *type-err-sort* head subterms))
+  (make-applform *type-err-sort* head subterms))
 
 (defun make-inheritedly-ill-term (head subterms)
   (declare (type method head)
            (type list subterms)
            (values term))
-  (make-applform-simple *type-err-sort* head subterms))
+  (make-applform *type-err-sort* head subterms))
 
 ;;; TERM-ERROR-OPERATORS&VARIABLES
 ;;; returns the list of error operators contained in term.

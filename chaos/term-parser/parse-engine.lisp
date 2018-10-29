@@ -1710,68 +1710,8 @@
     (flet ((make-form (sort method arg-list)
              (make-applform sort method arg-list)))
       (let ((result nil))
-        (if *fill-rc-attribute*
-            (let ((attrpos nil)
-                  (class nil))
-              (if (method-is-object-constructor method)
-                  (progn (setf attrpos 2) (setf class t))
-                (when (method-is-record-constructor method)
-                  (setf attrpos 1)))
-              (if attrpos
-                  (let ((attrs (nth attrpos arg-list))
-                        (cr-sort (method-coarity method)))
-                    (when class
-                      (replace-class-id-with-var cr-sort arg-list))
-                    (if attrs
-                        (cond ((sort= (term-sort attrs) *attribute-list-sort*)
-                               (let* ((attr-method (term-head attrs))
-                                      (sv-pairs (list-ac-subterms attrs
-                                                                  attr-method))
-                                      (flg nil))
-                                 (dolist (sv-pair sv-pairs)
-                                   (block next
-                                     (when (sort= (term-sort sv-pair)
-                                                  *attribute-list-sort*)
-                                       (setf flg t)
-                                       (return-from next nil))
-                                     ;; normal sv-pair
-                                     (replace-attr-id-with-var cr-sort sv-pair)))
-                                 (unless flg
-                                   (when (or *parsing-axiom-lhs*
-                                             *parse-lhs-attr-vars*)
-                                     ;; (break "1")
-                                     (setq *parse-lhs-attr-vars* t)
-                                     (setf (nth attrpos arg-list)
-                                       (make-right-assoc-normal-form
-                                        attr-method
-                                        (nconc sv-pairs
-                                               (list
-                                                *attribute-list-aux-variable*))))))
-                                 (setq result (make-form sort method arg-list))
-                                 result))
-                              (t ;; single sv-pair & not list of attribure.
-                               (replace-attr-id-with-var cr-sort attrs)
-                               (when (or *parsing-axiom-lhs*
-                                         *parse-lhs-attr-vars*)
-                                 ;; (break "2")
-                                 (setq *parse-lhs-attr-vars* t)
-                                 (setf (nth attrpos arg-list)
-                                   (make-applform
-                                    *attribute-list-sort*
-                                    *attribute-list-constructor*
-                                    (list attrs
-                                          *attribute-list-aux-variable*))))
-                               (setq result (make-form sort method arg-list))
-                               result))
-                      ;; no attributes
-                      (progn
-                        (setq result (make-form sort method arg-list))
-                        )))
-                (progn
-                  (setq result (make-form sort method arg-list))
-                  )))
-          ;; normal term
-          (setq result (make-form sort method arg-list)))
+        ;; normal term
+        (setq result (make-form sort method arg-list))
         ;; special treatment of if_then_else_fi
         ;; special treatment of generic operators
         (when (eq (term-head result) *bool-if*)
