@@ -1718,58 +1718,6 @@
           (set-if-then-else-sort result))
         result))))
 
-(defun replace-class-id-with-var (cr-sort arg-list)
-  (declare (type sort* cr-sort)
-           (type list arg-list))
-  (let ((class-id (second arg-list))
-        (id-var nil))
-    (unless (term-is-variable? class-id)
-      (setf id-var (crsort-id-variable cr-sort))
-      (unless id-var
-        (with-output-panic-message ()
-          (format t "could not find Class id variable for class ~s"
-                  (sort-id cr-sort))
-          ;; (break)
-          (chaos-error 'panic)))
-      (if *parsing-axiom-lhs*
-          (pushnew id-var *lhs-attrid-vars*)
-          (unless (memq id-var *lhs-attrid-vars*)
-            (return-from replace-class-id-with-var nil)))
-      ;;
-      (setf (second arg-list) id-var))
-    arg-list))
-
-(defun replace-attr-id-with-var (cr-sort sv-pair)
-  (declare (type sort* cr-sort)
-           (type term sv-pair))
-  (let ((attr-id (term-arg-1 sv-pair))
-        id-var)
-    (unless (term-is-variable? attr-id)
-      (setf id-var (get-attribute-id-variable
-                    (car (method-symbol (term-head attr-id)))
-                    cr-sort))
-      (unless id-var
-        (with-output-panic-message ()
-          (format t "could not find id variable for slot ~a of sort ~a"
-                  (car (method-symbol (term-head attr-id)))
-                  (sort-id cr-sort))
-          (print-next)
-          (princ "id term = ")
-          (term-print attr-id)
-          (print-next)
-          (princ " sv pair = ")
-          (print-chaos-object sv-pair)
-          ;; (break)
-          (chaos-error 'panic)
-          ))
-      (if *parsing-axiom-lhs*
-          (pushnew id-var *lhs-attrid-vars*)
-          (unless (memq id-var *lhs-attrid-vars*)
-            (return-from replace-attr-id-with-var nil)))
-      ;;
-      (setf (term-arg-1 sv-pair) id-var))
-    sv-pair))
-
 ;;;  op are-argumentsorts-correct :
 ;;;       Operator
 ;;;       LIST[ Sort ]  -- possibly empty (cf. constants)
