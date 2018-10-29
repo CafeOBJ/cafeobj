@@ -100,6 +100,7 @@
 (defparameter *term-id-limit* 51)
 (declaim (special .ignore-term-id-limit.))
 (defvar .ignore-term-id-limit. nil)         
+(defvar .term-id-paranoia. nil)
 (defun term-id (term)
   (let ((.call-depth. 0))
     (declare (special .call-depth.)
@@ -112,15 +113,24 @@
                (let ((.id-conf. nil))
                  (declare (special .id-conf.))
                  (cond ((term-is-applform? term)
-                        (push (the symbol (method-id-symbol (term-head term))) .id-conf.)
+                        (if .term-id-paranoia.
+                            (let* ((op (term-head term))
+                                   (opmod (module-print-name (method-module op))))
+                              (push (the symbol opmod) .id-conf.)
+                              (push (the symbol (method-id-symbol (term-head term))) .id-conf.))
+                          (push (the symbol (method-id-symbol (term-head term))) .id-conf.))
                         (dolist (subterm (term-subterms term) .id-conf.)
                           (setq .id-conf. (nconc .id-conf. (get-term-id subterm)))))
                        ((term-is-builtin-constant? term)
                         (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
                                                                (term-builtin-value term)))))
                        ((term-is-variable? term)
+                        (return-from term-id nil)
+                        #||
                         (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
-                                                               (variable-name term)))))
+                        (variable-name term))))
+                        ||#
+                        )
                        (t (abort))))))
       (let ((term-id (get-term-id term)))
         (when *term-id-debug*
@@ -128,7 +138,7 @@
             (format t "~%..hash_term..: ~s" term-id)
             (format t "~%  term: ")
             (term-print term)))
-        (cons (sort-id (term-sort term)) term-id)))))
+        term-id))))
 
 (declaim (inline get-hashed-term))
 
@@ -255,13 +265,15 @@
                (substitution-image-simplifying *m-pattern-subst*
                                                term
                                                (rule-need-copy rule)))))
-      ;; substitute variables in the current target with subst obtained by := match.
-      (term-replace term nt)
       (when *m-pat-debug*
         (format t "~&[applied *m-pattern-subst*]")
         (print-substitution *m-pattern-subst*)
-        (format t "--> ")
-        (term-print-with-sort term))))
+        (format t "~% ")
+        (term-print-with-sort term)
+        (format t "~%--> ")
+        (term-print-with-sort nt))
+      ;; substitute variables in the current target with subst obtained by := match.
+      (term-replace term nt)))
   ;; start rewriting
   (setq applied                         ; will be t iff a rewrite rule is applied
     (block the-end
@@ -907,9 +919,9 @@
                           (get-hashed-term term-id *term-memo-table*)
                         nil)))
     (when *memo-debug*
-      (format t "~%[term hash] term: ")
+      (format t "~%[term hash]~%-- term: ")
       (term-print term)
-      (format t "~%-- hash: ~d" term-id)
+      (format t "~%-- term-id: ~d" term-id)
       (format t "~%-- hashed: ")
       (if normal-form
           (term-print term)
@@ -923,7 +935,7 @@
           (format t "~%**> ~d= " term-id)
           (term-print term))
         (when term-id
-          (set-hashed-term term-id *term-memo-table* term))
+          (set-hashed-term term-id *term-memo-table* (simple-copy-term term)))
         term))))
 
 ;;; NORMALIZE-TERM : TERM -> BOOL

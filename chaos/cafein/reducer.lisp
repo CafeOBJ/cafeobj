@@ -139,7 +139,6 @@
           .rwl-context-stack. nil
           .rwl-sch-context. nil
           .rwl-states-so-far. 0
-          .hash-size. 0
           *steps-to-be-done* 1
           *do-empty-match* nil
           *rewrite-exec-mode* (or (eq mode :exec) (eq mode :exec+))
@@ -181,8 +180,8 @@
 
   ;; reset-term-memo-table
   (defun reset-term-memo-table (module)
-    (declare (ignore module))
-    (clear-term-memo-table *term-memo-table*))
+    (unless (eq module (get-context-module t))
+      (clear-term-memo-table *term-memo-table*)))
 
   ;; prepare-reduction-env
   ;; all-in-one proc for setting up environment variables for rewriting,
@@ -240,18 +239,23 @@
 
   ;; REDUCER
   ;; perform reduction
-  (defun reducer (term context-module rewrite-mode)
-    (with-in-module ((prepare-reduction-env term context-module rewrite-mode t))
+  (defun reducer (term context-module rewrite-mode &optional (no-stat nil))
+    (with-in-module ((prepare-reduction-env term context-module rewrite-mode 
+                                            (if no-stat 
+                                                nil
+                                              t)))
       ;; be ready for rewriting
       (!setup-reduction *current-module*)
       ;; now start 
-      (begin-rewrite)
+      (unless no-stat
+        (begin-rewrite))
       ;; do the reduction
       (catch 'rewrite-abort
         (if *rewrite-exec-mode*
             (rewrite-exec $$target-term *current-module* rewrite-mode)
           (rewrite $$target-term *current-module* rewrite-mode)))
-      (end-rewrite)
+      (unless no-stat
+        (end-rewrite))
       $$term))
 
   ;; REDUCER-NO-STAT
@@ -259,14 +263,7 @@
   ;; caller is responsible for calling
   ;;    (reset-rewrite-counters)-(begin-rewrite)-(end-rewrite)
   (defun reducer-no-stat (term context-module rewrite-mode)
-    (with-in-module ((prepare-reduction-env term context-module rewrite-mode nil))
-      ;; be ready for rewriting
-      (!setup-reduction *current-module*)
-      (catch 'rewrite-abort
-        (if *rewrite-exec-mode*
-            (rewrite-exec $$target-term *current-module* rewrite-mode)
-          (rewrite $$target-term *current-module* rewrite-mode))))
-    $$term)
+    (reducer term context-module rewrite-mode :no-stat))
       
   (defun simplify-on-top (term context-module)
     (declare (type term term)
