@@ -116,8 +116,8 @@
                         (if .term-id-paranoia.
                             (let* ((op (term-head term))
                                    (opmod (module-print-name (method-module op))))
-                              (push (the symbol opmod) .id-conf.)
-                              (push (the symbol (method-id-symbol (term-head term))) .id-conf.))
+                              (push opmod .id-conf.)
+                              (push (the symbol (method-id-symbol op)) .id-conf.))
                           (push (the symbol (method-id-symbol (term-head term))) .id-conf.))
                         (dolist (subterm (term-subterms term) .id-conf.)
                           (setq .id-conf. (nconc .id-conf. (get-term-id subterm)))))

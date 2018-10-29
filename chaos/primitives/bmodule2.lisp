@@ -1220,7 +1220,7 @@
   (setf (module-alias mod) nil)
   (setf (module-symbol-table mod) (make-symbol-table))
   ;; print name
-  (setf (module-print-name mod) (intern (make-module-print-name mod)))
+  (setf (module-print-name mod) (make-module-print-name mod))
   ;;
   (clear-tmp-sort-cache)
   (clear-method-info-hash))
