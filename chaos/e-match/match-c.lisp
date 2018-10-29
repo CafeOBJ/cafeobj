@@ -60,7 +60,8 @@
 
 (defun match-C-state-initialize (sys env)
   (declare (ignore env)
-           (type list sys))
+           (type list sys)
+           (optimize (speed 3) (safety 0)))
   (block no-match
     (dolist (equation (m-system-to-list sys))
       (unless (and (not (term-is-variable? (equation-t2 equation)))
@@ -74,7 +75,8 @@
 ;;; NEXT STATE
 
 (defun match-C-next-state (C-st)
-  (declare (type match-c-state))
+  (declare (type match-c-state)
+           (optimize (speed 3) (safety 0)))
   (let* ((N   (match-C-state-count C-st))
          (sys (match-C-state-sys C-st))
          (q   N)
@@ -122,7 +124,8 @@
 ;;; "t1" and "t2" are supposed to be terms with same head commutative symbol
 ;;;
 (defun match-C-equal (t1 t2)
-  (declare (type term t1 t2))
+  (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? t2)
       (if (method-is-of-same-operator (term-head t1) (term-head t2))
           (if (term-equational-equal (term-arg-1 t1) (term-arg-1 t2))

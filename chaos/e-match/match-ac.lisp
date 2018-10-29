@@ -390,61 +390,14 @@
 
 ;;; x = term
 ;;; y = ((term . eqn-num) ... )
-#||
+(declaim (inline delete-one-term))
 (defun delete-one-term (x y)
-  (block exit
-    (if (null y)
-        'none
-      (if (term-is-applform? x)
-          ;; application form
-          (let ((head (term-head x))
-                (pos nil))
-            (setq pos (position-if #'(lambda (tv)
-                                       (let ((term (car tv)))
-                                         (and (term-is-applform? term)
-                                              (method-is-of-same-operator head
-                                                                          (term-head term)))))
-                                   (the list y)))
-              ;; (break "0")
-            (unless pos
-                (return-from exit :never-match))
-            (if  (zerop pos)
-                (if (term-equational-equal x (caar y))
-                    (return-from exit (cdr y))
-                  (return-from exit 'none))
-              (let ((last y)
-                    (rest (cdr y))
-                    (cur-pos 1))
-                (declare (type fixnum cur-pos))
-                (loop
-                  (when (= cur-pos pos)
-                    (if (term-equational-equal x (caar rest))
-                        (progn
-                          ;; delete pattern
-                          (rplacd last (cdr rest))
-                          (return-from exit y))
-                      (return-from exit 'none)))
-                  (incf cur-pos)
-                  (setq last rest rest (cdr rest))))))
-        ;; term is not application form
-        (if (term-equational-equal x (caar y))
-            (cdr y)
-          (let ((last y) (rest (cdr y)))
-            (loop (when (null rest) (return 'none))
-              (when (term-equational-equal x (caar rest))
-                ;; delete pattern
-                (rplacd last (cdr rest))
-                ;; new
-                (return y))
-              (setq last rest  rest (cdr rest)))))))
-    ))
-||#
-
-(defun delete-one-term
-       (x y)
+  (declare (type list y)
+           (type term x)
+           (optimize (speed 3) (safety 0)))
   (if (null y)
       'none
-      (if (term-equational-equal x (caar y))
+    (if (term-equational-equal x (caar y))
           (cdr y)
           (let ((last y) (rest (cdr y)))
             (loop (when (null rest) (return 'none))
@@ -463,6 +416,8 @@
   "given an AC-state, produce a solution (system of equations
  which, if true, imply the original AC equation true) from
  the matrix of 'state'"
+  (declare (type simple-vector state)
+           (optimize (speed 3) (safety 0)))
   (let* ((ops (AC-state-operators state))
          (lhs-f (AC-state-lhs-f state))
          (lhs-v (AC-state-lhs-v state))
@@ -573,8 +528,10 @@
             (princ " - t2 = ") (term-print (cdr *ac-failure-eq*)))
           nil))))
 
-(#+GCL si:define-inline-function #-GCL defun test_same_term_list (x y)
-  (declare (type list x y))
+(declaim (inline test_same_term_list))
+(defun test_same_term_list (x y)
+  (declare (type list x y)
+           (optimize (speed 3) (safety 0)))
   (loop (when (null x) (return (null y)))
       (unless (eq (car x) (car y))
         (return nil))
@@ -590,13 +547,13 @@
 
 ;;; (a b a c d a) --> ((a.3)(b.1)(d.1)(c.1))
 
-(#+GCL si:define-inline-function #-GCL defun
-       list2multi-set-list-direct (list)
-  (declare (type list list))
+(declaim (inline list2multi-set-list-direct))
+(defun list2multi-set-list-direct (list)
+  (declare (type list list)
+           (optimize (speed 3) (safety 0)))
   (let ((ms-list nil))
     (declare (type list ms-list))
     (dolist (x list)
-      ;; (declare (type term x))
       (let ((ms-x (dolist (pr ms-list nil)
                     (when (term-equational-equal x (car pr))
                       (return pr))))) 
@@ -611,7 +568,8 @@
 (defvar l2msla2 nil) (defvar l2mslv2 nil)
 
 (defun list2multi-set-list (list)
-  (declare (type list list))
+  (declare (type list list)
+           (optimize (speed 3) (safety 0)))
   (if (and l2msla1 (test_same_term_list list l2msla1))
       (copy-alist l2mslv1)
     (if (and l2msla2 (test_same_term_list list l2msla2))
@@ -631,8 +589,10 @@
 ;;; the result is like
 ;;; (((A . 1) . 2) ((B . 2) . 1) ((A . 3) . 1))
 ;;;
+(declaim (inline ac-list2multi-set))
 (defun AC-list2multi-set (list)
-  (declare (type list list))
+  (declare (type list list)
+           (optimize (speed 3) (safety 0)))
   (let ((ms-list nil))
     (declare (type list ms-list))
     (dolist (x list) ;;(copy-tree list)
@@ -652,11 +612,12 @@
 
 ;;; check for multi-set equality
 ;;; uses term-equational-equal - which can be pretty expensive
+(declaim (inline match-ac-ms-equal))
 (defun match-AC-ms-equal (x y)
-  (declare (type list x y))
+  (declare (type list x y)
+           (optimize (speed 3) (safety 0)))
   (let ((lenx (length x))
         (leny (length y)))
-    ;;
     (declare (type fixnum lenx leny))
     (unless (= lenx leny)
       (return-from match-ac-ms-equal nil))
@@ -719,33 +680,10 @@
            (setf (svref rhs-c-sol m) 1) ; reset this row
            (setq m (1+ m))))))
 
-#||
-(match-AC-ms-equal
- (list2multi-set-list (list-AC-subterms t1 op))
- (list2multi-set-list (list-AC-subterms t2 op)))
-||#
-
-#||
+(declaim (inline match-ac-equal))
 (defun match-AC-equal (t1 t2)
-  (if (term-is-applform? t2)
-      (let ((op (term-head t1))
-            (op2 (term-head t2)))
-        (declare (type method op))
-        (if (method-is-of-same-operator op op2)
-            (let ((sub1 (list-AC-subterms t1 op))
-                  (sub2 (list-AC-subterms t2 op2)))
-              (declare (type list sub1 sub2))
-              (if (= (the fixnum (length sub1))
-                     (the fixnum (length sub2)))
-                 (dolist (s sub1 t)
-                   (unless (member s sub2 :test #'term-equational-equal)
-                     (return nil)))
-                 nil))
-            nil))
-      nil))
-||#
-
-(defun match-AC-equal (t1 t2)
+  (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? t2)
       (let ((op (term-head t1))
             (op2 (term-head t2)))
@@ -774,7 +712,8 @@
   "takes a system of equations and an environment, and 
    returns an AC-state, which is suitable for framing
    or passing to 'AC-next-state'"
-  (declare (type list sys env))
+  (declare (type list sys env)
+           (optimize (speed 3) (safety 0)))
   (with-match-debug ()
     (format t "~%** match-ac-state-initialize -------------------------------------")
     (print-next)
@@ -1111,7 +1050,8 @@
               (values state nil))))))))
 
 (defun match-AC-next-state (state)
-  (declare (type #+GCL vector #-GCL simple-vector state))
+  (declare (type #+GCL vector #-GCL simple-vector state)
+           (optimize (speed 3) (safety 0)))
   (if (not (AC-state-p state))
       (progn (format t "~% AC-Next-State given non-ac-state:~A~%" state)
              (values nil nil t))        ; failing is default behavior...

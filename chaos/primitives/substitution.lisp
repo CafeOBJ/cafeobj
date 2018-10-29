@@ -50,12 +50,6 @@
 --------------------------------------------------------------------------------
 |#
 
-;;(defstruct (substitution (:type list)
-;;                         (:copier nil)
-;;                         (:constructor substitution-create (bindings)))
-;;  (bindings nil))                       ; a list of pair (variable . term) 
-;;
-
 (defmacro substitution-create (_bind) _bind)
 (defmacro substitution-bindings (_sub) _sub)
 (defmacro assoc-in-substitution (_key _sub &optional (_test '#'variable-eq))
@@ -65,6 +59,7 @@
 ;;; Creates new empty substitution
 ;;;
 (defmacro create-empty-substitution () `())
+(declaim (inline new-substitution))
 (defun new-substitution () ())
 
 ;;; SUBSTITUTION-COPY sigma
@@ -146,6 +141,7 @@
 ;;;
 (defun canonicalize-substitution (s)
   (declare (type list s)
+           (optimize (speed 3) (safety 0))
            (values list))
   (sort  (copy-list s)                  ; (substitution-copy s)         
          #'(lambda (x y)                ; two substitution items (var . term)
@@ -157,6 +153,7 @@
 ;;;
 (defun substitution-equal (s1 s2)
   (declare (type list s1 s2)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (every2len #'(lambda (x y)
                  (and (variable= (the term (car x)) (the term (car y)))
@@ -167,6 +164,7 @@
 ;;;
 (defun substitution-restrict (vars sub)
   (declare (type list vars sub)
+           (optimize (speed 3) (safety 0))
            (values list))
   (let ((res nil))
     (dolist (s sub)
@@ -179,11 +177,13 @@
 ;;; assumed canonicalized
 ;;;
 (defun substitution-subset (s1 s2)
-  (declare (type list s1 s2))
+  (declare (type list s1 s2)
+           (optimize (speed 3) (safety 0)))
   (substitution-subset-list (substitution-list-of-pairs s1)
                             (substitution-list-of-pairs s2)))
 (defun substitution-subset-list (s1 s2)
   (declare (type list s1 s2)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (let ((s1x s1)
         (s2x s2)
@@ -248,6 +248,7 @@
 ;;;
 (defun substitution-image (sigma term)
   (declare (type list sigma)
+           (optimize (speed 3) (safety 0))
            (type term term))
   (let ((*consider-object* t))
     (cond ((term-is-variable? term)
@@ -290,6 +291,7 @@
 
 (defun substitution-image! (sigma term)
   (declare (type list sigma)
+           (optimize (speed 3) (safety 0))
            (type term term))
   (let ((*consider-object* t))
     (cond ((term-is-variable? term)
@@ -331,6 +333,7 @@
 
 (defun substitution-image-cp (sigma term)
   (declare (type list sigma)
+           (optimize (speed 3) (safety 0))
            (type term term))
   (let ((*consider-object* t))
     (cond ((term-is-variable? term)
@@ -376,7 +379,8 @@
 ;;; SUBSTITUTION-COMPOSE
 
 (defun substitution-compose (teta lisp-term)
-  (declare (type list teta lisp-term))
+  (declare (type list teta lisp-term)
+           (optimize (speed 3) (safety 0)))
   (let ((fcn (lisp-form-function lisp-term))
         (new-fun nil)
         (new-term nil))
@@ -398,7 +402,8 @@
     new-term))
 
 (defun substitution-compose-chaos (teta chaos-expr)
-  (declare (type list teta chaos-expr))
+  (declare (type list teta chaos-expr)
+           (optimize (speed 3) (safety 0)))
   (let ((fcn (chaos-form-expr chaos-expr))
         (new-fun nil)
         (new-term nil))
@@ -433,6 +438,7 @@
 (defun substitution-image-no-copy (sigma term &optional (subst-pconst nil))
   (declare (type list sigma)
            (type term term)
+           (optimize (speed 3) (safety 0))
            (values t))
   (let ((im nil))
     ;; '-image-slow' because the use case often distructively changes terms.
@@ -449,7 +455,8 @@
 
 (defun substitution-partial-image (sigma term)
   (declare (type list sigma)
-           (type term term))
+           (type term term)
+           (optimize (speed 3) (safety 0)))
   (let ((*consider-object* t))
     (cond ((term-is-variable? term)
            (let ((im (variable-image sigma term)))
@@ -484,7 +491,8 @@
 
 (defun substitution-image-simplifying (sigma term &optional (cp nil) (slow-map nil))
   (declare (type list sigma)
-           (type term))
+           (type term)
+           (optimize (speed 3) (safety 0)))
   (let ((*consider-object* t))
     ;; (setq subst-debug-term term)
     (cond ((term-is-variable? term)
@@ -567,6 +575,7 @@
 ;;;
 (defun substitution-can (s)
   (declare (type list s)
+           (optimize (speed 3) (safety 0))
            (values list))
   (sort (copy-list s)
         #'(lambda (x y)                 ;two substitution items (var . term)
@@ -578,7 +587,8 @@
 ;;;
 (defun substitution-simple-image (teta term)
   (declare (type list teta)
-           (type term term))
+           (type term term)
+           (optimize (speed 3) (safety 0)))
   (macrolet ((assoc% (_?x _?y)
                `(let ((lst$$ ,_?y))
                   (loop

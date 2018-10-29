@@ -71,8 +71,8 @@
 
 (defun match-CZ-state-initialize (sys env)
   (declare (ignore env)
-           (type list sys))
-  ;; env : why isn't env used here or in C$?
+           (type list sys)
+           (optimize (speed 3) (safety 0)))
   (values (create-match-cz-state 0 sys) nil))
 
 ;;; NEXT CZ State
@@ -85,7 +85,8 @@
 ;;; enumerates all possible solutions.
 
 (defun match-CZ-next-state (CZ-st)
-  (declare (type match-cz-state cz-st))
+  (declare (type match-cz-state cz-st)
+           (optimize (speed 3) (safety 0)))
   (let* ((sys (match-cz-state-sys CZ-st))
          (point (m-system-to-list sys))
          (equation nil)
@@ -190,6 +191,7 @@
 
 (defun match-CZ-equal (t1 t2)
   (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (let ((meth1 (term-head t1))
         (meth2 (term-head t2)))

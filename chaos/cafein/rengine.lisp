@@ -141,7 +141,6 @@
         term-id))))
 
 (declaim (inline get-hashed-term))
-
 (defun get-hashed-term (term-id term-hash)
   (let ((val (gethash term-id term-hash)))
     (when val 
@@ -149,7 +148,6 @@
     val))
 
 (declaim (inline set-hashed-term))
-
 (defun set-hashed-term (term-id term-hash-table value)
   (setf (gethash term-id term-hash-table) value)
   (incf .hash-size.))
@@ -165,13 +163,19 @@
 ;;; ----------
 
 (defun set-term-color-top (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
    (if (not *beh-rewrite*)
        (if (sort-is-hidden (term-sort term))
            (set-term-color term :red)
          (set-term-color term))
      (set-term-color term)))
 
+(declaim (inline set-term-color))
 (defun set-term-color (term &optional red?)
+  (declare (type term term)
+           (type (or null t) red?)
+           (optimize (speed 3) (safety 0)))
    (labels ((set-color (term set-red)
               (if set-red
                   (progn
@@ -235,6 +239,7 @@
 #-gcl
 (defun term-replace-dd-simple (old new)
    (declare (type term old new)
+            (optimize (speed 3) (safety 0))
             (values term-body))
    (incf *rule-count*)
    (term-replace old new))
@@ -248,8 +253,9 @@
 (defvar *m-pat-debug* nil)
 
 (defun !apply-one-rule (rule term &aux (applied nil))
-  (declare (type axiom rule)
+  (declare (type rewrite-rule)
            (type term term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (when (or (is-true? term) (is-false? term))
     (return-from !apply-one-rule nil))
@@ -498,8 +504,10 @@
             (throw 'rewrite-abort $$term)))
       nil)))
 
+(declaim (inline term-replace-dd-dbg))
 (defun term-replace-dd-dbg (old new)
-  (declare (type term old new))
+  (declare (type term old new)
+           (optimize (speed 3) (safety 0)))
   ;; stat number of rewriting
   (incf *rule-count*)
   ;; check if given stop pattern was matched to the resultant term.
@@ -565,9 +573,11 @@
   ;;
   $$term)
 
+(declaim (inline apply-rules-with-same-top))
 (defun apply-rules-with-same-top (term rule-ring)
   (declare (type term term)
-           (type rule-ring rule-ring))
+           (type rule-ring rule-ring)
+           (optimize (speed 3) (safety 0)))
   (let ((rr-ring (rule-ring-ring rule-ring)))
     (when rr-ring
       (let ((rr-current rr-ring)
@@ -582,9 +592,11 @@
             (setq rr-current (cdr rr-current))
             (when (eq rr-current rr-mark) (return nil))))))))
 
+(declaim (inline apply-rules-with-different-top))
 (defun apply-rules-with-different-top (term rules)
  (declare (type term term)
           (type list rules)
+          (optimize (speed 3) (safety 0))
           (values (or null t)))
  (block the-end
    (dolist (rule rules nil)
@@ -593,7 +605,8 @@
 
 (defun apply-rules (term strategy)
   (declare (type term term)
-           (type list strategy))
+           (type list strategy)
+           (optimize (speed 3) (safety 0)))
   (flet ((apply-rules-internal ()
            (let ((top (term-head term)))
              ;; apply same top rules
@@ -615,9 +628,10 @@
 ;;; Apply the associative-extensions. returns true iff the some rule is applied.
 ;;;
 (defun apply-A-extensions (rule term top)
-  (declare (type axiom rule)
+  (declare (type rewrite-rule rule)
            (type term term)
            (type method top)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (declare (optimize (speed 3) (safety 0)))
   (let ((listext (!axiom-a-extensions rule))
@@ -647,7 +661,7 @@
 ;;; Apply the associative-commutative-extension. returns t iff the rule is applied.
 ;;;
 (defun apply-AC-extension (rule term top)
-  (declare (type axiom rule)
+  (declare (type rewrite-rule rule)
            (type term term)
            ;;(type method top)
            (values (or null t)))
@@ -664,6 +678,7 @@
 (defun rule-eval-term (teta term &optional (slow? nil))
   (declare (type list teta)
            (type term term)
+           (optimize (speed 3)(safety 0))
            (values list))
   (macrolet ((assoc% (_x _y)
                `(let ((*_lst ,_y))
@@ -686,6 +701,7 @@
 ;;; really not not want to use normalize -- perhaps could use normal expressions.
 (defun rule-eval-id-condition (subst cond &optional (slow? nil))
   (declare (type list subst cond)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (cond ((eq 'and (car cond))
          (dolist (sc (cdr cond) t)
@@ -720,8 +736,9 @@
 ;;; The associative extensions are automatiquely generated and applied if needed.
 ;;;
 (defun apply-rule (rule term)
-  (declare (type axiom rule)
+  (declare (type rewrite-rule rule)
            (type term term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (let ((is-applied nil))
     (tagbody
@@ -781,6 +798,7 @@
 (defun reduce-term (term strategy)
   (declare (type term term)
            (type list strategy)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (when *rewrite-debug*
     (with-output-simple-msg ()
@@ -831,6 +849,7 @@
 (defun rewrite (term &optional (module *current-module*) mode)
   (declare (type term term)
            (type module module)
+           (optimize (speed 3) (safety 0))
            (values term))
   (with-variable-as-constant (term)
     (case mode
@@ -864,6 +883,7 @@
 
 (defun rewrite* (term)
   (declare (type term term)
+           (optimize (speed 3) (safety 0))
            (values term))
   (with-variable-as-constant (term)
     (setq $$trials 1)
@@ -878,6 +898,7 @@
 (defun rewrite-exec (term &optional (module *current-module*) mode)
   (declare (type term term)
            (type module module)
+           (optimize (speed 3) (safety 0))
            (values term))
   (with-variable-as-constant (term)
     (case mode
@@ -913,7 +934,11 @@
              (normalize-term term))))))))
 
 ;;;
+(declaim (inline term-memo-get-normal-form))
 (defun term-memo-get-normal-form (term strategy)
+  (declare (type term term)
+           (type list strategy)
+           (optimize (speed 3) (safety 0)))
   (let* ((term-id (term-id term))
          (normal-form (if term-id
                           (get-hashed-term term-id *term-memo-table*)
@@ -944,6 +969,7 @@
 ;;;
 (defun normalize-term (term)
   (declare (type term term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (when *rewrite-debug*
     (with-output-simple-msg ()
@@ -972,6 +998,7 @@
 
 (defun !normalize-term (term)
   (declare (type term term)
+           (optimize (speed 3) (safety 0))
            (values term))
   (normalize-term term)
   term)
@@ -999,6 +1026,7 @@
 
 (defun cafein-pattern-match (pat term)
   (declare (type term pat term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (if (term-is-variable? pat)
       (if (sort<= (term-sort term) (variable-sort pat)
@@ -1022,6 +1050,7 @@
 
 (defun check-stop-pattern (term)
   (declare (type term term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (when *rewrite-stop-pattern*
     (when (eq term *matched-to-stop-pattern*)
@@ -1091,6 +1120,7 @@
 (defun cafein-stepper (term &optional new-term)
   (declare (ignore new-term)
            (type term term)
+           (optimize (speed 3) (safety 0))
            (values t))
   ;; first check stop pattern or steps to be done....
   (if *matched-to-stop-pattern*
@@ -1340,6 +1370,9 @@
       *rewrite-count-limit* *rewrite-stop-pattern*))
 
 (defun apply-one-rule (rule term)
+  (declare (type rewrite-rule rule)
+           (type term term)
+           (optimize (speed 3) (safety 0)))
   (when (rule-non-exec rule)
     (return-from apply-one-rule nil))
   (let ((mandor (axiom-meta-and-or rule))
@@ -1408,16 +1441,6 @@
               :test #'term-equational-equal)))
 (defun set-memb-hash (term value)
   (let ((old-ent (assoc term .memb-term-hash. :test #'term-equational-equal)))
-    #||
-    (when *mel-debug*
-      (with-output-simple-msg ()
-        (princ "[MEL]: entering term hash ")
-        (print-chaos-object term)
-        (print-next)
-        (format t "with value: ~a" value)
-        (when old-ent
-          (format t "~% old-ent = ~a" old-ent))))
-    ||#
     (if old-ent
         (setf (cdr old-ent) value)
       (if (symbolp value)

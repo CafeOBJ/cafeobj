@@ -73,6 +73,8 @@
 
 (defun first-match (t1 t2 &optional (sigma nil))
   (declare (type term t1 t2)
+           (type list sigma)
+           (optimize (speed 3) (safety 0))
            (values list list (or null t) (or null t)))
   (with-match-debug ()
     (format t "~%* First Match --------------------------------")
@@ -87,7 +89,6 @@
     (force-output))
   ;;
   (multiple-value-bind (m-sys no-match) 
-      ;; (match-decompose&merge (new-match-system t1 t2))
       (match-decompose&merge (create-match-system (new-environment)
                                                   (create-m-system t1 t2))
                              sigma)
@@ -156,6 +157,7 @@
 
 (defun next-match (gst)
   (declare (type list gst)
+           (optimize (speed 3) (safety 0))
            (values list list (or null t)))
   (block the-end 
     (let (st)
@@ -201,6 +203,7 @@
 ;;;
 (defun empty-match (t1 t2)
   (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0))
            (values list (or null t)))
   (multiple-value-bind (m-sys no-match) 
       (match-decompose&merge (new-match-system t1 t2))
@@ -215,6 +218,7 @@
 ;;;
 (defun matches? (t1 t2)
   (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (multiple-value-bind  (gs subst no eeq)
       (first-match t1 t2)
@@ -230,8 +234,7 @@
 (defun first-match-with-theory (theory-info t1 t2)
   (declare (type theory-info theory-info)
            (type term t1 t2)
-           ;; (optimize (debug 3))
-           )
+           (optimize (speed 3) (safety 0)))
   (multiple-value-bind (m-sys no-match) 
       (match-decompose&merge (new-match-system t1 t2))
     ;; Note that is the two terms are similar then "m-sys" is empty.

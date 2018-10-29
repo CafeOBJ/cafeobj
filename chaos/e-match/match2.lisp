@@ -55,6 +55,7 @@
 ;;;
 (defun simple-match-e-ok? (pattern cond)
   (declare (type term pattern cond)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (or (is-empty-theory-term? pattern)
       (and (is-true? cond)
@@ -62,6 +63,7 @@
 
 (defun is-empty-theory-term? (term)
   (declare (type term term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (if (or (term-is-variable? term)
           (term-is-builtin-constant? term))
@@ -83,6 +85,7 @@
 ;;;
 (defun is-linear-general-pattern? (pattern)
   (declare (type term pattern)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (or (term-is-variable? pattern)
       ;; general pattern?
@@ -130,13 +133,10 @@
 
 (defun simp-match* (pattern term)
   (declare (type term pattern term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
-  ;; (unless term                               ; really happen this? NO!
-  ;;   (return-from simp-match* (values subst nil)))
   (macrolet ((lookup-substitution (____sub _**term)
                `(cdr (assq ,_**term ,____sub))
-               ;;`(let ((val (assq ,term ,sub)))
-               ;;   (if val (cdr val) nil))
                ))
     (cond ((term-is-applform? pattern)
            (if (term-is-applform? term)
@@ -175,6 +175,7 @@
 
 (defun simp-match-e (pattern term)
   (declare (type term pattern term)
+           (optimize (speed 3) (safety 0))
            (inline simp-match*)
            (values list list (or null t) (or null t)))
   (let ((.empty-direct-subst. nil))
@@ -203,6 +204,7 @@
 (defun is-simple-AC-match-ok? (pattern cond &optional (so *current-sort-order*))
   (declare (type term pattern cond)
            (type sort-order so)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (block exit
     (unless (is-true? cond) (return-from exit nil)) ; must be non conditional.
@@ -319,6 +321,7 @@
 
 (defun dep-match (pattern t2)
   (declare (type term pattern t2)
+           (optimize (speed 3) (safety 0))
            (values list list (or null t) (or null t)))
   (let* ((subs (term-subterms pattern))
          (indep (car subs))
@@ -435,7 +438,8 @@
 
 (defun match-dep-with-theory (theory t1 t2)
   (declare (type theory-info theory)
-           (type term t1 t2))
+           (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (let* ((subs (term-subterms t1))
          (indep (car subs))
          (meth (term-head t1))
@@ -560,11 +564,14 @@
 ;;; case:  X + X = X
 ;;; 
 (defun match-is-idem-ok? (lhs cond kind)
-  (declare (ignore lhs cond))
+  (declare (ignore lhs cond)
+           (optimize (speed 3) (safety 0)))
   (eq kind :idem-theory))
 
 (defun match-is-idem-ok2? (lhs cond kind)
-  (declare (ignore kind))
+  (declare (ignore kind)
+           (optimize (speed 3) (safety 0))
+           (type term lhs cond))
   (and (is-true? cond)
        (not (term-is-variable? lhs))
        (not (term-is-builtin-constant? lhs))
@@ -586,6 +593,7 @@
 ;;;
 (defun match-is-idem-ext-ok? (lhs cond kind)
   (declare (type term lhs cond)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (and (is-true? cond)
        (not (term-is-variable? lhs))

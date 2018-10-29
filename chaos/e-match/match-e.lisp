@@ -58,6 +58,7 @@
 (defun match-empty-state-initialize (sys env)
   (declare (ignore env)
            (type list sys)
+           (optimize (speed 3) (safety 0))
            (values (or null t) (or null t)))
   (block no-match
     (with-match-debug ()
@@ -78,7 +79,8 @@
 ;;; NEXT STATE
 
 (defun match-empty-next-state (empty-st)
-  (declare (type list empty-st))
+  (declare (type list empty-st)
+           (optimize (speed 3) (safety 0)))
   (let ((flag (match-empty-state-flag empty-st))
         (sys (match-empty-state-sys empty-st)))
     (declare (type fixnum flag)
@@ -109,6 +111,7 @@
 ;;;
 (defun match-empty-equal (t1 t2)
   (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (cond ((term-is-builtin-constant? t1)
          (term-builtin-equal t1 t2))

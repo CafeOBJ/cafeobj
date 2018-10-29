@@ -357,9 +357,10 @@
 ;;; check for multi-set equality
 ;;; uses term.equational-equal -- which can be pretty expensive
 ;;;
+(declaim (inline match-acz-ms-equal))
 (defun match-ACZ-ms-equal (x y)
   (declare (type list x y)
-           ;; (optimize (speed 3) (safety 0))
+           (optimize (speed 3) (safety 0))
            )
   (block the-end
     (let ((ydone 0)
@@ -383,9 +384,10 @@
 ;;;
 ;;; Assume that t1 is NOT a variable
 ;;;
+(declaim (inline match-acz-equal))
 (defun match-ACZ-equal (t1 t2)
   (declare (type term t1 t2)
-           ;; (optimize (speed 3) (safety 0))
+           (optimize (speed 3) (safety 0))
            )
   (if (term-is-applform? t2)
       (let ((op (term-head t1)))
@@ -400,17 +402,18 @@
 ;;; op match-ACZ-make-term : Operator List Of Term
 ;;; create a single term from a collection of terms
 ;;;
+(declaim (inline match-acz-make-term))
 (defun match-ACZ-make-term (op list)
   (declare (type method op)
            (type list list)
-           ;; (optimize (speed 3) (safety 0))
+           (optimize (speed 3) (safety 0))
            )
   (if (null list)
       (term-make-zero op)
-      (if (null (cdr list))
-          (car list)
-          (make-term-with-sort-check 
-            op (list (car list) (match-ACZ-make-term op (cdr list)))))))
+    (if (null (cdr list))
+        (car list)
+      (make-term-with-sort-check 
+       op (list (car list) (match-ACZ-make-term op (cdr list)))))))
 
 ;;; given an match-ACZ-state, produce a solution (system of equations
 ;;; which, if true, imply the original ACZ equation true) from
@@ -419,7 +422,8 @@
 (defvar *acz-failure-pat* nil)
 
 (defun match-ACZ-solution-from-state (state)
-  ;; (declare (optimize (speed 3) (safety 0)))
+  (declare (type simple-vector state)
+           (optimize (speed 3) (safety 0)))
   (let* ((ops (match-ACZ-state-methods state))
          (lhs-f (match-ACZ-state-lhs-f state))
          (lhs-v (match-ACZ-state-lhs-v state))
@@ -571,7 +575,8 @@
 ;;;
 
 (defun match-ACZ-state-initialize (sys env)
-  (declare (type list sys env))
+  (declare (type list sys env)
+           (optimize (speed 3) (safety 0)))
   (with-match-debug ()
     (format t "~%** match-acz-state-initialize -------------------------------------")
     (print-next)
@@ -964,6 +969,8 @@
                (values state nil)))))))
 
 (defun match-ACZ-next-state-sub (state)
+  (declare (type simple-vector state)
+           (optimize (speed 3) (safety 0)))
   (do* ((m 0)                           ; only initialize these vars 
         (rhs-c-sol (match-ACZ-state-rhs-c-sol state))
         (rhs-c-max (match-ACZ-state-rhs-c-max state))
@@ -1006,6 +1013,8 @@
 ;;; ACZ Next State
 
 (defun match-ACZ-next-state (state)
+  (declare (type simple-vector state)
+           (optimize (speed 3) (safety 0)))
   (if (trivial-match-ACZ-state-p state)
       (if (trivial-match-ACZ-state-no-more-p state)
           (values nil nil t)
@@ -1036,6 +1045,8 @@
               (values sys state nil))))))))
           
 (defun match-acz-next-state-aux (state)
+  (declare (type simple-vector state)
+           (optimize (speed 3) (safety 0)))
   (with-match-debug ()
     (format t "~%** ACZ next state"))
   (if (match-ACZ-state-no-more state)
