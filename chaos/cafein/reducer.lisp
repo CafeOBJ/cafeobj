@@ -180,8 +180,9 @@
 
   ;; reset-term-memo-table
   (defun reset-term-memo-table (module)
-    (unless (eq module (get-context-module t))
-      (clear-term-memo-table *term-memo-table*)))
+    (unless (eq module *memoized-module*)
+      (clear-term-memo-table *term-memo-table*)
+      (setq *memoized-module* module)))
 
   ;; prepare-reduction-env
   ;; all-in-one proc for setting up environment variables for rewriting,
