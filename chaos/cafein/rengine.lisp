@@ -84,10 +84,12 @@
 (defun longest-term-id ()
   (let ((maxlen 0)
         (lkey nil))
-    (declare (special maxlen))
+    (declare (special maxlen)
+             (type fixnum maxlen))
     (maphash #'(lambda (key value)
                  (declare (ignore value))
                  (let ((keylen (length key)))
+                   (declare (type fixnum keylen))
                    (when (> keylen maxlen)
                      (setq lkey key)
                      (setq maxlen keylen))))
@@ -97,21 +99,26 @@
     maxlen))
 
 (declaim (inline term-id))
-(defparameter *term-id-limit* 51)
+(declaim (type fixnum *term-id-limit*))
+(defvar *term-id-limit* 51)
+(declaim (type fixnum *hash-count-limit*))
+(defvar *hash-count-limit* 2800)
 (declaim (special .ignore-term-id-limit.))
 (defvar .ignore-term-id-limit. nil)         
 (defvar .term-id-paranoia. nil)
+
 (defun term-id (term)
   (let ((.call-depth. 0))
     (declare (special .call-depth.)
              (type fixnum .call-depth.))
     (labels ((get-term-id (term)
                (unless .ignore-term-id-limit.
-                 (incf .call-depth.)
-                 (unless (< .call-depth. *term-id-limit*)
+                 (incf (the fixnum .call-depth.))
+                 (unless (< (the fixnum .call-depth.) (the fixnum *term-id-limit*))
                    (return-from term-id nil)))
                (let ((.id-conf. nil))
-                 (declare (special .id-conf.))
+                 (declare (special .id-conf.)
+                          (type list .id-conf.))
                  (cond ((term-is-applform? term)
                         (if .term-id-paranoia.
                             (let* ((op (term-head term))
@@ -125,14 +132,10 @@
                         (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
                                                                (term-builtin-value term)))))
                        ((term-is-variable? term)
-                        (return-from term-id nil)
-                        #||
-                        (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
-                        (variable-name term))))
-                        ||#
-                        )
+                        (return-from term-id nil))
                        (t (abort))))))
       (let ((term-id (get-term-id term)))
+        (declare (type list term-id))
         (when *term-id-debug*
           (with-in-module ((get-context-module))
             (format t "~%..hash_term..: ~s" term-id)
@@ -144,13 +147,13 @@
 (defun get-hashed-term (term-id term-hash)
   (let ((val (gethash term-id term-hash)))
     (when val 
-      (incf *term-memo-hash-hit*))
+      (incf (the fixnum *term-memo-hash-hit*)))
     val))
 
 (declaim (inline set-hashed-term))
 (defun set-hashed-term (term-id term-hash-table value)
   (setf (gethash term-id term-hash-table) value)
-  (incf .hash-size.))
+  (incf (the fixnum .hash-size.)))
 
 ;;;		      BASIC COMMON ROUTINES FOR REWRITING
 
@@ -923,6 +926,7 @@
       (otherwise
        (setq $$trials 1)
        (let ((*trace-level* 0))
+         (declare (type fixnum *trace-level*))
          (setq $$matches 0)
          (setq *term-memo-hash-hit* 0)
          (with-in-module (module)
@@ -938,28 +942,20 @@
 (defun term-memo-get-normal-form (term strategy)
   (declare (type term term)
            (type list strategy)
+           (inline hash-table-count)
            (optimize (speed 3) (safety 0)))
   (let* ((term-id (term-id term))
          (normal-form (if term-id
                           (get-hashed-term term-id *term-memo-table*)
                         nil)))
-    (when *memo-debug*
-      (format t "~%[term hash]~%-- term: ")
-      (term-print term)
-      (format t "~%-- term-id: ~d" term-id)
-      (format t "~%-- hashed: ")
-      (if normal-form
-          (term-print term)
-        (princ "None")))
     (if normal-form
         normal-form
       (progn
         ;; compute the normal form of "term"
         (reduce-term term strategy)
-        (when *memo-debug*
-          (format t "~%**> ~d= " term-id)
-          (term-print term))
-        (when term-id
+        (when (and term-id
+                   (<= (the fixnum (hash-table-count *term-memo-table*))
+                       (the fixnum *hash-count-limit*)))
           (set-hashed-term term-id *term-memo-table* term))
         term))))
 

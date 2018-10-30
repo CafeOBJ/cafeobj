@@ -49,41 +49,6 @@
 ;;;  - terms parsed, operator references are resolved.
 ;;;  - variables are eliminated.
 ;;;-----------------------------------------------------------------------------
-#||
-(defterm view-struct (top-object)
-  :visible (name)                       ; view name (string).
-  :hidden (src                          ; source module
-           target                       ; target module
-           sort-maps                    ; mapping of sorts
-           op-maps                      ; mapping of operators
-           )
-  :print print-view-internal
-  :int-printer print-view-struct-object)
-||#
-
-#||
-(defstruct (view-struct (:include top-object (-type 'view-struct))
-                        (:conc-name "VIEW-STRUCT-")
-                        (:constructor make-view-struct)
-                        (:constructor view-struct* (name))
-                        (:copier nil)
-                        (:print-function print-view-struct-object))
-  (src nil :type (or null module))
-  (target nil :type (or null module))
-  (sort-maps nil :type list)
-  (op-maps nil :type list))
-
-(eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-view-struct) (symbol-function 'view-struct-p))
-  (setf (get 'view-struct :type-predicate) (symbol-function 'view-struct-p))
-  (setf (get 'view-struct :print) 'print-view-internal))
-
-(defun print-view-struct-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (format stream "#<view ~a : ~x>" (view-struct-name obj) (addr-of obj)))
-
-||#
-
 ;;; accessors, all are setf'able
 
 (defmacro view-name (_view) `(view-struct-name ,_view))

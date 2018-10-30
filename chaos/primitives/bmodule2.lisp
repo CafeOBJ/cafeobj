@@ -1032,7 +1032,7 @@
 ;;; (declaim (inline equal-top-level))
 #-gcl
 (defun equal-top-level (x y)
-  (cond ((stringp x) (equal x y))
+  (cond ((stringp x) (string= x y))
         ((atom x) (eql x y))
         ((atom y) nil)
         (t (and (equal-top-level (car x) (car y))

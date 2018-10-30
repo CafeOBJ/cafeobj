@@ -180,8 +180,11 @@
 
   ;; reset-term-memo-table
   (defun reset-term-memo-table (module)
-    (unless (eq module *memoized-module*)
+    (when (or *clean-memo-in-normalize*
+              (not (eq module *memoized-module*)))
       (clear-term-memo-table *term-memo-table*)
+      (when *clean-memo-in-normalize*
+        (setq .hash-size. (hash-table-count *term-memo-table*)))
       (setq *memoized-module* module)))
 
   ;; prepare-reduction-env

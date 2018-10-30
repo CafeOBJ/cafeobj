@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -197,11 +197,13 @@
 
 ;; memoization
 (defvar *memo-rewrite* t)               ; use memo mechanism
-(defvar *clean-memo-in-normalize* nil)
+(defvar *clean-memo-in-normalize* t)
 (defvar *always-memo* nil)
-(declaim (special *hash-hit*)
-         (type (unsigned-byte 29) *hash-hit*))
+(declaim (special *term-memo-hash-hit*)
+         (type fixnum *hash-hit*))
 (defvar *term-memo-hash-hit* 0)
+(declaim (special .hash-size.)
+         (type fixnum .hash-size.))
 (defvar .hash-size. 0)
 (defvar *allow-illegal-beh-axiom* t)
 

@@ -745,7 +745,7 @@
                             ((and *modexp-parse-input*
                                   (not ignore-qual)
                                   ;; check qualifier
-                                  (<= 2 (length (car *modexp-parse-input*)))
+                                  (<= 2 (length (the list (car *modexp-parse-input*))))
                                   (eql #\. (char
                                             (the simple-string
                                               (car *modexp-parse-input*))
@@ -779,6 +779,7 @@
                                   (subseq name (1+ pos)))
                        (%opref* val))))
                (let ((mod-ref (last val)))
+                 (declare (type list mod-ref))
                  (when (stringp (car mod-ref))
                    (setq mod-ref (car mod-ref))
                    (let ((pos (and (not ignore-qual) (position #\. mod-ref))))
