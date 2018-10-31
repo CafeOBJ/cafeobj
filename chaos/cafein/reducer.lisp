@@ -70,8 +70,7 @@
       (parse-begin-time 0)
       (time-for-parsing 0.0)
       (rewrite-begin-time 0)
-      (time-for-rewriting 0.0)
-      (.hash-size. 0))
+      (time-for-rewriting 0.0))
   (declare (special *m-pattern-subst*
                     .rwl-context-stack.
                     .rwl-states-so-far.
@@ -89,8 +88,7 @@
                     $$cond
                     $$target-term
                     $$norm
-                    *do-empty-match*
-                    .hash-size.))
+                    *do-empty-match*))
   (declare (type (or null t) *perform-on-demand-reduction* *do-empty-match*)
            (type fixnum *steps-to-be-done* $$matches *rule-count* .rwl-states-so-far.
                  *term-memo-hash-hit*)
@@ -132,7 +130,8 @@
     *term-memo-hash-hit*)
 
   (defun number-hash-size ()
-    .hash-size.)
+    ;; .hash-size.
+    (hash-table-count *term-memo-table*))
   ;; 
   (defun clear-rewriting-fc (module mode)
     (setf *m-pattern-subst* nil
@@ -175,16 +174,13 @@
   (defun reset-rewrite-counters ()
     (setf $$matches 0
           *rule-count* 0
-          *term-memo-hash-hit* 0
-          .hash-size. 0))
+          *term-memo-hash-hit* 0))
 
   ;; reset-term-memo-table
   (defun reset-term-memo-table (module)
     (when (or *clean-memo-in-normalize*
               (not (eq module *memoized-module*)))
       (clear-term-memo-table *term-memo-table*)
-      (when *clean-memo-in-normalize*
-        (setq .hash-size. (hash-table-count *term-memo-table*)))
       (setq *memoized-module* module)))
 
   ;; prepare-reduction-env

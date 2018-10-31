@@ -153,7 +153,8 @@
 (declaim (inline set-hashed-term))
 (defun set-hashed-term (term-id term-hash-table value)
   (setf (gethash term-id term-hash-table) value)
-  (incf (the fixnum .hash-size.)))
+  ;; (incf (the fixnum .hash-size.))
+  )
 
 ;;;		      BASIC COMMON ROUTINES FOR REWRITING
 
@@ -954,8 +955,8 @@
         ;; compute the normal form of "term"
         (reduce-term term strategy)
         (when (and term-id
-                   (<= (the fixnum (hash-table-count *term-memo-table*))
-                       (the fixnum *hash-count-limit*)))
+                   (< (the fixnum (hash-table-count *term-memo-table*))
+                      (the fixnum *hash-count-limit*)))
           (set-hashed-term term-id *term-memo-table* term))
         term))))
 
