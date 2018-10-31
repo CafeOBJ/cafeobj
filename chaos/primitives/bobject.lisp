@@ -89,65 +89,6 @@
                                         ;        | :modmorph | :view
   )
 
-;;; ************
-;;; SYMBOL-TABLE
-;;; ************
-(defstruct (symbol-table)
-  (names nil :type list)
-  (map (make-hash-table :test #'equal)))
-
-(defstruct (stable)
-  (sorts nil :type list)
-  (operators nil :type list)
-  (parameters nil :type list)
-  (submodules nil :type list)
-  (variables nil :type list)
-  (axioms nil :type list)
-  (unknowns nil :type list))
-
-(defun canonicalize-object-name (nm)
-  (cond ((stringp nm)
-         (intern nm))
-        ((consp nm)
-         (if (cdr nm)
-             (mapcar #'canonicalize-object-name nm)
-           (canonicalize-object-name (car nm))))
-        ((symbolp nm) nm)
-        ((module-p nm) (canonicalize-object-name (module-name nm)))
-        (t
-         ;; do nothing
-         )))
-
-(defun symbol-table-add (table nm obj)
-  (when (and (module-p obj)
-             (module-is-parameter-theory obj))
-    (setq nm (car (module-name obj))))
-  (let ((name (canonicalize-object-name nm)))
-    (pushnew name (symbol-table-names table) :test #'equal)
-    (let* ((map (symbol-table-map table))
-           (tbl (gethash name map)))
-      (unless tbl
-        (setf tbl (setf (gethash name map) (make-stable))))
-      (cond ((sort-p obj)
-             (pushnew obj (stable-sorts tbl)))
-            ((operator-p obj)
-             (pushnew obj (stable-operators tbl)))
-            ((module-p obj)
-             (if (module-is-parameter-theory obj)
-                 (pushnew obj (stable-parameters tbl))
-               (pushnew obj (stable-submodules tbl))))
-            ((axiom-p obj)
-             (pushnew obj (stable-axioms tbl)))
-            ((and (term? obj)
-                  (term-is-variable? obj))
-             (pushnew obj (stable-variables tbl)))
-            (t (pushnew obj (stable-unknowns tbl))))
-      tbl)))
-
-(defun symbol-table-get (name &optional (module (get-context-module)))
-  (let ((gname (canonicalize-object-name name)))
-    (gethash gname (symbol-table-map
-                    (module-symbol-table module)))))
 
 ;;;=============================================================================
 ;;; TOP-OBJECT _________________________________________________________________
@@ -391,7 +332,9 @@
   )
 
 (defun print-signature (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (ignore ignore)
+           (type signature obj)
+           (stream stream))
   (let ((mod (signature$module obj)))
     (format stream "'[:signature \"~a\"]" (make-module-print-name2 mod))))
 
@@ -575,5 +518,64 @@
           (view-struct-target obj)
           (addr-of obj)))
 
+;;; ************
+;;; SYMBOL-TABLE
+;;; ************
+(defstruct (symbol-table)
+  (names nil :type list)
+  (map (make-hash-table :test #'equal)))
+
+(defstruct (stable)
+  (sorts nil :type list)
+  (operators nil :type list)
+  (parameters nil :type list)
+  (submodules nil :type list)
+  (variables nil :type list)
+  (axioms nil :type list)
+  (unknowns nil :type list))
+
+(defun canonicalize-object-name (nm)
+  (cond ((stringp nm)
+         (intern nm))
+        ((consp nm)
+         (if (cdr nm)
+             (mapcar #'canonicalize-object-name nm)
+           (canonicalize-object-name (car nm))))
+        ((symbolp nm) nm)
+        ((module-p nm) (canonicalize-object-name (module-name nm)))
+        (t
+         ;; do nothing
+         )))
+
+(defun symbol-table-add (table nm obj)
+  (when (and (module-p obj)
+             (module-is-parameter-theory obj))
+    (setq nm (car (module-name obj))))
+  (let ((name (canonicalize-object-name nm)))
+    (pushnew name (symbol-table-names table) :test #'equal)
+    (let* ((map (symbol-table-map table))
+           (tbl (gethash name map)))
+      (unless tbl
+        (setf tbl (setf (gethash name map) (make-stable))))
+      (cond ((sort-p obj)
+             (pushnew obj (stable-sorts tbl)))
+            ((operator-p obj)
+             (pushnew obj (stable-operators tbl)))
+            ((module-p obj)
+             (if (module-is-parameter-theory obj)
+                 (pushnew obj (stable-parameters tbl))
+               (pushnew obj (stable-submodules tbl))))
+            ((axiom-p obj)
+             (pushnew obj (stable-axioms tbl)))
+            ((and (term? obj)
+                  (term-is-variable? obj))
+             (pushnew obj (stable-variables tbl)))
+            (t (pushnew obj (stable-unknowns tbl))))
+      tbl)))
+
+(defun symbol-table-get (name &optional (module (get-context-module)))
+  (let ((gname (canonicalize-object-name name)))
+    (gethash gname (symbol-table-map
+                    (module-symbol-table module)))))
 
 ;;; EOF
