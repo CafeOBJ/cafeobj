@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -49,15 +49,10 @@
 
 ;;; FILECOL -- output column position
 ;;;
-;; (declaim (function filecol (stream) fixnum))
-;;(declaim (function filecol (t) fixnum))
+(declaim (inline filecol))
 
 #+GCL
 (Clines "static object filecol(x) object x; {return(make_fixnum(file_column(x)));}")
-
-;;(defCfun "object filecol(x) object x;" 0
-;;  " Creturn(make_fixnum(file_column(x)));"
-;;  )
 
 #+GCL
 (defentry filecol (object) (object filecol))
@@ -93,16 +88,9 @@
 #-(or GCL KCL LUCID CMU EXCL :openmcl SBCL)
 (defun filecol (x) (declare (ignore x)) 0) ; use this if you cannot define as
 
-;; (declaim (function file-column (stream) fixnum))
-#||
 (defun file-column (strm)
-  (if (typep strm 'stream)
-      (filecol strm)
-    0))
-||#
-
-(defun file-column (strm)
-  (declare (inline filecol)
+  (declare (type stream strm)
+           (inline filecol)
            (values fixnum))
   (filecol strm))
 
@@ -110,24 +98,6 @@
 ;;; checks the current column exceeds the line limit, if so
 ;;; newline and indent.
 ;;;
-#||
-(defun print-check (&optional (indent 0) (fwd 0) (stream *standard-output*))
-  (declare (type fixnum indent fwd))
-  (if (<= *print-line-limit* (+ (file-column stream) fwd))
-      (progn
-        (terpri stream)
-        (when (>= (1+ indent) *print-line-limit*)
-          (setq indent 0)
-          (setq .file-col. (* *print-indent* *print-indent-increment*)))
-        (if (= 0 indent)
-            (dotimes (i (* *print-indent* *print-indent-increment*))
-              (princ #\space stream))
-          (dotimes (i indent)
-            (princ #\space stream)))
-        t)
-    nil))
-||#
-
 (defun print-check (&optional (indent 0) (fwd 0) (stream *standard-output*))
   (declare (type fixnum indent fwd))
   (if (<= *print-line-limit* (+ (file-column stream) fwd))
@@ -135,10 +105,6 @@
         (print-next)
         (when (>= (1+ indent) *print-line-limit*)
           (setq .file-col. (* *print-indent* *print-indent-increment*)))
-        #||
-        (dotimes (i indent)
-          (princ #\space stream))
-        ||#
         t)
     nil))
 
@@ -154,22 +120,6 @@
 ;;; print-centering
 ;;; print the given string centering
 ;;;
-#||
-(defun print-centering (string &optional (fill-char " ") (stream *standard-output*))
-  (declare (type simple-string string))
-  (let ((fill-col (truncate (+ (/ (- *print-line-limit* (length string)) 2.0) 0.5))))
-    (declare (type fixnum fill-col))
-    (dotimes (x fill-col)
-      (declare (type fixnum x))
-      (princ fill-char stream))
-    (princ string stream)
-    (unless (equal fill-char " ")
-      (dotimes (x fill-col)
-        (declare (type fixnum x))
-        (princ fill-char stream))
-      )))
-||#
-
 (defparameter .terminal-width. 70)
 (defun print-centering (string &optional (fill-char " ") (stream *standard-output*))
   (declare (type simple-string string))
