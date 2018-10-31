@@ -72,7 +72,7 @@
        trace-on
        trace-off)
       ("step" nil parity *rewrite-stepping* "stepwise rewriting process." step-on step-off)
-      ("memo" ("size") general *term-idlimit*
+      ("memo" ("size") general *term-id-limit*
        "limit of term size in term hash used for term memoization."
        set-term-id-size-limit)
       ("memo" nil parity *memo-rewrite* "enable term memoization.")
