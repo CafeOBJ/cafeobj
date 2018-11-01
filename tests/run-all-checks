@@ -1,4 +1,16 @@
 #!/bin/bash
+#
+# Copyright 2018 Norbert Preining
+# License: GPL3+
+#
+# test cafeobj with with memo on/off and sbcl/acl
+# against a set of .mod files from a given directory (first argument)
+# Usage:
+#  run-all-checks PATH-TO-DIR-WITH-MOD-FILES
+# Generates lots of .log files for each combination and test
+# Generates a file
+#   result.YYYYMMDDHHMMSS.csv
+# containing the results
 
 timeout=10m
 
@@ -97,12 +109,17 @@ function get_elapsed_time {
 
 for i in "$1"/*.mod ; do
   bn=`basename "$i" .mod`
-  echo "$bn"
+  echo -n "$bn: "
+  echo -n "sbcl/memo-off "
   $runco && /usr/bin/time timeout $timeout $dn/cafeobj-memo off $i sbcl > $bn.sbcl.memo-off.log 2>&1
+  echo -n "sbcl/memo-on "
   $runco && /usr/bin/time timeout $timeout $dn/cafeobj-memo on  $i sbcl > $bn.sbcl.memo-on.log 2>&1
+  echo -n "acl/memo-off "
   $runco && /usr/bin/time timeout $timeout $dn/cafeobj-memo off $i acl-standalone > $bn.acl.memo-off.log 2>&1
+  echo -n "acl/memo-on "
   $runco && /usr/bin/time timeout $timeout $dn/cafeobj-memo on  $i acl-standalone > $bn.acl.memo-on.log 2>&1
   shipout_run_data $bn
+  echo "done"
 done
 
 
