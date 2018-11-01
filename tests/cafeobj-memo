@@ -1,0 +1,7 @@
+#!/bin/bash
+if [ -n "$3" ] ; then
+  ENGINE="-engine $3"
+else
+  ENGINE=""
+fi
+echo -e "set always memo $1\nin $2" | cafeobj $ENGINE -q
