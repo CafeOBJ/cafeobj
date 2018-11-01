@@ -218,36 +218,60 @@
                      (format t "~%[NF] target:")
                      (print-next)
                      (print-axiom-brief target)))
-                 ;; normalize lhs
-                 (multiple-value-setq (lhs applied)
-                   (normalize-term-in module (reset-reduced-flag lhs) :red variable-is-constant))
-                 (set-applied applied)
-                 (when (eq reduction-mode :exec)
-                   (multiple-value-setq (lhs applied) 
-                     (normalize-term-in module (reset-reduced-flag lhs) :exec variable-is-constant))
-                   (set-applied applied))
-                 ;; normalize rhs
-                 (unless lhs-only
-                   (multiple-value-setq (rhs applied) 
-                     (normalize-term-in module (reset-reduced-flag rhs)))
-                   (set-applied applied))
-                 ;; normalize condition
-                 (unless (or lhs-only (is-true? condition))
-                   (multiple-value-setq (condition applied)
-                     (normalize-term-in module (reset-reduced-flag condition) :red variable-is-constant))
-                   (set-applied  applied))
-                 (setf (rule-lhs target) lhs)
-                 (setf (rule-rhs target) rhs)
-                 (setf (rule-condition target) condition)
                  ;; 
-                 (with-citp-debug ()
-                   (if (not app?)
-                       (format t "~%    ...not applied: ")
-                     (progn
-                       (print-next)
-                       (princ "==> ") (print-axiom-brief target))))
-                 ;;
-                 (return-from normalize-sentence (values target app?))))))
+                 (let ((rsubst (variables->pconstants lhs))
+                       (rsubst2 nil)    ; for rhs
+                       (rsubst3 nil)    ; for condition
+                       )
+                   ;; normalize lhs
+                   (multiple-value-setq (lhs applied)
+                     (normalize-term-in module (reset-reduced-flag lhs) :red))
+                   (set-applied applied)
+                   (when (eq reduction-mode :exec)
+                     (multiple-value-setq (lhs applied) 
+                       (normalize-term-in module (reset-reduced-flag lhs) :exec))
+                     (set-applied applied))
+                   (when rsubst
+                     (revert-pconstants lhs rsubst))
+                   ;; normalize rhs
+                   (unless lhs-only
+                     ;; first var -> pconst for RHS only variables
+                     (setq rsubst2 (variables->pconstants rhs))
+                     ;; then reduce normaly
+                     (multiple-value-setq (rhs applied) 
+                       (normalize-term-in module (reset-reduced-flag rhs)))
+                     (set-applied applied)
+                     ;; pconst -> var
+                     (when rsubst
+                       (revert-pconstants rhs rsubst))
+                     (when rsubst2
+                       (revert-pconstants rhs rsubst2)))
+                   ;; normalize condition
+                   (unless (is-true? condition)
+                     ;; condition only vars->pconsts
+                     (setq rsubst3 (variables->pconstants condition))
+                     (multiple-value-setq (condition applied)
+                       (normalize-term-in module (reset-reduced-flag condition) :red))
+                     (set-applied  applied)
+                     (when rsubst
+                       (revert-pconstants condition rsubst))
+                     (when rsubst2
+                       (revert-pconstants condition rsubst2))
+                     (when rsubst3
+                       (revert-pconstants condition rsubst3)))
+                   ;; 
+                   (setf (rule-lhs target) lhs)
+                   (setf (rule-rhs target) rhs)
+                   (setf (rule-condition target) condition)
+                   ;; 
+                   (with-citp-debug ()
+                     (if (not app?)
+                         (format t "~%    ...not applied: ")
+                       (progn
+                         (print-next)
+                         (princ "==> ") (print-axiom-brief target))))
+                   ;;
+                   (return-from normalize-sentence (values target app?)))))))
    ;; do nothing if :spoiler is off
    :else (values ax nil)))
 
