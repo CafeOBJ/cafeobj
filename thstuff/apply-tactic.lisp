@@ -219,7 +219,9 @@
                      (print-next)
                      (print-axiom-brief target)))
                  ;; 
-                 (let ((rsubst (variables->pconstants lhs))
+                 (let ((rsubst (if variable-is-constant
+                                   (variables->pconstants lhs)
+                                 nil))
                        (rsubst2 nil)    ; for rhs
                        (rsubst3 nil)    ; for condition
                        )
@@ -236,7 +238,9 @@
                    ;; normalize rhs
                    (unless lhs-only
                      ;; first var -> pconst for RHS only variables
-                     (setq rsubst2 (variables->pconstants rhs))
+                     (if variable-is-constant
+                         (setq rsubst2 (variables->pconstants rhs))
+                       nil)
                      ;; then reduce normaly
                      (multiple-value-setq (rhs applied) 
                        (normalize-term-in module (reset-reduced-flag rhs)))
@@ -248,8 +252,10 @@
                        (revert-pconstants rhs rsubst2)))
                    ;; normalize condition
                    (unless (is-true? condition)
-                     ;; condition only vars->pconsts
-                     (setq rsubst3 (variables->pconstants condition))
+                     (if variable-is-constant
+                         ;; condition only vars->pconsts
+                         (setq rsubst3 (variables->pconstants condition))
+                       nil)
                      (multiple-value-setq (condition applied)
                        (normalize-term-in module (reset-reduced-flag condition) :red))
                      (set-applied  applied)
@@ -263,14 +269,12 @@
                    (setf (rule-lhs target) lhs)
                    (setf (rule-rhs target) rhs)
                    (setf (rule-condition target) condition)
-                   ;; 
                    (with-citp-debug ()
                      (if (not app?)
                          (format t "~%    ...not applied: ")
                        (progn
                          (print-next)
                          (princ "==> ") (print-axiom-brief target))))
-                   ;;
                    (return-from normalize-sentence (values target app?)))))))
    ;; do nothing if :spoiler is off
    :else (values ax nil)))
@@ -278,11 +282,6 @@
 ;;; is-contradiction : term term -> Bool
 ;;; returns true if true ~ false, or false ~ true
 ;;;
-#|
-(defun is-contradiction (t1 t2)
-  (or (and (is-true? t1) (is-false? t2))
-      (and (is-false? t1) (is-true? t2))))
-|#
 (defun is-contradiction (t1 t2)
   (declare (ignore t1 t2))
   nil)
@@ -2364,14 +2363,6 @@
         (new-targets nil))
     (setq instance (make-axiom-instance *current-module* subst target-axiom))
     (with-next-context (*proof-tree*)
-      #|| we should not normalize
-      ;; normalize it
-      (with-spoiler-on
-          (multiple-value-bind (n-instance applied?)
-              (normalize-sentence instance *current-module*)
-            (when applied?
-      (setq instance n-instance))))
-      ||#
       (unless (and (is-true? (axiom-rhs instance))
                    (is-true? (axiom-condition instance)))
         (with-output-chaos-error ('invalid-axiom)
