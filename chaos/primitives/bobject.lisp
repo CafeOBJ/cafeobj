@@ -333,7 +333,7 @@
 
 (defun print-signature (obj stream &rest ignore)
   (declare (ignore ignore)
-           (type signature obj)
+           (type signature-struct obj)
            (stream stream))
   (let ((mod (signature$module obj)))
     (format stream "'[:signature \"~a\"]" (make-module-print-name2 mod))))
