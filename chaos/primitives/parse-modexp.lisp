@@ -779,7 +779,7 @@
                                   (subseq name (1+ pos)))
                        (%opref* val))))
                (let ((mod-ref (last val)))
-                 (declare (type list mod-ref))
+                 (declare (type sequence mod-ref))
                  (when (stringp (car mod-ref))
                    (setq mod-ref (car mod-ref))
                    (let ((pos (and (not ignore-qual) (position #\. mod-ref))))
@@ -787,8 +787,9 @@
                        (format t "~%[]:pos = ~a, mod-ref = ~s" pos mod-ref))
                      (if (and pos (< (1+ pos) (length mod-ref)))
                          ;; .qualifier
-                         (%opref* (butlast val)
-                                  (subseq mod-ref (1+ pos)))
+                         (progn
+                           (%opref* (butlast val)
+                                    (subseq mod-ref (1+ pos))))
                        (%opref* val))))))))))
 
 ;;; PARSE-OP-SIMPLE-NAME
