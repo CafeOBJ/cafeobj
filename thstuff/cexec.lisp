@@ -1088,7 +1088,7 @@
               (push (dag-node-datum node)
                     (rwl-sch-context-answers sch-context))
               ;;
-              (when (and ;;(= (rwl-state-depth state) 0)
+              (when (and (= (rwl-state-depth state) 0)
                          (not *rwl-search-no-state-report*))
                 (format t "~%** Found [state ~D-~D] " (rwl-state-depth state) (rwl-state-state state))
                 (term-print-with-sort (rwl-state-term state))
