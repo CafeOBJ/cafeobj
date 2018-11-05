@@ -206,6 +206,7 @@
 
 (defvar *demod-is-back-demod* nil)
 
+(declaim (inline demod-replace-term))
 (defun demod-replace-term (t1 t2)
   (declare (type term t1 t2))
   (when (<= (pn-parameter demod-limit) *rule-count*)

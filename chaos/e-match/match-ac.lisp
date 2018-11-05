@@ -384,10 +384,6 @@
                      (setf (svref ,_??array counter) 0)))))
       list2))
 
-#+CMU(declaim (ext:start-block match-ac-state-initialize
-                               match-ac-next-state
-                               match-ac-equal))
-
 ;;; x = term
 ;;; y = ((term . eqn-num) ... )
 (declaim (inline delete-one-term))
@@ -409,6 +405,124 @@
               (setq last rest  rest (cdr rest))))
           ))
   )
+
+(declaim (inline test_same_term_list))
+(defun test_same_term_list (x y)
+  (declare (type list x y)
+           (optimize (speed 3) (safety 0)))
+  (loop (when (null x) (return (null y)))
+      (unless (eq (car x) (car y))
+        (return nil))
+    (setq x (cdr x))
+    (setq y (cdr y))))
+
+;;; SIMPLIFIED & SPECIAL PURPOSE FUNCTIONS for MULTI-SET
+;;; used match-ac, match-acz.
+;;; multi set is represented as a list of pairs (enty . num)
+;;;  entry : element
+;;;  num   : number of element in the multi set.
+;;;
+
+;;; (a b a c d a) --> ((a.3)(b.1)(d.1)(c.1))
+
+(declaim (inline list2multi-set-list-direct))
+(defun list2multi-set-list-direct (list)
+  (declare (type list list)
+           (optimize (speed 3) (safety 0)))
+  (let ((ms-list nil))
+    (declare (type list ms-list))
+    (dolist (x list)
+      (let ((ms-x (dolist (pr ms-list nil)
+                    (when (term-equational-equal x (car pr))
+                      (return pr))))) 
+        (if ms-x 
+            (incf (the fixnum (cdr ms-x))) ; (setf (cdr ms-x) (1+ (the fixnum (cdr ms-x))))
+          (push (cons x 1) ms-list))))
+    ms-list))
+
+;;; Assume that t1 is NOT a variable
+;;; op AC-equal: Term Term -> Bool
+(defvar l2msla1 nil) (defvar l2mslv1 nil)
+(defvar l2msla2 nil) (defvar l2mslv2 nil)
+
+(defun list2multi-set-list (list)
+  (declare (type list list)
+           (optimize (speed 3) (safety 0)))
+  (if (and l2msla1 (test_same_term_list list l2msla1))
+      (copy-alist l2mslv1)
+    (if (and l2msla2 (test_same_term_list list l2msla2))
+        (progn
+          (rotatef l2msla1 l2msla2)
+          (rotatef l2mslv1 l2mslv2)
+          (copy-alist l2mslv1))
+      (let ((res (list2multi-set-list-direct list)))
+        (setq l2msla2 l2msla1  l2mslv2 l2mslv1)
+        (setq l2msla1 list l2mslv1 res)
+        (copy-alist res)))))
+
+;;; NOTE  this is a version for AC-internal use only.
+;;; it simply takes care of the "from which equation" info.
+;;; the input list is like
+;;; ((A . 1) (B . 2) (A . 1) (A . 3))
+;;; the result is like
+;;; (((A . 1) . 2) ((B . 2) . 1) ((A . 3) . 1))
+;;;
+(declaim (inline ac-list2multi-set))
+(defun AC-list2multi-set (list)
+  (declare (type list list)
+           (optimize (speed 3) (safety 0)))
+  (let ((ms-list nil))
+    (declare (type list ms-list))
+    (dolist (x list) ;;(copy-tree list)
+      (declare (type list x))
+      (let ((ms-elt (assoc-if #'(lambda (y) 
+                                  (declare (type list y))
+                                  (and (= (the fixnum (cdr x))
+                                          (the fixnum (cdr y)))
+                                       (term-equational-equal (car y) (car x))))
+                              ms-list)))
+        (if ms-elt
+            (progn
+              (incf (the fixnum (cdr ms-elt))))
+          (progn
+            (push (cons x 1) ms-list)))))
+    ms-list))
+
+;;; check for multi-set equality
+;;; uses term-equational-equal - which can be pretty expensive
+(declaim (inline match-ac-ms-equal))
+(defun match-AC-ms-equal (x y)
+  (declare (type list x y)
+           (optimize (speed 3) (safety 0)))
+  (let ((lenx (length x))
+        (leny (length y)))
+    (declare (type fixnum lenx leny))
+    (unless (= lenx leny)
+      (return-from match-ac-ms-equal nil))
+    ;;
+    (block the-end
+      (let ((ydone 0))
+        (declare (type fixnum ydone))
+        (dolist (xe x)
+          (declare (type list xe))
+          (let ((xterm (car xe)) (xval (cdr xe)))
+            (declare (type term xterm)
+                     (type fixnum xval))
+            (dolist (ye y (return-from the-end nil)) ; didn't find xe in y
+              (declare (type list ye))
+              (when (term-equational-equal xterm (car ye))
+                (unless (= xval (the fixnum (cdr ye)))
+                  (return-from the-end nil))
+                (setq ydone (1+ ydone))
+                (return)))))            ; quit the inner do-list
+        (unless (= ydone leny)
+          (return-from the-end nil)))
+      t)))
+
+#+CMU(declaim (ext:start-block match-ac-state-initialize
+                               match-ac-next-state
+                               match-ac-equal))
+
 
 (defvar *ac-failure-eq* nil)
 
@@ -528,119 +642,9 @@
             (princ " - t2 = ") (term-print (cdr *ac-failure-eq*)))
           nil))))
 
-(declaim (inline test_same_term_list))
-(defun test_same_term_list (x y)
-  (declare (type list x y)
-           (optimize (speed 3) (safety 0)))
-  (loop (when (null x) (return (null y)))
-      (unless (eq (car x) (car y))
-        (return nil))
-    (setq x (cdr x))
-    (setq y (cdr y))))
-
-;;; SIMPLIFIED & SPECIAL PURPOSE FUNCTIONS for MULTI-SET
-;;; used match-ac, match-acz.
-;;; multi set is represented as a list of pairs (enty . num)
-;;;  entry : element
-;;;  num   : number of element in the multi set.
-;;;
-
-;;; (a b a c d a) --> ((a.3)(b.1)(d.1)(c.1))
-
-(declaim (inline list2multi-set-list-direct))
-(defun list2multi-set-list-direct (list)
-  (declare (type list list)
-           (optimize (speed 3) (safety 0)))
-  (let ((ms-list nil))
-    (declare (type list ms-list))
-    (dolist (x list)
-      (let ((ms-x (dolist (pr ms-list nil)
-                    (when (term-equational-equal x (car pr))
-                      (return pr))))) 
-        (if ms-x 
-            (incf (the fixnum (cdr ms-x))) ; (setf (cdr ms-x) (1+ (the fixnum (cdr ms-x))))
-          (push (cons x 1) ms-list))))
-    ms-list))
-
-;;; Assume that t1 is NOT a variable
-;;; op AC-equal: Term Term -> Bool
-(defvar l2msla1 nil) (defvar l2mslv1 nil)
-(defvar l2msla2 nil) (defvar l2mslv2 nil)
-
-(defun list2multi-set-list (list)
-  (declare (type list list)
-           (optimize (speed 3) (safety 0)))
-  (if (and l2msla1 (test_same_term_list list l2msla1))
-      (copy-alist l2mslv1)
-    (if (and l2msla2 (test_same_term_list list l2msla2))
-        (progn
-          (rotatef l2msla1 l2msla2)
-          (rotatef l2mslv1 l2mslv2)
-          (copy-alist l2mslv1))
-      (let ((res (list2multi-set-list-direct list)))
-        (setq l2msla2 l2msla1  l2mslv2 l2mslv1)
-        (setq l2msla1 list l2mslv1 res)
-        (copy-alist res)))))
-
-;;; NOTE  this is a version for AC-internal use only.
-;;; it simply takes care of the "from which equation" info.
-;;; the input list is like
-;;; ((A . 1) (B . 2) (A . 1) (A . 3))
-;;; the result is like
-;;; (((A . 1) . 2) ((B . 2) . 1) ((A . 3) . 1))
-;;;
-(declaim (inline ac-list2multi-set))
-(defun AC-list2multi-set (list)
-  (declare (type list list)
-           (optimize (speed 3) (safety 0)))
-  (let ((ms-list nil))
-    (declare (type list ms-list))
-    (dolist (x list) ;;(copy-tree list)
-      (declare (type list x))
-      (let ((ms-elt (assoc-if #'(lambda (y) 
-                                  (declare (type list y))
-                                  (and (= (the fixnum (cdr x))
-                                          (the fixnum (cdr y)))
-                                       (term-equational-equal (car y) (car x))))
-                              ms-list)))
-        (if ms-elt
-            (progn
-              (incf (the fixnum (cdr ms-elt))))
-          (progn
-            (push (cons x 1) ms-list)))))
-    ms-list))
-
-;;; check for multi-set equality
-;;; uses term-equational-equal - which can be pretty expensive
-(declaim (inline match-ac-ms-equal))
-(defun match-AC-ms-equal (x y)
-  (declare (type list x y)
-           (optimize (speed 3) (safety 0)))
-  (let ((lenx (length x))
-        (leny (length y)))
-    (declare (type fixnum lenx leny))
-    (unless (= lenx leny)
-      (return-from match-ac-ms-equal nil))
-    ;;
-    (block the-end
-      (let ((ydone 0))
-        (declare (type fixnum ydone))
-        (dolist (xe x)
-          (declare (type list xe))
-          (let ((xterm (car xe)) (xval (cdr xe)))
-            (declare (type term xterm)
-                     (type fixnum xval))
-            (dolist (ye y (return-from the-end nil)) ; didn't find xe in y
-              (declare (type list ye))
-              (when (term-equational-equal xterm (car ye))
-                (unless (= xval (the fixnum (cdr ye)))
-                  (return-from the-end nil))
-                (setq ydone (1+ ydone))
-                (return)))))            ; quit the inner do-list
-        (unless (= ydone leny)
-          (return-from the-end nil)))
-      t)))
-
+;;; ----------
+;;; NEXT STATE
+;;; ----------
 (defun AC-next-state-sub (state)
   (do* ((m 0)                           ; only initialize these vars 
         (rhs-c-sol (AC-state-rhs-c-sol state))

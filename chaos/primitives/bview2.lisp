@@ -62,26 +62,6 @@
 (defmacro view-exporting-objects (_view) `(object-exporting-objects ,_view))
 (defmacro view-status (_view) `(object-status ,_view))
 
-;;; basic predicates
-
-(defun view-p (object)
-  (declare (type t object)
-           (values (or null t)))
-  (view-struct-p object))
-
-;;; MODEXP-IS-VIEW : object -> Bool
-;;;
-(defun modexp-is-view (object)
-  (declare (type t object)
-           (values (or null t)))
-  (or (view-p object) (%is-view object)))
-
-
-(defun view-is-inconsistent (view)
-  (declare (type view-struct view)
-           (values (or null t)))
-  (object-is-inconsistent view))
-
 ;;; view status
 (defun mark-view-as-consistent (view)
   (declare (type view-struct view)
@@ -136,38 +116,6 @@
         (view-op-maps view) nil
         (view-decl-form view) nil
         ))
-
-
-;;; ADDITIONAL MODULE EXPRESSIONS ______________________________________
-
-;;; *NOTE* these structure are NOT Chaos's AST.
-
-;;; INSTANTIATION
-;;; evaluated
-;;; module : module object
-;;; args   : (arg-name . view-structure)
-;;;
-(defstruct int-instantiation
-  (module nil :type t)
-  (args nil :type list)
-  )
-
-;;; PLUS
-;;; internal form: args are all evaluated -- module objects.
-;;; stored as module name.
-;;;
-(defstruct int-plus
-  (args nil :type list))
-
-;;; RENAME
-;;; evaluated.
-;;;  module = module object
-;;;  sort-maps & op-maps are just the same as of MODMORPH structure.
-;;;  
-(defstruct int-rename
-  (module nil :type t)
-  (sort-maps nil :type list)
-  (op-maps nil :type list))
 
 
 ;;; UTILS \\\\\\\\\\\\\\\\

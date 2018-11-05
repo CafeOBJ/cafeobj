@@ -139,12 +139,13 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-operator) (symbol-function 'operator-p))
   (setf (get 'operator :type-predicate) (symbol-function 'operator-p))
   (setf (get 'operator :print) 'print-operator-internal))
 
 (defun print-operator-object (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (ignore ignore)
+           (type operator obj)
+           (type stream stream))
   (format stream ":op[~s : ~x]" (operator-name obj) (addr-of obj)))
 
 ;;; Basic accessors ----------------------------------------------------------
@@ -433,7 +434,6 @@
   (id-symbol nil :type symbol))
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-method) (symbol-function 'method-p))
   (setf (get 'method :type-predicate) (symbol-function 'method-p))
   (setf (get 'method :print) 'print-method-internal))
 
@@ -452,7 +452,7 @@
 
 ;;; Primitive type predicate ---------------------------------------------------
 
-(defmacro operator-method-p (_o) `(is-method ,_o))
+(defmacro operator-method-p (_o) `(method-p ,_o))
 
 ;;; Primitive accessors --------------------------------------------------------
 
@@ -633,7 +633,6 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-!method-info) (symbol-function '!method-info-p))
   (setf (get '!method-info :type-predicate) (symbol-function '!method-info-p))
   (setf (get '!method-info :print) nil))
         

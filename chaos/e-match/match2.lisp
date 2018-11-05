@@ -131,6 +131,7 @@
 (declaim (special .empty-direct-subst.))
 (defvar .empty-direct-subst. nil)       ; substitution
 
+;; (declare (inline simp-match*))
 (defun simp-match* (pattern term)
   (declare (type term pattern term)
            (optimize (speed 3) (safety 0))
@@ -176,7 +177,7 @@
 (defun simp-match-e (pattern term)
   (declare (type term pattern term)
            (optimize (speed 3) (safety 0))
-           (inline simp-match*)
+           ;; (inline simp-match*)
            (values list list (or null t) (or null t)))
   (let ((.empty-direct-subst. nil))
     (let ((match? (simp-match* pattern term)))

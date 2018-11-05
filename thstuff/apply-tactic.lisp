@@ -1606,6 +1606,8 @@
            (given-hypos (goal-hypos goal))
            (step-goals nil)
            (remainings nil))
+      ;; just for now
+      (declare (ignore given-hypos targets))
       ;; base cases
       (dolist (target targets)
         (if (not (set-base-cases base-goal target (get-ind-substitutions indvars (goal-bases goal))))
@@ -2213,12 +2215,12 @@
             (format t " var=~s, term=~s" var-form term-form))
           (let ((*chaos-quiet* nil))
             (setq var (simple-parse context var-form)))
-          (when (or (term-ill-defined var) (not (term-is-variable? var)))
+          (when (or (term-is-an-error var) (not (term-is-variable? var)))
             (with-output-chaos-error ('invalid-var-form)
               (format t "Invalid variable in substitution: ~s" var-form)))
           (let ((*chaos-quiet* nil))
             (setq term (simple-parse context term-form)))
-          (when (term-ill-defined term)
+          (when (term-is-an-error term)
             (with-output-chaos-error ('invalid-term)
               (format t "No parse..: ~s" term-form)))
           (unless (sort<= (term-sort term) (variable-sort var) *current-sort-order*)
@@ -2407,12 +2409,14 @@
         (push var done)
         (setf (variable-name var) (intern (format nil "~a~a" (variable-name var) suffix)))))))
 
+(declaim (type fixnum *renamed-variable-number*))
+(defvar *renamed-variable-number* 0)
 (let ((*renamed-variable-number* 0))
-  (declare (type fixnum *renamed-variable-number*))
-
-(defun citp-rename-axiom-variables (axiom)
-  (citp-rename-term-variables (incf *renamed-variable-number*) (axiom-variables axiom))
-  axiom)
+  (declare (type fixnum *renamed-variable-number*)
+           (special *renamed-variable-number*))
+  (defun citp-rename-axiom-variables (axiom)
+    (citp-rename-term-variables (incf *renamed-variable-number*) (axiom-variables axiom))
+    axiom)
 )
 
 (defstruct (cpp (:print-function pr-cpp))

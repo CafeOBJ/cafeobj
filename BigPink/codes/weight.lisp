@@ -467,19 +467,6 @@
                  ))
              (1+ wt)))))
 
-;;; WEIGHT-LEX-ORDER : TERM1 TERM2 -> {:greater, :less, nil}
-;;;
-(defun weight-lex-order (t1 t2)
-  (declare (type term t1 t2))
-  (let ((i1 (term-weight t1))
-        (i2 (term-weight t2)))
-    (declare (type fixnum i1 i2))
-    (if (> i1 i2)
-        :greater
-      (if (< i1 i2)
-          :less
-        (term-lex-order t1 t2)))))
-
 ;;; TERM-LEX-ORDER : TERM1 TERM2 -> {:greater, :less, nil}
 ;;;
 (defun term-lex-order (t1 t2)
@@ -518,12 +505,10 @@
                      (setq ret-code
                        (term-lex-order (car t1-sub) (car t2-sub)))))
                ;; different op
-               (op-lex-precedence (term-head t1) (term-head t2)))
-           ))
+               (op-lex-precedence (term-head t1) (term-head t2)))))
         ((term-is-application-form? t2)
          :less)
-        (t :greater)
-        ))
+        (t :greater)))
 
 (defun term-lex-order-vars (t1 t2)
   (declare (type term t1 t2))
@@ -564,13 +549,25 @@
             :greater)
         :less))))
 
+;;; WEIGHT-LEX-ORDER : TERM1 TERM2 -> {:greater, :less, nil}
+;;;
+(defun weight-lex-order (t1 t2)
+  (declare (type term t1 t2))
+  (let ((i1 (term-weight t1))
+        (i2 (term-weight t2)))
+    (declare (type fixnum i1 i2))
+    (if (> i1 i2)
+        :greater
+      (if (< i1 i2)
+          :less
+        (term-lex-order t1 t2)))))
+
+
 
 ;;; LEX-CHECK : t1 t2 -> Bool
 ;;;
 (defun lex-check (term1 term2)
-  (declare (type term term1 term2)
-           (inline term-lex-order-vars)
-           (inline term-lex-order))
+  (declare (type term term1 term2))
   (if (pn-flag lex-order-vars)
       (term-lex-order-vars term1 term2)
     (term-lex-order term1 term2)))
@@ -630,8 +627,7 @@
            ))))
 
 (defun order-equalities (clause &optional input)
-  (declare (type clause clause)
-           (inline order-literal))
+  (declare (type clause clause))
   (dolist (lit (clause-literals clause))
     (when (eq-literal? lit)
       (order-literal lit input))))

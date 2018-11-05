@@ -226,13 +226,6 @@
   (base nil)
   (step nil))
 
-;;; get-defined-tactic
-;;;
-(defun get-defined-tactic (goal name)
-  (setq name (canonicalize-tactic-name name))
-  (let ((defs (goal-defs goal)))
-    (find-if #'(lambda (x) (string-equal name (canonicalize-tactic-name (tactic-name x)))) defs)))
-
 ;;; get-default-tactics
 ;;; returns the default tactics, i.e. (:si :ca :cs :tc :ip)
 ;;;
@@ -261,21 +254,6 @@
 ;;; Various utils which controll 'switch' affected behaviour of the system .
 ;;;
 
-;;; with-in-context : ptree-node
-;;; construct a lexical environment for applying a tactic.
-;;;
-(eval-when (:compile-toplevel :execute :load-toplevel)
-
-(defmacro with-in-context ((ptree-node) &rest body)
-  (once-only (ptree-node)
-    `(block :exit
-       (let* ((.cur-goal. (ptree-node-goal ,ptree-node))
-              (.cur-targets. (goal-targets .cur-goal.))
-              (.next-goals. nil))
-         (unless .cur-targets. (return-from :exit nil))
-         ,@body))))
-
-)
 
 ;;; This variable controlls implicit applications of tactics.
 ;;; 'true' means CITP cares application of implicite applicatins of tactics
@@ -409,57 +387,32 @@
   (initialize-citp-flag)
   )
 
-;;; messaging when :verbose on
+;;; -------------------------------------------------------------------------
+;;; PTREE-NODE
+;;; A node of a proof tree. Contains a goal as its datum.
+;;; 
+(defstruct (ptree-node (:include bdag)
+            (:print-function pr-ptree-node))
+  (num-children 0 :type fixnum)         ; number of children
+  (next-child 0 :type fixnum)           ; next child to be proved
+  (my-num 0 :type fixnum)               ; position in siblings, first = 1
+  (my-name "" :type string)             ; name
+  (done nil))                           ; t iff the node is dischaged
+
+;;;-----------------------------------------------------------------------------
+;;; PTREE : proof tree
+;;; whole proof tree structure.
 ;;;
-(eval-when (:compile-toplevel :execute :load-toplevel)
-
-  (defmacro when-citp-verbose (&rest body)
-    `(when *citp-verbose*
-       (let ((*print-indent* (+ 2 *print-indent*))
-             (*print-line-limit* 90))
-         (declare (type fixnum *print-indent* *print-line-limit*))
-         ,@body)))
-  
-)
-
-;;; citp standard running env.
-;;;
-(defvar *citp-silent* t)
-(eval-when (:compile-toplevel :execute :load-toplevel)
-(defmacro with-citp-env (&rest body)
-  `(if *citp-silent*
-       (let ((*chaos-quiet* t)
-             (*rwl-search-no-state-report* 
-              (if *citp-show-rwl*
-                  nil
-                t)))
-         ,@body)
-     (progn
-       ,@body)))
-
-(defmacro with-next-context ((&optional (node *proof-tree*)) &rest body)
-  `(let ((.context. (get-next-proof-context ,node)))
-     (unless .context.
-       (with-output-chaos-error ('no-context)
-         (format t "No proof context is established.")))
-     (with-in-module ((goal-context (ptree-node-goal .context.)))
-       (with-citp-env ()
-         ,@body))))
-
-)
-
-;;; for debugging
-;;;
-(eval-when (:compile-toplevel :execute :load-toplevel)
-
-(defmacro with-citp-debug (&rest body)
-  `(when *debug-citp*
-     (let ((*print-indent* (+ 2 *print-indent*))
-           (*print-line-limit* 90))
-       (declare (type fixnum *print-indent* *print-line-limit*))
-       ,@body)))
-
-)
+(defstruct (ptree (:print-function pr-ptree))
+  (context nil :type (or null module))  ; context module
+  (num-gen-const 0 :type fixnum)        ; number of generated constants so far
+  (num-gen-const-ind 0 :type fixnum)    ; number of generated constants for induction so far
+  (root nil :type (or null ptree-node)) ; root goal
+  (indvar-subst nil :type list)         ; <variable> -> <constantForInduction>
+  (var-subst nil :type list)            ; <variable> -> <constantForTheremOfConstants>
+  (defs-so-far nil :type list)          ; :defined name so far
+  (constructor-ops nil :type list)      ; list of constructor operators
+  )
 
 ;;;---------------------------------------------------------------------------
 ;;; GOAL
@@ -588,6 +541,23 @@
         (if discharged
             (format t " << proved >>"))))))
 
+(defun pr-ptree-node (ptree-node &optional (stream *standard-output*) &rest ignore)
+  (declare (type ptree-node ptree-node)
+           (type stream stream)
+           (ignore ignore))
+  (format stream "[Node] sub nodes = ~d, discharged? = ~a ---------------"
+          (ptree-node-num-children ptree-node)
+          (ptree-node-done ptree-node))
+  (pr-goal (ptree-node-datum ptree-node) stream))
+
+
+;;; get-defined-tactic
+;;;
+(defun get-defined-tactic (goal name)
+  (setq name (canonicalize-tactic-name name))
+  (let ((defs (goal-defs goal)))
+    (find-if #'(lambda (x) (string-equal name (canonicalize-tactic-name (tactic-name x)))) defs)))
+
 ;;; use-sentence-in-goal : goal list-axioms
 ;;;
 
@@ -668,27 +638,6 @@
   (let ((goal-tactic (goal-tactic goal)))
     (and (tactic-ctfp-common-p goal-tactic)
          (tactic-ctfp-common-minus goal-tactic))))
-
-;;; -------------------------------------------------------------------------
-;;; PTREE-NODE
-;;; A node of a proof tree. Contains a goal as its datum.
-;;; 
-(defstruct (ptree-node (:include bdag)
-            (:print-function pr-ptree-node))
-  (num-children 0 :type fixnum)         ; number of children
-  (next-child 0 :type fixnum)           ; next child to be proved
-  (my-num 0 :type fixnum)               ; position in siblings, first = 1
-  (my-name "" :type string)             ; name
-  (done nil))                           ; t iff the node is dischaged
-
-(defun pr-ptree-node (ptree-node &optional (stream *standard-output*) &rest ignore)
-  (declare (type ptree-node ptree-node)
-           (type stream stream)
-           (ignore ignore))
-  (format stream "[Node] sub nodes = ~d, discharged? = ~a ---------------"
-          (ptree-node-num-children ptree-node)
-          (ptree-node-done ptree-node))
-  (pr-goal (ptree-node-datum ptree-node) stream))
 
 (defmacro ptree-node-goal (ptree-node)
   `(ptree-node-datum ,ptree-node))
@@ -864,21 +813,6 @@
     (unless node (return-from parent-needs-undo nil))
     (the-node-needs-undo node)))
 
-;;;-----------------------------------------------------------------------------
-;;; PTREE : proof tree
-;;; whole proof tree structure.
-;;;
-(defstruct (ptree (:print-function pr-ptree))
-  (context nil :type (or null module))  ; context module
-  (num-gen-const 0 :type fixnum)        ; number of generated constants so far
-  (num-gen-const-ind 0 :type fixnum)    ; number of generated constants for induction so far
-  (root nil :type (or null ptree-node)) ; root goal
-  (indvar-subst nil :type list)         ; <variable> -> <constantForInduction>
-  (var-subst nil :type list)            ; <variable> -> <constantForTheremOfConstants>
-  (defs-so-far nil :type list)          ; :defined name so far
-  (constructor-ops nil :type list)      ; list of constructor operators
-  )
-
 (defun pr-ptree (ptree &optional (stream *standard-output*) &rest ignore)
   (declare (type ptree ptree)
            (type stream stream)
@@ -958,6 +892,57 @@
 ;;;--------------------------------------------------------------------
 ;;; Support functions for introducing new constants used in the proof.
 ;;; 
+;;; messaging when :verbose on
+;;;
+(eval-when (:compile-toplevel :execute :load-toplevel)
+
+  (defmacro when-citp-verbose (&rest body)
+    `(when *citp-verbose*
+       (let ((*print-indent* (+ 2 *print-indent*))
+             (*print-line-limit* 90))
+         (declare (type fixnum *print-indent* *print-line-limit*))
+         ,@body)))
+  
+)
+
+;;; citp standard running env.
+;;;
+(defvar *citp-silent* t)
+(eval-when (:compile-toplevel :execute :load-toplevel)
+(defmacro with-citp-env (&rest body)
+  `(if *citp-silent*
+       (let ((*chaos-quiet* t)
+             (*rwl-search-no-state-report* 
+              (if *citp-show-rwl*
+                  nil
+                t)))
+         ,@body)
+     (progn
+       ,@body)))
+
+(defmacro with-next-context ((&optional (node *proof-tree*)) &rest body)
+  `(let ((.context. (get-next-proof-context ,node)))
+     (unless .context.
+       (with-output-chaos-error ('no-context)
+         (format t "No proof context is established.")))
+     (with-in-module ((goal-context (ptree-node-goal .context.)))
+       (with-citp-env ()
+         ,@body))))
+
+)
+
+;;; for debugging
+;;;
+(eval-when (:compile-toplevel :execute :load-toplevel)
+
+(defmacro with-citp-debug (&rest body)
+  `(when *debug-citp*
+     (let ((*print-indent* (+ 2 *print-indent*))
+           (*print-line-limit* 90))
+       (declare (type fixnum *print-indent* *print-line-limit*))
+       ,@body)))
+
+)
 
 ;;; intro-const-returns-subst : module name variable -> (variable . constant-term)
 ;;; introduces a new constant of sort(variable) into a module.
@@ -1659,5 +1644,21 @@
             (print-next)))
       (with-output-chaos-warning ()
         (format t "No current goal.")))))
+
+;;; with-in-context : ptree-node
+;;; construct a lexical environment for applying a tactic.
+;;;
+(eval-when (:compile-toplevel :execute :load-toplevel)
+
+(defmacro with-in-context ((ptree-node) &rest body)
+  (once-only (ptree-node)
+    `(block :exit
+       (let* ((.cur-goal. (ptree-node-goal ,ptree-node))
+              (.cur-targets. (goal-targets .cur-goal.))
+              (.next-goals. nil))
+         (unless .cur-targets. (return-from :exit nil))
+         ,@body))))
+
+)
 
 ;;; EOF

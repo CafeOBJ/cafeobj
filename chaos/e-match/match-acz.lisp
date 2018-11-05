@@ -351,8 +351,7 @@
                   ;; new
                   (return y))
               (setq last rest  rest (cdr rest))))
-          ))
-  )
+          )))
 
 ;;; check for multi-set equality
 ;;; uses term.equational-equal -- which can be pretty expensive
@@ -360,8 +359,7 @@
 (declaim (inline match-acz-ms-equal))
 (defun match-ACZ-ms-equal (x y)
   (declare (type list x y)
-           (optimize (speed 3) (safety 0))
-           )
+           (optimize (speed 3) (safety 0)))
   (block the-end
     (let ((ydone 0)
           (ylength (length y)))
@@ -402,7 +400,6 @@
 ;;; op match-ACZ-make-term : Operator List Of Term
 ;;; create a single term from a collection of terms
 ;;;
-(declaim (inline match-acz-make-term))
 (defun match-ACZ-make-term (op list)
   (declare (type method op)
            (type list list)

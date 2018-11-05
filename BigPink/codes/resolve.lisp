@@ -384,9 +384,8 @@
                          atom
                          ;; subst
                          nil)
-                (declare (ignore e-equal)
-                         (type list new-subst))
-                ;;
+                (declare (type substitution new-subst)
+                         (type (or null t) no-match e-equal))
                 (when no-match
                   (when junk-cl-id
                     (delete-clause! junk-cl-id *current-psys*))
@@ -588,7 +587,7 @@
             last-clash nil
             nuc-literals nil)
       (dolist (lit (clause-literals clause))
-        (cond ((or (positive-literal? lit) (answer-literal? lit))
+b        (cond ((or (positive-literal? lit) (answer-literal? lit))
                (push lit nuc-literals))
               ;; 
               (t (let ((new-clash (make-clash :literal lit
@@ -1183,8 +1182,7 @@
         (no-match nil)
         (e-eq nil))
     (declare (type (or null clause) a-factor)
-             (type list subst)
-             (ignore e-eq))
+             (type list subst))
     (setq factored
       (block found
         (do ((l1 (car (factor-l1p f-struct))

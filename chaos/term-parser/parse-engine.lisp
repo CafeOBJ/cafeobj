@@ -604,7 +604,7 @@
          (sort-order (module-sort-order module))
          ;; add chaos-term0 in the set of solutions if its sort is correct:
          (terletox-sublist-prime (if (or
-                                      ;; (term-ill-defined chaos-term0)
+                                      ;; (term-is-an-error chaos-term0)
                                       (parser-in-same-connected-component
                                        sort0
                                        sort-constraint
@@ -1820,7 +1820,7 @@
   (declare (type list chaos-term-list))
   (let ((result t))
     (dolist (chaos-term chaos-term-list result)
-      (if (term-ill-defined chaos-term)
+      (if (term-is-an-error chaos-term)
           ;; abort looping and return false
           (return nil)))))
 

@@ -122,7 +122,7 @@
                (let ((vars nil))
                  (dolist (var-decl decls)
                    (let ((var (simple-parse-from-string var-decl)))
-                     (when (term-ill-defined var)
+                     (when (term-is-an-error var)
                        (with-output-chaos-error ('no-parse)
                          (format t "Illegal variable form: ~a" var-decl)))
                      (unless (term-is-variable? var)

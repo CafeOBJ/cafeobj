@@ -50,6 +50,7 @@
 --------------------------------------------------------------------------------
 |#
 
+(deftype substitution () 'list)
 (defmacro substitution-create (_bind) _bind)
 (defmacro substitution-bindings (_sub) _sub)
 (defmacro assoc-in-substitution (_key _sub &optional (_test '#'variable-eq))

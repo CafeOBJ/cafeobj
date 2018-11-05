@@ -76,9 +76,42 @@
 )
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'sort-sort-struct) (symbol-function 'sort-struct-p))
   (setf (get 'sort-struct :eval) nil)
   (setf (get 'sort-struct :print) 'print-sort-internal))
+
+;;; ********************
+;;; EQUALITY AMONG SORTS______________
+;;; ********************
+
+;;; SORT= s1 s2
+;;; returns t iff s1 and s2 are identical sorts.
+;;;
+(defmacro sort= (_s1 _s2) `(eq ,_s1 ,_s2))
+
+;;; VARIABLE-EQUAL : VARIABLE VARIABLE -> BOOL
+;;; returns true iff
+;;; (1) two variables are phisically equal, or
+;;; (2) have same name and same sort.
+;;;
+(declaim (inline variable-equal))
+(defun variable-equal (x y)
+  (declare (type term x y)
+           (optimize (speed 3) (safety 0)))
+  (or (term-eq x y)
+      (and (eq (variable-name x) (variable-name y))
+           (sort= (variable-sort x) (variable-sort y)))))
+
+(declaim (inline variable=))
+(defun variable= (x y)
+  (declare (type term x y)
+           (optimize (speed 3) (safety 0)))
+  (term-eq x y))
+
+(declaim (inline variable-eq))
+(defun variable-eq (x y)
+  (declare (type term x y)
+           (optimize (speed 3) (safety 0)))
+  (term-eq x y))
 
 ;;; ****
 ;;; SORT ____________________
@@ -98,7 +131,6 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-sort) (symbol-function 'sort-p))
   (setf (get 'sort :type-predicate) (symbol-function 'sort-p))
   (setf (get 'sort :eval) nil)
   (setf (get 'sort :print) 'print-sort-internal))
@@ -200,7 +232,6 @@
   (info nil :type list))
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-bsort) (symbol-function 'bsort-p))
   (setf (get 'bsort :type-predicate) (symbol-function 'bsort-p))
   (setf (get 'bsort :print) 'print-bsort-internal))
 
@@ -225,8 +256,6 @@
     bs))
 
 ;;; Predicate ------------------------------------------------------------------
-
-;;; (defmacro  bsort-p (_obj) `(is-bsort ,_obj))
 (defmacro sort-is-builtin (_*bsort)  `(bsort-p ,_*bsort)) ; snonym
 
 ;;; BSORT-INFO : 
@@ -281,8 +310,6 @@
 (eval-when (:execute :load-toplevel)
   (setf (get 'and-sort :type-predicate)
         (symbol-function 'and-sort-p))
-  (setf (symbol-function 'is-and-sort)
-        (symbol-function 'and-sort-p))
   (setf (get 'and-sort :print)
         'print-and-sort-internal))
 
@@ -325,9 +352,7 @@
 
 (eval-when (:execute :load-toplevel)
   (setf (get 'or-sort :type-predicate) (symbol-function 'or-sort-p))
-  (setf (get 'or-sort :print) 'print-or-sort-internal)
-  (setf (symbol-function 'is-or-sort)
-        (symbol-function 'or-sort-p)))
+  (setf (get 'or-sort :print) 'print-or-sort-internal))
 
 (defun print-or-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
@@ -364,8 +389,7 @@
 
 (eval-when (:execute :load-toplevel)
   (setf (get 'err-sort :type-predicate) (symbol-function 'err-sort-p))
-  (setf (get 'err-sort :print) 'print-err-sort-internal)
-  (setf (symbol-function 'is-err-sort) (symbol-function 'err-sort-p)))
+  (setf (get 'err-sort :print) 'print-err-sort-internal))
 
 (defun print-err-sort-object (obj stream &rest ignore)
   (print-sort-object obj stream ignore))
@@ -385,15 +409,6 @@
     (set-object-context-module es module)
     es))
 
-;;; ********************
-;;; EQUALITY AMONG SORTS______________
-;;; ********************
-
-;;; SORT= s1 s2
-;;; returns t iff s1 and s2 are identical sorts.
-;;;
-(defmacro sort= (_s1 _s2) `(eq ,_s1 ,_s2))
-    
 ;;; function version of sort=.
 ;;;(defun sort=* (s1 s2) (term-builtin-eq s1 s2))
 (defun sort=* (s1 s2) (eq s1 s2))
@@ -1002,6 +1017,20 @@
            (values list))
   (maximal-sorts (supersorts-no-err sort sort-order) sort-order))
 
+;;; HAVE-COMMON-SUBSORT : Sort Sort SortOrder -> Bool
+;;;
+(declaim (inline have-common-subsort))
+(defun have-common-subsort (s1 s2 so)
+  (declare (type sort* s1 s2)
+           (type sort-order so)
+           (optimize (speed 3) (safety 0))
+           (values (or null t)))
+  (let ((ss1 (subsorts s1 so))
+        (ss2 (subsorts s2 so)))
+    (dolist (s ss1 nil)
+      (declare (type sort* s))
+      (when (memq s ss2) (return t)))))
+
 ;;; IS-IN-SAME-CONNECTED-COMPONENT* : Sort Sort SortOrder -> Bool
 ;;; like `is-in-same-connected-component' but does not assume
 ;;; error-sort.
@@ -1038,20 +1067,6 @@
                         (let ((t1 (component-top s1 so)))
                           (and t1 (sort-set-equal t1
                                                   (component-top s2 so))))))))))
-
-;;; HAVE-COMMON-SUBSORT : Sort Sort SortOrder -> Bool
-;;;
-(declaim (inline have-common-subsort))
-(defun have-common-subsort (s1 s2 so)
-  (declare (type sort* s1 s2)
-           (type sort-order so)
-           (optimize (speed 3) (safety 0))
-           (values (or null t)))
-  (let ((ss1 (subsorts s1 so))
-        (ss2 (subsorts s2 so)))
-    (dolist (s ss1 nil)
-      (declare (type sort* s))
-      (when (memq s ss2) (return t)))))
 
 ;;; ALL-SORTS-IN-ORDER (&optional (sort-order *current-sort-order*))
 ;;;
@@ -1131,7 +1146,7 @@
 ;;; SORT-RELATIONS-TRANSITIVE-CLOSURE sort-relations1 sort-relations2
 ;;;  sort-relations2 is destructively modified.
 ;;;
-
+(declaim (inline sort-relations-transitive-closure))
 (defun sort-relations-transitive-closure (sl1 sl2)
   (declare (type list sl1 sl2)
            (optimize (speed 3) (safety 0))

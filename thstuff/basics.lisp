@@ -452,9 +452,12 @@
                                               new-var1)))))
 
 (defun @pat-match (pat term &optional (type :match))
+  (declare (type term pat term))
   (multiple-value-bind (gs sub no-match eeq)
       (@matcher pat term type)
-    (declare (ignore gs eeq))
+    (declare (type global-state gs)
+             (type substitution sub)
+             (type (or null t) no-match eeq))
     (unless no-match
       (return-from @pat-match (values t sub)))
     (if (and (term-is-application-form? term)
@@ -462,6 +465,7 @@
              (method-is-of-same-operator (term-head pat)
                                          (term-head term)))
         (let ((top (term-head pat)))
+          (declare (type method top))
           (if (method-is-associative top)
               (dolist (npat (if (method-is-commutative top)
                                 (list (@make-ac-pattern top pat))
@@ -481,6 +485,8 @@
 (declaim (special *m-pattern-subst*))
 
 (defun match-m-pattern (pat term)
+  (declare (type term pat term)
+           (optimize (speed 3) (safety 0)))
   (multiple-value-bind (res subst)
       (@pat-match pat term)
     (when res

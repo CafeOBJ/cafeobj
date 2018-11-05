@@ -324,7 +324,7 @@
       (let ((parsed-sentence (simple-parse *current-module*
                                            sentence
                                            sort)))
-        (when (term-ill-defined parsed-sentence)
+        (when (term-is-an-error parsed-sentence)
           (with-output-chaos-error ('invalid-formula)
             (princ "no parse for FOPL formula")
             (print-next)

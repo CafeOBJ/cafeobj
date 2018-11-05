@@ -68,12 +68,6 @@
 (defun set-object-context-module (obj &optional (context-mod (get-context-module)))
   (setf (object-context-mod obj) context-mod))
 
-; (eval-when (:execute :load-toplevel)
-;   (setf (symbol-function 'is-object)(symbol-function 'object-p))
-;   (setf (get 'object ':type-predicate) (symbol-function 'is-object))
-;   (setf (get 'object :eval) nil)
-;   (setf (get 'object :print) nil))
-
 ;;; *********
 ;;; INTERFACE
 ;;; *********
@@ -331,13 +325,6 @@
   (principal-sort nil :type atom)       ; principal sort of the module.
   )
 
-(defun print-signature (obj stream &rest ignore)
-  (declare (ignore ignore)
-           (type signature-struct obj)
-           (stream stream))
-  (let ((mod (signature$module obj)))
-    (format stream "'[:signature \"~a\"]" (make-module-print-name2 mod))))
-
 ;;; *********
 ;;; AXIOM-SET___________________________________________________________________
 ;;; *********
@@ -354,62 +341,6 @@
   (rules nil :type list)                ; list of rules declared in the module.
   )
 
-(defun print-axiom-set (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (let ((mod (axiom-set$module obj)))
-    (format stream "':axset[\"~a\"]" (module-print-name mod))))
-
-;;; ***
-;;; TRS________________________________________________________________________
-;;; ***
-
-(let ((.ext-rule-table-symbol-num. 0))
-  (declare (type fixnum .ext-rule-table-symbol-num.))
-  (defun make-ext-rule-table-name ()
-    (declare (values symbol))
-    (intern (format nil "ext-rule-table-~d" (incf .ext-rule-table-symbol-num.))))
-  )
-
-;;; The structure TRS is a representative of flattened module.
-
-(defstruct (TRS (:conc-name trs$)
-                (:print-function print-trs))
-  (module nil :type (or null top-object))       ; the reverse pointer
-  ;; SIGNATURE INFO
-  (opinfo-table (make-hash-table :test #'eq)
-                :type (or null hash-table))
-                                        ; operator infos
-  (sort-order (make-hash-table :test #'eq)
-              :type (or null hash-table))
-                                        ; transitive closure of sort-relations
-  ;; (ext-rule-table (make-hash-table :test #'eq))
-  (ext-rule-table (make-ext-rule-table-name)
-                  :type symbol)
-                                        ; assoc table of rule A,AC extensions
-  ;;
-  (sorts nil :type list)                ; list of all sorts
-  (operators nil :type list)            ; list of all operators
-  ;; REWRITE RULES
-  (rules nil :type list)                ; list of all rewrite rules.
-  ;; INFO FOR EXTERNAL INTERFACE -----------------------------------
-  (sort-name-map nil :type list)
-  (op-info-map nil :type list)
-  (op-rev-table nil :type list)
-  ;; GENERATED OPS & AXIOMS for equalities & if_then_else_fi
-  ;; for proof support system.
-  (sort-graph nil :type list)
-  (err-sorts nil :type list)
-  (dummy-methods nil :type list)
-  (sem-relations nil :type list)        ; without error sorts
-  (sem-axioms nil :type list)           ; ditto
-  ;; a status TRAM interface generated?
-  (tram nil :type symbol)               ; nil,:eq, or :all
-  )
-
-(defun print-trs (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (let ((mod (trs$module obj)))
-    (format stream "'[:trs \"~a\"]" (make-module-print-name2 mod))))
 
 ;;; ******************
 ;;; MODULE-DYN-CONTEXT___________________________________________________________
@@ -469,7 +400,7 @@
 
 (defmacro module-is-initial (_mod_) `(eq (module-kind ,_mod_) :object))
 
-;;; PRINTER
+;;; PRINTERS -----------------------------------------------------------
 
 (defun print-module-object (obj stream &rest ignore)
   (declare (ignore ignore)
@@ -484,6 +415,76 @@
           ((module-is-theory obj)
            (format stream ":mod*[\"~a\"]" (module-print-name obj)))
           (t (format stream ":mod[\"~a\"]" (module-print-name obj))))))
+
+;;; SIGNATURE
+;;;
+(defun print-signature (obj stream &rest ignore)
+  (declare (ignore ignore)
+           (type signature-struct obj)
+           (stream stream))
+  (let ((mod (signature$module obj)))
+    (format stream "'[:signature \"~a\"]" (make-module-print-name2 mod))))
+
+;;; AXIOM SET
+(defun print-axiom-set (obj stream &rest ignore)
+  (declare (ignore ignore))
+  (let ((mod (axiom-set$module obj)))
+    (format stream "':axset[\"~a\"]" (module-print-name mod))))
+
+;;; ***
+;;; TRS________________________________________________________________________
+;;; ***
+
+(let ((.ext-rule-table-symbol-num. 0))
+  (declare (type fixnum .ext-rule-table-symbol-num.))
+  (defun make-ext-rule-table-name ()
+    (declare (values symbol))
+    (intern (format nil "ext-rule-table-~d" (incf .ext-rule-table-symbol-num.))))
+  )
+
+;;; The structure TRS is a representative of flattened module.
+
+(defstruct (TRS (:conc-name trs$)
+                (:print-function print-trs))
+  (module nil :type (or null top-object))       ; the reverse pointer
+  ;; SIGNATURE INFO
+  (opinfo-table (make-hash-table :test #'eq)
+                :type (or null hash-table))
+                                        ; operator infos
+  (sort-order (make-hash-table :test #'eq)
+              :type (or null hash-table))
+                                        ; transitive closure of sort-relations
+  ;; (ext-rule-table (make-hash-table :test #'eq))
+  (ext-rule-table (make-ext-rule-table-name)
+                  :type symbol)
+                                        ; assoc table of rule A,AC extensions
+  ;;
+  (sorts nil :type list)                ; list of all sorts
+  (operators nil :type list)            ; list of all operators
+  ;; REWRITE RULES
+  (rules nil :type list)                ; list of all rewrite rules.
+  ;; INFO FOR EXTERNAL INTERFACE -----------------------------------
+  (sort-name-map nil :type list)
+  (op-info-map nil :type list)
+  (op-rev-table nil :type list)
+  ;; GENERATED OPS & AXIOMS for equalities & if_then_else_fi
+  ;; for proof support system.
+  (sort-graph nil :type list)
+  (err-sorts nil :type list)
+  (dummy-methods nil :type list)
+  (sem-relations nil :type list)        ; without error sorts
+  (sem-axioms nil :type list)           ; ditto
+  ;; a status TRAM interface generated?
+  (tram nil :type symbol)               ; nil,:eq, or :all
+  )
+
+(defun print-trs (obj stream &rest ignore)
+  (declare (ignore ignore)
+           (type trs obj)
+           (stream stream))
+  (let ((mod (trs$module obj)))
+    (declare (type module mod))
+    (format stream "'[:trs \"~a\"]" (make-module-print-name2 mod))))
 
 ;;; ****
 ;;; VIEW _______________________________________________________________________
@@ -511,12 +512,64 @@
   (setf (get 'view-struct :print) 'print-view-internal))
 
 (defun print-view-struct-object (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (ignore ignore)
+           (type view-struct obj)
+           (type stream stream))
   (format stream ":view[~a: ~s => ~s | ~s]"
           (view-struct-name obj)
           (view-struct-src obj)
           (view-struct-target obj)
           (addr-of obj)))
+
+;;; ADDITIONAL MODULE EXPRESSIONS ______________________________________
+
+;;; *NOTE* these structure are NOT Chaos's AST.
+
+;;; INSTANTIATION
+;;; evaluated
+;;; module : module object
+;;; args   : (arg-name . view-structure)
+;;;
+(defstruct int-instantiation
+  (module nil :type t)
+  (args nil :type list)
+  )
+
+;;; PLUS
+;;; internal form: args are all evaluated -- module objects.
+;;; stored as module name.
+;;;
+(defstruct int-plus
+  (args nil :type list))
+
+;;; RENAME
+;;; evaluated.
+;;;  module = module object
+;;;  sort-maps & op-maps are just the same as of MODMORPH structure.
+;;;  
+(defstruct int-rename
+  (module nil :type t)
+  (sort-maps nil :type list)
+  (op-maps nil :type list))
+
+;;; basic predicates
+
+(defun view-p (object)
+  (declare (type t object)
+           (values (or null t)))
+  (view-struct-p object))
+
+;;; MODEXP-IS-VIEW : object -> Bool
+;;;
+(defun modexp-is-view (object)
+  (declare (type t object)
+           (values (or null t)))
+  (or (view-p object) (%is-view object)))
+
+(defun view-is-inconsistent (view)
+  (declare (type view-struct view)
+           (values (or null t)))
+  (object-is-inconsistent view))
 
 ;;; ************
 ;;; SYMBOL-TABLE
@@ -577,5 +630,6 @@
   (let ((gname (canonicalize-object-name name)))
     (gethash gname (symbol-table-map
                     (module-symbol-table module)))))
+
 
 ;;; EOF

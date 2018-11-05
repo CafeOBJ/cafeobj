@@ -44,6 +44,94 @@
 ;;; Many routines are based on OBJ3 interpeter of SRI International.
 ;;; reorganized and adopted to Chaos system by <sawada@sra.co.jp>.
 
+;;; ****************************
+;;; APPLICATION FORM CONSTRUTORS
+;;; with some additional works  ________________________________________________
+;;; ****************************
+
+;;; op make-term-check-op : method {subterms}list[term] -> term
+;;;
+(declaim (inline make-term-check-op))
+(defun make-term-check-op (f subterms &optional module)
+  (declare (type method f)
+           (type list subterms)
+           (type (or null module) module)
+           (optimize (speed 3) (safety 0))
+           (inline make-term-with-sort-check))
+  (make-term-with-sort-check f subterms module))
+
+;;; op make-term-check-op-with-sort-check :
+;;;     operator {subterms}list[term] -> term
+;;; check if f is a built-in-constant-op
+;;;
+(defun make-term-check-op-with-sort-check (f subterms &optional module)
+  (declare (type method f)
+           (type list subterms)
+           (type (or null module) module)
+           (optimize (safety 0) (speed 3))
+           (inline make-term-with-sort-check))
+  (make-term-with-sort-check f subterms module))
+
+;;; MAKE-TERM-WITH-SORT-CHECK : METHOD SUBTERMS -> TERM
+;;; construct application form from given method & subterms.
+;;; the lowest method is searched and if found, construct a term with found
+;;; method, otherwise, given method is used.
+(defvar **sa-debug** nil)
+(declaim (inline make-term-with-sort-check))
+(defun make-term-with-sort-check (meth subterms
+                                  &optional (module (get-context-module)))
+  (declare (type method meth)
+           (type list subterms)
+           (type module module)
+           (optimize (speed 3) (safety 0)))
+  (let ((res nil))
+    (if (do ((arl (method-arity meth) (cdr arl))
+             (sl subterms (cdr sl)))
+            ((null arl) t)
+          (unless (sort= (car arl) (term-sort (car sl))) (return nil)))
+        (setq res (make-applform (method-coarity meth) meth subterms))
+      (let ((m (lowest-method meth
+                              (mapcar #'(lambda (x) (term-sort x)) subterms) ;
+                              module)))
+        (setq res (make-applform (method-coarity m) m subterms))))
+    (when **sa-debug**
+      (format t "~%MTWSC: meth=")
+      (print-chaos-object meth)
+      (print "==> ")
+      (term-print res)
+      (format t ":")
+      (print-chaos-object (term-head res))
+      (force-output))
+    res))
+
+;;; MAKE-TERM-WITH-SORT-CHECK-BIN : METHOD SUBTERMS -> TERM
+;;; same as make-term-with-sort-check, but specialized to binary operators.
+
+(defun make-term-with-sort-check-bin (meth subterms
+                                           &optional (module (get-context-module)))
+  (declare (type method meth)
+           (type list subterms)
+           (type (or null module) module)
+           (optimize (speed 3)(safety 0)))
+  (let ((s1 (term-sort (car subterms)))
+        (s2 (term-sort (cadr subterms)))
+        (res nil))
+    (if (let ((ar (method-arity meth)))
+          (and (sort= (car ar) s1)
+               (sort= (cadr ar) s2)))
+        (setq res (make-applform (method-coarity meth) meth subterms))
+      (let ((lm (lowest-method meth (list s1 s2) module)))
+        (setq res (make-applform (method-coarity lm) lm subterms))))
+    (when **sa-debug**
+      (format t "~&MTWSC-BIN: meth=")
+      (print-chaos-object meth)
+      (print "==> ")
+      (term-print res)
+      (format t ":")
+      (print-chaos-object (term-head res))
+      (force-output))
+    res))
+
 ;;;*****************************
 ;;; Application form constructor________________________________________________
 ;;;*****************************
@@ -138,10 +226,6 @@
          (and (not (sort= *bottom-sort* sort))
               (sort<= sort *syntax-err-sort* *chaos-sort-order*)))))
 
-(eval-when (:execute :load-toplevel)                    ; synonym
-  (setf (symbol-function 'term-ill-defined)
-        (symbol-function 'term-is-an-error)))
-
 ;;; Returns true iff the term is application form and has error-method
 ;;; as its top.
 ;;;
@@ -163,7 +247,7 @@
 
 ;;; TERM-IS-REALLY-WELL-DEFINED tm
 ;;; returns t iff
-;;; (1) the term tm is not ill defined (in terms of `term-ill-defined')
+;;; (1) the term tm is not ill defined (in terms of `term-is-an-error')
 ;;;     nor its head method is not a error-method
 ;;; AND
 ;;; (2) all of the subterms are TERM-IS-REALY-WELL-DEFINED
@@ -523,31 +607,6 @@
 (defmacro is-false? (!_obj)
   `(eq (term-head ,!_obj) *bool-false-meth*))
 
-;;; VARIABLE-EQUAL : VARIABLE VARIABLE -> BOOL
-;;; returns true iff
-;;; (1) two variables are phisically equal, or
-;;; (2) have same name and same sort.
-;;;
-(declaim (inline variable-equal))
-(defun variable-equal (x y)
-  (declare (type term x y)
-           (optimize (speed 3) (safety 0)))
-  (or (term-eq x y)
-      (and (eq (variable-name x) (variable-name y))
-           (sort= (variable-sort x) (variable-sort y)))))
-
-(declaim (inline variable=))
-(defun variable= (x y)
-  (declare (type term x y)
-           (optimize (speed 3) (safety 0)))
-  (term-eq x y))
-
-(declaim (inline variable-eq))
-(defun variable-eq (x y)
-  (declare (type term x y)
-           (optimize (speed 3) (safety 0)))
-  (term-eq x y))
-
 ;;; TERM-IS-ZERO-FOR-METHOD : TERM METHOD -> BOOL
 ;;; returns t if the term TERM is identity of method METHOD.
 ;;;
@@ -732,95 +791,6 @@
                                (term$lisp-form-original-form t2-body))))
                   ((term$is-lisp-form? t2-body) nil)
                   (t (break "unknown type of term." )))))))
-
-;;; ****************************
-;;; APPLICATION FORM CONSTRUTORS
-;;; with some additional works  ________________________________________________
-;;; ****************************
-
-;;; op make-term-check-op : method {subterms}list[term] -> term
-;;;
-(declaim (inline make-term-check-op))
-(defun make-term-check-op (f subterms &optional module)
-  (declare (type method f)
-           (type list subterms)
-           (type (or null module) module)
-           (optimize (speed 3) (safety 0))
-           (inline make-term-with-sort-check))
-  (make-term-with-sort-check f subterms module))
-
-;;; op make-term-check-op-with-sort-check :
-;;;     operator {subterms}list[term] -> term
-;;; check if f is a built-in-constant-op
-;;;
-(defun make-term-check-op-with-sort-check (f subterms &optional module)
-  (declare (type method f)
-           (type list subterms)
-           (type (or null module) module)
-           (optimize (safety 0) (speed 3))
-           (inline make-term-with-sort-check))
-  (make-term-with-sort-check f subterms module))
-
-;;; MAKE-TERM-WITH-SORT-CHECK : METHOD SUBTERMS -> TERM
-;;; construct application form from given method & subterms.
-;;; the lowest method is searched and if found, construct a term with found
-;;; method, otherwise, given method is used.
-(defvar **sa-debug** nil)
-(declaim (inline make-term-with-sort-check))
-(defun make-term-with-sort-check (meth subterms
-                                  &optional (module (get-context-module)))
-  (declare (type method meth)
-           (type list subterms)
-           (type module module)
-           (optimize (speed 3) (safety 0)))
-  (let ((res nil))
-    (if (do ((arl (method-arity meth) (cdr arl))
-             (sl subterms (cdr sl)))
-            ((null arl) t)
-          (unless (sort= (car arl) (term-sort (car sl))) (return nil)))
-        (setq res (make-applform (method-coarity meth) meth subterms))
-      (let ((m (lowest-method meth
-                              (mapcar #'(lambda (x) (term-sort x)) subterms) ;
-                              module)))
-        (setq res (make-applform (method-coarity m) m subterms))))
-    (when **sa-debug**
-      (format t "~%MTWSC: meth=")
-      (print-chaos-object meth)
-      (print "==> ")
-      (term-print res)
-      (format t ":")
-      (print-chaos-object (term-head res))
-      (force-output))
-    res))
-
-;;; MAKE-TERM-WITH-SORT-CHECK-BIN : METHOD SUBTERMS -> TERM
-;;; same as make-term-with-sort-check, but specialized to binary operators.
-
-(defun make-term-with-sort-check-bin (meth subterms
-                                           &optional (module (get-context-module)))
-  (declare (type method meth)
-           (type list subterms)
-           (type (or null module) module)
-           (optimize (speed 3)(safety 0)))
-  (let ((s1 (term-sort (car subterms)))
-        (s2 (term-sort (cadr subterms)))
-        (res nil))
-    (if (let ((ar (method-arity meth)))
-          (and (sort= (car ar) s1)
-               (sort= (cadr ar) s2)))
-        (setq res (make-applform (method-coarity meth) meth subterms))
-      (let ((lm (lowest-method meth (list s1 s2) module)))
-        (setq res (make-applform (method-coarity lm) lm subterms))))
-    (when **sa-debug**
-      (format t "~&MTWSC-BIN: meth=")
-      (print-chaos-object meth)
-      (print "==> ")
-      (term-print res)
-      (format t ":")
-      (print-chaos-object (term-head res))
-      (force-output))
-    res))
-
 
 ;;; ***************************************
 ;;; ACCESSORS & CONSTRUCTORS of APPLICATION
@@ -1426,6 +1396,9 @@
 
 ;;; we sometimes need to make variables on the fly.-----------------------------
 ;;; 
+(declaim (type fixnum *var-num*))
+(defvar *var-num*)
+
 (let ((*var-num* 0))
   (declare (type fixnum *var-num*))
   (defun generate-variable (sort)

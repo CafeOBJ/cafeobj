@@ -127,15 +127,7 @@
 ;;; perform some additional house keeping work for builtin sort creation.
 
 (defun add-builtin-sort (sort &optional (module *chaos-module*))
-  ;; (register-sort sort)
   (register-builtin-sort sort)
-  #||
-  (when (eq module *chaos-module*)
-    (setf (symbol-function
-           (intern (format nil
-                           "THE-~A-SORT" (string-upcase (sort-print-name sort)))))
-          #'(lambda () sort)))
-  ||#
   (add-sort-to-module sort module)
   sort)
 

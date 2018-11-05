@@ -96,7 +96,21 @@
   `(the #-GCL simple-vector #+GCL vector (caddr ,?+_v)))
 (defmacro match-equation-comp-comp (v__?)
   `(the #-GCL simple-vector #+GCL vector (cadddr ,v__?)))
-  
+
+;;; Modifies the array "sys" of "match-equation-comp" in such a way that
+;;; all the comp array are reset provide that they rank in "sys"
+;;; is less (strictly) than K.
+;;;
+(declaim (inline match-a-reset-match-equation-comp))
+
+(#-GCL defun #+GCL si:define-inline-function
+       match-A-reset-match-equation-comp (sys K)
+  (declare (type #+GCL vector #-GCL simple-vector sys)
+           (type fixnum k))
+  (dotimes (i K)                                ; i = 0,...,K-1 
+    (declare (type fixnum i))
+    (match-A-reset-comp (svref sys i))))
+
 (defun print-equation-comp (e-c)
   (princ "[equation-comp size left: ") (prin1 (match-equation-comp-sz-left e-c))
   (print-next)
@@ -109,6 +123,49 @@
   (princ " comp: ") (prin1 (match-equation-comp-comp e-c))
   (princ "]")
   )
+
+;;; Try to increase with respect with the lexicographical order
+;;; on the arrays of integer the integer array "comp". These are
+;;; the following constaints:
+;;; 1) the elements of the array are all different and ordered in 
+;;; increasing order: example (2 3 4 6 8)
+;;; 2) the grastest element of the array in LESS OR EQUAL to "max"
+;;; Returns true iff one have succeded to increment.
+;;;
+(declaim (inline match-a-try-increase-lexico))
+
+(#-GCL defun #+GCL si:define-inline-function
+       match-A-try-increase-lexico (comp max)
+  (declare (type fixnum max)
+           (type #+GCL vector #-GCL simple-vector comp))
+  (let ((lim (1- (length comp))))
+    (declare (type fixnum lim))
+    (do ((i lim (- i 1)))
+        ((< i 0) nil)
+      (declare (type fixnum i))
+      (let ((x (svref comp i)))
+        (declare (type fixnum x))
+        (when (< x max)
+          (setf (svref comp i) (1+ x))
+          (do ((j (1+ i) (1+ j))
+               (v (+ x 2) (1+ v)))
+              ((< lim j))
+            (declare (type fixnum j v))
+            (setf (svref comp j) v))
+          (return t)))
+      (setq max (1- max)))))
+
+;;; Reset the comp of "eq-comp" to his initial value i.e. (1,2,3,4,5)
+;;;
+(declaim (inline match-a-reset-comp))
+
+(#-GCL defun #+GCL si:define-inline-function
+       match-A-reset-comp (eq-comp)
+  (let ((comp (match-equation-comp-comp eq-comp)))
+    (declare (type #+GCL vector #-GCL simple-vector comp))
+    (dotimes (x (1- (match-equation-comp-sz-left eq-comp)))
+      (declare (type fixnum x))
+      (setf (aref comp x) (1+ x)))))
 
 ;;; Simplify the left symbols and the right symbols. Returns the modified list
 ;;; of terms.  
@@ -262,63 +319,6 @@
       ;; state has been increased so there is no more state
       (setf (match-A-state-no-more A-st) t)
       )))
-
-;;; Try to increase with respect with the lexicographical order
-;;; on the arrays of integer the integer array "comp". These are
-;;; the following constaints:
-;;; 1) the elements of the array are all different and ordered in 
-;;; increasing order: example (2 3 4 6 8)
-;;; 2) the grastest element of the array in LESS OR EQUAL to "max"
-;;; Returns true iff one have succeded to increment.
-;;;
-(declaim (inline match-a-try-increase-lexico))
-
-(#-GCL defun #+GCL si:define-inline-function
-       match-A-try-increase-lexico (comp max)
-  (declare (type fixnum max)
-           (type #+GCL vector #-GCL simple-vector comp))
-  (let ((lim (1- (length comp))))
-    (declare (type fixnum lim))
-    (do ((i lim (- i 1)))
-        ((< i 0) nil)
-      (declare (type fixnum i))
-      (let ((x (svref comp i)))
-        (declare (type fixnum x))
-        (when (< x max)
-          (setf (svref comp i) (1+ x))
-          (do ((j (1+ i) (1+ j))
-               (v (+ x 2) (1+ v)))
-              ((< lim j))
-            (declare (type fixnum j v))
-            (setf (svref comp j) v))
-          (return t)))
-      (setq max (1- max)))))
-
-;;; Reset the comp of "eq-comp" to his initial value i.e. (1,2,3,4,5)
-;;;
-(declaim (inline match-a-reset-comp))
-
-(#-GCL defun #+GCL si:define-inline-function
-       match-A-reset-comp (eq-comp)
-  (let ((comp (match-equation-comp-comp eq-comp)))
-    (declare (type #+GCL vector #-GCL simple-vector comp))
-    (dotimes (x (1- (match-equation-comp-sz-left eq-comp)))
-      (declare (type fixnum x))
-      (setf (aref comp x) (1+ x)))))
-
-;;; Modifies the array "sys" of "match-equation-comp" in such a way that
-;;; all the comp array are reset provide that they rank in "sys"
-;;; is less (strictly) than K.
-;;;
-(declaim (inline match-a-reset-match-equation-comp))
-
-(#-GCL defun #+GCL si:define-inline-function
-       match-A-reset-match-equation-comp (sys K)
-  (declare (type #+GCL vector #-GCL simple-vector sys)
-           (type fixnum k))
-  (dotimes (i K)                                ; i = 0,...,K-1 
-    (declare (type fixnum i))
-    (match-A-reset-comp (svref sys i))))
 
 
 ;;; A-STATE Initialization -----------------------------------------------------

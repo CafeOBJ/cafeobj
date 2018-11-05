@@ -55,9 +55,10 @@
   (unless *term-memo-table*
     (setq *term-memo-table*
       #-:SBCL
-       (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7)
+       (make-hash-table :test #'equal)
       #+:SBCL
-       (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7 :weakness nil)
+       (make-hash-table :test #'equal)
+       ;; (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7 :weakness nil)
        ;; (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7 :weakness :key-or-value)
        )))
        
@@ -108,6 +109,8 @@
 (defvar .term-id-paranoia. nil)
 
 (defun term-id (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (let ((.call-depth. 0))
     (declare (special .call-depth.)
              (type fixnum .call-depth.))
@@ -145,6 +148,8 @@
 
 (declaim (inline get-hashed-term))
 (defun get-hashed-term (term-id term-hash)
+  (declare (inline gethash)
+           (optimize (speed 3) (safety 0)))
   (let ((val (gethash term-id term-hash)))
     (when val 
       (incf (the fixnum *term-memo-hash-hit*)))
@@ -152,6 +157,8 @@
 
 (declaim (inline set-hashed-term))
 (defun set-hashed-term (term-id term-hash-table value)
+  (declare (inline gethash)
+           (optimize (speed 3) (safety 0)))
   (setf (gethash term-id term-hash-table) value)
   ;; (incf (the fixnum .hash-size.))
   )
@@ -165,15 +172,6 @@
 ;;; ----------
 ;;; TERM COLOR
 ;;; ----------
-
-(defun set-term-color-top (term)
-  (declare (type term term)
-           (optimize (speed 3) (safety 0)))
-   (if (not *beh-rewrite*)
-       (if (sort-is-hidden (term-sort term))
-           (set-term-color term :red)
-         (set-term-color term))
-     (set-term-color term)))
 
 (declaim (inline set-term-color))
 (defun set-term-color (term &optional red?)
@@ -221,6 +219,17 @@
      (set-color term red?)
      term))
 
+(defun set-term-color-top (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0))
+           (values term))
+   (if (not *beh-rewrite*)
+       (if (sort-is-hidden (term-sort term))
+           (set-term-color term :red)
+         (set-term-color term))
+     (set-term-color term)))
+
+
 ;;; **************************
 ;;; LOW LEVEL REWRITE ROUTINES
 ;;; **************************
@@ -240,7 +249,7 @@
 ;;; BASIC PROCS for REWRITE RULE APPLICATION
 
 (declaim (inline term-replace-dd-simple))
-#-gcl
+
 (defun term-replace-dd-simple (old new)
    (declare (type term old new)
             (optimize (speed 3) (safety 0))
@@ -248,14 +257,83 @@
    (incf *rule-count*)
    (term-replace old new))
 
-#+gcl
-(si::define-inline-function term-replace-dd-simple (old new)
-   (incf *rule-count*)
-   (term-replace old new))
+(declaim (inline term-replace-dd-dbg))
+(defun term-replace-dd-dbg (old new)
+  (declare (type term old new)
+           (optimize (speed 3) (safety 0)))
+  ;; stat number of rewriting
+  (incf *rule-count*)
+  ;; check if given stop pattern was matched to the resultant term.
+  (when *matched-to-stop-pattern*
+    ;; yes
+    (unless *rewrite-stepping*
+      (setq *matched-to-stop-pattern* nil)
+      (throw 'rewrite-abort $$term)))
+  
+  ;; Enter STEPPER if need
+  (when *rewrite-stepping* (cafein-stepper old new))
+  (setq *matched-to-stop-pattern* nil)
+  
+  ;; Trace output
+  (when (or $$trace-rewrite
+            (rule-trace-flag *cafein-current-rule*))
+    (let ((*print-with-sort* t))
+      (print-trace-out)
+      (let ((*print-indent* (+ 4 *print-indent*)))
+        (term-print-with-sort old)
+        (print-check 0 5)
+        (princ " --> ")
+        (term-print-with-sort new))
+      (unless $$trace-rewrite-whole (terpri))))
+  ;; trace whole
+  (if $$trace-rewrite-whole
+      (let ((*print-with-sort* t)
+            (*fancy-print* t))
+        (if $$cond
+            (progn
+              (format t "~&[~a(cond)]: " *rule-count*)
+              (let ((*print-indent* (+ 2 *print-indent*)))
+                (term-print-with-sort $$cond)
+                (print-next)
+                (let ((res (term-replace old new)))
+                  (print-check 0 5)
+                  (princ " --> ")
+                  (let ((*print-indent* (+ 2 *print-indent*)))
+                    ;; (print-check)
+                    (term-print-with-sort $$cond))
+                  res)))
+          (progn
+            (format t "~&[~a]: " *rule-count*)
+            (let ((*print-indent* (+ 2 *print-indent*)))
+              (term-print-with-sort $$term))
+            (print-next)
+            (let ((res (term-replace old new)))
+              (print-check 0 5)
+              (princ "---> ")
+              (let ((*print-indent* (+ 2 *print-indent*)))
+                ;; (print-check)
+                (term-print-with-sort $$term))
+              res))))
+    ;; after tracing, we finally rewrite the target
+    (term-replace old new))
+  ;; check rewrite count limit
+  (when (and *rewrite-count-limit*
+             (<= *rewrite-count-limit* *rule-count*))
+    (format *error-output* "~%>> aborting rewrite due to rewrite count limit (= ~d) <<"
+            *rewrite-count-limit*)
+    (flush-all)
+    (throw 'rewrite-abort $$term))
+  ;;
+  $$term)
 
+;;; special treatment for '_:=_'
+;;;
 (declaim (special *m-pattern-subst* $$cond))
 (defvar *m-pat-debug* nil)
 
+;;; !apply-one-rule : rule term -> (or null t)
+;;; returns t iff the rule was applied to given term
+;;;
 (defun !apply-one-rule (rule term &aux (applied nil))
   (declare (type rewrite-rule)
            (type term term)
@@ -275,6 +353,7 @@
                (substitution-image-simplifying *m-pattern-subst*
                                                term
                                                (rule-need-copy rule)))))
+      (declare (type term nt))
       (when *m-pat-debug*
         (format t "~&[applied *m-pattern-subst*]")
         (print-substitution *m-pattern-subst*)
@@ -287,14 +366,17 @@
   ;; start rewriting
   (setq applied                         ; will be t iff a rewrite rule is applied
     (block the-end
-      (let* ((condition nil)
-             (cur-trial nil)
-             (next-match-method nil)
+      (let* (condition
+             (cur-trial 0)
+             next-match-method
              (*trace-level* (1+ *trace-level*))
              (*print-indent* *print-indent*)
              (*self* term)
              (builtin-failure nil)
-             (rhs-instance nil))
+             rhs-instance)
+        (declare (type fixnum *trace-level* *print-indent* cur-trial)
+                 (type term condition rhs-instance)
+                 (type symbol next-match-method))
         (multiple-value-bind (global-state subst no-match E-equal)
             ;; first we find matching rewrite rule 
             (funcall (or (rule-first-match-method rule)
@@ -308,8 +390,11 @@
                            (rule-first-match-method rule)))
                      (rule-lhs rule)
                      term)
+          (declare (type global-state global-state)
+                   (type substitution subst)
+                   (type (or null t) no-match E-equal))
           ;; stat, count up number of matching trials
-          (incf $$matches)
+          (incf (the fixnum $$matches))
           (setq *cafein-current-subst* subst) ; I don't remember for what this is used
           ;; if matching fail no hope to rewriting. 
           (when no-match (return-from the-end nil))
@@ -448,6 +533,7 @@
                                      *rewrite-exec-mode*
                                    nil))
                                 ($$trials (1+ $$trials)))
+                            (declare (type term $$cond))
                             ;; no simplyfing since probably wouldn't pay
                             (normalize-term $$cond)
                             ;; :=
@@ -508,74 +594,6 @@
             (throw 'rewrite-abort $$term)))
       nil)))
 
-(declaim (inline term-replace-dd-dbg))
-(defun term-replace-dd-dbg (old new)
-  (declare (type term old new)
-           (optimize (speed 3) (safety 0)))
-  ;; stat number of rewriting
-  (incf *rule-count*)
-  ;; check if given stop pattern was matched to the resultant term.
-  (when *matched-to-stop-pattern*
-    ;; yes
-    (unless *rewrite-stepping*
-      (setq *matched-to-stop-pattern* nil)
-      (throw 'rewrite-abort $$term)))
-  
-  ;; Enter STEPPER if need
-  (when *rewrite-stepping* (cafein-stepper old new))
-  (setq *matched-to-stop-pattern* nil)
-  
-  ;; Trace output
-  (when (or $$trace-rewrite
-            (rule-trace-flag *cafein-current-rule*))
-    (let ((*print-with-sort* t))
-      (print-trace-out)
-      (let ((*print-indent* (+ 4 *print-indent*)))
-        (term-print-with-sort old)
-        (print-check 0 5)
-        (princ " --> ")
-        (term-print-with-sort new))
-      (unless $$trace-rewrite-whole (terpri))))
-  ;; trace whole
-  (if $$trace-rewrite-whole
-      (let ((*print-with-sort* t)
-            (*fancy-print* t))
-        (if $$cond
-            (progn
-              (format t "~&[~a(cond)]: " *rule-count*)
-              (let ((*print-indent* (+ 2 *print-indent*)))
-                (term-print-with-sort $$cond)
-                (print-next)
-                (let ((res (term-replace old new)))
-                  (print-check 0 5)
-                  (princ " --> ")
-                  (let ((*print-indent* (+ 2 *print-indent*)))
-                    ;; (print-check)
-                    (term-print-with-sort $$cond))
-                  res)))
-          (progn
-            (format t "~&[~a]: " *rule-count*)
-            (let ((*print-indent* (+ 2 *print-indent*)))
-              (term-print-with-sort $$term))
-            (print-next)
-            (let ((res (term-replace old new)))
-              (print-check 0 5)
-              (princ "---> ")
-              (let ((*print-indent* (+ 2 *print-indent*)))
-                ;; (print-check)
-                (term-print-with-sort $$term))
-              res))))
-    ;; after tracing, we finally rewrite the target
-    (term-replace old new))
-  ;; check rewrite count limit
-  (when (and *rewrite-count-limit*
-             (<= *rewrite-count-limit* *rule-count*))
-    (format *error-output* "~%>> aborting rewrite due to rewrite count limit (= ~d) <<"
-            *rewrite-count-limit*)
-    (flush-all)
-    (throw 'rewrite-abort $$term))
-  ;;
-  $$term)
 
 (declaim (inline apply-rules-with-same-top))
 (defun apply-rules-with-same-top (term rule-ring)
@@ -1406,10 +1424,10 @@
                    ;; 
                    (setq new-rhs (make-right-assoc-normal-form-with-sort-check
                                   (case mandor
-                                    ('|:m-and| *bool-and*)
-                                    ('|:m-and-also| *bool-and-also*)
-                                    ('|:m-or| *bool-or*)
-                                    ('|:m-or-else| *bool-or-else*)
+                                    (|:m-and| *bool-and*)
+                                    (|:m-and-also| *bool-and-also*)
+                                    (|:m-or| *bool-or*)
+                                    (|:m-or-else| *bool-or-else*)
                                     (otherwise (with-output-panic-message ()
                                                  (format t "internal error, invalid meta rule label ~s" mandor))))
                                   rhs-list))
