@@ -140,6 +140,7 @@
   (bind nil)                            ; ....
   (if nil)                              ;
   (pr-out? nil)                         ;
+  (term-hash nil :type simple-vector)   ;
   )
 
 (defun print-sch-context (ctxt &optional (stream *standard-output*) &rest ignore)
@@ -750,32 +751,25 @@
                          (term-hash-equal (term-builtin-value term))))
         ((term-is-variable? term) (term-hash-eq term))))
 
-(defun dump-cexec-term-hash (term-hash &optional (size term-hash-size))
-  (dotimes (x size)
-    (let ((ent (svref term-hash x)))
-      (when ent
-        (format t "~%[~3d]: ~d entrie(s)" x (length ent))
-        (dotimes (y (length ent))
-          (let ((e (nth y ent)))
-            (format t "~%(~d)" y)
-            (let ((*print-indent* (+ 2 *print-indent*)))
-              (term-print (car e))
-              (print-next)
-              (princ "==>")
-              (print-next)
-              (term-print (cdr e)))))))))
+(defun dump-cexec-term-hash (&optional (size term-hash-size))
+  (let ((mod (get-context-module)))
+    (unless mod (return-from dump-cexec-term-hash nil))
+    (with-in-module (mod)
+      (dotimes (x size)
+        (let ((ent (svref .cexec-term-hash. x)))
+          (when ent
+            (format t "~%[~3d]: ~d entrie(s)" x (length ent))
+            (dotimes (y (length ent))
+              (let ((e (nth y ent)))
+                (format t "~%(~d)" y)
+                (let ((*print-indent* (+ 2 *print-indent*)))
+                  (term-print (car e))
+                  (print-next)
+                  (princ "==>")
+                  (print-next)
+                  (term-print (cdr e)))))))))))
 
 (defvar .cexec-term-hash. nil)
-
-(declaim (inline init-rwl-term-hash))
-(defun init-rwl-term-hash (depth)
-  (declare (type fixnum depth)
-           (optimize (speed 3) (safety 0)))
-  (unless .cexec-term-hash.
-    (setq .cexec-term-hash. (alloc-svec term-hash-size)))
-  (when (zerop depth)
-    (dotimes (x term-hash-size)
-      (setf (svref .cexec-term-hash. x) nil))))
 
 (declaim (inline get-sch-hashed-term))
 (defun  get-sch-hashed-term (term term-hash)
@@ -1137,7 +1131,7 @@
               (push (dag-node-datum node)
                     (rwl-sch-context-answers sch-context))
               ;;
-              (when (and (= (rwl-state-depth state) 0)
+              (when (and ;; (= (rwl-state-depth state) 0)
                          (not *rwl-search-no-state-report*))
                 (format t "~%** Found [state ~D-~D] " (rwl-state-depth state) (rwl-state-state state))
                 (term-print-with-sort (rwl-state-term state))
@@ -1276,7 +1270,8 @@
                           :max-depth max-depth
                           :state-predicate nil
                           :bind bind
-                          :if if))
+                          :if if
+                          :term-hash (alloc-svec term-hash-size)))
             (root nil)
             (res nil)
             (no-more nil)
@@ -1315,10 +1310,10 @@
           (setf (rwl-sch-context-state-predicate sch-context) (make-state-pred-pat))
           (let ((.rwl-sch-context. sch-context)
                 (.rwl-search-depth. (1+ .rwl-search-depth.))
+                (.cexec-term-hash. (rwl-sch-context-term-hash sch-context))
                 (.ignore-term-id-limit. t))
             (declare (special .rwl-sch-context. .cexec.term-hash. .ignore-term-id-limit.))
             (push sch-context .rwl-context-stack.)
-            (init-rwl-term-hash .rwl-search-depth.)
             ;; the first state is 0
             (set-sch-hashed-term t1 .cexec-term-hash. 0)
             ;;
@@ -1442,7 +1437,6 @@
                         ;; the followings are experimental
                         (if nil))
   (declare (type term term pattern)
-           (type fixnum max-result max-depth)
            (type (or null t) zero? final?))
   (let ((module (get-context-module))
         max-r
