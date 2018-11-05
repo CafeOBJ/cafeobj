@@ -235,9 +235,10 @@
       (concatenate 'string stat-form
                    (if (zerop (number-memo-hits))
                        ")"
-                     (format nil ", ~d/~d memo hits)" 
+                     (format nil ", ~d memo hits)" 
                              (number-memo-hits)
-                             (number-hash-size))))))
+                             ;; (number-hash-size)
+                             )))))
   
   (declaim (inline generate-statistics-form-rewriting-only))
   (defun generate-statistics-form-rewriting-only ()
@@ -251,9 +252,10 @@
       (concatenate 'string stat-form
                    (if (zerop (number-memo-hits))
                        ")"
-                     (format nil ", ~d/~d memo hits)" 
+                     (format nil ", ~d memo hits)" 
                              (number-memo-hits)
-                             (number-hash-size))))))
+                             ;; (number-hash-size)
+                             )))))
 
   ;; REDUCER
   ;; perform reduction
