@@ -876,6 +876,7 @@
   (with-variable-as-constant (term)
     (case mode
       (:exec+
+       #|| I should re-think this towise!
        (let ((*rwl-search-no-state-report* t))
          (rwl-search* term
                       nil               ; pattern
@@ -892,7 +893,9 @@
                            (rwl-state-term
                             (car (rwl-sch-context-answers .rwl-sch-context.))))
            (with-output-chaos-error ()
-             (format t "PANIC!")))))
+             (format t "PANIC!"))))
+       ||#
+       )
       (otherwise
        (setq $$trials 1)
        (let ((*trace-level* 0))
@@ -925,6 +928,7 @@
   (with-variable-as-constant (term)
     (case mode
       (:exec+
+       #|| do we really need this?
        (let ((*rwl-search-no-state-report* t))
          (rwl-search* term
                       nil               ; pattern
@@ -941,7 +945,9 @@
                            (rwl-state-term
                             (car (rwl-sch-context-answers .rwl-sch-context.))))
            (with-output-chaos-error ()
-             (format t "PANIC!")))))
+             (format t "PANIC!"))))
+       ||#
+       )
       (otherwise
        (setq $$trials 1)
        (let ((*trace-level* 0))
