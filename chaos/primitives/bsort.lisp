@@ -183,11 +183,12 @@
     :v))
 
 (defun print-sort-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (let ((name (concatenate 'string (string (sort-id obj)) "." (string (module-print-name (sort-module obj))))))
-    (if (sort-is-hidden obj)
-        (format stream ":hsort[~s]" name)
-      (format stream ":sort[~s]" name))))
+  (declare (type sort-stcut obj)
+           (stream stream)
+           (ignore ignore))
+  (if (sort-is-hidden obj)
+      (format stream ":hsort[~a.a]" (sort-id obj) (module-print-name (object-context-mod obj)))
+    (format stream ":sort[~a.~a]" (sort-id obj) (module-print-name (object-context-mod obj)))))
 
 ;;; Constructor ----------------------------------------------------------------
 (defun new-general-sort (id module &optional hidden)

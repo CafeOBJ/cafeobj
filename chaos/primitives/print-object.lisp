@@ -249,7 +249,6 @@
 ;;;-----------------------------------------------------------------------------
 ;;; MODULE NAME
 ;;;-----------------------------------------------------------------------------
-(declaim (inline get-module-print-name))
 (defun get-module-print-name (module)
   (unless (module-p module) (break "internal error, get-module-print-name"))
   (let ((name (module-name module)))
