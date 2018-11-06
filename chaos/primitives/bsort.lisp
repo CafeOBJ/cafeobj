@@ -183,7 +183,7 @@
     :v))
 
 (defun print-sort-object (obj stream &rest ignore)
-  (declare (type sort-stcut obj)
+  (declare (type sort-struct obj)
            (stream stream)
            (ignore ignore))
   (if (sort-is-hidden obj)
