@@ -137,6 +137,8 @@
       ;;
       ("show" ("ext-rule") parity *print-exec-rule*
        "if on, print out (c)trans rules in reduction of '_=(,)=>+_if_suchThat_{_}'. default off.")
+      ("show" ("every" "finding") parity *print-every-exec-finding*
+       "if on, search predicate prints every node found while searching. defalut off")
       ("print" ("grind") parity *grind-bool-term* 
        "if on, '=(,)=> suchThat {}' print out Bool term in 'grind' style.")
       ("print" ("mode") general *print-xmode*
