@@ -97,7 +97,7 @@
   (bindings nil))
 
 (defun create-new-subst ()
-  (make-subst* :bindings (new-substitution)))
+  (make-subst* :bindings nil))
 
 (defun pr-subst (obj stream &rest ignore)
   (declare (ignore ignore))
