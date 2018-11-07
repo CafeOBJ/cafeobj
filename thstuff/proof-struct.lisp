@@ -1091,6 +1091,7 @@
 ;;; :order (<op>, ..., <op>)
 ;;;
 (defun citp-eval-order (ast)
+  (declare (notinline %pn-lex-ops))
   (check-context-module-and-ptree)
   (with-in-module ((get-context-module))
     (let ((optokens (%pn-lex-ops ast)))

@@ -42,14 +42,6 @@
 ;;; REDUCER
 ;;; provides term rewriting eclosed within computing environment.
 ;;; ========
-(declaim (inline begin-parse end-parse time-for-parsing-in-seconds
-                 begin-rewrite end-rewrite time-for-rewriting-in-seconds
-                 number-metches number-rewritings number-memo-hits
-                 clear-rewriting-fc prepare-term reset-rewrite-counters
-                 prepare-reduction-env reducer reducer-no-stat
-                 number-hash-size))
-
-
 (let ((*m-pattern-subst* nil)
       (.rwl-context-stack. nil)
       (.rwl-states-so-far. 0)
@@ -97,55 +89,43 @@
            (type integer parse-begin-time rewrite-begin-time)
            (type float time-for-parsing time-for-rewriting))
 
-  (declaim (inline reset-parse-time))
   (defun reset-parse-time ()
     (setf time-for-parsing 0.0))
 
-  (declaim (inline bgin-parse))
   (defun begin-parse ()
     (setf parse-begin-time (get-internal-run-time)))
 
-  (declaim (inline end-parse))
   (defun end-parse ()
     (setf time-for-parsing (elapsed-time-in-seconds parse-begin-time
                                                     (get-internal-run-time))))
 
-  (declaim (inline time-for-parsing-in-seconds))
   (defun time-for-parsing-in-seconds ()
     time-for-parsing)
   
-  (declaim (inline begin-rewrite))
   (defun begin-rewrite ()
     (setf rewrite-begin-time (get-internal-run-time)))
   
-  (declaim (inline end-rewrite))
   (defun end-rewrite ()
     (setf time-for-rewriting (elapsed-time-in-seconds rewrite-begin-time
                                                       (get-internal-run-time))))
 
-  (declaim (inline time-for-rewriting-in-seconds))
   (defun time-for-rewriting-in-seconds ()
     time-for-rewriting)
 
-  (declaim (inline number-matches))
   (defun number-matches ()
     $$matches)
   
-  (declaim (inline number-rewritings))
   (defun number-rewritings ()
     *rule-count*)
 
-  (declaim (inline number-memo-hits))
   (defun number-memo-hits ()
     *term-memo-hash-hit*)
 
-  (declaim (inline number-hash-size))
   (defun number-hash-size ()
     (declare (inline hash-table-count))
     ;; .hash-size.
     (hash-table-count *term-memo-table*))
-  ;; 
-  (declaim (inline clear-rewriting-fc))
+
   (defun clear-rewriting-fc (module mode)
     (setf *m-pattern-subst* nil
           .rwl-context-stack. nil
@@ -184,14 +164,12 @@
 
   ;; reset-rewrite-counters
   ;; initialize rewriting counters.
-  (declaim (inline reset-rewrite-counters))
   (defun reset-rewrite-counters ()
     (setf $$matches 0
           *rule-count* 0
           *term-memo-hash-hit* 0))
 
   ;; reset-term-memo-table
-  (declaim (inline reset-term-memo-table))
   (defun reset-term-memo-table (module)
     (when (or *clean-memo-in-normalize*
               (not (eq module *memoized-module*)))
@@ -201,7 +179,6 @@
   ;; prepare-reduction-env
   ;; all-in-one proc for setting up environment variables for rewriting,
   ;; returns evaluated 'context-module'.
-  (declaim (inline prepare-reduction-env))
   (defun prepare-reduction-env (term context-module mode stat-reset)
     (let ((module (if (module-p context-module)
                       context-module
@@ -222,7 +199,6 @@
       module))
     
   ;; generate-statistics-form
-  (declaim (inline geneate-statistics-form))
   (defun generate-statistics-form ()
     (let ((stat-form ""))
       (declare (type string stat-form))
@@ -240,7 +216,6 @@
                              ;; (number-hash-size)
                              )))))
   
-  (declaim (inline generate-statistics-form-rewriting-only))
   (defun generate-statistics-form-rewriting-only ()
     (let ((stat-form ""))
       (declare (type string stat-form))

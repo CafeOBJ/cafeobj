@@ -186,11 +186,12 @@
 ;;;
 (defun normalize-term-in (module term &optional (reduction-mode :red) var-is-const)
   (let ((applied? nil)
-        (targets nil)
         (rule-count-save (number-rewritings))
         (*variable-as-constant* var-is-const))
+    (declare (type fixnum rule-count-save)
+             (optimize (speed 3) (safety 0)))
     (reducer-no-stat term module reduction-mode)
-    (unless (= rule-count-save (number-rewritings))
+    (unless (= rule-count-save (the fixnum (number-rewritings)))
       (setq applied? t))
     (values term applied?)))
 
@@ -199,6 +200,10 @@
 ;;; NOTE: given axiom is preserved (not changed).
 ;;;
 (defun normalize-sentence (ax module &optional lhs-only variable-is-constant)
+  (declare (type rewrite-rule ax)
+           (type module module)
+           (type (or null t) lhs-only variable-is-constant)
+           (optimize (speed 3) (safety 0)))
   (if-spoiler-on 
    ;; normalize sentence only if :spoiler is on
    :then (let ((target (rule-copy-canonicalized ax module)))
@@ -1607,7 +1612,7 @@
            (step-goals nil)
            (remainings nil))
       ;; just for now
-      (declare (ignore given-hypos targets))
+      (declare (ignore given-hypos))
       ;; base cases
       (dolist (target targets)
         (if (not (set-base-cases base-goal target (get-ind-substitutions indvars (goal-bases goal))))

@@ -187,7 +187,7 @@
            (stream stream)
            (ignore ignore))
   (if (sort-is-hidden obj)
-      (format stream ":hsort[~a.a]" (sort-id obj) (module-print-name (object-context-mod obj)))
+      (format stream ":hsort[~a.~a]" (sort-id obj) (module-print-name (object-context-mod obj)))
     (format stream ":sort[~a.~a]" (sort-id obj) (module-print-name (object-context-mod obj)))))
 
 ;;; Constructor ----------------------------------------------------------------
