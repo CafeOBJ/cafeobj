@@ -139,7 +139,14 @@ Based on the implementation of OBJ3 system.
 (declaim (special *do-empty-match*))
 (defvar *do-empty-match* nil)
 
-;; #-GCL (declaim (inline !match-decompose-on-demand))
+(declaim (inline !match-decompose))
+(defun !match-decompose (t1 t2 res)
+  (declare (type term t1 t2)
+           (type list res)
+           (optimize (speed 3) (safety 0)))
+  (if *do-unify*
+      (!match-decompose-unify t1 t2 res)
+    (!match-decompose-match t1 t2 res)))
 
 (defun !match-decompose-on-demand (t1 t2 result)
   (declare (type term t1 t2)
@@ -169,16 +176,6 @@ Based on the implementation of OBJ3 system.
              (return-from occurs-in t)))
          nil)
         (t nil)))
-
-
-(declaim (inline !match-decompose))
-(defun !match-decompose (t1 t2 res)
-  (declare (type term t1 t2)
-           (type list res)
-           (optimize (speed 3) (safety 0)))
-  (if *do-unify*
-      (!match-decompose-unify t1 t2 res)
-    (!match-decompose-match t1 t2 res)))
 
 (declaim (inline method-theory-info-for-matching!))
 (defun method-theory-info-for-matching! (meth)
@@ -574,6 +571,7 @@ Based on the implementation of OBJ3 system.
 ;;; "sys" is supposed to be non empty and to contain equations of the 
 ;;; form t1==t2 which are all such that t1 is NOT a variable.
 
+(declaim (inline m-system-extract-one-system))
 (defun m-system-extract-one-system (sys)
   (declare (type list sys)
            (optimize (speed 3) (safety 0))

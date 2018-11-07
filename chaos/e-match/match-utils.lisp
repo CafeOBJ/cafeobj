@@ -93,7 +93,6 @@
 ;;; could improve on this
 ;;; t1 : pattern
 ;;; t2 : term
-(declaim (inline possibly-matches))
 (defun possibly-matches (t1 t2)
   (declare (type term t1 t2)
            (optimize (speed 3) (safety 0))
@@ -101,5 +100,4 @@
   (cond ((term-is-variable? t1) t)
         ((term-is-variable? t2) nil)
         (t (possibly-matches-nonvar t1 t2))))
-
 ;;; EOF

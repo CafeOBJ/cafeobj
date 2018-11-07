@@ -69,7 +69,8 @@
 ;;; - first arg is the pattern
 ;;;
 (defun idem-match (t1 t2)
-  (declare (type term t1 t2))
+  (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (if (not (term-is-applform? t2))
       nil
       (let* ((meth (term-head t2))
@@ -99,7 +100,8 @@
 ;;; - first arg is the pattern
 ;;;
 (defun idem-ext-match (t1 t2)
-  (declare (type term t1 t2))
+  (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (let* ((method (term-head t2))
          (subs (list-AC-subterms t2 method)))
     (declare (type list subs)

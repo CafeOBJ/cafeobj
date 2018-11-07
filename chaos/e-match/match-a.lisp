@@ -101,12 +101,25 @@
 ;;; all the comp array are reset provide that they rank in "sys"
 ;;; is less (strictly) than K.
 ;;;
+;;; Reset the comp of "eq-comp" to his initial value i.e. (1,2,3,4,5)
+;;;
+(declaim (inline match-a-reset-comp))
+(defun match-A-reset-comp (eq-comp)
+  (declare (type list eq-comp)
+           (optimize (speed 3) (safety 0)))
+  (let ((comp (match-equation-comp-comp eq-comp)))
+    (declare (type #+GCL vector #-GCL simple-vector comp))
+    (dotimes (x (1- (match-equation-comp-sz-left eq-comp)))
+      (declare (type fixnum x))
+      (setf (aref comp x) (1+ x)))))
+
+
 (declaim (inline match-a-reset-match-equation-comp))
 
-(#-GCL defun #+GCL si:define-inline-function
-       match-A-reset-match-equation-comp (sys K)
+(defun match-A-reset-match-equation-comp (sys K)
   (declare (type #+GCL vector #-GCL simple-vector sys)
-           (type fixnum k))
+           (type fixnum k)
+           (optimize (speed 3) (safety 0)))
   (dotimes (i K)                                ; i = 0,...,K-1 
     (declare (type fixnum i))
     (match-A-reset-comp (svref sys i))))
@@ -134,11 +147,11 @@
 ;;;
 (declaim (inline match-a-try-increase-lexico))
 
-(#-GCL defun #+GCL si:define-inline-function
-       match-A-try-increase-lexico (comp max)
+(defun match-A-try-increase-lexico (comp max)
   (declare (type fixnum max)
-           (type #+GCL vector #-GCL simple-vector comp))
-  (let ((lim (1- (length comp))))
+           (type #+GCL vector #-GCL simple-vector comp)
+           (optimize (speed 3) (safety 0)))
+  (let ((lim (1- (the fixnum (length comp)))))
     (declare (type fixnum lim))
     (do ((i lim (- i 1)))
         ((< i 0) nil)
@@ -155,18 +168,6 @@
           (return t)))
       (setq max (1- max)))))
 
-;;; Reset the comp of "eq-comp" to his initial value i.e. (1,2,3,4,5)
-;;;
-(declaim (inline match-a-reset-comp))
-
-(#-GCL defun #+GCL si:define-inline-function
-       match-A-reset-comp (eq-comp)
-  (let ((comp (match-equation-comp-comp eq-comp)))
-    (declare (type #+GCL vector #-GCL simple-vector comp))
-    (dotimes (x (1- (match-equation-comp-sz-left eq-comp)))
-      (declare (type fixnum x))
-      (setf (aref comp x) (1+ x)))))
-
 ;;; Simplify the left symbols and the right symbols. Returns the modified list
 ;;; of terms.  
 ;;; EXAMPLE: (a,x,c,z,d,c) == (a,b,b,b,c,c,c,c) is simplified into
@@ -177,11 +178,10 @@
 ;;;
 (declaim (inline match-associative-simplify))
 
-(#-GCL defun #+GCL si:define-inline-function
-       match-associative-simplify (sub1 sub2)
+(defun match-associative-simplify (sub1 sub2)
   (declare (type list sub1 sub2)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
-  ;;
   (do ((t1 (car sub1) (car sub1))
        (t2 (car sub2) (car sub2)))
       ((or (null sub1)
@@ -227,9 +227,9 @@
 
 (declaim (inline match-associativity-set-eq-state))
          
-(#-GCL defun #+GCL si:define-inline-function
-       match-associativity-set-eq-state (sub1 sub2)
-  (declare (type list sub1 sub2))
+(defun match-associativity-set-eq-state (sub1 sub2)
+  (declare (type list sub1 sub2)
+           (optimize (speed 3) (safety 0)))
   (let* ((sz1 (length sub1))
          (comp (alloc-svec-fixnum (if (= 0 sz1) 0 (- sz1 1)))))
     (declare (type #+GCL vector #-GCL simple-vector comp)
@@ -248,10 +248,10 @@
 ;;;
 (declaim (inline match-a-make-term))
 
-(#-GCL defun #+GCL si:define-inline-function
-       match-A-make-term (method vect first last)
+(defun  match-A-make-term (method vect first last)
   (declare (type fixnum first last)
-           (type #+GCL vector #-GCL simple-vector vect))
+           (type #+GCL vector #-GCL simple-vector vect)
+           (optimize (speed 3) (safety 0)))
   (if (= first last)
       (svref vect first)
     (let ((res (svref vect last)))
@@ -275,10 +275,10 @@
 ;;;
 (declaim (inline match-a-extract-in-from-to))
 
-(#-GCL defun #+GCL si:define-inline-function
-       match-A-extract-in-from-to (t-arr from to)
+(defun match-A-extract-in-from-to (t-arr from to)
   (declare (type fixnum from to)
-           (type #+GCL vector #-GCL simple-vector t-arr))
+           (type #+GCL vector #-GCL simple-vector t-arr)
+           (optimize (speed 3) (safety 0)))
   (let ((t-list nil))
     (do ((i to (1- i)))
         ((< i from)  t-list)
@@ -290,8 +290,9 @@
 ;;;
 (declaim (inline increment-the-match-a-state))
 
-(#-GCL defun #+GCL si:define-inline-function
-       increment-the-match-A-state (A-st)
+(defun increment-the-match-A-state (A-st)
+  (declare (type match-a-state A-st)
+           (optimize (speed 3) (safety 0)))
   (block the-end
     (let ((sz (match-A-state-size A-st))
           (sys (match-A-state-sys A-st)))
