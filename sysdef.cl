@@ -126,9 +126,9 @@
                       "primitives/baxioms"
                       "primitives/bmacro"
                       "primitives/gen-eval"
+                      "primitives/meta"
                       "primitives/gen-print"
                       "primitives/context"
-                      "primitives/substitution"
                       "primitives/term-utils"
                       "primitives/find"
                       "primitives/print-object"))
@@ -204,8 +204,7 @@
                     (:serial
                      "boot/preproc"
                      "boot/prelude"
-                     "boot/builtins"
-                     "boot/meta"))
+                     "boot/builtins"))
      (:module-group :tram
                     (:serial "tram/tram"))
      (:module-group :psup
