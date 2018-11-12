@@ -243,7 +243,7 @@
                        (normalize-term-in module (reset-reduced-flag rhs)))
                      (set-applied applied))
                    ;; normalize condition
-                   (unless (is-true? condition)
+                   (unless (or lhs-only (is-true? condition))
                      (multiple-value-setq (condition applied)
                        (normalize-term-in module (reset-reduced-flag condition) :red))
                      (set-applied  applied))
