@@ -223,13 +223,12 @@
                      (format t "~%[NF] target:")
                      (print-next)
                      (print-axiom-brief target)))
-                 ;; 
-                 (let ((rsubst (if variable-is-constant
-                                   (variables->pconstants lhs)
-                                 nil))
-                       (rsubst2 nil)    ; for rhs
-                       (rsubst3 nil)    ; for condition
-                       )
+                 (let ((rsubst nil))
+                   ;; variables->pconst if requred
+                   (when variable-is-constant
+                     (setq rsubst (nconc (variables->pconstants lhs)
+                                         (nconc (variables->pconstants rhs)
+                                                (variables->pconstants condition)))))
                    ;; normalize lhs
                    (multiple-value-setq (lhs applied)
                      (normalize-term-in module (reset-reduced-flag lhs) :red))
@@ -238,8 +237,6 @@
                      (multiple-value-setq (lhs applied) 
                        (normalize-term-in module (reset-reduced-flag lhs) :exec))
                      (set-applied applied))
-                   (when rsubst
-                     (revert-pconstants lhs rsubst))
                    ;; normalize rhs
                    (unless lhs-only
                      ;; first var -> pconst for RHS only variables
@@ -249,28 +246,17 @@
                      ;; then reduce normaly
                      (multiple-value-setq (rhs applied) 
                        (normalize-term-in module (reset-reduced-flag rhs)))
-                     (set-applied applied)
-                     ;; pconst -> var
-                     (when rsubst
-                       (revert-pconstants rhs rsubst))
-                     (when rsubst2
-                       (revert-pconstants rhs rsubst2)))
+                     (set-applied applied))
                    ;; normalize condition
                    (unless (is-true? condition)
-                     (if variable-is-constant
-                         ;; condition only vars->pconsts
-                         (setq rsubst3 (variables->pconstants condition))
-                       nil)
                      (multiple-value-setq (condition applied)
                        (normalize-term-in module (reset-reduced-flag condition) :red))
-                     (set-applied  applied)
-                     (when rsubst
-                       (revert-pconstants condition rsubst))
-                     (when rsubst2
-                       (revert-pconstants condition rsubst2))
-                     (when rsubst3
-                       (revert-pconstants condition rsubst3)))
-                   ;; 
+                     (set-applied  applied))
+                   ;; pconsts -> variables
+                   (when rsubst
+                     (revert-pconstants lhs rsubst)
+                     (revert-pconstants rhs rsubst)
+                     (revert-pconstants condition rsubst))
                    (setf (rule-lhs target) lhs)
                    (setf (rule-rhs target) rhs)
                    (setf (rule-condition target) condition)
