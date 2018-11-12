@@ -239,11 +239,6 @@
                      (set-applied applied))
                    ;; normalize rhs
                    (unless lhs-only
-                     ;; first var -> pconst for RHS only variables
-                     (if variable-is-constant
-                         (setq rsubst2 (variables->pconstants rhs))
-                       nil)
-                     ;; then reduce normaly
                      (multiple-value-setq (rhs applied) 
                        (normalize-term-in module (reset-reduced-flag rhs)))
                      (set-applied applied))
