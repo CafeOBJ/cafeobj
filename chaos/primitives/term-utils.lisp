@@ -203,13 +203,13 @@
 ;;; returns the image of variable under sigma.
 ;;;
 (defmacro variable-image (*_sigma *_variable)
-  `(cdr (assoc ,*_variable ,*_sigma :test #'variable-eq)))
+  `(and ,*_sigma (cdr (assoc ,*_variable ,*_sigma :test #'variable-eq))))
 
 (defmacro variable-image-fast (_*sigma _*variable)
   `(cdr (assoc ,_*variable ,_*sigma :test #'eq)))
 
 (defmacro variable-image-slow (_*sigma _*variable)
-  `(cdr (assoc ,_*variable ,_*sigma :test #'variable-equal)))
+  `(and ,_*sigma (cdr (assoc ,_*variable ,_*sigma :test #'variable-equal))))
 
 ;;; SUBSTITUTION-LIST-OF-PAIRS sigma
 ;;; returns the list of pair in substitution-
