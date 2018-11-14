@@ -63,7 +63,7 @@
   (context-mod nil))
 
 (defmacro object-info (_obj _info)
-  ` (getf (object-misc-info ,_obj) ,_info))
+  `(getf (object-misc-info ,_obj) ,_info))
 
 (defun set-object-context-module (obj &optional (context-mod (get-context-module)))
   (setf (object-context-mod obj) context-mod))
@@ -116,13 +116,13 @@
         nil)))
 
 (defsetf object-parameters (_obj) (_value)
-  ` (let ((interf (top-object-interface ,_obj)))
-      (unless interf
-        (with-output-panic-message ()
-          (princ "invalid interface of object ")
-          (print-chaos-object ,_obj)
-          (chaos-error 'panic)))
-      (setf (interface$parameters interf) ,_value)))
+  `(let ((interf (top-object-interface ,_obj)))
+     (unless interf
+       (with-output-panic-message ()
+         (princ "invalid interface of object ")
+         (print-chaos-object ,_obj)
+         (chaos-error 'panic)))
+     (setf (interface$parameters interf) ,_value)))
 
 (defun object-exporting-objects (_object)
   (declare (type top-object _object)
@@ -133,13 +133,13 @@
         nil)))
 
 (defsetf object-exporting-objects (_object) (_value)
-  ` (let ((interf (top-object-interface ,_object)))
-      (unless interf
-        (with-output-panic-message ()
-          (princ "exporting-objects: invalid interface of object ")
-          (print-chaos-object ,_object)
-          (chaos-error 'panic)))
-      (setf (interface$exporting-objects interf) ,_value)))
+  `(let ((interf (top-object-interface ,_object)))
+     (unless interf
+       (with-output-panic-message ()
+         (princ "exporting-objects: invalid interface of object ")
+         (print-chaos-object ,_object)
+         (chaos-error 'panic)))
+     (setf (interface$exporting-objects interf) ,_value)))
   
 (defun object-direct-sub-objects (_object)
   (declare (type top-object _object)
