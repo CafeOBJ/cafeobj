@@ -40,6 +40,8 @@
 ;;; -------------------
 ;;; TRACING or STEPPING
 ;;; -------------------
+(declaim (special .trace-or-step.)
+         (type (or null (not null)) .trace-or-step.))
 (defvar .trace-or-step. nil)
 
  ;;; -------
@@ -249,7 +251,6 @@
 ;;; BASIC PROCS for REWRITE RULE APPLICATION
 
 (declaim (inline term-replace-dd-simple))
-
 (defun term-replace-dd-simple (old new)
    (declare (type term old new)
             (optimize (speed 3) (safety 0))
@@ -317,9 +318,8 @@
     ;; after tracing, we finally rewrite the target
     (term-replace old new))
   ;; check rewrite count limit
-  (when (and *rewrite-count-limit*
-             (<= *rewrite-count-limit* *rule-count*))
-    (format *error-output* "~%>> aborting rewrite due to rewrite count limit (= ~d) <<"
+  (when (<= *rewrite-count-limit* *rule-count*)
+    (format *error-output* "~%!!! >> aborting rewrite due to rewrite count limit (= ~d) <<"
             *rewrite-count-limit*)
     (flush-all)
     (throw 'rewrite-abort $$term))
@@ -1353,7 +1353,7 @@
 (defun cafein-show-rewrite-limit (&rest ignore)
   (declare (ignore ignore))
   (print-next)
-  (format t "[rewrite limit]: ~a" (if *rewrite-count-limit*
+  (format t "[rewrite limit]: ~a" (if (> *rewrite-count-limit* 0)
                                       *rewrite-count-limit*
                                     "not specified.")))
 
@@ -1388,7 +1388,8 @@
 (declaim (inline under-debug-rewrite))
 (defun under-debug-rewrite ()
   (or $$trace-rewrite $$trace-rewrite-whole *rewrite-stepping*
-      *rewrite-count-limit* *rewrite-stop-pattern*))
+      *rewrite-stop-pattern*
+      (< 0 *rewrite-count-limit*)))
 
 (defun apply-one-rule (rule term)
   (declare (type rewrite-rule rule)
@@ -1396,9 +1397,8 @@
            (optimize (speed 3) (safety 0)))
   (when (rule-non-exec rule)
     (return-from apply-one-rule nil))
-  (let ((mandor (axiom-meta-and-or rule))
-        (.trace-or-step. (under-debug-rewrite)))
-    (declare (special .trace-or-step.))
+  (let ((mandor (axiom-meta-and-or rule)))
+    (declare (type (or null (not null)) mandor))
     (cond (mandor
            (let ((all-subst nil)
                  (rhs-list nil)

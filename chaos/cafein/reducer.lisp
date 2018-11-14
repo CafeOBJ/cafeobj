@@ -58,6 +58,7 @@
       ($$cond nil)
       ($$target-term nil)
       ($$norm nil)
+      (.trace-or-step. nil)
       (*do-empty-match* nil)
       (parse-begin-time 0)
       (time-for-parsing 0.0)
@@ -195,6 +196,8 @@
       (when stat-reset (reset-rewrite-counters))
       ;; set up various flags and counters used in rewriting process
       (clear-rewriting-fc module mode)
+      ;; set debug mode or not
+      (setq .trace-or-step. (under-debug-rewrite))
       ;; returns the evaluated context module
       module))
     
