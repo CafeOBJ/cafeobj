@@ -99,7 +99,7 @@
 (defvar *chaos-input-source* nil)       ; binds a file name when processing
                                         ; input from the file. 
 (declaim (special *chaos-input-level*)
-         (type (integer 0 11)
+         (type fixnum
                *chaos-input-level*
                *chaos-input-nesting-limit*))
 
@@ -133,8 +133,8 @@
 (defvar *citp-normalize-instance* t)
 
 (defvar *rewrite-stepping* nil)         ; flag, non-nil -> under stepping.
-(declaim (type (or null fixnum) *rewrite-count-limit*))
-(defvar *rewrite-count-limit* nil)
+(declaim (type fixnum *rewrite-count-limit*))
+(defvar *rewrite-count-limit* -1)
                                         ; flag, non-nil(integer) -> limitation
                                         ; for rewriting steps.
 (defvar *rewrite-stop-pattern* nil)     ; flag, non-nil(term) -> stop rewriting
@@ -244,6 +244,8 @@
 (declaim (special *print-indent*))
 (declaim (type fixnum
                *chaos-print-level*
+               *print-line-limit*
+               *chaos-print-length*
                *print-indent* *print-indent-increment*))
 (defvar *module-all-rules-every* nil)
 (defvar *fancy-print* t)
