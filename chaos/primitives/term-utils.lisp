@@ -264,8 +264,8 @@
            (values list))
   (sort  (copy-list s)                  ; (substitution-copy s)         
          #'(lambda (x y)                ; two substitution items (var . term)
-             (string< (the simple-string (string (variable-name (car x))))
-                      (the simple-string (string (variable-name (car y))))))))
+             (string< (the simple-string (string (the symbol (variable-name (car x)))))
+                      (the simple-string (string (the symbol (variable-name (car y)))))))))
 
 
 ;;; SUBSTITUTION-EQUAL : substitution1 substitution2 -> Bool
@@ -287,7 +287,7 @@
            (values list))
   (let ((res nil))
     (dolist (s sub)
-      (when (member (car s) vars)
+      (when (member (car s) vars :test #'variable=)
         (push s res)))
     res))
 
@@ -485,13 +485,16 @@
 (defvar *variable-as-constant* nil)
 
 (defun make-pconst-from-var (var)
-  (declare (optimize (speed 3) (safety 0)))
+  (declare (type term var)
+           (optimize (speed 3) (safety 0)))
   (let ((name (variable-name var))
         (print-name (variable-print-name var))
         (sort (variable-sort var))
         (unique-marker (gensym))
         (pc-name nil)
         (pc-pname nil))
+    (declare (type symbol name unique-marker pc-name pc-pname print-name)
+             (type sort* sort))
     (setq pc-name (intern (concatenate 'string "`" (string unique-marker) "-" (string name))))
     (if print-name
         (setq pc-pname (intern (concatenate 'string "`" (string print-name))))

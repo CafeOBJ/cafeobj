@@ -250,6 +250,14 @@
 ;;; ----------------------------------------
 ;;; BASIC PROCS for REWRITE RULE APPLICATION
 
+(declaim (inline print-trace-in))
+(defun print-trace-in ()
+  (format *error-output* "~%~d>[~a] " *trace-level* (1+ *rule-count*)))
+
+(declaim (inline print-trace-out))
+(defun print-trace-out ()
+  (format *error-output* "~%~d<[~a] " *trace-level* *rule-count*))
+
 (declaim (inline term-replace-dd-simple))
 (defun term-replace-dd-simple (old new)
    (declare (type term old new)
@@ -379,7 +387,7 @@
                  (type symbol next-match-method))
         (multiple-value-bind (global-state subst no-match E-equal)
             ;; first we find matching rewrite rule 
-            (funcall (or (rule-first-match-method rule)
+            (funcall (or (the symbol (rule-first-match-method rule))
                          (progn
                            (when *chaos-verbose*
                              (with-output-chaos-warning ()
@@ -387,7 +395,7 @@
                                (print-next)
                                (print-axiom-brief rule)))
                            (compute-rule-method rule)
-                           (rule-first-match-method rule)))
+                           (symbol-function (the symbol (rule-first-match-method rule)))))
                      (rule-lhs rule)
                      term)
           (declare (type global-state global-state)
@@ -462,7 +470,7 @@
               (multiple-value-setq (global-state subst no-match)
                 (progn
                   (incf $$matches)
-                  (funcall next-match-method global-state)))
+                  (funcall (symbol-function next-match-method) global-state)))
               (when no-match
                 ;; no more match, we failed
                 (return-from the-end nil))
@@ -1039,12 +1047,6 @@
 ;;; in this case "term" is also modified.
 ;;;
 ;;;
-(defun print-trace-in ()
-  (format *trace-output* "~%~d>[~a] " *trace-level* (1+ *rule-count*)))
-
-(defun print-trace-out ()
-  (format *trace-output* "~%~d<[~a] " *trace-level* *rule-count*))
-
 (defun cafein-pattern-match (pat term)
   (declare (type term pat term)
            (optimize (speed 3) (safety 0))

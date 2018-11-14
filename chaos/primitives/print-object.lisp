@@ -75,11 +75,14 @@
 
 ;;; SORT DECLARATION
 (defun print-sort-decl (ast &optional (stream *standard-output*))
+  (declare (type stream stream))
   (format stream "(%sort-decl ~s ~s)" (%sort-decl-name ast)
           (%sort-decl-hidden ast)))
 
 ;;; SUBSORT DECLARATION
 (defun print-subsort-decl (ast &optional (stream *standard-output*))
+  (declare (type %subsort-decl ast)
+           (type stream stream))
   (fresh-line)
   (let ((s-seq (remove nil (mapcar #'(lambda (x)
                                        (if (atom x)
@@ -90,6 +93,8 @@
 
 ;;; BSORT DECLARATION
 (defun print-bsort-decl (ast &optional (stream *standard-output*))
+  (declare (type %bsort-decl)
+           (type stream stream))
   (let ((tp (%bsort-decl-token-predicate ast))
         (tc (%bsort-decl-term-creator ast))
         (tpr (%bsort-decl-term-printer ast))
@@ -100,16 +105,22 @@
 
 ;;; PRINCIPAL-SORT-DECLARATION
 (defun print-psort-decl (ast &optional (stream *standard-output*))
+  (declare (type %psort-decl ast)
+           (type stream stream))
   (format stream "~&(%psort-decl ~s)" (%psort-decl-sort ast)))
 
 ;;; Operator Reference
 ;;;-----------------------------------------------------------------------------
 (defun print-opref (ast &optional (stream *standard-output*))
+  (declare (type %opref ast)
+           (type stream stream))
   (format stream "~s ~s ~s" (%opref-name ast)
           (%opref-module ast)
           (%opref-num-args ast)))
 
 (defun print-opref-simple (ast &optional (stream *standard-output*))
+  (declare (type %opref ast)
+           (type stream stream))
   (let ((*standard-output* stream)
         (name (%opref-name ast))
         (module (%opref-module ast)))
@@ -123,6 +134,8 @@
 ;;; Operator Declaration *TODO*
 ;;;-----------------------------------------------------------------------------
 (defun print-op-decl-ast (ast &optional (stream *standard-output*))
+  (declare (type %op-decl ast)
+           (type stream stream))
   (let ((*standard-output* stream)
         (name (%op-decl-name ast))
         (arity (%op-decl-arity ast))
@@ -149,6 +162,8 @@
 ;;; Operator Attribute declarations
 ;;;-----------------------------------------------------------------------------
 (defun print-opattrs-ast (ast &optional (stream *standard-output*))
+  (declare (type %opattrs ast)
+           (type stream stream))
   (let ((theory (%opattrs-theory ast))
         (assoc (%opattrs-assoc ast))
         (prec (%opattrs-prec ast))
@@ -170,17 +185,21 @@
     (when constr
       (format stream "~& - constr is specified"))
     (when coherent
-      (format stream "~& - coherent is specified"))
-    ))
+      (format stream "~& - coherent is specified"))))
 
 ;;; Variable Declaration
 ;;;-----------------------------------------------------------------------------
 (defun print-var-decl (ast &optional (stream *standard-output*))
+  (declare (type %var-decl ast)
+           (type stream stream))
   (let* ((*standard-output* stream)
          (names (%var-decl-names ast))
          (sort-ref (%var-decl-sort ast))
          (sort-name (%sort-ref-name sort-ref))
          (sort-qual (%sort-ref-qualifier sort-ref)))
+    (declare (type list names)
+             (type %sort-ref sort-ref)
+             (type simple-string sort-name))
     (format t "~%Variable declaration : names =~{ ~a~}" names)
     (format t "~&  Sort = ~a" sort-name)
     (when sort-qual
@@ -188,6 +207,8 @@
       (print-modexp sort-qual stream t t))))
     
 (defun print-pvar-decl (ast &optional (stream *standard-output*))
+  (declare (type %pvar-decl ast)
+           (type stream stream))
   (let* ((*standard-output* stream)
          (names (%pvar-decl-names ast))
          (sort-ref (%pvar-decl-sort ast))
@@ -202,6 +223,8 @@
 ;;; LET DECLARATOIN
 ;;;-----------------------------------------------------------------------------
 (defun print-let-decl (ast &optional (stream *standard-output*))
+  (declare (type %let ast)
+           (type stream stream))
   (let ((sym (%let-sym ast))
         (value (%let-value ast)))
     (format stream "~%let declaration: ")
@@ -211,6 +234,8 @@
 ;;; MACRO DECLARATION
 ;;;-----------------------------------------------------------------------------
 (defun print-macro-decl (ast &optional (stream *standard-output*))
+  (declare (type %macro ast)
+           (type stream stream))
   (let ((lhs (%macro-lhs ast))
         (rhs (%macro-rhs ast)))
     (format stream "~%macro declaration:")
@@ -220,6 +245,8 @@
 ;;; AXIOM DECLARATION
 ;;;-----------------------------------------------------------------------------
 (defun print-axiom-decl-form (ast &optional (stream *standard-output*))
+  (declare (type %axiom-decl ast)
+           (type stream stream))
   (let ((type (%axiom-decl-type ast))
         (labels (%axiom-decl-labels ast))
         (lhs (%axiom-decl-lhs ast))
@@ -236,6 +263,8 @@
 ;;; IMPORT-DECLARATION
 ;;;-----------------------------------------------------------------------------
 (defun print-import-decl (ast &optional (stream *standard-output*))
+  (declare (type %import ast)
+           (type stream stream))
   (let ((mode (%import-mode ast))
         (mod (%import-module ast))
         (as (%import-alias ast)))
@@ -250,22 +279,42 @@
 ;;; MODULE NAME
 ;;;-----------------------------------------------------------------------------
 (defun get-module-print-name (module)
-  (unless (module-p module) (break "internal error, get-module-print-name"))
+  (declare (type module module))
   (let ((name (module-name module)))
     (if (modexp-is-simple-name name)
         name
-        (or (module-decl-form module) name))))
+      (or (module-decl-form module) name))))
 
-(defun make-module-print-name (mod &optional (abbrev t))
-  (with-output-to-string (name-string)
-    (print-mod-name mod name-string abbrev)
-    name-string))
+(defun print-mod-name-internal (val abbrev &optional (no-param nil))
+  (declare (type (or null (not null)) abbrev no-param))
+  (if (stringp val)
+      (princ val)
+    (if (and (consp val) (not (chaos-ast? val)))
+        (if (modexp-is-parameter-theory val)
+            ;; parameter theory
+            (if abbrev
+                (progn
+                  (format t "~a" (car val))
+                  (princ ".")
+                  (print-mod-name (car (last val))
+                                  *standard-output*
+                                  abbrev
+                                  no-param))
+              (let ((cntxt (fourth val)))
+                (if (and cntxt
+                         (not (eq (get-context-module) cntxt)))
+                    (progn (format t "~a." (car val))
+                           (print-mod-name cntxt *standard-output* t t)
+                           (princ " :: "))
+                  (format t "~a :: " (car val)))
+                (print-mod-name (caddr val) *standard-output* nil t)))
+          (print-chaos-object val))
+      (print-modexp val *standard-output* abbrev no-param))))
 
 (defun print-mod-name (arg &optional
                            (stream *standard-output*)
                            (abbrev nil)
                            (no-param nil))
-  (declare (values t))
   (let ((*standard-output* stream))
     (if (module-p arg)
         (let ((modname (get-module-print-name arg)))
@@ -277,7 +326,6 @@
           (let ((params (get-module-parameters arg)))
             (when (and params (not no-param))
               (let ((flg nil))
-                ;; (princ "[")
                 (princ "(")
                 (dolist (param params)
                   (let ((theory (get-parameter-theory
@@ -288,65 +336,30 @@
                             (eq arg (parameter-context param)))
                         (princ (parameter-arg-name param))
                         (progn
-                          ;; (format t "~a@" (parameter-arg-name param))
                           (format t "~a." (parameter-arg-name param))
                           (print-mod-name (parameter-context param)
                                           stream
                                           abbrev
                                           t)))
-                    ;; patch-begin
-                    ;; (princ "::")
-                    ;; (print-mod-name theory stream abbrev t)
-                    ;; patch-end
                     (setq flg t)))
-                ;; (princ "]")
-                (princ ")")
-                ))))
-        (print-chaos-object arg)
-        )))
+                (princ ")")))))
+        (print-chaos-object arg))))
 
-(defun print-mod-name-internal (val abbrev
-                                    &optional
-                                    (no-param nil))
-  (declare (values t))
-  (if (stringp val)
-      (princ val)
-      (if (and (consp val) (not (chaos-ast? val)))
-          (if (modexp-is-parameter-theory val)
-              ;; (equal "::" (cadr val))
-              ;; parameter theory
-              (if abbrev
-                  (progn
-                    (format t "~a" (car val))
-                    (princ ".")
-                    (print-mod-name (car (last val))
-                                    *standard-output*
-                                    abbrev
-                                    no-param))
-                  ;;
-                  (let ((cntxt (fourth val)))
-                    (if (and cntxt
-                             (not (eq *current-module* cntxt)))
-                        (progn (format t "~a." (car val))
-                               (print-mod-name cntxt *standard-output* t t)
-                               (princ " :: "))
-                        (format t "~a :: " (car val)))
-                    (print-mod-name (caddr val) *standard-output* nil t)))
-              (print-chaos-object val))
-          (print-modexp val *standard-output* abbrev no-param))))
+(defun make-module-print-name (mod &optional (abbrev t))
+  (declare (type module mod)
+           (type (or null (not null)) abbrev))
+  (with-output-to-string (name-string)
+    (print-mod-name mod name-string abbrev)
+    name-string))
 
 (defun print-simple-mod-name (module &optional (stream *standard-output*))
+  (declare (type stream stream))
   (if (and *open-module*
            (equal "%" (get-module-print-name module)))
       (progn
         (princ "%" stream)
         (print-mod-name *open-module* stream t nil))
       (print-mod-name module stream t nil)))
-
-(defun make-module-print-name2 (mod)
-  (with-output-to-string (name-string)
-    (print-mod-name2 mod name-string t)
-    name-string))
 
 (defun print-mod-name2 (arg &optional
                             (stream *standard-output*)
@@ -358,7 +371,7 @@
               (let ((info (getf (module-infos arg) 'rename-mod)))
                 (print-mod-name2 (car info) stream no-param)
                 (princ "*DUMMY"))
-              (print-mod-name-internal2 modname no-param))
+            (print-mod-name-internal2 modname no-param))
           (let ((params (get-module-parameters arg)))
             (when (and params (not no-param))
               (let ((flg nil))
@@ -369,17 +382,15 @@
                     (if flg (princ ", "))
                     (if (eq arg (parameter-context param))
                         (princ (parameter-arg-name param))
-                        (progn
-                          (format t "~a." (parameter-arg-name param))
-                          (print-mod-name2 (parameter-context param)
-                                           stream
-                                           t)))
+                      (progn
+                        (format t "~a." (parameter-arg-name param))
+                        (print-mod-name2 (parameter-context param)
+                                         stream
+                                         t)))
                     (setq flg t)))
-                (princ ")")
-                ))))
-        ;; unknown object ...
-        (print-chaos-object arg)
-        )))
+                (princ ")")))))
+      ;; unknown object ...
+      (print-chaos-object arg))))
 
 (defun print-mod-name-internal2 (val &optional (no-param nil))
   (if (stringp val)
@@ -393,7 +404,12 @@
                                  *standard-output*
                                  no-param))
               (print-chaos-object val))
-          (print-modexp val *standard-output* nil no-param))))
+        (print-modexp val *standard-output* nil no-param))))
+
+(defun make-module-print-name2 (mod)
+  (with-output-to-string (name-string)
+    (print-mod-name2 mod name-string t)
+    name-string))
 
 (defun get-parameter-theory (mod)
   (cond ((module-p mod)
@@ -431,6 +447,9 @@
 (defun print-parameter-theory-name (mod &optional (stream *standard-output*)
                                         (abbrev t)
                                         (no-param t))
+  (declare (type module mod)
+           (type stream stream)
+           (type (or null (not null)) abbrev no-param))
   (let ((theory (get-parameter-theory mod)))
     (cond ((module-p theory)
            (print-mod-name theory stream abbrev no-param))
@@ -443,18 +462,23 @@
 ;;; they may include internal objects (not AST).
 ;;;
 (defun print-modexp-simple (me &optional (stream *standard-output*))
+  (declare (type modexp me)
+           (type stream stream))
   (print-modexp me stream t t))
 
 ;;; top level modexp printer ---------------------------------------------------
 
 (declaim (inline get-context-name))
 (defun get-context-name (obj)
+  (declare (type object obj))
   (let ((context-mod (get-object-context obj)))
     (if context-mod
         (get-module-print-name context-mod)
       nil)))
 
 (defun get-context-name-extended (obj &optional (context (get-context-module)))
+  (declare (type object obj)
+           (type module context))
   (let ((cmod (object-context-mod obj)))
     (declare (type (or null module) cmod))
     (unless cmod (return-from get-context-name-extended nil))
@@ -477,11 +501,13 @@
                         (stream *standard-output*)
                         (simple t)
                         (no-param nil))
+  (declare (type modexp me)
+           (type stream stream)
+           (type (or null (not null)) simple no-param))
   (let ((.file-col. .file-col.)
         (*standard-output* stream))
     (if me
         (cond
-         ;;
          ;; The modexp internal..
          ((int-plus-p me) (pr-int-plus me stream simple no-param))
          ((int-rename-p me) (pr-int-rename me stream simple no-param))
@@ -520,7 +546,7 @@
          ((modexp-is-parameter-theory me)
           (let ((cntxt (fourth me)))
             (princ (car me))
-            (when (and cntxt (not (eq *current-module* cntxt)))
+            (when (and cntxt (not (eq (get-context-module) cntxt)))
               (princ ".")
               (print-mod-name cntxt stream t t)
               (print-check .file-col. 0 stream))))
@@ -547,7 +573,10 @@
 
 ;;; *** PLUS ****
 
-(defun print-plus-modexp (me &optional stream simple no-param)
+(defun print-plus-modexp (me &optional (stream *standard-output*) simple no-param)
+  (declare (type %+ me)
+           (type stream stream)
+           (type (or null (not null)) simple no-param))
   (let ((flg nil))
     (do* ((args (reverse (%plus-args me)) (cddr args))
           (l (car args) (car args))
@@ -567,34 +596,41 @@
                    (print-modexp r stream simple no-param)
                    (princ ")" stream)
                    (decf .file-col.))
-            (print-modexp r stream simple no-param))))))
+          (print-modexp r stream simple no-param))))))
 
 ;;; *** RENAME ***
 
-(defun print-rename-modexp (me &optional stream simple no-param)
+(defun print-rename-modexp (me &optional (stream *standard-output*) simple no-param)
+  (declare (type modexp me)
+           (type stream stream)
+           (type (or null (not null)) simple no-param))
   (print-modexp (%rename-module me) stream simple no-param) (princ " * {")
   (print-check .file-col. 0 stream)
   (if simple
       (princ " ... " stream)
-    (print-rename-map (%rename-map me) stream)
-    )
+    (print-rename-map (%rename-map me) stream))
   (princ "}" stream))
 
 ;;; *** INSTANTIATION ***
 
-(defun print-instantiation-modexp (me &optional stream simple no-param)
+(defun print-instantiation-modexp (me &optional (stream *standard-output*)
+                                                simple
+                                                no-param)
+  (declare (type %! me)
+           (type stream stream)
+           (type (or null (not null)) simple no-param))
   (if (or (stringp (%instantiation-module me))
           (and (module-p (%instantiation-module me))
                (stringp (module-name (%instantiation-module me)))))
       (progn
         (print-modexp (%instantiation-module me) stream simple no-param))
       (progn
-        ;; (princ "(" stream)
         (print-modexp (%instantiation-module me) stream simple no-param)))
   (princ "(" stream)
   (incf .file-col.)
   (let ((flg nil)
         (pos-arg nil))
+    (declare (type (or null (not null)) flg pos-arg))
     (dolist (arg (%instantiation-args me))
       (let ((arg-name (%!arg-name arg))
             (view (%!arg-view arg)))
@@ -602,7 +638,6 @@
             (progn (princ ", " stream)
                    (print-check .file-col. 0 stream))
             (setq flg t))
-        ;;
         (cond ((stringp arg-name) (princ arg-name stream))
               ((and (consp arg-name) (cdr arg-name))
                ;; (format t "~a@" (car arg-name))
@@ -620,15 +655,18 @@
         (unless pos-arg
           (princ " <= " stream))
         (print-view-modexp-abbrev view stream simple))))
-  ;; (princ "]" stream)
   (princ ")" stream)
   (decf .file-col.))
 
 ;;; *** Sort renaming ***
 
 (defun print-ren-sort (ast &optional (stream *standard-output*) pretty)
+  (declare (type %ren-sort ast)
+           (type stream stream)
+           (type (or null (not null)) pretty))
   (let ((*standard-output* stream)
         (p-flg nil))
+    (declare (type (or null (not null)) p-flg))
     (dolist (elt (%ren-sort-maps ast))
       (if p-flg
           (progn (princ ",")
@@ -644,6 +682,9 @@
 ;;; *** Operator renaming ***
 
 (defun print-ren-op (ast &optional (stream *standard-output*) pretty)
+  (declare (type %ren-op ast)
+           (type stream stream)
+           (type (or null (not null)) pretty))
   (let ((*standard-output* stream)
         (p-flg nil))
     (dolist (elt (%ren-op-maps ast))
@@ -652,16 +693,18 @@
       (princ "op ")
       (if (%is-opref (car elt))
           (print-opref-simple (car elt))
-          (print-simple-princ-open (car elt)))
+        (print-simple-princ-open (car elt)))
       (print-check .file-col. 0 stream)
       (princ " -> ")
       (if (%is-opref (cadr elt))
           (print-opref-simple (cadr elt))
-          (print-simple-princ-open (cadr elt))))))
+        (print-simple-princ-open (cadr elt))))))
 
 ;;; Parameter renaming
 
 (defun print-ren-param (ast &optional (stream *standard-output*))
+  (declare (type %ren-param ast)
+           (type stream stream))
   (let ((*standard-output* stream)
         source
         target)
@@ -675,7 +718,11 @@
 ;;; vars in mapping
 
 (defun print-vars-ast (ast &optional (stream *standard-output*) pretty)
+  (declare (type %vars ast)
+           (type stream stream)
+           (type (or null (not null)) pretty))
   (let ((p-flg nil))
+    (declare (type (or null (not null)) p-flg))
     (dolist (elt (%vars-elements ast))
       (let ((var-names (car elt))
             (sort (cadr elt)))
@@ -690,7 +737,8 @@
 ;;; *** RENAME MAP ***
 
 (defun print-rename-map (rn &optional (stream *standard-output*) simple no-param pretty)
-  (declare (ignore simple no-param))
+  (declare (type stream stream)
+           (ignore simple no-param))
   (let ((*standard-output* stream))
     (cond  ((null rn) (princ " ## EMPTY RENAME MAP ##")) ; for debugging.
            ((%is-rmap rn)
@@ -710,8 +758,9 @@
 
 ;;; RENAME
 (defun pr-int-rename (obj &optional (stream *standard-output*) simple no-param)
-  ;; (declare (ignore simple no-param))
-  (declare (ignore no-param))
+  (declare (type stream stream)
+           (type (or null (not null)) simple)
+           (ignore no-param))
   (let ((*standard-output* stream))
     (print-modexp (int-rename-module obj) stream t t)
     (princ " *{ " stream)
@@ -744,14 +793,14 @@
           
 ;;; PLUS
 (defun pr-int-plus (obj &optional (stream *standard-output*) simple no-param)
-  (declare (ignore simple no-param))
+  (declare (type stream stream)
+           (ignore simple no-param))
   (let ((*standard-output* stream))
     (let ((*print-indent* (+ *print-indent* 4))
           (flg nil))
       (dolist (mod (int-plus-args obj))
         (print-check)
         (when flg (princ " + "))
-        ;; (print-modexp mod stream simple no-param)
         (print-modexp mod stream t t)
         (setq flg t)))))
 
@@ -759,12 +808,11 @@
 (defun pr-int-instantiation (obj &optional
                                  (stream *standard-output*)
                                  simple no-param)
-  (declare (ignore simple no-param))
+  (declare (type stream stream)
+           (ignore simple no-param))
   (let ((*standard-output* stream))
     (let ((*print-indent* (+ *print-indent* 4)))
-      ;; (print-modexp (int-instantiation-module obj) stream simple no-param)
       (print-modexp (int-instantiation-module obj) stream t t)
-      ;; (princ "[ ")
       (princ "(")
       (let ((flg nil))
         (dolist (arg (int-instantiation-args obj))
@@ -773,7 +821,6 @@
                 (pos-arg nil))
             (cond ((stringp arg-name) (princ arg-name stream))
                   ((and (consp arg-name) (cdr arg-name))
-                   ;; (format t "~a@" (car arg-name))
                    (format t "~a." (car arg-name))
                    (print-chaos-object (cdr arg-name) stream))
                   ((consp arg-name) (princ (car arg-name) stream))
@@ -789,11 +836,8 @@
             (unless pos-arg
               (princ " <= "))
             (let ((*print-indent* (+ *print-indent* 4)))
-              ;; (print-view (%!arg-view arg) stream simple no-param)
-              (print-view (%!arg-view arg) stream t t)
-              ))
+              (print-view (%!arg-view arg) stream t t)))
           (print-check)))
-      ;; (princ " ]")
       (princ ")"))))
 
 ;;;-----------------------------------------------------------------------------
@@ -801,11 +845,15 @@
 ;;;-----------------------------------------------------------------------------
 
 (defun print-view-internal (vw &optional (stream *standard-output*) &rest ignore)
-  (declare (ignore ignore))
+  (declare (type stream stream)
+           (ignore ignore))
   (print-view vw stream))
 
 (defun print-view (vw &optional (stream *standard-output*) simple no-param
                                 (syntax *show-mode*))
+  (declare (type stream stream)
+           (type symbol syntax)
+           (type (or null (not null)) simple no-param))
   (if (eq syntax :cafeobj)
       (print-view-in-cafeobj-mode vw
                                   stream simple
@@ -816,6 +864,8 @@
                               no-param)))
 
 (defun print-view-in-cafeobj-mode (vw stream simple no-param)
+  (declare (type stream stream)
+           (type (or null (not null)) simple no-param))
   (cond ((and (not (stringp vw))
               (chaos-ast? vw) 
               (memq (ast-type vw) 
@@ -855,16 +905,17 @@
         ;;
         ((and (consp vw) (stringp (car vw))) (princ vw stream))
         ((atom vw) (princ vw stream))
-        (t (print-modexp vw stream simple no-param))
-        ))
+        (t (print-modexp vw stream simple no-param))))
 
 (defun print-view-in-chaos-mode (vw stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (type stream stream)
+           (ignore ignore))
   (let ((*print-pretty* t))
     (format stream "~%~s" (object-decl-form vw))))
 
 (defun print-view-struct-maps (view stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (type stream stream)
+           (ignore ignore))
   (let ((*print-indent* (+ *print-indent* 2))
         (sort-maps (view-sort-maps view))
         (op-maps (view-op-maps view))
@@ -889,7 +940,8 @@
       (princ "(")(print-chaos-object (term-head (cadr pm)))(princ ")"))))
 
 (defun print-abs-view-mapping (map stream simple no-param pretty)
-  (declare (ignore simple no-param))
+  (declare (type stream stream)
+           (ignore simple no-param))
   (unless map (return-from print-abs-view-mapping nil))
   (let ((rmap (if (%is-rmap map)
                   (%rmap-map map)
@@ -907,6 +959,9 @@
         (print-ren-op opmaps stream pretty)))))
 
 (defun print-view-modexp (me &optional (stream *standard-output*) simple no-param)
+  (declare (type %view me)
+           (type stream stream)
+           (type (or null (not null)) simple no-param))
   (when (%view-map me)
     (if simple
         (princ "{ ... }" stream)
@@ -927,6 +982,8 @@
 
 (defun print-view-modexp-abbrev (me &optional
                                     (stream *standard-output*) simple no-param)
+  (declare (type stream stream)
+           (type (or null (not null)) simple no-param))
   (let ((target (if (view-p me)
                     (view-target me)
                     (if (modexp-is-view me)
@@ -938,7 +995,6 @@
               (with-output-panic-message ()
                 (format t "print-view, given invalid view : ")
                 (prin1 me))))
-                ;; (chaos-error 'invalid-view))))
       (when (stringp me)
         (return-from print-view-modexp-abbrev nil))
       (when (and (not (view-p me)) (%view-map me))
@@ -955,6 +1011,8 @@
 (defun print-view-mapping (vwmap &optional
                                  (stream *standard-output*) simple no-param
                                  pretty)
+  (declare (type stream stream)
+           (type (or null (not null)) simple no-param pretty))
   (unless vwmap (return-from print-view-mapping nil))
   (print-rename-map vwmap stream simple no-param pretty))
 
@@ -965,59 +1023,70 @@
 ;;; OPERATOR **********
 
 (defun print-operator-internal (op &optional (stream *standard-output*))
+  (declare (type operator op)
+           (type stream stream))
   (format stream "~a/~a."
           (operator-symbol op)
           (operator-num-args op))
   (print-mod-name (operator-module op) stream))
           
 (defun print-op-name (op)
+  (declare (type operator op))
   (format t "~a/~a" (operator-symbol op) (operator-num-args op)))
 
 ;;; SORT **************
 
 (defun print-sort-internal (sort &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
-  (print-sort-name sort (get-object-context sort) stream))
-
-(defun print-record-internal (sort &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
-  (print-sort-name sort (get-object-context sort) stream))
-
-(defun print-class-internal (sort &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
+  (declare (type sort* sort)
+           (type stream stream)
+           (ignore ignore))
   (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-bsort-internal (sort &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
+  (declare (type bsort sort)
+           (type stream stream)
+           (ignore ignore))
   (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-and-sort-internal (sort &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
+  (declare (type and-sort sort)
+           (type stream stream)
+           (ignore ignore))
   (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-or-sort-internal (sort &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
+  (declare (type or-sort sort)
+           (type stream stream)
+           (ignore ignore))
   (print-sort-name sort (get-object-context sort) stream))
 
 (defun print-err-sort-internal (sort &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
+  (declare (type err-sort sort)
+           (type stream stream)
+           (ignore ignore))
   (print-sort-name sort (get-object-context sort) stream))
 
 ;;; MODULE ************
 
 (defun print-module-internal (module &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
+  (declare (type module module)
+           (type stream stream)
+           (ignore ignore))
   (print-mod-name module stream t nil))
 
 ;;; AXIOM *************
 
 (defun print-axiom-internal (ax &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
+  (declare (type rewrite-rule ax)
+           (type stream stream)
+           (ignore ignore))
   (print-axiom-brief ax stream))
 
 ;;; REWRITE RULE *****
 (defun print-rule-internal (rule &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
+  (declare (type rewrite-rule rule)
+           (type stream stream)
+           (ignore ignore))
   (let ((cnd (not (term-is-similar? *BOOL-true* (rule-condition rule))))
         (.printed-vars-so-far. nil))
     (when (rule-labels rule)
@@ -1051,9 +1120,12 @@
 ;;; METHOD ************
 
 (defun print-method-internal (meth &optional (stream *standard-output*) ignore)
-  (declare (ignore ignore))
+  (declare (type method meth)
+           (type stream stream)
+           (ignore ignore))
   (let ((mod (get-object-context meth))
         (.file-col. .file-col.))
+    (declare (type module mod))
     (format stream "~{~A~} :" (method-symbol meth))
     (setq .file-col. (file-column stream))
     (mapc #'(lambda (x)
@@ -1073,6 +1145,7 @@
 ;;;-----------------------------------------------------------------------------
 
 (defun print-modmorph (mppg)
+  (declare (type modmorph mppg))
   (format t "~%Module morphism:")
   (format t "~& name: ") (print-chaos-object (modmorph-name mppg))
   (format t "~& sort: ")
@@ -1099,7 +1172,9 @@
 ;;; 
 (defun print-sort-name (s &optional (module (get-object-context s))
                                     (stream *standard-output*))
-  (unless (sort-struct-p s) (break "print-sort-name: given non sort: ~s" s))
+  (declare (type sort* s)
+           (type module module)
+           (type stream stream))
   (let ((*standard-output* stream)
         (mod-name (get-module-print-name (sort-module s))))
     (cond ((and module
@@ -1112,11 +1187,12 @@
                    (print-mod-name cntxt stream t t)))
                (progn
                  (format t "~a." (string (sort-id s)))
-                 ;; (print-simple-mod-name (sort-module s))
                  (print-mod-name (sort-module s) stream t t))))
           (t (format t "~a" (string (sort-id s)))))))
 
-(defun sort-print-name (sort &optional (with-mod-qualifier))
+(defun sort-print-name (sort &optional with-mod-qualifier)
+  (declare (type sort* sort)
+           (type (or null (not null)) with-mod-qualifier))
   (with-output-to-string (str)
     (let ((*standard-output* str))
       (if with-mod-qualifier
@@ -1129,8 +1205,11 @@
 ;;; PRINT-SORT-LIST
 ;;;
 (defun print-sort-list (lst &optional
-                            (module *current-module*)
+                            (module (get-context-module))
                             (stream *standard-output*))
+  (declare (type list lst)
+           (type module module)
+           (type stream stream))
   (let ((*standard-output* stream))
     (let ((flag nil))
       (dolist (s lst)
@@ -1138,8 +1217,11 @@
         (if flag (princ " ") (setq flag t))
         (print-sort-name s module)))))
 
-(defun print-sort-name2 (sort &optional (module *current-module*)
-                              (stream *standard-output*))
+(defun print-sort-name2 (sort &optional (module (get-context-module))
+                                        (stream *standard-output*))
+  (declare (type sort* sort)
+           (type module module)
+           (stream stream))
   (let ((*standard-output* stream)
         (*current-sort-order* (module-sort-order module)))
     (let ((subs (subsorts sort))
@@ -1178,11 +1260,11 @@
         (print-simple-princ (cadr qop))
         (princ ".")
         (print-qual-sort-name (caddr qop)))
-  (if (consp qop)
-      (let ((flag nil))
-        (dolist (x qop)
-          (if flag (princ " ") (setq flag t))
-          (if (consp x) (print-qual-sort-name x)
+    (if (consp qop)
+        (let ((flag nil))
+          (dolist (x qop)
+            (if flag (princ " ") (setq flag t))
+            (if (consp x) (print-qual-sort-name x)
               (princ x))))
       (print-simple-princ-open qop))))
 
@@ -1195,14 +1277,13 @@
         (equal l (append iota '(0))))))
 
 (defun print-check-bu-meth (method l)
+  (declare (type method method))
   (let ((iota (make-list-1-n (length (method-arity method)))))
     (or (equal l iota)
         (equal l (append iota '(0))))))
 
 (defun print-method-brief (meth)
-  (unless (method-p meth)
-    (format t "[print-method-brief]: Illegal method given ~a" meth)
-    (return-from print-method-brief nil))
+  (declare (type method meth))
   (let* ((*print-indent* (+ 4 *print-indent*))
          (.file-col. *print-indent*)
          (is-predicate (method-is-predicate meth)))
@@ -1218,16 +1299,17 @@
     (setq .file-col. (1- (file-column *standard-output*)))
     (when (method-arity meth)
       (dolist (ar (method-arity meth))
-        (print-sort-name ar *current-module*)
+        (print-sort-name ar (get-context-module))
         (princ " ")
         (print-check .file-col. 0)))
     (unless is-predicate
       (princ "-> ")
-      (print-sort-name (method-coarity meth) *current-module*))
+      (print-sort-name (method-coarity meth) (get-context-module)))
     (print-check .file-col. 0)
     (print-method-attrs meth)))
 
 (defun operator-decl-form-string (op)
+  (declare (type method op))
   (with-output-to-string (stream nil)
     (let ((*standard-output* stream))
       (print-method-brief op))
@@ -1235,10 +1317,13 @@
 
 ;;; PRINT-OP-BRIEF operator
 ;;;
-(defun print-op-brief (op &optional (module *current-module*)
+(defun print-op-brief (op &optional (module (get-context-module))
                                     (all t)
                                     (every nil)
                                     (show-context nil))
+  (declare (type operator op)
+           (type module module)
+           (type (or null (not null)) all every show-context))
   (let* ((*print-indent* *print-indent*)
          (opinfo (get-operator-info op (module-all-operators module)))
          (methods (if all
@@ -1263,6 +1348,8 @@
 ;;; PRINT-OP-METH
 ;;;
 (defun print-op-meth (op-meth mod &optional (all t))
+  (declare (type module mod)
+           (type list op-meth))
   (let ((op (car op-meth))
         (methods (if all
                      (cadr op-meth)
@@ -1281,6 +1368,9 @@
               (print-method-brief meth)))))))
 
 (defun print-op-meth2 (op-meth mod &optional (all t))
+  (declare (type list op-meth)
+           (type module mod)
+           (type (or null (not null)) all))
   (with-in-module (mod)
     (let ((op (car op-meth))
           (methods (if all
@@ -1312,19 +1402,25 @@
 ;;; PRINT-TERM-HEAD : term module stream -> void
 ;;;
 (defun print-term-head (term &optional
-                             (module *current-module*)
+                             (module (get-context-module))
                              (stream *standard-output*))
+  (declare (type term term)
+           (type module module)
+           (type stream stream))
   (if (operator-method-p term)
       (print-method term module stream)
-      (if (term-is-builtin-constant? term)
-          (print-bi-constant-method term module stream)
-          (print-method (term-head term) module stream))))
+    (if (term-is-builtin-constant? term)
+        (print-bi-constant-method term module stream)
+      (print-method (term-head term) module stream))))
   
 ;;; PRINT-METHOD : method module stream -> void
 ;;;
 (defun print-method (method &optional
-                            (module *current-module*)
+                            (module (get-context-module))
                             (stream *standard-output*))
+  (declare (type method method)
+           (type module module)
+           (type stream stream))
   (format stream "~{~a~} : " (method-symbol method))
   (print-sort-list (method-arity method) module stream)
   (princ " -> " stream)
@@ -1332,7 +1428,9 @@
   
 ;;; METHOD-PRINT-STRING
 ;;;
-(defun method-print-string (meth &optional (module *current-module*))
+(defun method-print-string (meth &optional (module (get-context-module)))
+  (declare (type method meth)
+           (type module module))
   (with-output-to-string (str)
     (print-method meth module str)
     str))
@@ -1340,16 +1438,21 @@
 ;;; PRINT-BI-CONSTANT-METHOD (term &optional module stream)
 ;;;
 (defun print-bi-constant-method (term &optional
-                                      (module *current-module*)
+                                      (module (get-context-module))
                                       (stream *standard-output*))
+  (declare (type term term)
+           (type module module)
+           (type stream stream))
   (princ (term-builtin-value term) stream)
   (princ " : -> ")
   (print-sort-name (term-sort term) module stream))
                                       
 
-;;; BI-METHOD-PRINT-STRING (term &optional (module *current-module*))
+;;; BI-METHOD-PRINT-STRING
 ;;;
-(defun bi-method-print-string (term &optional (module *current-module*))
+(defun bi-method-print-string (term &optional (module (get-context-module)))
+  (declare (type term term)
+           (type module module))
   (with-output-to-string (str)
     (print-bi-constant-method term module)))
     
@@ -1358,6 +1461,7 @@
 ;;;-----------------------------------------------------------------------------
 
 (defun print-op-attrs (op)
+  (declare (type operator op))
   ;;  print "attributes" -- for the moment ignore purely syntactic
   ;;  -- i.e. precedence and associativity .
   (let ((strat (let ((val (operator-strategy op)))
@@ -1387,6 +1491,7 @@
         (princ " }")))))
 
 (defun print-method-attrs (method &optional header)
+  (declare (type method method))
   (let ((strat (let ((val (method-rewrite-strategy method)))
                  (if (print-check-bu-meth method val) nil val)))
         (constr (method-constructor method))
@@ -1466,7 +1571,8 @@
 (defun print-id-condition (x stream) (print-id-cond x 10) stream)
 
 (defun print-id-cond (x p &optional (stream *standard-output*))
-  (declare (type fixnum p))
+  (declare (type fixnum p)
+           (type stream stream))
   (let ((*standard-output* stream))
     (cond ((eq 'and (car x))
            (let ((paren (< p 4)))
@@ -1502,6 +1608,7 @@
       (print-id-cond c r))))
 
 (defun print-rule-labels (rul)
+  (declare (type axiom rul))
   (let ((labels (axiom-labels rul)))
     (unless *chaos-verbose*
       ;; (format t "~%~{~s~^ ~}" labels)
@@ -1519,7 +1626,7 @@
                                         (full-stop nil))
   (declare (type axiom rul)
            (type stream stream)
-           (type (or null t) no-type no-label meta))
+           (type (or null (not null)) no-type no-label meta full-stop))
   (let ((type (axiom-type rul))
         (cnd (not (term-is-similar? *BOOL-true* (axiom-condition rul))))
         (.printed-vars-so-far. nil)
@@ -1614,12 +1721,14 @@
       (princ " ."))))
 
 (defun print-rule-id-inf (x)
+  (declare (type list x))
   (print-axiom-brief (nth 0 x)) (terpri)
   (print-substitution (nth 1 x))
   (when (cddr x)
     (progn (print-chaos-object (nth 2 x) nil) (terpri))))
 
 (defun print-rule (rul)
+  (declare (type axiom rul))
   (let ((type (axiom-type rul))
         (cond (not (term-is-similar? *bool-true* (axiom-condition rul))))
         (rul-rhs (axiom-rhs rul))
@@ -1629,18 +1738,18 @@
        (if cond
            (if (axiom-is-behavioural rul)
                (princ "- conditional behavioural equation ")
-               (princ "- conditional equation "))
-           (if (axiom-is-behavioural rul)
-               (princ "- behavioural equation ")
-               (princ "- equation "))))
+             (princ "- conditional equation "))
+         (if (axiom-is-behavioural rul)
+             (princ "- behavioural equation ")
+           (princ "- equation "))))
       (:rule
        (if cond
            (if (axiom-is-behavioural rul)
                (princ "- conditional behavioural transition ")
-               (princ "- conditional transition "))
-           (if (axiom-is-behavioural rul)
-               (princ "- behavioural transition ")
-               (princ "- transition "))))
+             (princ "- conditional transition "))
+         (if (axiom-is-behavioural rul)
+             (princ "- behavioural transition ")
+           (princ "- transition "))))
       (:pignose-axiom
        (if (axiom-is-behavioural rul)
            (princ "- behavioural FOPL axiom ")
@@ -1681,16 +1790,15 @@
                (print-next)
                (princ "* lhs is a variable."))
               (t
-               (let ((head (term-head lhs)))
+               (let ((head (term-head lhs))
+                     (cntxt (get-context-module)))
                  (print-next)
                  (princ "top operator    : ")
                  (when (method-arity head)
-                   (print-sort-list (method-arity head) *current-module*)
+                   (print-sort-list (method-arity head) cntxt)
                    (princ " "))
                  (princ "-> ")
-                 (print-sort-name (method-coarity head) *current-module*)))
-              )
-        ;;
+                 (print-sort-name (method-coarity head) cntxt))))
         (when (axiom-id-condition rul)
           (print-next)
           (princ "id condition    :  ")
@@ -1743,6 +1851,7 @@
 
 ;;; *TODO*
 (defun print-rules-detail (mod)
+  (declare (type module mod))
   (let ((rules (module-rules mod)))
     (dolist (r rules)
       (print-chaos-object r) (terpri))))
@@ -1750,6 +1859,8 @@
 ;;; axiom-declaration-string : axiom -> string
 ;;; 
 (defun axiom-declaration-string (axiom &optional (mod (get-context-module)))
+  (declare (type axiom axiom)
+           (type module mod))
   (with-output-to-string (stream)
     (with-in-module (mod)
       (let ((*term-print-depth* nil)
@@ -1771,6 +1882,8 @@
 ;;;-----------------------------------------------------------------------------
 
 (defun print-mapping (mppg &optional (stream *standard-output*))
+  (declare (type modmorph mppg)
+           (type stream stream))
   (let ((*standard-output* stream)
         (*print-indent* (1+ *print-indent*))
         (*print-array* nil)
@@ -1818,8 +1931,7 @@
             (print-mod-name (method-module head)
                             *standard-output*
                             t t)
-            (princ ")")))
-      )
+            (princ ")"))))
     (decf *print-indent* 2)
     (print-next)
     (princ "module mappings: ")
@@ -1835,6 +1947,8 @@
 ;;;-----------------------------------------------------------------------------
 
 (defun print-rule-ring (rr &optional (stream *standard-output*))
+  (declare (type rule-ring rr)
+           (type stream stream))
   (princ "rule ring: " stream)
   (do ((rule (initialize-rule-ring rr) (rule-ring-next rr)))
       ;; avoid end-test so can trace it
@@ -1848,6 +1962,8 @@
 ;;; SUBSTITUTION
 
 (defun print-substitution (subst &optional (stream *standard-output*))
+  (declare (type substitution subst)
+           (type stream stream))
   (let ((.file-col. .file-col.))
     (if (or (substitution-is-empty subst)
             (null (car subst)))
@@ -1872,6 +1988,7 @@
 ;;; PARSE DICTIONARY
 
 (defun show-parse-dict (dict)
+  (declare (type parse-dictionary dict))
   (format t "~%Parse Dictionary:")
   (maphash #'(lambda (key val)
                (format t "~% -- key   = ~s" key)
@@ -1892,6 +2009,7 @@
 ;;; SORT ORDER
 
 (defun pp-sort-order (&optional (sort-order *current-sort-order*))
+  (declare (type sort-order sort-order))
   (maphash #'(lambda (sort sort-rel)
                (format t "~%[Sort : ~A](~a)" (sort-print-name sort) sort)
                (format t "~% Subsorts : ~{ ~A~}(~{ ~a~})"
@@ -1908,6 +2026,8 @@
 
 (defun pp-sort-order-raw (module &optional
                                  (sort-order (module-sort-order module)))
+  (declare (type module module)
+           (type sort-order sort-order))
   (with-in-module (module)
     (maphash #'(lambda (sort sort-rel)
                  (format t "~%[Sort : ~A](~a)" (sort-print-name sort) sort)
@@ -1925,7 +2045,8 @@
 
 ;;; MODULE INSTANCE DB
 
-(defun print-instance-db (&optional (module *current-module*))
+(defun print-instance-db (&optional (module (get-context-module)))
+  (declare (type module module))
   (let ((db (module-instance-db module)))
     (unless db
       (format t "~%module ")

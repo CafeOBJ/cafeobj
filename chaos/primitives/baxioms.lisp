@@ -80,7 +80,9 @@
   (setf (get 'rewrite-rule :print) 'print-rule-internal))
 
 (defun print-rule-object (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (type rewrite-rule obj)
+           (type stream stream)
+           (ignore ignore))
   (if *current-module*
       (progn
         (format stream ":rule[~S: " (addr-of obj))

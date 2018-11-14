@@ -65,7 +65,32 @@
 (defmacro object-info (_obj _info)
   `(getf (object-misc-info ,_obj) ,_info))
 
+;;; GET-CONTEXT-MODULE
+(declaim (inline get-context-module))
+(defun get-context-module (&optional no-error)
+  (declare (type (or null (not null)) no-error)
+           (optimize (speed 3) (safety 0)))
+  (or *current-module*
+      (if no-error
+          nil
+        (with-output-chaos-error ('no-context)
+          (format t "No context module is set.")))))
+
+;;; RESET-CONTEXT-MODULE
+(declaim (inline reset-context-module))
+(defun reset-context-module (&optional (mod nil))
+  (setf *current-module* mod))
+
+;;; GET-OBJECT-CONTEXT object -> null | module
+;;;
+(declaim (inline get-object-context))
+(defun get-object-context (obj)
+  (declare (optimize (speed 3) (safety 0)))
+  (or (get-context-module t) (object-context-mod obj)))
+
+(declaim (inline set-object-context-module))
 (defun set-object-context-module (obj &optional (context-mod (get-context-module)))
+  (declare (optimize (speed 3) (safety 0)))
   (setf (object-context-mod obj) context-mod))
 
 ;;; *********
@@ -427,8 +452,11 @@
 
 ;;; AXIOM SET
 (defun print-axiom-set (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (type axiom-set obj)
+           (type stream stream)
+           (ignore ignore))
   (let ((mod (axiom-set$module obj)))
+    (declare (type module mod))
     (format stream "':axset[\"~a\"]" (module-print-name mod))))
 
 ;;; ***
@@ -588,6 +616,7 @@
   (unknowns nil :type list))
 
 (defun canonicalize-object-name (nm)
+  (declare (optimize (speed 3) (safety 0)))
   (cond ((stringp nm)
          (intern nm))
         ((consp nm)
@@ -602,7 +631,7 @@
 
 (defun symbol-table-add (table nm obj)
   (when (and (module-p obj)
-             (module-is-parameter-theory obj))
+             (module-is-parameter-theory (the module obj)))
     (setq nm (car (module-name obj))))
   (let ((name (canonicalize-object-name nm)))
     (pushnew name (symbol-table-names table) :test #'equal)

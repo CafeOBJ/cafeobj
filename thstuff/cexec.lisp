@@ -152,6 +152,29 @@
         (print-axiom-brief (rule-pat-rule (rwl-state-rule-pat sub))))
       (incf arc-num))))
 
+;;; ***********
+;;; SEARCH TREE
+;;; ***********
+
+;;; Search tree
+;;; - bi-directional dag (see comlib/dag.lisp)
+;;; - datum contains an instance of rwl-state.
+;;; 
+(defstruct (rwl-sch-node (:include bdag)
+            (:conc-name "SCH-NODE-")
+            (:print-function pr-rwl-sch-node))
+  (done nil :type (or null t))          ; t iff this node is checked already
+  (is-solution nil :type (or null t))   ; t iff this node found as a solution
+  )
+
+(defmacro create-sch-node (rwl-state)
+  `(make-rwl-sch-node :datum ,rwl-state :subnodes nil :parent nil :is-solution nil))
+
+(defun pr-rwl-sch-node (node &optional (stream *standard-output*) &rest ignore)
+  (declare (ignore ignore))
+  (let ((*standard-output* stream))
+    (format t "SCH-NODE:~A" (dag-node-datum node))))
+
 ;;; **************
 ;;; SEARCH CONTEXT
 ;;; **************
@@ -186,7 +209,9 @@
   )
 
 (defun print-sch-context (ctxt &optional (stream *standard-output*) &rest ignore)
-  (declare (ignore ignore))
+  (declare (type rwl-sch-context ctxt)
+           (type stream stream)
+           (ignore ignore))
   (let ((*standard-output* stream)
         (mod (rwl-sch-context-module ctxt)))
     (with-in-module (mod)
@@ -223,28 +248,6 @@
         (format t "~%   if: ")
         (term-print-with-sort (rwl-sch-context-if ctxt))))))
 
-;;; ***********
-;;; SEARCH TREE
-;;; ***********
-
-;;; Search tree
-;;; - bi-directional dag (see comlib/dag.lisp)
-;;; - datum contains an instance of rwl-state.
-;;; 
-(defstruct (rwl-sch-node (:include bdag)
-            (:conc-name "SCH-NODE-")
-            (:print-function pr-rwl-sch-node))
-  (done nil :type (or null t))          ; t iff this node is checked already
-  (is-solution nil :type (or null t))   ; t iff this node found as a solution
-  )
-
-(defmacro create-sch-node (rwl-state)
-  `(make-rwl-sch-node :datum ,rwl-state :subnodes nil :parent nil :is-solution nil))
-
-(defun pr-rwl-sch-node (node &optional (stream *standard-output*) &rest ignore)
-  (declare (ignore ignore))
-  (let ((*standard-output* stream))
-    (format t "SCH-NODE:~A" (dag-node-datum node))))
 
 ;;; ******************
 ;;; RWL-SCH-NODE utils

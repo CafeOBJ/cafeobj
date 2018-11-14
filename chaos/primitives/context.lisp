@@ -43,37 +43,22 @@
 
 ;;; GET-CONTEXT : null | module
 (defun get-context ()
+  (declare (optimize (speed 3) (safety 0)))
   (if *current-module*
       (module-context *current-module*)
     nil))
-
-;;; GET-CONTEXT-MODULE
-(defun get-context-module (&optional no-error)
-  (or *current-module*
-      (if no-error
-          nil
-        (with-output-chaos-error ('no-context)
-          (format t "No context module is set.")))))
-
-;;; RESET-CONTEXT-MODULE
-(defun reset-context-module (&optional (mod nil))
-  (setf *current-module* mod))
-
-;;; GET-OBJECT-CONTEXT object -> null | module
-;;;
-(defun get-object-context (obj)
-  (or (get-context-module t) (object-context-mod obj)))
 
 ;;; BINDINGS *******************************************************************
 
 ;;; GET-BOUND-VALUE : let-symbol -> value (a term) | null
 
 (defun is-special-let-variable? (name)
-  (declare (values (or null t)))
+  (declare (type simple-string name))
   (and (>= (length (the simple-string name)) 3)
        (equal "$$" (subseq (the simple-string name) 0 2))))
 
 (defun check-$$term-context (mod)
+  (declare (type module mod))
   (or (eq $$term-context mod)
       (member $$term-context
               (module-all-submodules mod)
@@ -81,6 +66,8 @@
                         (eq x (car y))))))
 
 (defun get-bound-value (let-sym &optional (mod (get-context-module)))
+  (declare (type module mod)
+           (type simple-string let-sym))
   (let ((bound-token (assoc let-sym (module-bindings mod) :test #'equal)))
     (if (and (null bound-token) *allow-$$term*)
         (cond ((equal let-sym "$$term")

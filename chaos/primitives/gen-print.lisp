@@ -55,13 +55,16 @@
 (declaim (special .printed-vars-so-far.))
 (defvar .printed-vars-so-far. nil)
 
-(declaim (special **print-var-sort**))
+(declaim (special **print-var-sort**)
+         (type (or null (not null)) **print-var-sort**))
 (defvar **print-var-sort** t)
 
 
 ;;; VARIABLE
 
 (defun print-variable (term &optional (stream *standard-output*))
+  (declare (type term term)
+           (type stream stream))
   (let ((*standard-output* stream)
         (body (term-body term)))
     (princ (string (variable$print-name body)))
@@ -72,7 +75,9 @@
 ;;;
 
 (defun print-ast-vd (ast stream print-var-sort)
-  (declare (type stream stream))
+  (declare (type list ast)
+           (type stream stream)
+           (type (or null (not null)) print-var-sort))
   (print-check)
   (cond ((consp ast)
          (let ((flg nil))
@@ -84,7 +89,9 @@
            (princ ")")))
         (t (princ ast))))
 
+(declaim (inline is-ast))
 (defun is-ast (obj)
+  (declare (optimize (speed 3) (safety 0)))
   (and (consp obj)
        (let ((cat (car obj)))
          (and (symbolp cat)
@@ -100,18 +107,23 @@
 ;;; returns t if pure varible or pconstant.
 ;;;
 (defun pvariable-term? (term)
+  (declare (type term term))
   (or (term-is-variable? term)(term-is-pconstant? term)))
 
 (defun pvariable-term-body? (term-body)
+  (declare (type term-body term-body))
   (or (term$is-variable? term-body) (term$is-pconstant? term-body)))
 
 ;;; VARIABLE-PRINT-STRING: variable -> String
 ;;;
 (defun variable-print-string (term &optional (print-var-sort t)
                                              (vars-so-far (cons nil nil)))
+  (declare (type term term)
+           (type (or null (not null)) print-var-sort))
   (let ((name (if (numberp (variable-print-name term))
                   (format nil "_v~d" (variable-print-name term))
                 (string (variable-print-name term)))))
+    (declare (type simple-string name))
     (when print-var-sort
       (unless (or (member term (cdr vars-so-far)
                           :test #'variable-eq)
@@ -135,6 +147,7 @@
     name))
 
 (defun bconst-print-string (term)
+  (declare (type term term))
   (let ((val (term-builtin-value term)))
     (with-output-to-string (ss)
       (let ((*standard-output* ss))
@@ -157,9 +170,8 @@
 (defun term-to-sexpr (term &optional (print-var-sort t)
                                      (vars-so-far (cons nil nil))
                                      (as-tree nil))
-  (unless term
-    (princ "!! empty term !!")
-    (return-from term-to-sexpr nil))
+  (declare (type term term)
+           (type (or null (not null)) as-tree))
   (cond ((term-is-variable? term)
          (if as-tree
              (return-from term-to-sexpr
@@ -224,7 +236,9 @@
                                (push i sexpr-so-far))))
                       (return-from term-to-sexpr (nreverse sexpr-so-far)))))))))
   
+(declaim (inline is-self-terminating))
 (defun is-self-terminating (tok)
+  (declare (optimize (speed 3) (safety 0)))
   (and (stringp tok)
        (= (length tok) 1)
        (assoc (char tok 0) .default-single-chars.)))
@@ -232,17 +246,14 @@
 (defun term-print1 (term &optional (stream *standard-output*) 
                                    (print-var-sort t)
                                    (vars-so-far (cons nil nil)))
-  (declare (type stream stream)
-           (type (or null t) print-var-sort)
-           (values t))
-  (unless (term? term)
-    (format stream " ~s " term)
-    (return-from term-print1))
+  (declare (type term term)
+           (type stream stream)
+           (type (or null (not null)) print-var-sort))
   (let ((*standard-output* stream)
         (body (term-body term))
         (*current-term-depth* (1+ *current-term-depth*))
         (.file-col. .file-col.))
-    ;;
+    (declare (type term-body body))
     (when (and *term-print-depth*
                (> *current-term-depth*
                   (the fixnum *term-print-depth*)))
@@ -315,13 +326,10 @@
                     &optional (stream *standard-output*)
                               (print-var-sort t)
                               (vars-so-far (cons nil nil)))
-  (declare (type (or null term) term)
+  (declare (type term term)
            (type fixnum prec)
            (type stream stream)
-           (type (or null t) print-var-sort))
-  (unless (term? term)
-    (format stream " ~s " term)
-    (return-from term-print2))
+           (type (or null (not null)) print-var-sort))
   (let ((*standard-output* stream)
         (*current-term-depth* (1+ *current-term-depth*))
         (.file-col. .file-col.))
@@ -330,18 +338,17 @@
                   (the fixnum *term-print-depth*)))
       (princ " ... " stream)
       (return-from term-print2 nil))
-    ;;
     (when (print-check .file-col. 0 stream)             ; 20?? 
       (setq .file-col. (file-column stream)))
-    ;;
     (when (and *print-term-color* (term-is-red term))
       (princ "r::" stream))
-
-    (cond ((pvariable-term? term)
+    (cond (;; pconstant
+           (pvariable-term? term)
            (let ((vstr (variable-print-string term
                                               print-var-sort
                                               vars-so-far)))
              (princ vstr stream)))
+          ;; system object
           ((term-is-system-object? term)
            (let ((obj (term-system-object term)))
              (when (chaos-list-p obj)
@@ -353,10 +360,11 @@
                  (dolist (x obj)
                    (term-print2 x prec stream print-var-sort vars-so-far))
                  (princ "]" stream)))))
+          ;; built-in constant
           ((term-is-builtin-constant? term)
            (let ((bstr (bconst-print-string term)))
              (princ bstr stream)))
-          ;;
+          ;; lisp-form
           ((term-is-lisp-form? term)
            (let ((*print-pretty* t))
              (if (term-is-simple-lisp-form? term)
@@ -405,7 +413,7 @@
                         (when (or prec-test some-eql-form?)
                           (princ "(" stream)
                           (setq .file-col. (1+ .file-col.)))
-                        ;;
+                        ;; subterms
                         (let ((subs (term-subterms term))
                               (prv nil))
                           (do* ((tseq token-seq (cdr tseq))
@@ -437,45 +445,40 @@
 
 (defun term-print (term &optional (stream *standard-output*)
                                   (print-var-sort **print-var-sort**))
-  (declare (type (or null term) term)
-           (type (or t stream))
-           (type (or null t) print-var-sort)
-           (values t))
-  (unless *current-module*
-    (with-output-chaos-error ('no-context)
-      (format t "Internal error: printing term, no current context")))
-  (when (eq stream t)
-    (setq stream *standard-output*))
-  (let* ((vars-so-far (cons nil .printed-vars-so-far.))
-         (.file-col. (file-column stream))
-         (*print-indent* *print-indent*))
-    (case *print-xmode*
-      (:tree
-       (let ((*print-pretty* t))
-         (princ (term-to-sexpr term print-var-sort vars-so-far t)
-                stream)))
-      (:s-expr
-       (let ((*print-pretty* t))
-         (princ (term-to-sexpr term print-var-sort vars-so-far nil)
-                stream)))
-      (:fancy
-       (let ((*print-pretty* nil))
-         (term-print2 term
-                      parser-max-precedence stream print-var-sort
-                      vars-so-far)))
-      (:normal
-       (let ((*print-pretty* nil))
-         (term-print1 term stream print-var-sort vars-so-far)))
-      (otherwise
-       (with-output-chaos-error ('internal-error)
-         (princ "invalid print mode value ~s" *print-xmode*))))
-    ;;
-    (cdr vars-so-far)))
+  (declare (type term term)
+           (type (or t stream) stream)
+           (type (or null (not null)) print-var-sort))
+  (with-in-module ((get-context-module t))
+    (when (eq stream t)
+      (setq stream *standard-output*))
+    (let* ((vars-so-far (cons nil .printed-vars-so-far.))
+           (.file-col. (file-column stream))
+           (*print-indent* *print-indent*))
+      (case *print-xmode*
+        (:tree
+         (let ((*print-pretty* t))
+           (princ (term-to-sexpr term print-var-sort vars-so-far t)
+                  stream)))
+        (:s-expr
+         (let ((*print-pretty* t))
+           (princ (term-to-sexpr term print-var-sort vars-so-far nil)
+                  stream)))
+        (:fancy
+         (let ((*print-pretty* nil))
+           (term-print2 term
+                        parser-max-precedence stream print-var-sort
+                        vars-so-far)))
+        (:normal
+         (let ((*print-pretty* nil))
+           (term-print1 term stream print-var-sort vars-so-far)))
+        (otherwise
+         (with-output-chaos-error ('internal-error)
+           (princ "invalid print mode value ~s" *print-xmode*))))
+      (cdr vars-so-far))))
 
 (defun term-print-with-sort (term &optional (stream *standard-output*))
-  (declare (type (or null term) term)
-           (type stream stream)
-           (values t))
+  (declare (type term term)
+           (type stream stream))
   (let ((*print-indent* (+ *print-indent* 2))
         (**print-var-sort** t)
         (paren? nil))
@@ -498,7 +501,6 @@
                    (eq *print-xmode* :normal))
                (pvariable-term? term))
       (setq **print-var-sort** nil))
-    ;;
     (when paren? (princ "(" stream))
     (term-print term stream)
     (when paren? (princ ")" stream))
@@ -509,7 +511,8 @@
 
 (defun term-print-with-sort-string (term &optional
                                          (print-var-sort *print-with-sort*))
-  (declare (ignore print-var-sort))
+  (declare (type term term)
+           (ignore print-var-sort))
   (let ((str (make-array '(0)
                          :element-type 'base-char
                          :fill-pointer 0
@@ -671,12 +674,13 @@
 ;;; SOME SPECIFIC PRINTERS
 ;;;-----------------------------------------------------------------------------
 (defun print-theory-brief (thy &optional (stream *standard-output*))
+  (declare (type op-theory thy)
+           (type stream stream))
   (let ((th-info (theory-info thy))
         (flag nil)
         (val (theory-zero thy)))
-    ;; (when (theory-info-is-empty-for-matching th-info)
-    ;; (princ "empty")
-    ;; (return-from print-theory-brief nil))
+    (declare (type theory-info th-info)
+             (type (or null (not null)) flag))
     (when (or (theory-info-is-AC th-info)
               (theory-info-is-A th-info)
               (theory-info-is-AI th-info)
@@ -713,6 +717,7 @@
       (term-print (car val) stream))))
 
 (defun print-theory (th)
+  (declare (type op-theory th))
   (print-theory-info (theory-info th))
   (princ " zero: ")
   (let* ((zs (theory-zero th))
@@ -728,6 +733,7 @@
         (princ "NONE"))))
 
 (defun print-theory-info (thinf)
+  (declare (type theory-info thinf))
   (prin1 (theory-info-name thinf))
   (princ "[") (prin1 (theory-info-code thinf)) (princ ",")
   (print-check)
