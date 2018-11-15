@@ -877,7 +877,6 @@
   `(axiom-condition (demod-axiom ,_demod)))
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'demod :type-predicate) (symbol-function 'demod-p))
   (setf (get 'demod :print) 'print-demod-internal)
   )
 

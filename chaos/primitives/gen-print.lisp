@@ -89,14 +89,6 @@
            (princ ")")))
         (t (princ ast))))
 
-(declaim (inline is-ast))
-(defun is-ast (obj)
-  (declare (optimize (speed 3) (safety 0)))
-  (and (consp obj)
-       (let ((cat (car obj)))
-         (and (symbolp cat)
-              (getf (symbol-plist cat) :category)))))
-
 ;;;====================================================
 ;;; TERM PRINTER
 ;;;====================================================

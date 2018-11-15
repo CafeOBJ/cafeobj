@@ -139,7 +139,6 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'operator :type-predicate) (symbol-function 'operator-p))
   (setf (get 'operator :print) 'print-operator-internal))
 
 (defun print-operator-object (obj stream &rest ignore)
@@ -434,7 +433,6 @@
   (id-symbol nil :type symbol))
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'method :type-predicate) (symbol-function 'method-p))
   (setf (get 'method :print) 'print-method-internal))
 
 (defun print-method-object (obj stream &rest ignore)
@@ -633,7 +631,6 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (get '!method-info :type-predicate) (symbol-function '!method-info-p))
   (setf (get '!method-info :print) nil))
         
 ;;;

@@ -535,8 +535,6 @@
   (op-maps nil :type list))
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-view-struct) (symbol-function 'view-struct-p))
-  (setf (get 'view-struct :type-predicate) (symbol-function 'view-struct-p))
   (setf (get 'view-struct :print) 'print-view-internal))
 
 (defun print-view-struct-object (obj stream &rest ignore)

@@ -299,4 +299,14 @@
 (si::define-inline-function %is-chaos-term? (ast)
   (and (not (stringp ast)) (chaos-object? ast) (get (object-type ast) ':category)))
 
+;;; AST is defined by 'defterm'
+;;;
+(declaim (inline is-ast))
+(defun is-ast (obj)
+  (declare (optimize (speed 3) (safety 0)))
+  (and (consp obj)
+       (let ((cat (car obj)))
+         (and (symbolp cat)
+              (getf (symbol-plist cat) :category)))))
+
 ;;; EOF

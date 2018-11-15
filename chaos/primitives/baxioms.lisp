@@ -75,8 +75,6 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'rewrite-rule :type-predicate)
-        (symbol-function 'rewrite-rule-p))
   (setf (get 'rewrite-rule :print) 'print-rule-internal))
 
 (defun print-rule-object (obj stream &rest ignore)
@@ -125,8 +123,6 @@
   (extensions nil :type list))
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'ex-rewrite-rule :type-predicate)
-        (symbol-function 'ex-rewrite-rule-p))
   (setf (get 'ex-rewrite-rule :print)
         'print-rule-internal))
 
@@ -164,7 +160,6 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'axiom :type-predicate) (symbol-function 'axiom-p))
   (setf (get 'axiom :print) 'print-axiom-brief)
   )
 

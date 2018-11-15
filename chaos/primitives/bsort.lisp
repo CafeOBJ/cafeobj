@@ -131,8 +131,6 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'sort :type-predicate) (symbol-function 'sort-p))
-  (setf (get 'sort :eval) nil)
   (setf (get 'sort :print) 'print-sort-internal))
 
 ;;; Common sort accessors -----------------------------------------------------
@@ -233,7 +231,6 @@
   (info nil :type list))
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'bsort :type-predicate) (symbol-function 'bsort-p))
   (setf (get 'bsort :print) 'print-bsort-internal))
 
 (defun print-bsort-object (obj stream &rest ignore)
@@ -309,8 +306,6 @@
   (components nil :type list))
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'and-sort :type-predicate)
-        (symbol-function 'and-sort-p))
   (setf (get 'and-sort :print)
         'print-and-sort-internal))
 
@@ -352,7 +347,6 @@
   (components nil :type list))
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'or-sort :type-predicate) (symbol-function 'or-sort-p))
   (setf (get 'or-sort :print) 'print-or-sort-internal))
 
 (defun print-or-sort-object (obj stream &rest ignore)
@@ -389,7 +383,6 @@
   (lowers nil :type list))
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'err-sort :type-predicate) (symbol-function 'err-sort-p))
   (setf (get 'err-sort :print) 'print-err-sort-internal))
 
 (defun print-err-sort-object (obj stream &rest ignore)
