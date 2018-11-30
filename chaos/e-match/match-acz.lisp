@@ -202,17 +202,17 @@
 
 (defmacro match-acz-state-zero-matches (state__) `(svref ,state__ 26))
 
-(declaim (inline match-acz-state-p))
-(#+GCL si::define-inline-function #-GCL defun match-acz-state-p (state)
-  (and (vectorp state)
-       (eq (svref state 25) 'acz-state)))
-
 ;;; the following is used only when we boil it down to a single var on left.
 ;;; it is only for performance enhancement...
 ;;;
 (defstruct trivial-match-ACZ-state
   (sys nil)
   (no-more-p nil))
+
+(declaim (inline match-acz-state-p))
+(defun match-acz-state-p (state)
+  (and (vectorp state)
+       (eq (svref state 25) 'acz-state)))
 
 ;;; small utility.  Side effect.
 (defmacro match-ACZ-Rotate-Left (?**array ?**m*)
@@ -1012,7 +1012,7 @@
 ;;; ACZ Next State
 
 (defun match-ACZ-next-state (state)
-  (declare (type simple-vector state)
+  (declare (type (or simple-vector trivial-match-acz-state) state)
            (optimize (speed 3) (safety 0)))
   (if (trivial-match-ACZ-state-p state)
       (if (trivial-match-ACZ-state-no-more-p state)
