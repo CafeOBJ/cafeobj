@@ -641,7 +641,7 @@
 
 (defun term-contains-error-method (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body term)))
     (when (term$is-application-form? body)
       (or (method-is-error-method (appl$head body))
