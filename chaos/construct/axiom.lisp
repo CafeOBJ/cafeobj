@@ -559,8 +559,7 @@
 ;;; 
 (defun term-is-congruent-2? (t1 t2)
   (declare (type term t1 t2)
-           (optimize (speed 3) (safety 0))
-           (values (or null (not null))))
+           (optimize (speed 3) (safety 0)))
   (let ((t1-body (term-body t1))
         (t2-body (term-body t2)))
     (cond ((term$is-variable? t1-body)
@@ -594,7 +593,6 @@
 (defun rule-is-similar? (r1 r2)
   (declare (type axiom r1 r2)
            (optimize (speed 3) (safety 0)))
-           (values (or null (not null)))
   (or (eq r1 r2)
       (and (eq (axiom-type r1) (axiom-type r2))
            (term-is-congruent? (axiom-lhs r1) (axiom-lhs r2))
