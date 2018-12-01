@@ -2290,29 +2290,27 @@
 
 (defun report-instanciated-axiom (instance)
   (let ((*print-indent* (+ 2 *print-indent*))
-        (*print-line-limit* 80)
-        (*print-xmode* :fancy))
+        (*print-line-limit* 80))
     (print-next)
     (print-axiom-brief instance)))
 
 (defun introduce-instanciated-axiom-to-module (instance module)
   (with-in-module (module)
-    (let ((einstance (remove-nonexec instance)))
-      (setf (axiom-kind instance) nil)  ; reset bad flag
-      (set-operator-rewrite-rule module einstance)
-      (adjoin-axiom-to-module module einstance)
-      (compile-module module t))))
+    (setf (axiom-kind instance) nil)    ; reset bad flag
+    (set-operator-rewrite-rule module instance)
+    (adjoin-axiom-to-module module instance)
+    (compile-module module t)))
 
 (defun instanciate-axiom-in-goal (module target-axiom subst &optional (label nil))
   (with-next-context (*proof-tree*)
-    (let ((instance (make-axiom-instance module subst target-axiom label)))
+    (let ((instance (remove-nonexec (make-axiom-instance module subst target-axiom label))))
       (when (citp-flag citp-normalize-lhs)
         ;; we normalize the LHS of the instance
         (with-spoiler-on
             (multiple-value-bind (n-sen applied?)
                 (normalize-sentence instance module :lhs-only :variable-is-constant)
               (when applied?
-            (setf instance n-sen)))))
+                (setf instance n-sen)))))
       ;; input the instance to current context
       (with-in-module (module)
         (let ((goal (ptree-node-goal .context.)))
@@ -2325,7 +2323,7 @@
 
 (defun instanciate-axiom-in-module (module target-axiom subst &optional (label nil))
   (with-in-module (module)
-    (let ((instance (make-axiom-instance module subst target-axiom label)))
+    (let ((instance (remove-nonexec (make-axiom-instance module subst target-axiom label))))
       (format t "~%**> initialized the axiom in module ~a" (get-module-simple-name module))
       (report-instanciated-axiom instance)
       (introduce-instanciated-axiom-to-module instance module))))
