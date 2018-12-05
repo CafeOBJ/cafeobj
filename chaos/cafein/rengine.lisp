@@ -252,11 +252,11 @@
 
 (declaim (inline print-trace-in))
 (defun print-trace-in ()
-  (format *error-output* "~%~d>[~a] " *trace-level* (1+ *rule-count*)))
+  (format t "~%~d>[~a] " *trace-level* (1+ *rule-count*)))
 
 (declaim (inline print-trace-out))
 (defun print-trace-out ()
-  (format *error-output* "~%~d<[~a] " *trace-level* *rule-count*))
+  (format t "~%~d<[~a] " *trace-level* *rule-count*))
 
 (declaim (inline term-replace-dd-simple))
 (defun term-replace-dd-simple (old new)
@@ -327,7 +327,7 @@
     (term-replace old new))
   ;; check rewrite count limit
   (when (and (< 0 *rewrite-count-limit*) (<= *rewrite-count-limit* *rule-count*))
-    (format *error-output* "~%!!! >> aborting rewrite due to rewrite count limit (= ~d) <<"
+    (format t "~%!!! >> aborting rewrite due to rewrite count limit (= ~d) <<"
             *rewrite-count-limit*)
     (flush-all)
     (throw 'rewrite-abort $$term))
