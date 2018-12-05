@@ -134,7 +134,7 @@
 
 (defvar *rewrite-stepping* nil)         ; flag, non-nil -> under stepping.
 (declaim (type fixnum *rewrite-count-limit*))
-(defvar *rewrite-count-limit* -1)
+(defvar *rewrite-count-limit* most-positive-fixnum)
                                         ; flag, non-nil(integer) -> limitation
                                         ; for rewriting steps.
 (defvar *rewrite-stop-pattern* nil)     ; flag, non-nil(term) -> stop rewriting

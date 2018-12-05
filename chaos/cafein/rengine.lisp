@@ -326,7 +326,7 @@
     ;; after tracing, we finally rewrite the target
     (term-replace old new))
   ;; check rewrite count limit
-  (when (<= *rewrite-count-limit* *rule-count*)
+  (when (and (< 0 *rewrite-count-limit*) (<= *rewrite-count-limit* *rule-count*))
     (format *error-output* "~%!!! >> aborting rewrite due to rewrite count limit (= ~d) <<"
             *rewrite-count-limit*)
     (flush-all)
@@ -1391,7 +1391,7 @@
 (defun under-debug-rewrite ()
   (or $$trace-rewrite $$trace-rewrite-whole *rewrite-stepping*
       *rewrite-stop-pattern*
-      (< 0 *rewrite-count-limit*)))
+      (not (= *rewrite-count-limit* most-positive-fixnum))))
 
 (defun apply-one-rule (rule term)
   (declare (type rewrite-rule rule)

@@ -348,7 +348,7 @@
 (defun set-rewrite-count-limit (num)
   (if (integerp num)
       (if (zerop num)
-          (progn (setq *rewrite-count-limit* -1)
+          (progn (setq *rewrite-count-limit* most-positive-fixnum)
                  (rewrite-debug-off))
         (if (> num 0)
             (progn (setq *rewrite-count-limit* num)
@@ -357,7 +357,7 @@
             (format t "invalid rewrite count limit value ~d" num)
             (print-next) (princ "must be a positive integer.")
             )))
-    (progn (setq *rewrite-count-limit* -1)
+    (progn (setq *rewrite-count-limit* most-positive-fixnum)
            (rewrite-debug-off))))
 
 (defun get-int-or-null (value)
