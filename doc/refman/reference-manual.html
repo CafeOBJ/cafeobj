@@ -1,20 +1,25 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="Toshimi Sawada, Kokichi Futatsugi, Norbert Preining" />
   <title>CafeOBJ Reference Manual</title>
-  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
 </head>
 <body>
-<div id="header">
+<header>
 <h1 class="title">CafeOBJ Reference Manual</h1>
-<h2 class="author">Toshimi Sawada, Kokichi Futatsugi, Norbert Preining</h2>
-<h3 class="date">2018-2-26 (v1.5.7)</h3>
-</div>
-<div id="TOC">
+<p class="author">Toshimi Sawada, Kokichi Futatsugi, Norbert Preining</p>
+<p class="date">2018-12-20 (v1.5.9)</p>
+</header>
+<nav id="TOC">
 <ul>
 <li><a href="#introduction">Introduction</a><ul>
 <li><a href="#background-of-cafeobj">Background of CafeOBJ</a></li>
@@ -64,6 +69,8 @@
 <li><a href="#bctrans"><code>bctrans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; if &lt;bool&gt; .</code></a></li>
 <li><a href="#beq"><code>beq [ &lt;label-exp&gt; ] &lt;term&gt; = &lt;term&gt; .</code></a></li>
 <li><a href="#bgoal"><code>bgoal &lt;term&gt; .</code></a></li>
+<li><a href="#bgrind"><code>bgrind [in &lt;module-name&gt; :] &lt;boolean-term&gt; .</code></a></li>
+<li><a href="#citp-bgrind"><code>:bgrind [in &lt;goal-name&gt; :] &lt;boolean-term&gt; .</code></a></li>
 <li><a href="#bguess"><code>{bguess | :bguess} {imply|and|or} [ with &lt;predicate name&gt; ]</code></a></li>
 <li><a href="#binspect"><code>binspect [in &lt;module-name&gt; :] &lt;boolean-term&gt; .</code></a></li>
 <li><a href="#citp-binspect"><code>:binspect [in &lt;goal-name&gt; :] &lt;boolean-term&gt; .</code></a></li>
@@ -225,7 +232,7 @@
 <li><a href="#view"><code>view &lt;name&gt; from &lt;modname&gt; to &lt;modname&gt; { &lt;viewelems&gt; }</code></a></li>
 </ul></li>
 </ul>
-</div>
+</nav>
 <!--
 % \include{macros.gpp}
 
@@ -244,7 +251,7 @@
 <p>While we hope that this manual and the introductory part helps beginners to start programming in CafeOBJ, the main target are those who already have acquired a certain level of fluency, but are in need for a reference of the language.</p>
 <h2 id="background-of-cafeobj">Background of CafeOBJ</h2>
 <p>CafeOBJ is an algebraic specification and verification language. Although it can be employed for all kind of programming (since it is Turing complete), the main target are algebraic specification of software systems. This includes programs, protocols, and all kind of interaction specifications. In addition to being a specification language, it is also a <em>verification</em> language, that is, a specification given in CafeOBJ can be verified within the same language environment.</p>
-<p><em>Specification</em> here means that we are trying to describe the inner workings of a software system in a mathematical way, while <em>verification</em> means that we give a mathematical proof of certain properties. A specification is a text, usually of formal syntax. It denotes an algebraic system constructed out of sorts (or data types) and sorted (or typed) operators. The system is characterize by the axioms in the specification. An axiom was traditionally a plain equation (``essentially algebraic''), but is now construed much more broadly. For example, CafeOBJ accommodates conditional equations, directed transitions, and (limited) use of disequality.</p>
+<p><em>Specification</em> here means that we are trying to describe the inner workings of a software system in a mathematical way, while <em>verification</em> means that we give a mathematical proof of certain properties. A specification is a text, usually of formal syntax. It denotes an algebraic system constructed out of sorts (or data types) and sorted (or typed) operators. The system is characterize by the axioms in the specification. An axiom was traditionally a plain equation (``essentially algebraic’’), but is now construed much more broadly. For example, CafeOBJ accommodates conditional equations, directed transitions, and (limited) use of disequality.</p>
 <p>CafeOBJ is based on three extensions to the basic many-sorted equational logic:</p>
 <dl>
 <dt>Order-sorted logic</dt>
@@ -313,7 +320,7 @@ eq snd( &lt; A:Nat , B:Nat &gt; ) = B .</code></pre>
 <h2 id="protocol">Protocol</h2>
 <p>One cloud computer and arbitrary many PCs have one value each that they want to keep in sync. This value is a natural number, and higher values mean more recent (like SVN revision numbers).</p>
 <p>The Cloud can be in two states, <em>idle</em> and <em>busy</em>, while the PCs can be on of the following three states: <em>idle</em>, <em>gotvalue</em>, <em>updated</em>. The Cloud as well as all PCs are initially in the <em>idle</em> state. When a PC connects to the cloud, three things happen:</p>
-<ol style="list-style-type: decimal">
+<ol type="1">
 <li>the cloud changes into <em>busy</em> state</li>
 <li>the PC reads the value of the cloud and saves it in a temporary location</li>
 <li>the PC changes into <em>gotvalue</em> state</li>
@@ -444,7 +451,7 @@ mod! PCLABEL {
   pred init : State .
   eq init(S:State) = apply(init-name, S) .
 }</code></pre>
-<p>Let us now turn to the most difficult part, that is finding an invariant. This is not a one-shot technique, but mostly iterative. One starts with a set of predicates, and realizes that the proofs don't work out properly, due to some missing properties. Thus, we add new predicates and iterate until the induction proof finally succeeds.</p>
+<p>Let us now turn to the most difficult part, that is finding an invariant. This is not a one-shot technique, but mostly iterative. One starts with a set of predicates, and realizes that the proofs don’t work out properly, due to some missing properties. Thus, we add new predicates and iterate until the induction proof finally succeeds.</p>
 <p>In the following case we ended up with five different predicates that combined worked as invariant:</p>
 <dl>
 <dt><code>cloud-idle-pcs-idle</code></dt>
@@ -493,7 +500,7 @@ mod! PCLABEL {
   red inv-condition(t1, SS) .
   red inv-condition(t2, SS) .
   red inv-condition(t3, SS) .</code></pre>
-<p>Unfortunately, in the case of <code>t2</code> this didn't turn out to be directly possible, and a further case distinction was necessary to complete the proof.</p>
+<p>Unfortunately, in the case of <code>t2</code> this didn’t turn out to be directly possible, and a further case distinction was necessary to complete the proof.</p>
 <p>This concludes the presentation of the CloudSync protocol. We described the cloud protocol using a <em>state system</em> and transitions. This is just one way of implementation. There are other approaches to specification using purely term-based expressions that do not use transitions, but equational theory only. One of the strength of CafeOBJ is that it does not require any specific approach to modeling, but allows for freedom in choosing methodology.</p>
 <h1 id="gorydetails">Gory Details</h1>
 <p>This chapter presents all syntactic elements of CafeOBJ as well as several meta-concepts in alphabetic order. Concepts are cross-linked for easy accessibility.</p>
@@ -539,11 +546,11 @@ mod! PCLABEL {
 <pre><code>CafeOBJ&gt; ?ap foo att[er]</code></pre>
 <p>will search for entries that contain the string <code>foo</code> as well as either the string <code>atte</code> or <code>attr</code>.</p>
 <h2 id="help-commands"><code>?com [ &lt;term&gt; ]</code></h2>
-<p>List commands or declarations categorized by the key <term>. <term> is one of 'decl', 'module', 'parse', 'rewrite', 'inspect', 'switch', 'proof', 'system', 'inspect', 'library', 'help', 'io' or 'misc'. If <term> is omitted, the list of available <term> will be printed.</p>
+<p>List commands or declarations categorized by the key <term>. <term> is one of ‘decl’, ‘module’, ‘parse’, ‘rewrite’, ‘inspect’, ‘switch’, ‘proof’, ‘system’, ‘inspect’, ‘library’, ‘help’, ‘io’ or ‘misc’. If <term> is omitted, the list of available <term> will be printed.</p>
 <h2 id="sortsymbol"><code>[</code></h2>
 <p>Starts a sort declaration. See <a href="#sort">sort declaration</a> for details.</p>
 <h2 id="switch-accept"><code>accept =*= proof</code> switch</h2>
-<p>accept system's automatic proof of congruency of <code>=*=</code></p>
+<p>accept system’s automatic proof of congruency of <code>=*=</code></p>
 <h2 id="switch-all-axioms"><code>all axioms</code> switch</h2>
 <p>Controls whether axioms from included modules are shown during a <code>show</code> invocation.</p>
 <p>Related: <a href="#show"><code>show</code></a></p>
@@ -597,7 +604,7 @@ mod! PCLABEL {
 <p>Related: <a href="#citp"><code>citp</code></a></p>
 <h2 id="switch-auto-context"><code>auto context</code> switch</h2>
 <p>Possible values: <code>on</code> or <code>off</code>, default is <code>off</code>.</p>
-<p>If this switch is <code>on</code>, the context will automatically switch to the most recent module, i.e., defining a module or inspecting a module's content will switch the current module.</p>
+<p>If this switch is <code>on</code>, the context will automatically switch to the most recent module, i.e., defining a module or inspecting a module’s content will switch the current module.</p>
 <h2 id="autoload"><code>autoload &lt;module-name&gt; &lt;file-name&gt;</code></h2>
 <p>When evaluating a <module-name> and found that it is not yet declared, the system read in <file-name> then retries the evaluation.</p>
 <p>Related: <a href="#no-autoload"><code>no autoload</code></a></p>
@@ -625,8 +632,12 @@ mod! PCLABEL {
 <p>Related: <a href="#bceq"><code>bceq</code></a>, <a href="#ceq"><code>ceq</code></a>, <a href="#eq"><code>eq</code></a></p>
 <h2 id="bgoal"><code>bgoal &lt;term&gt; .</code></h2>
 <p>(pignose)</p>
+<h2 id="bgrind"><code>bgrind [in &lt;module-name&gt; :] &lt;boolean-term&gt; .</code></h2>
+<p>Print given boolean term in ’grind’ed manner after computes its xor-and normal form.</p>
+<h2 id="citp-bgrind"><code>:bgrind [in &lt;goal-name&gt; :] &lt;boolean-term&gt; .</code></h2>
+<p>Used diring <a href="#citp">CITP</a> proofs instead of <a href="#bgrind"><code>bgrind</code></a></p>
 <h2 id="bguess"><code>{bguess | :bguess} {imply|and|or} [ with &lt;predicate name&gt; ]</code></h2>
-<p>Try to find true/false assignments which satisfies the Bool term specified by 'binspect' or ':binspect'.</p>
+<p>Try to find true/false assignments which satisfies the Bool term specified by ‘binspect’ or ‘:binspect’.</p>
 <h2 id="binspect"><code>binspect [in &lt;module-name&gt; :] &lt;boolean-term&gt; .</code></h2>
 <p>Start an inspection of a Boolean term, that is, and abstracted form of the Boolean term is constructed. The abstracted term is shown (like calling <a href="#bshow"><code>bshow</code></a>.</p>
 <h3 id="example-1">Example</h3>
@@ -652,7 +663,7 @@ CafeOBJ&gt; binspect in BTE : (p1(X:S) or p2(X)) and p3(Y:S) or (p4(Y) and p1(Y)
 <p>For <code>breduce</code> equations, possibly conditional, possibly behavioral, are taken into account for reduction.</p>
 <p>Related: <a href="#reduce"><code>reduce</code></a>, <a href="#execute"><code>execute</code></a></p>
 <h2 id="bresolve"><code>{bresolve | :bresolve} [&lt;limit&gt;] [all]</code></h2>
-<p>Computes all possible variable assignments that render an abstracted term <code>true</code>. The variant with leading colon is for usage during a <a href="#citp">CITP</a> proof. If an optional argument 'all' is specified, all solutions will be searched. Optional <limit> specifies maximal number of variable combination, i.e. if there are 3 variables v1, v2, and v3, and <limit> is 2, the following cases are examined: (1) v1 : true/false (2) v2 : true/false (3) v3 : true/false (4) v1/v2 : combinations of true/false of two variables (5) v1/v3 : combinations of true/false of two variables (6) v2/v3 : combinations of true/false of two variables</p>
+<p>Computes all possible variable assignments that render an abstracted term <code>true</code>. The variant with leading colon is for usage during a <a href="#citp">CITP</a> proof. If an optional argument ‘all’ is specified, all solutions will be searched. Optional <limit> specifies maximal number of variable combination, i.e. if there are 3 variables v1, v2, and v3, and <limit> is 2, the following cases are examined: (1) v1 : true/false (2) v2 : true/false (3) v3 : true/false (4) v1/v2 : combinations of true/false of two variables (5) v1/v3 : combinations of true/false of two variables (6) v2/v3 : combinations of true/false of two variables</p>
 <h3 id="example-2">Example</h3>
 <pre><code>CafeOBJ&gt; bresolve 2 all
 
@@ -824,7 +835,7 @@ where
 <p>Displays the current push stack.</p>
 <p>Related: <a href="#popd"><code>popd</code></a>, <a href="#pwd"><code>pwd</code></a>, <a href="#pushd"><code>pushd</code></a>, <a href="#cd"><code>cd</code></a>, <a href="#ls"><code>ls</code></a></p>
 <h2 id="dribble"><code>dribble { &lt;file-name&gt; | .}</code></h2>
-<p>If <file-name> is give, the evaluation process of the system is output to the <file-name> in internal form. '.' stops the recording. Only usefule for developer of the system.</p>
+<p>If <file-name> is give, the evaluation process of the system is output to the <file-name> in internal form. ‘.’ stops the recording. Only usefule for developer of the system.</p>
 <h2 id="citp-embed"><code>:embed (&lt;label&gt; ... &lt;label&gt;) as &lt;module_name&gt;</code></h2>
 <p>Incorporate proved goals into the module specified by <module_name> which will import the current proof context module.</p>
 <h2 id="eof"><code>eof</code></h2>
@@ -877,7 +888,7 @@ where
 <p>Reinitializes the internal state of the system. All supplied modules definitions are lost.</p>
 <p>Related: <a href="#prelude"><code>prelude</code></a>, <a href="#reset"><code>reset</code></a></p>
 <h2 id="gendoc"><code>gendoc &lt;pathname&gt;</code></h2>
-<p>generates reference manual from system's on line help documents, and save it to <code>pathname</code>.</p>
+<p>generates reference manual from system’s on line help documents, and save it to <code>pathname</code>.</p>
 <h2 id="citp-goal"><code>:goal { &lt;sentence&gt; . ... }</code></h2>
 <p>Define the initial goal for CITP</p>
 <p>Related: <a href="#citp"><code>citp</code></a></p>
@@ -907,7 +918,7 @@ PNAT&gt; :goal {
 <p>See <a href="#moduleexpression"><code>module expression</code></a> for format of <code>modexp</code>.</p>
 <p>Related: <a href="#moduleexpression">module expression</a>, <a href="#using"><code>using</code></a>, <a href="#protecting"><code>protecting</code></a>, <a href="#extending"><code>extending</code></a></p>
 <h2 id="citp-ind"><code>:ind { on (&lt;variable&gt; ...) |  '{' on (&lt;variable&gt; ...)      base (&lt;Term&gt; . ... &lt;Term&gt; .)     step (&lt;Term&gt; . ... &lt;Term&gt; .) '}'</code></h2>
-<p>':ind on (<variable> ...)' defines the variable for the induction tactic of CITP. ':ind { ... }' defines induction variable(s) and base pattern and step pattern specified by <Term>s.</p>
+<p>‘:ind on (<variable> …)’ defines the variable for the induction tactic of CITP. ‘:ind { … }’ defines induction variable(s) and base pattern and step pattern specified by <Term>s.</p>
 <p>Related: <a href="#citp"><code>citp</code></a></p>
 <h3 id="example-8">Example</h3>
 <pre><code>:ind on (M:PNat)
@@ -935,7 +946,7 @@ PNAT&gt; :goal {
 <dd><p>you may bind an already declared view to a parameter:</p>
 <p><code>&lt;parameter&gt; &lt;= &lt;view_name&gt;</code></p>
 <p>If a module <code>M</code> has a parameter <code>X :: T</code> and a view <code>V</code> from <code>T</code> to <code>M'</code> is declared, <code>V</code> may be bound to <code>X</code>, with the effect that</p>
-<ol style="list-style-type: decimal">
+<ol type="1">
 <li><p>The sort and operator names of <code>T</code> that appear in the body of <code>M</code> are replaced by those in <code>M'</code>, in accordance with <code>V</code>,</p></li>
 <li><p>The common submodules of <code>M</code> and <code>M'</code> are shared.</p></li>
 </ol>
@@ -1126,7 +1137,7 @@ Nat
 <p>(pignose)</p>
 <h2 id="parameterizedmodule"><code>parameterized module</code></h2>
 <p>A module with a parameter list (see <code>module</code>) is a parameterized module. Parameters are given as a comma (<code>,</code>) separated list. Each parameter is of the form <code>[ &lt;import_mode&gt; ] &lt;param_name&gt; :: &lt;module_name&gt;</code> (spaces around <code>::</code> are obligatory).</p>
-<p>The parameter's module gives minimal requirements on the module instantiation.</p>
+<p>The parameter’s module gives minimal requirements on the module instantiation.</p>
 <p>Within the module declaration sorts and operators of the parameter are qualified with <code>.&lt;parameter_name&gt;</code> as seen in the example below.</p>
 <p>Related: <a href="#qualifiedother">qualified sort</a></p>
 <h3 id="example-11">Example</h3>
@@ -1143,7 +1154,7 @@ mod! TWICE(X :: C) {
 <p>In case of ambiguous terms, i.e., different possible parse trees, the command will prompt for one of the trees.</p>
 <p>Related: <a href="#qualified"><code>qualified term</code></a></p>
 <h2 id="switch-parse-normalize"><code>parse normalize</code> switch</h2>
-<p>If this switch is 'on' (defalult is 'off'), terms with associative operators are always parsed as right associative.</p>
+<p>If this switch is ‘on’ (defalult is ‘off’), terms with associative operators are always parsed as right associative.</p>
 <h2 id="popd"><code>popd</code></h2>
 <p>Changes the current working directory to the last on on the push stack.</p>
 <p>Related: <a href="#dirs"><code>dirs</code></a>, <a href="#pwd"><code>pwd</code></a>, <a href="#pushd"><code>pushd</code></a>, <a href="#cd"><code>cd</code></a>, <a href="#ls"><code>ls</code></a></p>
@@ -1229,7 +1240,7 @@ mod! TWICE(X :: C) {
 <p>(pignose)</p>
 <h2 id="restore"><code>restore &lt;pathname&gt;</code></h2>
 <p>Restores module definitions from the designated file <code>pathname</code> which has been saved with the <code>save</code> command. <code>input</code> can also be used but the effects might be different.</p>
-<p>TODO -- should we keep the different effects? What is the real difference?</p>
+<p>TODO – should we keep the different effects? What is the real difference?</p>
 <p>Related: <a href="#target_not_found"><code>save-system</code></a>, <a href="#save"><code>save</code></a>, <a href="#input"><code>input</code></a></p>
 <h2 id="switch-rewrite"><code>rewrite limit</code> switch</h2>
 <p>Possible values: positive integers, default not specified.</p>
@@ -1333,7 +1344,7 @@ PNAT&gt;</code></pre>
 <p>Where <code>sorts</code> is a list of sort names. This declaration defines an inclusion relation between each pair or left and right sorts.</p>
 <h3 id="example-15">Example</h3>
 <pre><code>  [ A B , C D &lt; A &lt; E, B &lt; D ]</code></pre>
-<p>defines five sorts <code>A</code>,...,<code>E</code>, with the following relations: <code>C &lt; A</code>, <code>D &lt; A</code>, <code>A &lt; E</code>, <code>B &lt; D</code>.</p>
+<p>defines five sorts <code>A</code>,…,<code>E</code>, with the following relations: <code>C &lt; A</code>, <code>D &lt; A</code>, <code>A &lt; E</code>, <code>B &lt; D</code>.</p>
 <h2 id="sos"><code>sos { = | + | - } { &lt;clause&gt; , ... }</code></h2>
 <p>(pignose)</p>
 <h2 id="citp-spoiler"><code>:spoiler { on | off}</code></h2>
@@ -1398,7 +1409,7 @@ STEP[3]? c
 <p>The single switches are described separately in this manual.</p>
 <p>Related: <a href="#show"><code>show</code></a>, <a href="#set"><code>set</code></a></p>
 <h2 id="citp-theory"><code>:theory &lt;op_name&gt; : &lt;arity&gt; -&gt; &lt;coarity&gt; { assoc | comm | id: &lt;term&gt; }</code></h2>
-<p>Adds operator theory 'associativity', 'commutativity', and/or 'identity' to an operator specfied by '<op_name> : <arity> -&gt; <coarity> .</p>
+<p>Adds operator theory ‘associativity’, ‘commutativity’, and/or ‘identity’ to an operator specfied by ’<op_name> : <arity> -&gt; <coarity> .</p>
 <h2 id="switch-trace"><code>trace [whole]</code> switch</h2>
 <p>During evaluation, it is sometimes desirable to see the rewrite sequences, not just the results. Setting the switch <code>trace whole</code> will result in the resultant term of each rewrite step being printed. Setting the switch <code>trace</code> will result in the display of which rule, substitution, and replacement are used.</p>
 <h2 id="trans"><code>trans [ &lt;label-exp&gt; ] &lt;term&gt; =&gt; &lt;term&gt; .</code></h2>
@@ -1436,7 +1447,7 @@ bop &lt;opname&gt; -&gt; &lt;opname&gt;</code></pre>
 <p>and also can contain variable declarations.</p>
 <p>Infix operators are represented as terms containing the operator with either literal underscores <code>_</code>, or variables: <code>_*_</code> or <code>X * Y</code>. The <code>&lt;opname&gt;</code> can be qualified.</p>
 <p>In specifying views some rules can be omitted:</p>
-<ol style="list-style-type: decimal">
+<ol type="1">
 <li><p>If the source and target modules have common submodules, all the sorts and modules declared therein are assumed to be mapped to themselves;</p></li>
 <li><p>If the source and target modules have sorts and/or operators with identical names, they are mapped to their respective counterparts;</p></li>
 <li><p>If the source module has a single sort and the target has a principal sort, the single sort is mapped to the principal sort.</p></li>

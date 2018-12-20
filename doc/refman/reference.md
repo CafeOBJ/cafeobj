@@ -291,6 +291,14 @@ Related: [`bceq`](#bceq), [`ceq`](#ceq), [`eq`](#eq)
 
 (pignose)
 
+## `bgrind [in <module-name> :] <boolean-term> .` ## {#bgrind}
+
+Print given boolean term in 'grind'ed manner after computes its xor-and normal form.
+
+## `:bgrind [in <goal-name> :] <boolean-term> .` ## {#citp-bgrind}
+
+Used diring [CITP](#citp) proofs instead of [`bgrind`](#bgrind)
+
 ## `{bguess | :bguess} {imply|and|or} [ with <predicate name> ]` ## {#bguess}
 
 Try to find true/false assignments which satisfies the Bool term

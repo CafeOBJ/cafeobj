@@ -42,7 +42,7 @@ PDOPTSLATEX=						\
 	-V sansfont='Lucida Sans OT'			\
 	-V monofont='Lucida Sans Typewriter OT'		\
 	-V documentclass=memoir				\
-	--latex-engine=$(ENGINE)
+	--pdf-engine=$(ENGINE)
 
 #
 # included md files, order is important!!!
