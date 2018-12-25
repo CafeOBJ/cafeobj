@@ -186,10 +186,7 @@ engine_dumps = $(patsubst acl,$(ACL_DUMP),\
 	       $(patsubst clisp,$(CLISP_DUMP),\
 	       $(patsubst gcl,$(GCL_DUMP),$(lisp)))))))))
 
-# documentation rebuilding
-doc_targets =
-ifeq ($(enable_rebuild_doc),yes)
-	doc_targets += \
+doc_files = \
 		doc/binspect/binspect.pdf		\
 		doc/citp-manual/citp.pdf		\
 		doc/manual/manual.pdf			\
@@ -198,8 +195,12 @@ ifeq ($(enable_rebuild_doc),yes)
 		doc/RefCard/interp.pdf			\
 		doc/RefCard/syntax.pdf			\
 		doc/refman/reference-manual.pdf		\
-		doc/search/search-predicate.pdf 	\
+		doc/search/search-predicate.pdf
 
+# documentation rebuilding
+doc_targets =
+ifeq ($(enable_rebuild_doc),yes)
+	doc_targets += $(doc_files)
 endif
 
 #
@@ -290,7 +291,7 @@ endif
 	# doc files
 	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)
 	$(INSTALL) -m 0644 				\
-		$(doc_targets)				\
+		$(doc_files)				\
 		doc/etc/cafe-citp.txt			\
 		elisp/cafeobj-mode.el			\
 		lib/icons/cafeobj-logo.png		\
