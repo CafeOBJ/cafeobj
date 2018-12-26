@@ -175,7 +175,8 @@
 
 (defun process-cafeobj-with-restart ()
   (let ((quit-flag nil))
-    (if *development-mode*
+    (if #+(and :sbcl :win32) t
+        #-(and :sbcl :win32) *development-mode*
         ;; in development mode, we jump into 'debugger' of the underlying system
         (with-simple-restart (quit "Quit CafeOBJ.")
           (loop
