@@ -163,7 +163,6 @@
           (*break-on-signals* nil)
           #+:sbcl (sb-ext:*invoke-debugger-hook* nil))
       (when *cafeobj-batch*
-        (setf *break-on-signals* t)
         (setf *debugger-hook* #'(lambda (condition hook)
                                   (declare (ignore hook))
                                   (let ((*print-escape* t))
@@ -175,8 +174,7 @@
 
 (defun process-cafeobj-with-restart ()
   (let ((quit-flag nil))
-    (if #+(and :sbcl :win32) t
-        #-(and :sbcl :win32) *development-mode*
+    (if *development-mode*
         ;; in development mode, we jump into 'debugger' of the underlying system
         (with-simple-restart (quit "Quit CafeOBJ.")
           (loop
@@ -189,7 +187,6 @@
       (let ((*debugger-hook* nil)
             (*break-on-signals* nil)
             #+:sbcl (sb-ext:*invoke-debugger-hook* nil))
-        (setf *break-on-signals* t)
         (setf *debugger-hook* #'(lambda (condition hook)
                                   (declare (ignore hook))
                                   (let ((*print-escape* t))
