@@ -1029,18 +1029,8 @@
 ;;; The intent is that the following be used with uncanonicalized module
 ;;; name's.; case in particular -- creation of parameters for module
 ;;;
-;;; (declaim (inline equal-top-level))
-#-gcl
 (defun equal-top-level (x y)
-  (cond ((stringp x) (equal x y))
-        ((atom x) (eql x y))
-        ((atom y) nil)
-        (t (and (equal-top-level (car x) (car y))
-                (equal-top-level (cdr x) (cdr y))))))
-
-#+gcl
-(si::define-inline-function equal-top-level (x y)
-  (cond ((stringp x) (equal x y))
+  (cond ((stringp x) (string= x y))
         ((atom x) (eql x y))
         ((atom y) nil)
         (t (and (equal-top-level (car x) (car y))
@@ -1057,6 +1047,8 @@
 ;;; used in eval-module
 ;;;
 (defun modexp-update-name (modexp modval)
+  (declare (type modexp modexp)
+           (type module modval))
   (let ((entry (rassoc modval *modules-so-far-table*)))
     (when entry
       (setf (car entry) modexp)

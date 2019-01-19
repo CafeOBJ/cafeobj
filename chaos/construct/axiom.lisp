@@ -84,7 +84,7 @@
 
 (defun make-simple-axiom (lhs rhs type &optional behavioural meta-and-or non-exec)
   (declare (type term lhs rhs)
-           (type (or null t) behavioural))
+           (type (or null (not null)) behavioural))
   (make-rule :lhs lhs
              :rhs rhs
              :condition *bool-true*
@@ -559,7 +559,7 @@
 ;;; 
 (defun term-is-congruent-2? (t1 t2)
   (declare (type term t1 t2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (let ((t1-body (term-body t1))
         (t2-body (term-body t2)))
     (cond ((term$is-variable? t1-body)
@@ -592,12 +592,13 @@
 
 (defun rule-is-similar? (r1 r2)
   (declare (type axiom r1 r2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (or (eq r1 r2)
       (and (eq (axiom-type r1) (axiom-type r2))
            (term-is-congruent? (axiom-lhs r1) (axiom-lhs r2))
            (term-is-congruent? (axiom-condition r1) (axiom-condition r2))
-           (term-is-congruent? (axiom-rhs r1) (axiom-rhs r2)))))
+           (term-is-congruent? (axiom-rhs r1) (axiom-rhs r2))
+           (eq (axiom-is-non-exec? r1) (axiom-is-non-exec? r2)))))
 
 ;;; RULE-MEMBER : Rule RuleSet -> Bool
 ;;;-----------------------------------------------------------------------------
@@ -607,7 +608,8 @@
 (defun rule-member (r l)
   (declare (type axiom r)
            (type list l)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0))
+           (values (or null (not null))))
   (dolist (e l nil)
     (when (rule-is-similar? r e) (return t))))
 
@@ -623,6 +625,7 @@
 (defun adjoin-rule (rule rs)
   (declare (type axiom rule)
            (type list rs)
+           (optimize (speed 3) (safety 0))
            (values list))
   (do* ((lst rs (cdr lst))
         (r (car lst) (car lst)))
@@ -655,7 +658,8 @@
 (defun rule-occurs (rule rs)
   (declare (type axiom rule)
            (type list rs)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0))
+           (values (or null (not null))))
   (let ((newlhs (axiom-lhs rule)))
     (do* ((lst rs (cdr lst))
           (r (car lst) (car lst)))
@@ -678,7 +682,8 @@
 (defun rule-ring-member (r rr)
   (declare (type axiom r)
            (type rule-ring rr)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0))
+           (values (or null (not null))))
   (do ((rule (initialize-rule-ring rr) (rule-ring-next rr)))
       ((end-of-rule-ring rr) nil)
     (when (rule-is-similar? r rule) (return t))))
@@ -692,7 +697,7 @@
 (defun rule-ring-adjoin-rule (rr rule)
   (declare (type rule-ring rr)
            (type axiom rule)
-           (values t))
+           (optimize (speed 3) (safety 0)))
   (do ((r (initialize-rule-ring rr) (rule-ring-next rr)))
       ((end-of-rule-ring rr))
     (when (rule-is-similar? r rule)
@@ -725,7 +730,7 @@
 (defun adjoin-axiom-to-module (module ax)
   (declare (type module module)
            (type axiom ax)
-           (values t))
+           (optimize (speed 3) (safety 0)))
   (with-in-module (module)
     (if (memq (axiom-type ax) '(:equation :pignose-axiom :pignose-goal))
         (setf (module-equations module)
@@ -736,7 +741,7 @@
 (defun add-rule-to-module (module rule)
   (declare (type module module)
            (type axiom rule)
-           (values t))
+           (optimize (speed 3) (safety 0)))
   (with-in-module (module)
     (add-rule-to-method rule
                         (term-head (axiom-lhs rule))
@@ -748,7 +753,8 @@
                                 &optional (opinfo-table *current-opinfo-table*))
   (declare (type axiom rule)
            (type method method)
-           (type hash-table opinfo-table))
+           (type hash-table opinfo-table)
+           (optimize (speed 3) (safety 0)))
   ;; set trans-rule flag.
   (when (eq (axiom-type rule) :rule)
     (setf (method-has-trans-rule method opinfo-table) t))
@@ -769,7 +775,7 @@
 ;;;
 (defun rule-subsumes (r1 r2)
   (declare (type axiom r1 r2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (when *on-axiom-debug*
     (format t "~%[rule-subsumes]:")
     (format t "~%  r1: ")
@@ -801,7 +807,7 @@
 
 (defun rule-strictly-subsumes (r1 r2)
   (declare (type axiom r1 r2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (and (rule-subsumes r1 r2)
        (not (rule-subsumes r2 r1))))
 
@@ -970,6 +976,8 @@
 (defvar *optimize-error-operators* t)
 
 (defun axiom-contains-error-method (axiom)
+  (declare (type axiom axiom)
+           (optimize (speed 3) (safety 0)))
   (or (term-contains-error-method (axiom-lhs axiom))
       (term-contains-error-method (axiom-rhs axiom))
       (term-contains-error-method (axiom-condition axiom))))
@@ -986,7 +994,8 @@
 (defun check-axiom-error-method (module axiom &optional message?)
   (declare (type module module)
            (type axiom axiom)
-           (type (or null t) message?)
+           (type (or null (not null)) message?)
+           (optimize (speed 3) (safety 0))
            (values axiom))
   (let ((new-axiom (cdr (assq axiom (module-axioms-to-be-fixed module))))
         (error-operators (module-error-methods module)))
@@ -1055,7 +1064,7 @@
 (defun recreate-error-axiom (axiom module)
   (declare (type axiom axiom)
            (type module module)
-           (values axiom))
+           (optimize (speed 3) (safety 0)))
   (let ((new-axiom (cdr (assq axiom (module-axioms-to-be-fixed module))))
         (error-operators (module-error-methods module)))
     (declare (type (or null axiom ) new-axiom)
@@ -1063,68 +1072,68 @@
     (macrolet ((check-check (_eops)
                  ` (when (every #'(lambda (x)
                                     (memq x error-operators))
-                                ,_eops)
+                                 ,_eops)
                      (setq ,_eops nil))))
       ;;
       (if new-axiom
           new-axiom
-          (let* ((lhs (axiom-lhs axiom))
-                 (lhs-e (term-error-operators&variables lhs nil))
-                 (rhs (axiom-rhs axiom))
-                 (rhs-e (term-error-operators&variables rhs nil))
-                 (cond (axiom-condition axiom))
-                 (cond-e (term-error-operators&variables cond nil))
-                 (terms-to-be-fixed nil)
-                 )
-            (declare (type term lhs rhs cond)
-                     (type list lhs-e rhs-e terms-to-be-fixed))
-            ;; check 
-            (when *optimize-error-operators*
-              (check-check lhs-e)
-              (check-check rhs-e)
-              (check-check cond-e))
+        (let* ((lhs (axiom-lhs axiom))
+               (lhs-e (term-error-operators&variables lhs nil))
+               (rhs (axiom-rhs axiom))
+               (rhs-e (term-error-operators&variables rhs nil))
+               (cond (axiom-condition axiom))
+               (cond-e (term-error-operators&variables cond nil))
+               (terms-to-be-fixed nil)
+               )
+          (declare (type term lhs rhs cond)
+                   (type list lhs-e rhs-e terms-to-be-fixed))
+          ;; check 
+          (when *optimize-error-operators*
+            (check-check lhs-e)
+            (check-check rhs-e)
+            (check-check cond-e))
+          ;;
+          (when (not (or lhs-e rhs-e cond-e))
+            (return-from recreate-error-axiom axiom))
+          ;;
+          (let ((vars (mapcar #'(lambda (x) (cons x x)) (term-variables lhs))))
+            (when lhs-e
+              (setq lhs (copy-term-using-variable lhs vars))
+              (push lhs terms-to-be-fixed))
+            (when rhs-e
+              (setq rhs (copy-term-using-variable rhs vars))
+              (push rhs terms-to-be-fixed))
+            (when cond-e
+              (setq cond (copy-term-using-variable cond vars))
+              (push cond terms-to-be-fixed))
             ;;
-            (when (not (or lhs-e rhs-e cond-e))
-              (return-from recreate-error-axiom axiom))
+            (with-in-module (module)
+              (let ((name (module-name module))
+                    (op-map nil)
+                    (sort-map nil))
+                (declare (type list op-map sort-map))
+                (cond ((int-instantiation-p name)
+                       (let ((modmorph (views-to-modmorph
+                                        (int-instantiation-module name)
+                                        (int-instantiation-args name))))
+                         (setq op-map (modmorph-op modmorph))
+                         (setq sort-map (modmorph-sort modmorph))))
+                      ((int-rename-p name)
+                       (setq op-map (int-rename-op-maps name))
+                       (setq sort-map (int-rename-sort-maps name))))
+                ;;
+                (dolist (term terms-to-be-fixed)
+                  (replace-error-method module term op-map sort-map))))
             ;;
-            (let ((vars (mapcar #'(lambda (x) (cons x x)) (term-variables lhs))))
-              (when lhs-e
-                (setq lhs (copy-term-using-variable lhs vars))
-                (push lhs terms-to-be-fixed))
-              (when rhs-e
-                (setq rhs (copy-term-using-variable rhs vars))
-                (push rhs terms-to-be-fixed))
-              (when cond-e
-                (setq cond (copy-term-using-variable cond vars))
-                (push cond terms-to-be-fixed))
-              ;;
-              (with-in-module (module)
-                (let ((name (module-name module))
-                      (op-map nil)
-                      (sort-map nil))
-                  (declare (type list op-map sort-map))
-                  (cond ((int-instantiation-p name)
-                         (let ((modmorph (views-to-modmorph
-                                          (int-instantiation-module name)
-                                          (int-instantiation-args name))))
-                           (setq op-map (modmorph-op modmorph))
-                           (setq sort-map (modmorph-sort modmorph))))
-                        ((int-rename-p name)
-                         (setq op-map (int-rename-op-maps name))
-                         (setq sort-map (int-rename-sort-maps name))))
-                  ;;
-                  (dolist (term terms-to-be-fixed)
-                    (replace-error-method module term op-map sort-map))))
-              ;;
-              (setq new-axiom
-                    (make-rule :lhs lhs
-                               :rhs rhs
-                               :condition cond
-                               :labels (axiom-labels axiom)
-                               :type (axiom-type axiom)
-                               :kind (axiom-kind axiom)
-                               :no-method-computation t
-                               :meta-and-or (axiom-meta-and-or axiom)))
-              new-axiom))))))
+            (setq new-axiom
+              (make-rule :lhs lhs
+                         :rhs rhs
+                         :condition cond
+                         :labels (axiom-labels axiom)
+                         :type (axiom-type axiom)
+                         :kind (axiom-kind axiom)
+                         :no-method-computation t
+                         :meta-and-or (axiom-meta-and-or axiom)))
+            new-axiom))))))
 
 ;;; EOF

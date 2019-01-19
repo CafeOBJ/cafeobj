@@ -1,0 +1,127 @@
+#!/bin/bash
+#
+# Copyright 2018 Norbert Preining
+# License: GPL3+
+#
+# test cafeobj with with memo on/off and sbcl/acl
+# against a set of .mod files from a given directory (first argument)
+# Usage:
+#  run-all-checks PATH-TO-DIR-WITH-MOD-FILES
+# Generates lots of .log files for each combination and test
+# Generates a file
+#   result.YYYYMMDDHHMMSS.csv
+# containing the results
+
+timeout=10m
+
+dn=$(dirname $0)
+
+if [ "$1" = "-no-run" ] ; then
+  runco=false
+  shift
+else
+  runco=true
+fi
+
+output=results.$(date '+%Y%m%d%H%M%S').csv
+if [ -r $output ] ; then
+  echo "$output already present, exiting" >&2
+  exit 1
+fi
+
+echo "test,sbcl,,,,acl,,," > $output
+echo ",memo on,,memo off,,memo on,,memo off," >> $output
+echo ",result,time,result,time,result,time,result,time" >> $output
+
+if [ ! -d "$1" ] ; then
+  echo "Not a directory: $1" >&2
+  exit 1
+fi
+
+function shipout_run_data {
+  testname=$1
+  if [ ! -r $testname.sbcl.memo-off.log ] ; then
+    return
+  fi
+  declare -A ret
+  declare -A tim
+  for e in sbcl acl ; do
+    for m in on off ; do
+      ret[${e},${m}]=$(get_exit_status $testname.$e.memo-$m.log)
+      tim[${e},${m}]=$(get_elapsed_time $testname.$e.memo-$m.log)
+      if [ -n "${ret[${e},${m}]}" ] ; then
+        set $(echo ${ret[${e},${m}]} | sed -e 's/:/ /')
+        # echo "e=$e, m=$m ret=${ret[${e},${m}]}, 1=$1, 2=$2"
+        if [ "$1" = "OK" ] ; then
+          ret[${e},${m}]="OK"
+        else
+          ret[${e},${m}]="$1 ($2)"
+        fi
+      fi
+    done
+  done
+  echo "$testname,${ret[sbcl,on]},${tim[sbcl,on]},${ret[sbcl,off]},${tim[sbcl,off]},${ret[acl,on]},${tim[acl,on]},${ret[acl,off]},${tim[acl,off]}" >> $output
+}
+    
+
+function get_exit_status {
+  local result
+  local errtype
+  if grep -q "Command exited with non-zero status 124" $1 ; then
+    result="ERROR"
+    errtype="timeout"
+  elif grep -q "more bytes of heap" $1 ; then
+    # ACL heap error
+    result="ERROR"
+    errtype="heap"
+  elif grep -q "Heap exhausted" $1 ; then
+    # SBCL heap error
+    result="ERROR"
+    errtype="heap"
+  elif grep -q "Stack overflow" $1 ; then
+    # ACL stack
+    result="ERROR"
+    errtype="stack"
+  elif grep -q "Control stack exhausted" $1 ; then
+    result="ERROR"
+    errtype="stack"
+  elif grep -q "Caught an exception" $1 ; then
+    result="ERROR"
+    errtype="unknown"
+  elif grep -q "Leaving CafeOBJ" $1 ; then
+    result=OK
+  else
+    result=ERROR
+    errtype=???
+  fi
+  echo "$result:$errtype"
+}
+
+
+function get_elapsed_time {
+  # 22.52user 1.95system 0:24.47elapsed 99%CPU (0avgtext+0avgdata 17612maxresident)k
+  #  0inputs+9845072outputs (0major+1788minor)pagefaults 0swaps
+  # format of elapsed time is [hours:]minutes:seconds[.subseconds]
+  elapsedTime=$(tail -5 $1 | grep elapsed | awk '{print$3}' | sed -e 's/elapsed$//')
+  echo "$elapsedTime"
+}
+
+
+for i in "$1"/*.mod ; do
+  bn=`basename "$i" .mod`
+  echo -n "$bn: "
+  echo -n "sbcl/memo-off "
+  $runco && /usr/bin/time timeout $timeout $dn/cafeobj-memo off $i sbcl > $bn.sbcl.memo-off.log 2>&1
+  echo -n "sbcl/memo-on "
+  $runco && /usr/bin/time timeout $timeout $dn/cafeobj-memo on  $i sbcl > $bn.sbcl.memo-on.log 2>&1
+  echo -n "acl/memo-off "
+  $runco && /usr/bin/time timeout $timeout $dn/cafeobj-memo off $i acl-standalone > $bn.acl.memo-off.log 2>&1
+  echo -n "acl/memo-on "
+  $runco && /usr/bin/time timeout $timeout $dn/cafeobj-memo on  $i acl-standalone > $bn.acl.memo-on.log 2>&1
+  shipout_run_data $bn
+  echo "done"
+done
+
+
+
+# vim:set tabstop=2 expandtab: #

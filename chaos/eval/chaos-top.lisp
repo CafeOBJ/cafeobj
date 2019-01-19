@@ -65,9 +65,7 @@
   (setq *chaos-new* t)
   (when top
     (defun system::top-level () (funcall top))
-    (si::set-up-top-level)
-    ;; (setf (symbol-function 'si::top-level) (symbol-function top))
-    )
+    (si::set-up-top-level))
   (system::save-system path)
   (bye))
 

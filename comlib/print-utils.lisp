@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -49,15 +49,11 @@
 
 ;;; FILECOL -- output column position
 ;;;
-;; (declaim (function filecol (stream) fixnum))
-;;(declaim (function filecol (t) fixnum))
+(declaim (inline filecol)
+         (ftype (function (t) fixnum) filecol))
 
 #+GCL
 (Clines "static object filecol(x) object x; {return(make_fixnum(file_column(x)));}")
-
-;;(defCfun "object filecol(x) object x;" 0
-;;  " Creturn(make_fixnum(file_column(x)));"
-;;  )
 
 #+GCL
 (defentry filecol (object) (object filecol))
@@ -93,16 +89,10 @@
 #-(or GCL KCL LUCID CMU EXCL :openmcl SBCL)
 (defun filecol (x) (declare (ignore x)) 0) ; use this if you cannot define as
 
-;; (declaim (function file-column (stream) fixnum))
-#||
+(declaim (ftype (function (stream) fixnum) file-column))
 (defun file-column (strm)
-  (if (typep strm 'stream)
-      (filecol strm)
-    0))
-||#
-
-(defun file-column (strm)
-  (declare (inline filecol)
+  (declare (type stream strm)
+           (inline filecol)
            (values fixnum))
   (filecol strm))
 
@@ -110,24 +100,6 @@
 ;;; checks the current column exceeds the line limit, if so
 ;;; newline and indent.
 ;;;
-#||
-(defun print-check (&optional (indent 0) (fwd 0) (stream *standard-output*))
-  (declare (type fixnum indent fwd))
-  (if (<= *print-line-limit* (+ (file-column stream) fwd))
-      (progn
-        (terpri stream)
-        (when (>= (1+ indent) *print-line-limit*)
-          (setq indent 0)
-          (setq .file-col. (* *print-indent* *print-indent-increment*)))
-        (if (= 0 indent)
-            (dotimes (i (* *print-indent* *print-indent-increment*))
-              (princ #\space stream))
-          (dotimes (i indent)
-            (princ #\space stream)))
-        t)
-    nil))
-||#
-
 (defun print-check (&optional (indent 0) (fwd 0) (stream *standard-output*))
   (declare (type fixnum indent fwd))
   (if (<= *print-line-limit* (+ (file-column stream) fwd))
@@ -135,10 +107,6 @@
         (print-next)
         (when (>= (1+ indent) *print-line-limit*)
           (setq .file-col. (* *print-indent* *print-indent-increment*)))
-        #||
-        (dotimes (i indent)
-          (princ #\space stream))
-        ||#
         t)
     nil))
 
@@ -154,10 +122,10 @@
 ;;; print-centering
 ;;; print the given string centering
 ;;;
-#||
+(defconstant .terminal-width. 70)
 (defun print-centering (string &optional (fill-char " ") (stream *standard-output*))
   (declare (type simple-string string))
-  (let ((fill-col (truncate (+ (/ (- *print-line-limit* (length string)) 2.0) 0.5))))
+  (let ((fill-col (truncate (+ (/ (- .terminal-width. (the fixnum (length string))) 2.0) 0.5))))
     (declare (type fixnum fill-col))
     (dotimes (x fill-col)
       (declare (type fixnum x))
@@ -166,24 +134,7 @@
     (unless (equal fill-char " ")
       (dotimes (x fill-col)
         (declare (type fixnum x))
-        (princ fill-char stream))
-      )))
-||#
-
-(defparameter .terminal-width. 70)
-(defun print-centering (string &optional (fill-char " ") (stream *standard-output*))
-  (declare (type simple-string string))
-  (let ((fill-col (truncate (+ (/ (- .terminal-width. (length string)) 2.0) 0.5))))
-    (declare (type fixnum fill-col))
-    (dotimes (x fill-col)
-      (declare (type fixnum x))
-      (princ fill-char stream))
-    (princ string stream)
-    (unless (equal fill-char " ")
-      (dotimes (x fill-col)
-        (declare (type fixnum x))
-        (princ fill-char stream))
-      )))
+        (princ fill-char stream)))))
     
 ;;; print-to-right
 ;;; print the given string
@@ -192,8 +143,10 @@
   (declare (type simple-string string)
            (type (or character simple-string) fill-char)
            (type stream stream))
-  (dotimes (x (- .terminal-width. 1 (filecol stream)
-                 *print-indent* (length string)))
+  (dotimes (x (- (1- .terminal-width.)
+                 (filecol stream)
+                 *print-indent* 
+                 (the fixnum (length string))))
     (declare (type fixnum x))
     (princ fill-char stream))
   (princ " " stream)
@@ -210,8 +163,10 @@
     (princ string stream)
     (princ " " stream)
     (if fill-char
-        (dotimes (x (- *print-line-limit* 1 *print-indent*
-                       (filecol stream) (length string)))
+        (dotimes (x (- (1- *print-line-limit*)
+                       *print-indent*
+                       (filecol stream) 
+                       (length string)))
           (declare (type fixnum x))
           (princ fill-char stream)))))
     
@@ -253,8 +208,7 @@
              (when tail
                (princ " . " stream)
                (prin1 tail stream))
-             (princ ")" stream)
-             ))))
+             (princ ")" stream)))))
 
 ;;; print-simple-princ
 ;;;
@@ -275,8 +229,7 @@
                (when tail
                  (princ " . " stream)
                  (prin1 tail stream))
-               (princ ")" stream)))
-          )))
+               (princ ")" stream))))))
 
 ;;; print-simple-princ-open
 ;;;
@@ -292,11 +245,9 @@
                      (princ #\space stream)
                    (setq flag t))
                  (print-simple-princ (car tail) stream)
-                 (setq tail (cdr tail))
-                 )
+                 (setq tail (cdr tail)))
                (when tail
                  (princ " ... " stream)
-                 (prin1 tail stream)))))
-    ))
+                 (prin1 tail stream)))))))
 
 ;;; EOF

@@ -63,6 +63,7 @@
 ;;; used for determing an object is a term. the term itself is a cons containing a
 ;;; single 'term-base' object.
 (defun is-base-term-variant (x)
+  (declare (optimize (speed 3) (safety 0)))
   (and (consp x)                        ; it's a cons 
        (typep (car x) 'fixnum)          ; first element has type of fixnum
        (typep (cadr x) 'fixnum)         ; second element has status of fixnum
@@ -112,8 +113,9 @@
 ;;; TERM
 ;;; 'term' is a cell containing a variation of BASE-TERM
 ;;; ============================================================================
-
+(declaim (inline is-term))
 (defun is-term (obj)
+  (declare (optimize (speed 3) (safety 0)))
   (and (consp obj)
        (typep (car obj) 'term-body)))
 
@@ -575,8 +577,9 @@
   (logior variable-type reduced-flag lowest-parsed-flag))
 
 (declaim (inline make-variable-term))
-
+(declaim (inline make-variable))
 (defun make-variable-term (sort variable-name &optional (print-name variable-name))
+  (declare (optimize (speed 3) (safety 0)))
   (create-term (make-variable :sort sort :name variable-name :print-name print-name)))
 
 (defmacro variable-copy (var)
@@ -589,42 +592,48 @@
 ;;; APPLICATION-FORM ___________________________________________________________
 ;;; ****************
 (declaim (inline make-application-term))
-
+(declaim (inline make-application))
 (defun make-application-term (op sort subterms)
+  (declare (optimize (speed 3) (safety 0)))
   (create-term (make-application :head op :sort sort :subterms subterms)))
 
 ;;; ****************
 ;;; SIMPLE-LISP-CODE ___________________________________________________________
 ;;; ****************
-(declaim (inline make-simple-lisp-form-term))
+(declaim (inline make-simple-lisp-form-term)
+         (inline make-simple-lisp-form))
 
 (defun make-simple-lisp-form-term (original-form)
+  (declare (optimize (speed 3) (safety 0)))
   (create-term (make-simple-lisp-form :original-form original-form
                                       :sort *cosmos*)))
 
 ;;; *****************
 ;;; GENERAL-LISP-CODE __________________________________________________________
 ;;; *****************
-(declaim (inline make-general-lisp-form-term))
-
+(declaim (inline make-general-lisp-form-term)
+         (inline make-general-lisp-form))
 (defun make-general-lisp-form-term (original-form)
+  (declare (optimize (speed 3) (safety 0)))
   (create-term (make-general-lisp-form :original-form original-form
                                        :sort *cosmos*)))
 
 ;;; ****************
 ;;; BUILTIN CONSTANT ___________________________________________________________
 ;;; ****************
-(declaim (inline make-bconst-term))
-
+(declaim (inline make-bconst-term)
+         (inline make-pure-builtin))
 (defun make-bconst-term (sort value)
+  (declare (optimize (speed 3) (safety 0)))
   (create-term (make-pure-builtin :value value :sort sort)))
 
 ;;; ***************
 ;;; PSUEDO CONSTANT____________________________________________________________
 ;;; ***************
-(declaim (inline make-pconst-term))
-
+(declaim (inline make-pconst-term)
+         (inline make-pconst))
 (defun make-pconst-term (sort name &optional (print-name name))
+  (declare (optimize (speed 3) (safety 0)))
   (create-term (make-pconst :sort sort :name name :print-name print-name)))
 
 (defmacro pconst-copy (var)
@@ -648,6 +657,7 @@
 ;;; TERM-VARIABLES : term -> LIST[variable]
 ;;;
 (defun term-variables (term)
+  (declare (optimize (speed 3) (safety 0)))
   (let ((body (term-body term)))
     (cond ((term$is-variable? body) (list term))
           ((term$is-constant? body) nil)
@@ -659,6 +669,7 @@
                                                         (term-eq x y))))))))))
 
 (defun term-pvariables (term)
+  (declare (optimize (speed 3) (safety 0)))
   (let ((body (term-body term)))
     (cond ((term$is-pconstant? body) (list term))
           ((or (term$is-constant? body) (term$is-variable? body)) nil)
@@ -673,6 +684,7 @@
 (declaim (inline variables-occur-at-top?))
 
 (defun variables-occur-at-top? (term)
+  (declare (optimize (speed 3) (safety 0)))
   (block variables-occur-at-top-exit
     (dolist (st (term-subterms term))
       (when (term-is-variable? st)
@@ -691,6 +703,7 @@
              (t t)))))
 
 (defun term-is-ground? (xx_term)
+  (declare (optimize (speed 3) (safety 0)))
   (term$is-ground? (term-body xx_term)))
 
 ;;; SIMPLE-COPY-TERM : term -> new-term
@@ -698,6 +711,7 @@
 ;;; 
 (declaim (inline simple-copy-term))
 (defun simple-copy-term (term)
+  (declare (optimize (speed 3) (safety 0)))
   (copy-tree (the list term)))
 
 ;;; EOF

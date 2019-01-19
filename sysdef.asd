@@ -87,9 +87,9 @@
                                                  (:file "baxioms")
                                                  (:file "bmacro")
                                                  (:file "gen-eval")
+                                                 (:file "meta")
                                                  (:file "gen-print")
                                                  (:file "context")
-                                                 (:file "substitution")
                                                  (:file "term-utils")
                                                  (:file "find")
                                                  (:file "print-object")
@@ -172,7 +172,6 @@
                                        :components ((:file "preproc")
                                                     (:file "prelude")
                                                     (:file "builtins")
-                                                    (:file "meta")
                                                     ))
                               (:module tram
                                        :components ((:file "tram")))

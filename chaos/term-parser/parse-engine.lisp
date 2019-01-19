@@ -604,7 +604,7 @@
          (sort-order (module-sort-order module))
          ;; add chaos-term0 in the set of solutions if its sort is correct:
          (terletox-sublist-prime (if (or
-                                      ;; (term-ill-defined chaos-term0)
+                                      ;; (term-is-an-error chaos-term0)
                                       (parser-in-same-connected-component
                                        sort0
                                        sort-constraint
@@ -1710,125 +1710,13 @@
     (flet ((make-form (sort method arg-list)
              (make-applform sort method arg-list)))
       (let ((result nil))
-        (if *fill-rc-attribute*
-            (let ((attrpos nil)
-                  (class nil))
-              (if (method-is-object-constructor method)
-                  (progn (setf attrpos 2) (setf class t))
-                (when (method-is-record-constructor method)
-                  (setf attrpos 1)))
-              (if attrpos
-                  (let ((attrs (nth attrpos arg-list))
-                        (cr-sort (method-coarity method)))
-                    (when class
-                      (replace-class-id-with-var cr-sort arg-list))
-                    (if attrs
-                        (cond ((sort= (term-sort attrs) *attribute-list-sort*)
-                               (let* ((attr-method (term-head attrs))
-                                      (sv-pairs (list-ac-subterms attrs
-                                                                  attr-method))
-                                      (flg nil))
-                                 (dolist (sv-pair sv-pairs)
-                                   (block next
-                                     (when (sort= (term-sort sv-pair)
-                                                  *attribute-list-sort*)
-                                       (setf flg t)
-                                       (return-from next nil))
-                                     ;; normal sv-pair
-                                     (replace-attr-id-with-var cr-sort sv-pair)))
-                                 (unless flg
-                                   (when (or *parsing-axiom-lhs*
-                                             *parse-lhs-attr-vars*)
-                                     ;; (break "1")
-                                     (setq *parse-lhs-attr-vars* t)
-                                     (setf (nth attrpos arg-list)
-                                       (make-right-assoc-normal-form
-                                        attr-method
-                                        (nconc sv-pairs
-                                               (list
-                                                *attribute-list-aux-variable*))))))
-                                 (setq result (make-form sort method arg-list))
-                                 result))
-                              (t ;; single sv-pair & not list of attribure.
-                               (replace-attr-id-with-var cr-sort attrs)
-                               (when (or *parsing-axiom-lhs*
-                                         *parse-lhs-attr-vars*)
-                                 ;; (break "2")
-                                 (setq *parse-lhs-attr-vars* t)
-                                 (setf (nth attrpos arg-list)
-                                   (make-applform
-                                    *attribute-list-sort*
-                                    *attribute-list-constructor*
-                                    (list attrs
-                                          *attribute-list-aux-variable*))))
-                               (setq result (make-form sort method arg-list))
-                               result))
-                      ;; no attributes
-                      (progn
-                        (setq result (make-form sort method arg-list))
-                        )))
-                (progn
-                  (setq result (make-form sort method arg-list))
-                  )))
-          ;; normal term
-          (setq result (make-form sort method arg-list)))
+        ;; normal term
+        (setq result (make-form sort method arg-list))
         ;; special treatment of if_then_else_fi
         ;; special treatment of generic operators
         (when (eq (term-head result) *bool-if*)
           (set-if-then-else-sort result))
         result))))
-
-(defun replace-class-id-with-var (cr-sort arg-list)
-  (declare (type sort* cr-sort)
-           (type list arg-list))
-  (let ((class-id (second arg-list))
-        (id-var nil))
-    (unless (term-is-variable? class-id)
-      (setf id-var (crsort-id-variable cr-sort))
-      (unless id-var
-        (with-output-panic-message ()
-          (format t "could not find Class id variable for class ~s"
-                  (sort-id cr-sort))
-          ;; (break)
-          (chaos-error 'panic)))
-      (if *parsing-axiom-lhs*
-          (pushnew id-var *lhs-attrid-vars*)
-          (unless (memq id-var *lhs-attrid-vars*)
-            (return-from replace-class-id-with-var nil)))
-      ;;
-      (setf (second arg-list) id-var))
-    arg-list))
-
-(defun replace-attr-id-with-var (cr-sort sv-pair)
-  (declare (type sort* cr-sort)
-           (type term sv-pair))
-  (let ((attr-id (term-arg-1 sv-pair))
-        id-var)
-    (unless (term-is-variable? attr-id)
-      (setf id-var (get-attribute-id-variable
-                    (car (method-symbol (term-head attr-id)))
-                    cr-sort))
-      (unless id-var
-        (with-output-panic-message ()
-          (format t "could not find id variable for slot ~a of sort ~a"
-                  (car (method-symbol (term-head attr-id)))
-                  (sort-id cr-sort))
-          (print-next)
-          (princ "id term = ")
-          (term-print attr-id)
-          (print-next)
-          (princ " sv pair = ")
-          (print-chaos-object sv-pair)
-          ;; (break)
-          (chaos-error 'panic)
-          ))
-      (if *parsing-axiom-lhs*
-          (pushnew id-var *lhs-attrid-vars*)
-          (unless (memq id-var *lhs-attrid-vars*)
-            (return-from replace-attr-id-with-var nil)))
-      ;;
-      (setf (term-arg-1 sv-pair) id-var))
-    sv-pair))
 
 ;;;  op are-argumentsorts-correct :
 ;;;       Operator
@@ -1932,7 +1820,7 @@
   (declare (type list chaos-term-list))
   (let ((result t))
     (dolist (chaos-term chaos-term-list result)
-      (if (term-ill-defined chaos-term)
+      (if (term-is-an-error chaos-term)
           ;; abort looping and return false
           (return nil)))))
 

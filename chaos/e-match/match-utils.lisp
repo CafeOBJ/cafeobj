@@ -54,8 +54,10 @@
 ;;; possibly-matches-non-ver
 ;;; assume that t1,t2 are not a variables.
 ;;;
+(declaim (inline possibly-maches-nonvar))
 (defun possibly-matches-nonvar (t1 t2)
   (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (cond ((term-is-builtin-constant? t1)
          (term-builtin-equal t1 t2))
@@ -93,9 +95,9 @@
 ;;; t2 : term
 (defun possibly-matches (t1 t2)
   (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (cond ((term-is-variable? t1) t)
         ((term-is-variable? t2) nil)
         (t (possibly-matches-nonvar t1 t2))))
-
 ;;; EOF

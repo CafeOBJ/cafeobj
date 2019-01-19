@@ -139,7 +139,14 @@ Based on the implementation of OBJ3 system.
 (declaim (special *do-empty-match*))
 (defvar *do-empty-match* nil)
 
-;; #-GCL (declaim (inline !match-decompose-on-demand))
+(declaim (inline !match-decompose))
+(defun !match-decompose (t1 t2 res)
+  (declare (type term t1 t2)
+           (type list res)
+           (optimize (speed 3) (safety 0)))
+  (if *do-unify*
+      (!match-decompose-unify t1 t2 res)
+    (!match-decompose-match t1 t2 res)))
 
 (defun !match-decompose-on-demand (t1 t2 result)
   (declare (type term t1 t2)
@@ -159,6 +166,8 @@ Based on the implementation of OBJ3 system.
   )
 
 (defun occurs-in (v term)
+  (declare (type term v term)
+           (optimize (speed 3) (safety 0)))
   (cond ((term-is-variable? term)
          (variable-eq v term))
         ((term-is-application-form? term)
@@ -168,13 +177,10 @@ Based on the implementation of OBJ3 system.
          nil)
         (t nil)))
 
-
-(defun !match-decompose (t1 t2 res)
-  (if *do-unify*
-      (!match-decompose-unify t1 t2 res)
-    (!match-decompose-match t1 t2 res)))
-
+(declaim (inline method-theory-info-for-matching!))
 (defun method-theory-info-for-matching! (meth)
+  (declare (type method meth)
+           (optimize (speed 3) (safety 0)))
   (if *do-empty-match*
       the-e-property
     (method-theory-info-for-matching meth)))
@@ -182,6 +188,7 @@ Based on the implementation of OBJ3 system.
 (defun !match-decompose-unify (t1 t2 res)
   (declare (type term t1 t2)
            (type list res)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (cond ((term-is-variable? t1)
          ;; [1] t1 is variable
@@ -266,6 +273,7 @@ Based on the implementation of OBJ3 system.
 (defun !match-decompose-match (t1 t2 res)
   (declare (type term t1 t2)
            (type list res)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (with-match-debug ()
     (format t "~%** !match-decompose-match:")
@@ -388,7 +396,8 @@ Based on the implementation of OBJ3 system.
 
 
 (defun match-decompose-equation (t1 t2 &optional (sigma nil))
-  (declare (type term t1 t2))
+  (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (when sigma
     (setq sigma (copy-list sigma)))
   (let* ((list-of-decomposed-equation (cons nil sigma))
@@ -427,45 +436,11 @@ Based on the implementation of OBJ3 system.
                          ans)))))
     ans))
 
-#||
+(declaim (inline appy-subst))
 (defun apply-subst (sigma term)
-  (if sigma
-      (cond ((term-is-variable? term)
-             (let ((im (variable-image sigma term)))
-               (if im                   ; i.e. im = sigma(term)
-                   (values im t)
-                 (values term nil))))
-            ((term-is-builtin-constant? term) term)
-            ((term-is-lisp-form? term) term)
-            ((term-is-application-form? term)
-             (let ((l-result nil)
-                   (modif-sort nil))
-               (dolist (s-t (term-subterms term))
-                 (multiple-value-bind (image-s-t same-sort)
-                     (apply-subst sigma s-t)
-                   (unless same-sort
-                     ;; (update-lowest-parse s-t)
-                     (setq modif-sort t))
-                   (push image-s-t l-result)))
-               (setq l-result (nreverse l-result))
-               (if modif-sort
-                   (let ((term-image (make-term-with-sort-check (term-head term)
-                                                                l-result)))
-                     (values term-image
-                             (sort= (term-sort term)
-                                    (term-sort term-image))))
-                 (values (make-applform (term-sort term)
-                                        (term-head term)
-                                        l-result)
-                         t))))
-            (t (with-output-panic-message ()
-                 (princ "apply-subst: encoutered illegual term")
-                 (terpri)
-                 (term-print term))))
-    term))
-||#
-
-(defun apply-subst (sigma term)
+  (declare (type term term)
+           (type list sigma)
+           (optimize (speed 3) (safety 0)))
   (cond ((term-is-variable? term)
          (let ((im (variable-image sigma term)))
            (if im                       ; i.e. im = sigma(term)
@@ -561,6 +536,7 @@ Based on the implementation of OBJ3 system.
 (defun add-equation-to-m-system (sys eq)
   (declare (type list sys)
            (type t eq)
+           (optimize (speed 3) (safety 0))
            (values t))
   (unless (member eq sys :test #'eq)
     (if (m-system-is-empty? sys)
@@ -574,6 +550,7 @@ Based on the implementation of OBJ3 system.
 
 (defun make-m-system (l1 l2)
   (declare (type list l1 l2)
+           (optimize (speed 3) (safety 0))
            (values msystem))
   (if (null (car l1))
       (union (cdr l1) l2)
@@ -594,8 +571,10 @@ Based on the implementation of OBJ3 system.
 ;;; "sys" is supposed to be non empty and to contain equations of the 
 ;;; form t1==t2 which are all such that t1 is NOT a variable.
 
+(declaim (inline m-system-extract-one-system))
 (defun m-system-extract-one-system (sys)
   (declare (type list sys)
+           (optimize (speed 3) (safety 0))
            (values list theory-info))
   (let ((extracted-sys nil)
         (theory-is-empty nil)
@@ -668,6 +647,8 @@ Based on the implementation of OBJ3 system.
        ,?_!env)))
    
 (defun add-equation-to-environment (env eq)
+  (declare (type list env eq)
+           (optimize (speed 3) (safety 0)))
   (if (null (car env))
       (rplaca env eq)
     (rplacd env (push eq (cdr env)))))
@@ -692,6 +673,8 @@ Based on the implementation of OBJ3 system.
 ;;; U: used by "match-system.dec-merg" and "match-add-m-system"
 
 (defun match-insert-if-coherent-with (new-env test-env new-sys eq-list &optional (check-match nil))
+  (declare (type list new-env test-env new-sys eq-list)
+           (optimize (speed 3) (safety 0)))
   ;; note that new-env and new-sys are both initialy of the form (nil.nil)
   (block the-end
     (with-match-debug ()
@@ -777,58 +760,6 @@ Based on the implementation of OBJ3 system.
     nil                                 ; i.e. the new-env is coherent
     ))
 
-#||
-(defun match-insert-if-coherent-with (new-env test-env new-sys eq-list &optional (check-match nil))
-  ;; note that new-env and new-sys are both initialy of the form (nil.nil)
-  (block the-end
-    (dolist (eq eq-list)
-      (let ((t1 (equation-t1 eq))
-            (t2 (equation-t2 eq)))
-        (cond ((term-is-variable? t1)
-               ;; checking of the sort information; redundant with
-               ;; `decompose-equation'.
-               (unless (sort<= (term-sort t2) (variable-sort t1)
-                               *current-sort-order*)
-                 (return-from the-end t))
-               ;; new-env may be  modified.
-               (let ((image-of-t1 (variable-image test-env t1)))
-                 (if image-of-t1
-                     (unless (term-equational-equal image-of-t1 t2)
-                       (return-from the-end t)) ; i.e  no-coherent
-                   (let ((image-of-t1-in-new (variable-image new-env t1)))
-                     (if image-of-t1-in-new
-                         (unless (term-equational-equal image-of-t1-in-new t2)
-                           (return-from the-end t))
-                       (add-equation-to-environment new-env eq))))))
-              (check-match
-               (when (term-is-variable? t2)
-                 (return-from the-end t))
-               (if (and (term-is-applform? t2)
-                        (term-is-applform? t1))
-                   (let ((t1-head (term-head t1))
-                         (t2-head (term-head t2)))
-                     (if (method-is-of-same-operator+ t1-head t2-head)
-                         (add-equation-to-m-system new-sys eq)
-                       (let ((match-info (method-theory-info-for-matching! t1-head)))
-                         (if (test-theory .Z. (theory-info-code match-info))
-                             (add-equation-to-m-system new-sys eq)
-                           (progn
-                             (return-from the-end t))))))
-                 (add-equation-to-m-system new-sys eq)))
-              ;;
-              (t (add-equation-to-m-system new-sys eq)))))
-
-    ;; add now all the equation of test-env into new-env (copy test-env)
-    (cond ((null (car test-env)) ())
-          ((null (car new-env))
-           (let ((l (environment-copy1 test-env)))
-             (rplaca new-env (car l))
-             (rplacd new-env (cdr l))) )
-          (t (nconc new-env test-env)))
-    nil                                 ; i.e. the new-env is coherent
-    ))
-||#
-
 ;;; MATCH-SYSTEM ===========================================================
 ;;;
 ;;; The pair of environment and m-system .
@@ -838,6 +769,7 @@ Based on the implementation of OBJ3 system.
   (environment (new-environment) :type list)    
   (system-to-solve (new-m-system) :type list))
 
+(declaim (inline create-match-system))
 (defmacro match-system-sys (ms___?) `(match-system-system-to-solve ,ms___?))
 (defmacro match-system-env (ms___?) `(match-system-environment ,ms___?))
 
@@ -891,6 +823,7 @@ Based on the implementation of OBJ3 system.
 (declaim (inline new-match-system))
 (defun new-match-system (term1 term2)
   (declare (type term term1 term2)
+           (optimize (speed 3) (safety 0))
            (values match-system))
   (if (term-is-variable? term1)
       (create-match-system (create-environment term1 term2)
@@ -912,6 +845,7 @@ Based on the implementation of OBJ3 system.
 ;;;
 (defun match-system-e-equal (match-system)
   (declare (type match-system match-system)
+           (optimize (speed 3) (safety 0))
            (values (or t null)))
   (and (dolist (eq (m-system-to-list (match-system-sys match-system)) t)
          (unless (term-equational-equal (equation-t1 eq) (equation-t2 eq))
@@ -930,6 +864,9 @@ Based on the implementation of OBJ3 system.
 ;;; Note that the arguments of add must not be destroyed or changed.
 
 (defun match-add-m-system (match-system m-sys)
+  (declare (type match-system match-system)
+           (type msystem m-sys)
+           (optimize (speed 3) (safety 0)))
   (block no-match
     (let* ((old-environment (match-system-environment match-system))
            (new-environment (new-environment)) 
@@ -967,6 +904,9 @@ Based on the implementation of OBJ3 system.
 ;;; Returns the decompose and merging of the given match-system
 ;;;
 (defun match-decompose&merge (m-sys &optional sigma)
+  (declare (type match-system m-sys)
+           (type list sigma)
+           (optimize (speed 3) (safety 0)))
   (block no-match
     (let ((sys (match-system-sys m-sys))
           (env (match-system-env m-sys))
@@ -994,7 +934,9 @@ Based on the implementation of OBJ3 system.
 ;;; be solved into the theory "th". "th" and "sys" are returned.
 ;;
 (defun match-system-extract-one (m-s)
-  (declare (inline m-system-extract-one-system))
+  (declare (type match-system m-s)
+           (optimize (speed 3) (safety 0))
+           (inline m-system-extract-one-system))
   (let ((sys (match-system-sys m-s)))
     (if (m-system-is-empty? sys) 
         (values nil (theory-info *the-empty-theory*))
@@ -1007,6 +949,7 @@ Based on the implementation of OBJ3 system.
 (defun match-system-modif-m-sys (m-sys sys)
   (declare (type match-system m-sys)
            (type list sys)
+           (optimize (speed 3) (safety 0))
            (values match-system))
   (flet ((difference-eq (x y)
            (let ((res nil))

@@ -1,6 +1,6 @@
 #
-# Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
-# Copyright (c) 2014-2015, Norbert Preining. All rights reserved.
+# Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
+# Copyright (c) 2014-2018, Norbert Preining. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,6 +55,8 @@ enable_distribution = @enable_distribution@
 # lispdir of emacs
 lispdir = @lispdir@
 
+OSBIT = @OSBIT@
+
 # general stuff
 PACKAGE = @PACKAGE_TARNAME@
 VERSION = @PACKAGE_VERSION@
@@ -78,7 +80,11 @@ ACL_STANDALONE_DUMPFILE      = build-acl-dist.cl
 
 SBCL_DUMP         = dumps/sbcl/@sbcl_dump@
 SBCL_INTERPRETER  = @sbcl_interp@
+ifeq ($(OSBIT),64)
+SBCL_BUILDOPTS    = --dynamic-space-size 4096
+else
 SBCL_BUILDOPTS    = --dynamic-space-size 2048
+endif
 SBCL_DUMPFILE      = make-cafeobj.lisp
 
 CMU_DUMP          = dumps/cmu/@cmu_dump@
@@ -180,10 +186,7 @@ engine_dumps = $(patsubst acl,$(ACL_DUMP),\
 	       $(patsubst clisp,$(CLISP_DUMP),\
 	       $(patsubst gcl,$(GCL_DUMP),$(lisp)))))))))
 
-# documentation rebuilding
-doc_targets =
-ifeq ($(enable_rebuild_doc),yes)
-	doc_targets += \
+doc_files = \
 		doc/binspect/binspect.pdf		\
 		doc/citp-manual/citp.pdf		\
 		doc/manual/manual.pdf			\
@@ -192,8 +195,12 @@ ifeq ($(enable_rebuild_doc),yes)
 		doc/RefCard/interp.pdf			\
 		doc/RefCard/syntax.pdf			\
 		doc/refman/reference-manual.pdf		\
-		doc/search/search-predicate.pdf 	\
+		doc/search/search-predicate.pdf
 
+# documentation rebuilding
+doc_targets =
+ifeq ($(enable_rebuild_doc),yes)
+	doc_targets += $(doc_files)
 endif
 
 #
@@ -284,7 +291,7 @@ endif
 	# doc files
 	$(INSTALL) -d $(DESTDIR)$(cafeobjdocdir)
 	$(INSTALL) -m 0644 				\
-		$(doc_targets)				\
+		$(doc_files)				\
 		doc/etc/cafe-citp.txt			\
 		elisp/cafeobj-mode.el			\
 		lib/icons/cafeobj-logo.png		\

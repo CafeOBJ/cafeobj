@@ -653,7 +653,7 @@
        (setq ax-form (format nil "eq[:bor]: ~a:Bool xor (~a:Bool xor (~a:Bool and ~a:Bool)) = true ." pred1 pred2 pred1 pred2)))
       (otherwise
        (with-output-chaos-error ('unknown-mode)
-         (format t "Internal error, bguess unknown mode: " mode))))
+         (format t "Internal error, bguess unknown mode: ~s" mode))))
     ax-form))
 
 ;;; do-bguess : strat -> void

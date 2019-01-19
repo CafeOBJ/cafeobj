@@ -65,7 +65,7 @@
 (defun chaos-exit-with-error-code (value)
   (let ((exit-status 1))
     (if (symbolp value)
-        (format t "~%** Exiting CafeOBJ due to ~%" value)
+        (format t "~%** Exiting CafeOBJ due to ~s~%" value)
       (setq exit-status 2))
     #+:sbcl (sb-ext:exit :code exit-status)
     #+:allegro (excl:exit exit-status)

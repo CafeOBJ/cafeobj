@@ -84,7 +84,7 @@
         (let* ((final-well-defined (mapcan #'(lambda (e)
                                                ;; e ::= ((term . prec) . remaning-tokens)
                                                (when (and (null (cdr e)) ; no remaining tokens
-                                                          (not (term-ill-defined
+                                                          (not (term-is-an-error
                                                                 (caar e))))
                                                  (list (caar e))))
                                            res))
@@ -112,7 +112,7 @@
                                               (list (car partial)
                                                     (make-bconst-term *universal-sort*
                                                                       (cdr partial))))))
-                (final (if (term-ill-defined (car final))
+                (final (if (term-is-an-error (car final))
                            (setf result (car final))
                          (setf result 
                            (if (null (cdr final))
@@ -125,7 +125,7 @@
                                                       preterm)))))
           ;;
           (setq *parse-raw-parse* result)
-          (when (term-ill-defined result)
+          (when (term-is-an-error result)
             (with-output-simple-msg ()
               (format t "~&[Error]: no successful parse")))
           (parse-convert result module))))))
@@ -486,7 +486,7 @@
     ;;  any  = well-defined but not satisfy the sort restriction.
     ;;  ill  = ill-defined terms of any kind.
     (dolist (term parses)
-      (if (term-ill-defined term)
+      (if (term-is-an-error term)
           (push term ill)
           (if (sort<= (term-sort term) sort so)
               (push term well)
@@ -512,7 +512,7 @@
       (declare (type sort-order so))
       (dolist (tm parses)
         (if (sort<= (term-sort tm) sort so)
-            (if (term-ill-defined tm)
+            (if (term-is-an-error tm)
                 (when (null well) (push tm ill))
                 (push tm well))))
       (if well well
@@ -535,7 +535,7 @@
       (dolist (tm parses)
         (if (member (term-sort tm) sorts
                     :test #'(lambda (x y) (sort<= x y so)))
-            (if (term-ill-defined tm)
+            (if (term-is-an-error tm)
                 (when (null well) (push tm ill))
                 (push tm well))))
       (if well
@@ -561,7 +561,7 @@
           (when *on-axiom-debug*
             (format t "~%lhs: ")
             (term-print-with-sort lhs))
-          (when (term-ill-defined lhs)
+          (when (term-is-an-error lhs)
             (return-from cont-lhs))     ; skip it and continue
           (let ((sl (term-sort lhs)))
             (dolist (rhs rhslst)
@@ -569,7 +569,7 @@
                 (when *on-axiom-debug*
                   (format t "~&rhs: ")
                   (term-print-with-sort rhs))
-                (when (term-ill-defined rhs)
+                (when (term-is-an-error rhs)
                   (return-from cont-rhs)) ; continue it and continue
                 (let ((sr (term-sort rhs)))
                   (if (sort<= sr sl so)
@@ -592,7 +592,7 @@
                      (parse-term preterm module parser-max-precedence sort)))) ; ****
           (let ((final-well-defined (mapcan #'(lambda (e)
                                                 (when (and (null (cdr e))
-                                                           (not (term-ill-defined
+                                                           (not (term-is-an-error
                                                                  (caar e))))
                                                   (list (caar e))))
                                             res)))

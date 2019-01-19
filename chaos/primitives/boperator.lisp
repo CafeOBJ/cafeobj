@@ -139,12 +139,12 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-operator) (symbol-function 'operator-p))
-  (setf (get 'operator :type-predicate) (symbol-function 'operator-p))
   (setf (get 'operator :print) 'print-operator-internal))
 
 (defun print-operator-object (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (ignore ignore)
+           (type operator obj)
+           (type stream stream))
   (format stream ":op[~s : ~x]" (operator-name obj) (addr-of obj)))
 
 ;;; Basic accessors ----------------------------------------------------------
@@ -164,7 +164,7 @@
 
 (defun explode-operator-name (op-symbol)
   (declare (type list op-symbol)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (mapcar #'(lambda (s) (if (equal s "_")
                             t
                             s))
@@ -172,12 +172,12 @@
 
 (defun make-operator-token-seq (operator)
   (declare (type operator operator)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (explode-operator-name (operator-symbol operator)))
 
 (defun operator-syntactic-type-from-name (token-seq)
   (declare (type list token-seq)
-           (values symbol))
+           (optimize (speed 3) (safety 0)))
   (if (eq t (car token-seq))
       (if (eq t (cadr token-seq))
           'juxtaposition
@@ -218,7 +218,7 @@
 
 (defun canonicalize-op-name (name)
   (declare (type list name)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (or (cdr (assoc name *opname-table* :test #'equal))
       (prog1
           name
@@ -228,7 +228,7 @@
   (declare (type list name)
            (type fixnum num-args)
            (type module module)
-           (values operator))
+           (optimize (speed 3) (safety 0)))
   (let ((name (canonicalize-op-name (cons name num-args)))
         (op nil))
     (setq op (operator* name))
@@ -244,7 +244,7 @@
            (type (or null list) strategy)
            (type (or null op-theory) theory)
            (type t print-name)
-           (values operator))
+           (optimize (speed 3) (safety 0)))
   (let ((o (allocate-operator name num-args module)))
     (setf (operator-strategy o) strategy
           (operator-theory o) theory
@@ -273,7 +273,8 @@
   `(opsyntax-assoc (operator-syntax ,_*operator)))
 
 (defun make-print-operator-id (op-nam)
-  (declare (type t op-nam))
+  (declare (type t op-nam)
+           (optimize (speed 3) (safety 0)))
   (cond ((and (consp op-nam)
               (stringp (car op-nam)))
          (if (cdr op-nam)
@@ -288,7 +289,8 @@
         (t (break "Internal error: invalid op-nam ~S" op-nam))))
 
 (defun cmake-operator-print-name (operator)
-  (declare (type operator operator))
+  (declare (type operator operator)
+           (optimize (speed 3) (safety 0)))
   (let ((nam (operator-name operator))
         (mixfix (operator-is-mixfix operator)))
     (if mixfix
@@ -318,7 +320,7 @@
 
 (defun opinfo-p (object)
   (declare (type t object)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (and (listp object)
        (listp (cdr (last object)))
        (= 3 (length object))
@@ -431,8 +433,6 @@
   (id-symbol nil :type symbol))
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-method) (symbol-function 'method-p))
-  (setf (get 'method :type-predicate) (symbol-function 'method-p))
   (setf (get 'method :print) 'print-method-internal))
 
 (defun print-method-object (obj stream &rest ignore)
@@ -450,7 +450,7 @@
 
 ;;; Primitive type predicate ---------------------------------------------------
 
-(defmacro operator-method-p (_o) `(is-method ,_o))
+(defmacro operator-method-p (_o) `(method-p ,_o))
 
 ;;; Primitive accessors --------------------------------------------------------
 
@@ -470,6 +470,8 @@
   `(object-info ,_m :cr))
 
 (defun method-is-derived-from (m)
+  (declare (type method m)
+           (optimize (speed 3) (safety 0)))
   (let ((df (method-derived-from m)))
     (if df
         (or (method-is-derived-from df)
@@ -491,15 +493,17 @@
 
 ;;; NOT USED NOW
 ;;; (defvar .operator-method-recycler. (make-hash-table :test #'equal))
-
+(declaim (inline allocate-operator-method))
 (defun allocate-operator-method (name arity coarity)
   (declare (type list name)
            (type list arity)
            (type sort* coarity)
-           (values method))
+           (optimize (speed 3) (safety 0)))
   (create-operator-method name arity coarity))
 
 (defun make-method-id-symbol (method)
+  (declare (type method method)
+           (optimize (speed 3) (safety 0)))
   (let* ((nam (method-name method))
          (mixfix (find-if #'(lambda (x) (string= x "_")) (car nam))))
     (if mixfix
@@ -508,10 +512,11 @@
                         (make-print-operator-id (car nam))
                         (cdr nam))))))
 
+(declaim (inline make-operator-method))
 (defun make-operator-method (&key name arity coarity)
   (declare (type list name arity)
            (type (or null sort*) coarity)
-           (values method))
+           (optimize (speed 3) (safety 0)))
   (let ((meth (allocate-operator-method name arity coarity)))
     (declare (type method meth))
     (setf (method-module meth) (get-context-module)
@@ -537,6 +542,8 @@
 (defmacro method= (*_*meth1 *_*meth2) `(eq ,*_*meth1 ,*_*meth2))
 
 (defun method-w= (m1 m2)
+  (declare (type method m1 m2)
+           (optimize (speed 3) (safety 0)))
   (or (method= m1 m2)
       (when (and (sort= (method-coarity m1) *sort-id-sort*)
                  (sort= (method-coarity m2) *sort-id-sort*))
@@ -550,16 +557,10 @@
 (defmacro method-has-same-name (_m1 _m2)
   `(equal (method-name ,_m1) (method-name ,_m2)))
 
-#||
-(defmacro method-is-of-same-operator (_m1 _m2)
-  (once-only (_m1 _m2)
-    `(if (or (atom ,_m1) (atom ,_m2))
-         (equal ,_m1 ,_m2)
-       (method-has-same-name (the method ,_m1) (the method ,_m2)))))
-||#
-
+(declaim (inline method-is-of-same-operator))
 (defun method-is-of-same-operator (_m1 _m2)
-  (declare (type (or atom method) _m1 _m2))
+  (declare (type (or atom method) _m1 _m2)
+           (optimize (speed 3) (safety 0)))
   (if (or (not (method-p _m1))
           (not (method-p _m2)))
       (equal _m1 _m2)
@@ -574,7 +575,9 @@
                                           (module-sort-order *current-module*)))))
   
 ;;; method-is-predicate
+(declaim (inline method-is-predicate))
 (defun method-is-predicate (method)
+  (declare (type method method))
   (and (sort= *bool-sort* (method-coarity method))
        (not (member *bool-sort* (method-arity method)))
        (not (method= method *bool-true-meth*))
@@ -585,7 +588,7 @@
 (defun find-method-in-method-list (arity coarity method-list)
   (declare (type list arity method-list)
            (type sort* coarity)
-           (values (or null method)))
+           (optimize (speed 3) (safety 0)))
   (let ((methods method-list))
     (dolist (m methods)
       (if (and (sort-list= arity (method-arity m))
@@ -628,8 +631,6 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-!method-info) (symbol-function '!method-info-p))
-  (setf (get '!method-info :type-predicate) (symbol-function '!method-info-p))
   (setf (get '!method-info :print) nil))
         
 ;;;
@@ -744,7 +745,8 @@
                                                        (info-table
                                                         *current-opinfo-table*))
   (declare (type method method)
-           (type hash-table info-table))
+           (type hash-table info-table)
+           (optimize (speed 3) (safety 0)))
   (let* ((th (method-theory method info-table))
          (info (theory-info th)))
     (declare (type op-theory th)
@@ -761,7 +763,8 @@
 (defun get-method-precedence (method &optional
                                      (method-info-tab *current-opinfo-table*))
   (declare (type method method)
-           (type hash-table method-info-tab))
+           (type hash-table method-info-tab)
+           (optimize (speed 3) (safety 0)))
   (or (the (or null fixnum) (method-precedence method))
       (the (or null fixnum) (operator-computed-precedence
                              (method-operator method method-info-tab)))
@@ -776,7 +779,7 @@
 
 (defun compute-operator-precedence (operator)
   (declare (type operator operator)
-           (values fixnum))
+           (optimize (speed 3) (safety 0)))
   (let ((given-prec (operator-precedence operator))
         (token-seq (operator-token-sequence operator))
         (is-standard (not (operator-is-mixfix operator))))
@@ -819,24 +822,13 @@
 ;;;  1 : current
 ;;;  2 : mark
 
-;;; (defmacro rule-ring-ring (r) `(object-typer 0))
-;;; (defmacro rule-ring-current (r) `(t-ref ,r 1))
-;;; (defmacro rule-ring-mark (r) `(t-ref ,r 2))
-;;;
-;;; (defun make-rule-ring (&key ring current mark)
-;;;   (let ((r (alloc-term 3)))
-;;;     (setf (rule-ring-ring r) ring
-;;;       (rule-ring-current r) current
-;;;       (rule-ring-mark r) mark)
-;;;    r))
-
 ;;; CREATE-RULE-RING list-of-rules
 ;;; creates new rule-ring intialized with given rules.
 ;;; if given rules are empty a empty ring is created.
 ;;;
 (defun create-rule-ring (list-of-rules)
   (declare (type list list-of-rules)
-           (values rule-ring))
+           (optimize (speed 3) (safety 0)))
   (if list-of-rules
       (make-rule-ring :ring (rplacd (last list-of-rules) list-of-rules)
                       :current list-of-rules
@@ -848,7 +840,8 @@
 ;;;
 (defun add-rule-to-ring (rring rule)
   (declare (type rule-ring rring)
-           (type t rule))
+           (type t rule)
+           (optimize (speed 3) (safety 0)))
   (let ((ring (rule-ring-ring rring)))
     (if ring
         ;; add the rule to tail.
@@ -871,7 +864,7 @@
 #-GCL
 (defun initialize-rule-ring (rr)
   (declare (type rule-ring rr)
-           (values t))
+           (optimize (speed 3) (safety 0)))
   (setf (rule-ring-current rr) (rule-ring-ring rr))
   (setf (rule-ring-mark rr) nil)
   (car (rule-ring-current rr))
@@ -888,7 +881,7 @@
 #-GCL
 (defun rule-ring-set-mark (rr)
   (declare (type rule-ring rr)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (setf (rule-ring-mark rr) (rule-ring-current rr)))
 
 ;;; RULE-RING-NEXT rule-ring
@@ -906,7 +899,7 @@
 #-GCL
 (defun rule-ring-next (rr)
   (declare (type rule-ring rr)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (unless (rule-ring-mark rr) (rule-ring-set-mark rr))
   ;; update the current pointer
   (let ((rules (cdr (rule-ring-current rr))))
@@ -925,7 +918,7 @@
 #-GCL
 (defun END-OF-RULE-RING (rr)
   (declare (type rule-ring rr)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (eq (rule-ring-current rr) (rule-ring-mark rr)))
 
 ;;; RULE-RING-IS-EMPTY rule-ring
@@ -937,7 +930,7 @@
 #-GCL
 (defun rule-ring-is-empty (rr)
   (declare (type rule-ring rr)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (null (rule-ring-ring rr)))
 
 ;;; RULE-RING-TO-LIST rule-ring
@@ -953,7 +946,7 @@
 #-GCL
 (defun rule-ring-to-list (rr)
   (declare (type rule-ring rr)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let ((list nil))
     (do ((rule (initialize-rule-ring rr) (rule-ring-next rr)))
         ((end-of-rule-ring rr))
@@ -964,7 +957,8 @@
 ;;;
 (defun copy-rule-ring (rule-ring)
   (declare (type rule-ring rule-ring)
-           (values rule-ring))
+           (optimize (speed 3) (safety 0))
+           (inline make-rule-ring))
   (let ((ring (rule-ring-ring rule-ring)))
     (make-rule-ring :ring ring
                     :current ring
@@ -980,7 +974,7 @@
 
 (defun method-is-error-method (method)
   (declare (type method method)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (let ((coar (method-coarity method)))
     (or (err-sort-p coar)
         (dolist (a (method-arity method) nil)
@@ -990,7 +984,7 @@
 ;;; returns true if all of its arguments are universal sort
 (defun method-is-universal (method)
   (declare (type method method)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (let ((arity (method-arity method)))
     (declare (type list arity))
     (and arity
@@ -1004,7 +998,7 @@
 ;;; returns true if one of the argument is an universal sort
 (defun method-is-universal* (method)
   (declare (type method method)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (let ((arity (method-arity method)))
     (declare (type list arity))
     (and arity
@@ -1018,36 +1012,40 @@
 ;;; METHOD-IS-ASSOCIATIVE : Method -> Bool
 ;;; non-nil iff the methods equational theory contains associativity.
 ;;;
+(declaim (inline method-is-associative))
 (defun method-is-associative (meth &optional (info *current-opinfo-table*))
   (declare (type method meth)
            (type hash-table info)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (theory-contains-associativity (method-theory meth info)))
 
 ;;; METHOD-IS-IDENTITY
 ;;; non-nil iff the method's equational theory contains ideitity.
 ;;;
+(declaim (inline method-is-identity))
 (defun method-is-identity (meth &optional (info *current-opinfo-table*))
   (declare (type method meth)
            (type hash-table info)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (theory-contains-identity (method-theory meth info)))
 
 ;;; METHOD-IS-COMMUTATIVE
 ;;; non-nil iff the method's equational theory contains commutativity.
 ;;;
+(declaim (inline method-is-commutative))
 (defun method-is-commutative (meth &optional (info *current-opinfo-table*))
   (declare (type method meth)
            (type hash-table info)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (theory-contains-commutativity (method-theory meth info)))
   
 ;;; METHOD-IS-IDEMPOTENT
 ;;;
+(declaim (inline method-is-idempotent))
 (defun method-is-idempotent (meth &optional (info *current-opinfo-table*))
   (declare (type method meth)
            (type hash-table info)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (theory-contains-idempotency (method-theory meth info)))
 
 ;;; METHOD-IS-OVERLOADED-WITH : Method Method SORT-ORDER -> Bool
@@ -1058,7 +1056,7 @@
 (defun method-is-overloaded-with (meth1 meth2 &optional (so *current-sort-order*))
   (declare (type method meth1 meth2)
            (type sort-order so)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (and (method-p meth1) (method-p meth2)
        (method-is-of-same-operator meth1 meth2)
        (let ((arx (method-arity meth1))
@@ -1102,7 +1100,7 @@
 (defun method-is-instance-of (meth1 meth2 sort-order)
   (declare (type method meth1 meth2)
            (type sort-order sort-order)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (and (method-p meth1)
        (method-p meth2)
        (method-is-of-same-operator meth1 meth2)
@@ -1116,7 +1114,7 @@
 ;;;
 (defun method-is-same-qual-method (meth1 meth2)
   (declare (type method meth1 meth2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (and (method-p meth1) (method-p meth2)
        (or (method= meth1 meth2)
            (and (method-is-of-same-operator meth1 meth2)
@@ -1133,8 +1131,8 @@
 (defun method<= (meth1 meth2 &optional (so *current-sort-order*))
   (declare (type method meth1 meth2)
            (type sort-order so)
-           (values (or null t)))
-  (and (method-p meth1) (method-p meth2)
+           (optimize (speed 3) (safety 0)))
+  (and ;; (method-p meth1) (method-p meth2)
        (method-is-of-same-operator meth1 meth2)
        (not (eq meth1 meth2))
        (and (sort<= (method-coarity meth1) (method-coarity meth2) so)
@@ -1146,8 +1144,8 @@
 (defun method-is-restriction-of (meth1 meth2 &optional (so *current-sort-order*))
   (declare (type method meth1 meth2)
            (type sort-order so)
-           (values (or null t)))
-  (and (method-p meth1) (method-p meth2)
+           (optimize (speed 3) (safety 0)))
+  (and ;;(method-p meth1) (method-p meth2)
        (method-is-of-same-operator meth1 meth2)
        (not (eq meth1 meth2))
        (or (method-is-universal* meth2)
@@ -1166,8 +1164,8 @@
 (defun method-is-associative-restriction-of (meth1
                                              meth2)
   (declare (type method meth1 meth2)
-           (values (or null t)))
-  (and (method-p meth1) (method-p meth2)
+           (optimize (speed 3) (safety 0)))
+  (and ;; (method-p meth1) (method-p meth2)
        (or (method= meth1 meth2)
            (equal (method-name meth1) (method-name meth2)))))
 
@@ -1194,8 +1192,8 @@
                                     &rest ignore)
   (declare (type method meth1 meth2)
            (ignore ignore)
-           (values (or null t)))
-  (and (method-p meth1) (method-p meth2)
+           (optimize (speed 3) (safety 0)))
+  (and ;; (method-p meth1) (method-p meth2)
        (or (method= meth1 meth2)
            (eq (method-name meth1) (method-name meth2)))))
 
@@ -1218,8 +1216,8 @@
 #-GCL
 (defun method-is-commutative-restriction-of (meth1 meth2)
   (declare (type method meth1 meth2)
-           (values (or null t)))
-  (and (method-p meth2) (method-p meth1)
+           (optimize (speed 3) (safety 0)))
+  (and ;; (method-p meth2) (method-p meth1)
        (or (method= meth1 meth2)
            (eq (method-name meth1) (method-name meth2)))))
 
@@ -1242,7 +1240,7 @@
                                                 *current-opinfo-table*))
   (declare (type method meth)
            (type hash-table opinfo-table)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (dolist (meth2 (method-overloaded-methods meth opinfo-table))
     (declare (type method meth2))
     (when (and (not (method= meth meth2))
@@ -1258,7 +1256,7 @@
                                      (opinfo-table *current-opinfo-table*))
   (declare (type method meth)
            (type hash-table opinfo-table)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let ((res nil))
     (dolist (meth2 (method-overloaded-methods meth opinfo-table))
       (declare (type method meth2))
@@ -1277,7 +1275,7 @@
   (declare (type method method)
            (type sort-order so)
            (hash-table info-table)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let ((res nil)
         (coar (method-coarity method)))
     (declare (type sort* coar))
@@ -1306,7 +1304,7 @@
            (type sort* sort)
            (type sort-order so)
            (type hash-table opinfo-table)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let ((methods (reverse (method-overloaded-methods method opinfo-table)))
         (res nil))
     (dolist (m methods)
@@ -1332,7 +1330,7 @@
 (defun get-default-methods (op &optional (module *current-module*))
   (declare (type operator op)
            (type module module)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let ((gms nil))
     (dolist (m (operator-methods op (module-all-operators module)))
       (if (or (method-is-error-method m)
@@ -1346,7 +1344,7 @@
   (declare (type method method)
            (type list lower-bounds)
            (type module mod)
-           (values method))
+           (optimize (speed 3) (safety 0)))
   (let ((*current-opinfo-table* (module-opinfo-table mod))
         (*current-sort-order* (module-sort-order mod))
         (cur-arity (method-arity method))
@@ -1379,7 +1377,7 @@
   (declare (type method method)
            (type sort* upper-bound)
            (type module module)
-           (values method))
+           (optimize (speed 3) (safety 0)))
   (let* ((*current-opinfo-table* (module-opinfo-table module))
          (*current-sort-order* (module-sort-order module))
          (elingible-flag (sort<= (method-coarity method) upper-bound))
@@ -1409,7 +1407,7 @@
 (defun strict-lower-coarities-direct (method &optional (module *current-module*))
   (declare (type method method)
            (type module module)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let (;; (arity (method-arity method))
         (coarity (method-coarity method))
         (*current-opinfo-table* (module-opinfo-table module))
@@ -1441,6 +1439,8 @@
 ;;;       properly.
 ;;;
 (defun choose-most-general-op (list-meth)
+  (declare (type list list-meth)
+           (optimize (speed 3) (safety 0)))
   (unless (cdr list-meth)
     (return-from choose-most-general-op (car list-meth)))
   (let ((res (car list-meth)))
@@ -1455,6 +1455,8 @@
 ;;;       properly.
 ;;; This is used for selecting a term from multiple parse result.
 (defun choose-lowest-op (list-meth)
+  (declare (type list list-meth)
+           (optimize (speed 3) (safety 0)))
   (unless (cdr list-meth)
     (return-from choose-lowest-op (car list-meth)))
   (when *on-operator-debug*
@@ -1479,7 +1481,7 @@
   (declare (type method method)
            (type list lower-bound)
            (type module module)
-           (values method))
+           (optimize (speed 3) (safety 0)))
   (let ((*current-sort-order* (module-sort-order module))
         (*current-opinfo-table* (module-opinfo-table module))
         (cand nil))
@@ -1495,7 +1497,7 @@
   (declare (type method method)
            (type list lower-bound)
            (type module module)
-           (values (or null method)))
+           (optimize (speed 3) (safety 0)))
   (flet ((select-one-method (method-list)
            ;; select arbitrary one if every has the same rank
            (let* ((cand (car method-list))
@@ -1550,7 +1552,7 @@
   (declare (type method method)
            (type list lower-bound)
            (type module module)
-           (values (or null method)))
+           (optimize (speed 3) (safety 0)))
   (let* ((*current-sort-order* (module-sort-order module))
          (*current-opinfo-table* (module-opinfo-table module))
          (over-methods (method-overloaded-methods method *current-opinfo-table*)))
@@ -1585,9 +1587,7 @@
   (declare (type method method)
            (type (or null sort*) upper-bound)
            (type module module)
-           (values method))
-  ;; (format t "~&highest-method : given method ")
-  ;;  (print-chaos-object method)
+           (optimize (speed 3) (safety 0)))
   (let ((overloaded-methods
          (reverse (method-overloaded-methods method
                                              (module-opinfo-table module)))))
@@ -1631,7 +1631,7 @@
 (defun get-strict-lower-coarities (method &optional (module *current-module*))
   (declare (type method method)
            (type module module)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let* (;; (arity (method-arity method))
          (coarity (method-coarity method))
          (*current-sort-order* (module-sort-order module))
@@ -1656,7 +1656,7 @@
 (defun method-all-rules (method &optional (opinfo-table *current-opinfo-table*))
   (declare (type method method)
            (type hash-table opinfo-table)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let ((dif (method-rules-with-different-top method opinfo-table))
         (ring (method-rules-with-same-top method opinfo-table))
         (res nil))
@@ -1692,7 +1692,7 @@
   (declare (type list name)
            (type fixnum num-args)
            (type module module)
-           (values operator))
+           (optimize (speed 3) (safety 0)))
   (let ((tseq (explode-operator-name name))
         (t-cnt 0))
     (dolist (s tseq)

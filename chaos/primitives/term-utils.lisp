@@ -44,30 +44,108 @@
 ;;; Many routines are based on OBJ3 interpeter of SRI International.
 ;;; reorganized and adopted to Chaos system by <sawada@sra.co.jp>.
 
+;;; ****************************
+;;; APPLICATION FORM CONSTRUTORS
+;;; with some additional works  ________________________________________________
+;;; ****************************
+
+;;; MAKE-TERM-WITH-SORT-CHECK : METHOD SUBTERMS -> TERM
+;;; construct application form from given method & subterms.
+;;; the lowest method is searched and if found, construct a term with found
+;;; method, otherwise, given method is used.
+(defvar **sa-debug** nil)
+(declaim (inline make-term-with-sort-check))
+(defun make-term-with-sort-check (meth subterms
+                                  &optional (module (get-context-module)))
+  (declare (type method meth)
+           (type list subterms)
+           (type module module)
+           (optimize (speed 3) (safety 0)))
+  (let ((res nil))
+    (if (do ((arl (method-arity meth) (cdr arl))
+             (sl subterms (cdr sl)))
+            ((null arl) t)
+          (unless (sort= (car arl) (term-sort (car sl))) (return nil)))
+        (setq res (make-applform (method-coarity meth) meth subterms))
+      (let ((m (lowest-method meth
+                              (mapcar #'(lambda (x) (term-sort x)) subterms) ;
+                              module)))
+        (setq res (make-applform (method-coarity m) m subterms))))
+    (when **sa-debug**
+      (format t "~%MTWSC: meth=")
+      (print-chaos-object meth)
+      (print "==> ")
+      (term-print res)
+      (format t ":")
+      (print-chaos-object (term-head res))
+      (force-output))
+    res))
+
+;;; MAKE-TERM-WITH-SORT-CHECK-BIN : METHOD SUBTERMS -> TERM
+;;; same as make-term-with-sort-check, but specialized to binary operators.
+
+(defun make-term-with-sort-check-bin (meth subterms
+                                           &optional (module (get-context-module)))
+  (declare (type method meth)
+           (type list subterms)
+           (type (or null module) module)
+           (optimize (speed 3)(safety 0)))
+  (let ((s1 (term-sort (car subterms)))
+        (s2 (term-sort (cadr subterms)))
+        (res nil))
+    (if (let ((ar (method-arity meth)))
+          (and (sort= (car ar) s1)
+               (sort= (cadr ar) s2)))
+        (setq res (make-applform (method-coarity meth) meth subterms))
+      (let ((lm (lowest-method meth (list s1 s2) module)))
+        (setq res (make-applform (method-coarity lm) lm subterms))))
+    (when **sa-debug**
+      (format t "~&MTWSC-BIN: meth=")
+      (print-chaos-object meth)
+      (print "==> ")
+      (term-print res)
+      (format t ":")
+      (print-chaos-object (term-head res))
+      (force-output))
+    res))
+
+;;; op make-term-check-op : method {subterms}list[term] -> term
+;;;
+(declaim (inline make-term-check-op))
+(defun make-term-check-op (f subterms &optional module)
+  (declare (type method f)
+           (type list subterms)
+           (type (or null module) module)
+           (optimize (speed 3) (safety 0))
+           (inline make-term-with-sort-check))
+  (make-term-with-sort-check f subterms module))
+
+;;; op make-term-check-op-with-sort-check :
+;;;     operator {subterms}list[term] -> term
+;;; check if f is a built-in-constant-op
+;;;
+(defun make-term-check-op-with-sort-check (f subterms &optional module)
+  (declare (type method f)
+           (type list subterms)
+           (type (or null module) module)
+           (optimize (safety 0) (speed 3))
+           (inline make-term-with-sort-check))
+  (make-term-with-sort-check f subterms module))
+
 ;;;*****************************
 ;;; Application form constructor________________________________________________
 ;;;*****************************
-
-(defmacro method-is-object-constructor (__method__)
-  `(eq (method-constructor ,__method__) ':object))
-
-(defmacro method-is-record-constructor (__method__)
-  `(eq (method-constructor ,__method__) ':record))
-
-(defmacro make-applform-simple (_sort _meth &optional _subterms)
-  `(make-application-term ,_meth ,_sort ,_subterms))
-
+(declaim (inline make-appl-form))
 (defun make-applform (sort meth &optional args)
-  (declare (type sort* sort)
-           (type method meth)
-           (type list args))
-  (make-applform-simple sort meth args))
+  (declare (optimize (speed 3) (safety 0)))
+  (make-application-term meth sort args))
 
 ;;; ******************
 ;;; RESET-REDUCED-FLAG---------------------------------------------------------
 ;;; ******************
 (defun reset-reduced-flag (term)
-  (declare (type term term))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (when (or (term-is-builtin-constant? term)
             (pvariable-term? term))
     (return-from reset-reduced-flag term))
@@ -76,6 +154,326 @@
     (dolist (sub (term-subterms term))
       (reset-reduced-flag sub)))
   term)
+
+#|
+                                  SUBSTITUTION
+--------------------------------------------------------------------------------
+ A substitution is a map from variables to terms. Any mapping \sigma of variables
+ to terms extends to a substitution by defining \sigma(f(t1,...,tn)) to be
+ f(\sigma(t1), ... , \sigma(tn)).
+
+ IMPLEMENTATION:
+ this is naturally an association list of (varible . term) pair, and we want it
+ to be mutable, then we implemented as a structure of type list.
+--------------------------------------------------------------------------------
+|#
+
+(deftype substitution () 'list)
+(defmacro substitution-create (_bind) _bind)
+(defmacro substitution-bindings (_sub) _sub)
+(defmacro assoc-in-substitution (_key _sub &optional (_test '#'variable-eq))
+  `(assoc ,_key ,_sub :test ,_test))
+
+;;; CREATE-EMPTY-SUBSTITUTION
+;;; Creates new empty substitution
+;;;
+(defmacro create-empty-substitution () `())
+(declaim (inline new-substitution))
+(defun new-substitution () ())
+
+;;; SUBSTITUTION-COPY sigma
+;;; Returns a copy of sigma.
+;;;
+(defmacro substitution-copy (_sigma)
+  ` (mapcar #'(lambda (map)
+                (cons (car map) (cdr map)))
+            ,_sigma))
+
+;;; SUBSTITUTION-IS-EMPTY sigma
+;;; Returns t iff \sigma is an empty substitution-
+;;;
+(defmacro substitution-is-empty (sigma_) `(null ,sigma_))
+
+;;; SUBSTITUTION-DOMAIN sigma
+;;; Returns the domain of sigma
+;;;
+(defmacro substitution-domain (_sigma_) `(mapcar #'car ,_sigma_))
+
+;;; VARIABLE-IMAGE
+;;; returns the image of variable under sigma.
+;;;
+(defmacro variable-image (*_sigma *_variable)
+  `(and ,*_sigma (cdr (assoc ,*_variable ,*_sigma :test #'variable-eq))))
+
+(defmacro variable-image-fast (_*sigma _*variable)
+  `(cdr (assoc ,_*variable ,_*sigma :test #'eq)))
+
+(defmacro variable-image-slow (_*sigma _*variable)
+  `(and ,_*sigma (cdr (assoc ,_*variable ,_*sigma :test #'variable-equal))))
+
+;;; SUBSTITUTION-LIST-OF-PAIRS sigma
+;;; returns the list of pair in substitution-
+;;;
+(defmacro substitution-list-of-pairs (_sigma_) _sigma_)
+
+;;; SUBSTITUTION-ADD sigma variable term
+;;; adds the new map variable -> term to sigma.
+;;;
+(defmacro substitution-add (sigma_* variable_* term_*)
+  `(cons (cons ,variable_* ,term_*) ,sigma_*))
+
+;;; SUBSTITUTION-DELETE sigma variable
+;;; deletes the map for variable from sigma.
+;;; NOTE: sigma is modified.
+;;;
+(defmacro substitution-delete (sigma!_ variable!_)
+  (once-only (sigma!_)
+    ` (progn (setf ,sigma!_
+                   (delete ,variable!_ ,sigma!_ :test #'variable-eq))
+             ,sigma!_)))
+
+;;; SUBSTITUTION-CHANGE sigma variable term
+;;; change the mapping of variable to term.
+;;; if the variable is not in the domain of sigma, add the new binding.
+;;; NOTE: sigma is modified.
+;;;
+(defmacro substitution-change (?__sigma ?__variable ?__term)
+  (once-only (?__sigma ?__variable ?__term)
+    ` (let ((binding (assoc-in-substitution ,?__variable ,?__sigma)))
+        (if binding
+            (setf (cdr binding) ,?__term)
+            (push (cons variable ,?__term) ?__sigma))
+        ,?__sigma)))
+
+;;; SUBSTITUTION-SET sigma variable term
+;;; Changes sigma to map v to term.
+;;;
+(defmacro substitution-set (?_?sigma ?_?v ?_?term)
+  (once-only (?_?sigma ?_?v ?_?term)
+     `(progn
+        (if (variable-eq ,?_?v ,?_?term)
+            (substitution-delete ,?_?sigma ,?_?v)
+            (substitution-change ,?_?sigma ,?_?v ,?_?term))
+       ,?_?sigma)))
+
+;;; CANONICALIZE-SUBSTITUTION : substitution -> substitution
+;;;
+(defun canonicalize-substitution (s)
+  (declare (type list s)
+           (optimize (speed 3) (safety 0))
+           (values list))
+  (sort  (copy-list s)                  ; (substitution-copy s)         
+         #'(lambda (x y)                ; two substitution items (var . term)
+             (string< (the simple-string (string (the symbol (variable-name (car x)))))
+                      (the simple-string (string (the symbol (variable-name (car y)))))))))
+
+
+;;; SUBSTITUTION-EQUAL : substitution1 substitution2 -> Bool
+;;;
+(defun substitution-equal (s1 s2)
+  (declare (type list s1 s2)
+           (optimize (speed 3) (safety 0))
+           (values (or null t)))
+  (every2len #'(lambda (x y)
+                 (and (variable= (the term (car x)) (the term (car y)))
+                      (term-is-similar? (the term (cdr x)) (the term (cdr y)))))
+             s1 s2))
+
+;;; SUBSTITUTION-RESTRICT : list-of-variables substitution -> substitution
+;;;
+(defun substitution-restrict (vars sub)
+  (declare (type list vars sub)
+           (optimize (speed 3) (safety 0))
+           (values list))
+  (let ((res nil))
+    (dolist (s sub)
+      (when (member (car s) vars :test #'variable=)
+        (push s res)))
+    res))
+
+;;; SUBSTITUTION-SUBSET substitution-1 substitution-2 : -> bool
+;;; subset when viewed as a set of (mapping) pairs
+;;; assumed canonicalized
+;;;
+(defun substitution-subset (s1 s2)
+  (declare (type list s1 s2)
+           (optimize (speed 3) (safety 0)))
+  (substitution-subset-list (substitution-list-of-pairs s1)
+                            (substitution-list-of-pairs s2)))
+(defun substitution-subset-list (s1 s2)
+  (declare (type list s1 s2)
+           (optimize (speed 3) (safety 0))
+           (values (or null t)))
+  (let ((s1x s1)
+        (s2x s2)
+        (res t))
+    (loop (when (null s1x) (return))
+          (let ((v1 (the term (caar s1x)))
+                (t1 (the term (cdar s1x))))
+            (loop (when (null s2x) (setq res nil) (return))
+                  (when (variable-eq v1 (caar s2x))
+                    (if (term-is-similar? t1 (cdar s2x))
+                        (progn (setq s2x (cdr s2x)) (return))
+                        (progn (setq res nil) (return))))
+                  (setq s2x (cdr s2x)))
+            (when (null res) (return))
+            (setq s1x (cdr s1x))))
+    res))
+
+
+;;; SUBSTITUTION-DOMAIN-RESTRICTION sigma domain
+;;; Restricts the domain of sigma to dom and renames in a canonical fashion all
+;;; variables in the range of sigma, but not in domain. More precisely, returns
+;;; a substitution sigma2 with domain a subset of domain such that, for any
+;;; variable v in domain, \sigma2(v) = \rho(\sigma(v)), where \rho is a substitution
+;;; that renames variables. 
+;;;
+;;; TODO
+(defun substitution-domain-restriction (sigma domain)
+  sigma domain
+  )
+
+;;; SUBSTITUTION-UNION sigma1 sigma2
+;;; Returns the union of \sigma1 nd \sigma2. Returns 'incompatible if
+;;; \sigma1(v) differs from \sigma2(v) for some v in the intersection of their
+;;; domains. 
+;;;
+;;; TODO
+(defun substitution-union (sigma1 sigma2)
+  sigma1 sigma2
+  )
+
+;;; SUBSTITUTION-COMPOSIT sigma1 sigma2
+;;; Returns the composition of \sigma1 and \sigma2. The result of applying this
+;;; composition to a term t is \sigma1(\sigma2(t)).
+;;; NOTE: This operation is NOT commutative,
+;;;       i,e. substitution-composit(sigma, sigma) =/= sigma.
+;;;
+(defun substitution-composit (sigma1 sigma2)
+  sigma1 sigma2
+  )
+
+;;; SUBSTITUTION-FOREACH (element sigma) body
+;;; Yields the variable-term pairs in sigma
+;;;
+(defmacro substitution-foreach ((?_??element ?_??sigma) &body ?_??body)
+  `(dolist (,?_??element (substitution-bindings ,?_??sigma))
+     ,@?_??body)
+  )
+
+
+(defun substitution-check-built-in (trm) trm)
+
+;;; SUBSTITUTION-COMPOSE
+
+(defun substitution-compose (teta lisp-term)
+  (declare (type list teta lisp-term)
+           (optimize (speed 3) (safety 0)))
+  (let ((fcn (lisp-form-function lisp-term))
+        (new-fun nil)
+        (new-term nil))
+    (if (or #-CMU(typep fcn 'compiled-function)
+            #+CMU(typep fcn 'function)
+            (not (and (consp fcn) (eq 'lambda (car fcn))
+                      (equal '(compn) (cadr fcn)))))
+        (setf new-fun
+              `(lambda (compn) (funcall ',fcn (append ',teta compn))))
+        (let ((oldteta (cadr (nth 1 (nth 2 (nth 2 fcn)))))
+              (realfcn (cadr (nth 1 (nth 2 fcn)))))
+          (setf new-fun
+                `(lambda (compn)
+                  (funcall ',realfcn (append ',(append teta oldteta) compn))))))
+    (if (term-is-simple-lisp-form? lisp-term)
+        (setf new-term (make-simple-lisp-form-term (lisp-form-original-form lisp-term)))
+        (setf new-term (make-general-lisp-form-term (lisp-form-original-form lisp-term))))
+    (setf (lisp-form-function new-term) new-fun)
+    new-term))
+
+(defun substitution-compose-chaos (teta chaos-expr)
+  (declare (type list teta chaos-expr)
+           (optimize (speed 3) (safety 0)))
+  (let ((fcn (chaos-form-expr chaos-expr))
+        (new-fun nil)
+        (new-term nil))
+    (if (or #-CMU(typep fcn 'compiled-function)
+            #+CMU(typep fcn 'function)
+            (not (and (consp fcn) (eq 'lambda (car fcn))
+                      (equal '(compn) (cadr fcn)))))
+        (setf new-fun
+          `(lambda (compn) (funcall ',fcn (append ',teta compn))))
+      (let ((oldteta (cadr (nth 1 (nth 2 (nth 2 fcn)))))
+            (realfcn (cadr (nth 1 (nth 2 fcn)))))
+        (setf new-fun
+          `(lambda (compn)
+             (funcall ',realfcn (append ',(append teta oldteta) compn))))))
+    (setf new-term (make-bconst-term *chaos-value-sort*
+                                     (list '|%Chaos|
+                                           new-fun
+                                           (chaos-original-expr chaos-expr))))
+    new-term))
+
+;;; SUBSTITUTION-IMAGE* sigma term
+;;; Returns the image of term under sigma. Like substitution-image, but
+;;; changing bound variables as necessary in the result to prevent variables in the
+;;; range of sigma from being captured by a quantifier in term. Also renames all bound
+;;; variables in the image of term under sigma (by replacing them by constants).
+;;; To preserve shared subterms, returns t itself, and not a copy, if the image is the
+;;; same as t.
+;;; * TODO *
+;;;
+
+;; NO COPY of Term is done.
+(defun substitution-image-no-copy (sigma term &optional (subst-pconst nil))
+  (declare (type list sigma)
+           (type term term)
+           (optimize (speed 3) (safety 0))
+           (values t))
+  (let ((im nil))
+    ;; '-image-slow' because the use case often distructively changes terms.
+    (cond ((term-is-variable? term)
+           (when (setq im (variable-image-slow sigma term))
+             (term-replace term im)))
+          ((term-is-constant? term)
+           (when subst-pconst
+             (when (setq im (variable-image-slow sigma term))
+               (term-replace term im))))
+          (t (dolist (s-t (term-subterms term))
+               (substitution-image-no-copy sigma s-t subst-pconst))))
+    term))
+
+;;; CANONICALIZE-SUBSTITUTION
+;;;
+(defun substitution-can (s)
+  (declare (type list s)
+           (optimize (speed 3) (safety 0))
+           (values list))
+  (sort (copy-list s)
+        #'(lambda (x y)                 ;two substitution items (var . term)
+            (declare (type list x y))
+            (string< (the simple-string (string (variable-name (car x))))
+                     (the simple-string (string (variable-name (car y))))))))
+
+(defun substitution-simple-image (teta term)
+  (declare (type list teta)
+           (type term term)
+           (optimize (speed 3) (safety 0)))
+  (macrolet ((assoc% (_?x _?y)
+               `(let ((lst$$ ,_?y))
+                  (loop
+                   (when (null lst$$) (return nil))
+                   (when (eq ,_?x (caar lst$$)) (return (car lst$$)))
+                   (setq lst$$ (cdr lst$$))))))
+  (cond ((term-is-variable? term)
+         (let ((im (cdr (assoc% term teta))))
+           (if im im term)))
+        ((term-is-builtin-constant? term)
+         (make-bconst-term (term-sort term)
+                           (term-builtin-value term)))
+        (t  (make-applform (method-coarity (term-head term))
+                           (term-head term)
+                           (mapcar #'(lambda (stm)
+                                       (substitution-simple-image teta stm))
+                                   (term-subterms term)))))))
 
 ;;; **************************
 ;;; WITH-VARIABLE-AS-CONSTANT------------------------------------------------
@@ -87,12 +485,16 @@
 (defvar *variable-as-constant* nil)
 
 (defun make-pconst-from-var (var)
+  (declare (type term var)
+           (optimize (speed 3) (safety 0)))
   (let ((name (variable-name var))
         (print-name (variable-print-name var))
         (sort (variable-sort var))
         (unique-marker (gensym))
         (pc-name nil)
         (pc-pname nil))
+    (declare (type symbol name unique-marker pc-name pc-pname print-name)
+             (type sort* sort))
     (setq pc-name (intern (concatenate 'string "`" (string unique-marker) "-" (string name))))
     (if print-name
         (setq pc-pname (intern (concatenate 'string "`" (string print-name))))
@@ -100,19 +502,25 @@
     (make-pconst-term sort pc-name pc-pname)))
 
 (defun variables->pconstants (term)
-  (let ((vars (term-variables term))
-        (subst (new-substitution))
-        (rsubst (new-substitution)))
-    (dolist (var vars)
-      (let ((pc (make-pconst-from-var var)))
-        (setq subst (substitution-add subst var pc))
-        (setq rsubst (substitution-add rsubst pc var))))
-    (setq rsubst (copy-tree rsubst))    ; because substitution-image-no-copy 
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
+  (macrolet ((substitution-add (_sigma _var _term)
+               `(cons (cons ,_var ,_term) ,_sigma)))
+    (let ((vars (term-variables term))
+          (subst nil)
+          (rsubst nil))
+      (dolist (var vars)
+        (let ((pc (make-pconst-from-var var)))
+          (setq subst (substitution-add subst var pc))
+          (setq rsubst (substitution-add rsubst pc var))))
+      (setq rsubst (copy-tree rsubst))  ; because substitution-image-no-copy 
                                         ; destructively changes given term
-    (substitution-image-no-copy subst term)
-    rsubst))
+      (substitution-image-no-copy subst term)
+      rsubst)))
 
 (defun revert-pconstants (term rsubst)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (substitution-image-no-copy rsubst term :subst-pconstance)
   term)
 
@@ -139,15 +547,11 @@
 
 (defun term-is-an-error (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (and (term? term)
-       (let ((sort (term$sort (term-body term))))
+       (let ((sort (term-sort term)))
          (and (not (sort= *bottom-sort* sort))
               (sort<= sort *syntax-err-sort* *chaos-sort-order*)))))
-
-(eval-when (:execute :load-toplevel)                    ; synonym
-  (setf (symbol-function 'term-ill-defined)
-        (symbol-function 'term-is-an-error)))
 
 ;;; Returns true iff the term is application form and has error-method
 ;;; as its top.
@@ -170,7 +574,7 @@
 
 ;;; TERM-IS-REALLY-WELL-DEFINED tm
 ;;; returns t iff
-;;; (1) the term tm is not ill defined (in terms of `term-ill-defined')
+;;; (1) the term tm is not ill defined (in terms of `term-is-an-error')
 ;;;     nor its head method is not a error-method
 ;;; AND
 ;;; (2) all of the subterms are TERM-IS-REALY-WELL-DEFINED
@@ -195,13 +599,13 @@
   (declare (type method head)
            (type list subterms)
            (values term))
-  (make-applform-simple *type-err-sort* head subterms))
+  (make-applform *type-err-sort* head subterms))
 
 (defun make-inheritedly-ill-term (head subterms)
   (declare (type method head)
            (type list subterms)
            (values term))
-  (make-applform-simple *type-err-sort* head subterms))
+  (make-applform *type-err-sort* head subterms))
 
 ;;; TERM-ERROR-OPERATORS&VARIABLES
 ;;; returns the list of error operators contained in term.
@@ -237,7 +641,7 @@
 
 (defun term-contains-error-method (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body term)))
     (when (term$is-application-form? body)
       (or (method-is-error-method (appl$head body))
@@ -266,19 +670,6 @@
 
 ;;; test if a appl form contains search predicate which may
 ;;; introduce new variables
-#||
-(defparameter sch-op-names
-    '(("_" "=" "(" "_" "," "_" ")" "=>+" "_" "if" "_" "suchThat" "_" "{" "_" "}")))
-
-(defun term-contains-sp-sch-predicate (term)
-  (and (term-is-application-form? term)
-       (or (member (method-symbol (term-head term))
-                   sch-op-names
-                   :test #'equal)
-           (some #'term-contains-sp-sch-predicate
-                  (term-subterms term)))))
-||#
-
 (defun term-contains-sp-sch-predicate (term)
   (and (term-is-application-form? term)
        (or (eq (method-module (term-head term)) *rwl-module*)
@@ -327,7 +718,7 @@
 
 (defun update-lowest-parse (term)
   (declare (type term term)
-           (values t))
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body term))
         (assoc-applied nil))
     (unless (or (pvariable-term? term) (term-is-an-error term))
@@ -543,28 +934,6 @@
 (defmacro is-false? (!_obj)
   `(eq (term-head ,!_obj) *bool-false-meth*))
 
-;;; VARIABLE-EQUAL : VARIABLE VARIABLE -> BOOL
-;;; returns true iff
-;;; (1) two variables are phisically equal, or
-;;; (2) have same name and same sort.
-;;;
-(defun variable-equal (x y)
-  (declare (type term x y)
-           (values (or null t)))
-  (or (term-eq x y)
-      (and (eq (variable-name x) (variable-name y))
-           (sort= (variable-sort x) (variable-sort y)))))
-
-(defun variable= (x y)
-  (declare (type term x y)
-           (values (or null t)))
-  (term-eq x y))
-
-(defun variable-eq (x y)
-  (declare (type term x y)
-           (values (or null t)))
-  (term-eq x y))
-
 ;;; TERM-IS-ZERO-FOR-METHOD : TERM METHOD -> BOOL
 ;;; returns t if the term TERM is identity of method METHOD.
 ;;;
@@ -597,7 +966,7 @@
 ;;;
 (defun term-is-congruent? (t1 t2)
   (declare (type term t1 t2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (let ((t1-body (term-body t1))
         (t2-body (term-body t2)))
     (cond ((term$is-variable? t1-body)
@@ -636,7 +1005,7 @@
 
 (defun match-with-empty-theory (t1 t2)
   (declare (type term t1 t2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (or (term-eq t1 t2)
       (cond ((term-is-applform? t1)
              (unless (term-is-applform? t2)
@@ -686,7 +1055,7 @@
 
 (defun term-equational-equal (t1 t2)
   (declare (type term t1 t2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (or (term-eq t1 t2)
       (let ((t1-body (term-body t1))
             (t2-body (term-body t2)))
@@ -718,7 +1087,7 @@
 (defun term-is-similar? (t1 t2)
   (declare (type term t1)
            (type (or term null) t2)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (or (term-eq t1 t2)
       (if t2
           (let ((t1-body (term-body t1))
@@ -750,89 +1119,6 @@
                   ((term$is-lisp-form? t2-body) nil)
                   (t (break "unknown type of term." )))))))
 
-;;; ****************************
-;;; APPLICATION FORM CONSTRUTORS
-;;; with some additional works  ________________________________________________
-;;; ****************************
-
-;;; op make-term-check-op : method {subterms}list[term] -> term
-;;;
-(defun make-term-check-op (f subterms &optional module)
-  (declare (type method f)
-           (type list subterms)
-           (type (or null module) module))
-  (make-term-with-sort-check f subterms module))
-
-;;; op make-term-check-op-with-sort-check :
-;;;     operator {subterms}list[term] -> term
-;;; check if f is a built-in-constant-op
-;;;
-(defun make-term-check-op-with-sort-check (f subterms &optional module)
-  (declare (type method f)
-           (type list subterms)
-           (type (or null module) module)
-           (values term))
-  (make-term-with-sort-check f subterms module))
-
-;;; MAKE-TERM-WITH-SORT-CHECK : METHOD SUBTERMS -> TERM
-;;; construct application form from given method & subterms.
-;;; the lowest method is searched and if found, construct a term with found
-;;; method, otherwise, given method is used.
-(defvar **sa-debug** nil)
-(defun make-term-with-sort-check (meth subterms
-                                  &optional (module (get-context-module)))
-  (declare (type method meth)
-           (type list subterms)
-           (type module module))
-  (let ((res nil))
-    (if (do ((arl (method-arity meth) (cdr arl))
-             (sl subterms (cdr sl)))
-            ((null arl) t)
-          (unless (sort= (car arl) (term-sort (car sl))) (return nil)))
-        (setq res (make-applform (method-coarity meth) meth subterms))
-      (let ((m (lowest-method meth
-                              (mapcar #'(lambda (x) (term-sort x)) subterms) ;
-                              module)))
-        (setq res (make-applform (method-coarity m) m subterms))))
-    (when **sa-debug**
-      (format t "~%MTWSC: meth=")
-      (print-chaos-object meth)
-      (print "==> ")
-      (term-print res)
-      (format t ":")
-      (print-chaos-object (term-head res))
-      (force-output))
-    res))
-
-;;; MAKE-TERM-WITH-SORT-CHECK-BIN : METHOD SUBTERMS -> TERM
-;;; same as make-term-with-sort-check, but specialized to binary operators.
-
-(defun make-term-with-sort-check-bin (meth subterms
-                                           &optional (module (get-context-module)))
-  (declare (type method meth)
-           (type list subterms)
-           (type (or null module) module)
-           (values term))
-  (let ((s1 (term-sort (car subterms)))
-        (s2 (term-sort (cadr subterms)))
-        (res nil))
-    (if (let ((ar (method-arity meth)))
-          (and (sort= (car ar) s1)
-               (sort= (cadr ar) s2)))
-        (setq res (make-applform (method-coarity meth) meth subterms))
-      (let ((lm (lowest-method meth (list s1 s2) module)))
-        (setq res (make-applform (method-coarity lm) lm subterms))))
-    (when **sa-debug**
-      (format t "~&MTWSC-BIN: meth=")
-      (print-chaos-object meth)
-      (print "==> ")
-      (term-print res)
-      (format t ":")
-      (print-chaos-object (term-head res))
-      (force-output))
-    res))
-
-
 ;;; ***************************************
 ;;; ACCESSORS & CONSTRUCTORS of APPLICATION
 ;;; FORM CONSIDERING EQUATIONAL THEORY     -------------------------------------
@@ -849,7 +1135,7 @@
 (defun list-assoc-subterms (term method)
   (declare (type term term)
            (type method method)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (let ((res (list-assoc-subterms-aux term method nil)))
     res))
 
@@ -872,7 +1158,7 @@
 (defun list-assoc-subterms (term method)
   (declare (type term term)
            (type method method)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (labels ((list-a-subs (term method lst)
              (declare (type term term)
                       (type method method)
@@ -898,13 +1184,15 @@
 
 (defun list-assoc-id-subterms (term method)
   (declare (type term term)
-           (type method method))
+           (type method method)
+           (optimize (speed 3) (safety 0)))
   (list-assoc-id-subterms-aux term method nil))
 
 (defun list-assoc-id-subterms-aux (term method lst)
   (declare (type term term)
            (type method method)
-           (type list lst))
+           (type list lst)
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body term)))
     (if (term$is-variable? body)
         (cons term lst)
@@ -925,7 +1213,7 @@
 (defun list-assoc-id-subterms (term method)
   (declare (type term term)
            (type method method)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (labels ((list-a-subs (term method lst)
              (declare (type term term)
                       (type method method)
@@ -980,7 +1268,8 @@
 #-GCL
 (defun list-AC-subterms (term method)
   (declare (type term term)
-                      (type method method))
+           (type method method)
+           (optimize (speed 3) (safety 0)))
   (labels ((list-subs (term method lst)
              (declare (type term term)
                       (type method method)
@@ -1038,7 +1327,8 @@
 #-GCL
 (defun list-ACZ-subterms (term meth)
   (declare (type term term)
-           (type method meth))
+           (type method meth)
+           (optimize (speed 3) (safety 0)))
   (labels ((list-subs (term method lst)
              (declare (type term term)
                       (type method method)
@@ -1073,17 +1363,8 @@
 ;;;
 (defun make-right-assoc-normal-form (meth subterms)
   (declare (type method meth)
-           (type list subterms))
-  ;;#||
-  (when *term-debug*
-    (format t "~&make-right-assoc-normal-form:")
-    (format t "~& method = ")
-    (print-chaos-object meth)
-    (format t "~& subterms = ")
-    (print-chaos-object subterms)
-    (format t "~& length = ~d" (length subterms))
-    (force-output))
-  ;;||#
+           (type list subterms)
+           (optimize (speed 3) (safety 0)))
   (let ((res (if (= (length subterms) 2)
                  (make-applform (method-coarity meth) meth subterms)
                (make-applform (method-coarity meth)
@@ -1102,7 +1383,7 @@
 (defun make-right-assoc-normal-form-with-sort-check (meth subterms)
   (declare (type method meth)
            (type list subterms)
-           (values term))
+           (optimize (speed 3) (safety 0)))
   (if (= 1 (length subterms))
       (car subterms)
     (if (= 2 (length subterms))
@@ -1123,9 +1404,8 @@
 ;;; which represent the associative class.
 
 (defun right-associative-normal-form (t1)
-  (declare (type term t1))
-  ;; (format t "~&ranf: ")
-  ;; (term-print t1)
+  (declare (type term t1)
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body t1)))
     (cond ((term$is-constant? body) t1)
           ((term$is-variable? body) t1)
@@ -1146,7 +1426,8 @@
 ;;; * NOTE *
 ;;; head method must be associaitive method with identity.
 (defun right-associative-id-normal-form (t1)
-  (declare (type term t1))
+  (declare (type term t1)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? t1)
       (let ((meth (term-head t1)))
         (if (theory-contains-az (method-theory meth))
@@ -1161,7 +1442,8 @@
 ;;; returns the term simplified by considering identity theory among subterms.
 ;;;
 (defun id-normal-form (t1)
-  (declare (type term t1))
+  (declare (type term t1)
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body t1)))
     (cond ((term$is-constant? body) t1)
           ((term$is-variable? body) t1)
@@ -1177,12 +1459,13 @@
 (defun make-right-assoc-id-normal-form (method subterms)
   (declare (type method method)
            (type list subterms)
-           (values list))
+           (optimize (speed 3) (safety 0)))
   (make-right-assoc-normal-form method (filter-zero method subterms)))
 
 (defun filter-zero (method subterms)
   (declare (type method method)
-           (type list subterms))
+           (type list subterms)
+           (optimize (speed 3) (safety 0)))
   (when subterms
     (if (term-is-zero-for-method (car subterms) method)
         (filter-zero method (cdr subterms))
@@ -1199,7 +1482,7 @@
 
 (defun term-copy-and-returns-list-variables (term)
   (declare (type term term)
-           (values term list))
+           (optimize (speed 3) (safety 0)))
   (multiple-value-bind (res list-new-var)
       (copy-list-term-using-list-var (list term) nil)
     (declare (type list res list-new-var))
@@ -1207,7 +1490,7 @@
 
 (defun copy-list-term-using-list-var (term-list list-new-var &key (test #'variable-eq))
   (declare (type list term-list list-new-var)
-           (values list list))
+           (optimize (speed 3) (safety 0)))
   (let ((v-image nil)
         (list-copied-term nil))
     (values (mapcar #'(lambda (term)
@@ -1236,7 +1519,7 @@
 (defun copy-term-using-variable (term list-new-var &optional (test #'variable-eq))
   (declare (type term term)
            (type list list-new-var)
-           (values term))
+           (optimize (speed 3) (safety 0)))
   (multiple-value-bind (res list-new-var-res)
       (copy-list-term-using-list-var (list term) list-new-var :test test)
     (declare (ignore list-new-var-res)
@@ -1258,7 +1541,8 @@
 ;;; TERM is supposed of the application form f(t1,...,tn).
 ;;;
 (defun theory-standard-form (term)
-  (declare (type term term))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (let ((body (term-body term)))
     (if (term$is-application-form? body)
         (let* ((f (appl$head body))
@@ -1300,14 +1584,16 @@
 
 (defun A-idempotent-normal-form (f t1 t2)
   (declare (type method f)
-           (type term t1 t2))
+           (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-similar? t1 t2)
       t1
     (make-applform (method-coarity f) f (list t1 t2))))
 
 (defun AC-idempotent-normal-form (f t1 t2)
   (declare (type method f)
-           (type term t1 t2))
+           (type term t1 t2)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-similar? t1 t2)
       t1
     (make-applform (method-coarity f) f (list t1 t2))))
@@ -1317,13 +1603,17 @@
 ;;; **********
 
 (defun get-term-all-methods (term ans)
+  (declare (type term term)
+           (type list ans)
+           (optimize (speed 3) (safety 0)))
   (when (term-is-application-form? term)
     (pushnew (term-head term) (cdr ans) :test #'eq)
     (dolist (sub (term-subterms term))
       (get-term-all-methods sub ans))))
 
 (defun term-heads (term)
-  (declare (type term term))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (let ((res (cons nil nil)))
     (get-term-all-methods term res)
     (cdr res)))
@@ -1333,7 +1623,8 @@
   `(term-heads ,term))
 
 (defun clean-term (term)
-  (declare (type term term))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-application-form? term)
       (make-applform (method-coarity (term-head term))
                      (term-head term)
@@ -1342,17 +1633,17 @@
 
 (defun term-make-zero (method)
   (declare (type method method)
-           (values (or null term)))
+           (optimize (speed 3) (safety 0)))
   (let ((zero (car (theory-zero (method-theory method)))))
     (if zero
         zero
-        nil)))
+      nil)))
 
 ;;; SUPPLY-PCONSTANTS
 ;;;
 (defun supply-pconstants (term)
   (declare (type term term)
-           (values term))
+           (optimize (speed 3) (safety 0)))
   (let ((target (simple-copy-term term)))
     (declare (type term target))
     (let ((vars (term-variables target)))
@@ -1367,17 +1658,23 @@
 ;;; MISC PREDICATES ON TERM
 ;;; ***********************
 (defun term-is-of-functional? (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? term)
       (not (method-is-behavioural (term-head term)))
-      t))
+    t))
           
 (defun term-is-of-behavioural? (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? term)
       (method-is-behavioural (term-head term))
-      nil))
+    nil))
 
 (defun term-is-of-behavioural*? (term
                                  &optional (opinfo-table *current-opinfo-table*))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (if (term-is-applform? term)
       (or (method-is-behavioural (term-head term))
           (method-is-coherent (term-head term) opinfo-table))
@@ -1385,7 +1682,7 @@
 
 (defun term-is-behavioural? (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (and (sort-is-hidden (term-sort term))
        (or (term-is-constant? term)
            (let ((head (term-head term)))
@@ -1394,7 +1691,7 @@
 
 (defun term-can-be-in-beh-axiom? (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (cond ((term-is-applform? term)
          (if (eq (term-head term) *bool-if*)
              (and (term-can-be-in-beh-axiom? (term-arg-2 term))
@@ -1411,29 +1708,43 @@
 
 (defun term-is-non-behavioural? (term)
   (declare (type term term)
-           (values (or null t)))
+           (optimize (speed 3) (safety 0)))
   (not (term-is-behavioural? term)))
 
 ;;; returns t iff given term is a constructor, i.e.,
 ;;; the root is a constrctor operator, or it is a term of built-in sort.
 ;;;
 (defun term-is-constructor? (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (or (term-is-builtin-constant? term)
       (and (term-is-application-form? term)
            (method-is-constructor? (term-head term)))))
 
 ;;; we sometimes need to make variables on the fly.-----------------------------
 ;;; 
+(declaim (type fixnum *var-num*))
+(defvar *var-num*)
+
 (let ((*var-num* 0))
   (declare (type fixnum *var-num*))
   (defun generate-variable (sort)
+    (declare (type sort* sort)
+             (optimize (speed 3) (safety 0))
+             (inline make-variable-term))
     (make-variable-term sort
                         (intern (format nil "#Genvar-~d" (incf *var-num*)))))
   (defun make-new-variable (name sort &optional (pname name))
+    (declare (type sort*)
+             (optimize (speed 3) (safety 0))
+             (inline make-variable-term))
     (make-variable-term sort
                         (intern (format nil "~a-~d" name (incf *var-num*)))
                         pname))
   (defun rename-variable (var)
+    (declare (type term var)
+             (optimize (speed 3) (safety 0))
+             (inline make-variable-term))
     (make-variable-term (variable-sort var)
                         (intern (format nil "~a-~d"
                                         (variable-name var)
@@ -1464,6 +1775,8 @@
 ;;; REPLACE-VARIABLES-WITH-TOC
 ;;;
 (defun replace-variables-with-toc (term &optional (warn nil))
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
   (unless (term-is-applform? term)
     (return-from replace-variables-with-toc term))
   (let ((vars (term-variables term))
@@ -1489,6 +1802,9 @@
 ;;; canonicalize-variables
 ;;;
 (defun canonicalize-variables (list-term module)
+  (declare (type list list-term)
+           (type module module)
+           (optimize (speed 3) (safety 0)))
   (with-in-module (module)
     (multiple-value-bind (list-copied-term list-new-var)
         (copy-list-term-using-list-var list-term nil :test #'variable-equal)
@@ -1509,5 +1825,252 @@
             ((term-is-builtin-constant? term)
              (term-print term))
             (t (print-chaos-object term))))))
+
+;;; SUBSTITUTION-IMAGE 
+;;; Returns sigma(t) and "true" iff the sort of "t" and "sigma(t)" are the same.
+;;; A COPY of the term "t" is done and the sort information is updated.
+;;;
+(defun substitution-image (sigma term)
+  (declare (type list sigma)
+           (optimize (speed 3) (safety 0))
+           (type term term))
+  (let ((*consider-object* t))
+    (cond ((term-is-variable? term)
+           (let ((im (variable-image sigma term)))
+             (if im;; i.e. im = sigma(term)
+                 (values im nil)
+               (values term t))))
+          ((term-is-lisp-form? term)
+           (multiple-value-bind (new-term success)
+               (funcall (lisp-form-function term) sigma)
+             (if success
+                 new-term
+               (throw 'rule-failure :fail-builtin))))
+          ((term-is-chaos-expr? term)
+           (multiple-value-bind (new-term success)
+               (funcall (chaos-form-expr term) sigma)
+             (if success
+                 new-term
+               (throw 'fule-failure :fail-builtin))))
+          ((term-is-builtin-constant? term)
+           term)                        ; shold we copy?
+          (t (let ((l-result nil)
+                   (modif-sort nil))
+               (dolist (s-t (term-subterms term))
+                 (multiple-value-bind (image-s-t same-sort)
+                     (substitution-image sigma s-t)
+                   (unless same-sort (setq modif-sort t))
+                   (push image-s-t l-result)))
+               (setq l-result (nreverse l-result))
+               (if modif-sort
+                   (let ((term-image (make-term-with-sort-check (term-head term)
+                                                                l-result)))
+                     (values term-image
+                             (sort= (term-sort term)
+                                    (term-sort term-image))))
+                 (values (make-applform (term-sort term)
+                                        (term-head term)
+                                        l-result)
+                         t)))))))
+
+(defun substitution-image! (sigma term)
+  (declare (type list sigma)
+           (optimize (speed 3) (safety 0))
+           (type term term))
+  (let ((*consider-object* t))
+    (cond ((term-is-variable? term)
+           (let ((im (variable-image-slow sigma term)))
+             (if im;; i.e. im = sigma(term)
+                 (values im nil)
+               (values term t))))
+          ((term-is-lisp-form? term)
+           (multiple-value-bind (new-term success)
+               (funcall (lisp-form-function term) sigma)
+             (if success
+                 new-term
+               (throw 'rule-failure :fail-builtin))))
+          ((term-is-chaos-expr? term)
+           (multiple-value-bind (new-term success)
+               (funcall (chaos-form-expr term) sigma)
+             (if success
+                 new-term
+               (throw 'fule-failure :fail-builtin))))
+          ((term-is-builtin-constant? term) term) ; shold we copy?
+          (t (let ((l-result nil)
+                   (modif-sort nil))
+               (dolist (s-t (term-subterms term))
+                 (multiple-value-bind (image-s-t same-sort)
+                     (substitution-image! sigma s-t)
+                   (unless same-sort (setq modif-sort t))
+                   (push image-s-t l-result)))
+               (setq l-result (nreverse l-result))
+               (if modif-sort
+                   (let ((term-image (make-term-with-sort-check (term-head term)
+                                                                l-result)))
+                     (values term-image
+                             (sort= (term-sort term)
+                                    (term-sort term-image))))
+                 (values (make-applform (term-sort term)
+                                        (term-head term)
+                                        l-result)
+                         t)))))))
+
+(defun substitution-image-cp (sigma term)
+  (declare (type list sigma)
+           (optimize (speed 3) (safety 0))
+           (type term term))
+  (let ((*consider-object* t))
+    (cond ((term-is-variable? term)
+           (let ((im (variable-image sigma term)))
+             (if im;; i.e. im = sigma(term)
+                 ;; (values (simple-copy-term im) nil)
+                 (values im nil)
+               (values term t))))
+          ((term-is-lisp-form? term)
+           (multiple-value-bind (new-term success)
+               (funcall (lisp-form-function term) sigma)
+             (if success
+                 new-term
+               (throw 'rule-failure :fail-builtin))))
+          ((term-is-chaos-expr? term)
+           (multiple-value-bind (new-term success)
+               (funcall (chaos-form-expr term) sigma)
+             (if success
+                 new-term
+               (throw 'fule-failure :fail-builtin))))
+          ((term-is-builtin-constant? term) term) ; shold we copy?
+          (t (let ((l-result nil)
+                   (modif-sort nil))
+               (dolist (s-t (term-subterms term))
+                 (multiple-value-bind (image-s-t same-sort)
+                     (substitution-image-cp sigma s-t)
+                   (unless same-sort (setq modif-sort t))
+                   (push image-s-t l-result)))
+               (setq l-result (nreverse l-result))
+               (if modif-sort
+                   (let ((term-image (make-term-with-sort-check (term-head term)
+                                                                l-result)))
+                     (values term-image
+                             (sort= (term-sort term)
+                                    (term-sort term-image))))
+                 (values (make-applform (term-sort term)
+                                        (term-head term)
+                                        l-result)
+                         t)))))))
+
+(defun substitution-partial-image (sigma term)
+  (declare (type list sigma)
+           (type term term)
+           (optimize (speed 3) (safety 0)))
+  (let ((*consider-object* t))
+    (cond ((term-is-variable? term)
+           (let ((im (variable-image sigma term)))
+             (if im
+                 (values im nil)
+                 (values term t))))
+          ((term-is-lisp-form? term)
+           (substitution-compose sigma term)
+           )
+          ((term-is-chaos-expr? term)
+           (substitution-compose-chaos sigma term))
+          ((term-is-builtin-constant? term) term)
+          ((term-is-applform? term)
+           (let ((l-result nil) (modif-sort nil))
+             (dolist (s-t (term-subterms term))
+               (multiple-value-bind (image-s-t same-sort)
+                   (substitution-partial-image sigma s-t)
+                 (unless same-sort (setq modif-sort t))
+                 (push image-s-t l-result)))
+             (setq l-result (nreverse l-result))
+             (if modif-sort
+                 (let ((term-image (make-term-with-sort-check 
+                                    (term-head term)
+                                    l-result)))
+                   (values term-image
+                           (sort= (term-sort term)
+                                  (term-sort term-image))))
+                 (values (make-applform (term-sort term) (term-head term) l-result)
+                         t))))
+          (t (break "substution-partial-image : not implemented ~s" term)))))
+
+(defun substitution-image-simplifying (sigma term &optional (cp nil) (slow-map nil))
+  (declare (type list sigma)
+           (type term)
+           (optimize (speed 3) (safety 0)))
+  (let ((*consider-object* t))
+    ;; (setq subst-debug-term term)
+    (cond ((term-is-variable? term)
+           (let ((im (if slow-map
+                         (variable-image-slow sigma term)
+                       (variable-image sigma term))))
+             (if im
+                 (values (if cp
+                             (progn
+                               (simple-copy-term im))
+                           im)
+                         (sort= (variable-sort term)
+                                (term-sort im)))
+                 (values term t))))
+          ((term-is-chaos-expr? term)
+           (when *rewrite-debug*
+             (format t "CHAOS: ~S" (chaos-form-expr term)))
+           (multiple-value-bind (new-term success)
+               (funcall (chaos-form-expr term) sigma)
+             (if success
+                 new-term
+               (throw 'fule-failure :fail-builtin))))
+          ((term-is-builtin-constant? term) term)
+          ((term-is-lisp-form? term)
+           (multiple-value-bind (new success)
+               (funcall (lisp-form-function term) sigma)
+             (if success
+                 new
+                 (throw 'rule-failure :fail-builtin))))
+          ((term-is-applform? term)
+           (let ((l-result nil)
+                 (modif-sort nil))
+             (dolist (s-t (term-subterms term))
+               (multiple-value-bind (image-s-t same-sort)
+                   (substitution-image-simplifying sigma s-t cp)
+                 (unless same-sort (setq modif-sort t))
+                 (push image-s-t l-result)))
+             (setq l-result (nreverse l-result))
+             (let ((method (term-head term)))
+               (if (and (cdr l-result)
+                        (null (cddr l-result))
+                        (method-is-identity method))
+                   ;; head operator is binary & has identity theory
+                   (if (term-is-zero-for-method (car l-result) method)
+                       ;; ID * X --> X
+                       ;; simplify for left identity.
+                       (values (cadr l-result)
+                               (sort= (term-sort term)
+                                      (term-sort (cadr l-result))))
+                       ;; X * ID --> X
+                       (if (term-is-zero-for-method (cadr l-result) method)
+                           (values (car l-result)
+                                   (sort= (term-sort term)
+                                          (term-sort (car l-result))))
+                           ;; X * Y 
+                           (if modif-sort
+                               (let ((term-image (make-term-with-sort-check 
+                                                  method l-result)))
+                                 (values term-image
+                                         (sort= (term-sort term)
+                                                (term-sort term-image))))
+                               (values (make-applform (term-sort term)
+                                                      method l-result)
+                                       t) ; sort not changed
+                               )))      ; done for zero cases
+                   ;; This is the same as the previous bit of code
+                   (if modif-sort
+                       (let ((term-image (make-term-with-sort-check method
+                                                                    l-result)))
+                         (values term-image
+                                 (sort= (term-sort term) (term-sort term-image))))
+                       (values (make-applform (method-coarity method)
+                                              method l-result)
+                               t))))))
+          (t (break "not implemented yet")) )))
 
 ;;; EOF

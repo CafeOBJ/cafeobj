@@ -270,9 +270,9 @@
 			(subs nil))
 		    (dolist (s (cdr tram-term))
 		      (push (tram-term-to-chaos trs s) subs))
-		    (setq res (make-applform-simple (method-coarity hd)
-						    hd
-						    (nreverse subs)))
+		    (setq res (make-applform (method-coarity hd)
+                                             hd
+                                             (nreverse subs)))
 		    (update-lowest-parse res)
 		    res)))))
 	    (t (with-output-panic-message ()

@@ -89,6 +89,20 @@
       (term-arg-1 meta-term)
     meta-term))
 
+;;; **************
+;;; *SUBSTITUTION*
+;;; **************
+
+(defstruct (subst* (:print-function pr-subst))
+  (bindings nil))
+
+(defun create-new-subst ()
+  (make-subst* :bindings nil))
+
+(defun pr-subst (obj stream &rest ignore)
+  (declare (ignore ignore))
+  (print-substitution (subst*-bindings obj) stream))
+
 ;;;
 ;;; CREATE-SYSTEM-OBJECT-TERM
 ;;;
@@ -175,20 +189,9 @@
     (with-in-module (*current-module*)
       (is-in-same-connected-component s1 s2 *current-sort-order*))))
 
-;;; **************
-;;; *SUBSTITUTION*
-;;; **************
-
-(defstruct (subst* (:print-function pr-subst))
-  (bindings nil))
-
-(defun create-new-subst ()
-  (make-subst* :bindings (new-substitution)))
-
-(defun pr-subst (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (print-substitution (subst*-bindings obj) stream))
-
+;;; 
+;;; context
+;;;
 (defun meta-get-context-module (module)
   (let ((rmod (if (term? module)
                   (cond ((and (term? module) (term-is-system-object? module))

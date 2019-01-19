@@ -40,151 +40,130 @@
 ;;; -------------------
 ;;; TRACING or STEPPING
 ;;; -------------------
+(declaim (special .trace-or-step.)
+         (type (or null (not null)) .trace-or-step.))
 (defvar .trace-or-step. nil)
 
  ;;; -------
  ;;; MEMOIZE
  ;;; -------
-
-(deftype term-hash-key () '(unsigned-byte 29))
-
-(defconstant term-hash-mask #x1FFFFFFF)
-
-(defconstant term-hash-size 9001)
-
-(defmacro method-has-memo-safe (m)
-  `(and (method-p ,m) (method-has-memo ,m)))
-
-#-GCL (declaim (inline term-hash-equal))
-#-(or GCL CMU)
-(defun term-hash-equal (x)
-  (logand term-hash-mask (sxhash x)))
-#+CMU
-(defun term-hash-equal (x)
-  (sxhash x))
-#+GCL
-(si:define-inline-function term-hash-equal (x) (sxhash x))
-
-#+GCL
-(Clines "static object term_hash_eq(x) 
-   object x;
-   { return(make_fixnum(((((int)x) & 0x1fffffff)+3)>>3)); }
- ")
-
-#+GCL
-(defentry term-hash-eq (object) (object term_hash_eq))
-
-#-GCL
-(declaim (inline term-hash-eq))
-#-GCL
-(defun term-hash-eq (object)
-  (ash (+ (the term-hash-key
-	    (logand term-hash-mask
-		    (the (unsigned-byte 32) (addr-of object))))
-	  3)
-       -3))
-
-#-GCL
-(declaim (inline term-hash-comb))
-
-#||
-(defun term-hash-comb (x y)
-  ;; (declare (type term-hash-key x y))
-  (the term-hash-key
-    (logxor (the term-hash-key (ash x -5))
-	    y
-	    (the term-hash-key
-	      (logand term-hash-mask
-		      (the term-hash-key (ash (logand x 31) 26)))))))
-||#
-
-#-GCL
-(defun term-hash-comb (x y)
-  ;; (declare (type term-hash-key x y))
-  (the term-hash-key (logand term-hash-mask (logand term-hash-mask (+ x y)))))
-
-                                        ;#+GCL
-                                        ;(si:define-inline-function term-hash-comb (x y)
-                                        ;  (make-and term-hash-mask (+ x y)))
-
-;;; #+GCL
-;;; (si:define-inline-function term-hash-comb (x y)
-;;;   (make-xor (ash x -5) y (ash (make-and x 31) 26))
-;;;  )
-
-;;;
-;;; term-hash
-;;;
-;;; (defvar *on-term-hash-debug* nil)
-
-(defstruct term-hash
-  (size term-hash-size :type (unsigned-byte 14) :read-only t)
-  (table nil :type (or null simple-array)) )
-
-(defun hash-term (term)
-  (cond ((term-is-applform? term)
-         (let ((res (sxhash (the symbol (method-id-symbol (term-head term))))))
-           (dolist (subterm (term-subterms term))
-             (setq res (term-hash-comb res (hash-term subterm))))
-           res))
-        ((term-is-builtin-constant? term)
-         (term-hash-comb (sxhash (the symbol (sort-id (term-sort term))))
-                         (term-hash-equal (term-builtin-value term))))
-        ((term-is-variable? term) (term-hash-eq term))))
-
-(defun dump-term-hash (term-hash &optional (size term-hash-size))
-  (dotimes (x size)
-    (let ((ent (svref term-hash x)))
-      (when ent
-        (format t "~%[~3d]: ~d entrie(s)" x (length ent))
-        (dotimes (y (length ent))
-          (let ((e (nth y ent)))
-            (format t "~%(~d)" y)
-            (let ((*print-indent* (+ 2 *print-indent*)))
-              (term-print (car e))
-              (print-next)
-              (princ "==>")
-              (print-next)
-              (term-print (cdr e)))))))))
-
-#-GCL
-(declaim (inline get-hashed-term))
-
-(#-GCL defun #+GCL si:define-inline-function
- get-hashed-term (term term-hash)
- (let ((val (hash-term term)))
-   (let* ((ent (svref term-hash
-		      (mod val term-hash-size)))
-	  (val (cdr (assoc term ent :test #'term-is-similar?))))
-     (when val (incf *term-memo-hash-hit*))
-     val)))
-
-#-GCL
-(declaim (inline set-hashed-term))
-
-(#-GCL defun #+GCL si:define-inline-function
- set-hashed-term (term term-hash value)
- (let ((val (hash-term term)))
-   (let ((ind (mod val term-hash-size)))
-     (let ((ent (svref term-hash ind)))
-       (let ((pr (assoc term ent :test #'term-is-similar?)))
-         (if pr (rplacd pr value)
-           (setf (svref term-hash ind) (cons (cons term value) ent))) )))))
+(defvar *memo-debug* nil)
 
 ;;; *TERM-MEMO-TABLE*
-
 (defvar *term-memo-table* nil)
 (defvar *memoized-module* nil)
 
 (defun create-term-memo-table ()
   (unless *term-memo-table*
     (setq *term-memo-table*
-      (alloc-svec term-hash-size))))
+      #-:SBCL
+       (make-hash-table :test #'equal)
+      #+:SBCL
+       (make-hash-table :test #'equal)
+       ;; (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7 :weakness nil)
+       ;; (make-hash-table :test #'equal :rehash-size 1.5 :rehash-threshold 0.7 :weakness :key-or-value)
+       )))
+       
 
-(defun clear-term-memo-table (table)
-  (dotimes (x term-hash-size)
-    (setf (svref table x) nil))
-  table)
+(defun clear-term-memo-table (&optional (table *term-memo-table*))
+  (clrhash table))
+
+(defun dump-term-hash (&optional (mod (get-context-module)))
+  (unless mod
+    (with-output-chaos-error ('no-context)
+      (format t "No context module")))
+  (with-in-module (mod)
+    (maphash #'(lambda (key val)
+                 (format t "~%[~3d]==>" key)
+                 (let ((*print-indent* (+ 2 *print-indent*)))
+                   (term-print val)))
+              *term-memo-table*)))
+
+;;; hash-term
+;;; compute hash
+(defvar *term-id-debug* nil)
+(defvar .id-conf. nil)
+
+(defun longest-term-id ()
+  (let ((maxlen 0)
+        (lkey nil))
+    (declare (special maxlen)
+             (type fixnum maxlen))
+    (maphash #'(lambda (key value)
+                 (declare (ignore value))
+                 (let ((keylen (length key)))
+                   (declare (type fixnum keylen))
+                   (when (> keylen maxlen)
+                     (setq lkey key)
+                     (setq maxlen keylen))))
+              *term-memo-table*)
+    (format t "~%* The longest key: ~d" maxlen)
+    (format t "~% ~s" lkey)
+    maxlen))
+
+(declaim (inline term-id))
+(declaim (type fixnum *term-id-limit*))
+(defvar *term-id-limit* 51)
+(declaim (type fixnum *hash-count-limit*))
+(defvar *hash-count-limit* 2800)
+(declaim (special .ignore-term-id-limit.))
+(defvar .ignore-term-id-limit. nil)         
+(defvar .term-id-paranoia. nil)
+
+(defun term-id (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0)))
+  (let ((.call-depth. 0))
+    (declare (special .call-depth.)
+             (type fixnum .call-depth.))
+    (labels ((get-term-id (term)
+               (unless .ignore-term-id-limit.
+                 (incf (the fixnum .call-depth.))
+                 (unless (< (the fixnum .call-depth.) (the fixnum *term-id-limit*))
+                   (return-from term-id nil)))
+               (let ((.id-conf. nil))
+                 (declare (special .id-conf.)
+                          (type list .id-conf.))
+                 (cond ((term-is-applform? term)
+                        (if .term-id-paranoia.
+                            (let* ((op (term-head term))
+                                   (opmod (module-print-name (method-module op))))
+                              (push opmod .id-conf.)
+                              (push (the symbol (method-id-symbol op)) .id-conf.))
+                          (push (the symbol (method-id-symbol (term-head term))) .id-conf.))
+                        (dolist (subterm (term-subterms term) .id-conf.)
+                          (setq .id-conf. (nconc .id-conf. (get-term-id subterm)))))
+                       ((term-is-builtin-constant? term)
+                        (setq .id-conf. (nconc .id-conf. (list (sort-id (term-sort term))
+                                                               (term-builtin-value term)))))
+                       ((term-is-variable? term)
+                        (return-from term-id nil))
+                       (t (abort))))))
+      (let ((term-id (get-term-id term)))
+        (declare (type list term-id))
+        (when *term-id-debug*
+          (with-in-module ((get-context-module))
+            (format t "~%..hash_term..: ~s" term-id)
+            (format t "~%  term: ")
+            (term-print term)))
+        term-id))))
+
+(declaim (inline get-hashed-term))
+(defun get-hashed-term (term-id term-hash)
+  (declare (inline gethash)
+           (optimize (speed 3) (safety 0)))
+  (let ((val (gethash term-id term-hash)))
+    (when val 
+      (incf (the fixnum *term-memo-hash-hit*)))
+    val))
+
+(declaim (inline set-hashed-term))
+(defun set-hashed-term (term-id term-hash-table value)
+  (declare (inline gethash)
+           (optimize (speed 3) (safety 0)))
+  (setf (gethash term-id term-hash-table) value)
+  ;; (incf (the fixnum .hash-size.))
+  )
 
 ;;;		      BASIC COMMON ROUTINES FOR REWRITING
 
@@ -196,14 +175,11 @@
 ;;; TERM COLOR
 ;;; ----------
 
-(defun set-term-color-top (term)
-   (if (not *beh-rewrite*)
-       (if (sort-is-hidden (term-sort term))
-           (set-term-color term :red)
-         (set-term-color term))
-     (set-term-color term)))
-
+(declaim (inline set-term-color))
 (defun set-term-color (term &optional red?)
+  (declare (type term term)
+           (type (or null t) red?)
+           (optimize (speed 3) (safety 0)))
    (labels ((set-color (term set-red)
               (if set-red
                   (progn
@@ -245,6 +221,17 @@
      (set-color term red?)
      term))
 
+(defun set-term-color-top (term)
+  (declare (type term term)
+           (optimize (speed 3) (safety 0))
+           (values term))
+   (if (not *beh-rewrite*)
+       (if (sort-is-hidden (term-sort term))
+           (set-term-color term :red)
+         (set-term-color term))
+     (set-term-color term)))
+
+
 ;;; **************************
 ;;; LOW LEVEL REWRITE ROUTINES
 ;;; **************************
@@ -262,27 +249,103 @@
 
 ;;; ----------------------------------------
 ;;; BASIC PROCS for REWRITE RULE APPLICATION
-(defvar *memo-debug* nil)
+
+(declaim (inline print-trace-in))
+(defun print-trace-in ()
+  (format t "~%~d>[~a] " *trace-level* (1+ *rule-count*)))
+
+(declaim (inline print-trace-out))
+(defun print-trace-out ()
+  (format t "~%~d<[~a] " *trace-level* *rule-count*))
 
 (declaim (inline term-replace-dd-simple))
-#-gcl
 (defun term-replace-dd-simple (old new)
    (declare (type term old new)
+            (optimize (speed 3) (safety 0))
             (values term-body))
    (incf *rule-count*)
    (term-replace old new))
 
-#+gcl
-(si::define-inline-function term-replace-dd-simple (old new)
-   (incf *rule-count*)
-   (term-replace old new))
+(declaim (inline term-replace-dd-dbg))
+(defun term-replace-dd-dbg (old new)
+  (declare (type term old new)
+           (optimize (speed 3) (safety 0)))
+  ;; stat number of rewriting
+  (incf *rule-count*)
+  ;; check if given stop pattern was matched to the resultant term.
+  (when *matched-to-stop-pattern*
+    ;; yes
+    (unless *rewrite-stepping*
+      (setq *matched-to-stop-pattern* nil)
+      (throw 'rewrite-abort $$term)))
+  
+  ;; Enter STEPPER if need
+  (when *rewrite-stepping* (cafein-stepper old new))
+  (setq *matched-to-stop-pattern* nil)
+  
+  ;; Trace output
+  (when (or $$trace-rewrite
+            (rule-trace-flag *cafein-current-rule*))
+    (let ((*print-with-sort* t))
+      (print-trace-out)
+      (let ((*print-indent* (+ 4 *print-indent*)))
+        (term-print-with-sort old)
+        (print-check 0 5)
+        (princ " --> ")
+        (term-print-with-sort new))
+      (unless $$trace-rewrite-whole (terpri))))
+  ;; trace whole
+  (if $$trace-rewrite-whole
+      (let ((*print-with-sort* t)
+            (*fancy-print* t))
+        (if $$cond
+            (progn
+              (format t "~&[~a(cond)]: " *rule-count*)
+              (let ((*print-indent* (+ 2 *print-indent*)))
+                (term-print-with-sort $$cond)
+                (print-next)
+                (let ((res (term-replace old new)))
+                  (print-check 0 5)
+                  (princ " --> ")
+                  (let ((*print-indent* (+ 2 *print-indent*)))
+                    ;; (print-check)
+                    (term-print-with-sort $$cond))
+                  res)))
+          (progn
+            (format t "~&[~a]: " *rule-count*)
+            (let ((*print-indent* (+ 2 *print-indent*)))
+              (term-print-with-sort $$term))
+            (print-next)
+            (let ((res (term-replace old new)))
+              (print-check 0 5)
+              (princ "---> ")
+              (let ((*print-indent* (+ 2 *print-indent*)))
+                ;; (print-check)
+                (term-print-with-sort $$term))
+              res))))
+    ;; after tracing, we finally rewrite the target
+    (term-replace old new))
+  ;; check rewrite count limit
+  (when (and (< 0 *rewrite-count-limit*) (<= *rewrite-count-limit* *rule-count*))
+    (format t "~%!!! >> aborting rewrite due to rewrite count limit (= ~d) <<"
+            *rewrite-count-limit*)
+    (flush-all)
+    (throw 'rewrite-abort $$term))
+  ;;
+  $$term)
 
+;;; special treatment for '_:=_'
+;;;
 (declaim (special *m-pattern-subst* $$cond))
 (defvar *m-pat-debug* nil)
 
+;;; !apply-one-rule : rule term -> (or null t)
+;;; returns t iff the rule was applied to given term
+;;;
 (defun !apply-one-rule (rule term &aux (applied nil))
-  (declare (type axiom rule)
+  (declare (type rewrite-rule)
            (type term term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (when (or (is-true? term) (is-false? term))
     (return-from !apply-one-rule nil))
@@ -298,27 +361,33 @@
                (substitution-image-simplifying *m-pattern-subst*
                                                term
                                                (rule-need-copy rule)))))
-      ;; substitute variables in the current target with subst obtained by := match.
-      (term-replace term nt)
+      (declare (type term nt))
       (when *m-pat-debug*
         (format t "~&[applied *m-pattern-subst*]")
         (print-substitution *m-pattern-subst*)
-        (format t "--> ")
-        (term-print-with-sort term))))
+        (format t "~% ")
+        (term-print-with-sort term)
+        (format t "~%--> ")
+        (term-print-with-sort nt))
+      ;; substitute variables in the current target with subst obtained by := match.
+      (term-replace term nt)))
   ;; start rewriting
   (setq applied                         ; will be t iff a rewrite rule is applied
     (block the-end
-      (let* ((condition nil)
-             (cur-trial nil)
-             (next-match-method nil)
+      (let* (condition
+             (cur-trial 0)
+             next-match-method
              (*trace-level* (1+ *trace-level*))
              (*print-indent* *print-indent*)
              (*self* term)
              (builtin-failure nil)
-             (rhs-instance nil))
+             rhs-instance)
+        (declare (type fixnum *trace-level* *print-indent* cur-trial)
+                 (type term condition rhs-instance)
+                 (type symbol next-match-method))
         (multiple-value-bind (global-state subst no-match E-equal)
             ;; first we find matching rewrite rule 
-            (funcall (or (rule-first-match-method rule)
+            (funcall (or (the symbol (rule-first-match-method rule))
                          (progn
                            (when *chaos-verbose*
                              (with-output-chaos-warning ()
@@ -326,11 +395,14 @@
                                (print-next)
                                (print-axiom-brief rule)))
                            (compute-rule-method rule)
-                           (rule-first-match-method rule)))
+                           (symbol-function (the symbol (rule-first-match-method rule)))))
                      (rule-lhs rule)
                      term)
+          (declare (type global-state global-state)
+                   (type substitution subst)
+                   (type (or null t) no-match E-equal))
           ;; stat, count up number of matching trials
-          (incf $$matches)
+          (incf (the fixnum $$matches))
           (setq *cafein-current-subst* subst) ; I don't remember for what this is used
           ;; if matching fail no hope to rewriting. 
           (when no-match (return-from the-end nil))
@@ -398,7 +470,7 @@
               (multiple-value-setq (global-state subst no-match)
                 (progn
                   (incf $$matches)
-                  (funcall next-match-method global-state)))
+                  (funcall (symbol-function next-match-method) global-state)))
               (when no-match
                 ;; no more match, we failed
                 (return-from the-end nil))
@@ -469,6 +541,7 @@
                                      *rewrite-exec-mode*
                                    nil))
                                 ($$trials (1+ $$trials)))
+                            (declare (type term $$cond))
                             ;; no simplyfing since probably wouldn't pay
                             (normalize-term $$cond)
                             ;; :=
@@ -529,76 +602,12 @@
             (throw 'rewrite-abort $$term)))
       nil)))
 
-(defun term-replace-dd-dbg (old new)
-  (declare (type term old new))
-  ;; stat number of rewriting
-  (incf *rule-count*)
-  ;; check if given stop pattern was matched to the resultant term.
-  (when *matched-to-stop-pattern*
-    ;; yes
-    (unless *rewrite-stepping*
-      (setq *matched-to-stop-pattern* nil)
-      (throw 'rewrite-abort $$term)))
-  
-  ;; Enter STEPPER if need
-  (when *rewrite-stepping* (cafein-stepper old new))
-  (setq *matched-to-stop-pattern* nil)
-  
-  ;; Trace output
-  (when (or $$trace-rewrite
-            (rule-trace-flag *cafein-current-rule*))
-    (let ((*print-with-sort* t))
-      (print-trace-out)
-      (let ((*print-indent* (+ 4 *print-indent*)))
-        (term-print-with-sort old)
-        (print-check 0 5)
-        (princ " --> ")
-        (term-print-with-sort new))
-      (unless $$trace-rewrite-whole (terpri))))
-  ;; trace whole
-  (if $$trace-rewrite-whole
-      (let ((*print-with-sort* t)
-            (*fancy-print* t))
-        (if $$cond
-            (progn
-              (format t "~&[~a(cond)]: " *rule-count*)
-              (let ((*print-indent* (+ 2 *print-indent*)))
-                (term-print-with-sort $$cond)
-                (print-next)
-                (let ((res (term-replace old new)))
-                  (print-check 0 5)
-                  (princ " --> ")
-                  (let ((*print-indent* (+ 2 *print-indent*)))
-                    ;; (print-check)
-                    (term-print-with-sort $$cond))
-                  res)))
-          (progn
-            (format t "~&[~a]: " *rule-count*)
-            (let ((*print-indent* (+ 2 *print-indent*)))
-              (term-print-with-sort $$term))
-            (print-next)
-            (let ((res (term-replace old new)))
-              (print-check 0 5)
-              (princ "---> ")
-              (let ((*print-indent* (+ 2 *print-indent*)))
-                ;; (print-check)
-                (term-print-with-sort $$term))
-              res))))
-    ;; after tracing, we finally rewrite the target
-    (term-replace old new))
-  ;; check rewrite count limit
-  (when (and *rewrite-count-limit*
-             (<= *rewrite-count-limit* *rule-count*))
-    (format *error-output* "~%>> aborting rewrite due to rewrite count limit (= ~d) <<"
-            *rewrite-count-limit*)
-    (flush-all)
-    (throw 'rewrite-abort $$term))
-  ;;
-  $$term)
 
+(declaim (inline apply-rules-with-same-top))
 (defun apply-rules-with-same-top (term rule-ring)
   (declare (type term term)
-           (type rule-ring rule-ring))
+           (type rule-ring rule-ring)
+           (optimize (speed 3) (safety 0)))
   (let ((rr-ring (rule-ring-ring rule-ring)))
     (when rr-ring
       (let ((rr-current rr-ring)
@@ -613,9 +622,11 @@
             (setq rr-current (cdr rr-current))
             (when (eq rr-current rr-mark) (return nil))))))))
 
+(declaim (inline apply-rules-with-different-top))
 (defun apply-rules-with-different-top (term rules)
  (declare (type term term)
           (type list rules)
+          (optimize (speed 3) (safety 0))
           (values (or null t)))
  (block the-end
    (dolist (rule rules nil)
@@ -624,7 +635,8 @@
 
 (defun apply-rules (term strategy)
   (declare (type term term)
-           (type list strategy))
+           (type list strategy)
+           (optimize (speed 3) (safety 0)))
   (flet ((apply-rules-internal ()
            (let ((top (term-head term)))
              ;; apply same top rules
@@ -639,26 +651,17 @@
                      (mark-term-as-not-lowest-parsed term)
                      (normalize-term term))
                  (reduce-term term (cdr strategy)))))))
-    (if *memo-rewrite*
-        ;; check memo
-        (if (or *always-memo*
-                (method-has-memo (term-head term)))
-            (let ((normal-form (get-hashed-term term *term-memo-table*)))
-              (if normal-form
-                  (term-replace term normal-form)
-                (apply-rules-internal)))
-          (apply-rules-internal))
-      ;; non memoise
-      (apply-rules-internal))))
+    (apply-rules-internal)))
 
 ;;; APPLY-A-EXTENSIONS : rule term method -> Bool
 ;;;-----------------------------------------------------------------------------
 ;;; Apply the associative-extensions. returns true iff the some rule is applied.
 ;;;
 (defun apply-A-extensions (rule term top)
-  (declare (type axiom rule)
+  (declare (type rewrite-rule rule)
            (type term term)
            (type method top)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (declare (optimize (speed 3) (safety 0)))
   (let ((listext (!axiom-a-extensions rule))
@@ -688,7 +691,7 @@
 ;;; Apply the associative-commutative-extension. returns t iff the rule is applied.
 ;;;
 (defun apply-AC-extension (rule term top)
-  (declare (type axiom rule)
+  (declare (type rewrite-rule rule)
            (type term term)
            ;;(type method top)
            (values (or null t)))
@@ -705,6 +708,7 @@
 (defun rule-eval-term (teta term &optional (slow? nil))
   (declare (type list teta)
            (type term term)
+           (optimize (speed 3)(safety 0))
            (values list))
   (macrolet ((assoc% (_x _y)
                `(let ((*_lst ,_y))
@@ -727,6 +731,7 @@
 ;;; really not not want to use normalize -- perhaps could use normal expressions.
 (defun rule-eval-id-condition (subst cond &optional (slow? nil))
   (declare (type list subst cond)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (cond ((eq 'and (car cond))
          (dolist (sc (cdr cond) t)
@@ -761,8 +766,9 @@
 ;;; The associative extensions are automatiquely generated and applied if needed.
 ;;;
 (defun apply-rule (rule term)
-  (declare (type axiom rule)
+  (declare (type rewrite-rule rule)
            (type term term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (let ((is-applied nil))
     (tagbody
@@ -822,6 +828,7 @@
 (defun reduce-term (term strategy)
   (declare (type term term)
            (type list strategy)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (when *rewrite-debug*
     (with-output-simple-msg ()
@@ -872,10 +879,12 @@
 (defun rewrite (term &optional (module *current-module*) mode)
   (declare (type term term)
            (type module module)
+           (optimize (speed 3) (safety 0))
            (values term))
   (with-variable-as-constant (term)
     (case mode
       (:exec+
+       #|| I should re-think this towise!
        (let ((*rwl-search-no-state-report* t))
          (rwl-search* term
                       nil               ; pattern
@@ -892,14 +901,11 @@
                            (rwl-state-term
                             (car (rwl-sch-context-answers .rwl-sch-context.))))
            (with-output-chaos-error ()
-             (format t "PANIC!")))))
+             (format t "PANIC!"))))
+       ||#
+       )
       (otherwise
        (setq $$trials 1)
-       (when *memo-rewrite*
-         (when (or *clean-memo-in-normalize*
-                   (not (eq module *memoized-module*)))
-           (clear-term-memo-table *term-memo-table*))
-         (setq *memoized-module* module))
        (let ((*trace-level* 0))
          (with-in-module (module)
            (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
@@ -910,14 +916,10 @@
 
 (defun rewrite* (term)
   (declare (type term term)
+           (optimize (speed 3) (safety 0))
            (values term))
   (with-variable-as-constant (term)
     (setq $$trials 1)
-    (when *memo-rewrite*
-      (when (or *clean-memo-in-normalize*
-                (not (eq *current-module* *memoized-module*)))
-        (clear-term-memo-table *term-memo-table*))
-      (setq *memoized-module* *current-module*))
     (let ((*beh-rewrite* (and (not *rewrite-semantic-reduce*)
                               (module-has-behavioural-axioms *current-module*))))
       (declare (special *beh-rewrite*))
@@ -929,10 +931,12 @@
 (defun rewrite-exec (term &optional (module *current-module*) mode)
   (declare (type term term)
            (type module module)
+           (optimize (speed 3) (safety 0))
            (values term))
   (with-variable-as-constant (term)
     (case mode
       (:exec+
+       #|| do we really need this?
        (let ((*rwl-search-no-state-report* t))
          (rwl-search* term
                       nil               ; pattern
@@ -949,15 +953,13 @@
                            (rwl-state-term
                             (car (rwl-sch-context-answers .rwl-sch-context.))))
            (with-output-chaos-error ()
-             (format t "PANIC!")))))
+             (format t "PANIC!"))))
+       ||#
+       )
       (otherwise
        (setq $$trials 1)
-       (when *memo-rewrite*
-         (when (or *clean-memo-in-normalize*
-                   (not (eq module *memoized-module*)))
-           (clear-term-memo-table *term-memo-table*))
-         (setq *memoized-module* module))
        (let ((*trace-level* 0))
+         (declare (type fixnum *trace-level*))
          (setq $$matches 0)
          (setq *term-memo-hash-hit* 0)
          (with-in-module (module)
@@ -969,16 +971,26 @@
              (normalize-term term))))))))
 
 ;;;
+(declaim (inline term-memo-get-normal-form))
 (defun term-memo-get-normal-form (term strategy)
-  (let ((term-nu nil)
-        (normal-form (get-hashed-term term *term-memo-table*)))
-    (unless normal-form
-      (setq term-nu (simple-copy-term  term))
-      ;; compute the normal form of "term"
-      (reduce-term term strategy)
-      (setq normal-form term)
-      (set-hashed-term term-nu *term-memo-table* normal-form))
-    normal-form))
+  (declare (type term term)
+           (type list strategy)
+           (inline hash-table-count)
+           (optimize (speed 3) (safety 0)))
+  (let* ((term-id (term-id term))
+         (normal-form (if term-id
+                          (get-hashed-term term-id *term-memo-table*)
+                        nil)))
+    (if normal-form
+        normal-form
+      (progn
+        ;; compute the normal form of "term"
+        (reduce-term term strategy)
+        (when (and term-id
+                   (< (the fixnum (hash-table-count *term-memo-table*))
+                      (the fixnum *hash-count-limit*)))
+          (set-hashed-term term-id *term-memo-table* term))
+        term))))
 
 ;;; NORMALIZE-TERM : TERM -> BOOL
 ;;;----------------------------------------------------------------------------
@@ -986,6 +998,7 @@
 ;;;
 (defun normalize-term (term)
   (declare (type term term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (when *rewrite-debug*
     (with-output-simple-msg ()
@@ -1014,6 +1027,7 @@
 
 (defun !normalize-term (term)
   (declare (type term term)
+           (optimize (speed 3) (safety 0))
            (values term))
   (normalize-term term)
   term)
@@ -1033,14 +1047,9 @@
 ;;; in this case "term" is also modified.
 ;;;
 ;;;
-(defun print-trace-in ()
-  (format *trace-output* "~%~d>[~a] " *trace-level* (1+ *rule-count*)))
-
-(defun print-trace-out ()
-  (format *trace-output* "~%~d<[~a] " *trace-level* *rule-count*))
-
 (defun cafein-pattern-match (pat term)
   (declare (type term pat term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (if (term-is-variable? pat)
       (if (sort<= (term-sort term) (variable-sort pat)
@@ -1064,6 +1073,7 @@
 
 (defun check-stop-pattern (term)
   (declare (type term term)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (when *rewrite-stop-pattern*
     (when (eq term *matched-to-stop-pattern*)
@@ -1133,6 +1143,7 @@
 (defun cafein-stepper (term &optional new-term)
   (declare (ignore new-term)
            (type term term)
+           (optimize (speed 3) (safety 0))
            (values t))
   ;; first check stop pattern or steps to be done....
   (if *matched-to-stop-pattern*
@@ -1344,7 +1355,7 @@
 (defun cafein-show-rewrite-limit (&rest ignore)
   (declare (ignore ignore))
   (print-next)
-  (format t "[rewrite limit]: ~a" (if *rewrite-count-limit*
+  (format t "[rewrite limit]: ~a" (if (> *rewrite-count-limit* 0)
                                       *rewrite-count-limit*
                                     "not specified.")))
 
@@ -1379,14 +1390,17 @@
 (declaim (inline under-debug-rewrite))
 (defun under-debug-rewrite ()
   (or $$trace-rewrite $$trace-rewrite-whole *rewrite-stepping*
-      *rewrite-count-limit* *rewrite-stop-pattern*))
+      *rewrite-stop-pattern*
+      (not (= *rewrite-count-limit* most-positive-fixnum))))
 
 (defun apply-one-rule (rule term)
+  (declare (type rewrite-rule rule)
+           (type term term)
+           (optimize (speed 3) (safety 0)))
   (when (rule-non-exec rule)
     (return-from apply-one-rule nil))
-  (let ((mandor (axiom-meta-and-or rule))
-        (.trace-or-step. (under-debug-rewrite)))
-    (declare (special .trace-or-step.))
+  (let ((mandor (axiom-meta-and-or rule)))
+    (declare (type (or null (not null)) mandor))
     (cond (mandor
            (let ((all-subst nil)
                  (rhs-list nil)
@@ -1418,10 +1432,10 @@
                    ;; 
                    (setq new-rhs (make-right-assoc-normal-form-with-sort-check
                                   (case mandor
-                                    ('|:m-and| *bool-and*)
-                                    ('|:m-and-also| *bool-and-also*)
-                                    ('|:m-or| *bool-or*)
-                                    ('|:m-or-else| *bool-or-else*)
+                                    (|:m-and| *bool-and*)
+                                    (|:m-and-also| *bool-and-also*)
+                                    (|:m-or| *bool-or*)
+                                    (|:m-or-else| *bool-or-else*)
                                     (otherwise (with-output-panic-message ()
                                                  (format t "internal error, invalid meta rule label ~s" mandor))))
                                   rhs-list))
@@ -1450,16 +1464,6 @@
               :test #'term-equational-equal)))
 (defun set-memb-hash (term value)
   (let ((old-ent (assoc term .memb-term-hash. :test #'term-equational-equal)))
-    #||
-    (when *mel-debug*
-      (with-output-simple-msg ()
-        (princ "[MEL]: entering term hash ")
-        (print-chaos-object term)
-        (print-next)
-        (format t "with value: ~a" value)
-        (when old-ent
-          (format t "~% old-ent = ~a" old-ent))))
-    ||#
     (if old-ent
         (setf (cdr old-ent) value)
       (if (symbolp value)

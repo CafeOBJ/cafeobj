@@ -49,41 +49,6 @@
 ;;;  - terms parsed, operator references are resolved.
 ;;;  - variables are eliminated.
 ;;;-----------------------------------------------------------------------------
-#||
-(defterm view-struct (top-object)
-  :visible (name)                       ; view name (string).
-  :hidden (src                          ; source module
-           target                       ; target module
-           sort-maps                    ; mapping of sorts
-           op-maps                      ; mapping of operators
-           )
-  :print print-view-internal
-  :int-printer print-view-struct-object)
-||#
-
-#||
-(defstruct (view-struct (:include top-object (-type 'view-struct))
-                        (:conc-name "VIEW-STRUCT-")
-                        (:constructor make-view-struct)
-                        (:constructor view-struct* (name))
-                        (:copier nil)
-                        (:print-function print-view-struct-object))
-  (src nil :type (or null module))
-  (target nil :type (or null module))
-  (sort-maps nil :type list)
-  (op-maps nil :type list))
-
-(eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-view-struct) (symbol-function 'view-struct-p))
-  (setf (get 'view-struct :type-predicate) (symbol-function 'view-struct-p))
-  (setf (get 'view-struct :print) 'print-view-internal))
-
-(defun print-view-struct-object (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (format stream "#<view ~a : ~x>" (view-struct-name obj) (addr-of obj)))
-
-||#
-
 ;;; accessors, all are setf'able
 
 (defmacro view-name (_view) `(view-struct-name ,_view))
@@ -96,26 +61,6 @@
 (defmacro view-interface (_view) `(view-struct-interface ,_view))
 (defmacro view-exporting-objects (_view) `(object-exporting-objects ,_view))
 (defmacro view-status (_view) `(object-status ,_view))
-
-;;; basic predicates
-
-(defun view-p (object)
-  (declare (type t object)
-           (values (or null t)))
-  (view-struct-p object))
-
-;;; MODEXP-IS-VIEW : object -> Bool
-;;;
-(defun modexp-is-view (object)
-  (declare (type t object)
-           (values (or null t)))
-  (or (view-p object) (%is-view object)))
-
-
-(defun view-is-inconsistent (view)
-  (declare (type view-struct view)
-           (values (or null t)))
-  (object-is-inconsistent view))
 
 ;;; view status
 (defun mark-view-as-consistent (view)
@@ -171,38 +116,6 @@
         (view-op-maps view) nil
         (view-decl-form view) nil
         ))
-
-
-;;; ADDITIONAL MODULE EXPRESSIONS ______________________________________
-
-;;; *NOTE* these structure are NOT Chaos's AST.
-
-;;; INSTANTIATION
-;;; evaluated
-;;; module : module object
-;;; args   : (arg-name . view-structure)
-;;;
-(defstruct int-instantiation
-  (module nil :type t)
-  (args nil :type list)
-  )
-
-;;; PLUS
-;;; internal form: args are all evaluated -- module objects.
-;;; stored as module name.
-;;;
-(defstruct int-plus
-  (args nil :type list))
-
-;;; RENAME
-;;; evaluated.
-;;;  module = module object
-;;;  sort-maps & op-maps are just the same as of MODMORPH structure.
-;;;  
-(defstruct int-rename
-  (module nil :type t)
-  (sort-maps nil :type list)
-  (op-maps nil :type list))
 
 
 ;;; UTILS \\\\\\\\\\\\\\\\

@@ -56,6 +56,7 @@
                          $$term))
                   (t (let* ((*parse-variables* nil)
                             (parsed (with-in-module ((get-context-module))
+                                      (prepare-for-parsing *current-module*)
                                       (simple-parse *current-module*
                                                     (%match-target ast)
                                                     *cosmos*))))

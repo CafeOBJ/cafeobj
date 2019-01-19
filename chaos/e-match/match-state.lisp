@@ -148,6 +148,7 @@
 ;;;
 (defun next-match-state (st)
   (declare (type match-state st)
+           (optimize (speed 3) (safety 0))
            (values (or null match-state) (or null t)))
   (let ((theory-info (match-state-theory-info st))
         (th-match-state (match-state-theory-state st)))

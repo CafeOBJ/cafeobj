@@ -107,7 +107,7 @@
 ;;; copy-constant-term
 ;;;
 (defun copy-constant-term (constant)
-  (make-applform-simple (term-sort constant) (term-head constant) nil))
+  (make-applform (term-sort constant) (term-head constant) nil))
 
 ;;; select-comb-elems : List(List) -> List
 ;;; 
@@ -186,11 +186,12 @@
 ;;;
 (defun normalize-term-in (module term &optional (reduction-mode :red) var-is-const)
   (let ((applied? nil)
-        (targets nil)
         (rule-count-save (number-rewritings))
         (*variable-as-constant* var-is-const))
+    (declare (type fixnum rule-count-save)
+             (optimize (speed 3) (safety 0)))
     (reducer-no-stat term module reduction-mode)
-    (unless (= rule-count-save (number-rewritings))
+    (unless (= rule-count-save (the fixnum (number-rewritings)))
       (setq applied? t))
     (values term applied?)))
 
@@ -199,6 +200,10 @@
 ;;; NOTE: given axiom is preserved (not changed).
 ;;;
 (defun normalize-sentence (ax module &optional lhs-only variable-is-constant)
+  (declare (type rewrite-rule ax)
+           (type module module)
+           (type (or null t) lhs-only variable-is-constant)
+           (optimize (speed 3) (safety 0)))
   (if-spoiler-on 
    ;; normalize sentence only if :spoiler is on
    :then (let ((target (rule-copy-canonicalized ax module)))
@@ -218,47 +223,51 @@
                      (format t "~%[NF] target:")
                      (print-next)
                      (print-axiom-brief target)))
-                 ;; normalize lhs
-                 (multiple-value-setq (lhs applied)
-                   (normalize-term-in module (reset-reduced-flag lhs) :red variable-is-constant))
-                 (set-applied applied)
-                 (when (eq reduction-mode :exec)
-                   (multiple-value-setq (lhs applied) 
-                     (normalize-term-in module (reset-reduced-flag lhs) :exec variable-is-constant))
-                   (set-applied applied))
-                 ;; normalize rhs
-                 (unless lhs-only
-                   (multiple-value-setq (rhs applied) 
-                     (normalize-term-in module (reset-reduced-flag rhs)))
-                   (set-applied applied))
-                 ;; normalize condition
-                 (unless (or lhs-only (is-true? condition))
-                   (multiple-value-setq (condition applied)
-                     (normalize-term-in module (reset-reduced-flag condition) :red variable-is-constant))
-                   (set-applied  applied))
-                 (setf (rule-lhs target) lhs)
-                 (setf (rule-rhs target) rhs)
-                 (setf (rule-condition target) condition)
-                 ;; 
-                 (with-citp-debug ()
-                   (if (not app?)
-                       (format t "~%    ...not applied: ")
-                     (progn
-                       (print-next)
-                       (princ "==> ") (print-axiom-brief target))))
-                 ;;
-                 (return-from normalize-sentence (values target app?))))))
+                 (let ((rsubst nil))
+                   ;; variables->pconst if requred
+                   (when variable-is-constant
+                     (setq rsubst (nconc (variables->pconstants lhs)
+                                         (nconc (variables->pconstants rhs)
+                                                (variables->pconstants condition)))))
+                   ;; normalize lhs
+                   (multiple-value-setq (lhs applied)
+                     (normalize-term-in module (reset-reduced-flag lhs) :red))
+                   (set-applied applied)
+                   (when (eq reduction-mode :exec)
+                     (multiple-value-setq (lhs applied) 
+                       (normalize-term-in module (reset-reduced-flag lhs) :exec))
+                     (set-applied applied))
+                   ;; normalize rhs
+                   (unless lhs-only
+                     (multiple-value-setq (rhs applied) 
+                       (normalize-term-in module (reset-reduced-flag rhs)))
+                     (set-applied applied))
+                   ;; normalize condition
+                   (unless (or lhs-only (is-true? condition))
+                     (multiple-value-setq (condition applied)
+                       (normalize-term-in module (reset-reduced-flag condition) :red))
+                     (set-applied  applied))
+                   ;; pconsts -> variables
+                   (when rsubst
+                     (revert-pconstants lhs rsubst)
+                     (revert-pconstants rhs rsubst)
+                     (revert-pconstants condition rsubst))
+                   (setf (rule-lhs target) lhs)
+                   (setf (rule-rhs target) rhs)
+                   (setf (rule-condition target) condition)
+                   (with-citp-debug ()
+                     (if (not app?)
+                         (format t "~%    ...not applied: ")
+                       (progn
+                         (print-next)
+                         (princ "==> ") (print-axiom-brief target))))
+                   (return-from normalize-sentence (values target app?)))))))
    ;; do nothing if :spoiler is off
    :else (values ax nil)))
 
 ;;; is-contradiction : term term -> Bool
 ;;; returns true if true ~ false, or false ~ true
 ;;;
-#|
-(defun is-contradiction (t1 t2)
-  (or (and (is-true? t1) (is-false? t2))
-      (and (is-false? t1) (is-true? t2))))
-|#
 (defun is-contradiction (t1 t2)
   (declare (ignore t1 t2))
   nil)
@@ -345,9 +354,9 @@
     (or (check-true<=>false module report-header)
         (check-contradictory-assumptions goal report-header)
         (with-in-module (module)
-          (let ((true-term (make-applform-simple *bool-sort* *bool-true-meth* nil))
-                (false-term (make-applform-simple *bool-sort* *bool-false-meth* nil)))
-          (let ((true=false (make-applform-simple *bool-sort* *eql-op* (list true-term false-term))))
+          (let ((true-term (make-applform *bool-sort* *bool-true-meth* nil))
+                (false-term (make-applform *bool-sort* *bool-false-meth* nil)))
+          (let ((true=false (make-applform *bool-sort* *eql-op* (list true-term false-term))))
             (multiple-value-bind (t-result t-applied?)
                 (normalize-term-in module true=false)
               (when (and t-applied? (is-true? t-result))
@@ -405,9 +414,9 @@
               (term-print (car le))))
           (flet ((do-check (pat op)
                    (dolist (ls pat)
-                     (let ((rg (make-applform-simple *bool-sort* 
-                                                     op
-                                                     (list (cdr ls) (car ls)))))
+                     (let ((rg (make-applform *bool-sort* 
+                                              op
+                                              (list (cdr ls) (car ls)))))
                        (with-citp-debug ()
                          (format t "~% target term : ")
                          (term-print-with-sort rg))
@@ -772,9 +781,9 @@
    :else (values nil nil (car (goal-targets goal)))))
 
 (defun make= (lhs rhs mod)
-  (let ((eq-form (make-applform-simple *bool-sort*
-                                       *eql-op* ; _=_
-                                       (list lhs rhs))))
+  (let ((eq-form (make-applform *bool-sort*
+                                *eql-op* ; _=_
+                                (list lhs rhs))))
     (with-in-module (mod)
       (update-lowest-parse eq-form))))
 
@@ -884,27 +893,27 @@
 ;;; a or b or c ... or x imply lhs
 (defun make-impl-form+ (axiom assumptions)
   (flet ((make-pre (ax)
-           (simplify-eq-form (make-applform-simple *bool-sort*
-                                                   *eql-op*
-                                                   (list (axiom-lhs ax)
-                                                         (axiom-rhs ax)))))
+           (simplify-eq-form (make-applform *bool-sort*
+                                            *eql-op*
+                                            (list (axiom-lhs ax)
+                                                  (axiom-rhs ax)))))
          (make-post (ax)
            (let ((op (if (eq (axiom-type ax) :equation)
                          *eql-op*
                        *rwl-predicate*)))
-             (simplify-eq-form (make-applform-simple *bool-sort*
-                                                     op
-                                                     (list (axiom-lhs ax) (axiom-rhs ax)))))))
+             (simplify-eq-form (make-applform *bool-sort*
+                                              op
+                                              (list (axiom-lhs ax) (axiom-rhs ax)))))))
     (if (cdr assumptions)
         (let ((as (mapcar #'make-pre assumptions)))
-          (make-applform-simple *bool-sort*
-                                *bool-imply*
-                                (list (make-right-assoc-normal-form *bool-and* as)
-                                      (make-post axiom))))
-      (make-applform-simple *bool-sort* 
-                            *bool-imply*
-                            (list (make-pre (car assumptions))
-                                  (make-post axiom))))))
+          (make-applform *bool-sort*
+                         *bool-imply*
+                         (list (make-right-assoc-normal-form *bool-and* as)
+                               (make-post axiom))))
+      (make-applform *bool-sort* 
+                     *bool-imply*
+                     (list (make-pre (car assumptions))
+                           (make-post axiom))))))
 
 (defun apply-ip (ptree-node &optional (modify-goal nil) &rest ignore)
   (declare (type ptree-node ptree-node)
@@ -1171,9 +1180,9 @@
              (op-or-term (cdr sub))
              (term (if (term? op-or-term)
                        (term-copy-and-returns-list-variables op-or-term)
-                     (make-applform-simple (method-coarity op-or-term)
-                                           op-or-term
-                                           nil)))
+                     (make-applform (method-coarity op-or-term)
+                                    op-or-term
+                                    nil)))
             (rv nil))
         (when (setq rv (get-real-target-variable iv axiom-vars))
           (setq rsubst (acons rv term rsubst)))))
@@ -1221,7 +1230,7 @@
                                                                        (incf (cdr var-assoc)))))))
                         (constant (variable->constructor goal ind-var :sort s)))
                    (push constant arg-list)))))
-      (let ((res (make-applform-simple (method-coarity op) op (nreverse arg-list))))
+      (let ((res (make-applform (method-coarity op) op (nreverse arg-list))))
         res))))
 
 ;;; make-induction-step-subst : goal axiom (var . op-or-term) -> substitution
@@ -1583,6 +1592,8 @@
            (given-hypos (goal-hypos goal))
            (step-goals nil)
            (remainings nil))
+      ;; just for now
+      (declare (ignore given-hypos))
       ;; base cases
       (dolist (target targets)
         (if (not (set-base-cases base-goal target (get-ind-substitutions indvars (goal-bases goal))))
@@ -2190,12 +2201,12 @@
             (format t " var=~s, term=~s" var-form term-form))
           (let ((*chaos-quiet* nil))
             (setq var (simple-parse context var-form)))
-          (when (or (term-ill-defined var) (not (term-is-variable? var)))
+          (when (or (term-is-an-error var) (not (term-is-variable? var)))
             (with-output-chaos-error ('invalid-var-form)
               (format t "Invalid variable in substitution: ~s" var-form)))
           (let ((*chaos-quiet* nil))
             (setq term (simple-parse context term-form)))
-          (when (term-ill-defined term)
+          (when (term-is-an-error term)
             (with-output-chaos-error ('invalid-term)
               (format t "No parse..: ~s" term-form)))
           (unless (sort<= (term-sort term) (variable-sort var) *current-sort-order*)
@@ -2279,29 +2290,27 @@
 
 (defun report-instanciated-axiom (instance)
   (let ((*print-indent* (+ 2 *print-indent*))
-        (*print-line-limit* 80)
-        (*print-xmode* :fancy))
+        (*print-line-limit* 80))
     (print-next)
     (print-axiom-brief instance)))
 
 (defun introduce-instanciated-axiom-to-module (instance module)
   (with-in-module (module)
-    (let ((einstance (remove-nonexec instance)))
-      (setf (axiom-kind instance) nil)  ; reset bad flag
-      (set-operator-rewrite-rule module einstance)
-      (adjoin-axiom-to-module module einstance)
-      (compile-module module t))))
+    (setf (axiom-kind instance) nil)    ; reset bad flag
+    (set-operator-rewrite-rule module instance)
+    (adjoin-axiom-to-module module instance)
+    (compile-module module t)))
 
 (defun instanciate-axiom-in-goal (module target-axiom subst &optional (label nil))
   (with-next-context (*proof-tree*)
-    (let ((instance (make-axiom-instance module subst target-axiom label)))
+    (let ((instance (remove-nonexec (make-axiom-instance module subst target-axiom label))))
       (when (citp-flag citp-normalize-lhs)
         ;; we normalize the LHS of the instance
         (with-spoiler-on
             (multiple-value-bind (n-sen applied?)
                 (normalize-sentence instance module :lhs-only :variable-is-constant)
               (when applied?
-            (setf instance n-sen)))))
+                (setf instance n-sen)))))
       ;; input the instance to current context
       (with-in-module (module)
         (let ((goal (ptree-node-goal .context.)))
@@ -2314,7 +2323,7 @@
 
 (defun instanciate-axiom-in-module (module target-axiom subst &optional (label nil))
   (with-in-module (module)
-    (let ((instance (make-axiom-instance module subst target-axiom label)))
+    (let ((instance (remove-nonexec (make-axiom-instance module subst target-axiom label))))
       (format t "~%**> initialized the axiom in module ~a" (get-module-simple-name module))
       (report-instanciated-axiom instance)
       (introduce-instanciated-axiom-to-module instance module))))
@@ -2328,8 +2337,8 @@
 
 ;;; a imply lhs 
 (defun make-impl-form (lhs assumption)
-  (make-applform-simple *bool-sort* *bool-imply* 
-                        (list (make-impl-assumption assumption) lhs)))
+  (make-applform *bool-sort* *bool-imply* 
+                 (list (make-impl-assumption assumption) lhs)))
 
 (defun introduce-implication-to-goal (target-form subst-form)
   (let ((target-axiom (get-target-axiom *current-module* target-form t))
@@ -2340,14 +2349,6 @@
         (new-targets nil))
     (setq instance (make-axiom-instance *current-module* subst target-axiom))
     (with-next-context (*proof-tree*)
-      #|| we should not normalize
-      ;; normalize it
-      (with-spoiler-on
-          (multiple-value-bind (n-instance applied?)
-              (normalize-sentence instance *current-module*)
-            (when applied?
-      (setq instance n-instance))))
-      ||#
       (unless (and (is-true? (axiom-rhs instance))
                    (is-true? (axiom-condition instance)))
         (with-output-chaos-error ('invalid-axiom)
@@ -2392,12 +2393,14 @@
         (push var done)
         (setf (variable-name var) (intern (format nil "~a~a" (variable-name var) suffix)))))))
 
+(declaim (type fixnum *renamed-variable-number*))
+(defvar *renamed-variable-number* 0)
 (let ((*renamed-variable-number* 0))
-  (declare (type fixnum *renamed-variable-number*))
-
-(defun citp-rename-axiom-variables (axiom)
-  (citp-rename-term-variables (incf *renamed-variable-number*) (axiom-variables axiom))
-  axiom)
+  (declare (type fixnum *renamed-variable-number*)
+           (special *renamed-variable-number*))
+  (defun citp-rename-axiom-variables (axiom)
+    (citp-rename-term-variables (incf *renamed-variable-number*) (axiom-variables axiom))
+    axiom)
 )
 
 (defstruct (cpp (:print-function pr-cpp))
@@ -2498,7 +2501,7 @@
                        :test #'rule-is-similar?)))
 
           ;; Condition
-          (let ((new-cond (make-applform-simple *condition-sort* *bool-cond-op* (list cond-1 cond-2))))
+          (let ((new-cond (make-applform *condition-sort* *bool-cond-op* (list cond-1 cond-2))))
             (with-citp-debug ()
               (format t "~%[cp] generated condition: ")
               (term-print-with-sort new-cond))
@@ -2703,15 +2706,15 @@
                                                (format nil "CTF-~d" (incf (cdr pn))))
                                              s)
                        args)))
-             (setq form (make-applform-simple (method-coarity const-op)
-                                              const-op
-                                              (nreverse args)))
+             (setq form (make-applform (method-coarity const-op)
+                                       const-op
+                                       (nreverse args)))
              (with-citp-debug ()
                (with-in-module ((goal-context goal))
                  (format t "~%[ctf consructor] ")
                  (term-print-with-sort form)))
              form))
-          (t (make-applform-simple (method-coarity const-op) const-op nil)))))
+          (t (make-applform (method-coarity const-op) const-op nil)))))
 
 (defun do-apply-ctf-with-constructors (cur-node term tactic)
   (let ((cur-goal (ptree-node-goal cur-node))
@@ -2788,10 +2791,10 @@
       (let ((t-goal (prepare-next-goal cur-node tactic))
             (f-goal (prepare-next-goal cur-node tactic)))
         (with-in-module ((goal-context cur-goal))
-          (let ((lhs (make-applform-simple *bool-sort* 
-                                           *eql-op*
-                                           (list (rule-lhs equation) 
-                                                 (rule-rhs equation)))))
+          (let ((lhs (make-applform *bool-sort* 
+                                    *eql-op*
+                                    (list (rule-lhs equation) 
+                                          (rule-rhs equation)))))
             ;; true case
             (unless (add-assumption t-goal lhs *bool-true*)
               (setq t-goal nil))
@@ -3009,33 +3012,36 @@
 (defun apply-tactic (ptree-node tactic &optional (verbose nil))
   (declare (type ptree-node ptree-node)
            (type tactic tactic))
-  (with-citp-env ()
-    (when (goal-is-discharged (ptree-node-goal ptree-node))
-      (with-output-chaos-warning ()
-        (format t "** The goal ~s has already been proved!." (goal-name (ptree-node-goal ptree-node)))
-        (return-from apply-tactic nil)))
-    (format t "~%[~a]=> :goal{~a}" (tactic-name tactic) (goal-name (ptree-node-goal ptree-node)))
-    (initialize-ptree-node ptree-node)
-    (compile-module (goal-context (ptree-node-goal ptree-node)) t)
-    (with-citp-debug ()
-      (let ((exe (tactic-executor tactic)))
-        (format t "~%Funcalling ~a" exe)))
-    (multiple-value-bind (applied next-goals)
-        (funcall (tactic-executor tactic) ptree-node tactic)
-      (declare (type (or null t) applied)
-               (type list next-goals))
-      (unless applied (return-from apply-tactic nil))
-      (unless next-goals
-        ;; reset the current ptree-node status,
-        ;; i.e., cancel side effects
-        (initialize-ptree-node ptree-node)
-        (return-from apply-tactic nil))
-      (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
-      (add-ptree-children ptree-node next-goals)
-      (when verbose
-        (dolist (gn (ptree-node-subnodes ptree-node))
-          (pr-goal (ptree-node-goal gn))))
-      (ptree-node-subnodes ptree-node))))
+  (flet ((prepare-goal-context (module)
+           (compile-module module)
+           (reset-term-memo-table module)))
+    (with-citp-env ()
+      (when (goal-is-discharged (ptree-node-goal ptree-node))
+        (with-output-chaos-warning ()
+          (format t "** The goal ~s has already been proved!." (goal-name (ptree-node-goal ptree-node)))
+          (return-from apply-tactic nil)))
+      (format t "~%[~a]=> :goal{~a}" (tactic-name tactic) (goal-name (ptree-node-goal ptree-node)))
+      (initialize-ptree-node ptree-node)
+      (prepare-goal-context (goal-context (ptree-node-goal ptree-node)))
+      (with-citp-debug ()
+        (let ((exe (tactic-executor tactic)))
+          (format t "~%Funcalling ~a" exe)))
+      (multiple-value-bind (applied next-goals)
+          (funcall (tactic-executor tactic) ptree-node tactic)
+        (declare (type (or null t) applied)
+                 (type list next-goals))
+        (unless applied (return-from apply-tactic nil))
+        (unless next-goals
+          ;; reset the current ptree-node status,
+          ;; i.e., cancel side effects
+          (initialize-ptree-node ptree-node)
+          (return-from apply-tactic nil))
+        (format t "~%** Generated ~d goal~p" (length next-goals) (length next-goals))
+        (add-ptree-children ptree-node next-goals)
+        (when verbose
+          (dolist (gn (ptree-node-subnodes ptree-node))
+            (pr-goal (ptree-node-goal gn))))
+        (ptree-node-subnodes ptree-node)))))
 
 ;;; apply-tactics-to-node
 ;;;
@@ -3073,6 +3079,7 @@
     (unless target
       (format t "~%**> All goals have been proved!")
       (return-from apply-tactics nil))
+    (clear-term-memo-table *term-memo-table*)
     (reset-rewrite-counters)
     (begin-rewrite)
     (apply-tactics-to-node target (flatten-tactic-seq tactics) verbose)

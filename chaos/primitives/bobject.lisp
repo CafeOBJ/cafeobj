@@ -63,16 +63,35 @@
   (context-mod nil))
 
 (defmacro object-info (_obj _info)
-  ` (getf (object-misc-info ,_obj) ,_info))
+  `(getf (object-misc-info ,_obj) ,_info))
 
+;;; GET-CONTEXT-MODULE
+(declaim (inline get-context-module))
+(defun get-context-module (&optional no-error)
+  (declare (type (or null (not null)) no-error)
+           (optimize (speed 3) (safety 0)))
+  (or *current-module*
+      (if no-error
+          nil
+        (with-output-chaos-error ('no-context)
+          (format t "No context module is set.")))))
+
+;;; RESET-CONTEXT-MODULE
+(declaim (inline reset-context-module))
+(defun reset-context-module (&optional (mod nil))
+  (setf *current-module* mod))
+
+;;; GET-OBJECT-CONTEXT object -> null | module
+;;;
+(declaim (inline get-object-context))
+(defun get-object-context (obj)
+  (declare (optimize (speed 3) (safety 0)))
+  (or (get-context-module t) (object-context-mod obj)))
+
+(declaim (inline set-object-context-module))
 (defun set-object-context-module (obj &optional (context-mod (get-context-module)))
+  (declare (optimize (speed 3) (safety 0)))
   (setf (object-context-mod obj) context-mod))
-
-; (eval-when (:execute :load-toplevel)
-;   (setf (symbol-function 'is-object)(symbol-function 'object-p))
-;   (setf (get 'object ':type-predicate) (symbol-function 'is-object))
-;   (setf (get 'object :eval) nil)
-;   (setf (get 'object :print) nil))
 
 ;;; *********
 ;;; INTERFACE
@@ -89,65 +108,6 @@
                                         ;        | :modmorph | :view
   )
 
-;;; ************
-;;; SYMBOL-TABLE
-;;; ************
-(defstruct (symbol-table)
-  (names nil :type list)
-  (map (make-hash-table :test #'equal)))
-
-(defstruct (stable)
-  (sorts nil :type list)
-  (operators nil :type list)
-  (parameters nil :type list)
-  (submodules nil :type list)
-  (variables nil :type list)
-  (axioms nil :type list)
-  (unknowns nil :type list))
-
-(defun canonicalize-object-name (nm)
-  (cond ((stringp nm)
-         (intern nm))
-        ((consp nm)
-         (if (cdr nm)
-             (mapcar #'canonicalize-object-name nm)
-           (canonicalize-object-name (car nm))))
-        ((symbolp nm) nm)
-        ((module-p nm) (canonicalize-object-name (module-name nm)))
-        (t
-         ;; do nothing
-         )))
-
-(defun symbol-table-add (table nm obj)
-  (when (and (module-p obj)
-             (module-is-parameter-theory obj))
-    (setq nm (car (module-name obj))))
-  (let ((name (canonicalize-object-name nm)))
-    (pushnew name (symbol-table-names table) :test #'equal)
-    (let* ((map (symbol-table-map table))
-           (tbl (gethash name map)))
-      (unless tbl
-        (setf tbl (setf (gethash name map) (make-stable))))
-      (cond ((sort-p obj)
-             (pushnew obj (stable-sorts tbl)))
-            ((operator-p obj)
-             (pushnew obj (stable-operators tbl)))
-            ((module-p obj)
-             (if (module-is-parameter-theory obj)
-                 (pushnew obj (stable-parameters tbl))
-               (pushnew obj (stable-submodules tbl))))
-            ((axiom-p obj)
-             (pushnew obj (stable-axioms tbl)))
-            ((and (term? obj)
-                  (term-is-variable? obj))
-             (pushnew obj (stable-variables tbl)))
-            (t (pushnew obj (stable-unknowns tbl))))
-      tbl)))
-
-(defun symbol-table-get (name &optional (module (get-context-module)))
-  (let ((gname (canonicalize-object-name name)))
-    (gethash gname (symbol-table-map
-                    (module-symbol-table module)))))
 
 ;;;=============================================================================
 ;;; TOP-OBJECT _________________________________________________________________
@@ -166,12 +126,6 @@
   (decl-form nil :type list)
   (symbol-table (make-symbol-table) :type symbol-table))
 
-; (eval-when (:execute :load-toplevel)
-;   (setf (symbol-function 'is-top-object)(symbol-function 'top-object-p))
-;   (setf (get 'top-object ':type-predicate) (symbol-function 'is-top-object))
-;   (setf (get 'top-object :eval) nil)
-;   (setf (get 'top-object :print) nil))
-
 ;;;
 ;;; basic accessors via top-object
 ;;;
@@ -187,13 +141,13 @@
         nil)))
 
 (defsetf object-parameters (_obj) (_value)
-  ` (let ((interf (top-object-interface ,_obj)))
-      (unless interf
-        (with-output-panic-message ()
-          (princ "invalid interface of object ")
-          (print-chaos-object ,_obj)
-          (chaos-error 'panic)))
-      (setf (interface$parameters interf) ,_value)))
+  `(let ((interf (top-object-interface ,_obj)))
+     (unless interf
+       (with-output-panic-message ()
+         (princ "invalid interface of object ")
+         (print-chaos-object ,_obj)
+         (chaos-error 'panic)))
+     (setf (interface$parameters interf) ,_value)))
 
 (defun object-exporting-objects (_object)
   (declare (type top-object _object)
@@ -204,13 +158,13 @@
         nil)))
 
 (defsetf object-exporting-objects (_object) (_value)
-  ` (let ((interf (top-object-interface ,_object)))
-      (unless interf
-        (with-output-panic-message ()
-          (princ "exporting-objects: invalid interface of object ")
-          (print-chaos-object ,_object)
-          (chaos-error 'panic)))
-      (setf (interface$exporting-objects interf) ,_value)))
+  `(let ((interf (top-object-interface ,_object)))
+     (unless interf
+       (with-output-panic-message ()
+         (princ "exporting-objects: invalid interface of object ")
+         (print-chaos-object ,_object)
+         (chaos-error 'panic)))
+     (setf (interface$exporting-objects interf) ,_value)))
   
 (defun object-direct-sub-objects (_object)
   (declare (type top-object _object)
@@ -396,11 +350,6 @@
   (principal-sort nil :type atom)       ; principal sort of the module.
   )
 
-(defun print-signature (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (let ((mod (signature$module obj)))
-    (format stream "'[:signature \"~a\"]" (make-module-print-name2 mod))))
-
 ;;; *********
 ;;; AXIOM-SET___________________________________________________________________
 ;;; *********
@@ -417,9 +366,97 @@
   (rules nil :type list)                ; list of rules declared in the module.
   )
 
+
+;;; ******************
+;;; MODULE-DYN-CONTEXT___________________________________________________________
+;;; ******************
+;;; holds run time dynamic infomation of a module.
+
+(defstruct (module-dyn-context (:conc-name "MODULE-CONTEXT-"))
+  (object nil :type (or null object))   ; module
+  (bindings nil :type list)             ; top level let binding
+  (special-bindings nil :type list)     ; users $$variables ...
+  ($$term nil :type list)               ; $$term
+  ($$subterm nil :type list)            ; $$subterm
+  ($$action-stack nil :type list)       ; action stack for apply
+  ($$selection-stack nil :type list)    ; selection stack for choose
+  ($$stop-pattern nil :type list)       ; stop pattern
+  ($$ptree nil)                         ; proof tree
+  ($$rule-counter 0)                    ; generated number of rules
+  )
+
+;;;
+;;; *********
+;;; MODULE    __________________________________________________________________
+;;; STRUCTURE
+;;; *********
+(defstruct (module (:include top-object (-type 'module))
+                   (:conc-name "MODULE-")
+                   (:constructor make-module)
+                   (:constructor module* (name))
+                   (:print-function print-module-object))
+  (print-name nil :type symbol)
+  (signature nil :type (or null signature-struct))
+                                        ; own signature.
+  (axiom-set nil :type (or null axiom-set))
+                                        ; set of own axioms.
+  (theorems nil :type list)             ; set of own theorems, not used yet.
+  (parse-dictionary nil :type (or null parse-dictionary))
+                                        ; infos for term parsing.
+  (trs nil :type (or null trs))         ; corresponding semi-compiled TRS.
+  (context nil
+           :type (or null module-dyn-context))
+                                        ; run time context
+  (alias nil :type list)                ; alias names for a module generated from complex modexpr
+  )
+
+;;; KIND
+(defmacro module-kind (_mod)
+  `(getf (object-misc-info ,_mod) ':module-kind))
+
+(defmacro module-is-theory (_mod_) `(eq :theory (module-kind ,_mod_)))
+
+(defmacro module-is-object (_mod_) `(eq :object (module-kind ,_mod_)))
+
+(defmacro module-is-final (_mod_) `(eq :theory (module-kind ,_mod_)))
+
+(defmacro module-is-loose (_mod_)
+  ` (memq (module-kind ,_mod_) '(:module :ots)))
+
+(defmacro module-is-initial (_mod_) `(eq (module-kind ,_mod_) :object))
+
+;;; PRINTERS -----------------------------------------------------------
+
+(defun print-module-object (obj stream &rest ignore)
+  (declare (ignore ignore)
+           (type module obj)
+           (type stream stream)
+           (values t))
+  (if (or (module-is-inconsistent obj)
+          (null (module-name obj)))
+      (format stream ":module[\"~a\"]" (module-name obj))
+    (cond ((module-is-object obj)
+           (format stream ":mod![\"~a\"]" (module-print-name obj)))
+          ((module-is-theory obj)
+           (format stream ":mod*[\"~a\"]" (module-print-name obj)))
+          (t (format stream ":mod[\"~a\"]" (module-print-name obj))))))
+
+;;; SIGNATURE
+;;;
+(defun print-signature (obj stream &rest ignore)
+  (declare (ignore ignore)
+           (type signature-struct obj)
+           (stream stream))
+  (let ((mod (signature$module obj)))
+    (format stream "'[:signature \"~a\"]" (make-module-print-name2 mod))))
+
+;;; AXIOM SET
 (defun print-axiom-set (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (type axiom-set obj)
+           (type stream stream)
+           (ignore ignore))
   (let ((mod (axiom-set$module obj)))
+    (declare (type module mod))
     (format stream "':axset[\"~a\"]" (module-print-name mod))))
 
 ;;; ***
@@ -470,83 +507,12 @@
   )
 
 (defun print-trs (obj stream &rest ignore)
-  (declare (ignore ignore))
-  (let ((mod (trs$module obj)))
-    (format stream "'[:trs \"~a\"]" (make-module-print-name2 mod))))
-
-;;; ******************
-;;; MODULE-DYN-CONTEXT___________________________________________________________
-;;; ******************
-;;; holds run time dynamic infomation of a module.
-
-(defstruct (module-dyn-context (:conc-name "MODULE-CONTEXT-"))
-  (object nil :type (or null object))   ; module
-  (bindings nil :type list)             ; top level let binding
-  (special-bindings nil :type list)     ; users $$variables ...
-  ($$term nil :type list)               ; $$term
-  ($$subterm nil :type list)            ; $$subterm
-  ($$action-stack nil :type list)       ; action stack for apply
-  ($$selection-stack nil :type list)    ; selection stack for choose
-  ($$stop-pattern nil :type list)       ; stop pattern
-  ($$ptree nil)                         ; proof tree
-  ($$rule-counter 0)                    ; generated number of rules
-  )
-
-;;;
-;;; *********
-;;; MODULE    __________________________________________________________________
-;;; STRUCTURE
-;;; *********
-(defstruct (module (:include top-object (-type 'module))
-                   (:conc-name "MODULE-")
-                   (:constructor make-module)
-                   (:constructor module* (name))
-                   (:print-function print-module-object))
-  (print-name "" :type string)
-  (signature nil :type (or null signature-struct))
-                                        ; own signature.
-  (axiom-set nil :type (or null axiom-set))
-                                        ; set of own axioms.
-  (theorems nil :type list)             ; set of own theorems, not used yet.
-  (parse-dictionary nil :type (or null parse-dictionary))
-                                        ; infos for term parsing.
-  (trs nil :type (or null trs))         ; corresponding semi-compiled TRS.
-  (context nil
-           :type (or null module-dyn-context))
-                                        ; run time context
-  (alias nil :type list)                ; alias names for a module generated from complex modexpr
-  )
-
-;;; KIND
-(defmacro module-kind (_mod)
-  `(getf (object-misc-info ,_mod) ':module-kind))
-
-(defmacro module-is-theory (_mod_) `(eq :theory (module-kind ,_mod_)))
-
-(defmacro module-is-object (_mod_) `(eq :object (module-kind ,_mod_)))
-
-(defmacro module-is-final (_mod_) `(eq :theory (module-kind ,_mod_)))
-
-(defmacro module-is-loose (_mod_)
-  ` (memq (module-kind ,_mod_) '(:module :ots)))
-
-(defmacro module-is-initial (_mod_) `(eq (module-kind ,_mod_) :object))
-
-;;; PRINTER
-
-(defun print-module-object (obj stream &rest ignore)
   (declare (ignore ignore)
-           (type module obj)
-           (type stream stream)
-           (values t))
-  (if (or (module-is-inconsistent obj)
-          (null (module-name obj)))
-      (format stream ":module[\"~a\"]" (module-name obj))
-    (cond ((module-is-object obj)
-           (format stream ":mod![\"~a\"]" (module-print-name obj)))
-          ((module-is-theory obj)
-           (format stream ":mod*[\"~a\"]" (module-print-name obj)))
-          (t (format stream ":mod[\"~a\"]" (module-print-name obj))))))
+           (type trs obj)
+           (stream stream))
+  (let ((mod (trs$module obj)))
+    (declare (type module mod))
+    (format stream "'[:trs \"~a\"]" (make-module-print-name2 mod))))
 
 ;;; ****
 ;;; VIEW _______________________________________________________________________
@@ -569,17 +535,86 @@
   (op-maps nil :type list))
 
 (eval-when (:execute :load-toplevel)
-  (setf (symbol-function 'is-view-struct) (symbol-function 'view-struct-p))
-  (setf (get 'view-struct :type-predicate) (symbol-function 'view-struct-p))
   (setf (get 'view-struct :print) 'print-view-internal))
 
 (defun print-view-struct-object (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (ignore ignore)
+           (type view-struct obj)
+           (type stream stream))
   (format stream ":view[~a: ~s => ~s | ~s]"
           (view-struct-name obj)
           (view-struct-src obj)
           (view-struct-target obj)
           (addr-of obj)))
+
+;;; ADDITIONAL MODULE EXPRESSIONS ______________________________________
+
+;;; *NOTE* these structure are NOT Chaos's AST.
+
+;;; INSTANTIATION
+;;; evaluated
+;;; module : module object
+;;; args   : (arg-name . view-structure)
+;;;
+(defstruct int-instantiation
+  (module nil :type t)
+  (args nil :type list)
+  )
+
+;;; PLUS
+;;; internal form: args are all evaluated -- module objects.
+;;; stored as module name.
+;;;
+(defstruct int-plus
+  (args nil :type list))
+
+;;; RENAME
+;;; evaluated.
+;;;  module = module object
+;;;  sort-maps & op-maps are just the same as of MODMORPH structure.
+;;;  
+(defstruct int-rename
+  (module nil :type t)
+  (sort-maps nil :type list)
+  (op-maps nil :type list))
+
+;;; basic predicates
+
+(defun view-p (object)
+  (declare (type t object)
+           (values (or null t)))
+  (view-struct-p object))
+
+;;; MODEXP-IS-VIEW : object -> Bool
+;;;
+(defun modexp-is-view (object)
+  (declare (type t object)
+           (values (or null t)))
+  (or (view-p object) (%is-view object)))
+
+(defun view-is-inconsistent (view)
+  (declare (type view-struct view)
+           (values (or null t)))
+  (object-is-inconsistent view))
+
+;;; ************
+;;; SYMBOL-TABLE
+;;; ************
+
+;;; NOTE: related functions are defined in chaos/primitives/find.lisp
+
+(defstruct (symbol-table)
+  (names nil :type list)
+  (map (make-hash-table :test #'equal)))
+
+(defstruct (stable)
+  (sorts nil :type list)
+  (operators nil :type list)
+  (parameters nil :type list)
+  (submodules nil :type list)
+  (variables nil :type list)
+  (axioms nil :type list)
+  (unknowns nil :type list))
 
 
 ;;; EOF

@@ -1,6 +1,6 @@
 ;;;-*- Mode:LISP; Package:CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -99,7 +99,7 @@
 (defvar *chaos-input-source* nil)       ; binds a file name when processing
                                         ; input from the file. 
 (declaim (special *chaos-input-level*)
-         (type (integer 0 11)
+         (type fixnum
                *chaos-input-level*
                *chaos-input-nesting-limit*))
 
@@ -133,8 +133,8 @@
 (defvar *citp-normalize-instance* t)
 
 (defvar *rewrite-stepping* nil)         ; flag, non-nil -> under stepping.
-(declaim (type (or null fixnum) *rewrite-count-limit*))
-(defvar *rewrite-count-limit* nil)
+(declaim (type fixnum *rewrite-count-limit*))
+(defvar *rewrite-count-limit* most-positive-fixnum)
                                         ; flag, non-nil(integer) -> limitation
                                         ; for rewriting steps.
 (defvar *rewrite-stop-pattern* nil)     ; flag, non-nil(term) -> stop rewriting
@@ -181,7 +181,7 @@
 (defvar $$matches 0)
 (defvar *on-reduction* t)
 (defvar *reduce-builtin-eager* nil)
-;; (declaim (type fixnum *condition-trial-limit*))
+(declaim (type fixnum *condition-trial-limit*))
 (defparameter .condition-trial-limit-default.
   #+GCL 240
   #-GCL 5500)
@@ -197,12 +197,14 @@
 
 ;; memoization
 (defvar *memo-rewrite* t)               ; use memo mechanism
-(defvar *clean-memo-in-normalize* nil)
+(defvar *clean-memo-in-normalize* t)
 (defvar *always-memo* nil)
-(declaim (special *hash-hit*)
-         (type (unsigned-byte 29) *hash-hit*))
+(declaim (special *term-memo-hash-hit*)
+         (type fixnum *hash-hit*))
 (defvar *term-memo-hash-hit* 0)
-
+(declaim (special .hash-size.)
+         (type fixnum .hash-size.))
+(defvar .hash-size. 0)
 (defvar *allow-illegal-beh-axiom* t)
 
 ;;;*********************
@@ -240,10 +242,11 @@
 ;;;***************************
 
 (declaim (special *print-indent*))
-(declaim (type (integer 0 128)
+(declaim (type fixnum
                *chaos-print-level*
+               *print-line-limit*
+               *chaos-print-length*
                *print-indent* *print-indent-increment*))
-;; (defvar *chaos-verbose* nil)
 (defvar *module-all-rules-every* nil)
 (defvar *fancy-print* t)
 (defvar *print-term-struct* nil)
@@ -264,6 +267,7 @@
 (defvar *print-mode* nil)
 (defvar *print-all-eqns* nil)
 (defvar *print-exec-rule* nil)
+(defvar *print-every-exec-finding* nil)
 (defvar *print-ignore-mods* nil)
 (defvar *chaos-print-level* 5)
 (defvar *chaos-print-length* 100)
@@ -506,6 +510,7 @@
 ;;; search command related
 (defvar .rwl-sch-context. nil)
 (defvar .rwl-context-stack. nil)
+(declaim (type fixnum .rwl-states-so-far.))
 (defvar .rwl-states-so-far. 0)
 (defvar *rwl-search-no-state-report* nil)
 

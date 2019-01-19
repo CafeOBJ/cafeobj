@@ -348,7 +348,7 @@
 (defun set-rewrite-count-limit (num)
   (if (integerp num)
       (if (zerop num)
-          (progn (setq *rewrite-count-limit* nil)
+          (progn (setq *rewrite-count-limit* most-positive-fixnum)
                  (rewrite-debug-off))
         (if (> num 0)
             (progn (setq *rewrite-count-limit* num)
@@ -357,35 +357,35 @@
             (format t "invalid rewrite count limit value ~d" num)
             (print-next) (princ "must be a positive integer.")
             )))
-    (progn (setq *rewrite-count-limit* nil)
+    (progn (setq *rewrite-count-limit* most-positive-fixnum)
            (rewrite-debug-off))))
 
-(defun set-rewrite-count-limit2 (value)
+(defun get-int-or-null (value)
   (if (or (null value)
           (equal value '(".")))
-      (set-rewrite-count-limit 'off)
-    (multiple-value-bind (num len)
+      nil
+    (multiple-value-bind (num len) 
         (parse-integer (car value) :junk-allowed t)
       (if (= len (length (car value)))
-          (set-rewrite-count-limit num)
+          num
         (with-output-chaos-error ('invalid-value)
-          (format t "invalid rewrite count limit ~a" (car value))
-          (print-next)
-          (princ "must be a positive integer."))))))
+          (format t "value must be a positive integer."))))))
+
+(defun set-rewrite-count-limit2 (value)
+  (let ((num (get-int-or-null value)))
+    (if num
+        (set-rewrite-count-limit num)
+      (set-rewrite-count-limit 'off))))
 
 (defun set-cond-trial-limit (value)
-  (if (or (null value)
-          (equal value '(".")))
-      (setq *condition-trial-limit* nil)
-    (multiple-value-bind (num len)
-        (parse-integer (car value) :junk-allowed t)
-      (if (and (= len (length (car value)))
-               (> num 0))
-          (setq *condition-trial-limit* num)
-        (with-output-chaos-error ('invalid-value)
-          (format t "invalid condition trial limit ~a" (car value))
-          (print-next)
-          (princ "must be a positive integer.") )))))
+  (setq *condition-trial-limit*
+    (get-int-or-null value)))
+
+(defun set-term-id-size-limit (value)
+  (let ((num (get-int-or-null value)))
+    (if num
+        (setq *term-id-limit* num)
+      (setq *term-id-limit* 51)))) ; the default value
 
 ;;; ********************
 ;;; REWRITE STOP PATTERN
@@ -470,7 +470,7 @@
                 (eval-modexp modexp)))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
-        (princ "incorrect module expression or uknown module ")
+        (princ "incorrect module expression or unknown module ")
         (print-modexp modexp)))
     (unless mod
       (with-output-chaos-error ('no-context)
@@ -1519,7 +1519,7 @@
                 (eval-modexp modexp)))
     (when (modexp-is-error mod)
       (with-output-chaos-error ('no-such-module)
-        (princ "incorrect module expression or uknown module: ")
+        (princ "incorrect module expression or unknown module: ")
         (print-modexp modexp)))
     ;;
     (unless mod

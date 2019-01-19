@@ -52,13 +52,17 @@
 ;;; t1 of each eq of sys is pattern, has variables.  t2 is (ground) term-
 
 (defun match-Z-state-initialize (sys env)
-  (declare (ignore env))
+  (declare (ignore env)
+           (type list sys)
+           (optimize (speed 3) (safety 0)))
   ;; env why isn't env used here or in match-C?
   (values (create-match-z-state 0 sys) nil))
 
 ;;; NEXT STATE
 
 (defun match-Z-next-state (Z-st)
+  (declare (type match-z-state z-st)
+           (optimize (speed 3) (safety 0)))
   (let* ((sys (match-z-state-sys Z-st))
          (point (m-system-to-list sys))
          (equation nil)
@@ -168,6 +172,7 @@
 ;;;
 (defun match-Z-equal (t1 t2)
   (declare (type term t1 t2)
+           (optimize (speed 3) (safety 0))
            (values (or null t)))
   (if (term-is-applform? t2)
       (let ((meth1 (term-head t1))

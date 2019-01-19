@@ -166,6 +166,28 @@
             (setf (%svref comp j) (1+ x)))
           (return t))))))
 
+;;; reset the comp of "eq-comp" to his initial value i.e. (1,1,1,1,1)
+;;; op match-AZ-reset-comp: EquationComp -> EquationComp~
+(declaim (inline match-az-reset-comp))
+(#-GCL defun #+GCL si:define-inline-function
+       match-AZ-reset-comp (eq-comp)
+  (let ((comp (match-equation-comp-comp eq-comp)))
+    (declare (type #+GCL vector #-GCL simple-vector comp))
+    (dotimes-fixnum (x (1- (the fixnum
+                             (match-equation-comp-sz-left eq-comp))))
+                                        ; x = 0,...,sz-left - 2
+       (setf (%svref comp x) 0))))
+
+;;; modifies the array "sys" of "equation-comp" in such a way that
+;;; all the comp array are reset provide that they rank in "sys"
+;;; is less (strictly) than K.
+(declaim (inline match-az-reset-equation-comp))
+(#-GCL defun #+GCL si:define-inline-function
+       match-AZ-reset-equation-comp (sys K)
+  (declare (type #+GCL vector #-GCL simple-vector sys))
+  (dotimes-fixnum (i K)                         ; i = 0,...,K-1 
+    (match-AZ-reset-comp (%svref sys i))))
+
 ;;; modify the match-AZ-state "AZ-st" by  incrementing the state local to each
 ;;; equation of the system in a "variable basis numeration" way
 ;;;
@@ -196,31 +218,6 @@
       ;; this "normal" exit of the loop means that none of the
       ;; state has been increased so there is no more state
       (setf (match-AZ-state-no-more AZ-st) t))))
-
-;;; reset the comp of "eq-comp" to his initial value i.e. (1,1,1,1,1)
-;;; op match-AZ-reset-comp: EquationComp -> EquationComp~
-(declaim (inline match-az-reset-comp))
-
-(#-GCL defun #+GCL si:define-inline-function
-       match-AZ-reset-comp (eq-comp)
-  (let ((comp (match-equation-comp-comp eq-comp)))
-    (declare (type #+GCL vector #-GCL simple-vector comp))
-    (dotimes-fixnum (x (1- (the fixnum
-                             (match-equation-comp-sz-left eq-comp))))
-                                        ; x = 0,...,sz-left - 2
-       (setf (%svref comp x) 0))))
-
-;;; modifies the array "sys" of "equation-comp" in such a way that
-;;; all the comp array are reset provide that they rank in "sys"
-;;; is less (strictly) than K.
-
-(declaim (inline match-az-reset-equation-comp))
-
-(#-GCL defun #+GCL si:define-inline-function
-       match-AZ-reset-equation-comp (sys K)
-  (declare (type #+GCL vector #-GCL simple-vector sys))
-  (dotimes-fixnum (i K)                         ; i = 0,...,K-1 
-    (match-AZ-reset-comp (%svref sys i))))
 
 ;;; INITIALIZATION
 

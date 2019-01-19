@@ -75,14 +75,12 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'rewrite-rule :type-predicate)
-        (symbol-function 'rewrite-rule-p))
-  (setf (symbol-function 'is-rewrite-rule)
-        (symbol-function 'rewrite-rule-p))
   (setf (get 'rewrite-rule :print) 'print-rule-internal))
 
 (defun print-rule-object (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (type rewrite-rule obj)
+           (type stream stream)
+           (ignore ignore))
   (if *current-module*
       (progn
         (format stream ":rule[~S: " (addr-of obj))
@@ -125,23 +123,10 @@
   (extensions nil :type list))
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'ex-rewrite-rule :type-predicate)
-        (symbol-function 'ex-rewrite-rule-p))
-  (setf (symbol-function 'is-ex-rewrite-rule)
-        (symbol-function 'ex-rewrite-rule-p))
   (setf (get 'ex-rewrite-rule :print)
         'print-rule-internal))
 
 (defmacro rule-extensions (_rule) `(ex-rewrite-rule-extensions ,_rule))
-
-;;; Predicates
-(defmacro rewirte-rule-p (_*_obj)
-  (once-only (_*_obj)
-    `(and (chaos-object? ,_*_obj) 
-          (memq (object-type ,_*_obj) '(rewrite-rule ex-rewrite-rule)))))
-
-(defmacro is-rewrite-rule? (*--obj)     ; synonym
-  `(rewrite-rule-p ,*--obj))
 
 ;;; CONSTRUCTOR
 ;;;
@@ -175,21 +160,17 @@
   )
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'axiom :type-predicate) (symbol-function 'axiom-p))
   (setf (get 'axiom :print) 'print-axiom-brief)
-  (setf (symbol-function 'is-axiom) (symbol-function 'axiom-p))
   )
 
 (defun print-axiom-object (obj stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (ignore ignore)
+           (type stream stream)
+           (type axiom obj))
   (if *current-module*
       (with-in-module (*current-module*)
         (print-axiom-brief obj stream nil nil t))
     (format stream ":axiom[~S]" (addr-of obj))))
-
-;;; Type predicate -------------------------------------------------------------
-
-(defmacro is-axiom? (*--obj) `(is-axiom ,*--obj))
     
 ;;; Primitive structure accessors ----------------------------------------------
 

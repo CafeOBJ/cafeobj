@@ -138,62 +138,6 @@
 ;;     . list all the flagged functions, or say no match
 
 ;;
-;; TOPLEVEL entry functions
-;;
-;; the following functions are called from the toplevel evaluation loop
-;; in particular when one of the ? commands, and gendoc is called.
-;
-; oldoc-get-documentation
-; returns the formatted string for display on the console
-; returns nil if nothing found
-(defun oldoc-get-documentation (question &key (main t) (example nil) (apropos nil) (related t))
-  (if apropos
-      (oldoc-search-all question)
-    (let ((doc (oldoc-find-doc-entry question)))
-      (if (not (listp doc))
-          (oldoc-format-documentation doc :raw nil :main main :example example :related related)
-        (progn 
-          (if doc
-              (format t "Did you mean one of ~a~%" doc))
-          nil)))))
-
-;; oldoc-list-categories
-;;
-(declaim (special .category-descriptions. .valid-com-categories.))
-
-(defun oldoc-list-categories (cat)
-  (unless cat
-    (format t "** ======================================================================~%")
-    (format t "COMMAND CLASSES:~%")
-    (format t "'?com <class>' shows the list of commands classified by <class>.~2%")
-    (format t "class~10Tdescription~%")
-    (format t "-------------------------------------------------------------------------~%")
-    (dolist (entry .category-descriptions.)
-      (format t "~a~10T~a~%" (first entry) (second entry)))
-    (return-from oldoc-list-categories nil))
-  ;; gather commands
-  (unless (member (car cat) .valid-com-categories. 
-                  :test #'(lambda (x y) (string-equal x (symbol-name y))))
-    (with-output-chaos-error ('invalid-category)
-      (format t "System does not know the command class '~a'.~%" (car cat))
-      (format t "Type '?cat' for the list of available class names.")))
-  (let ((docs (oldoc-get-documents-by-category (car cat))))
-    (unless docs
-      (with-output-chaos-warning ()
-        (format t "Sorry, the commands classified as '~a' not found." (car cat)))
-      (return-from oldoc-list-categories nil))
-    (format t "The list of commands classified as '~a'.~%" (car cat))
-    (format t "Type '? <command-name>' for the online document of <command-name>.~%")
-    (format t "==========================================================================")
-    (do* ((dl docs (cdr dl))
-          (doc (car dl) (car dl))
-          (n 0 (1+ n)))
-        ((endp dl))
-      (let ((key (car doc))
-            (desc (cdr doc)))
-        (format t "~%~a~%  ~a" key (format-markdown (oldoc-title desc)))))))
-
-;;
 ;; INTERNAL functioons
 ;; not used outside this module
 ;;
@@ -537,5 +481,61 @@
                      (push (cons key oldoc) coms))))
              *cafeobj-doc-db*)
     (sort coms #'ob< :key #'car)))
+
+;;
+;; TOPLEVEL entry functions
+;;
+;; the following functions are called from the toplevel evaluation loop
+;; in particular when one of the ? commands, and gendoc is called.
+;
+; oldoc-get-documentation
+; returns the formatted string for display on the console
+; returns nil if nothing found
+(defun oldoc-get-documentation (question &key (main t) (example nil) (apropos nil) (related t))
+  (if apropos
+      (oldoc-search-all question)
+    (let ((doc (oldoc-find-doc-entry question)))
+      (if (not (listp doc))
+          (oldoc-format-documentation doc :raw nil :main main :example example :related related)
+        (progn 
+          (if doc
+              (format t "Did you mean one of ~a~%" doc))
+          nil)))))
+
+;; oldoc-list-categories
+;;
+(declaim (special .category-descriptions. .valid-com-categories.))
+
+(defun oldoc-list-categories (cat)
+  (unless cat
+    (format t "** ======================================================================~%")
+    (format t "COMMAND CLASSES:~%")
+    (format t "'?com <class>' shows the list of commands classified by <class>.~2%")
+    (format t "class~10Tdescription~%")
+    (format t "-------------------------------------------------------------------------~%")
+    (dolist (entry .category-descriptions.)
+      (format t "~a~10T~a~%" (first entry) (second entry)))
+    (return-from oldoc-list-categories nil))
+  ;; gather commands
+  (unless (member (car cat) .valid-com-categories. 
+                  :test #'(lambda (x y) (string-equal x (symbol-name y))))
+    (with-output-chaos-error ('invalid-category)
+      (format t "System does not know the command class '~a'.~%" (car cat))
+      (format t "Type '?cat' for the list of available class names.")))
+  (let ((docs (oldoc-get-documents-by-category (car cat))))
+    (unless docs
+      (with-output-chaos-warning ()
+        (format t "Sorry, the commands classified as '~a' not found." (car cat)))
+      (return-from oldoc-list-categories nil))
+    (format t "The list of commands classified as '~a'.~%" (car cat))
+    (format t "Type '? <command-name>' for the online document of <command-name>.~%")
+    (format t "==========================================================================")
+    (do* ((dl docs (cdr dl))
+          (doc (car dl) (car dl))
+          (n 0 (1+ n)))
+        ((endp dl))
+      (let ((key (car doc))
+            (desc (cdr doc)))
+        (format t "~%~a~%  ~a" key (format-markdown (oldoc-title desc)))))))
 
 ;;; EOF

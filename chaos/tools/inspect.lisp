@@ -222,7 +222,6 @@
             (remove ")" (remove "(" name :test #'equal) :test #'equal))))
 
 (defun !look-up (name module)
-  (declare (ignore ignore))
   (unless (module-p module)
     (with-output-chaos-error ('ivalid-module)
       (format t "~%internal error, look up processor is given illegal module object.")))

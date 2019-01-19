@@ -120,11 +120,6 @@
           #+:ALLEGRO (*global-gc-behavior* :auto)
           #+:ALLEGRO (*print-pretty* nil)
           )
-      (unless no-init
-        (catch *top-level-tag*
-          (with-chaos-top-error ()
-            (with-chaos-error ()
-              (cafeobj-init-files)))))
       (process-cafeobj-with-restart)))
   (format t "[Leaving CafeOBJ]~%")
   (finish-output))
@@ -157,6 +152,7 @@
              ;; exit from the interpreter with an error code 1
              (with-chaos-top-error ()
                (with-chaos-error ()
+                 (cafeobj-init-files)
                  (dolist (f (reverse *cafeobj-initial-load-files*))
                    (cafeobj-input f)))))))
     ;; In batch mode, when we encounter interrupts or internal error,
@@ -167,7 +163,6 @@
           (*break-on-signals* nil)
           #+:sbcl (sb-ext:*invoke-debugger-hook* nil))
       (when *cafeobj-batch*
-        (setf *break-on-signals* t)
         (setf *debugger-hook* #'(lambda (condition hook)
                                   (declare (ignore hook))
                                   (let ((*print-escape* t))
@@ -192,7 +187,6 @@
       (let ((*debugger-hook* nil)
             (*break-on-signals* nil)
             #+:sbcl (sb-ext:*invoke-debugger-hook* nil))
-        (setf *break-on-signals* t)
         (setf *debugger-hook* #'(lambda (condition hook)
                                   (declare (ignore hook))
                                   (let ((*print-escape* t))
@@ -226,11 +220,6 @@
     (process-init-files-handling-exceptions)
     (unless *cafeobj-batch*)
     ;; do the job interactively
-    (unless no-init
-      (catch *top-level-tag*
-        (with-chaos-top-error ()
-          (with-chaos-error ()
-            (cafeobj-init-files)))))
     (process-cafeobj-with-restart))
   (format t "[Leaving CafeOBJ]~%")
   (finish-output))
@@ -246,6 +235,9 @@
   (setq excl:*print-startup-message* nil)
   #+:ALLEGRO
   (setf (sys:gsgc-switch :print) nil)
+  #+:SBCL
+  (sb-alien:alien-funcall
+   (sb-alien:extern-alien "disable_lossage_handler" (function sb-alien:void)))
   (!lex-read-init)
   (chaos-initialize-fsys))
 

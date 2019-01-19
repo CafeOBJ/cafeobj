@@ -300,7 +300,7 @@
     (when id
       (prepare-for-parsing module)
       (let ((trm (simple-parse module id (car (maximal-sorts arity *current-sort-order*)))))
-        (when (term-ill-defined trm)
+        (when (term-is-an-error trm)
           (with-output-chaos-error ('invalid-op-attribute)
             (format t "invalid identity term ~a" id)))
         (setq id trm)))

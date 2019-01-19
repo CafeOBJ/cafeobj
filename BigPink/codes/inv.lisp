@@ -808,7 +808,7 @@
               (princ "is not hidden sort, only hidden valued oprators are meaningful.")
               )))
         ;;
-        (when (and object (term-ill-defined object))
+        (when (and object (term-is-an-error object))
           (return-from pn-check-invariance nil))
         ;;
         (when init-method

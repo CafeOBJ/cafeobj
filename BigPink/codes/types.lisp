@@ -877,21 +877,13 @@
   `(axiom-condition (demod-axiom ,_demod)))
 
 (eval-when (:execute :load-toplevel)
-  (setf (get 'demod :type-predicate) (symbol-function 'demod-p))
   (setf (get 'demod :print) 'print-demod-internal)
-  (setf (symbol-function 'is-demod) (symbol-function 'demod-p))
   )
 
-#||
-(defun print-demod-object (obj &optional (stream *standard-output*) &rest ignore)
-  (declare (ignore ignore))
-  (format stream "#<demodulator (~a) ~a: ~x>"
-          (clause-id (demod-clause obj))
-          (demod-order obj) (addr-of obj)))
-||#
-
 (defun print-demodulator (demod &optional (stream *standard-output*) &rest ignore)
-  (declare (ignore ignore))
+  (declare (ignore ignore)
+           (type demod demod)
+           (type stream stream))
   (let* ((lhs (demod-lhs demod))
          (rhs (demod-rhs demod))
          (clause (demod-clause demod))

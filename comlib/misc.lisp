@@ -267,7 +267,7 @@
 #+GCL
 (defentry addr-of (object) (object addr_of))
 
-(defvar .32bit. #xffffffff)
+(defconstant .32bit. #xffffffff)
 
 #-GCL
 (declaim (inline addr-of))

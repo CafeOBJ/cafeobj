@@ -42,13 +42,6 @@
 ;;; REDUCER
 ;;; provides term rewriting eclosed within computing environment.
 ;;; ========
-(declaim (inline begin-parse end-parse time-for-parsing-in-seconds
-                 begin-rewrite end-rewrite time-for-rewriting-in-seconds
-                 number-metches number-rewritings number-memo-hits
-                 clear-rewriting-fc prepare-term reset-rewrite-counters
-                 prepare-reduction-env reducer reducer-no-stat))
-
-
 (let ((*m-pattern-subst* nil)
       (.rwl-context-stack. nil)
       (.rwl-states-so-far. 0)
@@ -65,6 +58,7 @@
       ($$cond nil)
       ($$target-term nil)
       ($$norm nil)
+      (.trace-or-step. nil)
       (*do-empty-match* nil)
       (parse-begin-time 0)
       (time-for-parsing 0.0)
@@ -128,7 +122,11 @@
   (defun number-memo-hits ()
     *term-memo-hash-hit*)
 
-  ;; 
+  (defun number-hash-size ()
+    (declare (inline hash-table-count))
+    ;; .hash-size.
+    (hash-table-count *term-memo-table*))
+
   (defun clear-rewriting-fc (module mode)
     (setf *m-pattern-subst* nil
           .rwl-context-stack. nil
@@ -174,8 +172,10 @@
 
   ;; reset-term-memo-table
   (defun reset-term-memo-table (module)
-    (unless (eq module (get-context-module t))
-      (clear-term-memo-table *term-memo-table*)))
+    (when (or *clean-memo-in-normalize*
+              (not (eq module *memoized-module*)))
+      (clear-term-memo-table *term-memo-table*)
+      (setq *memoized-module* module)))
 
   ;; prepare-reduction-env
   ;; all-in-one proc for setting up environment variables for rewriting,
@@ -196,6 +196,8 @@
       (when stat-reset (reset-rewrite-counters))
       ;; set up various flags and counters used in rewriting process
       (clear-rewriting-fc module mode)
+      ;; set debug mode or not
+      (setq .trace-or-step. (under-debug-rewrite))
       ;; returns the evaluated context module
       module))
     
@@ -212,7 +214,10 @@
       (concatenate 'string stat-form
                    (if (zerop (number-memo-hits))
                        ")"
-                     (format nil ", ~d memo hits)" (number-memo-hits))))))
+                     (format nil ", ~d memo hits)" 
+                             (number-memo-hits)
+                             ;; (number-hash-size)
+                             )))))
   
   (defun generate-statistics-form-rewriting-only ()
     (let ((stat-form ""))
@@ -225,22 +230,30 @@
       (concatenate 'string stat-form
                    (if (zerop (number-memo-hits))
                        ")"
-                     (format nil ", ~d memo hits)" (number-memo-hits))))))
+                     (format nil ", ~d memo hits)" 
+                             (number-memo-hits)
+                             ;; (number-hash-size)
+                             )))))
 
   ;; REDUCER
   ;; perform reduction
-  (defun reducer (term context-module rewrite-mode)
-    (with-in-module ((prepare-reduction-env term context-module rewrite-mode t))
+  (defun reducer (term context-module rewrite-mode &optional (no-stat nil))
+    (with-in-module ((prepare-reduction-env term context-module rewrite-mode 
+                                            (if no-stat 
+                                                nil
+                                              t)))
       ;; be ready for rewriting
       (!setup-reduction *current-module*)
       ;; now start 
-      (begin-rewrite)
+      (unless no-stat
+        (begin-rewrite))
       ;; do the reduction
       (catch 'rewrite-abort
         (if *rewrite-exec-mode*
             (rewrite-exec $$target-term *current-module* rewrite-mode)
           (rewrite $$target-term *current-module* rewrite-mode)))
-      (end-rewrite)
+      (unless no-stat
+        (end-rewrite))
       $$term))
 
   ;; REDUCER-NO-STAT
@@ -248,14 +261,7 @@
   ;; caller is responsible for calling
   ;;    (reset-rewrite-counters)-(begin-rewrite)-(end-rewrite)
   (defun reducer-no-stat (term context-module rewrite-mode)
-    (with-in-module ((prepare-reduction-env term context-module rewrite-mode nil))
-      ;; be ready for rewriting
-      (!setup-reduction *current-module*)
-      (catch 'rewrite-abort
-        (if *rewrite-exec-mode*
-            (rewrite-exec $$target-term *current-module* rewrite-mode)
-          (rewrite $$target-term *current-module* rewrite-mode))))
-    $$term)
+    (reducer term context-module rewrite-mode :no-stat))
       
   (defun simplify-on-top (term context-module)
     (declare (type term term)

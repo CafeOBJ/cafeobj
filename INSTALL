@@ -64,13 +64,14 @@ the following command line program name
      configure argument     program name        
 	sbcl                   sbcl        -- SBCL
 	acl                    alisp       -- Allegro CL
-        clisp                  clisp       -- CLISP
+	acl-standalone         alisp       -- Allegro CL with distribution license
+	clisp                  clisp       -- CLISP
 
 You must have one of these command in your PATH environment.
 
 -with-lisp="platform" can be omitted, in this case it selects the
 first interpreter found by testing in the following order:
-	acl, sbcl, clisp
+	acl-standalone, acl, sbcl, clisp
 
 Finally, one can use
 	-with-lisp=all
@@ -256,6 +257,30 @@ If Wine is installed, and within wine sbcl is installed, one can create
 a dump for Windows with
 	./configure --enable-windows
 	make
+
+building using ACL on Windows
+-----------------------------
+Building distribution tarballs on Windows using ACL requires a few more steps:
+- configure CafeOBJ sources with
+	./configure
+  no special argument is necessary.
+- transfer the files to Windows
+- start ACL (alisp.exe) in the CafeOBJ source directory and type
+	:ld make-deliv
+  This will create the necessary files in 
+	dist/cafeobj-N.M
+  but all the support files are missing.
+- add the support files
+  best way is to use an SBCL build, remove the SBCL dump and add the files
+  from dist/cafeobj-N.M as above
+- replace the binary
+  by default, the ACL created CafeOBJ.exe opens a dedicated Window for the
+  execution. If this is not acceptable (ie, this is what the CafeOBJ team
+  does during preparation of release packages):
+	Replace CafeOBJ.exe in dist/cafeobj-N.M
+	with buildi.exe from the respective ACL directory
+  This ensures that the interpreter is just opened in the current terminal
+  window.
 
 building for distribution
 -------------------------

@@ -202,17 +202,17 @@
 
 (defmacro match-acz-state-zero-matches (state__) `(svref ,state__ 26))
 
-(declaim (inline match-acz-state-p))
-(#+GCL si::define-inline-function #-GCL defun match-acz-state-p (state)
-  (and (vectorp state)
-       (eq (svref state 25) 'acz-state)))
-
 ;;; the following is used only when we boil it down to a single var on left.
 ;;; it is only for performance enhancement...
 ;;;
 (defstruct trivial-match-ACZ-state
   (sys nil)
   (no-more-p nil))
+
+(declaim (inline match-acz-state-p))
+(defun match-acz-state-p (state)
+  (and (vectorp state)
+       (eq (svref state 25) 'acz-state)))
 
 ;;; small utility.  Side effect.
 (defmacro match-ACZ-Rotate-Left (?**array ?**m*)
@@ -351,16 +351,15 @@
                   ;; new
                   (return y))
               (setq last rest  rest (cdr rest))))
-          ))
-  )
+          )))
 
 ;;; check for multi-set equality
 ;;; uses term.equational-equal -- which can be pretty expensive
 ;;;
+(declaim (inline match-acz-ms-equal))
 (defun match-ACZ-ms-equal (x y)
   (declare (type list x y)
-           ;; (optimize (speed 3) (safety 0))
-           )
+           (optimize (speed 3) (safety 0)))
   (block the-end
     (let ((ydone 0)
           (ylength (length y)))
@@ -383,9 +382,10 @@
 ;;;
 ;;; Assume that t1 is NOT a variable
 ;;;
+(declaim (inline match-acz-equal))
 (defun match-ACZ-equal (t1 t2)
   (declare (type term t1 t2)
-           ;; (optimize (speed 3) (safety 0))
+           (optimize (speed 3) (safety 0))
            )
   (if (term-is-applform? t2)
       (let ((op (term-head t1)))
@@ -403,14 +403,14 @@
 (defun match-ACZ-make-term (op list)
   (declare (type method op)
            (type list list)
-           ;; (optimize (speed 3) (safety 0))
+           (optimize (speed 3) (safety 0))
            )
   (if (null list)
       (term-make-zero op)
-      (if (null (cdr list))
-          (car list)
-          (make-term-with-sort-check 
-            op (list (car list) (match-ACZ-make-term op (cdr list)))))))
+    (if (null (cdr list))
+        (car list)
+      (make-term-with-sort-check 
+       op (list (car list) (match-ACZ-make-term op (cdr list)))))))
 
 ;;; given an match-ACZ-state, produce a solution (system of equations
 ;;; which, if true, imply the original ACZ equation true) from
@@ -419,7 +419,8 @@
 (defvar *acz-failure-pat* nil)
 
 (defun match-ACZ-solution-from-state (state)
-  ;; (declare (optimize (speed 3) (safety 0)))
+  (declare (type simple-vector state)
+           (optimize (speed 3) (safety 0)))
   (let* ((ops (match-ACZ-state-methods state))
          (lhs-f (match-ACZ-state-lhs-f state))
          (lhs-v (match-ACZ-state-lhs-v state))
@@ -453,15 +454,15 @@
               ;; (match-ACZ-collapse-one-array-internal rhs-c-sol rhs-c)
               (dotimes (j (length rhs-c-sol))
                 (declare (type fixnum j))
-                (when (> (make-and (svref rhs-c-sol j)
+                (when (> (make-and (the fixnum (svref rhs-c-sol j))
                                    term-code)
                          0)
                   (push  (car (svref rhs-c j)) rhs-subterms)))
               ;; (match-ACZ-collapse-one-array-internal rhs-f-sol rhs-f)
               (dotimes (j (length rhs-f-sol))
                 (declare (type fixnum j))
-                (when (> (make-and (svref rhs-f-sol j)
-                                 term-code)
+                (when (> (make-and (the fixnum (svref rhs-f-sol j))
+                                   term-code)
                        0)
                   (push  (car (svref rhs-f j)) rhs-subterms)))
               ;;
@@ -493,14 +494,14 @@
           (dotimes (j (length rhs-c-sol))
             (declare (type fixnum j))
             (when (> (the fixnum
-                       (make-and (svref rhs-c-sol j)
+                       (make-and (the fixnum (svref rhs-c-sol j))
                                  term-code))
                      0)
               (push  (car (svref rhs-c j)) rhs-subterms)))
           ;; (match-ACZ-collapse-one-array-internal rhs-f-sol rhs-f)
           (dotimes (j (length rhs-f-sol))
             (declare (type fixnum j))
-            (when (> (the fixnum (make-and (svref rhs-f-sol j)
+            (when (> (the fixnum (make-and (the fixnum (svref rhs-f-sol j))
                                            term-code))
                      0)
               (push  (car (svref rhs-f j)) rhs-subterms)))
@@ -571,7 +572,8 @@
 ;;;
 
 (defun match-ACZ-state-initialize (sys env)
-  (declare (type list sys env))
+  (declare (type list sys env)
+           (optimize (speed 3) (safety 0)))
   (with-match-debug ()
     (format t "~%** match-acz-state-initialize -------------------------------------")
     (print-next)
@@ -775,9 +777,11 @@
                     (LHS-v (make-array lhs-v-count :initial-contents lhs-v-list))
                     (RHS-c (make-array rhs-c-count :initial-contents rhs-c-list))
                     (RHS-f (make-array rhs-f-count :initial-contents rhs-f-list))
-                    (RHS-c-max (expt2 (1- lhs-v-count)))
-                    (RHS-f-max (expt2 (+ -1 lhs-v-count lhs-f-count)))
-                    (RHS-full-bits (- (expt2 (+ lhs-v-count lhs-f-count)) 2))
+                    (RHS-c-max (expt2 (1- (the fixnum lhs-v-count))))
+                    (RHS-f-max (expt2 (+ -1 (the fixnum lhs-v-count)
+                                         (the fixnum lhs-f-count))))
+                    (RHS-full-bits (- (expt2 (+ (the fixnum lhs-v-count) (the fixnum lhs-f-count)))
+                                      2))
                     (rhs-c-sol (alloc-svec-fixnum rhs-c-count))
                     (rhs-f-sol (alloc-svec-fixnum rhs-f-count))
                     (rhs-c-compat (alloc-svec-fixnum rhs-c-count))
@@ -843,7 +847,7 @@
                                     (= (the fixnum (svref lhs-v-r j))
                                        0)))
                        (setf (svref rhs-c-compat i)
-                             (make-or (svref rhs-c-compat i)
+                             (make-or (the fixnum (svref rhs-c-compat i))
                                       dummy-bit)))
                      (setq dummy-bit (* 2 dummy-bit)))))
                ;; now setup the compatibility bitvectors (for rhs-f)
@@ -862,7 +866,7 @@
                                     (= (the fixnum (svref lhs-v-r j))
                                        0)))
                        (setf (svref rhs-f-compat i)
-                             (make-or (svref rhs-f-compat i)
+                             (make-or (the fixnum (svref rhs-f-compat i))
                                       dummy-bit)))
                      (setq dummy-bit (* 2 dummy-bit)))
                    ;; now lhs vars are taken care of, we need to deal with funs
@@ -875,7 +879,7 @@
                                 (possibly-matches (car (svref lhs-f j))
                                                   (car (svref rhs-f i))))
                        (setf (svref rhs-f-compat i)
-                             (make-or (svref rhs-f-compat i)
+                             (make-or (the fixnum (svref rhs-f-compat i))
                                       dummy-bit)))
                      (setq dummy-bit (* 2 dummy-bit)))))
                ;; and now set up the initial state to a legal one (the smallest
@@ -925,7 +929,7 @@
                      (dotimes (s rhs-c-count)
                        (declare (type fixnum s))
                        (setq temp (make-or temp
-                                           (svref rhs-c-sol s))))
+                                           (the fixnum (svref rhs-c-sol s)))))
                      (setf (match-ACZ-state-LHS-mask state) temp)))
 
                ;; and now stuff the state full of information, and return it.
@@ -964,6 +968,8 @@
                (values state nil)))))))
 
 (defun match-ACZ-next-state-sub (state)
+  (declare (type simple-vector state)
+           (optimize (speed 3) (safety 0)))
   (do* ((m 0)                           ; only initialize these vars 
         (rhs-c-sol (match-ACZ-state-rhs-c-sol state))
         (rhs-c-max (match-ACZ-state-rhs-c-max state))
@@ -981,18 +987,18 @@
              (declare (type fixnum temp))
              (dotimes (s rhs-c-count)
                (declare (type fixnum s))
-               (setq temp (make-or temp (svref rhs-c-sol s))))
+               (setq temp (make-or temp (the fixnum (svref rhs-c-sol s)))))
              (setf (match-ACZ-state-LHS-mask state) temp)
              (return)))
           ((< (the fixnum (svref rhs-c-sol m)) rhs-c-max)
            (match-ACZ-Rotate-Left rhs-c-sol m)
            (when (and                   ; this is a compatible
                                         ; position for this bit 
-                  (> (make-and (svref rhs-c-sol m)
-                               (svref rhs-c-compat m))
+                  (> (make-and (the fixnum (svref rhs-c-sol m))
+                               (the fixnum (svref rhs-c-compat m)))
                      0)
                   ;; either this isnt a repeated term
-                  (or (zerop (make-and (svref rhs-c-sol m)
+                  (or (zerop (make-and (the fixnum (svref rhs-c-sol m))
                                        lhs-r-mask))
                       ;; or it is, and its upper neighbor is home
                       (and (< (1+ m) rhs-c-count)
@@ -1006,6 +1012,8 @@
 ;;; ACZ Next State
 
 (defun match-ACZ-next-state (state)
+  (declare (type (or simple-vector trivial-match-acz-state) state)
+           (optimize (speed 3) (safety 0)))
   (if (trivial-match-ACZ-state-p state)
       (if (trivial-match-ACZ-state-no-more-p state)
           (values nil nil t)
@@ -1036,6 +1044,8 @@
               (values sys state nil))))))))
           
 (defun match-acz-next-state-aux (state)
+  (declare (type simple-vector state)
+           (optimize (speed 3) (safety 0)))
   (with-match-debug ()
     (format t "~%** ACZ next state"))
   (if (match-ACZ-state-no-more state)
@@ -1061,7 +1071,7 @@
                ;;acz (make-or (- (expt2 (ACZ-stat-lhs-v-count state)) 1))
                (dotimes (s rhs-f-count)
                  (declare (type fixnum s))
-                 (setq temp (make-or temp (svref rhs-f-sol s))))
+                 (setq temp (make-or temp (the fixnum (svref rhs-f-sol s)))))
                (let ((sol nil))
                  (multiple-value-setq (sol made-zero)
                    (match-ACZ-solution-from-state state))
@@ -1106,12 +1116,12 @@
             ((< (the fixnum (svref rhs-f-sol n)) rhs-f-max)
              (match-ACZ-Rotate-Left rhs-f-sol n)
              (when (and                 ; this is a compatible position for this bit
-                    (> (make-and (svref rhs-f-sol n)
-                                 (svref rhs-f-compat n))
+                    (> (make-and (the fixnum (svref rhs-f-sol n))
+                                 (the fixnum (svref rhs-f-compat n)))
                        0)
                     ;; either this isnt a repeated term
                     (or (= 0
-                           (the fixnum (make-and (svref rhs-f-sol n)
+                           (the fixnum (make-and (the fixnum (svref rhs-f-sol n))
                                                  lhs-r-mask)))
                         ;; or it is, and its upper neighbor is home
                         (and (< (1+ n) rhs-f-count)

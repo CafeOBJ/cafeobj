@@ -59,8 +59,7 @@
     ))
 
 (defun update-module-proof-system (mod &optional do-anyway)
-  (declare (type module mod)
-           (ignore do-anyway))
+  (declare (type module mod))
   (let ((clear-passive nil))
     (when (need-rewriting-preparation mod)
       (compile-module mod)
@@ -68,7 +67,6 @@
       (setq do-anyway t))
     (unless (module-proof-system mod)
       (setq do-anyway t))
-
     (let ((psystem (create-module-psystem mod)))
       (when clear-passive
         (setf (psystem-passive psystem) nil))

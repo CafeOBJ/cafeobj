@@ -85,23 +85,7 @@
                                    force)
   (declare (ignore force))
   (setq sort-id-symbol (make-sort-id sort-id-symbol))
-  (let ((pre (find-sort-in module sort-id-symbol))
-         #||
-         (if force
-             nil
-           (simple-find-sort-in-local module sort-id-symbol))
-         ||#
-        )
-    #||
-    (when (and (not force) pre)
-      (with-output-chaos-warning ()
-        (format t "sort ~s is already declared in the module "
-                sort-id-symbol)
-        (print-mod-name (sort-module pre))
-        (print-next)
-        (princ "...ignored.")
-        (return-from define-sort nil)))
-    ||#
+  (let ((pre (find-sort-in module sort-id-symbol)))
     (if (and pre (eq (sort-type pre) type))
         (progn
           (setf (sort-hidden pre) hidden)
@@ -109,10 +93,6 @@
         ;;
         (let (sort)
           (case type
-            (record-sort
-             (setf sort (new-record-sort sort-id-symbol module hidden))) 
-            (class-sort
-             (setf sort (new-class-sort sort-id-symbol module hidden)))
             (sort
              (setf sort (new-general-sort sort-id-symbol module hidden)))
             (and-sort
@@ -122,7 +102,6 @@
             (t (with-output-panic-message ()
                  (format t "Unsupported type of sort ~s!" type)
                  (chaos-error 'panic))))
-          ;; (register-sort sort)
           sort))))
 
 ;;; DEFINE-BUILTIN-SORT
@@ -148,15 +127,7 @@
 ;;; perform some additional house keeping work for builtin sort creation.
 
 (defun add-builtin-sort (sort &optional (module *chaos-module*))
-  ;; (register-sort sort)
   (register-builtin-sort sort)
-  #||
-  (when (eq module *chaos-module*)
-    (setf (symbol-function
-           (intern (format nil
-                           "THE-~A-SORT" (string-upcase (sort-print-name sort)))))
-          #'(lambda () sort)))
-  ||#
   (add-sort-to-module sort module)
   sort)
 
@@ -223,14 +194,7 @@
       ;;
       (setf (sort-derived-from new-sort) sort)
       ;;
-      (cond ((memq (sort-type sort) '(class-sort record-sort))
-             ;;
-             (setf (crsort-is-a-copy new-sort) t)
-             ;; obsolate values, but for the future.....
-             (with-output-panic-message ()
-               (princ "sorry, but copying record/class sort is not yet properly supported!"))
-             )
-            ((eq (sort-type sort) 'and-sort)
+      (cond ((eq (sort-type sort) 'and-sort)
              (setf (and-sort-components new-sort)
                    (mapcar #'(lambda (s) (%copy-sort s module))
                            (and-sort-components sort)))

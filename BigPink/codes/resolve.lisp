@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -80,27 +80,20 @@
              (type clause new-clause)
              (type list history subst)
              (type (or null clash) clashes))
-    ;;
     (setq subst
       (comb-clash-subst given-subst clash))
-    ;;
     (when (pn-flag debug-hyper-res)
       (format t "~%build-hyper: clash =")
       (prin1 clash)
       (print-next)
       (princ "givn-subst = ") (print-substitution given-subst)
       (print-next)
-      (princ "cmb subst = ") (print-substitution subst)
-      )
-
+      (princ "cmb subst = ") (print-substitution subst))
     (when giv-sat
       ;; given clause is satellite
-      (push (clause-id giv-sat) history)
-      )
+      (push (clause-id giv-sat) history))
     (push (clause-id nucleus) history)
-    
     ;; construct literals of resolvent
-
     (dolist (lit giv-lits)
       (declare (type literal lit))
       (let ((new-literal (shallow-copy-literal lit new-clause)))
@@ -108,7 +101,6 @@
         (setf (literal-atom new-literal)
           (apply-subst subst (literal-atom lit)))
         (push new-literal new-literals)))
-    
     (dolist (lit nuc-lits)
       (declare (type literal lit))
       (let ((new-literal (shallow-copy-literal lit new-clause)))
@@ -116,7 +108,6 @@
         (setf (literal-atom new-literal)
           (apply-subst subst (literal-atom lit)))
         (push new-literal new-literals)))
-      
     (while clashes
       (if (clash-evaluable clashes)
           (push :eval history)
@@ -143,7 +134,6 @@
               (delete-clause! junk-id *current-psys*))
             )))
       (setq clashes (clash-next clashes)))
-    ;;
     (setf (clause-literals new-clause)
       (nreverse new-literals))
     
@@ -152,9 +142,7 @@
     (when (pn-flag debug-hyper-res)
       (format t "~%** build-hyper: new-clause =")
       (print-clause new-clause))
-    ;;
-    new-clause
-    ))
+    new-clause))
 
 ;;; HYPER-CLASH! 
 ;;; - used by hyper and UR resolution to clash away the marked literals
@@ -220,7 +208,6 @@
                (if (< p1 p2)
                    :less
                  nil)))))
-    ;;
     (let ((atom (literal-atom l1)))
       (declare (type term atom))
       (dolist (l2 (clause-literals (literal-clause l1)) t)
@@ -233,15 +220,9 @@
               (if (and (eq (literal-sign l1)
                            (literal-sign l2))
                        (eq :less
-                           #||
-                           (op-lex-compare (term-head atom)
-                                           (term-head (literal-atom l2)))
-                           ||#
                            (opcompare (term-head atom)
-                                      (term-head (literal-atom l2)))
-                         ))
-                  (return nil))))))
-    ))
+                                      (term-head (literal-atom l2)))))
+                  (return nil))))))))
 
 (declaim (inline compose-subst2))
 
@@ -262,7 +243,6 @@
                    (t (cons (cons (caar s1)
                                   (apply-subst s2 (cdar s1)))
                             (composel (cdr s1) s2))))))
-    ;;
     (if (car s2)
         (add-new s2 (composel s1 s2))
       s1)))
@@ -288,49 +268,24 @@
            (type list given-subst)
            (type symbol inf-id)
            (type (or null clause) giv-sat))
-  #||
-  (when (pn-flag debug-hyper-res)
-    (with-output-msg ()
-      (princ "clash-one:")
-      (print-next)
-      (format t "clash = ~S" clash)
-      (print-next)
-      (format t "clause-pred = ~s" clause-pred)
-      (print-next)
-      (princ "given-subst = ")
-      (print-substitution given-subst)
-      (print-next)
-      (format t "giv-sat = ~s" giv-sat)))
-  ||#
   (let ((clashables (if (clash-clashables clash)
                         (cdr (clash-clashables clash))
                       (setf (clash-clashables clash)
-                        #||
-                        (get-literal-entry-from-atom
-                         (clash-db clash)
-                         (literal-atom (clash-literal clash)))
-                        ||#
                         (is-fetch-concat (literal-atom (clash-literal clash))
-                                         (clash-db clash))
-                        )))
+                                         (clash-db clash)))))
         (atom (literal-atom (clash-literal clash)))
         (subst (if (clash-prev clash)
                    (or (get-nsubst (clash-prev clash))
                        given-subst)
-                 ;; (or (clash-subst (clash-prev clash))
-                 ;;    given-subst)
                  given-subst)))
     (declare (type list clashables)
              (type term atom)
              (type list subst))
-    ;;
     (loop
       (unless clashables
         (return nil))
       (block next
-        ;;
         (let* ((lit-data (car clashables))
-               ;; (clash-lit (literal-entry-literal lit-data))
                (clash-lit lit-data)
                (clash-clause (literal-clause clash-lit))
                (junk-cl-id nil))
@@ -344,12 +299,9 @@
             (let (;; (clash-atom (literal-entry-atom clash-lit))
                   (clash-atom (literal-atom clash-lit))
                   (varmap nil)
-                  (natom atom)
-                  ;; (renamed nil)
-                  )
+                  (natom atom))
               (declare (ignore varmap)
                        (type term clash-atom natom))
-              ;;
               (setq atom (apply-subst subst atom))
               (when (or (eq giv-sat clash-clause)
                         (cl-occurs-in-clash clash-clause clash))
@@ -363,9 +315,7 @@
                     (setq junk-cl-id id)
                     (setq clash-lit tlit)
                     (setq clash-atom (literal-atom tlit))
-                    (setq clash-clause dcl))
-                  ))
-              ;;
+                    (setq clash-clause dcl))))
               (when (pn-flag debug-hyper-res)
                 (with-output-msg ()
                   (princ "chash-one trying unify:")
@@ -376,27 +326,21 @@
                   (print-next)
                   (format t "target clause = ~s " clash-clause)
                   (print-next)
-                  (princ "target atom = ") (term-print clash-atom)
-                  ))
-              ;;
+                  (princ "target atom = ") (term-print clash-atom)))
               (multiple-value-bind (new-subst no-match e-equal)
                   (unify clash-atom
                          atom
-                         ;; subst
                          nil)
-                (declare (ignore e-equal)
-                         (type list new-subst))
-                ;;
+                (declare (type substitution new-subst)
+                         (type (or null t) no-match)
+                         (ignore e-equal))
                 (when no-match
                   (when junk-cl-id
                     (delete-clause! junk-cl-id *current-psys*))
                   (return-from next nil))
-                ;;
                 (if new-subst
                     (progn
-                      (setq new-subst (compose-subst subst new-subst))
-                      ;; (setq new-subst (compose-subst2 subst new-subst))
-                      )
+                      (setq new-subst (compose-subst subst new-subst)))
                   (setq new-subst subst))
                 (when (pn-flag debug-hyper-res)
                   (with-output-simple-msg ()
@@ -420,12 +364,9 @@
                 (setf (clash-subst clash) new-subst)
                 (setf (clash-clashables clash) clashables)
                 (setf (clash-found-lit clash) clash-lit)
-                (return-from clash-one t))
-              )))
-        )                               ; block next
+                (return-from clash-one t)))))) ; block next
       ;; try next clashable
-      (setq clashables (cdr clashables))
-      )                                 ; end loop
+      (setq clashables (cdr clashables))) ; end loop
     nil))
 
 (defun get-nsubst (clashes)
@@ -458,7 +399,6 @@
     (declare (type (or null clash) clashes)
              (type list list-resolvent)
              (type (or null clash) c-end))
-    ;;
     (loop
       (if (not backup)
           (if (or (null c-start)
@@ -473,8 +413,7 @@
                                              giv-lits
                                              giv-sat
                                              inf-id
-                                             nuc-pos
-                                             ))
+                                             nuc-pos))
                 (case inf-id
                   (:hyper-res-rule
                    (incf (pn-stat hyper-res-gen)))
@@ -486,11 +425,9 @@
                 ;; pre-process the hyper-resolvent
                 (when (pre-process resolvent nil :sos)
                   (push resolvent list-resolvent))
-                ;;
                 (setq backup t)
                 (setq c-end clashes)    ; the last success clash 
-                (setq clashes nil)
-                )
+                (setq clashes nil))
             ;; else
             (progn
               (if (null clashes)        ; just starting
@@ -498,12 +435,10 @@
                 ;; try next clash
                 (setq clashes (clash-next clashes)))
               (when (clash-evaluable clashes)
-                ;; (setf (clash-subst clashes) nil)
                 (let* ((lit (clash-literal clashes))
                        (atom (literal-atom lit))
                        (subst (get-nsubst clashes))
                        (inst nil))
-                  ;; (setf (clash-subst clashes) subst)
                   (unless subst (setq subst given-subst))
                   (setq inst (demod-atom (apply-subst subst atom)))
                   (if (positive-literal? lit)
@@ -538,7 +473,6 @@
             (unless (clash-evaluable clashes)
               (setf (clash-subst clashes) nil))
             (setq backup nil))))
-      ;;
       (unless backup
         (if (clash-evaluable clashes)
             (if (or (clash-already-evaluated clashes)
@@ -547,8 +481,7 @@
               ;; set flag and proceed
               (setf (clash-already-evaluated clashes) t))
           (unless (clash-one clashes sat-proc given-subst inf-id giv-sat)
-            (setq backup t))))
-      )                                 ; loop end
+            (setq backup t)))))         ; loop end
     ;; done
     list-resolvent))
 
@@ -562,7 +495,6 @@
   (declare (type clause clause))
   (when (= (the fixnum (num-literals clause)) 0)
     (return-from hyper-resolution nil))
-  ;;
   (let ((resolvent-list nil)
         (given-literals nil)
         (clash-start nil)
@@ -590,7 +522,6 @@
       (dolist (lit (clause-literals clause))
         (cond ((or (positive-literal? lit) (answer-literal? lit))
                (push lit nuc-literals))
-              ;; 
               (t (let ((new-clash (make-clash :literal lit
                                               :db *clash-pos-literals*)))
                    (declare (type clash new-clash))
@@ -602,7 +533,6 @@
                    (when (method-is-meta-demod (term-head (literal-atom lit)))
                      (setf (clash-evaluable new-clash) t))
                    (setq last-clash new-clash)))))
-      ;;
       (let ((res (hyper-clash! clash-start
                                nil      ; subst
                                nuc-literals
@@ -614,11 +544,8 @@
                                nil)))
         (when res
           (setq resolvent-list (nconc res resolvent-list)))))
-     ;;
      (t
-      ;;
       ;; given clause is a satellite.
-      ;;
       (dolist (l3 (clause-literals clause))
         (declare (type literal l3))
         (when (or (not (pn-flag order-hyper))
@@ -629,15 +556,10 @@
             (unless (eq l3 lit)
               (push lit given-literals)))
           (let ((clashables
-                 ;; (get-literal-entry-from-atom *clash-neg-literals*
-                 ;;                           (literal-atom l3))
-                 (is-fetch-concat (literal-atom l3) *clash-neg-literals*)
-                 )
-                )
+                 (is-fetch-concat (literal-atom l3) *clash-neg-literals*)))
             (dolist (lit-data clashables)
               (block next
-                (let* (;; (nuc-lit (literal-entry-literal lit-data))
-                       (nuc-lit lit-data)
+                (let* ((nuc-lit lit-data)
                        (nuc (literal-clause (the literal nuc-lit))))
                   (when (not (positive-clause? nuc))
                     (multiple-value-bind (new-subst no-match e-equal)
@@ -646,9 +568,7 @@
                                nil)
                       (declare (ignore e-equal)
                                (type list new-subst))
-                      ;;
                       (when no-match (return-from next)) ; try next 
-
                       ;; found a nucleus
                       (setq nuc-literals nil)
                       (setq clash-start nil
@@ -693,19 +613,15 @@
                                                       resolvent-list)))
                         )))))           ; block next
               ))                        ; done for all possible clash
-          )
-        )                               ; done for all literals
-      )
-     )
+          ))                            ; done for all literals
+      ))                                ; end conditions
     ;; done
     (when (pn-flag debug-hyper-res)
       (with-output-simple-msg ()
         (princ "End[hyper-res]")
         (print-next)
         (pr-clause-list resolvent-list)))
-    ;;
-    (nreverse resolvent-list)
-    ))
+    (nreverse resolvent-list)))
 
 ;;; NEGATIVE HYPER RESOLUTION
 ;;; neg-hyper-resolution
@@ -718,7 +634,6 @@
   (declare (type clause clause))
   (when (= (the fixnum (num-literals clause)) 0)
     (return-from neg-hyper-resolution nil))
-  ;;
   (let ((resolvent-list nil)
         (given-literals nil)
         (clash-start nil)
@@ -759,7 +674,6 @@
                    (when (method-is-meta-demod (term-head (literal-atom lit)))
                      (setf (clash-evaluable new-clash) t))
                    (setq last-clash new-clash)))))
-      ;;
       (let ((res (hyper-clash! clash-start
                                nil      ; subst
                                nuc-literals
@@ -771,9 +685,7 @@
                                nil)))
         (when res
           (setq resolvent-list (nconc res resolvent-list)))))
-     ;;
      ;; given clause is a sattelite.
-     ;;
      (t 
       (dolist (l3 (clause-literals clause))
         (declare (type literal l3))
@@ -785,11 +697,7 @@
             (unless (eq l3 lit)
               (push lit given-literals)))
           (let ((clashables
-                 ;; (get-literal-entry-from-atom *clash-pos-literals*
-                 ;;                           (literal-atom l3))
-                 (is-fetch-concat (literal-atom l3) *clash-pos-literals*)
-                 )
-                )
+                 (is-fetch-concat (literal-atom l3) *clash-pos-literals*)))
             (dolist (lit-data clashables)
               (block next
                 (let* (;; (nuc-lit (literal-entry-literal lit-data))
@@ -802,9 +710,7 @@
                                nil)
                       (declare (ignore e-equal)
                                (type list new-subst))
-                      ;;
                       (when no-match (return-from next)) ; try next 
-
                       ;; found a nucleus
                       (setq nuc-literals nil)
                       (setq clash-start nil
@@ -849,19 +755,15 @@
                                                       resolvent-list)))
                         )))))           ; block next
               ))                        ; done for all possible clash
-          )
-        )                               ; done for all literals
-      )
-     )
+          ))                            ; done for all literals
+      ))
     ;; done
     (when (pn-flag debug-hyper-res)
       (with-output-simple-msg ()
         (princ "End[neg-hyper-res]")
         (print-next)
         (pr-clause-list resolvent-list)))
-    ;;
-    (nreverse resolvent-list)
-    ))
+    (nreverse resolvent-list)))
 
 ;;; UNIT RESULTING RESOLUTION
 ;;; ur-resolution
@@ -923,9 +825,7 @@
                                           nil)))
                    (when res
                      (setq resolvent-list (nconc res resolvent-list))))
-                 (pop nuc-literals))))
-           )                            ; end of case nucleus
-          ;;
+                 (pop nuc-literals))))) ; end of case nucleus
           (t                            ; given clause is satellite (unit).
            ;; collect any answer literal from given satellite
            ;; and get clashable literal (l3).
@@ -936,27 +836,18 @@
                  (progn
                    (push lit given-literals))))
              (let ((clashables
-                    #||
-                    (get-literal-entry-from-atom (if (positive-literal? l3)
-                                                     *clash-neg-literals*
-                                                   *clash-pos-literals*)
-                                                 (literal-atom l3))
-                    ||#
                     (is-fetch-concat (literal-atom l3)
                                      (if (positive-literal? l3)
                                          *clash-neg-literals*
-                                       *clash-pos-literals*))
-                    ))
+                                       *clash-pos-literals*))))
                (dolist (lit-data clashables)
                  (block next
-                   (let* (;; (nuc-lit (literal-entry-literal lit-data))
-                          (nuc-lit lit-data)
+                   (let* ((nuc-lit lit-data)
                           (nuc (literal-clause nuc-lit))
                           (nlits (num-literals nuc))
                           (new-subst nil)
                           (no-match nil)
                           (e-equal nil))
-                     (declare (ignore e-equal))
                      (when (> nlits 1)
                        (multiple-value-setq (new-subst no-match e-equal)
                          (unify (literal-atom l3)
@@ -1001,8 +892,7 @@
                                  (setq c1 (clash-next c1))
                                  (incf j))
                                (when (eq lit nuc-lit)
-                                 (setq nuc-pos j))
-                               )
+                                 (setq nuc-pos j)))
                              (unless (null c1)
                                (princ c1)
                                (break "aho!")
@@ -1016,8 +906,7 @@
                                                       clause
                                                       #'unit-clause?
                                                       :ur-res
-                                                      nuc-pos))
-                                   )
+                                                      nuc-pos)))
                                (when res
                                  (setq resolvent-list
                                    (nconc res resolvent-list)))
@@ -1027,8 +916,7 @@
                  ))                     ; done for all possible clash
              )                          ; end case of satelite
            ))
-    (nreverse resolvent-list)
-  ))
+    (nreverse resolvent-list)))
                              
 
 ;;; BUILD-BIN-RES : Literal1 Literal2 Subst -> Clause
@@ -1053,8 +941,7 @@
                    (setq new-literal (shallow-copy-literal lit new-clause))
                    (setf (literal-atom new-literal)
                      (apply-subst subst (literal-atom lit)))
-                   (push new-literal new-literals))))
-             ))
+                   (push new-literal new-literals))))))
       (make-bin-res l1)
       (make-bin-res l2)
       (setf (clause-literals new-clause) new-literals)
@@ -1064,8 +951,7 @@
                       :binary-res-rule)
                     (clause-id (literal-clause l1))
                     (clause-id (literal-clause l2)))))
-      new-clause
-    )))
+      new-clause)))
        
 ;;; BINARY RESOLUTION
 ;;; binary-resolution
@@ -1123,14 +1009,11 @@
                                  (print-next)
                                  (format t "clash = ")
                                  (print-clause (literal-clause
-                                                ;; (literal-entry-literal lit-data)
                                                 lit-data
                                                 ))
                                  (print-next)
                                  (princ "subst = ")
-                                 (print-substitution new-subst)
-                                 ))
-                             ;;
+                                 (print-substitution new-subst)))
                              (setq resolvent
                                (build-bin-res lit
                                               ;; (literal-entry-literal lit-data)
@@ -1148,9 +1031,7 @@
                              (let ((pre-res nil))
                                (setq pre-res (pre-process resolvent nil :sos))
                                (when pre-res
-                                 (push resolvent resolvent-list)))
-                             ))))
-                     ))))
+                                 (push resolvent resolvent-list)))))))))))
         )                               ; block next
       )                                 ; end do
     ;;
@@ -1159,9 +1040,7 @@
         (princ "End[binary-res]")
         (dolist (x (reverse resolvent-list))
           (print-next)
-          (print-clause x))
-        ))
-    ;;
+          (print-clause x))))
     (nreverse resolvent-list)))
 
 ;;; =========
@@ -1183,8 +1062,7 @@
         (no-match nil)
         (e-eq nil))
     (declare (type (or null clause) a-factor)
-             (type list subst)
-             (ignore e-eq))
+             (type list subst))
     (setq factored
       (block found
         (do ((l1 (car (factor-l1p f-struct))
@@ -1209,18 +1087,13 @@
                     (return-from found t)))
               (setf (factor-l2p f-struct)
                 (cdr (factor-l2p f-struct)))))
-          ;;
           (setf (factor-l1p f-struct) (cdr (factor-l1p f-struct)))
           (setf (factor-l2p f-struct) (factor-l1p f-struct)))
         ;; failed
-        nil
-        ))
-    ;;
+        nil))
     (when factored
       (let* ((lit2 (car (factor-l2p f-struct))) ; clause to be excluded
-             (clause (factor-clause f-struct))
-             ;;(new-vars-list (make-var-mapping (clause-variables clause)))
-             )
+             (clause (factor-clause f-struct)))
         (declare (type literal lit2)
                  (type clause clause))
         (setq a-factor
@@ -1240,16 +1113,12 @@
                                               oriented-eq-bit)
                                 (set-bit (literal-stat-bits new-lit)
                                          oriented-eq-bit))
-                              new-lit))
-                        )))
-        ))
-    ;;
+                              new-lit)))))))
     (when (pn-flag debug-infer)
       (when a-factor
         (with-output-simple-msg ()
           (princ "*FACTOR: ")
           (print-clause a-factor))))
-    ;;
     a-factor))
 
 ;;; GET-FACTORS : Clause -> List[Clause]
@@ -1273,9 +1142,7 @@
                      (type list subst))
             (unless no-match
               (let ((a-factor (make-clause-shallow-copy clause
-                                                        (list lit2)))
-                    ;; (new-vars-list (make-var-mapping (clause-variables clause)))
-                    )
+                                                        (list lit2))))
                 (declare (type clause a-factor))
                 (setq a-factor (copy-clause
                                 a-factor
@@ -1290,8 +1157,7 @@
                                                       oriented-eq-bit)
                                         (set-bit (literal-stat-bits new-lit)
                                                  oriented-eq-bit))
-                                      new-lit))
-                                ))
+                                      new-lit))))
                 (push (cl-unique-variables a-factor) factors)))))))
     (nreverse factors)))
 
@@ -1309,12 +1175,10 @@
         (list (list :factor-rule (clause-id clause))))
       (incf (pn-stat cl-generated))
       (incf (pn-stat factor-gen))
-      (pre-process a-factor nil list))
-    ))
+      (pre-process a-factor nil list))))
 
 ;;; FACTOR-SIMPLIFY : Clause -> fixnum
 ;;;
-
 (defun factor-simplify (clause)
   (declare (type clause clause)
            (values (or null fixnum)))
@@ -1322,8 +1186,7 @@
                                :l1p (clause-literals clause)
                                :l2p (clause-literals clause)))
         (num 0)
-        (a-factor nil)
-        )
+        (a-factor nil))
     (declare (type fixnum num)
              (type factor f-struct)
              (type (or null clause) a-factor))
@@ -1341,27 +1204,16 @@
               (setf (literal-clause l) a-factor))
             (dolist (l (clause-literals clause))
               (setf (literal-clause l) clause))
-            #||
-            (setf (clause-parents clause)
-              (nconc (clause-parents clause)
-                     (list (list :factor-simp-rule (clause-id a-factor)))))
-            ||#
             (setf (clause-parents clause)
               (nconc (clause-parents clause)
                      (list (list :factor-simp-rule))))
-            ;;
             (delete-clause a-factor *current-psys*)
-            ;;
             (setf (factor-l1p f-struct) (clause-literals clause)
                   (factor-l2p f-struct) (clause-literals clause))
-            (setq a-factor (next-factor f-struct))
-            )
-        ;; cl_del_non(factor)
+            (setq a-factor (next-factor f-struct)))
         (progn
           (delete-clause a-factor *current-psys*)
-          (setq a-factor (next-factor f-struct)))
-        ))
-    ;;
+          (setq a-factor (next-factor f-struct)))))
     num ))
 
 

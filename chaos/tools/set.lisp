@@ -72,6 +72,9 @@
        trace-on
        trace-off)
       ("step" nil parity *rewrite-stepping* "stepwise rewriting process." step-on step-off)
+      ("memo" ("size") general *term-id-limit*
+       "limit of term size in term hash used for term memoization."
+       set-term-id-size-limit)
       ("memo" nil parity *memo-rewrite* "enable term memoization.")
       ("always" ("memo") parity *always-memo*
        "implicitly set 'memo' attributes to user defined operators.")
@@ -134,6 +137,8 @@
       ;;
       ("show" ("ext-rule") parity *print-exec-rule*
        "if on, print out (c)trans rules in reduction of '_=(,)=>+_if_suchThat_{_}'. default off.")
+      ("show" ("every" "finding") parity *print-every-exec-finding*
+       "if on, search predicate prints every node found while searching. defalut off")
       ("print" ("grind") parity *grind-bool-term* 
        "if on, '=(,)=> suchThat {}' print out Bool term in 'grind' style.")
       ("print" ("mode") general *print-xmode*

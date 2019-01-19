@@ -246,8 +246,7 @@
 (defun parse-map-elt ()
   (cond ((null *modexp-parse-input*)
          (with-output-chaos-error ('invalid-modexp)
-           (princ "premature end of map elements.")
-           ))
+           (princ "premature end of map elements.")))
         (t (case-equal (car *modexp-parse-input*)
              ("sort"            ; sort map
               (let (from to)
@@ -257,8 +256,7 @@
                 (when (not (equal "->" (car *modexp-parse-input*)))
                   (with-output-chaos-error ('invalid-modexp)
                     (format t "parsing sort mapping of ~a, missing \"->\"" 
-                            from)
-                    ))
+                            from)))
                 (modexp-skip)   ; skip "->"
                 ;; parse `to' part.
                 (setq to (parse-sort-reference '("," "}" "]")))
@@ -271,8 +269,7 @@
                 (when (not (equal "->" (car *modexp-parse-input*)))
                   (with-output-chaos-error ('invalid-modexp)
                     (format t "parsing hidden sort mapping of ~a, missing \"->\"" 
-                            from)
-                    ))
+                            from)))
                 (modexp-skip)   ; skip "->"
                 ;; parse `to' part.
                 (setq to (parse-sort-reference '("," "}" "]")))
@@ -284,8 +281,7 @@
                 (when (not (equal "->" (car *modexp-parse-input*)))
                   (with-output-chaos-error ('invalid-modexp)
                     (format t "parsing operator mapping of ~a, missing \"->\""
-                            from)
-                    ))
+                            from)))
                 (modexp-skip)           ; skip "->"
                 (setq to (parse-operator-reference '("," "}" "]")))
                 (list :op from to)))
@@ -296,8 +292,7 @@
                 (when (not (equal "->" (car *modexp-parse-input*)))
                   (with-output-chaos-error ('invalid-modexp)
                     (format t "parsing behavioural operator mapping of ~a, missing \"->\""
-                            from)
-                    ))
+                            from)))
                 (modexp-skip)           ; skip "->"
                 (setq to (parse-operator-reference '("," "}" "]")))
                 (list :bop from to)))
@@ -745,7 +740,7 @@
                             ((and *modexp-parse-input*
                                   (not ignore-qual)
                                   ;; check qualifier
-                                  (<= 2 (length (car *modexp-parse-input*)))
+                                  (<= 2 (length (the simple-string (car *modexp-parse-input*))))
                                   (eql #\. (char
                                             (the simple-string
                                               (car *modexp-parse-input*))
@@ -779,6 +774,7 @@
                                   (subseq name (1+ pos)))
                        (%opref* val))))
                (let ((mod-ref (last val)))
+                 (declare (type sequence mod-ref))
                  (when (stringp (car mod-ref))
                    (setq mod-ref (car mod-ref))
                    (let ((pos (and (not ignore-qual) (position #\. mod-ref))))
@@ -786,8 +782,9 @@
                        (format t "~%[]:pos = ~a, mod-ref = ~s" pos mod-ref))
                      (if (and pos (< (1+ pos) (length mod-ref)))
                          ;; .qualifier
-                         (%opref* (butlast val)
-                                  (subseq mod-ref (1+ pos)))
+                         (progn
+                           (%opref* (butlast val)
+                                    (subseq mod-ref (1+ pos))))
                        (%opref* val))))))))))
 
 ;;; PARSE-OP-SIMPLE-NAME

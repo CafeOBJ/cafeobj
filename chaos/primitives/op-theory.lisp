@@ -78,15 +78,16 @@
 ;;;  zero)
 (deftype op-theory () 'cons)
 
+(declaim (inline theory-make))
 (defun theory-make (info zero)
   (cons info zero))
 
 (defmacro theory-info (_th_) `(car ,_th_))
 (defmacro theory-zero (_th_) `(cdr ,_th_))
 
+(declaim (inline zero-rule-only))
 (defun zero-rule-only (th)
-  (declare (type op-theory th)
-           (values (or null t)))
+  (declare (type op-theory th))
   (let ((val (theory-zero th)))
     (and val (cdr val))))
 
@@ -119,9 +120,9 @@
 (defmacro theory-info-code (_th_)
   `(the fixnum (svref ,_th_ 1)))
 (defmacro theory-info-empty-for-unify (_th_)
-  `(the (or null t) (svref ,_th_ 2)))
+  `(the (or null (not null)) (svref ,_th_ 2)))
 (defmacro theory-info-empty-for-matching (_th_)
-  `(the (or null t) (svref ,_th_ 2)))
+  `(the (or null (not null)) (svref ,_th_ 2)))
 (defmacro theory-info-match-equal-fun (_th_)
   `(the symbol (svref ,_th_ 3)))
 (defmacro theory-info-match-init-fun (_th_)
@@ -157,12 +158,15 @@
     th))
 
 (defun pr-theory-info (th-info)
+  (declare (type theory-info th-info))
   (format t "~%#<Theory ~s : init = ~s" 
           (theory-info-name th-info)
           (theory-info-match-init-fun th-info)))
 
 (defun pr-optheory-internal (opth stream &rest ignore)
-  (declare (ignore ignore))
+  (declare (type op-theory opth)
+           (type stream stream)
+           (ignore ignore))
   (format stream "#<Theory ~s : zero = ~s>"
           (theory-info-name (theory-info opth))
           (theory-zero opth)))
@@ -172,7 +176,7 @@
            (values (or null t)))
   (and (consp object)
        (typep (car object) 'vector)
-       (= 9 (length (the vector (car object))))))
+       (= 9 (the fixnum (length (the vector (car object)))))))
 
 ;;; theory-info accessors via operator theory ---------------
 
@@ -514,10 +518,17 @@
 (defmacro theory-info-is-ACIZ (_theory-info)
   `(eq the-ACIZ-property ,_theory-info))
 
+(declaim (inline theory-info-is-restriction-of))
 (defun theory-info-is-restriction-of (thn1 thn2)
-  (= 0 (logandc2 (theory-info-code thn1) (theory-info-code thn2))))
+  (declare (type theory-info thn1 thn2)
+           (optimize (speed 3) (safety 0)))
+  (= 0 (logandc2 (theory-info-code thn1)
+                 (theory-info-code thn2))))
 
+(declaim (inline theory-info-is-restiction-of-ignoring-id))
 (defun theory-info-is-restriction-of-ignoring-id (thn1 thn2)
+  (declare (type theory-info thn1 thn2)
+           (optimize (speed 3) (safety 0)))
   (= 0 (logandc2 (theory-info-code thn1)
                  (logior .Z. (theory-info-code thn2)))))
 
@@ -536,41 +547,7 @@
 (defmacro E-equal-in-theory (_th _t1 _t2 &optional (_unify? nil))
   (if _unify?
       `(funcall (theory-info-unify-equal-fun (theory-info ,_th)) ,_t1 ,_t2)
-      `(funcall (theory-info-match-equal-fun (theory-info ,_th)) ,_t1 ,_t2)))
-
-#|| not used
-(defun E-equal-in-theory-direct (th t1 t2 &optional (unify? nil))
-  (let ((theory-info (theory-info th)))
-    (cond ((or (theory-info-is-empty theory-info)
-               (theory-info-is-Z theory-info)
-               (theory-info-is-I theory-info)
-               (theory-info-is-IZ theory-info))
-           (if unify?
-               (unify-empty-equal t1 t2)
-               (match-empty-equal t1 t2)))
-          ((or (theory-info-is-AC theory-info)
-               (theory-info-is-ACI theory-info)
-               (theory-info-is-ACZ theory-info)
-               (theory-info-is-ACIZ theory-info))
-           (if unify?
-               (unify-AC-equal t1 t2)
-               (match-AC-equal t1 t2)))
-          ((or (theory-info-is-A theory-info)   
-               (theory-info-is-AI theory-info)
-               (theory-info-is-AZ theory-info)
-               (theory-info-is-AIZ theory-info))
-           (if unify?
-               (unify-A-equal t1 t2)
-               (match-A-equal t1 t2)))
-          ((or (theory-info-is-C theory-info)
-               (theory-info-is-CI theory-info)
-               (theory-info-is-CZ theory-info)
-               (theory-info-is-CIZ theory-info))
-           (if unify?
-               (unify-C-equal t1 t2)
-               (match-C-equal t1 t2))))))
-
-||#
+    `(funcall (theory-info-match-equal-fun (theory-info ,_th)) ,_t1 ,_t2)))
 
 ;;; ************************
 ;;; THEORY PROPERTY TESTERS ____________________________________________________
@@ -614,7 +591,10 @@
   `(test-theory .AC. (theory-info-code (theory-info ,*th))))
 
 (defun theory-contains-AC-direct (th)
+  (declare (type op-theory th)
+           (optimize (speed 3) (safety 0)))
   (let ((theory-info (theory-info th)))
+    (declare (type theory-info theory-info))
     (or (theory-info-is-AC theory-info) 
         (theory-info-is-ACZ theory-info)
         (theory-info-is-ACI theory-info)
@@ -626,7 +606,9 @@
   `(test-theory .I. (theory-info-code (theory-info ,*th))))
 
 (defun theory-contains-idempotency-direct (th)
+  (declare (type op-theory th))
   (let ((theory-info (theory-info th)))
+    (declare (type theory-info theory-info))
     (or (theory-info-is-I theory-info) 
         (theory-info-is-CI theory-info) 
         (theory-info-is-IZ theory-info) 
@@ -642,7 +624,9 @@
   `(test-theory .Z. (theory-info-code (theory-info ,*th))))
 
 (defun theory-contains-identity-direct (th)
+  (declare (type op-theory th))
   (let ((theory-info (theory-info th)))
+    (declare (type theory-info theory-info))
     (or (theory-info-is-Z theory-info) 
         (theory-info-is-CZ theory-info) 
         (theory-info-is-AZ theory-info) 

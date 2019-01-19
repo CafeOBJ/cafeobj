@@ -324,7 +324,7 @@
       (let ((parsed-sentence (simple-parse *current-module*
                                            sentence
                                            sort)))
-        (when (term-ill-defined parsed-sentence)
+        (when (term-is-an-error parsed-sentence)
           (with-output-chaos-error ('invalid-formula)
             (princ "no parse for FOPL formula")
             (print-next)
@@ -725,8 +725,7 @@
     (let ((mod (if modexp 
                    (eval-modexp modexp)
                  (get-context-module t))))
-      (unless (eq mod (get-context-module t))
-        (clear-term-memo-table *term-memo-table*))
+      (reset-term-memo-table mod)
       (if (or (null mod) (modexp-is-error mod))
           (if (null mod)
               (with-output-chaos-error ('no-context)
