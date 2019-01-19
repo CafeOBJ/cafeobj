@@ -1,7 +1,7 @@
 Source: cafeobj
 Section: science
 Priority: optional
-Maintainer: Norbert Preining <preining@debian.org>
+Maintainer: Norbert Preining <norbert@preining.info>
 Build-Depends: debhelper (>= 10), sbcl
 Standards-Version: 4.2.0
 Homepage: http://cafeobj.org/
