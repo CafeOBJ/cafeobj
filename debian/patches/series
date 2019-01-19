@@ -4,4 +4,4 @@ armhf-remove-buildopts
 #change-logo-font
 #add-rule-for-logo-png
 #fix-for-new-pandoc
-install-docs-without-rebuild
+#install-docs-without-rebuild

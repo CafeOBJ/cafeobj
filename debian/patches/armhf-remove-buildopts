@@ -4,14 +4,18 @@
 
 --- cafeobj.git.orig/Makefile.in
 +++ cafeobj.git/Makefile.in
-@@ -78,7 +78,11 @@
+@@ -80,11 +80,15 @@ ACL_STANDALONE_DUMPFILE      = build-acl
  
  SBCL_DUMP         = dumps/sbcl/@sbcl_dump@
  SBCL_INTERPRETER  = @sbcl_interp@
 +ifdef NO_SBCL_BUILDOPTS
 +SBCL_BUILDOPTS    =
 +else
+ ifeq ($(OSBIT),64)
+ SBCL_BUILDOPTS    = --dynamic-space-size 4096
+ else
  SBCL_BUILDOPTS    = --dynamic-space-size 2048
+ endif
 +endif
  SBCL_DUMPFILE      = make-cafeobj.lisp
  
