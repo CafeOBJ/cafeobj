@@ -1143,8 +1143,9 @@
 ;;;
 (defun method-is-restriction-of (meth1 meth2 &optional (so *current-sort-order*))
   (declare (type method meth1 meth2)
-           (type sort-order so)
-           (optimize (speed 3) (safety 0)))
+           (type sort-order so))
+  ;; (optimize (speed 3) (safety 0)))
+  (unless (and (method-p meth1) (method-p meth2)) (break "HiGo"))
   (and ;;(method-p meth1) (method-p meth2)
        (method-is-of-same-operator meth1 meth2)
        (not (eq meth1 meth2))

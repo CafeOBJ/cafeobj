@@ -1557,15 +1557,20 @@
                       (sort= coarity *bottom-sort*))
               (return-from next-method nil))
             (let ((ar (mapcar #'(lambda (x)
-                                  (the-err-sort x sort-order))
+                                  (or (the-err-sort x sort-order)
+                                      (progn
+                                        (when *on-operator-debug*
+                                          (format t "-- error sort is no yet generated:")
+                                          (print-sort-name x)
+                                          (format t "   meth: ~s" meth))
+                                        (return-from next-method))))
                               (method-arity meth))))
               (pushnew ar new-arities :test #'equal))
             (setq coherent
                   (or coherent (method-is-coherent meth))))))
       (dolist (arity new-arities)
         (when *on-operator-debug*
-          (format t "~% * try for arity ")
-          (print-sort-list arity module))
+          (format t "~% * try for arity ~s" arity))
         (let ((pre (find-if #'(lambda (x)
                                 (and (equal method-name
                                             (method-name x))
