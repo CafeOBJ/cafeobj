@@ -714,7 +714,7 @@
               (res nil)
               (*print-indent* (+ 2 *print-indent*))
               (*print-line-limit* 80)
-              (*print-xmode* :fancy))
+              (*print-xmode* *print-xmode*))
           (if (check-contradiction goal report-header)
               (setq res :ct)
             (multiple-value-setq (res target)
