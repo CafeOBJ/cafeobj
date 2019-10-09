@@ -1046,7 +1046,7 @@
                               (show-rwl-sch-path (caddr dat) :label)
                             (show-rwl-sch-path opt))))
                 ("state" (let ((opt (cadr dat)))
-                           (show-rwl-sch-path opt nil .rwl-sch-context. t)))
+                           (show-rwl-sch-path opt nil t)))
                 ;;
                 (("undocumented" "undoc")
                  (show-undocumented))

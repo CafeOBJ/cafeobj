@@ -411,12 +411,11 @@
       (when st (return-from find-rwl-sch-state-globally (values context st))))))
 
 (defun show-rwl-sch-path (num-tok &optional (label? nil)
-                                            (sch-context .rwl-sch-context.)
                                             (state-only? nil))
   (unless num-tok
     (return-from show-rwl-sch-path
       (format t "~%nothing to be reported...")))
-  (unless sch-context
+  (unless .rwl-context-stack.
     (with-output-chaos-error ('no-context)
       (format t "~%there is no search context.")))
   (let ((num (read-from-string num-tok)))
