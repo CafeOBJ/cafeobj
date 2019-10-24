@@ -347,6 +347,22 @@
 ;;; SEARCH CONTEXT UTILS
 ;;; *********************
 
+;;; parse-depth&state
+;;;
+(defun parse-depth&state (&optional ds-string)
+  (unless ds-string
+    (return-from parse-depth&state nil))
+  (let* ((ds-list (parse-with-delimiter ds-string #\-))
+         (depth (or (and (cdr ds-list) (read-from-string (car ds-list)))
+                    0))
+         (state (or (and (cdr ds-list) (read-from-string (cadr ds-list)))
+                    (read-from-string (car ds-list)))))
+    (unless (and (integerp depth) (>= depth 0)
+                 (integerp state) (>= state 0))
+      (with-output-chaos-error ('invalid-depth-state)
+        (format t "Invalid depth/state specifier: ~a" ds-string)))
+    (list depth state)))
+
 ;;; show-rwl-sch-graph
 ;;;
 (defun show-rwl-sch-graph (&optional num)
@@ -410,39 +426,39 @@
     (let ((st (find-rwl-sch-state num context)))
       (when st (return-from find-rwl-sch-state-globally (values context st))))))
 
-(defun show-rwl-sch-path (num-tok &optional (label? nil)
-                                            (state-only? nil))
-  (unless num-tok
+(defun show-rwl-sch-path (&optional (ds-string nil)
+                                    (label? nil)
+                                    (state-only? nil))
+
+  (unless ds-string
     (return-from show-rwl-sch-path
-      (format t "~%nothing to be reported...")))
+      (format t "~%Nothing to be reported...")))
   (unless .rwl-context-stack.
     (with-output-chaos-error ('no-context)
-      (format t "~%there is no search context.")))
-  (let ((num (read-from-string num-tok)))
-    (unless (and (integerp num) (>= num 0))
-      (with-output-chaos-error ()
-        (format t "state must be a positive integer value.")))
-    (multiple-value-bind (sch-context dag)
-        (find-rwl-sch-state-globally num)
-      (unless dag
-        (with-output-chaos-error ('no-state)
-          (format t "no such state ~D" num)))
-      (let ((mod (rwl-sch-context-module sch-context)))
-        (when (and *current-module*
-                   (not (eq *current-module* mod)))
-          (with-output-chaos-warning ()
-            (format t "the context(module) of search result is different from the current module.")))
-        (with-in-module (mod)
-          (cond (state-only? (show-rwl-sch-state dag nil (rwl-sch-context-bind sch-context)))
-                (t (let ((parents (get-bdag-parents dag)))
-                     (cond (label?
-                            (dolist (p (cdr parents)) ;root has no transition
-                              (show-rwl-sch-label p))
-                            (show-rwl-sch-label dag))
-                           (t (dolist (p parents)
-                                (show-rwl-sch-state p t (rwl-sch-context-bind sch-context)))
-                              (show-rwl-sch-state dag t (rwl-sch-context-bind sch-context))))))))))))
-
+      (format t "~%There is no search context.")))
+  (let* ((ds-list (parse-depth&state ds-string))
+         (sch-context (or (nth (car ds-list) .rwl-context-stack.)
+                          (with-output-chaos-error ('no-sch-context)
+                            (format t "There is no RWL search context ~d" (car ds-list)))))
+         (dag (find-rwl-sch-state (cadr ds-list) sch-context)))
+    (unless dag
+      (with-output-chaos-error ('no-such-state)
+        (format t "There is no state ~d in context ~d" (cadr ds-list) (car ds-list))))
+    (let ((mod (rwl-sch-context-module sch-context)))
+      (when (and *current-module*
+                 (not (eq *current-module* mod)))
+        (with-output-chaos-warning ()
+          (format t "the context(module) of search result is different from the current module.")))
+      (with-in-module (mod)
+        (cond (state-only? (show-rwl-sch-state dag nil (rwl-sch-context-bind sch-context)))
+              (t (let ((parents (get-bdag-parents dag)))
+                   (cond (label?
+                          (dolist (p (cdr parents)) ;root has no transition
+                            (show-rwl-sch-label p))
+                          (show-rwl-sch-label dag))
+                         (t (dolist (p parents)
+                              (show-rwl-sch-state p t (rwl-sch-context-bind sch-context)))
+                            (show-rwl-sch-state dag t (rwl-sch-context-bind sch-context)))))))))))
 
 ;;; ******************
 ;;; SOME UTILs on TERM
