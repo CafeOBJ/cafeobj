@@ -1448,8 +1448,7 @@
     (dolist (m (cdr list-meth) res)
       (if (method<= res m)
           (setq res m)
-        (unless (method-is-in-same-component res m)
-          (return-from choose-most-general-op nil))))))
+        (return-from choose-most-general-op nil)))))
 
 ;;; choose-lowest-op : ops => or null method
 ;;; NOTE: assumes *current-sort-order* and *current-opinfo-table* are bound to
@@ -1470,8 +1469,7 @@
       (if (method<= m res)
           (setq res m)
         ;; return immediately iff two methods are not comparable
-        (unless (method-is-in-same-component res m)
-          (return-from choose-lowest-op nil))))
+        (return-from choose-lowest-op nil)))
     (when *on-operator-debug*
       (format t "~%--> ")
       (print-chaos-object res))
