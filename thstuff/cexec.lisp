@@ -439,7 +439,7 @@
     (with-output-chaos-error ('no-context)
       (format t "~%There is no search context.")))
   (let* ((ds-list (parse-depth&state ds-string))
-         (sch-context (or (nth (car ds-list) .rwl-context-stack.)
+         (sch-context (or (nth (car ds-list) (reverse .rwl-context-stack.))
                           (with-output-chaos-error ('no-sch-context)
                             (format t "There is no RWL search context ~d" (car ds-list)))))
          (dag (find-rwl-sch-state (cadr ds-list) sch-context)))
