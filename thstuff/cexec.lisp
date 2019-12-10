@@ -71,7 +71,9 @@
   (format stream "~&  rule      :")(print-chaos-object (rule-pat-rule rpat))
   (format stream "~&  subst     :")(print-substitution (rule-pat-subst rpat))
   (format stream "~&  cond-ok   :~a" (rule-pat-cond-ok rpat))
-  (format stream "~&  condition :")(term-print (rule-pat-condition rpat)))
+  (let ((cond (rule-pat-condition rpat)))
+    (when cond
+      (format stream "~&  condition :")(term-print cond))))
 
 ;;; *****
 ;;; STATE
@@ -790,6 +792,24 @@
                          (term-hash-equal (term-builtin-value term))))
         ((term-is-variable? term) (term-hash-eq term))))
 
+; (defun dump-cexec-term-hash (&optional (size term-hash-size))
+;   (let ((mod (get-context-module)))
+;     (unless mod (return-from dump-cexec-term-hash nil))
+;     (with-in-module (mod)
+;       (dotimes (x size)
+;         (let ((ent (svref .cexec-term-hash. x)))
+;           (when ent
+;             (format t "~%[~3d]: ~d entrie(s)" x (length ent))
+;             (dotimes (y (length ent))
+;               (let ((e (nth y ent)))
+;                 (format t "~%(~d)" y)
+;                 (let ((*print-indent* (+ 2 *print-indent*)))
+;                   (term-print (car e))
+;                   (print-next)
+;                   (princ "==>")
+;                   (print-next)
+;                   (term-print (cdr e)))))))))))
+
 (defun dump-cexec-term-hash (&optional (size term-hash-size))
   (let ((mod (get-context-module)))
     (unless mod (return-from dump-cexec-term-hash nil))
@@ -800,13 +820,11 @@
             (format t "~%[~3d]: ~d entrie(s)" x (length ent))
             (dotimes (y (length ent))
               (let ((e (nth y ent)))
-                (format t "~%(~d)" y)
-                (let ((*print-indent* (+ 2 *print-indent*)))
-                  (term-print (car e))
-                  (print-next)
-                  (princ "==>")
-                  (print-next)
-                  (term-print (cdr e)))))))))))
+                (format t "~%(~d) " y) 
+                (term-print (car e))
+                (print-next)
+                (princ "==> ")
+                (princ (cdr e))))))))))
 
 (declaim (inline get-sch-hashed-term))
 (defun  get-sch-hashed-term (term term-hash)
@@ -878,7 +896,13 @@
               (if *rewrite-exec-condition*
                   *rewrite-exec-mode*
                 nil)))
+         (when *cexec-debug* 
+           (format t "~%[withEQ] ")
+           (term-print $$cond))
          (normalize-term $$cond)
+         (when *cexec-debug*
+           (format t "~% = ")
+           (term-print $$cond))
          $$cond)))
     (when (and res *cexec-trace*)
       (format t "~%** state predicate returned `true'."))
@@ -891,12 +915,15 @@
   (or (get-sch-hashed-term term .cexec-term-hash.)
       (let ((pred-pat (rwl-sch-context-state-predicate sch-context)))
         (if pred-pat
-            (maphash #'(lambda (key e)
-                         (declare (ignore key))
-                         (let ((t1 (car e)))
-                           (when (cexec-sch-check-predicate term t1 pred-pat)
-                             (return-from cexec-loop-check (cdr e)))))
-                      .cexec-term-hash.)
+            (dotimes (x term-hash-size nil)
+              (declare (fixnum x))
+              (let ((entry (svref .cexec-term-hash. x)))
+                (when entry
+                  (dotimes (y (length entry))
+                    (declare (type fixnum y))
+                    (let ((t1 (nth y entry)))
+                      (when (cexec-sch-check-predicate term (car t1) pred-pat)
+                        (return-from cexec-loop-check (cdr t2))))))))
           nil))))
 
 ;;; 
