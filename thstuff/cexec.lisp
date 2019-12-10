@@ -923,7 +923,7 @@
                     (declare (type fixnum y))
                     (let ((t1 (nth y entry)))
                       (when (cexec-sch-check-predicate term (car t1) pred-pat)
-                        (return-from cexec-loop-check (cdr t2))))))))
+                        (return-from cexec-loop-check (cdr t1))))))))
           nil))))
 
 ;;; 
