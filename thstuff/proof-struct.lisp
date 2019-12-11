@@ -216,8 +216,8 @@
           (print-axiom-brief (tactic-init-axiom obj))
           (princ " .)")))
       (print-next)
-      (princ "by ")
-      (print-substitution (tactic-init-subst obj)))))
+      (princ "by subst form: ")
+      (princ (tactic-init-subst obj)))))
 
 ;;; :ind as tactic
 ;;;

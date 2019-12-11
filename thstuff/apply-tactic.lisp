@@ -2261,18 +2261,10 @@
 
 ;;; instanciate-axiom
 ;;; 
-(defun instanciate-axiom (target-form subst-form &optional (citp? t) (label nil))
-  (let* ((target-axiom (get-target-axiom *current-module* target-form))
-         (subst (resolve-subst-form *current-module* 
-                                    subst-form 
-                                    (and citp?
-                                         (citp-flag citp-normalize-init)))))
-    (if citp?
-        (instanciate-axiom-in-goal *current-module* target-axiom subst label)
-      (if *open-module*
-          (instanciate-axiom-in-module *current-module* target-axiom subst label)
-        (with-output-chaos-warning ()
-          (princ "no module open."))))))
+(defun instanciate-axiom (goal target-form subst-form &optional (label nil))
+  (let* ((*current-module* (goal-context goal))
+         (target-axiom (get-target-axiom *current-module* target-form)))
+    (instanciate-axiom-in-goal goal target-axiom subst-form label)))
 
 ;;; apply-init-tactic : tactic-init -> void
 ;;; apply :def(ed) :init command to the current goal
@@ -2281,10 +2273,12 @@
   (declare (type ptree-node ptree-node)
            (type tactic-init tactic))
   (let ((goal (ptree-node-goal ptree-node)))
-    (with-in-module ((goal-context goal))
-      (let ((ax (tactic-init-axiom tactic))
-            (subst (tactic-init-subst tactic)))
-        (instanciate-axiom-in-goal *current-module* ax subst)))))
+    (let ((ax (tactic-init-axiom tactic))
+          (subst (tactic-init-subst tactic))
+          (kind (tactic-init-kind tactic)))
+      (instanciate-axiom-in-goal goal ax subst (if (stringp kind)
+                                                   kind
+                                                 nil)))))
 
 ;;; supporting function around :init
 
@@ -2301,8 +2295,11 @@
     (adjoin-axiom-to-module module instance)
     (compile-module module t)))
 
-(defun instanciate-axiom-in-goal (module target-axiom subst &optional (label nil))
-  (with-next-context (*proof-tree*)
+(defun instanciate-axiom-in-goal (goal target-axiom subst-form &optional (label nil))
+  (let* ((module (goal-context goal))
+         (subst (resolve-subst-form module
+                                    subst-form 
+                                    (citp-flag citp-normalize-init))))
     (let ((instance (remove-nonexec (make-axiom-instance module subst target-axiom label))))
       (when (citp-flag citp-normalize-lhs)
         ;; we normalize the LHS of the instance
@@ -2313,13 +2310,12 @@
                 (setf instance n-sen)))))
       ;; input the instance to current context
       (with-in-module (module)
-        (let ((goal (ptree-node-goal .context.)))
-          (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))
-          (format t "~%**> initialized the axiom in goal ~s" (goal-name (ptree-node-goal .context.)))
-          (report-instanciated-axiom instance))
+        (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))
+        (format t "~%**> initialized the axiom in goal ~s" (goal-name goal))
+        (report-instanciated-axiom instance)
         (introduce-instanciated-axiom-to-module instance module)
         (when-citp-verbose ()
-          (pr-goal (ptree-node-goal .context.)))))))
+          (pr-goal goal))))))
 
 (defun instanciate-axiom-in-module (module target-axiom subst &optional (label nil))
   (with-in-module (module)
