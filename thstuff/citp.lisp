@@ -160,23 +160,27 @@
 ;;;
 ;;; :init {[<label>] | (<axiom>)} by { <var> <- <term>; ...<var> <- <term>; }
 ;;;
+;;;   first        second       third four          fifth
 ;;; (":init" ("[" ("test1") "]") "by" "{" (("X:S" "<-" ("X#S")) ";") "}"))
+;;;   first       second           third                                                            fourth
+;;; (":init" ("as" "ts-ss-1") (#1="{" ("eq" ("ts.." "(" "SS:SeqSym" ")") "=" ("true") ".") #3="}") ("by" #1# (("SS:SeqSym" "<-" ("ss")) #2=";" ("XX:Bar" "<-" ("bb")) #2#) #3#)))
+;;; (":init" ("as" "ts-ss-1") (#1="(" ("eq" ("ts.." #1# "SS:SeqSym" #2=")") "=" ("true") ".") #2#) "by"  ("{" ("SS:SeqSym" "<-" ("ss")) ";" "}"))
 ;;;
 (defun make-axiom-pattern (target)
-  (if (equal (first target) "[")
-      (cons :label (second target))
-    (cons :axiom (second target))))
+  (if (stringp target)
+      (cons :label (list target))
+    (cons :axiom target)))
 
 (defun citp-parse-init (args)
   (let ((name (if (equal (first (second args)) "as")
                   (second (second args))
                 nil)))
     (let ((target-form (make-axiom-pattern (if name 
-                                               (third args)
-                                             (second args))))
+                                               (second (third args))
+                                             (second (second args)))))
           (subst-list (if name 
-                          (sixth args)
-                        (fifth args)))
+                          (third (fourth args))
+                        (third (third args))))
           (subst-pairs nil))
       (dolist (subst-form subst-list)
         (unless (atom subst-form)
@@ -298,6 +302,7 @@
 ;;; (":def" "tactic-1" "=" ("(" ("si" "rd" "tc") ")"))
 ;;; ==> (:seq "tactic-1" ("si" "rd" "tc"))
 ;;; (":define" "*disr" "=" (":init" ("[" ("*disr") "]") "by" "{" (("X:PNat.PNAT" "<-" ("X#PNat")) #1=";" ("Y:PNat.PNAT" "<-" ("Y@PNat")) #1# ("Z:PNat.PNAT" "<-" ("Z@PNat")) #1#) "}"))
+;;; (":define" "ts-ss2" "="(":init" ("as" "ts-ss-1") (#1="(" ("eq" ("ts.." #1# "SS:SeqSym" #2=")") "=" ("true") ".") #2#) "by" ("{" ("SS:SeqSym" "<-" ("ss")) ";" "}")))
 ;;; ==> (:init "*disr" nil (":init" ("[" ("*disr") "]") "by" "{" (("X:PNat.PNAT" "<-" #) #1=";" ("Y:PNat.PNAT" "<-" #) #1# ("Z:PNat.PNAT" "<-" #) #1#) "}"))
 
 (defun citp-parse-define (args)

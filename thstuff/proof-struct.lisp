@@ -212,12 +212,15 @@
       (if (eq (first (tactic-init-kind obj)) :label)
           (format stream "[~a]" (second (tactic-init-kind obj)))
         (progn
-          (princ "(")
+          (princ "{")
           (print-axiom-brief (tactic-init-axiom obj))
-          (princ " .)")))
-      (print-next)
-      (princ "by subst form: ")
-      (princ (tactic-init-subst obj)))))
+          (princ " .}")))
+      (if (tactic-init-subst obj)
+          (progn
+            (print-next)
+            (princ "by subst form: ")
+            (princ (tactic-init-subst obj)))
+        (princ ".")))))
 
 ;;; :ind as tactic
 ;;;

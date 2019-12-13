@@ -2187,6 +2187,7 @@
 ;;; resolve-subst-form
 ;;;
 (defun resolve-subst-form (context subst-forms &optional (normalize nil))
+  (unless subst-forms (return-from resolve-subst-form nil))
   (with-in-module (context)
     (let ((subst nil)
           (*parse-variables* nil))
