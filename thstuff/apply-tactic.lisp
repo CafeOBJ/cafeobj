@@ -2239,26 +2239,26 @@
 ;;; terms in resulting axiom must be ground terms.
 ;;;
 (defun make-axiom-instance (module subst axiom &optional (label nil))
-  ;; (declare (type (or null string) label))
   (flet ((make-proper-label (label)
            (if (stringp label)
                (intern label)
              label)))
-    (let ((new-axiom (rule-copy-canonicalized axiom module)))
-      (if subst
-          (apply-substitution-to-axiom (make-real-instanciation-subst subst 
-                                                                      (axiom-variables new-axiom))
-                                       new-axiom 
-                                       (if label
-                                           (make-proper-label label)
-                                         'init)
-                                       (if label
-                                           nil
-                                         t))
-        (setf (rule-labels new-axiom) (if label 
-                                          (make-proper-label label)
-                                        (cons (make-proper-label label) (rule-labels new-axiom)))))
-      new-axiom)))
+    (with-in-module (module)
+      (let ((new-axiom (rule-copy-canonicalized axiom module)))
+        (if subst
+            (apply-substitution-to-axiom (make-real-instanciation-subst subst 
+                                                                        (axiom-variables new-axiom))
+                                         new-axiom 
+                                         (if label
+                                             (make-proper-label label)
+                                           'init)
+                                         (if label
+                                             nil
+                                           t))
+          (setf (rule-labels new-axiom) (if label 
+                                            (make-proper-label label)
+                                          (cons (make-proper-label label) (rule-labels new-axiom)))))
+        new-axiom))))
 
 ;;; instanciate-axiom
 ;;; 
