@@ -340,8 +340,10 @@
         (contra? nil))
     (with-in-module ((goal-context goal))
       (dolist (ax ams)
-        (when (and (is-false? (rule-rhs ax))
-                   (term-is-similar? (rule-lhs ax) (rule-rhs ax)))
+        (when (or (and (is-false? (rule-rhs ax))
+                       (is-true? (rule-lhs ax)))
+                  (and (is-false? (rule-lhs ax))
+                       (is-true? (rule-rhs ax))))
           (when report-header
             (format t "~%[~a] contradictory assumption: " report-header)
             (print-next)
