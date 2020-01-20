@@ -3,9 +3,9 @@
 
   - CITP is officially renamed to PTCalc
     . but documents are not updated yet
-  - PTCalc(CITP) enhacements
+  - PTCalc(CITP) enhancements
     . :init defined by :def is evaluated in the proof node to which it is applied
-    . :init without substitution can be 
+    . :init can be without substitution
   - Search predicate enhancements
     . nested search is properly handled
     . 'show path' accepts state specifier of the form 'depth-state'
