@@ -3,7 +3,7 @@
 PortSystem          1.0
 
 name                cafeobj
-version             1.5.9
+version             1.6.0
 categories          lang
 platforms           linux
 license             BSD
@@ -20,8 +20,8 @@ long_description    \
 homepage            http://cafeobj.org/
 master_sites        http://cafeobj.org/files/${version}
 
-checksums           rmd160  7116d2068e790820aae7e4d81efbed9691e03d65 \
-                    sha256  a4085e9ee060a8a0a22cb7c522c17aa1ccadb5bdce8f90085e08ded3794498d4
+checksums           rmd160  908f9a80dc764892c2667af19df53323eb70bf5d \
+                    sha256  ab97d3cf22d8556524c86540cbb11d4e2eb1ba38cb0198eb068a4493b745d560
 
 depends_build       bin:sbcl:sbcl
 
