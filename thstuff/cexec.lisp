@@ -71,7 +71,9 @@
   (format stream "~&  rule      :")(print-chaos-object (rule-pat-rule rpat))
   (format stream "~&  subst     :")(print-substitution (rule-pat-subst rpat))
   (format stream "~&  cond-ok   :~a" (rule-pat-cond-ok rpat))
-  (format stream "~&  condition :")(term-print (rule-pat-condition rpat)))
+  (let ((cond (rule-pat-condition rpat)))
+    (when cond
+      (format stream "~&  condition :")(term-print cond))))
 
 ;;; *****
 ;;; STATE
@@ -347,6 +349,22 @@
 ;;; SEARCH CONTEXT UTILS
 ;;; *********************
 
+;;; parse-depth&state
+;;;
+(defun parse-depth&state (&optional ds-string)
+  (unless ds-string
+    (return-from parse-depth&state nil))
+  (let* ((ds-list (parse-with-delimiter ds-string #\-))
+         (depth (or (and (cdr ds-list) (read-from-string (car ds-list)))
+                    0))
+         (state (or (and (cdr ds-list) (read-from-string (cadr ds-list)))
+                    (read-from-string (car ds-list)))))
+    (unless (and (integerp depth) (>= depth 0)
+                 (integerp state) (>= state 0))
+      (with-output-chaos-error ('invalid-depth-state)
+        (format t "Invalid depth/state specifier: ~a" ds-string)))
+    (list depth state)))
+
 ;;; show-rwl-sch-graph
 ;;;
 (defun show-rwl-sch-graph (&optional num)
@@ -410,40 +428,39 @@
     (let ((st (find-rwl-sch-state num context)))
       (when st (return-from find-rwl-sch-state-globally (values context st))))))
 
-(defun show-rwl-sch-path (num-tok &optional (label? nil)
-                                            (sch-context .rwl-sch-context.)
-                                            (state-only? nil))
-  (unless num-tok
-    (return-from show-rwl-sch-path
-      (format t "~%nothing to be reported...")))
-  (unless sch-context
-    (with-output-chaos-error ('no-context)
-      (format t "~%there is no search context.")))
-  (let ((num (read-from-string num-tok)))
-    (unless (and (integerp num) (>= num 0))
-      (with-output-chaos-error ()
-        (format t "state must be a positive integer value.")))
-    (multiple-value-bind (sch-context dag)
-        (find-rwl-sch-state-globally num)
-      (unless dag
-        (with-output-chaos-error ('no-state)
-          (format t "no such state ~D" num)))
-      (let ((mod (rwl-sch-context-module sch-context)))
-        (when (and *current-module*
-                   (not (eq *current-module* mod)))
-          (with-output-chaos-warning ()
-            (format t "the context(module) of search result is different from the current module.")))
-        (with-in-module (mod)
-          (cond (state-only? (show-rwl-sch-state dag nil (rwl-sch-context-bind sch-context)))
-                (t (let ((parents (get-bdag-parents dag)))
-                     (cond (label?
-                            (dolist (p (cdr parents)) ;root has no transition
-                              (show-rwl-sch-label p))
-                            (show-rwl-sch-label dag))
-                           (t (dolist (p parents)
-                                (show-rwl-sch-state p t (rwl-sch-context-bind sch-context)))
-                              (show-rwl-sch-state dag t (rwl-sch-context-bind sch-context))))))))))))
+(defun show-rwl-sch-path (&optional (ds-string nil)
+                                    (label? nil)
+                                    (state-only? nil))
 
+  (unless ds-string
+    (return-from show-rwl-sch-path
+      (format t "~%Nothing to be reported...")))
+  (unless .rwl-context-stack.
+    (with-output-chaos-error ('no-context)
+      (format t "~%There is no search context.")))
+  (let* ((ds-list (parse-depth&state ds-string))
+         (sch-context (or (nth (car ds-list) (reverse .rwl-context-stack.))
+                          (with-output-chaos-error ('no-sch-context)
+                            (format t "There is no RWL search context ~d" (car ds-list)))))
+         (dag (find-rwl-sch-state (cadr ds-list) sch-context)))
+    (unless dag
+      (with-output-chaos-error ('no-such-state)
+        (format t "There is no state ~d in context ~d" (cadr ds-list) (car ds-list))))
+    (let ((mod (rwl-sch-context-module sch-context)))
+      (when (and *current-module*
+                 (not (eq *current-module* mod)))
+        (with-output-chaos-warning ()
+          (format t "the context(module) of search result is different from the current module.")))
+      (with-in-module (mod)
+        (cond (state-only? (show-rwl-sch-state dag nil (rwl-sch-context-bind sch-context)))
+              (t (let ((parents (get-bdag-parents dag)))
+                   (cond (label?
+                          (dolist (p (cdr parents)) ;root has no transition
+                            (show-rwl-sch-label p))
+                          (show-rwl-sch-label dag))
+                         (t (dolist (p parents)
+                              (show-rwl-sch-state p t (rwl-sch-context-bind sch-context)))
+                            (show-rwl-sch-state dag t (rwl-sch-context-bind sch-context)))))))))))
 
 ;;; ******************
 ;;; SOME UTILs on TERM
@@ -775,6 +792,24 @@
                          (term-hash-equal (term-builtin-value term))))
         ((term-is-variable? term) (term-hash-eq term))))
 
+; (defun dump-cexec-term-hash (&optional (size term-hash-size))
+;   (let ((mod (get-context-module)))
+;     (unless mod (return-from dump-cexec-term-hash nil))
+;     (with-in-module (mod)
+;       (dotimes (x size)
+;         (let ((ent (svref .cexec-term-hash. x)))
+;           (when ent
+;             (format t "~%[~3d]: ~d entrie(s)" x (length ent))
+;             (dotimes (y (length ent))
+;               (let ((e (nth y ent)))
+;                 (format t "~%(~d)" y)
+;                 (let ((*print-indent* (+ 2 *print-indent*)))
+;                   (term-print (car e))
+;                   (print-next)
+;                   (princ "==>")
+;                   (print-next)
+;                   (term-print (cdr e)))))))))))
+
 (defun dump-cexec-term-hash (&optional (size term-hash-size))
   (let ((mod (get-context-module)))
     (unless mod (return-from dump-cexec-term-hash nil))
@@ -785,13 +820,11 @@
             (format t "~%[~3d]: ~d entrie(s)" x (length ent))
             (dotimes (y (length ent))
               (let ((e (nth y ent)))
-                (format t "~%(~d)" y)
-                (let ((*print-indent* (+ 2 *print-indent*)))
-                  (term-print (car e))
-                  (print-next)
-                  (princ "==>")
-                  (print-next)
-                  (term-print (cdr e)))))))))))
+                (format t "~%(~d) " y) 
+                (term-print (car e))
+                (print-next)
+                (princ "==> ")
+                (princ (cdr e))))))))))
 
 (declaim (inline get-sch-hashed-term))
 (defun  get-sch-hashed-term (term term-hash)
@@ -863,7 +896,13 @@
               (if *rewrite-exec-condition*
                   *rewrite-exec-mode*
                 nil)))
+         (when *cexec-debug* 
+           (format t "~%[withEQ] ")
+           (term-print $$cond))
          (normalize-term $$cond)
+         (when *cexec-debug*
+           (format t "~% = ")
+           (term-print $$cond))
          $$cond)))
     (when (and res *cexec-trace*)
       (format t "~%** state predicate returned `true'."))
@@ -876,12 +915,15 @@
   (or (get-sch-hashed-term term .cexec-term-hash.)
       (let ((pred-pat (rwl-sch-context-state-predicate sch-context)))
         (if pred-pat
-            (maphash #'(lambda (key e)
-                         (declare (ignore key))
-                         (let ((t1 (car e)))
-                           (when (cexec-sch-check-predicate term t1 pred-pat)
-                             (return-from cexec-loop-check (cdr e)))))
-                      .cexec-term-hash.)
+            (dotimes (x term-hash-size nil)
+              (declare (fixnum x))
+              (let ((entry (svref .cexec-term-hash. x)))
+                (when entry
+                  (dotimes (y (length entry))
+                    (declare (type fixnum y))
+                    (let ((t1 (nth y entry)))
+                      (when (cexec-sch-check-predicate term (car t1) pred-pat)
+                        (return-from cexec-loop-check (cdr t1))))))))
           nil))))
 
 ;;; 

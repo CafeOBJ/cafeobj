@@ -329,20 +329,21 @@
         |}|))
 
   (defparameter INIT
-      '((:+ |:init| init |:init!| init!) 
+      '(|:init|
         (:if-present as :symbol)
-        (:one-of (\( (:one-of #.EqDeclaration
-                              #.CeqDeclaration
-                              #.RlDeclaration
-                              #.CRlDeclaration
-                              #.BeqDeclaration
-                              #.BCeqDeclaration
-                              #.BRLDeclaration
-                              #.BCRLDeclaration
-                              #.FoplAXDeclaration)
-                  \))
-                 (\[ (:symbol) \]))
-        |by| |{| ((:! SubstList)) |}|))
+        (:one-of ((:+ |{| \() (:one-of #.EqDeclaration
+                                       #.CeqDeclaration
+                                       #.RlDeclaration
+                                       #.CRlDeclaration
+                                       #.BeqDeclaration
+                                       #.BCeqDeclaration
+                                       #.BRLDeclaration
+                                       #.BCRLDeclaration
+                                       #.FoplAXDeclaration)
+                  (:+ |}| \)))
+                 (\[ :symbol \]))
+        (:if-present by |{| ((:! SubstList)) |}|)))
+
   (defparameter USE
       '(|:use|
         (:one-of (\( (:seq-of :symbol) \))
@@ -351,6 +352,7 @@
                                 (|id:| :chaos-item)
                                 (|identity:| :chaos-item))
                   |}|))))
+
   (defparameter EMBED
       '(|:embed| 
         (:one-of (\( (:seq-of :symbol) \) (:+ as into) :symbol)
@@ -902,7 +904,7 @@
       ;; Substitution
       ;;  variable-1 <- term-1; ... variable-n <- term-n;
       (SubstList ((:! Subst) :append (:seq-of (:! Subst))))
-      (Subst ((:symbol <- :term) \;))
+      (Subst ((:symbol <- :term) (:+ |,| \;)))
       ))                                ; end of *cafeobj-scheme*
   )                                     ; end eval-when
 

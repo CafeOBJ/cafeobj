@@ -395,7 +395,7 @@
                    (:constructor make-module)
                    (:constructor module* (name))
                    (:print-function print-module-object))
-  (print-name nil :type symbol)
+  (print-name nil :type (or symbol string))
   (signature nil :type (or null signature-struct))
                                         ; own signature.
   (axiom-set nil :type (or null axiom-set))

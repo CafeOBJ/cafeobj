@@ -1,3 +1,16 @@
+* CafeOBJ 1.6.0
+===============
+
+  - CITP is officially renamed to PTCalc
+    . but documents are not updated yet
+  - PTCalc(CITP) enhacements
+    . :init defined by :def is evaluated in the proof node to which it is applied
+    . :init without substitution can be 
+  - Search predicate enhancements
+    . nested search is properly handled
+    . 'show path' accepts state specifier of the form 'depth-state'
+  - Several bug fixes
+
 * CafeOBJ 1.5.8
 ===============
 

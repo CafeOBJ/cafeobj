@@ -89,7 +89,7 @@
 ;;; used only for representing top-level modexpr.
 ;;; ** NOT USED.
 ;;;-----------------------------------------------------------------------------
-(deftype modexp () '(or simple-string list))
+(deftype modexp () '(or simple-string list int-instantiation int-plus int-rename view-struct module))
 
 (defparameter .modexp-keywords. '(%modexp %error %plus %rename %instantiation %view))
                                   

@@ -393,7 +393,7 @@
                         (princ ")" stream))))
                    ;; mix fix operators
                    (t (let ((prec-test (and (get-method-precedence hd)
-                                            (< prec (get-method-precedence hd)))) ; was <=
+                                            (<= prec (get-method-precedence hd))))
                             (assoc-test (method-is-associative hd))
                             (token-seq (operator-token-sequence
                                         (method-operator hd)))

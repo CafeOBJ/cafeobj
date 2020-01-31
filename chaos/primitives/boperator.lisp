@@ -1143,8 +1143,9 @@
 ;;;
 (defun method-is-restriction-of (meth1 meth2 &optional (so *current-sort-order*))
   (declare (type method meth1 meth2)
-           (type sort-order so)
-           (optimize (speed 3) (safety 0)))
+           (type sort-order so))
+  ;; (optimize (speed 3) (safety 0)))
+  (unless (and (method-p meth1) (method-p meth2)) (break "HiGo"))
   (and ;;(method-p meth1) (method-p meth2)
        (method-is-of-same-operator meth1 meth2)
        (not (eq meth1 meth2))
@@ -1447,8 +1448,7 @@
     (dolist (m (cdr list-meth) res)
       (if (method<= res m)
           (setq res m)
-        (unless (method-is-in-same-component res m)
-          (return-from choose-most-general-op nil))))))
+        (return-from choose-most-general-op nil)))))
 
 ;;; choose-lowest-op : ops => or null method
 ;;; NOTE: assumes *current-sort-order* and *current-opinfo-table* are bound to
@@ -1469,8 +1469,7 @@
       (if (method<= m res)
           (setq res m)
         ;; return immediately iff two methods are not comparable
-        (unless (method-is-in-same-component res m)
-          (return-from choose-lowest-op nil))))
+        (return-from choose-lowest-op nil)))
     (when *on-operator-debug*
       (format t "~%--> ")
       (print-chaos-object res))

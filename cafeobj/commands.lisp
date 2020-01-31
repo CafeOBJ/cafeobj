@@ -2333,18 +2333,6 @@ to the set of axioms.
 If optional `as <name>` is given, label of the instantiated axiom is overwritten by <name>."
 )
 
-(define ("init")
-    :category :proof
-    :parser citp-parse-init
-    :evaluator eval-citp-init
-    :related ("open")
-    :title "`init [as <name>] { \"[\" <label> \"]\" | \"(\" <sentence> \"\")} by \"{\" <variable> <- <term>; ... \"}\"`"
-    :doc "Instantiates an equation specified by `<label>` by replacing the `<variable>`s 
-in the equation with the respective `<term>`s. The resulting equation is added
-to the set of axioms.
-If optional `as <name>` is given, label of the instantiated axiom is overwritten by <name>."
-    )
-
 (define (":imply" ":imp")
     :category :proof
     :parser citp-parse-imp

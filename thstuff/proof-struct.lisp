@@ -212,12 +212,15 @@
       (if (eq (first (tactic-init-kind obj)) :label)
           (format stream "[~a]" (second (tactic-init-kind obj)))
         (progn
-          (princ "(")
+          (princ "{")
           (print-axiom-brief (tactic-init-axiom obj))
-          (princ " .)")))
-      (print-next)
-      (princ "by ")
-      (print-substitution (tactic-init-subst obj)))))
+          (princ " .}")))
+      (if (tactic-init-subst obj)
+          (progn
+            (print-next)
+            (princ "by subst form: ")
+            (princ (tactic-init-subst obj)))
+        (princ ".")))))
 
 ;;; :ind as tactic
 ;;;
@@ -453,7 +456,8 @@
            (type stream stream)
            (ignore ignore))
   (let ((*print-line-limit* 80)
-        (*print-xmode* :fancy))
+        ;; (*print-xmode* :fancy)
+        )
     (with-in-module ((goal-context goal))
       (if (goal-tactic goal)
           (format stream "~%~a=>~%:goal { ** ~a -----------------------------------------"
@@ -1569,7 +1573,8 @@
            (format nil "~:[ ~;*~]" (node-is-discharged? node))))
     (let ((goal (ptree-node-goal node))
           (*print-line-limit* 80)
-          (*print-xmode* :fancy))
+          ;; (*print-xmode* :fancy)
+          )
       (with-in-module ((goal-context goal))
         (if (goal-tactic goal)
             (format t "[~a]~8T~a~a" (tactic-name (goal-tactic goal)) (goal-name goal) (proved?))
@@ -1583,7 +1588,8 @@
               (print-next)
               (format t "-- assumption~p" (length assumptions))
               (let ((*print-indent* (+ 2 *print-indent*))
-                    (*print-xmode* :fancy))
+                    ;; (*print-xmode* :fancy)
+                    )
                 (dolist (as assumptions)
                   (print-next)
                   (print-axiom-brief as)
