@@ -1,3 +1,10 @@
+cafeobj (1.6.0-1) unstable; urgency=medium
+
+  * new upstream release
+  * bump standards version, no changes necessary
+
+ -- Norbert Preining <norbert@preining.info>  Fri, 31 Jan 2020 12:43:03 +0900
+
 cafeobj (1.5.9-1) unstable; urgency=medium
 
   * new upstream release
