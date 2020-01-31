@@ -35,20 +35,28 @@ files (more or less symmetric to all the others):
 - xbin/cafeobj.in.in
 - make-cafeobj.lisp.in
 
-building for windows
---------------------
+building using SBCL for windows
+-------------------------------
 If Wine is installed, and within wine sbcl is installed, one can create
 a dump for Windows with
 	./configure --enable-windows
 	make
 One can set the used wine prefix with WINEPREFIX. This creates already
-release ready .zip
+release ready .zip (currently broken?).
+
+Comments: 64bit version works, but it seems that the 32bit SBCL version
+has problems running on a 64bit Wine. In this case:
+- configure as usual with ./configure --with-lisp=sbcl on Linux
+- move the files to Windows
+- create dumps/sbcl/ directory
+- run there in cmd.exe (not powershell!): sbcl < make-cafeobj.lisp
+- use the CafeOBJ.exe from the dump/sbcl/ directory
 
 
 building using ACL on Windows
 -----------------------------
 Building distribution tarballs on Windows using ACL requires a few more steps:
-- configure CafeOBJ sources with
+- configure CafeOBJ sources on Linux with
 	./configure
   no special argument is necessary.
 - transfer the files to Windows
