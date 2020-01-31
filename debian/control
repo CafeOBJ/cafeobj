@@ -3,11 +3,10 @@ Section: science
 Priority: optional
 Maintainer: Norbert Preining <norbert@preining.info>
 Build-Depends: debhelper (>= 10), sbcl
-Standards-Version: 4.2.0
+Standards-Version: 4.5.0
 Homepage: http://cafeobj.org/
 Vcs-Git: https://github.com/CafeOBJ/cafeobj.git
 Vcs-Browser: https://github.com/CafeOBJ/cafeobj
-
 
 Package: cafeobj
 Architecture: any
