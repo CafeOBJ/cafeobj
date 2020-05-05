@@ -1,3 +1,11 @@
+cafeobj (1.6.0-3) UNRELEASED; urgency=medium
+
+  * Trim trailing whitespace.
+  * Set upstream metadata fields: Bug-Database, Bug-Submit, Name (from
+    ./configure), Repository, Repository-Browse.
+
+ -- Debian Janitor <janitor@jelmer.uk>  Tue, 28 Apr 2020 15:38:45 +0000
+
 cafeobj (1.6.0-2) unstable; urgency=medium
 
   * add watch file
@@ -62,7 +70,7 @@ cafeobj (1.5.5-1) unstable; urgency=medium
   * cherry pick upstream change to use tikz instead of graffle generated
     images in namespace documentation
   * adjust autoconf files to rebuild all documentation
-  * add texlive-generic-extra to build deps (Closes: #830445) 
+  * add texlive-generic-extra to build deps (Closes: #830445)
   * documentation files: use tikz instead of graffle generated pdf
   * bump standards version, no changes necessary
   * add MotoyaLMaru fonts to build deps for logo

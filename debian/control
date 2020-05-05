@@ -12,15 +12,15 @@ Package: cafeobj
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: new generation algebraic specification and programming language
- CafeOBJ is a most advanced formal specification language which 
+ CafeOBJ is a most advanced formal specification language which
  inherits many advanced features (e.g. flexible mix-fix syntax,
  powerful and clear typing system with ordered sorts, parameteric
  modules and views for instantiating the parameters, and module
  expressions, etc.) from OBJ (or more exactly OBJ3) algebraic
  specification language.
  .
- CafeOBJ is a language for writing formal (i.e. mathematical) 
- specifications of models for wide varieties of software and systems, 
+ CafeOBJ is a language for writing formal (i.e. mathematical)
+ specifications of models for wide varieties of software and systems,
  and verifying properties of them. CafeOBJ implements equational logic
  by rewriting and can be used as a powerful interactive theorem proving
  system. Specifiers can write proof scores also in CafeOBJ and doing
@@ -30,7 +30,7 @@ Description: new generation algebraic specification and programming language
  institutions. The CafeOBJ cube shows the structure of the various
  logics underlying the combination of the various paradigms implemented
  by the language. Proof scores in CafeOBJ are also based on institution
- based rigorous semantics, and can be constructed using a complete set 
+ based rigorous semantics, and can be constructed using a complete set
  of proof rules.
 
 Package: cafeobj-mode
