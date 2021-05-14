@@ -748,9 +748,11 @@
         (let ((xcoarity (method-coarity (car (opinfo-methods x)))))
           (when (or (null arity)        ; constants always ...
                     (equal op-name '("if" "_" "then" "_" "else" "_" "fi"))
+                    t
+                    #||
                     (is-in-same-connected-component* coarity
                                                      xcoarity
-                                                     (module-sort-order mod)))
+                                                     (module-sort-order mod))||#)
 
             (when *chaos-verbose*
               (with-output-simple-msg ()
