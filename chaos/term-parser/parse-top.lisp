@@ -1,6 +1,6 @@
 ;;;-*-Mode:LISP; Package: CHAOS; Base:10; Syntax:Common-lisp -*-
 ;;;
-;;; Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+;;; Copyright (c) 2000-2021, Toshimi Sawada. All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -42,19 +42,16 @@
 (defun simple-parse-from-string (string &optional
                                         (module *current-module*)
                                         (sort *cosmos*))
-  (declare ;; (type simple-string string)
-           (type module module)
+  (declare (type module module)
            (type sort* sort))
   (with-in-module (module)
     (setf string (read-term-from-string string))
-    ;; (prepare-for-parsing module)
     (let ((*parse-variables* nil))
       (simple-parse module string sort))))
 
 (defun simple-parse-from-string* (string &optional
                                          (module *current-module*)
                                          (sort *cosmos*))
-  ;; (prepare-for-parsing module)
   (simple-parse module string sort))
 
 (defvar *parse-raw-parse* 'none)

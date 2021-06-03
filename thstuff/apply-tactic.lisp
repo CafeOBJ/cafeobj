@@ -340,10 +340,11 @@
         (contra? nil))
     (with-in-module ((goal-context goal))
       (dolist (ax ams)
-        (when (or (and (is-false? (rule-rhs ax))
-                       (is-true? (rule-lhs ax)))
-                  (and (is-false? (rule-lhs ax))
-                       (is-true? (rule-rhs ax))))
+        (when (and (is-true? (rule-condition ax))
+                   (or (and (is-false? (rule-rhs ax))
+                            (is-true? (rule-lhs ax)))
+                       (and (is-false? (rule-lhs ax))
+                            (is-true? (rule-rhs ax)))))
           (when report-header
             (format t "~%[~a] contradictory assumption: " report-header)
             (print-next)
@@ -2272,16 +2273,21 @@
 ;;; apply-init-tactic : tactic-init -> void
 ;;; apply :def(ed) :init command to the current goal
 ;;;
-(defun apply-init-tactic (ptree-node tactic)
+(defun apply-init-tactic (ptree-node &optional (tactic .tactic-init.))
   (declare (type ptree-node ptree-node)
            (type tactic-init tactic))
-  (let ((goal (ptree-node-goal ptree-node)))
-    (let ((ax (tactic-init-axiom tactic))
-          (subst (tactic-init-subst tactic))
-          (kind (tactic-init-kind tactic)))
-      (instanciate-axiom-in-goal goal ax subst (if (stringp kind)
-                                                   kind
-                                                 nil)))))
+  (when (goal-is-discharged (ptree-node-goal ptree-node))
+    ;; (format t "~%goal is alredy discharged: ~a" (goal-name (ptree-node-goal ptree-node)))
+    (return-from apply-init-tactic nil))
+  (let ((goal (prepare-next-goal ptree-node tactic))
+        (ax (tactic-init-axiom tactic))
+        (subst (tactic-init-subst tactic))
+        (kind (tactic-init-kind tactic)))
+    (setf (goal-targets goal) (goal-targets (ptree-node-goal ptree-node)))
+    (instanciate-axiom-in-goal goal ax subst (if (stringp kind)
+                                                 kind
+                                               nil))
+    (values t (list goal))))
 
 ;;; supporting function around :init
 

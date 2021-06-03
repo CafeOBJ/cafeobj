@@ -858,10 +858,6 @@
               (reset-context-module real-mod)
             (if auto-context?
                 (change-context (get-context-module t) real-mod)))
-          ;;
-          (unless (module-is-parameter-theory real-mod)
-            (princ " done."))
-          ;;
           real-mod)))))
 
 ;;;=============================================================================
@@ -893,12 +889,9 @@
         (if vw
             (copy-view new-view vw)
             (setq vw new-view))
-        ;;
         (add-depend-relation vw :view (view-src vw))
         (add-depend-relation vw :view (view-target vw))
         (add-view-defn real-name vw)
-        (princ " done.")
-        ;;
         (mark-view-as-consistent vw)
         vw))))
 
