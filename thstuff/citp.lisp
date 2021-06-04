@@ -533,12 +533,11 @@
 ;;; :init
 ;;;
 (defun eval-citp-init (args)
-  (let ((target-goal (ptree-node-goal (get-target-goal-node))))
-    (instanciate-axiom target-goal
-                       (second args)    ; target
-                       (third args)     ; variable-term pairs
-                       (fourth args)    ; label
-                       )))
+  (do-init-immediately (get-target-goal-node)
+    (second args)                       ; target
+    (third args)                        ; variable/term paird
+    (fourth args)                       ; label
+    ))
 
 ;;; :imp
 ;;;

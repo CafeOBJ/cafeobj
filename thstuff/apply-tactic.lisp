@@ -2270,7 +2270,7 @@
          (target-axiom (get-target-axiom *current-module* target-form)))
     (instanciate-axiom-in-goal goal target-axiom subst-form label)))
 
-;;; apply-init-tactic : tactic-init -> void
+;;; apply-init-tactic : tactic-init -> next goals
 ;;; apply :def(ed) :init command to the current goal
 ;;;
 (defun apply-init-tactic (ptree-node &optional (tactic .tactic-init.))
@@ -2288,6 +2288,28 @@
                                                  kind
                                                nil))
     (values t (list goal))))
+
+;;; do-init-immediately : ptree-node axiom-form List<{var term}> label
+;;;
+(defun do-init-immediately (ptree-node target var-terms label)
+  (declare (type ptree-node ptree-node))
+  (with-citp-env ()
+    (when (goal-is-discharged (ptree-node-goal ptree-node))
+        (with-output-chaos-warning ()
+          (format t "** The goal ~s has already been proved!." (goal-name (ptree-node-goal ptree-node)))
+          (return-from do-init-immediately nil)))
+    (initialize-ptree-node ptree-node)
+    (let ((goal (prepare-next-goal ptree-node .tactic-init.)))
+      (setf (goal-targets goal) (goal-targets (ptree-node-goal ptree-node)))
+      (instanciate-axiom goal
+                         target
+                         var-terms
+                         label)
+      (add-ptree-children ptree-node (list goal))
+      (when-citp-verbose ()
+        (dolist (gn (ptree-node-subnodes ptree-node))
+          (pr-goal (ptree-node-goal gn))))
+      (ptree-node-subnodes ptree-node))))
 
 ;;; supporting function around :init
 
@@ -2311,6 +2333,7 @@
       (when (or (is-false? (rule-condition instance))
                 (term-equational-equal (rule-lhs instance) (rule-rhs instance)))
         (let ((na (rule-copy-canonicalized instance module (list '|:nonexec| '|3:1|))))
+          (setf (rule-non-exec na) t)
           (push na aax)))
       ;; case 3:2
       (when (and (is-true? (rule-condition instance))
