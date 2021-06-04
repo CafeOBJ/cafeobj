@@ -68,7 +68,7 @@
     (setf (rule-non-exec rule) nil)
     rule))
 
-(defun rule-copy-canonicalized (rule module &optional label remove-non-exec)
+(defun rule-copy-canonicalized (rule module &optional labels remove-non-exec)
   (with-in-module (module)
     (let* ((new-rule (if remove-non-exec
                          (remove-nonexec (rule-copy rule))
@@ -80,8 +80,8 @@
       (setf (rule-lhs new-rule) (first canon)
             (rule-rhs new-rule) (second canon)
             (rule-condition new-rule) (third canon))
-      (when label
-        (setf (rule-labels new-rule) (append (rule-labels rule) (list label))))
+      (when labels
+        (setf (rule-labels new-rule) (append (rule-labels rule) labels)))
       new-rule)))
 
 ;;; apply-substitution-to-axiom : subst axiom [label] [add] -> axiom'
@@ -99,7 +99,7 @@
                                (rule-labels axiom))
                      ;; overwrite, but preserves :nonexec
                      (if (axiom-non-exec axiom)
-                         (append label :nonexec)
+                         (append label (list '|:nonexec|))
                        label))))
     (setf (rule-labels axiom) new-label)
     axiom))
@@ -2304,27 +2304,79 @@
     (adjoin-axiom-to-module module instance)
     (compile-module module t)))
 
+(defun optimize-instanciated-axiom (module instance)
+  (with-in-module (module)
+    (let ((aax nil))
+      ;; case 3:1
+      (when (or (is-false? (rule-condition instance))
+                (term-equational-equal (rule-lhs instance) (rule-rhs instance)))
+        (let ((na (rule-copy-canonicalized instance module (list '|:nonexec| '|3:1|))))
+          (push na aax)))
+      ;; case 3:2
+      (when (and (is-true? (rule-condition instance))
+                 (and (not (term-equational-equal (rule-lhs instance) (rule-rhs instance)))
+                      (or (is-true? (rule-lhs instance))
+                          (is-false? (rule-lhs instance)))))
+        (let* ((na (rule-copy-canonicalized instance module (list '|3:2|)))
+               (lhs (rule-lhs instance))
+               (rhs (rule-rhs instance)))
+          (setf (rule-lhs instance) rhs)
+          (setf (rule-rhs instance) lhs)
+          (push na aax)))
+      ;; case 3:3
+      (when (and (is-true? (rule-condition instance))
+                 (and (not (term-equational-equal (rule-lhs instance) (rule-rhs instance)))
+                      (not (or (is-true? (rule-lhs instance))
+                               (is-false? (rule-lhs instance))))))
+        (let ((na (rule-copy-canonicalized instance module (list '|3:3|))))
+          (push na aax)))
+      ;; case 3:4
+      (when (and (not (or (is-true? (rule-condition instance))
+                          (is-false? (rule-condition instance))))
+                 (not (term-equational-equal (rule-lhs instance) (rule-rhs instance)))
+                 (or (is-true? (rule-lhs instance))
+                     (is-false? (rule-lhs instance))))
+        (let* ((na (rule-copy-canonicalized instance module (list '|3:4|)))
+               (lhs (rule-lhs instance))
+               (rhs (rule-rhs instance)))
+          (setf (rule-lhs instance) rhs)
+          (setf (rule-rhs instance) lhs)
+          (push na aax)))
+      ;; case 3:5
+      (when (and (not (or (is-true? (rule-condition instance))
+                          (is-false? (rule-condition instance))))
+                 (not (term-equational-equal (rule-lhs instance) (rule-rhs instance)))
+                 (not (or (is-true? (rule-lhs instance))
+                          (is-false? (rule-lhs instance)))))
+        (let ((na (rule-copy-canonicalized instance module (list '|3:5|))))
+          (push na aax)))
+      (nreverse aax))))
+
 (defun instanciate-axiom-in-goal (goal target-axiom subst-form &optional (label nil))
   (let* ((module (goal-context goal))
          (subst (resolve-subst-form module
                                     subst-form 
                                     (citp-flag citp-normalize-init))))
-    (let ((instance (remove-nonexec (make-axiom-instance module subst target-axiom label))))
-      (when (citp-flag citp-normalize-lhs)
-        ;; we normalize the LHS of the instance
-        (with-spoiler-on
-            (multiple-value-bind (n-sen applied?)
-                (normalize-sentence instance module :lhs-only :variable-is-constant)
-              (when applied?
-                (setf instance n-sen)))))
+    (let ((instance (remove-nonexec (make-axiom-instance module subst target-axiom label)))
+          (new-axioms nil))
+      ;; we normalize the instance
+      (with-spoiler-on
+          (multiple-value-bind (n-sen applied?)
+              (normalize-sentence instance module nil :variable-is-constant)
+            (when applied?
+              (setf instance n-sen))))
+      ;; introduce additional axioms
+      (setq new-axioms (optimize-instanciated-axiom module instance))
       ;; input the instance to current context
       (with-in-module (module)
-        (setf (goal-assumptions goal) (append (goal-assumptions goal) (list instance)))
-        (format t "~%**> initialized the axiom in goal ~s" (goal-name goal))
-        (report-instanciated-axiom instance)
-        (introduce-instanciated-axiom-to-module instance module)
+        (when new-axioms
+          (setf (goal-assumptions goal) (append (goal-assumptions goal) new-axioms))
+          (format t "~%**> initialized the axiom in goal ~s" (goal-name goal))
+          (dolist (ax new-axioms)
+            (report-instanciated-axiom ax)
+            (introduce-instanciated-axiom-to-module ax module)))
         (when-citp-verbose ()
-          (pr-goal goal))))))
+           (pr-goal goal))))))
 
 (defun instanciate-axiom-in-module (module target-axiom subst &optional (label nil))
   (with-in-module (module)
@@ -2891,7 +2943,7 @@
           (ngoals nil))
       ;; add given assumptions with generating child nodes
       (dolist (ax (mapcar #'(lambda (x) 
-                              (rule-copy-canonicalized x (goal-context cur-goal) (tactic-name tactic)))
+                              (rule-copy-canonicalized x (goal-context cur-goal) (list (tactic-name tactic))))
                           axs))
         (let ((n-goal (prepare-next-goal cur-node tactic)))
           (with-in-module ((goal-context n-goal))
