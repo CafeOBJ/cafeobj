@@ -695,8 +695,9 @@
                 (reg-report-method m module))))
           (when redundant-methods
             (with-output-simple-msg ()
-              (format t ">> The following operators are detected as redundant,")
-              (format t "~%   due to the above new operators.")
+              (format t ">> The following operators are detected as redundant")
+              (when new-methods
+                (format t "~%   due to the above new operators."))
               (dolist (m redundant-methods)
                 (print-next)
                 (reg-report-method m module))))
