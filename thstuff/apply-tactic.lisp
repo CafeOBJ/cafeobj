@@ -2158,7 +2158,7 @@
                                              nil
                                            t))
           (setf (rule-labels new-axiom) (if label 
-                                            (make-proper-label label)
+                                            (list (make-proper-label label))
                                           (cons (make-proper-label label) (rule-labels new-axiom)))))
         new-axiom))))
 
