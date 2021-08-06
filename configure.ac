@@ -32,9 +32,9 @@ dnl
 AC_INIT([CafeOBJ],[1.6], [], [cafeobj], [http://www.cafeobj.org/])
 AC_CONFIG_SRCDIR([make-cafeobj.lisp.in])
 AC_PREREQ(2.6)
-VMINOR=.0
+VMINOR=.1
 VMEMO=PigNose0.99
-PATCHLEVEL=1
+PATCHLEVEL=
 AC_SUBST(VMINOR)
 AC_SUBST(VMEMO)
 AC_SUBST(PATCHLEVEL)
