@@ -35,7 +35,7 @@ Description: new generation algebraic specification and programming language
 
 Package: cafeobj-mode
 Architecture: all
-Depends: emacsen-common (>= 2.0.8), ${misc:Depends}
+Depends: emacsen-common, ${misc:Depends}
 Recommends: cafeobj
 Description: Emacs major mode for editing CafeOBJ source code
  cafeobj-mode provides syntax highlighting and indentation for CafeOBJ
