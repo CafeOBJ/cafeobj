@@ -3,6 +3,9 @@ cafeobj (1.6.0-3) UNRELEASED; urgency=medium
   * Trim trailing whitespace.
   * Set upstream metadata fields: Bug-Database, Bug-Submit, Name (from
     ./configure), Repository, Repository-Browse.
+  * Use secure URI in Homepage field.
+  * Update standards version to 4.6.1, no changes needed.
+  * Update standards version to 4.6.2, no changes needed.
 
  -- Debian Janitor <janitor@jelmer.uk>  Tue, 28 Apr 2020 15:38:45 +0000
 
