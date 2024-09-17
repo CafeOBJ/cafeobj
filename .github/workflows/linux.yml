@@ -36,4 +36,5 @@ jobs:
       with:
         files: ${{ github.workspace }}/repo/cafeobj-*-sbcl-*Linux.tar.gz
         repo-token: ${{ secrets.GITHUB_TOKEN }}
+        release-tag: ${{ github.ref_name }}
 
