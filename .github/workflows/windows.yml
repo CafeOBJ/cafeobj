@@ -30,9 +30,15 @@ jobs:
     - name: build
       shell: pwsh
       run: make
-    - name: save binary
-      uses: actions/upload-artifact@v4
+    #- name: save binary
+    #  uses: actions/upload-artifact@v4
+    #  with:
+    #    name: cafeobj-sbcl-win64
+    #    path: cafeobj-*-sbcl-win64.zip
+    - name: Release
+      uses: AButler/upload-release-assets@v3.0
       with:
-        name: cafeobj-sbcl-win64
-        path: cafeobj-*-sbcl-win64.zip
+        files: cafeobj-*-sbcl-win64.zip
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
 

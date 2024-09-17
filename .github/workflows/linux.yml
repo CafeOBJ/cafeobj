@@ -26,8 +26,14 @@ jobs:
           cd /work/repo
           ./configure --with-lisp=sbcl --enable-distribution
           make
-    - name: save artifact
-      uses: actions/upload-artifact@v4
+    #- name: save artifact
+    #  uses: actions/upload-artifact@v4
+    #  with:
+    #    name: cafeobj-sbcl-x86_64-linux
+    #    path: ${{ github.workspace }}/repo/cafeobj-*-sbcl-*Linux.tar.gz
+    - name: Release
+      uses: AButler/upload-release-assets@v3.0
       with:
-        name: cafeobj-sbcl-x86_64-linux
-        path: ${{ github.workspace }}/repo/cafeobj-*-sbcl-*Linux.tar.gz
+        files: ${{ github.workspace }}/repo/cafeobj-*-sbcl-*Linux.tar.gz
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
