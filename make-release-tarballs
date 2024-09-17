@@ -3,7 +3,7 @@
 # make-release-tarballs
 # create release tarballs for CafeOBJ
 #
-# Copyright (c) 2014-2018, Norbert Preining. All rights reserved.
+# Copyright (c) 2014-2024, Norbert Preining. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,8 +39,10 @@ shift
 default_components="bin share"
 
 TAR=tar
+OS=Linux
 if [ `uname` = 'Darwin' ] ; then
-  TAR=gnutar
+  TAR=gtar
+  OS=Darwin
 fi
 
 if [ x$vminor = x ] ; then
@@ -79,6 +81,7 @@ for i in $* ; do
     exit 1
   fi
   case `file $dumpfile` in
+  *arm64*)  arch=arm64 ;; # mind the order, Arm64 file give ...64-bit executable arm64
   *32-bit*) arch=x86 ;;
   *64-bit*) arch=x64 ;;
   *) echo "Cannot determine arch of CafeOBJ dump!" >&2 ; exit 1 ;;
@@ -90,7 +93,7 @@ for i in $* ; do
   mv bin/cafeobj.new bin/cafeobj
   chmod ugo+x bin/cafeobj
   echo "Building $sname standalone for $arch`uname` ..."
-  $TAR --numeric-owner --owner=0 --group=0 -cvzf ../cafeobj-$version$vminor-${sname}-${arch}`uname`.tar.gz	\
+  $TAR --numeric-owner --owner=0 --group=0 -cvzf ../cafeobj-$version$vminor-${sname}-${arch}${OS}.tar.gz	\
   	$default_components $distdir
 done
 
