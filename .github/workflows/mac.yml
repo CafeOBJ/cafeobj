@@ -31,6 +31,14 @@ jobs:
     #  with:
     #    name: cafeobj-sbcl-${{ matrix.arch }}-darwin
     #    path: cafeobj-*-sbcl-*Darwin.tar.gz
+    - name: check
+      run: |
+        ls
+        echo "======"
+        pwd
+        echo "======"
+        ls ${{ github.workspace }}
+        echo "======"
     - name: Release
       uses: AButler/upload-release-assets@v3.0
       with:
