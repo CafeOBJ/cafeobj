@@ -92,16 +92,16 @@ making a release
 
 (tentative)
 
-- clean up the git repository (git status --ignored)
 - update version number in
   . configure.ac
   . macport/ports/lang/cafeobj/Portfile
   . doc/refman/reference-manual.md
 - run autoreconf
-- update the ports
-  . cd macport/ports && portindex
 - update the NEWS file
 - commit the changes
+- clean up the git repository (git status --ignored)
+  eg - but be careful, it removes ALL untracked files!
+	git clean -f -x
 - build the source code tarball
   . make-source-tarball
 - build the binary packages:
@@ -113,9 +113,12 @@ making a release
 	./configure --with-lisp=sbcl --enable-distribution
 	make
 	make distclean
-  . for Windows/SBCL
-	./configure --enable-windows
+  . for Windows/SBCL via wine
+	./configure --enable-windows --enable-distribution --enable-wine
 	make
+  . on Windows systems, one must drop the --enable-wine
+- update the ports
+  . cd macport/ports && portindex
 - upload all files to cafeobj.org/files/A.B.C/
 - update the "Download" page on cafeobj.org
 - prepare a release post
