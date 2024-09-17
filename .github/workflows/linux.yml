@@ -26,6 +26,8 @@ jobs:
           cd /work/repo
           ./configure --with-lisp=sbcl --enable-distribution
           make
+          ls
+          pwd
     #- name: save artifact
     #  uses: actions/upload-artifact@v4
     #  with:

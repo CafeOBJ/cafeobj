@@ -31,19 +31,21 @@ jobs:
       shell: pwsh
       run: |
         make
-        pwd || true
         ls || true
+        pwd || true
     #- name: save binary
     #  uses: actions/upload-artifact@v4
     #  with:
     #    name: cafeobj-sbcl-win64
     #    path: cafeobj-*-sbcl-win64.zip
     - name: check
-      run: ls
+      run: |
+        ls
+        ls ${{ github.workspace }}
     - name: Release
       uses: AButler/upload-release-assets@v3.0
       with:
-        files: cafeobj-*-sbcl-win64.zip
+        files: ${{ github.workspace }}/cafeobj-*-sbcl-win64.zip
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         release-tag: ${{ github.ref_name }}
 
