@@ -276,8 +276,7 @@
 		    (update-lowest-parse res)
 		    res)))))
 	    (t (with-output-panic-message ()
-		 (format t "Unkonwn TRAM term ~s is returned.~
-~%  This can happen if signature is not regular..."
+		 (format t "Unknown TRAM term ~s is returned. This can happen if signature is not regular..."
 			 tram-term)
 		 (when (get-context-module)
 		   (context-pop-and-recover))
