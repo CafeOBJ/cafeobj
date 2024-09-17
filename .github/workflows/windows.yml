@@ -1,0 +1,38 @@
+name: Windows
+
+# only build on push of tags
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+
+    runs-on: windows-latest    
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: msys2/setup-msys2@v2
+      with:
+        install: make mingw-w64-x86_64-gcc
+
+    - name: install host sbcl
+      shell: pwsh
+      run: |
+        choco install sbcl
+    - name: configure
+      shell: msys2 {0}
+      run: |
+        PATH=$PATH:"/c/program files/steel bank common lisp"
+        export PATH
+        ./configure --with-lisp=sbcl --with-sbcl=sbcl.exe --enable-windows --enable-distribution
+    - name: build
+      shell: pwsh
+      run: make
+    - name: save binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: cafeobj-sbcl-win64
+        path: cafeobj-*-sbcl-win64.zip
+

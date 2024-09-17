@@ -1,0 +1,31 @@
+name: Mac
+
+# only build on push of tags
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.arch == 'arm64' && 'macos-14' || 'macOS-13' }}
+    timeout-minutes: 60
+    strategy: 
+      matrix:
+        arch: [arm64, x86-64]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: install host sbcl
+      run: brew install sbcl
+    - name: build
+      run: |
+        ./configure --with-lisp=sbcl --enable-distribution
+        make
+    - name: save binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: cafeobj-sbcl-${{ matrix.arch }}-darwin
+        path: cafeobj-*-sbcl-*Darwin.tar.gz
