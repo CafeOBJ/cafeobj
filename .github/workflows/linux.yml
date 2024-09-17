@@ -33,10 +33,18 @@ jobs:
     #  with:
     #    name: cafeobj-sbcl-x86_64-linux
     #    path: ${{ github.workspace }}/repo/cafeobj-*-sbcl-*Linux.tar.gz
+    - name: check
+      run: |
+        pwd
+        echo "==============="
+        ls
+        echo "================="
+        ls ${{ github.workspace }}
+        echo "================"
     - name: Release
       uses: AButler/upload-release-assets@v3.0
       with:
-        files: ${{ github.workspace }}/repo/cafeobj-*-sbcl-*Linux.tar.gz
+        files: ${{ github.workspace }}/cafeobj-*-sbcl-*Linux.tar.gz
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         release-tag: ${{ github.ref_name }}
 

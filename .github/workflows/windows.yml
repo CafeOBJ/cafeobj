@@ -45,7 +45,7 @@ jobs:
     - name: Release
       uses: AButler/upload-release-assets@v3.0
       with:
-        files: ${{ github.workspace }}/cafeobj-*-sbcl-win64.zip
+        files: ${{ github.workspace }}\cafeobj-*-sbcl-win64.zip
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         release-tag: ${{ github.ref_name }}
 
