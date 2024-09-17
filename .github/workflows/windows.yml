@@ -29,12 +29,17 @@ jobs:
         ./configure --with-lisp=sbcl --with-sbcl=sbcl.exe --enable-windows --enable-distribution
     - name: build
       shell: pwsh
-      run: make
+      run: |
+        make
+        pwd || true
+        ls || true
     #- name: save binary
     #  uses: actions/upload-artifact@v4
     #  with:
     #    name: cafeobj-sbcl-win64
     #    path: cafeobj-*-sbcl-win64.zip
+    - name: check
+      run: ls
     - name: Release
       uses: AButler/upload-release-assets@v3.0
       with:

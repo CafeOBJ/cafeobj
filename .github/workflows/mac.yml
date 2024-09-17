@@ -32,7 +32,7 @@ jobs:
     - name: Release
       uses: AButler/upload-release-assets@v3.0
       with:
-        files: ${{ github.workspace }}/repo/cafeobj-*-sbcl-*Darwin.tar.gz
+        files: cafeobj-*-sbcl-*Darwin.tar.gz
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         release-tag: ${{ github.ref_name }}
 
