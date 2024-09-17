@@ -1,7 +1,7 @@
 name: Linux
 
 # only build on push of tags
-on: [push]
+on:
   push:
     tags:
       - '*'
