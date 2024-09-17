@@ -1,0 +1,33 @@
+name: Linux
+
+# only build on push of tags
+on: [push]
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: 'repo'
+    - name: build
+      uses: addnab/docker-run-action@v3
+      with:
+        image: fukamachi/sbcl
+        options: -v ${{ github.workspace }}:/work 
+        run: |
+          apt update
+          apt install -y gcc file
+          cd /work/repo
+          ./configure --with-lisp=sbcl --enable-distribution
+          make
+    - name: save artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: cafeobj-sbcl-x86_64-linux
+        path: ${{ github.workspace }}/repo/cafeobj-*-sbcl-*Linux.tar.gz
