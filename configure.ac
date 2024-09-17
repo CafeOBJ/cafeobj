@@ -2,7 +2,7 @@ dnl configure.ac for Chaos(CafeOBJ)
 dnl apply autoconf to this file for producing a configure script.
 dnl
 dnl Copyright (c) 2000-2018, Toshimi Sawada. All rights reserved.
-dnl Copyright (c) 2014-2018, Norbert Preining. All rights reserved.
+dnl Copyright (c) 2014-2024, Norbert Preining. All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
 dnl modification, are permitted provided that the following conditions
@@ -319,6 +319,13 @@ AC_ARG_ENABLE(windows,
        [enable_windows="${enableval}"],
        [enable_windows=no])
 AC_SUBST(enable_windows)
+
+AC_ARG_ENABLE(wine,
+       [AS_HELP_STRING([--enable-wine],
+          [Prepare for Windows building with Wine])],
+       [enable_wine="${enableval}"],
+       [enable_wine=no])
+AC_SUBST(enable_wine)
 
 AC_ARG_ENABLE(distribution,
        [AS_HELP_STRING([--enable-distribution],

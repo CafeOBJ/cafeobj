@@ -50,6 +50,8 @@ enable_rebuild_doc = @enable_rebuild_doc@
 enable_traditional_layout = @enable_traditional_layout@
 # --enable-windows
 enable_windows = @enable_windows@
+# --enable-wine
+enable_wine = @enable_wine@
 # --enable-distribution
 enable_distribution = @enable_distribution@
 # lispdir of emacs
@@ -155,7 +157,9 @@ ifeq ($(enable_windows),yes)
   prefix = $(srcdir)
   # we only support building 
   lisp = sbcl
+ifeq ($(enable_wine),yes)
   SBCL_INTERPRETER  = wine sbcl
+endif
   # it seems that windows sbcl does not like this cmd line args
   SBCL_BUILDOPTS    = 
   cafeobj_share = $(prefix)/$(PACKAGE)-$(VERSION)-sbcl
@@ -209,15 +213,18 @@ endif
 # used only in creating make-cafeobj.lisp script
 chaos_root = $(srcdir)
 
-# first target when building windows distribution
+# first target when building windows/binary distribution
+make-dist: install-stamp
 ifeq ($(enable_windows),yes)
-make-dist: install-stamp
-	zip -r cafeobj-$(VERSION)$(VMINOR)-sbcl-win32.zip $(cafeobj_bin)
+ifeq ($(enable_wine),yes)
+	# we run under wine, so linux environment has zip
+	zip -r cafeobj-$(VERSION)$(VMINOR)-sbcl-win64.zip $(cafeobj_bin)
+else
+	# We run under windows, the tar there can produce ZIP files with
+	# tar -a ....
+	tar -a -c -f cafeobj-$(VERSION)$(VMINOR)-sbcl-win64.zip $(cafeobj_bin)
 endif
-
-# first target when building binary distributions
-ifeq ($(enable_distribution),yes)
-make-dist: install-stamp
+else ifeq ($(enable_distribution),yes)
 	bash make-release-tarballs $(VERSION) $(VMINOR) $(lisp)
 endif
 
