@@ -1,3 +1,20 @@
+* CafeOBJ 1.6.2
+===============
+
+  - public release
+
+* CafeOBJ 1.6.1
+===============
+
+  - internal release, never really published
+  - change grouping of operators.
+  - :init makes a new goal
+  - Optimize introduced axiom
+  - :init command behaves like :defined one
+  - Fix wrong contradiction check
+  - Fix :init as <Label> causes exception
+  - Fix diagnostic messages of regularity check.
+
 * CafeOBJ 1.6.0
 ===============
 
