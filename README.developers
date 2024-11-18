@@ -77,6 +77,48 @@ Building distribution tarballs on Windows using ACL requires a few more steps:
   This ensures that the interpreter is just opened in the current terminal
   window.
 
+building using SBCL on MacOS
+----------------------------
+homebrew's sbcl installs are now linked dynamically against libzstd from
+homebrew, which makes it impossible to redistribute a CafeOBJ dump that
+runs on MacOS systems without homebrew/zstd being installed.
+
+To work around this, sbcl needs to be recompiled without
+	--with-sb-core-compression
+by removing it from the `args` variable in the 
+[sbcl.rb](https://github.com/Homebrew/homebrew-core/blob/71faebdc06362578ff8d2a92974348da74d26c9a/Formula/s/sbcl.rb#L39C8-L39C34).
+
+Save the modified `sbcl.rb` in a local directory, then run
+```
+brew remove sbcl
+brew install ./sbcl.rb
+```
+which should create a sbcl version that has no dependency on homebrew.
+
+After that, the usual `./configure --with-lisp=sbcl --enable-distribution`
+works as expected, see next section.
+
+Depending on the used hardware, this will give a X86_64 or Arm64 version.
+On a modern Mac device, this will most likely be ARM.
+
+To build SBCL and CafeOBJ for x86_84 Darwin, one can proceed as follow:
+
+- install a x86_64 version of brew (this is independent from the ARM
+  version, which is installed in /opt/brew) by doing:
+```
+arch -x86_64 /bin/bash -c "$(curl fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+- add `/usr/local/bin` to the **front** of your `PATH`
+```
+export PATH=/usr/local/bin:$PATH
+```
+
+- check that `which  brew` returns `/usr/local/bin/brew`
+
+- run `brew install ./sbcl.rb` as above as well as the configure/make for CafeOBJ.
+
+
 building for distribution
 -------------------------
 For the binary distributions there is a switch
